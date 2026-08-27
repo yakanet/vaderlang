@@ -19,18 +19,18 @@ if ! cmp -s build/fp1.c build/fp2.c; then
   exit 1
 fi
 
-# (c) seed freshness : delegated to check-seed.sh, which owns the emission flags
+# (c) seed freshness : delegated to `seed.sh check`, which owns the emission flags
 # (`--release` keeps `#line` out of the seed) — duplicating them here is how a
 # release gate silently stops certifying what it claims to. `--full` forces the
 # real re-emission rather than its git-only shortcut: this is the pre-release
 # check, so it earns the 4 s. VADER pins the compiler to the one build.sh just
 # produced above, so the freshness verdict is about *this* toolchain.
 set +e
-VADER=./build/vader ./bootstrap/check-seed.sh --full --quiet >/dev/null
+VADER=./build/vader ./bootstrap/seed.sh check --full --quiet >/dev/null
 seed_verdict=$?
 set -e
 if [ "$seed_verdict" != 0 ]; then
-  echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
+  echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run bootstrap/seed.sh regenerate" >&2
   exit 1
 fi
 

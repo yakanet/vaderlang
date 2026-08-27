@@ -331,7 +331,7 @@ directory at the repo root holds the generated seed and the tooling :
 bootstrap/
 ├── bootstrap.c        — the seed (generated, uncompressed, committed)
 ├── VERSION            — metadata about the seed
-├── regenerate.sh      — regenerate bootstrap.c from vader/bootstrap/bootstrap.vader
+├── seed.sh            — the seed's lifecycle: check | regenerate | push
 ├── build.sh           — cc (external runtime) → ./build/stage1
 ├── build.ps1          — Windows counterpart (mingw-w64)
 ├── verify.sh          — fixed-point check (Phase 4, on-demand)
@@ -624,7 +624,7 @@ bump when it changes the **emitted call shape** (a pure `.c` body change does no
   growing them (e.g. the lsp) **never** bumps it. This is the whole point of a
   dedicated build-only entrypoint.
 - Bug fixes that don't change emitted C — verify with a dry-run :
-  if `regenerate.sh` produces a byte-identical seed, no bump needed.
+  if `seed.sh regenerate` produces a byte-identical seed, no bump needed.
 
 ### Who bumps, and when — **once per push** (revised 2026-07-28)
 
@@ -643,14 +643,14 @@ proves on every push.
 
 Two things enforce it:
 
-- **`bootstrap/push.sh`** — the happy path. Checks freshness, reseeds and commits
-  if needed, then pushes. Arguments are forwarded to `git push`.
+- **`bootstrap/seed.sh push`** — the happy path. Checks freshness, reseeds and
+  commits if needed, then pushes. Arguments are forwarded to `git push`.
 - **`.githooks/pre-push`** — the safety net for a plain `git push`. Blocks the
   push when the seed is stale. Enable it once per clone with
   `git config core.hooksPath .githooks`. `git push --no-verify` bypasses it ; the
   next push then blocks until you reseed.
 
-Both defer to **`bootstrap/check-seed.sh`**, which owns the question and answers
+Both defer to **`bootstrap/seed.sh check`**, which owns the question and answers
 in exit codes: `0` fresh, `1` stale, `2` could-not-tell. That third code is the
 load-bearing one — a compiler older than the sources would compare its own stale
 output against itself and report *fresh*, a self-consistent lie. Hence the
@@ -659,7 +659,7 @@ asymmetry:
 - the **hook** treats `2` as a warning and lets the push through. Requiring a
   ~1 min 40 `bun run build` before every push would cost far more than the ~60 KB
   a missed reseed adds, and CI still checks that the seed can build the tree.
-- **`push.sh` refuses outright** on `2`, because it is about to *write* the seed,
+- **`seed.sh push` refuses outright** on `2`, because it is about to *write* the seed,
   and reseeding with an out-of-date compiler bakes that compiler's old codegen
   into the committed artefact — where it would then look fresh to anything using
   the same binary.
@@ -669,8 +669,12 @@ The hook's cheap short-circuit costs 0 s: if nothing under `vader/`, `lib/` or
 to compile. That path set is deliberately broader than `bootstrap.vader`'s actual
 import closure — a hand-maintained closure list would silently rot the day an
 import changes, and a false *fresh* is the one answer these tools must never give.
+It is also checked for *existence* before anything else: `git diff --quiet HEAD --
+gone/` exits 0 and `find gone/ …` prints nothing, so a moved source tree would
+otherwise make every test answer "nothing changed" with no source left to check.
+A missing tree is reported as `2`, never as fresh.
 
-`regenerate.sh` is a no-op when the seed comes out byte-identical: it leaves
+`seed.sh regenerate` is a no-op when the seed comes out byte-identical: it leaves
 `VERSION` alone rather than manufacturing a diff from `regenerated_at`. That
 matters under the per-push cadence, which runs it after pushes that only touched
 docs, tests, the lsp or the formatter.
@@ -679,8 +683,10 @@ Otherwise: the contributor whose PR triggers the need. CI failure on step 2 (see
 Phase 3) is the signal. If a PR changes the compiler such that the
 seed becomes stale :
 
-1. Run `bootstrap/regenerate.sh` locally (uses your installed `vader`
-   or the one in `./build/`).
+1. Run `bootstrap/seed.sh regenerate` locally (uses your installed `vader`
+   or the one in `./build/`). It requires a clean tree across every source dir the
+   seed depends on — not just `vader/`, since the seed embeds the stdlib it was
+   compiled with.
 2. Inspect the diff. The seed carries `-diff`, so `git diff` reports it as
    binary ; ask for the two versions explicitly :
    `diff <(git show HEAD:bootstrap/bootstrap.c) bootstrap/bootstrap.c`.
