@@ -3530,10 +3530,25 @@ vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag) {
     vader_atom_cstr_free(p);
 
     /* Create each prefix. Start at 1 so a leading "/" is not treated as a
-     * component to create, and skip repeated separators. */
+     * component to create, and skip repeated separators.
+     *
+     * A Windows drive designator is skipped for the same reason: `C:` is a root,
+     * not a component. `CreateDirectoryA("C:")` fails with ERROR_ALREADY_EXISTS
+     * and the guard below then asks `GetFileAttributesA("C:")`, which means "the
+     * current directory ON DRIVE C:" — a per-drive notion that need not exist in
+     * a process whose working directory is on another drive. GitHub's Windows
+     * runners work from `D:\a\...` while `GetTempPath` hands back a `C:` path,
+     * which is exactly that shape, and it made every `create_dir` under the temp
+     * directory fail with "cannot create parent".
+     *
+     * Guarded to `_WIN32`: on POSIX a directory may legitimately be named `a:`,
+     * and skipping it would refuse to create a path the caller asked for. */
     for (size_t i = 1; i < n; i++) {
         if (buf[i] != '/') continue;
         if (buf[i - 1] == '/') continue;
+#if defined(_WIN32)
+        if (i == 2 && buf[1] == ':') continue;   /* "C:/..." — the drive root */
+#endif
         buf[i] = '\0';
         int rc = vader_mkdir_one(buf);
         buf[i] = '/';
