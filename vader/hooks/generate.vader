@@ -369,6 +369,7 @@ import "std/testing"
 @test test_flush_writes_and_reports_the_module :: fn() -> void {
     root :: join_path(temp_dir(), "vader_gen_probe_flush")
     ctx :: new_build_context(["driver", root])
+    _ :: sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     fresh :: ctx.flush_generated()
     assert_eq(fresh.len(), 1)
@@ -384,6 +385,7 @@ import "std/testing"
     // round loop stops.
     root :: join_path(temp_dir(), "vader_gen_probe_idem")
     ctx :: new_build_context(["driver", root])
+    _ :: sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     first :: ctx.flush_generated()
     assert_eq(first.len(), 1)
@@ -403,6 +405,7 @@ import "std/testing"
     // way is left alone.
     root :: join_path(temp_dir(), "vader_gen_probe_sweep")
     _ :: create_dir(root)
+    _ :: sweep_generated(root)
     mine :: join_path(root, "handwritten.vader")
     _ :: write_file_string(mine, "module \"mine\"\n")
     ctx :: new_build_context(["driver", temp_dir()])

@@ -42,6 +42,12 @@ function stage(fixture: string): string {
   return dir;
 }
 
+// A linked executable as the LINKER named it. `cc -o hello` writes `hello` on
+// Unix and `hello.exe` on Windows — verified with mingw-w64: gcc appends the
+// suffix when `-o` carries no extension. Every assertion about a built binary has
+// to go through this, or it passes on one OS and fails on the other.
+const exeName = (base: string) => (process.platform === "win32" ? `${base}.exe` : base);
+
 const staged: string[] = [];
 
 // A `dist/` bundle is a LAYOUT, not a build: binary at the root, `stdlib/`,
@@ -97,7 +103,7 @@ test("a bundle drives a build with nothing beside the project", async () => {
   expect(err).not.toContain("error[");
   expect(exit).toBe(0);
 
-  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
   const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   expect(ranOut).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
@@ -179,7 +185,7 @@ test("a driver derives JSON serialisers from the structs' field types", async ()
   expect(out).not.toContain("error[");
   expect(exit).toBe(0);
 
-  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
   const [ranOut, ranExit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   expect(ranExit).toBe(0);
   // Every mapping the generator makes, in one line: a string with a quote in it
@@ -252,7 +258,7 @@ test("a driver generates a module, and the built binary runs it", async () => {
   // …and it stayed out of the source tree.
   expect(readdirSync(`${dir}/src`)).toEqual(["main.vader"]);
 
-  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
   const [ranOut, ranExit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   // Left of the slash: the imported module. Right: the file that joined `app`
   // and read the struct's fields.
@@ -315,7 +321,7 @@ test("a driven build sweeps the previous build's generated modules", async () =>
   expect(existsSync(stale)).toBe(false);
   expect(generatedFiles(dir).length).toBe(1);
 
-  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
   const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   expect(ranOut).toContain("Point(x, y) /");
   expect(ranOut).not.toContain("STALE");
@@ -358,8 +364,8 @@ test("the driver produces a working binary", async () => {
   // The whole point of decision 13: a driver is a build system, not an
   // observer. It compiles the project and the result runs.
   const { dir } = await lintBuild();
-  expect(existsSync(`${dir}/hello`)).toBe(true);
-  const ran = Bun.spawn([`${dir}/hello`], { stdout: "pipe", stderr: "pipe" });
+  expect(existsSync(exeName(`${dir}/hello`))).toBe(true);
+  const ran = Bun.spawn([exeName(`${dir}/hello`)], { stdout: "pipe", stderr: "pipe" });
   const [out, exit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   expect(out).toContain("hello");
   expect(exit).toBe(0);
@@ -371,9 +377,7 @@ test("the driven build leaves no artefact in the project root", async () => {
   const { dir } = await lintBuild();
   expect(existsSync(`${dir}/vader_build_entry.vader`)).toBe(false);
   expect(existsSync(`${dir}/vader_build_driver`)).toBe(false);
-  // `cc -o driver` yields `driver.exe` on Windows — the linker names it, not us.
-  const driverExe = process.platform === "win32" ? "driver.exe" : "driver";
-  expect(existsSync(`${dir}/build/driver/${driverExe}`)).toBe(true);
+  expect(existsSync(exeName(`${dir}/build/driver/driver`))).toBe(true);
 }, LONG_BUILD);
 
 test("a project's build.vader runs and reports its own rule", async () => {
@@ -464,6 +468,7 @@ test("leaving the stream at BeforeEmit builds nothing", async () => {
   // canary. Without the assertion, moving emission above `BeforeEmit` would
   // write the binary and the test would still pass.
   expect(existsSync(`${dir}/should-not-exist`)).toBe(false);
+  expect(existsSync(exeName(`${dir}/should-not-exist`))).toBe(false);
 }, LONG_BUILD);
 
 test("the front end runs ONCE for a driver that observes and builds", async () => {
@@ -472,7 +477,7 @@ test("the front end runs ONCE for a driver that observes and builds", async () =
   // `vader build` profile also contains the compiler's pass over the driver
   // itself, which would make the count meaningless.
   const { dir } = await lintBuild();
-  const driver = Bun.spawn([`${dir}/build/driver/driver`, dir], {
+  const driver = Bun.spawn([exeName(`${dir}/build/driver/driver`), dir], {
     cwd: dir, stdout: "pipe", stderr: "pipe", env: { ...process.env, VADER_PROFILE: "1" },
   });
   const [err] = await Promise.all([new Response(driver.stderr).text(), driver.exited]);
