@@ -9,6 +9,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics"
+import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"

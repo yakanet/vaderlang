@@ -21,7 +21,7 @@ module "vader/typecheck"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/types"
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes

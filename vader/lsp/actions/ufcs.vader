@@ -21,7 +21,8 @@
 module "vader/lsp/actions"
 
 import "vader/fmt"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 
 /// The free-call → method-call action. Registered in `registry::all_actions`.
 ufcs_action :: fn() -> CodeAction = CodeAction {
@@ -91,7 +92,7 @@ tu_find_call :: fn(decls: AST.Decl[]) -> AST.CallExpr | null {
 @test
 test_ufcs_converts_free_call :: fn() -> void {
     src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     c :: tu_find_call(parsed.program.decls)
     if c == null {
         assert(false, "expected a call")
@@ -106,7 +107,7 @@ test_ufcs_converts_free_call :: fn() -> void {
 @test
 test_ufcs_declines_no_args :: fn() -> void {
     src :: "g :: fn() -> i32 {\n    return now()\n}\n"
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     c :: tu_find_call(parsed.program.decls)
     if c == null {
         assert(false, "expected a call")
@@ -120,7 +121,7 @@ test_ufcs_declines_no_args :: fn() -> void {
 test_ufcs_declines_method_call :: fn() -> void {
     // Callee is already a field access (`x.f`) — not a bare identifier.
     src :: "g :: fn() -> i32 {\n    return x.f(y)\n}\n"
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     c :: tu_find_call(parsed.program.decls)
     if c == null {
         assert(false, "expected a call")

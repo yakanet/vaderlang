@@ -16,7 +16,7 @@ module "vader/resolver"
 
 import "std/collections"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "toolchain/span"
 
 /// Name → replacement TypeExpr. Built by callers (materialize entry

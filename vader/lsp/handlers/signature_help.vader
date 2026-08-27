@@ -18,7 +18,7 @@ import "std/json"
 import "vader/typecheck"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Build the signature-help payload for the cursor in `params`. Returns
 /// `JsonNull` when the cursor isn't inside a `CallExpr`'s arg list.

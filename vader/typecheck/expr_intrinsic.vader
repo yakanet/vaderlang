@@ -14,7 +14,7 @@ import "vader/diagnostics"
 import "vader/parser"
 import "vader/resolver/symbol"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type-check an `@name(...)` call. Each arg is dispatched per the
 /// intrinsic's `args` spec : `.Value` args go through `check_expr_fn`

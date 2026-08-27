@@ -7,7 +7,7 @@ import "std/collections"
 import "std/iter"
 
 import "vader/diagnostics"
-import "vader/parser"
+import "toolchain/ast"
 import "vader/resolver"
 import "vader/typecheck"
 import "vader/types"

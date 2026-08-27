@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// `T[]` in value position : lower the element for side-effects,
 /// return the metatype value.

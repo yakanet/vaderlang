@@ -30,7 +30,8 @@ import "std/string"
 import "std/sort"
 import "std/iter"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 import "toolchain/span"
 
 /// The organize-imports source action. Registered in `registry::all_source_actions`.
@@ -246,7 +247,7 @@ oi_slice :: fn(source: string, span: Span) -> string {
 import "std/testing"
 
 oi_decls :: fn(src: string) -> AST.Decl[] {
-    return AST.parse_source(src, "t.vader").program.decls
+    return Parse.parse_source(src, "t.vader").program.decls
 }
 
 @test
@@ -340,6 +341,6 @@ test_organize_roundtrip_reparses :: fn() -> void {
         return
     }
     spliced :: rt_splice(src, r)
-    reparsed :: AST.parse_source(spliced, "t.vader")
+    reparsed :: Parse.parse_source(spliced, "t.vader")
     assert(reparsed.errors.len() == 0, "organised imports reparse clean")
 }

@@ -29,7 +29,7 @@ import "std/string" { join as join_strings }
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/pipeline"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 // ---- driving the compilation ----------------------------------------------
 

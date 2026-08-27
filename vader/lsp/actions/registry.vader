@@ -18,7 +18,8 @@ module "vader/lsp/actions"
 
 import "std/string"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 import "toolchain/span"
 
 /// What an action needs to produce its edit. Carries the document source so
@@ -191,7 +192,7 @@ rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
     if results.len() == 0 { return false }
     for i in 0..<results.len() {
         spliced :: rt_splice(src, results[i])
-        reparsed :: AST.parse_source(spliced, "rt.vader")
+        reparsed :: Parse.parse_source(spliced, "rt.vader")
         if reparsed.errors.len() != 0 { return false }
     }
     return true
@@ -244,7 +245,7 @@ t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null
 @test
 test_roundtrip_match_to_if :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
-    parsed :: AST.parse_source(src, "rt.vader")
+    parsed :: Parse.parse_source(src, "rt.vader")
     m :: tm_find_match(parsed.program.decls)
     if m == null {
         assert(false, "expected a match")
@@ -256,7 +257,7 @@ test_roundtrip_match_to_if :: fn() -> void {
 @test
 test_roundtrip_if_to_match :: fn() -> void {
     src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
-    parsed :: AST.parse_source(src, "rt.vader")
+    parsed :: Parse.parse_source(src, "rt.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {
         assert(false, "expected an if")
@@ -268,7 +269,7 @@ test_roundtrip_if_to_match :: fn() -> void {
 @test
 test_roundtrip_ufcs :: fn() -> void {
     src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
-    parsed :: AST.parse_source(src, "rt.vader")
+    parsed :: Parse.parse_source(src, "rt.vader")
     c :: tu_find_call(parsed.program.decls)
     if c == null {
         assert(false, "expected a call")

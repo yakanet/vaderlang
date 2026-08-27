@@ -13,7 +13,7 @@ import "vader/types"
 import "vader/resolver/symbol"
 import "vader/resolver"
 import "vader/typecheck"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
 /// harvest the generic-instance set, and return the cross-module evaluated AST.

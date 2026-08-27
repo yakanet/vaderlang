@@ -17,7 +17,7 @@ module "vader/resolver"
 import "std/string"
 import "std/string_builder"
 import "vader/resolver/symbol"
-import "vader/parser"
+import "toolchain/ast"
 
 export dump_project :: fn(p: ResolvedProject) -> string {
     sb :: StringBuilder {}

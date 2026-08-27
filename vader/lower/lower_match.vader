@@ -18,7 +18,7 @@ module "vader/lower"
 
 import "std/collections"
 import "vader/diagnostics"
-import "vader/parser"
+import "toolchain/ast"
 import "vader/resolver/symbol"
 // `lower_expr` is supplied as a callback ; this breaks the cycle
 // between `lower_expr` (which imports this module) and the body of

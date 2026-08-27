@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections"
 
-import "vader/parser"
+import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/typecheck"
 import "vader/resolver/symbol"

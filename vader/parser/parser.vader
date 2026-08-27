@@ -10,6 +10,7 @@ import "std/char"
 import "std/string_builder"
 import "vader/lexer"
 import "vader/diagnostics"
+import "toolchain/ast"
 import "toolchain/span"
 
 // ============================================================================

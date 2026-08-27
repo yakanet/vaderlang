@@ -9,7 +9,7 @@ module "vader/comptime"
 
 import "std/string_builder"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Evaluate an `IntLitExpr`. The parser stores the unsigned magnitude
 /// (negatives wrap a `UnaryExpr.Neg` around a positive lit), and the

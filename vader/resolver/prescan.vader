@@ -13,7 +13,7 @@ module "vader/resolver"
 import "std/collections"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Walk every ImplDecl in `loaded.module.files` and push R2018 when
 /// neither the for-type nor the trait is owned by `module_id`.

@@ -21,7 +21,7 @@ import "vader/text"
 import "vader/typecheck"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 Rs :: import "vader/resolver"
 import "vader/lexer"
 

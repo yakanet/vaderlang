@@ -107,7 +107,7 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
 
 import "std/testing"
 import "vader/resolver/symbol"
-import "vader/parser"
+import "toolchain/ast"
 
 // A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads
 // `symbol.name` and `args`, so the other Symbol fields are placeholders.

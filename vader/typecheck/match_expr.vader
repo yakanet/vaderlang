@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 // Type-check the literal / range bound expressions embedded directly in a
 // pattern. Literal and range patterns carry scalar exprs (`value`, or

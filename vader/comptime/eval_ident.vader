@@ -15,7 +15,7 @@ import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Evaluate an `IdentExpr`. Path 1 (bound const) wins ; path 2 (type
 /// reference) covers nominal types ; everything else falls back to C4001.

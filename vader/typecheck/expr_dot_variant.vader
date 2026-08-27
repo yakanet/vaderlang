@@ -10,7 +10,7 @@ module "vader/typecheck"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Resolve a `.Variant` against the expected enum slot.
 export infer_dot_variant :: fn(

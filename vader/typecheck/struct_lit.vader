@@ -9,7 +9,7 @@ module "vader/typecheck"
 import "std/string"
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type-check a `StructLitExpr`. Always returns the struct type even
 /// when the body has errors so downstream passes keep flowing.

@@ -9,7 +9,7 @@ module "vader/comptime"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
 /// per `op`. Short-circuits on operand failure (the operand's error

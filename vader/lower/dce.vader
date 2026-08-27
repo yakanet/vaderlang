@@ -22,7 +22,7 @@
 module "vader/lower"
 
 import "std/collections"
-import "vader/parser"
+import "toolchain/ast"
 import "vader/resolver/symbol"
 
 /// Drop functions unreachable from the program roots, returning a new

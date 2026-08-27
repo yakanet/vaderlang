@@ -10,7 +10,7 @@
 module "vader/typecheck"
 
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine, else null.
 ///

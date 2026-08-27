@@ -8,7 +8,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the
 /// operand's family.

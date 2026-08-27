@@ -10,7 +10,7 @@
 
 module "vader/hooks"
 
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 // ---- events ---------------------------------------------------------------
 

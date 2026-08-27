@@ -11,7 +11,7 @@ import "std/collections"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/typecheck"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Result of dependency analysis : the `@comptime const` decls in
 /// evaluation order, plus the diagnostics emitted for any detected

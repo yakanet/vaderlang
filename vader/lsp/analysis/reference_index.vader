@@ -31,7 +31,8 @@ import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/typecheck"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 import "toolchain/span"
 
 /// One recorded reference : a source span + the (import-resolved) Symbol id it
@@ -415,7 +416,7 @@ import "std/testing"
 // Count the identifier spans the walker collects from a parsed source — guards
 // the walker's coverage (parse-only, no resolution needed).
 collect_count :: fn(src: string) -> usize {
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     out: Span[]! = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     return out.len()
@@ -423,7 +424,7 @@ collect_count :: fn(src: string) -> usize {
 
 // Count collected spans whose source text equals `name`.
 idents_named :: fn(src: string, name: string) -> i32 {
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     out: Span[]! = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     sb :: src.bytes()
