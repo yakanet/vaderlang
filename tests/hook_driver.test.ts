@@ -401,6 +401,45 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   expect(ran.stdout).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
 
+test("a shipped library cannot import the compiler (R2034)", async () => {
+  // REASON: the layering invariant, and it needs a file UNDER the library root to
+  // state it — which no diag_corpus fixture can be (that harness dumps a single
+  // file wherever it sits) and no snippet either. Same reason the H6xxx family
+  // lives in this file: a uniform harness cannot reach the shape.
+  //
+  // What it pins: `lib/` holds what the toolchain ships, and none of it may depend
+  // on what INTERPRETS Vader, or a program importing a library would drag the
+  // compiler into its runtime closure. `toolchain/build` is the sole exemption,
+  // because a driver LINKS the compiler by design.
+  //
+  // Not parallel, and it writes into the checkout: the probe has to live under
+  // `lib/` for the provenance test to see it. Removed in `finally`.
+  const ns = `${REPO}/lib/r2034probe`;
+  rmSync(ns, { recursive: true, force: true });
+  mkdirSync(ns, { recursive: true });
+  const proj = mkdtempSync(`${tmpdir()}/vader-r2034-`);
+  staged.push(proj);
+  try {
+    writeFileSync(
+      `${ns}/r2034probe.vader`,
+      'module "r2034probe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
+    );
+    writeFileSync(
+      `${proj}/app.vader`,
+      'module "app"\n\nimport "std/io"\nimport "r2034probe"\n\n'
+        + 'main :: fn() -> i32 {\n    println("${peek()}")\n    return 0\n}\n',
+    );
+    // From the REPO, not the temp dir: the probe lives under the checkout's `lib/`,
+    // which the cwd-relative library root is what finds. A temp cwd resolves no
+    // toolchain at all and the run dies on `std/io` before reaching the point.
+    const ran = await run(["run", `${proj}/app.vader`], { cwd: REPO });
+    expect(ran.stderr).toContain("R2034");
+    expect(ran.stderr).toContain("only `toolchain/build` may");
+  } finally {
+    rmSync(ns, { recursive: true, force: true });
+  }
+}, HEAVY_BUILD);
+
 test.concurrent("a bundled namespace outranks a project module of the same name", async () => {
   // REASON: `lib/` hosts every namespace the toolchain ships, and those are
   // ORDINARY directory names — `std` today, `json` / `cli` / `images` once the

@@ -260,14 +260,34 @@ export library_roots :: fn() -> string[] {
 ///
 /// @param m      the loaded module.
 /// @param roots  from `library_roots()`, hoisted by callers that loop.
-export module_from_library :: fn(m: Module, roots: string[]) -> bool {
+export module_from_library :: fn(m: Module, roots: string[]) -> bool =
+    path_from_library(m.root_dir, roots)
+
+/// True when `path` sits under one of `roots`.
+///
+/// The same question as `module_from_library`, asked of a bare path — which is
+/// what an import site has: a `Span` carries its file, but no `Module`.
+///
+/// @param path   a file or directory path, in the same form as the roots
+///               (relative in a checkout, absolute in a bundle).
+/// @param roots  from `library_roots()`.
+export path_from_library :: fn(path: string, roots: string[]) -> bool {
     for r in roots {
         if r == "" { continue }
-        if m.root_dir == r { return true }
-        if m.root_dir.starts_with("${r}/") { return true }
+        if path == r { return true }
+        if path.starts_with("${r}/") { return true }
     }
     return false
 }
+
+/// The one module under the library root allowed to import `vader/**` — the
+/// build-driver contract, which exists to drive the compiler.
+///
+/// A driver LINKS the compiler (a hook shares its compilation unit: type indices
+/// and atom ids are per-unit), so this cannot be a library that merely reads the
+/// language's shapes. `toolchain/span` and `toolchain/ast` are those, and they
+/// import nothing from `vader/` — which is what lets a library depend on them.
+export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 import "json"
 

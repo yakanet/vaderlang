@@ -190,6 +190,7 @@ export ResolverCode :: enum(u8) {
     AmbiguousWildcardImport,                // R2031
     ConflictingImportForms,                 // R2032
     PlainNameInImportModifiers,             // R2033
+    CompilerImportFromLibrary,              // R2034
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -371,6 +372,7 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .AmbiguousWildcardImport            -> CodeInfo { .id = "R2031", .message = "name is exported by several wildcard-imported modules" }
     .ConflictingImportForms             -> CodeInfo { .id = "R2032", .message = "the same path is imported both bare (wildcard) and with `{ … }` (destructure)" }
     .PlainNameInImportModifiers         -> CodeInfo { .id = "R2033", .message = "a plain name in an `import \"p\" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename)" }
+    .CompilerImportFromLibrary          -> CodeInfo { .id = "R2034", .message = "a shipped library must not import the compiler" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {
