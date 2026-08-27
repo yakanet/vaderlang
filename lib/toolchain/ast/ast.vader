@@ -27,28 +27,45 @@ import "toolchain/span"
 // Sentinel id used at parser construction time, before a future
 // `assign_node_ids` walker replaces it with a fresh unique value (≥ 1).
 // Used as a struct-field default so node constructions can omit `.id`.
+/// Sentinel `id` on a node the parser has just minted.
+///
+/// Node ids are assigned in a later pass (`vader/parser::assign_program_ids`), so a
+/// freshly parsed tree carries this everywhere. A generator reading a typechecked
+/// tree sees real ids; one building nodes by hand leaves them at the default.
 export UNASSIGNED_NODE_ID :: usize(0)
 
 // ============================================================================
 // Type aliases (declared first — see header)
 // ============================================================================
 
+/// Anything that can appear at the top level of a file.
 export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
 
+/// What an `import` binds: a namespace alias, a modifier list, or nothing.
+///
+/// The three forms of SPEC §Modules — `X :: import "p"`, `import "p" { a as b }`,
+/// and the bare `import "p"` wildcard.
 export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImport
 
+/// Which of the three `for` shapes a loop is: `for {}`, `for cond {}`, `for x in xs {}`.
 export ForForm :: InfiniteFor | WhileFor | InFor
 
+/// Any expression. Also serves as `TypeExpr` — see the note there.
 export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
+/// One piece of a string literal: literal text, or an interpolated expression.
 export StringLitPart :: StringLitText | StringLitInterp
 
+/// What follows an `else`: another `if` branch, or a final block.
 export IfElse :: IfElseIf | IfElseBlock
 
+/// Anything that can appear on the left of a `match` arm's `->`.
 export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern | RangePattern | OrPattern
 
+/// What a `::` / `:=` binds: one name, a tuple destructure, `_`, or a rest binding.
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
+/// Inside a struct pattern, what a field is matched against: a binding or a literal.
 export PatternFieldValue :: PatternBinding | PatternLiteral
 
 /// Right operand of `??` (null-coalescing). Either an ordinary value
@@ -73,12 +90,20 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
+/// A type AS WRITTEN — the same node set as `Expr`, deliberately.
+///
+/// Vader's type grammar is a subset of its expression grammar (`i32`, `Foo<T>`,
+/// `A | B`, `fn(i32) -> bool`, `T[]`), so the parser reuses the expression nodes
+/// rather than duplicating them. A reader must not assume an `IdentExpr` in type
+/// position denotes a type it can name: `Id` may be an alias, an imported struct or
+/// a distinct newtype, and only the resolver knows which.
 export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
 // ============================================================================
 // Visibility / shared shapes
 // ============================================================================
 
+/// Whether a declaration carries `export`.
 export Visibility :: enum(u8) {
     Public,
     Private,
@@ -88,6 +113,10 @@ export Visibility :: enum(u8) {
 // Top-level
 // ============================================================================
 
+/// One parsed source file.
+///
+/// `module` is null for a file with no `module "..."` header — an error the resolver
+/// reports rather than the parser.
 export Program :: struct {
     file:    string
     span:    Span
@@ -112,6 +141,10 @@ export ModuleDecl :: struct {
 // Generics / Decorators
 // ============================================================================
 
+/// One entry of a `[T: Bound = Default]` list.
+///
+/// `is_comptime_value` marks a parameter that carries a VALUE rather than a type
+/// (`[N: usize]`), which the comptime engine substitutes.
 export TypeParam :: struct {
     span:               Span
     id:                 usize = UNASSIGNED_NODE_ID
@@ -127,6 +160,7 @@ export TypeParam :: struct {
     is_comptime_value:  bool
 }
 
+/// An `@name` or `@name(args)` above a declaration.
 export Decorator :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
@@ -140,6 +174,7 @@ export Decorator :: struct {
 
 // ---- Import ---------------------------------------------------------------
 
+/// An `import` statement, whatever its form — see `ImportBinding`.
 export ImportDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -167,6 +202,9 @@ export DestructureImport :: struct {
 /// callable (prefix + UFCS) ; binds no name.
 export WildcardImport :: struct {}
 
+/// One `name` or `name as alias` inside an import's modifier list.
+///
+/// `alias` is null for a bare name, which is `R2033`: a wildcard already brings it.
 export ImportName :: struct {
     name:  string
     alias: string | null
@@ -179,6 +217,14 @@ export ImportName :: struct {
 // `sam_synthetic` and `is_expression_bodied` are `bool` (defaults `false`)
 // rather than `bool | null` — Vader has no optional fields. The dumper emits
 // them only when `true`.
+/// A function declaration, `name :: fn(...) -> T { ... }`.
+///
+/// Four flags mark functions the user did not write. `sam_synthetic` is a
+/// single-abstract-method lambda the parser desugared into an impl member;
+/// `materialized` a trait default-method body cloned into an implementing type;
+/// `comptime_synthetic` a declaration the comptime engine produced. And
+/// `is_expression_bodied` distinguishes `f :: fn() = expr` from a braced body,
+/// which the formatter needs and a generator emitting source should preserve.
 export FnDecl :: struct {
     span:                  Span
     id:                  usize = UNASSIGNED_NODE_ID
@@ -210,6 +256,10 @@ export FnDecl :: struct {
     trailing_comma:        bool = false
 }
 
+/// One parameter of a function, lambda or trait method.
+///
+/// `mutable` is the `!` on the parameter's TYPE — a read-only slot by default; see
+/// SPEC §"Read-only by default".
 export FnParam :: struct {
     span:          Span
     id:            usize = UNASSIGNED_NODE_ID
@@ -228,6 +278,11 @@ export FnParam :: struct {
 
 // ---- Struct ---------------------------------------------------------------
 
+/// A struct declaration, `Name :: struct { ... }`.
+///
+/// The node a generator walks most: `fields` in declaration order, each carrying its
+/// written type. `name_span` covers the name alone, which is what a diagnostic about
+/// the struct itself should point at.
 export StructDecl :: struct {
     span:          Span
     id:            usize = UNASSIGNED_NODE_ID
@@ -239,6 +294,10 @@ export StructDecl :: struct {
     decorators:    Decorator[]
 }
 
+/// One field of a struct.
+///
+/// `visibility` is `@internal` — fields are public by default, so this is the opt-out.
+/// `default` backs `T {}` construction with the field omitted.
 export StructField :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -251,6 +310,9 @@ export StructField :: struct {
 
 // ---- Enum -----------------------------------------------------------------
 
+/// An enum declaration, `Name :: enum(u8) { A, B }`.
+///
+/// `repr` is the backing integer type as written, null when defaulted to `i32`.
 export EnumDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -263,6 +325,7 @@ export EnumDecl :: struct {
     decorators: Decorator[]
 }
 
+/// One variant of an enum, with its explicit value when the source gave one.
 export EnumVariant :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -282,6 +345,10 @@ export EnumVariant :: struct {
 // Stored as a parsed type expression — typically a `BinaryExpr(.BitAnd)` chain
 // over trait names but a single trait reference is also valid. `null` for a
 // plain `trait { ... }` declaration without composition.
+/// A trait declaration.
+///
+/// `members` are its methods, each an `FnDecl`; one with a `body` is a default
+/// method. `requires` is a supertrait bound.
 export TraitDecl :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -296,6 +363,10 @@ export TraitDecl :: struct {
 
 // ---- Impl -----------------------------------------------------------------
 
+/// An `implements` block, or its one-method short form.
+///
+/// `for_type` is the implementing type as written, `trait_name` the trait — which is
+/// a bare string rather than a node because a trait is always named, never computed.
 export ImplDecl :: struct {
     span:             Span
     id:               usize = UNASSIGNED_NODE_ID
@@ -310,6 +381,10 @@ export ImplDecl :: struct {
 
 // ---- TypeAlias ------------------------------------------------------------
 
+/// A type alias, `Name :: SomeType`.
+///
+/// A generator resolving a written type must expect to meet one of these: the alias
+/// and its target are indistinguishable in an `IdentExpr`.
 export TypeAliasDecl :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -323,6 +398,10 @@ export TypeAliasDecl :: struct {
 
 // ---- Const ----------------------------------------------------------------
 
+/// A module-level constant, `NAME :: value` or the typed `NAME: T: value`.
+///
+/// `comptime_body` holds the unevaluated expression for a `@comptime` const, whose
+/// `value` is filled in by the comptime engine.
 export ConstDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -344,6 +423,7 @@ export ConstDecl :: struct {
 // `@assert(cond)` — top-level compile-time assertion. The condition
 // is evaluated by the comptime VM ; the build fails with C4015 if
 // the result is `false`. No runtime emission.
+/// An `@assert` at the top level — a build-time invariant.
 export AssertDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -356,6 +436,10 @@ export AssertDecl :: struct {
 // Statements
 // ============================================================================
 
+/// A local binding, `x :: e` or `x := e`.
+///
+/// `mutable` is the `:=` form. Style treats a `:=` that is never reassigned as a
+/// defect, so a generator should emit `::` unless it writes to the slot.
 export LetStmt :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
@@ -368,6 +452,10 @@ export LetStmt :: struct {
 // Recursive let-binding tree. Leaves are `SimpleBinding` (introduces a name)
 // or `WildcardBinding` (ignores the slot). `TupleBinding` matches tuple-typed
 // values element-wise.
+/// A local bound to one name.
+///
+/// `name_span` covers the name alone — the precise target a rename needs, which the
+/// whole-binding `span` is too wide for.
 export SimpleBinding :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -375,12 +463,14 @@ export SimpleBinding :: struct {
     name_span: Span
 }
 
+/// A destructuring local, `[a, b] :: pair`.
 export TupleBinding :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
     elements: LetBinding[]
 }
 
+/// A discarded local, `_ :: e`.
 export WildcardBinding :: struct {
     span: Span
     id: usize = UNASSIGNED_NODE_ID
@@ -389,6 +479,7 @@ export WildcardBinding :: struct {
 // `...name` rest-element of a bracketed binding — collects every slot not
 // consumed by sibling SimpleBindings into a fresh array. Only valid as the
 // last element of a TupleBinding whose source is array-typed.
+/// The `...rest` tail of a destructuring local.
 export RestBinding :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -396,6 +487,7 @@ export RestBinding :: struct {
     name_span: Span
 }
 
+/// An assignment to an existing place, `target = value`.
 export AssignStmt :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -403,12 +495,14 @@ export AssignStmt :: struct {
     value:  Expr
 }
 
+/// An expression evaluated for its effect, its value discarded.
 export ExprStmt :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
     expr: Expr
 }
 
+/// A `return`, with no value for a `void` function.
 export ReturnStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
@@ -425,6 +519,9 @@ export YieldStmt :: struct {
     value: Expr
 }
 
+/// A loop in any of its three forms — see `ForForm`.
+///
+/// `label` is the loop-jump target of `break <label>` / `continue <label>`.
 export ForStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
@@ -436,8 +533,11 @@ export ForStmt :: struct {
     is_comptime: bool = false
 }
 
+/// The `for { ... }` form — no condition, exited by `break` or `return`.
 export InfiniteFor :: struct {}
+/// The `for cond { ... }` form.
 export WhileFor    :: struct { cond: Expr }
+/// The `for x in xs { ... }` form.
 export InFor       :: struct {
     loop_var: LoopVar
     iter:     Expr
@@ -456,31 +556,38 @@ export DestructureVar :: struct { pattern: LetBinding }
 /// itself). Also the lower-synthesised varless `for <coll>` (while→for sugar).
 export DiscardVar     :: struct {}
 
+/// A `break`, optionally naming the loop to leave.
 export BreakStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     label: string | null
 }
 
+/// A `continue`, optionally naming the loop to resume.
 export ContinueStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     label: string | null
 }
 
+/// A `defer`, running its body when the enclosing scope exits.
 export DeferStmt :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
     body: DeferBody
 }
 
+/// A `defer` deferring one statement.
 export DeferStmtBody  :: struct { stmt: Stmt }
+/// A `defer` deferring a block.
 export DeferBlockBody :: struct { block: BlockExpr }
 
 // `Stmt` / `DeferBody` declared after their variant structs — the
 // resolver collects all decl names first then resolves types in a
 // second pass, so use-before-decl order works.
+/// Anything that can appear as a statement in a block.
 export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | YieldStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+/// What a `defer` defers: one statement, or a block.
 export DeferBody :: DeferStmtBody | DeferBlockBody
 
 // ============================================================================
@@ -489,6 +596,10 @@ export DeferBody :: DeferStmtBody | DeferBlockBody
 
 // ---- literals -------------------------------------------------------------
 
+/// An integer literal.
+///
+/// Stored as `u64` whatever the written base. The literal is FREE — it adopts the
+/// surrounding concrete numeric type — so its node carries no width.
 export IntLitExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -499,36 +610,50 @@ export IntLitExpr :: struct {
     value:  u64
 }
 
+/// A float literal.
 export FloatLitExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     value:  f64
 }
 
+/// `true` or `false`.
 export BoolLitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     value: bool
 }
 
+/// The `null` literal.
 export NullLitExpr :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
 }
 
+/// A character literal, stored as its codepoint.
+///
+/// Free like an integer literal: in an integer context it coerces to that width
+/// carrying the codepoint.
 export CharLitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     value: u32
 }
 
+/// A string literal, as the sequence of its parts.
+///
+/// Always a part list, even with no interpolation, so a reader never has to handle
+/// two shapes. A generator emitting source must re-escape `$`, which opens an
+/// interpolation.
 export StringLitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     parts: StringLitPart![]
 }
 
+/// A run of literal text inside a string literal.
 export StringLitText   :: struct { value: string, span: Span, id: usize = UNASSIGNED_NODE_ID }
+/// An interpolated `${...}` inside a string literal.
 export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize = UNASSIGNED_NODE_ID }
 
 // ---- naming / access ------------------------------------------------------
@@ -539,6 +664,11 @@ export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize = UNASSI
 // name — a legacy type-param introduction in a generic signature. Both
 // are `bool` (defaults `false`) ; the dumper emits the JSON keys
 // `implicitDot` / `isTypeParamIntro` only when `true`.
+/// A bare name, in value or type position.
+///
+/// `implicit_dot` marks the `.Variant` form, where the enum type is inferred from
+/// context. `is_type_param_intro` marks a name introducing a type parameter rather
+/// than referring to one.
 export IdentExpr :: struct {
     span:                Span
     id:                  usize = UNASSIGNED_NODE_ID
@@ -547,6 +677,10 @@ export IdentExpr :: struct {
     is_type_param_intro: bool
 }
 
+/// A call, `callee(args)`.
+///
+/// `callee` is an arbitrary expression, so this covers `f(x)`, `a.f(x)` (whose callee
+/// is a `FieldExpr`) and `P.f(x)` alike — UFCS is not distinguished here.
 export CallExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -556,6 +690,9 @@ export CallExpr :: struct {
     trailing_comma: bool = false
 }
 
+/// One argument of a call.
+///
+/// `name` is set for a named argument, `spread` for the `...xs` form.
 export CallArg :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -567,6 +704,9 @@ export CallArg :: struct {
     spread: bool
 }
 
+/// A member access, `target.field`.
+///
+/// `is_numeric` marks a tuple index (`t.0`), whose "field" is a position.
 export FieldExpr :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -578,6 +718,7 @@ export FieldExpr :: struct {
     is_numeric: bool
 }
 
+/// An index, `target[index]`.
 export IndexExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -587,12 +728,14 @@ export IndexExpr :: struct {
 
 // ---- operators ------------------------------------------------------------
 
+/// Which prefix operator a `UnaryExpr` applies.
 export UnaryOp :: enum(u8) {
     Neg,
     Not,
     BitNot,
 }
 
+/// A prefix operator applied to one operand.
 export UnaryExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
@@ -600,6 +743,7 @@ export UnaryExpr :: struct {
     operand: Expr
 }
 
+/// Which infix operator a `BinaryExpr` applies.
 export BinaryOp :: enum(u8) {
     Add, Sub, Mul, Div, Mod,
     Shl, Shr, BitAnd, BitOr, BitXor,
@@ -608,6 +752,10 @@ export BinaryOp :: enum(u8) {
     Is, In, NotIn,
 }
 
+/// An infix operator applied to two operands.
+///
+/// `bind_as` carries the name of an `is T as name` narrowing when the test appears
+/// inside a larger boolean expression.
 export BinaryExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
@@ -636,6 +784,10 @@ export NullCoalesceExpr :: struct {
 
 // ---- control-flow expressions --------------------------------------------
 
+/// An `if`, in statement or value position.
+///
+/// One node for both: in value position the blocks' trailing expressions are the
+/// result, so a generator emitting a conditional value writes this.
 export IfExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -644,9 +796,15 @@ export IfExpr :: struct {
     else_branch: IfElse | null
 }
 
+/// An `else if`, holding the next branch.
 export IfElseIf    :: struct { branch: IfExpr }
+/// A final `else` block.
 export IfElseBlock :: struct { block:  BlockExpr }
 
+/// A `match` over a scrutinee.
+///
+/// `partial` is `@partial` — the match is knowingly non-exhaustive; `unreachable` is
+/// `@unreachable` — the uncovered variants are impossible and trap if reached.
 export MatchExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -666,6 +824,7 @@ export MatchExpr :: struct {
     unreachable: bool = false
 }
 
+/// One arm of a `match`, with its optional `if` guard.
 export MatchArm :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
@@ -674,6 +833,10 @@ export MatchArm :: struct {
     body:    Expr
 }
 
+/// A braced block.
+///
+/// `trailing` is the block's value when it ends in an expression rather than a
+/// statement, which is what makes a block usable in value position.
 export BlockExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
@@ -683,6 +846,7 @@ export BlockExpr :: struct {
 
 // ---- lambdas / literals --------------------------------------------------
 
+/// A lambda, `(x: i32) -> x + 1`.
 export LambdaExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -693,6 +857,10 @@ export LambdaExpr :: struct {
     trailing_comma: bool = false
 }
 
+/// A struct literal, `Point { .x = 1 }`.
+///
+/// `items` mixes fields and spreads in SOURCE order, which a generator must preserve
+/// — a later field overrides an earlier spread.
 export StructLitExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -703,8 +871,10 @@ export StructLitExpr :: struct {
     trailing_comma: bool = false
 }
 
+/// One entry of a struct literal: a field, or a spread.
 export StructLitItem :: StructLitField | StructLitSpread
 
+/// A `.name = value` entry of a struct literal.
 export StructLitField :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -714,6 +884,7 @@ export StructLitField :: struct {
 }
 
 // `...expr` clause in a struct literal.
+/// A `...expr` entry of a struct literal.
 export StructLitSpread :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
@@ -722,6 +893,7 @@ export StructLitSpread :: struct {
 
 // Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"
 // vs "tuple" — the typechecker decides via contextual disambiguation.
+/// An array or tuple literal, `[a, b, c]`.
 export SeqLitExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
@@ -731,6 +903,7 @@ export SeqLitExpr :: struct {
     trailing_comma: bool = false
 }
 
+/// A range, `a..<b` or `a..=b`.
 export RangeExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -750,6 +923,10 @@ export AwaitExpr :: struct {
     inner: Expr
 }
 
+/// An explicit conversion, `T(value)`.
+///
+/// Only a genuine width or representation change needs one — a free literal adopts
+/// its context, so a cast around one is a style defect.
 export CastExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -757,6 +934,7 @@ export CastExpr :: struct {
     value:  Expr
 }
 
+/// An explicit type-argument list, `f[i32]` or `Vec[T]`.
 export GenericInstExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -770,6 +948,7 @@ export GenericInstExpr :: struct {
 // `vader/parser/intrinsics.vader` ; the parser only produces this node for
 // known names — unknown `@name(...)` in expression position still raises
 // P1014.
+/// A call to a compiler intrinsic, `@size_of(T)`.
 export IntrinsicCallExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -780,6 +959,7 @@ export IntrinsicCallExpr :: struct {
     trailing_comma: bool = false
 }
 
+/// A bare `.Variant`, whose enum type comes from context.
 export DotVariantExpr :: struct {
     span:         Span
     id:           usize = UNASSIGNED_NODE_ID
@@ -791,6 +971,9 @@ export DotVariantExpr :: struct {
 // Patterns (for `match`)
 // ============================================================================
 
+/// A type test in a pattern, `is T` — optionally binding via `as`.
+///
+/// `inner` nests a further pattern; `bind_as` names the narrowed value.
 export IsPattern :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
@@ -799,6 +982,7 @@ export IsPattern :: struct {
     bind_as: string | null
 }
 
+/// A struct destructuring pattern.
 export StructPattern :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
@@ -806,12 +990,14 @@ export StructPattern :: struct {
 }
 
 // Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns.
+/// A tuple destructuring pattern.
 export TuplePattern :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
     elements: Pattern[]
 }
 
+/// One field of a struct pattern.
 export StructPatternField :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -820,17 +1006,25 @@ export StructPatternField :: struct {
     value:     PatternFieldValue!
 }
 
+/// A struct-pattern field bound to a name.
 export PatternBinding :: struct { name: string, span: Span, id: usize = UNASSIGNED_NODE_ID }
+/// A struct-pattern field matched against a literal.
 export PatternLiteral :: struct { value: Expr }
 
+/// The `_` pattern.
+///
+/// On a closed union this silences the exhaustiveness check, which is why the style
+/// guide forbids it in value position there.
 export WildcardPattern :: struct { span: Span, id: usize = UNASSIGNED_NODE_ID }
 
+/// A pattern that binds the whole scrutinee to a name.
 export BindingPattern :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
     name: string
 }
 
+/// A pattern matching one enum variant, `.Variant`.
 export EnumVariantPattern :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
@@ -877,6 +1071,9 @@ export OrPattern :: struct {
 
 // Function type `fn(T1, T2) -> R` — type-only AST node (no value-side
 // counterpart).
+/// A function type as written, `fn(i32) -> bool`.
+///
+/// `params_mutable` carries the `!` of each parameter, positionally.
 export FnTypeExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -893,6 +1090,7 @@ export FnTypeExpr :: struct {
 // Postfix array type `T[]` — type-only AST node. The bracketed form
 // `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead. Mutability is not a
 // field here : it is the `MutableTypeExpr` wrapper below, one level at a time.
+/// An array type as written, `T[]`.
 export ArrayTypeExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
