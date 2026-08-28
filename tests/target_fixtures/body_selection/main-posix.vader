@@ -1,0 +1,7 @@
+// Two OSes share one body — this is what the plan means by "enumeration, not
+// families": no `.Posix` value, the list IS the family.
+
+module "main"
+
+@target(.Darwin, .Linux)
+platform_tag :: fn() -> string = "posix"

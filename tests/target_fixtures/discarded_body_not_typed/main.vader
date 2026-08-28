@@ -1,0 +1,15 @@
+// The property this whole mechanism rests on: a body whose `@target` does not
+// match the compilation target is NEVER TYPED — not merely dropped from the
+// artefact. `main-windows.vader` carries a deliberate type error; it must be
+// invisible everywhere except on Windows.
+
+module "main"
+
+import "std/io"
+
+@target
+export platform_tag :: fn() -> string = "posix"
+
+main :: fn() -> void {
+    println(platform_tag())
+}

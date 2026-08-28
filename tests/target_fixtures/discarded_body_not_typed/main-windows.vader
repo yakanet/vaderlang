@@ -1,0 +1,8 @@
+// The Windows body — and it does not typecheck. `platform_tag` is declared
+// `-> string`; this returns an i32. On any other target the body is discarded
+// before resolution, so the error must not surface at all.
+
+module "main"
+
+@target(.Windows)
+platform_tag :: fn() -> string = 42

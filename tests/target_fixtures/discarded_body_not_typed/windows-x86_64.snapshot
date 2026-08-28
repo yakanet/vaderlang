@@ -1,0 +1,5 @@
+# Diagnostics
+main-windows.vader:8:44: error[T3001]: type mismatch — expected `string`, got `i32`
+
+# Selected body
+(none — the only candidate failed to typecheck)

@@ -1,0 +1,6 @@
+# Diagnostics
+main-windows.vader:4:1: error[R2036]: `@target` body matches no declaration
+  `platform_tag` has no `@target` declaration in module `main`
+
+# Selected body
+(none)

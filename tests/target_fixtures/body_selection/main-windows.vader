@@ -1,0 +1,4 @@
+module "main"
+
+@target(.Windows)
+platform_tag :: fn() -> string = "windows"

@@ -1,0 +1,18 @@
+// Body selection and one-level precedence. Three candidates for one
+// declaration: the general body carried by the `@target` declaration itself,
+// and two specialised bodies. A body whose list matches the target beats the
+// general one; with no match, the general body is what runs.
+//
+// `.Wasi` matches no specialised body, so it exercises the fallback.
+
+module "main"
+
+import "std/io"
+
+/// A tag naming the family this build selected.
+@target
+export platform_tag :: fn() -> string = "fallback"
+
+main :: fn() -> void {
+    println(platform_tag())
+}
