@@ -113,7 +113,7 @@ test("corpus is well-formed", () => {
         problems.push(`${fx.name}: snapshot names an unknown target '${target}'`);
       }
       const body = readFileSync(path, "utf8");
-      for (const section of ["# Diagnostics", "# Selected body"]) {
+      for (const section of ["# Diagnostics", "# Selected body", "# Baked"]) {
         if (!body.includes(section)) {
           problems.push(`${fx.name}/${target}: snapshot has no '${section}' section`);
         }

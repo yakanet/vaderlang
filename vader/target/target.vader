@@ -183,3 +183,21 @@ import "std/testing"
         assert(parse_arch(arch.to_string()) == arch, "round trip ${arch.to_string()}")
     }
 }
+
+@test test_the_c_runtime_agrees_with_the_enum :: fn() -> void {
+    // `current_os()` reads the C runtime, which returns ORDINALS it hardcodes
+    // (`vader_runtime.c::vader_current_os`); `VADER_OS` is baked from the enum
+    // the compiler parsed. Nothing else makes the two agree — reorder `Os` and
+    // the C keeps returning the old numbers, silently, with `current_os()`
+    // naming the wrong platform on every machine.
+    //
+    // This test runs natively, so the compilation target IS the running
+    // platform and the two MUST match. It fails on all three CI runners the
+    // moment they drift. It says nothing about a cross-compiled build, where
+    // they are meant to differ.
+    assert(current_os() == VADER_OS, "current_os ${current_os().to_string()} vs VADER_OS ${VADER_OS.to_string()}")
+    assert(
+        current_arch() == VADER_ARCH,
+        "current_arch ${current_arch().to_string()} vs VADER_ARCH ${VADER_ARCH.to_string()}",
+    )
+}

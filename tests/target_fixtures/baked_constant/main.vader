@@ -5,12 +5,18 @@
 // The distinction it exists for: this is the target the build is FOR.
 // `std/target::current_os()` answers the other question — the platform the
 // program is RUNNING on — and the two differ whenever a build is cross-compiled.
+//
+// The value is pinned by the `# Baked` section, which reads the constants back
+// out of the module the compiler GENERATED. Nothing else can: the emitted C
+// keeps BOTH branches of an `if VADER_OS == …` in its atom table, so the folded
+// one is indistinguishable there — measured, after a first attempt at reading
+// the C reported all four literals for every target.
 
 module "main"
 
 import "std/target"
 
-SEP :: if VADER_OS == Os.Windows { "BACKSLASH" } else { "SLASH" }
+SEP :: if VADER_OS == Os.Windows { "\\" } else { "/" }
 
 main :: fn() -> i32 {
     if SEP == "" {

@@ -17,6 +17,7 @@ import "vader/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/resolver"
 import "vader/resolver/symbol"
+import "vader/target"
 import "vader/types"
 import "toolchain/span"
 
@@ -1730,6 +1731,17 @@ populate_core_symbols :: fn(
             entry_typed.run_async_main_symbol = async_loaded.collected.symbols["run_async_main"]
         }
     }
+    // The baked target constants, BEFORE core's early-returns: a stdlib-less
+    // snippet has no `std/core` but still gets `VADER_OS` seeded, and bridging
+    // its type must not depend on core being present.
+    //
+    // `build_core_seed` puts the symbol in scope so the NAME resolves; without
+    // this the TYPE never arrives, and an untyped const reads as `?` — which
+    // panics the emitter on a method receiver and lowers a `match` silently to
+    // `unreachable`. Seeding a symbol and bridging its type are two halves of
+    // the same act; shipping one without the other is what made `VADER_OS`
+    // assignable to a `string`.
+    populate_baked_symbols(entry_typed, project, per_module)
     core_id :: find_core_module_id(project) ?? return
     core_loaded :: project.modules[core_id] ?? return
     core_typed :: per_module[core_id]
@@ -1739,6 +1751,24 @@ populate_core_symbols :: fn(
     for [_, other] in per_module {
         if other.resolved.path != entry_typed.resolved.path {
             populate_core_symbols_into(other, core_loaded, core_typed)
+        }
+    }
+}
+
+// The type half of the baked-module seed — see `populate_core_symbols_into`,
+// which does the same job for `std/core`.
+populate_baked_symbols :: fn(
+    entry_typed: TypedProgram!,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram!>,
+) -> void {
+    baked_loaded :: project.modules[BAKED_FOLDER] ?? return
+    baked_typed :: per_module[BAKED_FOLDER] ?? return
+    for [_, sym] in baked_loaded.collected.symbols {
+        t :: baked_typed.decl_types[sym.id] ?? continue
+        entry_typed.external_types[sym.id] = t
+        for [_, other] in per_module {
+            other.external_types[sym.id] = t
         }
     }
 }

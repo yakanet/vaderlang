@@ -1,5 +1,9 @@
 # Diagnostics
 [main-windows.vader:8:34] error[T3020] function body returns a value incompatible with its declared return type: expected string, got {integer}
 
+# Baked
+VADER_OS = Os.Windows
+VADER_ARCH = Arch.X86_64
+
 # Selected body
 main$platform_tag <- main-windows.vader:8

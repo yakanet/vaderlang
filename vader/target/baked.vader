@@ -54,11 +54,17 @@ export baked_module_source :: fn(t: Target) -> string {
         "",
         "import \"std/target\"",
         "",
+        // The type ascription is LOAD-BEARING, and so is the type bridge in
+        // `typecheck/orchestrate.vader::populate_baked_symbols`. Measured both
+        // ways: with only one of them, `VADER_OS` assigns to a `string` without
+        // a diagnostic, `"${VADER_OS}"` renders the ordinal, and a `match` over
+        // it lowers silently to `unreachable`. Seeding a symbol puts its NAME in
+        // scope; nothing carries its TYPE unless both halves are there.
         "/// The operating system this build is FOR. Selects code through `@target`.",
-        "export VADER_OS :: Os.${os_variant(t.os)}",
+        "export VADER_OS: Os: Os.${os_variant(t.os)}",
         "",
         "/// The architecture this build is FOR. Parameterises values; selects nothing.",
-        "export VADER_ARCH :: Arch.${arch_variant(t.arch)}",
+        "export VADER_ARCH: Arch: Arch.${arch_variant(t.arch)}",
         "",
     ]
     return lines.join("\n")
@@ -89,8 +95,10 @@ import "std/testing"
 
 @test test_baked_source_names_both_constants :: fn() -> void {
     src :: baked_module_source(Target { .os = .Darwin, .arch = .Arm64 })
-    assert("export VADER_OS :: Os.Darwin" in src, "VADER_OS is baked")
-    assert("export VADER_ARCH :: Arch.Arm64" in src, "VADER_ARCH is baked")
+    // The ASCRIPTION is asserted, not just the name: dropping it is what makes
+    // `VADER_OS` untyped, and untyped it assigns to a `string` in silence.
+    assert("export VADER_OS: Os: Os.Darwin" in src, "VADER_OS is baked, and typed")
+    assert("export VADER_ARCH: Arch: Arch.Arm64" in src, "VADER_ARCH is baked, and typed")
 }
 
 @test test_baked_source_declares_its_module :: fn() -> void {

@@ -26,10 +26,14 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
     out :: MutableMap<string, Symbol> {}
     // The baked target constants ride in the same seed as `std/core`, and for the
     // same reason: `VADER_OS` has to be reachable from a file that imports
-    // nothing, or the "lightweight" half of the target model is a lie. It is
-    // absent when no `--target=` was given (nothing to bake) exactly as `std/core`
-    // is absent from a stdlib-less snippet — both leave the seed smaller rather
-    // than failing.
+    // nothing, or the "lightweight" half of the target model is a lie. Since the
+    // default target landed there is always something to bake, so this is absent
+    // only where `std/target` itself is unreachable — a stdlib-less snippet,
+    // exactly as `std/core` is. Both leave the seed smaller rather than failing.
+    //
+    // This puts the NAME in scope. Its TYPE arrives separately, through
+    // `typecheck/orchestrate.vader::populate_baked_symbols` — seeding one
+    // without the other is what let `VADER_OS` assign to a `string`.
     baked :: project.modules[BAKED_FOLDER]
     if baked is LoadedModule as bm {
         for [name, sym] in bm.collected.symbols {

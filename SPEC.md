@@ -3248,6 +3248,8 @@ none) that one value would hide the difference that matters.
 
 ```vader
 // path.vader — the declaration. Carries the signature, the export, the doc.
+import "std/string"
+
 /// True iff the path is absolute.
 @target
 export is_absolute :: fn(p: string) -> bool = p.starts_with("/")

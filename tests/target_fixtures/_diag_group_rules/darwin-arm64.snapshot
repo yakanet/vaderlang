@@ -8,6 +8,10 @@
 [main.vader:25:1] error[T3053] function defined more than once with the same signature in a module: `overlapping` is already defined with the same signature in this module
 [main.vader:25:1] warning[W0007] declaration is never used in its module: `overlapping` is never used
 
+# Baked
+VADER_OS = Os.Darwin
+VADER_ARCH = Arch.Arm64
+
 # Selected body
 main$leaky <- main.vader:16
 main$ok <- main.vader:13

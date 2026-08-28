@@ -1,5 +1,9 @@
 # Diagnostics
 (none)
 
+# Baked
+VADER_OS = Os.Wasi
+VADER_ARCH = Arch.Wasm32
+
 # Selected body
 main$platform_tag <- main.vader:14

@@ -2,8 +2,8 @@
 (none)
 
 # Baked
-VADER_OS = Os.Darwin
-VADER_ARCH = Arch.Arm64
+VADER_OS = Os.Windows
+VADER_ARCH = Arch.X86_64
 
 # Selected body
 (none)
