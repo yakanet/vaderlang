@@ -25,23 +25,14 @@
         <configurationType implementation="dev.vaderlang.intellij.VaderRunConfigurationType"/>
         <runConfigurationProducer implementation="dev.vaderlang.intellij.VaderRunConfigurationProducer"/>
         <!-- Green ▶ gutter icon on a top-level `main ::` in a .vader file.
-             Vader is TextMate-highlighted (no PSI), so this attaches to the
-             TextMate `main` leaf — gated to *.vader inside the contributor. -->
+             ⚠️ MEASURED NOT TO FIRE (2026-08-29). A `.vader` file has no PSI
+             Language (see the LSP block below), and IntelliJ runs no gutter-
+             marker pass on such a file — a sibling provider registered for both
+             `textmate` and `TEXT` logged nothing at all, on either. Kept because
+             it costs nothing and starts working the day `.vader` gets a real
+             FileType; do not read its presence as evidence the icon appears. -->
         <runLineMarkerContributor language="textmate"
                                   implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerContributor"/>
-        <!-- `(I)` gutter icon on a bare `@target` declaration, like Java's
-             "is implemented by". Same TextMate-leaf technique as the ▶ above;
-             the bodies are found by scanning the folder, since a Vader module
-             IS a folder (R2022) and every body of a group lives in it. -->
-        <codeInsight.lineMarkerProvider language="textmate"
-                                        implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
-        <!-- AND plain text. Which language a `.vader` file resolves to is not
-             answerable outside a running IDE — "no PSI Language registered"
-             (see the LSP block below) means it is whatever IntelliJ falls back
-             to. Registering both costs one no-op call; guessing wrong costs
-             silence, which is how the ▶ above went unnoticed. -->
-        <codeInsight.lineMarkerProvider language="TEXT"
-                                        implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
         <applicationConfigurable
             instance="dev.vaderlang.intellij.VaderConfigurable"
             id="dev.vaderlang.intellij.config"
