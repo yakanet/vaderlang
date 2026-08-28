@@ -1,0 +1,104 @@
+// vader/target/baked — the target constants, as a module the compiler writes.
+//
+// `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
+// per build. But they must behave like any other module-level constant — visible
+// to the comptime evaluator, foldable into a `SEP :: if VADER_OS == …`, nameable
+// in an `@target`-free program — and the cheapest way to get all of that is to
+// GENERATE the module rather than to invent a channel for injected values.
+//
+// So the compiler emits ~six lines of ordinary Vader, hands them to the loader
+// through the same overlay the LSP uses for unsaved buffers, and the module is
+// parsed, collected and seeded exactly like `std/core`. No new mechanism: three
+// existing ones, composed.
+//
+// The enums themselves are NOT generated — they live in `std/target`, written by
+// hand, documented and tested. Only the two values are baked, which keeps the
+// generated text small enough to be obviously correct.
+
+module "vader/target"
+
+import "std/string"
+import "std/target"
+
+/// Module name of the generated constants. Distinct from `std/target`, which is
+/// hand-written: a program may import either, and only this one changes between
+/// builds.
+export BAKED_MODULE :: "std/target/baked"
+
+/// Virtual path the generated source is served from. It is never on disk — the
+/// loader reads it through the overlay — but it must look like a real path,
+/// because diagnostics and spans name it and a reader has to be able to tell
+/// where it came from.
+export BAKED_PATH :: "<baked>/std/target/baked/baked.vader"
+
+/// Render the generated module for `t`.
+///
+/// The output is ordinary Vader, deliberately: it is what makes the constants
+/// comptime-foldable without a single line of special-casing downstream. It also
+/// means `vader dump` can show it, and that a puzzled reader can be handed the
+/// six lines rather than an explanation.
+///
+/// @param t  the compilation target this build is for.
+/// @return   the module source, ending in a newline.
+export baked_module_source :: fn(t: Target) -> string {
+    lines: string[] = [
+        "// Generated per build by `vader/target/baked` — never on disk, never edited.",
+        "// The compilation target, baked. See `std/target::current_os` for the OTHER",
+        "// question: the platform this program is RUNNING on.",
+        "",
+        "module \"${BAKED_MODULE}\"",
+        "",
+        "import \"std/target\"",
+        "",
+        "/// The operating system this build is FOR. Selects code through `@target`.",
+        "export VADER_OS :: Os.${os_variant(t.os)}",
+        "",
+        "/// The architecture this build is FOR. Parameterises values; selects nothing.",
+        "export VADER_ARCH :: Arch.${arch_variant(t.arch)}",
+        "",
+    ]
+    return lines.join("\n")
+}
+
+// Variant spellings, which are NOT the `Display` names: `Os.Darwin`, not
+// `Os.darwin`. Keeping them separate from `std/target`'s Display impl is
+// deliberate — one is what a human reads, the other is what the parser must
+// accept, and conflating them would make a rename of either silently break the
+// other.
+os_variant :: fn(os: Os) -> string = match os {
+    .Windows -> "Windows"
+    .Linux   -> "Linux"
+    .Darwin  -> "Darwin"
+    .Wasi    -> "Wasi"
+    .Browser -> "Browser"
+}
+
+arch_variant :: fn(arch: Arch) -> string = match arch {
+    .X86_64 -> "X86_64"
+    .Arm64  -> "Arm64"
+    .Wasm32 -> "Wasm32"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_baked_source_names_both_constants :: fn() -> void {
+    src :: baked_module_source(Target { .os = .Darwin, .arch = .Arm64 })
+    assert("export VADER_OS :: Os.Darwin" in src, "VADER_OS is baked")
+    assert("export VADER_ARCH :: Arch.Arm64" in src, "VADER_ARCH is baked")
+}
+
+@test test_baked_source_declares_its_module :: fn() -> void {
+    src :: baked_module_source(Target { .os = .Linux, .arch = .X86_64 })
+    assert("module \"std/target/baked\"" in src, "declares the module")
+    assert("import \"std/target\"" in src, "imports the enums it names")
+}
+
+@test test_variant_spelling_is_not_the_display_name :: fn() -> void {
+    // `Os.Windows`, not `Os.windows` — the parser needs the variant, a reader
+    // gets the Display form. A rename of one must not silently follow the other.
+    src :: baked_module_source(Target { .os = .Windows, .arch = .X86_64 })
+    assert("Os.Windows" in src, "variant case is preserved")
+    assert_eq(Os.Windows.to_string(), "windows")
+}
