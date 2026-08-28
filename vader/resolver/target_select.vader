@@ -30,6 +30,7 @@ module "vader/resolver"
 import "std/collections"
 import "std/string"
 import "toolchain/ast"
+import "vader/diagnostics"
 import "std/target"
 import "vader/target"
 
@@ -42,7 +43,17 @@ import "vader/target"
 /// @param files   the module's parsed files.
 /// @param target  the compilation target, or null to disable selection.
 /// @return        files whose programs hold only the selected declarations.
-export select_target_bodies :: fn(files: SourceFile[], target: Target | null) -> SourceFile[] {
+export select_target_bodies :: fn(
+    files: SourceFile[],
+    target: Target | null,
+    diags: Diagnostic[]!,
+) -> SourceFile[] {
+    // Group well-formedness is checked BEFORE any filtering, and therefore for
+    // every target rather than only the one being built. That is what makes a
+    // misspelled body an error on the machine that wrote it instead of a surprise
+    // on whichever platform compiles it next — the matcher sees all the
+    // candidates, so it may as well judge them all.
+    check_groups(files, diags)
     if target == null {
         return files
     }
@@ -76,6 +87,10 @@ export select_target_bodies :: fn(files: SourceFile[], target: Target | null) ->
                 kept.push(kept_decl)
             }
         }
+        // Spans are NOT rewritten — each declaration keeps the ones it was parsed
+        // with, so diagnostics name the file it was written in and file-scoped
+        // import resolution stays correct once the resolver moves to file scope
+        // (TODO §1.13d).
         out.push(
             SourceFile {
                 .path = f.path,
@@ -89,13 +104,69 @@ export select_target_bodies :: fn(files: SourceFile[], target: Target | null) ->
                 },
                 .id_factory = f.id_factory,
             },
-        )        // Spans are NOT rewritten — each declaration keeps the ones it was
-        // parsed with, so diagnostics name the file it was written in and
-        // file-scoped import resolution stays correct once the resolver
-        // moves to file scope (TODO §1.13d).
-
+        )
     }
     return out
+}
+
+// Every `@target(.X)` body must belong to a group: a bare `@target` declaration
+// of the same name must exist to carry the envelope. Without that rule,
+// `@target(.X)` would be a body in one file and a declaration in another, and
+// telling which would mean looking elsewhere in the module — the one non-local
+// question the model otherwise avoids.
+//
+// A body may not carry `export` for the same reason: the declaration owns the
+// visibility, so a body carrying its own would make a group's public surface
+// depend on which target you built.
+check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
+    bare :: MutableMap<string, bool> {}
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                sel :: target_selectors(fd.decorators)
+                if sel == null {
+                    continue
+                }
+                if sel.len() == 0 {
+                    bare[fd.name] = true
+                }
+            }
+        }
+    }
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                sel :: target_selectors(fd.decorators)
+                // Two statements, not `sel == null || sel.len() == 0`: narrowing
+                // crosses `&&` but NOT `||` (TODO), so the second operand would
+                // still see `Os[] | null` and fail with T3008.
+                if sel == null {
+                    continue
+                }
+                if sel.len() == 0 {
+                    continue
+                }
+                if bare[fd.name] == null {
+                    diags.push(
+                        resolver_error(
+                            .TargetBodyWithoutDeclaration,
+                            fd.name_span,
+                            "`${fd.name}` has no bare `@target` declaration in this module",
+                        ),
+                    )
+                }
+                if fd.visibility == .Public {
+                    diags.push(
+                        resolver_error(
+                            .TargetBodyCarriesExport,
+                            fd.name_span,
+                            "`${fd.name}` is a body ; the bare `@target` declaration carries `export`",
+                        ),
+                    )
+                }
+            }
+        }
+    }
 }
 
 // What a declaration becomes for this target: itself, a merge, or nothing.
@@ -120,13 +191,11 @@ resolve_decl :: fn(
             }
             return graft_body(fd, w)
         }
-        // A specialised body. The winner has already been folded into the
-        // declaration above, so it must not appear a second time; a loser is
-        // simply gone. The only case where one survives on its own is a group
-        // with NO bare declaration, where the body IS the declaration.
-        if !matches_target(sel, target) { return null }
-        if bare[fd.name] != null        { return null }
-        return d
+        // A specialised body never survives on its own: the winner was folded
+        // into the declaration above, a loser is simply gone, and an orphan was
+        // already reported by `check_groups`. Keeping one would mean a group
+        // whose public surface changes with the target.
+        return null
     }
     return d
 }

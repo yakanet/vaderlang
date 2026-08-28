@@ -1,0 +1,18 @@
+// The two rules that keep `@target(.X)` ALWAYS a body and never a declaration.
+//
+// Without them, telling one from the other would mean looking elsewhere in the
+// module for a bare `@target` of the same name — the one non-local question the
+// model otherwise avoids. Both are checked BEFORE selection, so they fire on
+// every target rather than only on the one being built: a typo is an error on
+// the machine that wrote it, not a surprise on whichever platform compiles it
+// next.
+
+module "main"
+
+@target
+export ok :: fn() -> i32 = 1
+
+@target
+leaky :: fn() -> i32 = 5
+
+main :: fn() -> i32 = ok()

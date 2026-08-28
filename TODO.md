@@ -48,6 +48,22 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 - [x] **Call-site function names lose their color under the LSP** (fixed 2026-07-26). Server side was already right — both callee shapes are tagged `Function` (asserted end-to-end by `test_call_sites_are_tagged_function`). The cause was the COLOUR KEY, not a missing mapping: LSP4IJ's `DefaultSemanticTokensColorsProvider` maps `function` → `LSP_FUNCTION`, whose fallback is `DefaultLanguageHighlighterColors.FUNCTION_CALL` — a key themes leave at the default foreground, while the TextMate scope `entity.name.function.call.vader` IS coloured. So the semantic token replaced a coloured scope with an uncoloured key (tell-tale: the same call inside a string interpolation, where no AST token is emitted, stayed blue). Fix: `VaderSemanticTokensFeature` returns `null` for `function` — LSP4IJ null-checks the key and skips the highlight, leaving the grammar's colour in place. Everything else delegates to LSP4IJ's default, so its user-configurable `LSP_*` colour keys are preserved.
 
 
+- [ ] **Null-narrowing crosses `&&` but not `||`** (found 2026-08-28, writing `vader/resolver/target_select.vader`). The two short-circuit operators are treated asymmetrically, and only one of them is right:
+
+  ```vader
+  f :: fn(xs: i32[] | null) -> i32 {
+      if xs != null && xs.len() == 0 { return 1 }   // compiles
+      if xs == null || xs.len() == 0 { return 1 }   // T3008
+      return 0
+  }
+  ```
+
+  `T3008: no 'len' overload accepts a receiver of type 'i32[] | null' — narrow the union with if/match first`. But it IS narrowed: in `a || b`, `b` is only evaluated when `a` is FALSE, so after `xs == null` the remaining case is `xs != null` — precisely the fact `&&` already exploits in the mirror position. Whatever computes the narrowing for the right operand of `&&` needs the negated form for `||`.
+
+  Cost of not having it: every `if x == null || <use x>` guard — the natural way to write an early return over two conditions — has to be split into two statements. Cheap to work around, invisible until you hit it, and the diagnostic points at the code rather than at the gap.
+
+  ⚠️ Note for whoever reproduces this: the SEED's compiler does not have T3008 here and **panics in midir/emit** instead (`no field 'len' on 'null | Os[]'`), so a `bootstrap/build.sh` failure on this shape looks like a lowering bug rather than a missing narrowing. Same defect, two eras.
+
 - [ ] **`"${Enum.Variant}"` interpolates the ORDINAL, not the `Display` form** (found 2026-08-28, while writing `std/target`). An enum's `implements Display` is honoured everywhere except in an interpolation of a **qualified literal**, where the value falls back to its integer discriminant. Measured on a six-line repro:
 
   ```vader

@@ -1,0 +1,11 @@
+module "main"
+
+// R2036 — no bare `@target orphan` anywhere in the module. This is the typo
+// case: the body was meant to implement something, and names nothing.
+@target(.Windows)
+orphan :: fn() -> i32 = 3
+
+// R2037 — the declaration owns the visibility. A body carrying its own would
+// make the group's public surface depend on which target you built.
+@target(.Windows)
+export leaky :: fn() -> i32 = 4

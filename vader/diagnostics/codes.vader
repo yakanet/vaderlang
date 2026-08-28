@@ -192,6 +192,8 @@ export ResolverCode :: enum(u8) {
     PlainNameInImportModifiers,             // R2033
     CompilerImportFromLibrary,              // R2034
     UnknownTargetSelector,                  // R2035
+    TargetBodyWithoutDeclaration,           // R2036
+    TargetBodyCarriesExport,                // R2037
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -375,6 +377,8 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .PlainNameInImportModifiers         -> CodeInfo { .id = "R2033", .message = "a plain name in an `import \"p\" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename)" }
     .CompilerImportFromLibrary          -> CodeInfo { .id = "R2034", .message = "a shipped library must not import the compiler" }
     .UnknownTargetSelector              -> CodeInfo { .id = "R2035", .message = "unknown target selector" }
+    .TargetBodyWithoutDeclaration       -> CodeInfo { .id = "R2036", .message = "`@target` body matches no declaration" }
+    .TargetBodyCarriesExport            -> CodeInfo { .id = "R2037", .message = "`@target` body carries `export`" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {

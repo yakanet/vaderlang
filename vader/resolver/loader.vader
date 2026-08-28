@@ -357,7 +357,7 @@ ingest_module :: fn(
     // Target selection happens HERE — after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
-    sources :: select_target_bodies(parsed, target)
+    sources :: select_target_bodies(parsed, target, diags)
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001 —
     // the failure mode that reverted the earlier lazy attempt.
