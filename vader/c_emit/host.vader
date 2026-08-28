@@ -173,6 +173,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // boxing — the coupling to the enum's declaration order is stated in
     // `vader.h` and in `std/target`.
     .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }
+    .TargetCurrentArch -> { return "${head} { return vader_current_arch(); }" }
 
     // Served by the VM only — primitive Equals/Display, surfaced there by erased
     // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.

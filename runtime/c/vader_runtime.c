@@ -3714,6 +3714,21 @@ int32_t vader_current_os(void) {
 #endif
 }
 
+/* Ordinals must match `std/target::Arch`, declaration order. Unsupported is a
+ * build error for the same reason as the OS: guessing an architecture would be
+ * wrong in the one place the answer is trusted. */
+int32_t vader_current_arch(void) {
+#if defined(__wasm32__) || defined(__wasm__)
+    return 2;   /* Arch.Wasm32 */
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    return 1;   /* Arch.Arm64 */
+#elif defined(__x86_64__) || defined(_M_X64)
+    return 0;   /* Arch.X86_64 */
+#else
+#  error "vader_current_arch: unsupported architecture - add it to std/target::Arch first"
+#endif
+}
+
 vader_bool_t vader_is_tty(int32_t stream) {
     /* Index by Stream tag: Stdout = 0, Stderr = 1. */
     static int cache[2] = { -1, -1 };

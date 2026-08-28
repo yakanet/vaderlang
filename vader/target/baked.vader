@@ -31,6 +31,10 @@ export BAKED_MODULE :: "std/target/baked"
 /// where it came from.
 export BAKED_PATH :: "<baked>/std/target/baked/baked.vader"
 
+/// Virtual folder the generated module is keyed by in `LoadedProject.modules`.
+/// Distinct from any real path, so it can never collide with a module on disk.
+export BAKED_FOLDER :: "<baked>/std/target/baked"
+
 /// Render the generated module for `t`.
 ///
 /// The output is ordinary Vader, deliberately: it is what makes the constants

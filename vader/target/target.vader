@@ -34,6 +34,17 @@ export Target :: struct {
 /// @param t  the target.
 export display_target :: fn(t: Target) -> string = "${t.os.to_string()}-${t.arch.to_string()}"
 
+/// The target this machine IS — the default a build assumes when `--target=` is
+/// not given.
+///
+/// Reads the running platform rather than the compilation one, which is the only
+/// answer that is right in every case: a compiler emitting for Windows from a Mac
+/// still runs on the Mac, and it is the Mac's filesystem it must resolve paths
+/// against while doing so.
+///
+/// @return  the host's OS and architecture.
+export host_target :: fn() -> Target = Target { .os = current_os(), .arch = current_arch() }
+
 // ---- parsing --------------------------------------------------------------
 
 /// Why a target string could not be read. Carries the offending fragment so the

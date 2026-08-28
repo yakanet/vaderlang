@@ -499,6 +499,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .TargetCurrentOs -> {
         return Trap { .message = "current_os: not served by this VM build" }
     }
+    .TargetCurrentArch -> {
+        return Trap { .message = "current_arch: not served by this VM build" }
+    }
     .EnvGetEnv -> {
         name :: read_string(stack[arg_base], at_pc, "get_env name")
         if name is Trap { return name }
@@ -559,7 +562,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // emit of the same source would differ. That is exactly what `seed.sh check`
     // compares byte-for-byte, so letting this through would make the committed
     // seed unreproducible across platforms.
-    .TargetCurrentOs -> true
+    .TargetCurrentOs | .TargetCurrentArch -> true
     // Raw mode mutates the terminal and reads keystrokes; the width is whatever
     // the window happens to be. Nothing here bakes reproducibly.
     .TtyRawModeBegin | .TtyRawModeEnd | .TtyColumns | .TtyReadKeys -> true

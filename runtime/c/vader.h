@@ -1171,6 +1171,9 @@ vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
  * compiled on another would otherwise carry the wrong answer.
  */
 int32_t        vader_current_os(void);
+/* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
+ * same reason, as `vader_current_os` above. */
+int32_t        vader_current_arch(void);
 vader_bool_t   vader_is_tty(int32_t stream);
 vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
 

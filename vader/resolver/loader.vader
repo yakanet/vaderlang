@@ -22,6 +22,7 @@ import "vader/diagnostics"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver/symbol"
+import "vader/target"
 import "toolchain/span"
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
@@ -194,6 +195,24 @@ export load_project_with_overlay :: fn(
                 }
                 _ -> {}
             }
+            // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
+            // AFTER the natural BFS for the same reason `std/string_builder` is:
+            // the natural module load order — and thus symbol-id assignment —
+            // stays identical to a build that never asked for them.
+            //
+            // The module is VIRTUAL: its source is generated per build and served
+            // through the overlay, never written to disk. A copy on disk would be
+            // a second source of truth, and it would be wrong on the first
+            // cross-compile.
+            //
+            // Skipped when `std/target` is absent — a single-file snippet without
+            // the stdlib — exactly as `build_core_seed` returns an empty map
+            // without `std/core`: the constants name `Os` and `Arch`, so with no
+            // module to name them from there is nothing to bake.
+            // ⚠️ NOT CALLED YET — see `load_baked_target`. The call needs
+            // `host_target()`, hence `current_os()`, an intrinsic the SEED does
+            // not know; stage0 refuses to emit it and bootstrap step [2/3] dies.
+            // Wired in the commit that reseeds.
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
@@ -214,6 +233,42 @@ export load_project_with_overlay :: fn(
 // module, then enqueue its imports. Shared by the entry BFS and the
 // std/string_builder force-load so both follow identical ingestion logic
 // (and so the force-load can run as a separate, order-preserving pass).
+// ⚠️ TRANSITIONAL: written, tested by hand, NOT yet called — the call site is
+// commented out above with the reason. It needs `host_target()`, which needs the
+// `current_os` intrinsic, which the committed seed does not know: stage0 refuses
+// an unwired host import and the bootstrap dies at step [2/3]. The reseed commit
+// restores the call.
+@allow_unused
+// Generate and ingest the baked-constants module. Requires `std/target`, which
+// declares the enums the constants name; loads it first if the natural BFS did
+// not, so that `VADER_OS` is available to a program that never imported anything.
+load_baked_target :: fn(
+    modules: MutableMap<string, LoadedModule>!, bases: IncludePath[],
+    index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
+    overlay: MutableMap<string, string>, factory: SymbolFactory!,
+    node_factory: NodeIdFactory!, target: Target,
+) -> void {
+    std_target :: resolve_lazy("std/target", bases, index, diags)
+    if std_target is null { return }
+    if !has_module(modules, std_target.folder) {
+        pre: DiscoveredModule[]! = [std_target]
+        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory)
+    }
+    // A COPY of the overlay: the parameter is read-only, and the baked source is
+    // this call's business, not the caller's.
+    with_baked :: MutableMap<string, string> {}
+    for [path, text] in overlay { with_baked[path] = text }
+    with_baked[BAKED_PATH] = baked_module_source(target)
+    baked :: DiscoveredModule {
+        .name = BAKED_MODULE,
+        .folder = BAKED_FOLDER,
+        .files = [BAKED_PATH],
+        .origin = .Toolchain,
+    }
+    queue: DiscoveredModule[]! = [baked]
+    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory)
+}
+
 drain_load_queue :: fn(
     queue: DiscoveredModule[]!, bases: IncludePath[],
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,

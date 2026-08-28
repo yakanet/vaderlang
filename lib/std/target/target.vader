@@ -89,6 +89,16 @@ Arch implements Display -> match self {
 ///          time rather than guessing.
 @intrinsic export current_os :: fn() -> Os
 
+/// The architecture this process is RUNNING on.
+///
+/// The runtime companion of `current_os`, and it carries the same warning:
+/// `VADER_ARCH` is the architecture this build is FOR. They coincide for a
+/// native binary and part company in the VM, in wasm, and in the C seed.
+///
+/// @return  the host architecture, never null: an unsupported one fails at C
+///          compile time rather than guessing.
+@intrinsic export current_arch :: fn() -> Arch
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
