@@ -1,86 +1,38 @@
-// vader/target — the compilation target, and the vocabulary for naming one.
+// vader/target — the compilation target as a pair, and the `<os>-<arch>` form
+// the command line speaks.
 //
-// A target is a PAIR: an operating system and an architecture, written
-// `<os>-<arch>` on the command line (`--target=darwin-arm64`). The two axes do
-// NOT play the same role, and the asymmetry is deliberate:
+// The two axes and their asymmetry live in `std/target`, which holds the
+// vocabulary alone: `Os` selects CODE (it is what `@target` filters on), `Arch`
+// selects nothing and only parameterises values. They sit in the standard
+// library because `current_os()` — the OS a program is RUNNING on — must share
+// their type, and `std/` may not import a layer above it.
 //
-//   - `os` selects CODE. It is what `@target` filters on, and the only axis a
-//     `.vader` file can branch on.
-//   - `arch` selects nothing. It parameterises VALUES — pointer width, `usize`
-//     — and no source file is ever included or excluded because of it.
+// What lives here is the part only a toolchain needs: the pair, and reading one
+// from a string. A program computing numbers has no reason to parse
+// `"darwin-arm64"`.
 //
-// That is why there is no `@architecture` decorator: it is not a gap in the
-// matrix, it is the consequence of the asymmetry. The only 32/64 divergences
-// that would have justified one (stdcall name decoration, WoW64 redirection)
-// are specific to 32-bit Windows, which is not a supported target — see
-// `.claude/plans/2026-08-28-target-model.md` §1.
-//
-// This is the COMPILATION target. It is not the platform the compiler happens
-// to be running on: under `--target=windows-x86_64` from a Mac, the two differ,
-// and code that manipulates its OWN environment (resolving a path, spawning a
-// process) wants the latter. That question has its own answer and this module
-// is not it.
+// This module depends on nothing in the compiler, which is what will make it a
+// `git mv` away from `toolchain/` the day a build driver asks for its target.
+// It is not there yet because the shape of that namespace is still an open
+// question (TODO §`lib/` — "does the namespace publish the AST, or the RESOLVED
+// declaration?").
 
 module "vader/target"
 
 import "std/string"
-
-// ---- axes -----------------------------------------------------------------
-
-/// An operating system a Vader program can be built for. `wasm` is deliberately
-/// absent: it is an ARCHITECTURE, and the two OSes that run on it — `Wasi`, with
-/// a POSIX-shaped filesystem, and `Browser`, with none at all — are far enough
-/// apart that a single value would hide the difference that matters.
-export Os :: enum(u8) {
-    Windows,
-    Linux,
-    Darwin,
-    Wasi,
-    Browser,
-}
-
-/// An instruction set. 32-bit native targets are not supported: the divergences
-/// they carry live in the FFI surface, not in the language, and dropping them
-/// removes the only cases where `arch` would have had to select code.
-export Arch :: enum(u8) {
-    X86_64,
-    Arm64,
-    Wasm32,
-}
+import "std/target"
 
 /// A compilation target — the pair a build is parameterised by.
 export Target :: struct {
-    os:   Os
+    os: Os
     arch: Arch
-}
-
-// ---- naming ---------------------------------------------------------------
-
-/// The canonical spelling of an OS, as accepted on the command line.
-///
-/// @param os  the operating system.
-export os_name :: fn(os: Os) -> string = match os {
-    .Windows -> "windows"
-    .Linux   -> "linux"
-    .Darwin  -> "darwin"
-    .Wasi    -> "wasi"
-    .Browser -> "browser"
-}
-
-/// The canonical spelling of an architecture, as accepted on the command line.
-///
-/// @param arch  the instruction set.
-export arch_name :: fn(arch: Arch) -> string = match arch {
-    .X86_64 -> "x86_64"
-    .Arm64  -> "arm64"
-    .Wasm32 -> "wasm32"
 }
 
 /// Render a target as `<os>-<arch>` — the form `--target=` accepts and
 /// `parse_target` round-trips.
 ///
 /// @param t  the target.
-export display_target :: fn(t: Target) -> string = "${os_name(t.os)}-${arch_name(t.arch)}"
+export display_target :: fn(t: Target) -> string = "${t.os.to_string()}-${t.arch.to_string()}"
 
 // ---- parsing --------------------------------------------------------------
 
@@ -111,6 +63,9 @@ export parse_target :: fn(s: string) -> Target | TargetParseError {
         return TargetParseError { .reason = "empty target", .fragment = "" }
     }
     parts :: s.split("-")
+    // Guarded before destructuring: an array pattern does NOT check arity —
+    // surplus elements are dropped silently and missing ones trap at runtime
+    // (SPEC §Destructuring, "Array sources").
     if parts.len() != 2 {
         return TargetParseError {
             .reason = "target must be written `<os>-<arch>`",
@@ -129,9 +84,10 @@ export parse_target :: fn(s: string) -> Target | TargetParseError {
     return Target { .os = os, .arch = arch }
 }
 
-/// The OS named by `s`, or null when it names none.
+/// The OS named by `s`, or null when it names none. The inverse of `Os`'s
+/// `Display` impl, and pinned against it by `test_every_os_round_trips`.
 ///
-/// @param s  a canonical OS name (`os_name`'s output).
+/// @param s  a canonical OS name.
 export parse_os :: fn(s: string) -> Os | null = match s {
     "windows" -> .Windows
     "linux"   -> .Linux
@@ -141,9 +97,10 @@ export parse_os :: fn(s: string) -> Os | null = match s {
     _         -> null
 }
 
-/// The architecture named by `s`, or null when it names none.
+/// The architecture named by `s`, or null when it names none. The inverse of
+/// `Arch`'s `Display` impl.
 ///
-/// @param s  a canonical architecture name (`arch_name`'s output).
+/// @param s  a canonical architecture name.
 export parse_arch :: fn(s: string) -> Arch | null = match s {
     "x86_64" -> .X86_64
     "arm64"  -> .Arm64
@@ -201,17 +158,17 @@ import "std/testing"
 }
 
 @test test_every_os_round_trips :: fn() -> void {
-    // Pins `os_name` and `parse_os` against each other, so adding an OS to one
+    // Pins `Os`'s Display impl against `parse_os`, so adding an OS to one
     // without the other fails here rather than at a call site.
     all: Os[] = [.Windows, .Linux, .Darwin, .Wasi, .Browser]
     for os in all {
-        assert(parse_os(os_name(os)) == os, "round trip ${os_name(os)}")
+        assert(parse_os(os.to_string()) == os, "round trip ${os.to_string()}")
     }
 }
 
 @test test_every_arch_round_trips :: fn() -> void {
     all: Arch[] = [.X86_64, .Arm64, .Wasm32]
     for arch in all {
-        assert(parse_arch(arch_name(arch)) == arch, "round trip ${arch_name(arch)}")
+        assert(parse_arch(arch.to_string()) == arch, "round trip ${arch.to_string()}")
     }
 }

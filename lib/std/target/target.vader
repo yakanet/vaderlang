@@ -1,0 +1,86 @@
+// std/target — the two axes a Vader build is parameterised by.
+//
+// This module holds ONLY the vocabulary, because two very different things need
+// to speak it and they live in different layers:
+//
+//   - `VADER_OS` / `VADER_ARCH` — the COMPILATION target, baked at build time,
+//     and what `@target` filters on.
+//   - `current_os()` — the OS the program is actually RUNNING on, answered at
+//     runtime by the C runtime.
+//
+// They are not the same question: under `--target=windows-x86_64` from a Mac the
+// two differ, and a program that manipulates its own environment — resolving a
+// path, spawning a process — wants the second. But they must share a type, or
+// `current_os() == VADER_OS` could not be written, and that comparison is
+// exactly what a cross-compiling toolchain asks. Sharing a type is why the
+// enums live here in `std/` rather than a layer up: `std/` may not import
+// `toolchain/`, and `current_os()` belongs to `std/`.
+//
+// What is NOT here: `Target`, the pair, and the `<os>-<arch>` parsing the CLI
+// does. Those are compilation vocabulary — a program computing numbers has no
+// reason to parse `"darwin-arm64"` — and they live in `vader/target` until a
+// build driver asks for them.
+
+module "std/target"
+
+/// An operating system a Vader program can be built for, or run on.
+///
+/// `wasm` is deliberately absent: it is an ARCHITECTURE, and the two systems
+/// that run on it are far enough apart that one value would hide the difference
+/// that matters — `Wasi` has a POSIX-shaped filesystem, `Browser` has none at
+/// all. Code that selects on the OS needs to tell them apart.
+export Os :: enum(u8) {
+    Windows,
+    Linux,
+    Darwin,
+    Wasi,
+    Browser,
+}
+
+/// An instruction set.
+///
+/// 32-bit native targets are absent on purpose. The divergences they carry —
+/// stdcall name decoration, WoW64 filesystem redirection — are specific to
+/// 32-bit Windows, and they are the only cases where the architecture would
+/// have had to select CODE rather than parameterise values. Dropping them is
+/// what lets `@target` filter on the OS alone.
+export Arch :: enum(u8) {
+    X86_64,
+    Arm64,
+    Wasm32,
+}
+
+// Canonical spelling, and the one the `<os>-<arch>` command-line form uses.
+// Drives `"${os}"` interpolation, `println(os)`, and the parsing in
+// `vader/target`, which round-trips against it.
+Os implements Display -> match self {
+    .Windows -> "windows"
+    .Linux   -> "linux"
+    .Darwin  -> "darwin"
+    .Wasi    -> "wasi"
+    .Browser -> "browser"
+}
+
+Arch implements Display -> match self {
+    .X86_64 -> "x86_64"
+    .Arm64  -> "arm64"
+    .Wasm32 -> "wasm32"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// ⚠️ These call `to_string()` rather than interpolating `"${Os.Darwin}"`, which
+// yields the ORDINAL instead of the Display form — a compiler bug, recorded in
+// TODO. Interpolating a variable works; only the qualified literal is affected.
+@test test_os_display_is_the_command_line_spelling :: fn() -> void {
+    assert_eq(Os.Darwin.to_string(), "darwin")
+    assert_eq(Os.Browser.to_string(), "browser")
+}
+
+@test test_arch_display_keeps_the_underscore :: fn() -> void {
+    // `x86_64`, not `x86-64`: the `-` is the axis separator in `<os>-<arch>`,
+    // so an arch name may not contain one.
+    assert_eq(Arch.X86_64.to_string(), "x86_64")
+}
