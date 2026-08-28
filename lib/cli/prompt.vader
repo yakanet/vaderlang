@@ -1,0 +1,464 @@
+// lib/cli/prompt — interactive prompts: a list, checkboxes, a yes/no, a line.
+//
+// The terminal half of `keys.vader`. Everything here that can be tested without
+// a terminal is a separate function that takes a state and returns a string —
+// the frames are rendered by `render_*` and pinned by unit tests; only the loops
+// need a keyboard.
+//
+// Three rules run through all four widgets:
+//
+//   * **No terminal, no prompt.** When stdin is not interactive the prompt
+//     REFUSES rather than reading a line or silently taking a default. A script
+//     must never wait on input that will not come, and a caller that gets
+//     `.NoTerminal` back is expected to name the flag to pass instead — the
+//     library cannot know it, the command can.
+//   * **The terminal is always restored.** `raw_mode_begin` is paired with a
+//     `defer`, which covers the normal return and a panic alike (the runtime runs
+//     pending defers before aborting). Ctrl-C is a BYTE here, not a signal, so it
+//     unwinds through the same path.
+//   * **ASCII only in the frames.** A pointer is `>`, a checked box is `[x]`.
+//     Not every Windows console is on a UTF-8 code page, and a mangled glyph is a
+//     worse default than a plain one.
+
+module "cli"
+
+import "std/io"
+import "std/string"
+import "std/string_builder"
+TTY :: import "std/tty"
+
+// ---- results --------------------------------------------------------------
+
+/// Why a prompt produced no answer.
+export PromptFailure :: enum(u8) {
+    /// stdin is not an interactive terminal. The caller must fall back to a flag
+    /// or a default — retrying will not help.
+    NoTerminal,
+    /// The user pressed Escape or Ctrl-C.
+    Cancelled,
+    /// Input ended before an answer (the terminal closed, or stdin ran out).
+    InputClosed,
+}
+
+/// A prompt that produced no answer, and why.
+export PromptError :: struct {
+    reason: PromptFailure
+    /// One line, ready to print. It does NOT name a flag to use instead — the
+    /// library does not know the command's options; the caller adds that.
+    message: string
+}
+
+no_terminal :: fn(question: string) = PromptError {
+    .reason = .NoTerminal,
+    .message = "no terminal to ask on: ${question}",
+}
+
+cancelled :: fn() = PromptError { .reason = .Cancelled, .message = "cancelled" }
+
+input_closed :: fn() = PromptError {
+    .reason = .InputClosed,
+    .message = "input ended before an answer",
+}
+
+// ---- the terminal session -------------------------------------------------
+
+// A burst can hold several presses (typing fast, or a paste), so they queue here
+// rather than being dropped — reading one key must not discard the rest.
+KeyReader :: struct {
+    pending: KeyPress[]
+    at:      usize
+}
+
+new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
+
+// The next press, reading a fresh burst when the queue is empty.
+next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
+    for reader.at >= reader.pending.len() {
+        burst :: TTY.read_keys(64)
+        if burst == "" {
+            return input_closed()
+        }
+        reader.pending = decode_burst(burst)
+        reader.at = 0
+    }
+    press :: reader.pending[reader.at]
+    reader.at += 1
+    return press
+}
+
+// ---- drawing --------------------------------------------------------------
+
+// Erase the frame just drawn: back to column 1, up `lines` lines, then clear
+// everything below. One escape per repaint rather than one per line.
+erase :: fn(lines: i32) -> void {
+    if lines <= 0 {
+        return
+    }
+    print("\r\u{1B}[${lines}A\u{1B}[0J")
+}
+
+// Width to render inside, leaving a column so a full-width line does not wrap on
+// its own. 80 when the terminal will not say.
+render_width :: fn() -> i32 {
+    reported :: TTY.columns()
+    width :: if reported <= 0 { 80 } else { reported }
+    return width - 1
+}
+
+/// Cut `s` to `width` columns, marking the cut with `…` so a truncated option
+/// does not read as a complete one.
+///
+/// @param s      the line to fit.
+/// @param width  columns available; a width under 2 returns `s` unchanged, since
+///               there is no room to mark anything.
+/// @return       `s`, or its first `width - 1` characters plus `…`.
+export fit :: fn(s: string, width: i32) -> string {
+    if width < 2 {
+        return s
+    }
+    if s.len() <= usize(width) {
+        return s
+    }
+    return s[0..<usize(width - 1)] + "…"
+}
+
+// ---- select ---------------------------------------------------------------
+
+/// Render one frame of a single-choice list. Pure — the tests read this, not the
+/// terminal.
+///
+/// @param question  the line above the list.
+/// @param options   what to choose between.
+/// @param cursor    index currently under the pointer.
+/// @param width     columns to fit each line into.
+/// @return          the frame, newline-separated, with no trailing newline.
+export render_select :: fn(
+    question: string, options: string[], cursor: usize, width: i32,
+) -> string {
+    lines: string[]! = [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
+    for i in 0..<options.len() {
+        marker :: if i == cursor { ">" } else { " " }
+        lines.push(fit("${marker} ${options[i]}", width))
+    }
+    return lines.join("\n")
+}
+
+/// Ask the user to pick one of `options`.
+///
+/// @param question  shown above the list.
+/// @param options   at least one; an empty list is a caller mistake and returns
+///                  `.NoTerminal` rather than drawing an empty frame.
+/// @return          the chosen INDEX into `options`.
+/// @error           `.NoTerminal` when stdin is not interactive — name the flag
+///                  to pass instead; `.Cancelled` on Escape or Ctrl-C;
+///                  `.InputClosed` when input ends first.
+export select :: fn(question: string, options: string[]) -> usize | PromptError {
+    if options.len() == 0 {
+        return no_terminal(question)
+    }
+    if !TTY.raw_mode_begin() {
+        return no_terminal(question)
+    }
+    defer TTY.raw_mode_end()
+    reader :: new_key_reader()
+    cursor := usize(0)
+    drawn := 0
+    for {
+        erase(drawn)
+        frame :: render_select(question, options, cursor, render_width())
+        println(frame)
+        drawn = i32(options.len()) + 1
+        press :: next_press(reader)
+        if press is PromptError as e {
+            return e
+        }
+        if press.key == Key.Enter {
+            return cursor
+        }
+        if press.key == Key.Escape || press.key == Key.Interrupt {
+            return cancelled()
+        }
+        cursor = moved(cursor, options.len(), press.key)
+    }
+}
+
+/// Where the cursor goes for a movement key — wrapping at both ends, so a long
+/// list is reachable from either direction.
+///
+/// @param cursor  current index.
+/// @param count   number of options; must be > 0.
+/// @param key     the press to apply; anything that does not move returns
+///                `cursor` unchanged.
+export moved :: fn(cursor: usize, count: usize, key: Key) -> usize {
+    if key == Key.Up {
+        return if cursor == 0 { count - 1 } else { cursor - 1 }
+    }
+    if key == Key.Down {
+        return if cursor + 1 >= count { 0 } else { cursor + 1 }
+    }
+    if key == Key.Home {
+        return 0
+    }
+    if key == Key.End {
+        return count - 1
+    }
+    return cursor
+}
+
+// ---- multiselect ----------------------------------------------------------
+
+/// Render one frame of a checkbox list. Pure.
+///
+/// @param checked  one flag per option, same length as `options`.
+export render_multiselect :: fn(
+    question: string, options: string[], checked: bool[], cursor: usize, width: i32,
+) -> string {
+    header :: "? ${question}  (Space to toggle, Enter to confirm, Esc to cancel)"
+    lines: string[]! = [fit(header, width)]
+    for i in 0..<options.len() {
+        marker :: if i == cursor { ">" } else { " " }
+        box :: if checked[i] { "[x]" } else { "[ ]" }
+        lines.push(fit("${marker} ${box} ${options[i]}", width))
+    }
+    return lines.join("\n")
+}
+
+/// Ask the user to check any number of `options`.
+///
+/// @return the indices checked, in order; empty when none were.
+/// @error  as `select`.
+export multiselect :: fn(question: string, options: string[]) -> usize[] | PromptError {
+    if options.len() == 0 {
+        return no_terminal(question)
+    }
+    if !TTY.raw_mode_begin() {
+        return no_terminal(question)
+    }
+    defer TTY.raw_mode_end()
+    reader :: new_key_reader()
+    checked: bool[]! = [false] * options.len()
+    cursor := usize(0)
+    drawn := 0
+    for {
+        erase(drawn)
+        println(render_multiselect(question, options, checked, cursor, render_width()))
+        drawn = i32(options.len()) + 1
+        press :: next_press(reader)
+        if press is PromptError as e {
+            return e
+        }
+        if press.key == Key.Enter {
+            return checked_indices(checked)
+        }
+        if press.key == Key.Escape || press.key == Key.Interrupt {
+            return cancelled()
+        }
+        if press.key == Key.Space {
+            checked[cursor] = !checked[cursor]
+            continue
+        }
+        cursor = moved(cursor, options.len(), press.key)
+    }
+}
+
+/// The indices set in `checked`, in order.
+export checked_indices :: fn(checked: bool[]) -> usize[] {
+    out: usize[]! = []
+    for i in 0..<checked.len() {
+        if checked[i] {
+            out.push(i)
+        }
+    }
+    return out
+}
+
+// ---- confirm --------------------------------------------------------------
+
+/// Render a yes/no question, showing which answer Enter takes. Pure.
+export render_confirm :: fn(question: string, default_yes: bool, width: i32) -> string {
+    hint :: if default_yes { "[Y/n]" } else { "[y/N]" }
+    return fit("? ${question} ${hint} ", width)
+}
+
+/// Ask a yes/no question. Enter takes `default_yes`.
+///
+/// @error `.NoTerminal` when stdin is not interactive — the caller should use
+///        its flag's own default; `.Cancelled` on Escape or Ctrl-C.
+export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError {
+    if !TTY.raw_mode_begin() {
+        return no_terminal(question)
+    }
+    defer TTY.raw_mode_end()
+    reader :: new_key_reader()
+    print(render_confirm(question, default_yes, render_width()))
+    for {
+        press :: next_press(reader)
+        if press is PromptError as e {
+            println("")
+            return e
+        }
+        answer :: confirm_answer(press, default_yes)
+        if answer is bool as decided {
+            println(if decided { "yes" } else { "no" })
+            return decided
+        }
+        if press.key == Key.Escape || press.key == Key.Interrupt {
+            println("")
+            return cancelled()
+        }
+    }
+}
+
+/// How one press answers a yes/no, or null when it decides nothing. Pure, so the
+/// accepted spellings are pinned by a test rather than by trying them.
+export confirm_answer :: fn(press: KeyPress, default_yes: bool) -> bool | null {
+    if press.key == Key.Enter {
+        return default_yes
+    }
+    if press.key != Key.Char {
+        return null
+    }
+    lowered :: press.text.to_lower()
+    if lowered == "y" {
+        return true
+    }
+    if lowered == "n" {
+        return false
+    }
+    return null
+}
+
+// ---- text -----------------------------------------------------------------
+
+/// Render a line-input prompt with what has been typed so far. Pure.
+export render_text :: fn(question: string, typed: string, default_value: string, width: i32) -> string {
+    shown :: if typed == "" && default_value != "" { "(${default_value})" } else { typed }
+    return fit("? ${question} ${shown}", width)
+}
+
+/// Ask for one line of text.
+///
+/// Supports typing, Backspace, and Enter. There is no cursor movement inside the
+/// line: a prompt is not an editor, and the keys that would be needed for it
+/// (Left/Right plus a render that positions the cursor) are what would turn this
+/// into one.
+///
+/// @param default_value  returned when the user presses Enter on an empty line;
+///                       shown in parentheses while the line is empty.
+/// @error                as `confirm`.
+export text :: fn(question: string, default_value: string) -> string | PromptError {
+    if !TTY.raw_mode_begin() {
+        return no_terminal(question)
+    }
+    defer TTY.raw_mode_end()
+    reader :: new_key_reader()
+    typed := ""
+    for {
+        print("\r\u{1B}[0K")
+        print(render_text(question, typed, default_value, render_width()))
+        press :: next_press(reader)
+        if press is PromptError as e {
+            println("")
+            return e
+        }
+        if press.key == Key.Enter {
+            println("")
+            return if typed == "" { default_value } else { typed }
+        }
+        if press.key == Key.Escape || press.key == Key.Interrupt {
+            println("")
+            return cancelled()
+        }
+        if press.key == Key.Backspace {
+            typed = drop_last(typed)
+            continue
+        }
+        if press.key == Key.Space {
+            typed = typed + " "
+            continue
+        }
+        if press.key == Key.Char {
+            typed = typed + press.text
+        }
+    }
+}
+
+/// Drop the last CHARACTER of `s` — not its last byte, so backspacing over a
+/// multi-byte character removes the whole thing.
+export drop_last :: fn(s: string) -> string {
+    n :: s.len()
+    if n == 0 {
+        return s
+    }
+    return s[0..<n - 1]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_select_frame_points_at_the_cursor :: fn() -> void {
+    frame :: render_select("Pick one", ["alpha", "beta"], 1, 80)
+    lines :: frame.split("\n")
+    assert_eq(lines.len(), usize(3))
+    assert(lines[1].starts_with("  alpha"), "an unselected row has no pointer")
+    assert(lines[2].starts_with("> beta"), "the cursor row does")
+}
+
+@test test_multiselect_frame_shows_boxes :: fn() -> void {
+    frame :: render_multiselect("Pick some", ["a", "b"], [true, false], 0, 80)
+    lines :: frame.split("\n")
+    assert("[x] a" in lines[1], "a checked option is marked")
+    assert("[ ] b" in lines[2], "an unchecked one is not")
+}
+
+@test test_cursor_wraps_at_both_ends :: fn() -> void {
+    // A long list must be reachable from either direction.
+    assert_eq(moved(usize(0), usize(3), Key.Up), usize(2))
+    assert_eq(moved(usize(2), usize(3), Key.Down), usize(0))
+    assert_eq(moved(usize(1), usize(3), Key.Home), usize(0))
+    assert_eq(moved(usize(1), usize(3), Key.End), usize(2))
+    assert_eq(moved(usize(1), usize(3), Key.Char), usize(1))
+}
+
+@test test_checked_indices_keeps_order :: fn() -> void {
+    assert_eq(checked_indices([true, false, true]).len(), usize(2))
+    assert_eq(checked_indices([true, false, true])[1], usize(2))
+    assert_eq(checked_indices([false, false]).len(), usize(0))
+}
+
+@test test_confirm_accepts_both_cases_and_enter :: fn() -> void {
+    yes :: KeyPress { .key = .Char, .text = "Y" }
+    no :: KeyPress { .key = .Char, .text = "n" }
+    enter :: KeyPress { .key = .Enter, .text = "" }
+    other :: KeyPress { .key = .Char, .text = "q" }
+    assert(confirm_answer(yes, false) == true, "Y answers yes whatever the default")
+    assert(confirm_answer(no, true) == false, "n answers no")
+    assert(confirm_answer(enter, true) == true, "Enter takes the default")
+    assert(confirm_answer(enter, false) == false, "either way")
+    assert(confirm_answer(other, true) == null, "an unrelated key decides nothing")
+}
+
+@test test_confirm_frame_shows_the_default :: fn() -> void {
+    assert("[Y/n]" in render_confirm("Sure", true, 80), "the default is capitalised")
+    assert("[y/N]" in render_confirm("Sure", false, 80), "and it follows the argument")
+}
+
+@test test_text_frame_shows_the_default_until_typing :: fn() -> void {
+    assert("(demo)" in render_text("Name", "", "demo", 80), "an empty line shows the default")
+    assert(!("(demo)" in render_text("Name", "x", "demo", 80)), "typing replaces it")
+}
+
+@test test_backspace_removes_a_whole_character :: fn() -> void {
+    // Dropping a BYTE would leave half a codepoint behind.
+    assert_eq(drop_last("héllo"), "héll")
+    assert_eq(drop_last("é"), "")
+    assert_eq(drop_last(""), "")
+}
+
+@test test_fit_marks_what_it_cut :: fn() -> void {
+    assert_eq(fit("abcdef", 4), "abc…")
+    assert_eq(fit("abc", 10), "abc")
+    // No room to mark anything — better untouched than a bare ellipsis.
+    assert_eq(fit("abcdef", 1), "abcdef")
+}

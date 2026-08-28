@@ -1,0 +1,305 @@
+// lib/cli/keys — decoding a terminal's byte burst into keypresses.
+//
+// Split from `prompt.vader` because it is the half with no side effects: bytes
+// in, keypresses out, and every case reachable from a unit test. The widgets are
+// the part that needs a terminal; this part never does.
+//
+// The input is a BURST, not a byte — `std/tty::read_keys` blocks for the first
+// byte then returns everything already queued. That is what makes a lone
+// `Escape` decidable: an arrow's three bytes arrive together, so an `ESC` with
+// nothing after it in the same burst IS the Escape key, with no timeout and no
+// second read. Windows behaves identically because the console is put in
+// virtual-terminal input mode, where arrows are the same ANSI sequences.
+
+module "cli"
+
+import "std/string"
+
+/// A key the prompts understand. Anything else decodes to `.Unknown` and is
+/// ignored rather than guessed at.
+export Key :: enum(u8) {
+    Up,
+    Down,
+    Left,
+    Right,
+    Home,
+    End,
+    Enter,
+    Space,
+    Backspace,
+    Tab,
+    Escape,
+    /// Ctrl-C. Raw mode turns OFF signal generation, so it arrives as a byte
+    /// (`0x03`) instead of killing the process — which is what lets a prompt
+    /// restore the terminal before giving up.
+    Interrupt,
+    /// A printable character; the text is in `KeyPress.text`.
+    Char,
+    Unknown,
+}
+
+/// One decoded keypress.
+export KeyPress :: struct {
+    key: Key
+    /// The character when `key == .Char`, else `""`. A whole codepoint, so a
+    /// multi-byte character arrives as one press rather than as its bytes.
+    text: string
+}
+
+/// A keypress plus how many bytes it took, so the caller can decode the rest of
+/// the burst.
+export DecodedKey :: struct {
+    press: KeyPress
+    /// Always >= 1, so a decode loop cannot spin.
+    consumed: usize
+}
+
+// ---- decoding -------------------------------------------------------------
+
+ESC: u8: 0x1B
+DEL: u8: 0x7F
+
+/// Decode the first keypress in `bytes`, starting at `from`.
+///
+/// @param bytes  the burst as read from the terminal.
+/// @param from   index to decode at; must be < `bytes.len()`.
+/// @return       the press and the byte count it took — never 0, so a caller
+///               looping over a burst always advances.
+export decode_key :: fn(bytes: u8[], from: usize) -> DecodedKey {
+    b :: bytes[from]
+    remaining :: bytes.len() - from
+    if b == ESC {
+        return decode_escape(bytes, from, remaining)
+    }
+    // `\r` is what Enter sends in raw mode (ICRNL is off, so it is not
+    // translated); `\n` is accepted too, for a terminal that sends it.
+    if b == '\r' || b == '\n' {
+        return one(.Enter)
+    }
+    if b == 0x03 {
+        return one(.Interrupt)
+    }
+    if b == '\t' {
+        return one(.Tab)
+    }
+    if b == DEL || b == 0x08 {
+        return one(.Backspace)
+    }
+    if b == ' ' {
+        return one(.Space)
+    }
+    // Any other control byte is a key this library has no name for. Reporting it
+    // as `.Unknown` rather than as a character keeps it out of a text field.
+    if b < 0x20 {
+        return one(.Unknown)
+    }
+    return decode_char(bytes, from, remaining)
+}
+
+// A single-byte press.
+one :: fn(key: Key) = DecodedKey {
+    .press = KeyPress { .key = key, .text = "" },
+    .consumed = 1,
+}
+
+// `ESC` and what follows it. A lone `ESC` — nothing else in the burst — is the
+// Escape key; `ESC [` and `ESC O` open a sequence. `ESC O` is the application
+// cursor mode some terminals switch to, and it carries the same four letters.
+decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
+    if remaining == 1 {
+        return one(.Escape)
+    }
+    intro :: bytes[from + 1]
+    if intro != '[' && intro != 'O' {
+        // `ESC` followed by something that does not open a sequence: report the
+        // Escape and let the next byte decode on its own.
+        return one(.Escape)
+    }
+    if remaining == 2 {
+        return one(.Escape)
+    }
+    final :: bytes[from + 2]
+    arrow :: arrow_for(final)
+    if arrow != Key.Unknown {
+        return DecodedKey {
+            .press = KeyPress { .key = arrow, .text = "" },
+            .consumed = 3,
+        }
+    }
+    // `ESC [ <n> ~` — Home and End on the terminals that spell them that way.
+    // Anything else in that family is consumed whole and reported as Unknown, so
+    // a stray function key cannot leak its digits into a text field.
+    if final >= '0' && final <= '9' {
+        return decode_tilde(bytes, from, remaining)
+    }
+    return DecodedKey {
+        .press = KeyPress { .key = .Unknown, .text = "" },
+        .consumed = 3,
+    }
+}
+
+// The four cursor letters, shared by the `ESC [` and `ESC O` forms.
+arrow_for :: fn(final: u8) -> Key {
+    if final == 'A' { return .Up }
+    if final == 'B' { return .Down }
+    if final == 'C' { return .Right }
+    if final == 'D' { return .Left }
+    if final == 'H' { return .Home }
+    if final == 'F' { return .End }
+    return .Unknown
+}
+
+// `ESC [ <digits> ~`. Consumes through the `~` so the rest of the burst decodes
+// cleanly even when the key is one nothing here names.
+decode_tilde :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
+    // The WHOLE number, not its first digit: `1~` is Home but `15~` is F5, and
+    // reading one digit made the two the same key.
+    code := 0
+    n := usize(2)
+    for n < remaining {
+        b :: bytes[from + n]
+        if b == '~' {
+            n += 1
+            break
+        }
+        if b < '0' || b > '9' {
+            break
+        }
+        code = code * 10 + i32(b - '0')
+        n += 1
+    }
+    // 1 and 7 are Home, 4 and 8 are End — the spelling differs by terminal.
+    if code == 1 || code == 7 {
+        return DecodedKey { .press = KeyPress { .key = .Home, .text = "" }, .consumed = n }
+    }
+    if code == 4 || code == 8 {
+        return DecodedKey { .press = KeyPress { .key = .End, .text = "" }, .consumed = n }
+    }
+    return DecodedKey { .press = KeyPress { .key = .Unknown, .text = "" }, .consumed = n }
+}
+
+// A printable character, taken as a WHOLE codepoint: a UTF-8 lead byte says how
+// many continuation bytes follow, and reporting them separately would put half a
+// character into a text field.
+decode_char :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
+    width :: codepoint_width(bytes[from])
+    take :: if width > remaining { remaining } else { width }
+    return DecodedKey {
+        .press = KeyPress { .key = .Char, .text = bytes_to_string(bytes[from..<from + take]) },
+        .consumed = take,
+    }
+}
+
+// Bytes in the codepoint a UTF-8 lead byte opens. A continuation or invalid byte
+// counts as 1, so decoding always advances.
+codepoint_width :: fn(lead: u8) -> usize {
+    if lead < 0x80 { return 1 }
+    if lead >= 0xF0 { return 4 }
+    if lead >= 0xE0 { return 3 }
+    if lead >= 0xC0 { return 2 }
+    return 1
+}
+
+/// Decode a whole burst into the presses it holds.
+///
+/// @param burst  bytes as returned by `std/tty::read_keys`.
+/// @return       every press in order; empty when `burst` is empty.
+export decode_burst :: fn(burst: string) -> KeyPress[] {
+    bytes :: burst.bytes()
+    out: KeyPress[]! = []
+    i := usize(0)
+    for i < bytes.len() {
+        d :: decode_key(bytes, i)
+        out.push(d.press)
+        i += d.consumed
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_lone_escape_is_the_escape_key :: fn() -> void {
+    // The case the whole burst-reading design exists for: nothing follows the
+    // ESC in this burst, so it is the key and not the start of a sequence.
+    presses :: decode_burst("\u{1B}")
+    assert_eq(presses.len(), usize(1))
+    assert(presses[0].key == .Escape, "a lone ESC decodes as Escape")
+}
+
+@test test_arrows_decode_from_one_burst :: fn() -> void {
+    up :: decode_burst("\u{1B}[A")
+    assert_eq(up.len(), usize(1))
+    assert(up[0].key == .Up, "ESC [ A is Up")
+    down :: decode_burst("\u{1B}[B")
+    assert(down[0].key == .Down, "ESC [ B is Down")
+}
+
+@test test_application_cursor_mode_arrows :: fn() -> void {
+    // Some terminals switch to `ESC O` for the cursor keys; the letters are the
+    // same and both spellings have to work.
+    presses :: decode_burst("\u{1B}OA")
+    assert_eq(presses.len(), usize(1))
+    assert(presses[0].key == .Up, "ESC O A is Up too")
+}
+
+@test test_enter_space_and_interrupt :: fn() -> void {
+    assert(decode_burst("\r")[0].key == .Enter, "raw mode sends \\r for Enter")
+    assert(decode_burst("\n")[0].key == .Enter, "and \\n is accepted as well")
+    assert(decode_burst(" ")[0].key == .Space, "space is its own key, not a char")
+    // Raw mode turns off signal generation, so this is a byte and the prompt is
+    // the thing that must act on it.
+    assert(decode_burst("\u{03}")[0].key == .Interrupt, "Ctrl-C arrives as 0x03")
+}
+
+@test test_printable_character_carries_its_text :: fn() -> void {
+    presses :: decode_burst("a")
+    assert(presses[0].key == .Char, "a letter is a Char")
+    assert_eq(presses[0].text, "a")
+}
+
+@test test_multibyte_character_is_one_press :: fn() -> void {
+    // Reporting the bytes separately would put half a character in a text field.
+    presses :: decode_burst("é")
+    assert_eq(presses.len(), usize(1))
+    assert(presses[0].key == .Char, "é is one press")
+    assert_eq(presses[0].text, "é")
+}
+
+@test test_a_burst_holds_several_presses :: fn() -> void {
+    // Typing fast, or a paste: one read returns them all.
+    presses :: decode_burst("ab\u{1B}[A\r")
+    assert_eq(presses.len(), usize(4))
+    assert_eq(presses[0].text, "a")
+    assert_eq(presses[1].text, "b")
+    assert(presses[2].key == .Up, "the arrow is still whole inside a burst")
+    assert(presses[3].key == .Enter, "and Enter follows it")
+}
+
+@test test_home_and_end_both_spellings :: fn() -> void {
+    assert(decode_burst("\u{1B}[H")[0].key == .Home, "ESC [ H")
+    assert(decode_burst("\u{1B}[F")[0].key == .End, "ESC [ F")
+    assert(decode_burst("\u{1B}[1~")[0].key == .Home, "ESC [ 1 ~")
+    assert(decode_burst("\u{1B}[4~")[0].key == .End, "ESC [ 4 ~")
+}
+
+@test test_unknown_sequence_is_consumed_whole :: fn() -> void {
+    // A function key must not leak its digits into a text field.
+    presses :: decode_burst("\u{1B}[15~")
+    assert_eq(presses.len(), usize(1))
+    assert(presses[0].key == .Unknown, "F5 has no name here, and no residue")
+}
+
+@test test_backspace_both_bytes :: fn() -> void {
+    assert(decode_burst("\u{7F}")[0].key == .Backspace, "DEL is Backspace")
+    assert(decode_burst("\u{08}")[0].key == .Backspace, "and so is 0x08")
+}
+
+@test test_decoding_always_advances :: fn() -> void {
+    // A truncated sequence must not make a decode loop spin.
+    for burst in ["\u{1B}[", "\u{1B}O", "\u{1B}[9", "\u{FF}"] {
+        presses :: decode_burst(burst)
+        assert(presses.len() > 0, "`${burst}` decodes to at least one press")
+    }
+}

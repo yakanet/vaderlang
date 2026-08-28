@@ -476,6 +476,21 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         stream :: if tag.value == 1 { Stream.Stderr } else { Stream.Stdout }
         return HostOk { .value = BoolVal { .value = is_tty(stream) } }
     }
+    // Raw mode from the VM is the same call the native binary makes: the VM is
+    // itself a native binary, so these are its own intrinsics. It matters because
+    // `vader test` runs every @test on the VM — a prompt test that could not
+    // reach the terminal here would be untestable.
+    .TtyRawModeBegin -> { return HostOk { .value = BoolVal { .value = raw_mode_begin() } } }
+    .TtyRawModeEnd -> {
+        raw_mode_end()
+        return HostOk { .value = zero_value() }
+    }
+    .TtyColumns -> { return HostOk { .value = I32Val { .value = columns() } } }
+    .TtyReadKeys -> {
+        max :: read_i32(stack[arg_base], at_pc, "read_keys max")
+        if max is Trap { return max }
+        return HostOk { .value = StringVal { .value = read_keys(max.value) } }
+    }
     .EnvGetEnv -> {
         name :: read_string(stack[arg_base], at_pc, "get_env name")
         if name is Trap { return name }
@@ -531,6 +546,9 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
+    // Raw mode mutates the terminal and reads keystrokes; the width is whatever
+    // the window happens to be. Nothing here bakes reproducibly.
+    .TtyRawModeBegin | .TtyRawModeEnd | .TtyColumns | .TtyReadKeys -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true

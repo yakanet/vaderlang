@@ -164,6 +164,10 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // std/tty + std/env. `get_env` boxes the value as a string (or null box).
     .TtyIsTty  -> { return "${head} { return vader_is_tty(a0); }" }
+    .TtyRawModeBegin -> { return "${head} { return vader_terminal_raw_begin(); }" }
+    .TtyRawModeEnd   -> { return "${head} { vader_terminal_raw_end(); }" }
+    .TtyColumns      -> { return "${head} { return vader_terminal_columns(); }" }
+    .TtyReadKeys     -> { return "${head} { return vader_terminal_read_keys(a0); }" }
     .EnvGetEnv -> { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
 
     // Served by the VM only — primitive Equals/Display, surfaced there by erased

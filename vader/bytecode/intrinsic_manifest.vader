@@ -128,6 +128,8 @@ export IntrinsicId :: enum(u8) {
     ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
     TtyIsTty, EnvGetEnv, AbortPanic,
+    // std/tty raw mode — what `cli/prompt` reads keys through
+    TtyRawModeBegin, TtyRawModeEnd, TtyColumns, TtyReadKeys,
 }
 
 /// Classify a host import's mangled name into its `IntrinsicId`, or
@@ -197,6 +199,10 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_process$spawn_take_stderr"       { return .ProcessSpawnTakeStderr }
 
     if mangled == r"std_tty$is_tty"                      { return .TtyIsTty }
+    if mangled == r"std_tty$raw_mode_begin"              { return .TtyRawModeBegin }
+    if mangled == r"std_tty$raw_mode_end"                { return .TtyRawModeEnd }
+    if mangled == r"std_tty$columns"                     { return .TtyColumns }
+    if mangled == r"std_tty$read_keys"                   { return .TtyReadKeys }
     if mangled == r"std_env$get_env"                     { return .EnvGetEnv }
     if mangled == r"std_abort$panic"                     { return .AbortPanic }
     return .NotIntrinsic

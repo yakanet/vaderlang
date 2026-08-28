@@ -1,0 +1,59 @@
+// std/tty/raw — putting the terminal in raw mode, and reading keys from it.
+//
+// Split from `tty.vader` because it is a different KIND of thing: the colour
+// helpers decorate a string and change nothing, while these mutate the
+// terminal's state and impose a pairing contract on the caller. Same module —
+// `std/tty` — so nothing about an import changes.
+//
+// The widgets built on these live in `cli/prompt`; this layer is the terminal,
+// not the interaction.
+//
+// Cross-platform by construction: raw mode clears `ECHO`, `ICANON` and `ISIG`
+// through `termios` on POSIX, and the matching console flags on Windows, where
+// it also sets `ENABLE_VIRTUAL_TERMINAL_INPUT` so arrows arrive as the SAME ANSI
+// sequences POSIX sends. One decoder therefore serves all three targets. See
+// `runtime/c/vader_runtime.c` § "raw terminal".
+
+module "std/tty"
+
+/// Put stdin in raw mode: keys arrive as they are pressed, with no echo and no
+/// line editing.
+///
+/// It also turns OFF signal generation, so **Ctrl-C arrives as the byte `0x03`**
+/// instead of killing the process. That is what keeps the terminal usable — a
+/// process killed mid-prompt would leave the shell with no echo — and it makes
+/// handling the cancellation the caller's job.
+///
+/// ⚠️ **Always pair it with `defer raw_mode_end()`.** `defer` covers the normal
+/// return AND a panic (the runtime runs pending defers before aborting), which
+/// is the whole reason the restore does not need a signal handler. What it does
+/// not cover is a kill from outside the process; a shell's `reset` fixes that.
+///
+/// @return `true` when raw mode is now installed, `false` when stdin is not an
+///         interactive terminal — in which case NOTHING was changed and the
+///         caller must fall back rather than read keys.
+@intrinsic export raw_mode_begin :: fn() -> bool
+
+/// Restore the terminal state saved by `raw_mode_begin`. A no-op when raw mode
+/// is not installed, so an unpaired call is harmless.
+@intrinsic export raw_mode_end :: fn() -> void
+
+/// Terminal width in columns, or 0 when it cannot be determined — not a
+/// terminal, or the query failed. A caller that needs a number anyway should
+/// pick its own default rather than treat 0 as a width.
+@intrinsic export columns :: fn() -> i32
+
+/// Read the keys pressed so far, blocking until there is at least one.
+///
+/// Returns everything already queued, up to `max` bytes (capped at 64). Reading
+/// a BURST rather than a byte is what makes a lone `Escape` distinguishable from
+/// the start of an arrow sequence: the arrow's three bytes arrive in one call,
+/// `Escape` alone arrives as one byte. No timing is involved, and it behaves the
+/// same on POSIX and on a Windows console.
+///
+/// ⚠️ Reads the raw descriptor, not the buffered stream — never mix it with
+/// `std/io::read_stdin` on the same input.
+///
+/// @param max  ceiling on the bytes returned; values above 64 are clamped.
+/// @return     the bytes read, or `""` at end of input.
+@intrinsic export read_keys :: fn(max: i32) -> string

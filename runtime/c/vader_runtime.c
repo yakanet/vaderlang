@@ -3719,6 +3719,133 @@ vader_box_t vader_get_env(vader_string_t name, uint32_t str_tag) {
     return out;
 }
 
+/* ----------------------------------------------------------------- raw terminal
+ *
+ * What an interactive prompt needs and line-oriented stdin cannot give: keys as
+ * they are pressed, with no echo and no line editing in the way.
+ *
+ * Raw mode also turns OFF signal generation, so Ctrl-C is delivered as the byte
+ * 0x03 instead of killing the process. That is deliberate and it is what keeps
+ * the terminal usable: a process killed mid-prompt would leave the shell with no
+ * echo. The caller sees 0x03, restores, and exits on its own terms. Nothing here
+ * installs a signal handler — the runtime installs none anywhere, and a prompt is
+ * not the place to start.
+ *
+ * Windows gets ENABLE_VIRTUAL_TERMINAL_INPUT, which makes the console deliver
+ * arrows as the same ANSI sequences POSIX does — one decoder serves both. It is
+ * the input-side twin of the ENABLE_VIRTUAL_TERMINAL_PROCESSING that
+ * `vader_win_console_supports_ansi` already sets for output. */
+
+#if defined(_WIN32)
+#  ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
+#    define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
+#  endif
+static DWORD g_saved_console_in_mode = 0;
+#else
+#include <termios.h>
+#include <sys/ioctl.h>
+static struct termios g_saved_termios;
+#endif
+
+/* Whether raw mode is currently installed. Guards both the double-begin (which
+ * would save the ALREADY-RAW state as the thing to restore, permanently breaking
+ * the terminal) and the unpaired end. */
+static int g_raw_mode_active = 0;
+
+vader_bool_t vader_terminal_raw_begin(void) {
+    if (g_raw_mode_active) return 1;
+#if defined(_WIN32)
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    if (h == INVALID_HANDLE_VALUE || h == NULL) return 0;
+    DWORD mode = 0;
+    /* Fails on a pipe or a redirected file — i.e. exactly when there is no
+     * console to put in raw mode. Report it rather than pretending. */
+    if (!GetConsoleMode(h, &mode)) return 0;
+    g_saved_console_in_mode = mode;
+    DWORD raw = mode & ~(DWORD)(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
+    raw |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+    if (!SetConsoleMode(h, raw)) return 0;
+#else
+    if (!isatty(STDIN_FILENO)) return 0;
+    if (tcgetattr(STDIN_FILENO, &g_saved_termios) != 0) return 0;
+    struct termios raw = g_saved_termios;
+    /* ECHO: do not print what is typed. ICANON: deliver bytes as they arrive
+     * rather than per line. ISIG: Ctrl-C/Z become bytes, see the header note.
+     * IEXTEN: no Ctrl-V literal-next. IXON: Ctrl-S/Q do not freeze the stream.
+     * ICRNL: Enter stays \r, so it is one key and not a newline. */
+    raw.c_lflag &= ~(tcflag_t)(ECHO | ICANON | ISIG | IEXTEN);
+    raw.c_iflag &= ~(tcflag_t)(IXON | ICRNL);
+    /* One byte is enough to return, and never wait beyond it: this is what makes
+     * `read_keys` return a lone ESC as one byte and an arrow as three. */
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
+    /* TCSAFLUSH discards anything typed before the switch, so keystrokes meant
+     * for the shell do not land in the prompt. */
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) != 0) return 0;
+#endif
+    g_raw_mode_active = 1;
+    return 1;
+}
+
+void vader_terminal_raw_end(void) {
+    if (!g_raw_mode_active) return;
+    g_raw_mode_active = 0;
+#if defined(_WIN32)
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    if (h != INVALID_HANDLE_VALUE && h != NULL) {
+        SetConsoleMode(h, g_saved_console_in_mode);
+    }
+#else
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &g_saved_termios);
+#endif
+}
+
+int32_t vader_terminal_columns(void) {
+#if defined(_WIN32)
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (h == INVALID_HANDLE_VALUE || h == NULL) return 0;
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    if (!GetConsoleScreenBufferInfo(h, &info)) return 0;
+    /* The WINDOW, not the buffer: the buffer is often far wider than what is
+     * visible, and wrapping is decided by what is visible. */
+    int32_t width = (int32_t) (info.srWindow.Right - info.srWindow.Left + 1);
+    return width > 0 ? width : 0;
+#else
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != 0) return 0;
+    return (int32_t) ws.ws_col;
+#endif
+}
+
+/* Blocks for the FIRST byte, then returns whatever else is already queued, up to
+ * `max`. Reads the raw descriptor rather than `fread` — stdio buffering and raw
+ * mode fight, and `vader_read_stdin`'s "exactly n bytes" contract is the wrong
+ * shape for keys. Returns "" on EOF or error, which the caller reads as "no more
+ * input" and unwinds. */
+vader_string_t vader_terminal_read_keys(int32_t max) {
+    if (max <= 0) return vader_string_new("", 0);
+    if (max > 64) max = 64;
+    char buf[64];
+#if defined(_WIN32)
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    if (h == INVALID_HANDLE_VALUE || h == NULL) return vader_string_new("", 0);
+    DWORD got = 0;
+    if (!ReadFile(h, buf, (DWORD) max, &got, NULL) || got == 0) {
+        return vader_string_new("", 0);
+    }
+    return vader_string_new(buf, (size_t) got);
+#else
+    for (;;) {
+        ssize_t got = read(STDIN_FILENO, buf, (size_t) max);
+        if (got > 0) return vader_string_new(buf, (size_t) got);
+        /* A signal that raw mode did not suppress (SIGWINCH on a resize) can cut
+         * the read short; that is not the end of input, so wait again. */
+        if (got < 0 && errno == EINTR) continue;
+        return vader_string_new("", 0);
+    }
+#endif
+}
+
 /* ----------------------------------------------------------------- process
  *
  * Non-blocking subprocess primitives backing `std/process::spawn_async` (and,
