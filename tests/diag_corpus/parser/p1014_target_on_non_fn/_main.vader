@@ -1,0 +1,23 @@
+// `@target` selects a function BODY. Anywhere else it would parse, pass the
+// resolver's decorator whitelist, and do nothing at all — a silent no-op is
+// worse than either accepting or rejecting, because nothing tells the author
+// their annotation was ignored.
+//
+// The impl-member case is the one that needs catching at parse time: by the
+// time the resolver walks it, an impl member and a free function are the same
+// `FnDecl`.
+
+module "main"
+
+@target(.Windows)
+S :: struct { x: i32 }
+
+@target(.Windows)
+T :: trait { m :: fn(self) -> i32 }
+
+S implements T {
+    @target(.Windows)
+    m :: fn(self) -> i32 = 1
+}
+
+main :: fn() -> i32 = 0

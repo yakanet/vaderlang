@@ -20,7 +20,9 @@ import "std/collections"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/parser"
+import "std/string"
 import "vader/resolver/symbol"
+import "vader/target"
 import "toolchain/span"
 
 /// Per-file resolution output. `idents` keys every resolved `AST.IdentExpr`
@@ -297,7 +299,37 @@ walk_decorators :: fn(self: ResolveState!, decs: AST.Decorator[]) -> void {
         if !is_known_decorator(d.name) {
             self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
         }
+        // `@target`'s arguments are TARGET SELECTORS, not expressions. They name
+        // an OS from a closed set and are compared syntactically — the selection
+        // happens before any name resolution, so there is no scope in which
+        // `.Windows` could be looked up, and walking it as an expression would
+        // report "cannot infer enum type from context" for a construct that is
+        // not an enum literal at all.
+        if d.name == "target" {
+            self.check_target_selectors(d)
+            continue
+        }
         for a in d.args { self.walk_expr(a) }
+    }
+}
+
+// Each argument must be `.Os` for a known OS. Anything else — a misspelling, an
+// expression, a bare identifier — is R2035, named rather than left to surface as
+// an unresolved identifier three passes later.
+check_target_selectors :: fn(self: ResolveState!, d: AST.Decorator) -> void {
+    for a in d.args {
+        match a {
+            is AST.DotVariantExpr as dv -> {
+                if parse_os(dv.variant.to_lower()) == null {
+                    self.diags.push(resolver_error(.UnknownTargetSelector, dv.span,
+                        "`.${dv.variant}` names no operating system"))
+                }
+            }
+            _ -> {
+                self.diags.push(resolver_error(.UnknownTargetSelector, a.span,
+                    "expected a target selector such as `.Windows`"))
+            }
+        }
     }
 }
 
@@ -313,6 +345,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "assert"
         || name == "no_return"
         || name == "allow_unused"
+        || name == "target"
 }
 
 walk_opt_expr :: fn(self: ResolveState!, e: AST.Expr | null) -> void {

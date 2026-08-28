@@ -1,0 +1,14 @@
+// `@target`'s arguments are target selectors, not expressions: they name an OS
+// from a closed set and are compared syntactically, because the selection
+// happens before any name resolution. A misspelling is named here rather than
+// left to surface as an unresolved identifier several passes later.
+
+module "main"
+
+@target(.Drawin)
+misspelled :: fn() -> i32 = 1
+
+@target(42)
+not_a_selector :: fn() -> i32 = 2
+
+main :: fn() -> i32 = misspelled() + not_a_selector()

@@ -604,6 +604,21 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
     return null
 }
 
+// `@target` selects a FUNCTION BODY. Anywhere else it would parse, pass the
+// resolver's whitelist, and do NOTHING — the silent no-op that is worse than
+// either accepting or rejecting it, because nothing tells the author their
+// annotation was ignored. Rejected here, where the parser still knows what kind
+// of declaration follows; by resolve time an impl member and a free fn are the
+// same `FnDecl`.
+reject_target_decorator :: fn(p: Parser!, decorators: Decorator[], what: string) -> void {
+    for d in decorators {
+        if d.name == "target" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@target` selects a function body ; it does not apply to ${what}")
+        }
+    }
+}
+
 parse_decorators :: fn(p: Parser!) -> Decorator[] {
     out: Decorator[]! = []
     for p.check(.At) {
@@ -828,6 +843,7 @@ parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: Decorator[], visibili
 }
 
 parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
+    p.reject_target_decorator(decorators, "an `implements` block")
     start_tok :: p.peek()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
@@ -865,7 +881,13 @@ parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
         for !p.check(.RBrace) && !p.check(.Eof) {
             fn_opt :: p.parse_fn_decl_inside_trait()
             match fn_opt {
-                is FnDecl -> { members.push(fn_opt) }
+                is FnDecl as fd -> {
+                    // An impl member is a `FnDecl` like any other by the time the
+                    // resolver sees it, so this is the last point where the
+                    // distinction still exists.
+                    p.reject_target_decorator(fd.decorators, "an impl member")
+                    members.push(fd)
+                }
                 is null   -> {}
             }
             p.skip_newlines()
@@ -1191,6 +1213,7 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
 parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
+    p.reject_target_decorator(decorators, "a struct")
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open struct body")
@@ -1372,6 +1395,7 @@ merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[]
 }
 
 parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
+    p.reject_target_decorator(decorators, "a trait")
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     // Trait composition. Two forms :
