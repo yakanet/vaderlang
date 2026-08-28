@@ -25,17 +25,15 @@
         <configurationType implementation="dev.vaderlang.intellij.VaderRunConfigurationType"/>
         <runConfigurationProducer implementation="dev.vaderlang.intellij.VaderRunConfigurationProducer"/>
         <!-- Green ▶ gutter icon on a top-level `main ::` in a .vader file.
-             ⚠️ Does NOT appear (observed 2026-08-29), while the `(I)` marker
-             below DOES — so a gutter marker on a `.vader` file is possible and
-             this one differs in two ways. Registered for `TEXT` as well, which
-             is the cheaper of the two to rule out; the other is its
-             `element.text == "main"` test, which assumes one PSI leaf per
-             identifier — the assumption the marker below avoids by scanning the
-             text and carrying explicit ranges. -->
-        <runLineMarkerContributor language="textmate"
-                                  implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerContributor"/>
-        <runLineMarkerContributor language="TEXT"
-                                  implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerContributor"/>
+             Was a `runLineMarkerContributor` and never fired: registering it for
+             `TEXT` too changed nothing, which left only its `element.text ==
+             "main"` test — a `.vader` PSI does not give one leaf per identifier.
+             Now a provider using the same recipe as the `(I)` marker below,
+             which does fire: read the file text, carry an explicit range. -->
+        <codeInsight.lineMarkerProvider language="textmate"
+                                        implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="TEXT"
+                                        implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerProvider"/>
         <!-- `(I)` gutter icon on a bare `@target` declaration, like Java's
              "is implemented by". CONFIRMED WORKING 2026-08-29. The bodies are
              found by scanning the folder, since a Vader module IS a folder
