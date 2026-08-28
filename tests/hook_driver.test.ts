@@ -437,6 +437,33 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
   });
 }, HEAVY_BUILD);
 
+test.concurrent("R2034 is deliberately silent on a library module compiled as the ENTRY", async () => {
+  // The DECIDED companion to the test above, here so the decision is executable and
+  // not merely documented on `ModuleOrigin.Build` — otherwise a future reader reads
+  // the asymmetry as a hole and "fixes" it.
+  //
+  // Being a library is not a property of a directory; it is a property of how a
+  // build reaches it. R2034 protects a consumer from a library that SHIPS a
+  // dependency on the compiler and is then imported. A file the caller named on the
+  // command line is their own code, whatever it sits under — so `paths[0]`, the
+  // entry's own root, is `.Build` and the module never picks up another root's
+  // origin.
+  //
+  // Non-vacuous by construction: R2034 is checked BEFORE the module-not-found
+  // lookup, so the R2001 asserted below proves the import was seen and processed —
+  // if the diagnostic were going to fire, it would have fired here too.
+  await withStagedLibraryRoot({
+    entryprobe: {
+      "entryprobe.vader":
+        'module "entryprobe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
+    },
+  }, async (dir) => {
+    const ran = await run(["build", "lib/entryprobe/entryprobe.vader"], { cwd: dir });
+    expect(ran.stderr).toContain("R2001");
+    expect(ran.stderr).not.toContain("R2034");
+  });
+}, HEAVY_BUILD);
+
 test.concurrent("a bundled namespace outranks a project module of the same name", async () => {
   // REASON: `lib/` hosts every namespace the toolchain ships, and those are
   // ORDINARY directory names — `std` today, `json` / `cli` / `images` once the

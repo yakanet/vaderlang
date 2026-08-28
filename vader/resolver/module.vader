@@ -124,18 +124,22 @@ export ModuleOrigin :: enum(u8) {
     /// tree.
     ///
     /// The ENTRY is always this, whatever it sits under — a root exists because the
-    /// caller named that file, so `vader test lib/std/path` is building the
-    /// project's own code by definition. `paths[0]` is that root and first match
-    /// wins, so the entry never picks up another root's origin.
+    /// caller named that file. `paths[0]` is that root and first match wins, so the
+    /// entry never picks up another root's origin.
     ///
-    /// ⚠️ That has one OBSERVABLE consequence, reproduced: R2034 does not fire on a
-    /// library module compiled as the ENTRY. `vader build lib/probe/probe.vader`
-    /// stays silent where `vader build app.vader` importing the same `probe`
-    /// reports it — and `vader test <a stdlib module>` is the corpus a library
-    /// author runs first. Closing it needs the entry folder's ANCESTRY tested
-    /// against the marker (the marker sits at the library ROOT, `lib/`, not at
-    /// `lib/probe/`), which is the path-matching this type exists to remove. The
-    /// trade is open, not settled by omission.
+    /// That is DECIDED, not an omission, and it has one visible consequence: R2034
+    /// does not fire on a library module compiled as the entry. `vader build
+    /// lib/probe/probe.vader` stays silent where `vader build app.vader` importing
+    /// the same `probe` reports it (reproduced). Which is right: being a library is
+    /// not a property of a DIRECTORY, it is a property of how a build reaches it.
+    /// R2034 protects a consumer from a library that SHIPS a dependency on the
+    /// compiler and is then imported; a file the caller named on the command line
+    /// is not that, whatever it sits under.
+    ///
+    /// The alternative was testing the entry folder's ANCESTRY against the marker
+    /// (which sits at the library ROOT, `lib/`, not at `lib/probe/`) — reintroducing
+    /// the path-matching this type exists to remove, to report an error whose
+    /// premise does not hold.
     Build,
     /// The toolchain ships it: a root holding `LIBRARY_ROOT_MARKER`, whether found
     /// beside the binary in a bundle or declared by the project's manifest.
