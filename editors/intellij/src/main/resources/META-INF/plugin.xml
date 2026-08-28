@@ -35,6 +35,13 @@
              IS a folder (R2022) and every body of a group lives in it. -->
         <codeInsight.lineMarkerProvider language="textmate"
                                         implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
+        <!-- AND plain text. Which language a `.vader` file resolves to is not
+             answerable outside a running IDE — "no PSI Language registered"
+             (see the LSP block below) means it is whatever IntelliJ falls back
+             to. Registering both costs one no-op call; guessing wrong costs
+             silence, which is how the ▶ above went unnoticed. -->
+        <codeInsight.lineMarkerProvider language="TEXT"
+                                        implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
         <applicationConfigurable
             instance="dev.vaderlang.intellij.VaderConfigurable"
             id="dev.vaderlang.intellij.config"
