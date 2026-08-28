@@ -192,7 +192,15 @@ function renderSections(stdout: string, stderr: string, fixtureDir: string): str
   // The compiler reports the path it was GIVEN, which the driver passes
   // absolute. Snapshots have to be portable, so the fixture directory is
   // stripped here rather than having the stage lie about what it read.
-  const strip = (s: string) => s.split(`${fixtureDir}/`).join("");
+  //
+  // Both separators, and that is not defensive coding: `join()` yields
+  // `C:\vader\tests\…` on Windows while the compiler normalises every path it
+  // reports to `/` (the resolver keeps one internal separator). Matching only
+  // the platform form left absolute paths in the snapshots — a failure invisible
+  // on macOS and caught on the Windows guest.
+  const posixDir = fixtureDir.split("\\").join("/");
+  const strip = (s: string) =>
+    s.split(`${fixtureDir}/`).join("").split(`${posixDir}/`).join("");
   // `build` prints its own `# Diagnostics` banner; the section header belongs to
   // the snapshot format, so the banner is dropped rather than nested.
   const raw = strip(stderr.trim()).replace(/^# Diagnostics\n?/, "").trim();
