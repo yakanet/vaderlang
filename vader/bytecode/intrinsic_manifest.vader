@@ -128,6 +128,9 @@ export IntrinsicId :: enum(u8) {
     ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
     TtyIsTty, EnvGetEnv, AbortPanic,
+    // std/target — the OS the process is RUNNING on, not the one it was built
+    // for. `VADER_OS` answers the latter and is a baked constant, not a host.
+    TargetCurrentOs,
     // std/tty raw mode — what `cli/prompt` reads keys through
     TtyRawModeBegin, TtyRawModeEnd, TtyColumns, TtyReadKeys,
 }
@@ -204,6 +207,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_tty$columns"                     { return .TtyColumns }
     if mangled == r"std_tty$read_keys"                   { return .TtyReadKeys }
     if mangled == r"std_env$get_env"                     { return .EnvGetEnv }
+    if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_abort$panic"                     { return .AbortPanic }
     return .NotIntrinsic
 }

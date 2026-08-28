@@ -1158,6 +1158,19 @@ vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
  * run-once, so the memo lives here). Backs `std/tty::is_tty`. `vader_get_env`
  * reads an environment variable and boxes the value as a string (str_tag), or
  * returns a null box when unset; backs `std/env::get_env`. */
+/*
+ * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
+ * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
+ * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
+ * both sides; reorder the Vader enum and this must move with it.
+ *
+ * This is NOT the compilation target. `VADER_OS` answers that, is baked at build
+ * time, and is what `@target` selects on. This one is resolved at runtime, which
+ * is why a program that manipulates its own environment — resolving a path,
+ * choosing a separator — must use it: a seed emitted on one platform and
+ * compiled on another would otherwise carry the wrong answer.
+ */
+int32_t        vader_current_os(void);
 vader_bool_t   vader_is_tty(int32_t stream);
 vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
 

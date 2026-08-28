@@ -67,6 +67,28 @@ Arch implements Display -> match self {
     .Wasm32 -> "wasm32"
 }
 
+// ---- the running platform -------------------------------------------------
+
+/// The operating system this process is RUNNING on.
+///
+/// Not the compilation target. `VADER_OS` answers that one, is baked at build
+/// time, and is what `@target` selects on; the two differ whenever a build is
+/// cross-compiled, and they differ for the compiler itself every time it emits
+/// for a platform other than its own.
+///
+/// Use this one whenever the answer is about the environment the program finds
+/// itself in — resolving a path, choosing a separator, deciding whether a binary
+/// carries `.exe`. Using `VADER_OS` there is a bug that only shows up on a
+/// cross-compiled build, which is the hardest kind to notice.
+///
+/// The runtime returns the variant's ordinal, so this enum's declaration order
+/// is part of the contract with `runtime/c/vader.h::vader_current_os` — the same
+/// coupling `std/io::Stream` already has with the write primitive.
+///
+/// @return  the host OS, never null: an unsupported platform fails at C compile
+///          time rather than guessing.
+@intrinsic export current_os :: fn() -> Os
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

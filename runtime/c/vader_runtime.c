@@ -3695,6 +3695,25 @@ static int vader_win_console_supports_ansi(FILE* f) {
 }
 #endif
 
+/* Ordinals must match `std/target::Os`, declaration order. An unsupported
+ * platform is a build error rather than a guess: the OS set is closed, and a
+ * silent fallback would make `current_os()` lie exactly where it is trusted. */
+int32_t vader_current_os(void) {
+#if defined(_WIN32)
+    return 0;   /* Os.Windows */
+#elif defined(__linux__)
+    return 1;   /* Os.Linux */
+#elif defined(__APPLE__)
+    return 2;   /* Os.Darwin */
+#elif defined(__wasi__)
+    return 3;   /* Os.Wasi */
+#elif defined(__wasm__)
+    return 4;   /* Os.Browser */
+#else
+#  error "vader_current_os: unsupported platform - add it to std/target::Os first"
+#endif
+}
+
 vader_bool_t vader_is_tty(int32_t stream) {
     /* Index by Stream tag: Stdout = 0, Stderr = 1. */
     static int cache[2] = { -1, -1 };

@@ -169,6 +169,10 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .TtyColumns      -> { return "${head} { return vader_terminal_columns(); }" }
     .TtyReadKeys     -> { return "${head} { return vader_terminal_read_keys(a0); }" }
     .EnvGetEnv -> { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
+    // An `Os` is an ordinal in an i32 slot, so the runtime's return needs no
+    // boxing — the coupling to the enum's declaration order is stated in
+    // `vader.h` and in `std/target`.
+    .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }
 
     // Served by the VM only — primitive Equals/Display, surfaced there by erased
     // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.
