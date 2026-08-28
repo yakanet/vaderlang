@@ -6,4 +6,5 @@ VADER_OS = Os.Darwin
 VADER_ARCH = Arch.Arm64
 
 # Selected body
+main$platform_kind <- main.vader:14
 main$platform_tag <- main.vader:11

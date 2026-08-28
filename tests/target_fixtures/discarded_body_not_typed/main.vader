@@ -10,6 +10,9 @@ import "std/io"
 @target
 export platform_tag :: fn() -> string = "posix"
 
+@target
+export platform_kind :: fn() -> string = "posix"
+
 main :: fn() -> i32 {
     println(platform_tag())
     return 0

@@ -1,8 +1,19 @@
-// The Windows body — and it does not typecheck. `platform_tag` is declared
-// `-> string`; this returns an i32. On any other target the body is discarded
-// before resolution, so the error must not surface at all.
+// Two Windows bodies, each broken in a DIFFERENT pass. On any other target both
+// are discarded before resolution, so neither error may surface.
+//
+// Two and not one, because they hide each other: resolution runs first, so a
+// body carrying both errors reports only the R2006 and the type error goes
+// unpinned. Split across two declarations, Windows reports both.
+//
+// The R2006 half was the untested one. The SPEC says a non-matching body is
+// "never resolved AND never type-checked", and a fixture carrying only a type
+// error left the resolution half resting on nothing: move selection to AFTER
+// name resolution and the type error stays hidden, while this catches it.
 
 module "main"
 
 @target(.Windows)
 platform_tag :: fn() -> string = 42
+
+@target(.Windows)
+platform_kind :: fn() -> string = no_such_function_anywhere()

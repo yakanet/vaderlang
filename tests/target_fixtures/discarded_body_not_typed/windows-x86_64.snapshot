@@ -1,9 +1,11 @@
 # Diagnostics
-[main-windows.vader:8:34] error[T3020] function body returns a value incompatible with its declared return type: expected string, got {integer}
+[main-windows.vader:16:34] error[T3020] function body returns a value incompatible with its declared return type: expected string, got {integer}
+[main-windows.vader:19:35] error[R2006] unresolved identifier: `no_such_function_anywhere`
 
 # Baked
 VADER_OS = Os.Windows
 VADER_ARCH = Arch.X86_64
 
 # Selected body
-main$platform_tag <- main-windows.vader:8
+main$platform_kind <- main-windows.vader:19
+main$platform_tag <- main-windows.vader:16
