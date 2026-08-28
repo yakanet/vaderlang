@@ -4,6 +4,7 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -44,6 +45,14 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
         elements: MutableList<out PsiElement>,
         result: MutableCollection<in LineMarkerInfo<*>>,
     ) {
+        // Whether this provider RUNS at all for TextMate files is not something
+        // that can be checked outside a live IDE, and a gutter icon that does
+        // not appear gives no signal either way. One line per file that holds a
+        // `@target` turns "nothing happened" into something readable in
+        // Help → Show Log — silence there means the provider is never invoked,
+        // which is a different bug from "invoked and matched nothing".
+        var seen = 0
+        var matched = 0
         for (element in elements) {
             // Leaf tokens only — otherwise every ancestor node yields a marker
             // and the gutter shows one icon per nesting level.
@@ -52,10 +61,20 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
             val self = file.virtualFile ?: continue
             if (!self.name.endsWith(".vader")) continue
 
-            val name = element.text
+            // The name is read from the TEXT, never from `element.text`.
+            // TextMate splits by scope, not by identifier, so a leaf may be a
+            // whole run of a line — assuming one leaf per name is what makes a
+            // marker silently never appear.
+            val text = file.text
             val offset = element.textRange.startOffset
-            if (!isDeclarationLine(file.text, offset, name)) continue
-            val decorator = targetDecoratorAbove(file.text, offset) ?: continue
+            val bound = declarationNameAt(text, offset) ?: continue
+            // Exactly ONE leaf per declaration gets the marker: the one covering
+            // the name's first character. Without this every leaf on the line
+            // would qualify and the gutter would stack duplicates.
+            if (!element.textRange.contains(bound.second)) continue
+            val name = bound.first
+            seen++
+            val decorator = targetDecoratorAbove(text, offset) ?: continue
             val psi = PsiManager.getInstance(element.project)
 
             // Bare `@target` → down to the bodies. `@target(.Os, …)` → up to the
@@ -77,6 +96,7 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
             }
             if (targets.isEmpty()) continue
 
+            matched++
             result.add(
                 NavigationGutterIconBuilder.create(icon)
                     .setTargets(targets)
@@ -84,16 +104,28 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
                     .createLineMarkerInfo(element),
             )
         }
+        if (seen > 0) {
+            LOG.info("vader: @target gutter — $seen candidate line(s), $matched marker(s)")
+        }
+    }
+
+    private companion object {
+        val LOG = Logger.getInstance(VaderImplementationLineMarkerProvider::class.java)
     }
 }
 
-// True when `offset` sits on the NAME being bound on this line. `export` is
-// legal only on the declaration — a body carrying it is R2037 — but this does
-// not enforce that: the compiler already does, and a marker that vanished on
-// invalid code would read as "no bodies" rather than as an error.
-private fun isDeclarationLine(text: String, offset: Int, name: String): Boolean {
+// The name bound on the line holding `offset`, with its absolute start offset,
+// or null when that line binds nothing.
+//
+// `export` is legal only on the declaration — a body carrying it is R2037 — but
+// this does not enforce it: the compiler already does, and a marker that
+// vanished on invalid source would read as "no bodies" rather than as an error.
+private fun declarationNameAt(text: String, offset: Int): Pair<String, Int>? {
+    val start = lineStart(text, offset)
     val line = lineAround(text, offset)
-    return Regex("^\\s*(export\\s+)?${Regex.escape(name)}\\s*::").containsMatchIn(line)
+    val m = Regex("^\\s*(?:export\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*::").find(line) ?: return null
+    val group = m.groups[1] ?: return null
+    return group.value to (start + group.range.first)
 }
 
 // The `@target` decorator governing the declaration at `offset` — `"@target"`
