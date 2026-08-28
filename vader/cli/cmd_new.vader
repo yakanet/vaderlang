@@ -26,6 +26,7 @@ import "std/path"
 import "std/process"
 import "std/string"
 import "std/string_builder"
+TTY :: import "std/tty"
 import "vader/resolver"
 
 /// Folder the entry module lives in — and therefore the module it declares.
@@ -58,8 +59,20 @@ cmd_new :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("new", parsed) {
         return 1
     }
-    raw :: if parsed.positionals.len() == 0 { IN_PLACE } else { parsed.positionals[0] }
-    target :: resolve_target(raw)
+    // EVERY question first, then the writes. Asking after the files exist would
+    // leave a half-made project behind a cancellation.
+    typed :: if parsed.positionals.len() == 0 { "" } else { parsed.positionals[0] }
+    chosen :: choose_target(typed)
+    if chosen is PromptError as e {
+        eprintln("vader new: ${e.message}")
+        return 1
+    }
+    wants_git :: choose_git(parsed)
+    if wants_git is PromptError as e {
+        eprintln("vader new: ${e.message}")
+        return 1
+    }
+    target :: resolve_target(chosen)
     if target is ScaffoldError as e {
         eprintln("vader new: ${e.msg}")
         return 1
@@ -70,7 +83,7 @@ cmd_new :: fn(args: string[]) -> i32 {
         return 1
     }
     git_initialised := false
-    if parsed.bool_flag("git") {
+    if wants_git {
         complaint :: init_git(target.dir)
         if complaint == null {
             git_initialised = true
@@ -80,6 +93,56 @@ cmd_new :: fn(args: string[]) -> i32 {
     }
     println(report(target, git_initialised))
     return 0
+}
+
+// ---- asking ---------------------------------------------------------------
+//
+// The prompts appear ONLY on a terminal, and only for what the command line did
+// not already say. A pipe — a script, CI, an agent — gets exactly the behaviour
+// this command shipped with, which is why none of its tests had to change: they
+// spawn through a pipe and never see a question.
+
+// What to scaffold. A name on the command line settles it; without one, a
+// terminal is asked and a pipe keeps the documented default of filling the
+// working directory.
+choose_target :: fn(typed: string) -> string | PromptError {
+    if typed != "" {
+        return typed
+    }
+    if !TTY.is_tty() {
+        return IN_PLACE
+    }
+    mode :: select(
+        "What should `vader new` do?",
+        ["Create a new directory", "Initialise this directory"],
+    )
+    if mode is PromptError as e {
+        return e
+    }
+    if mode == 1 {
+        return IN_PLACE
+    }
+    name :: text("Project name", "")
+    if name is PromptError as e {
+        return e
+    }
+    if name == "" {
+        return PromptError { .reason = .Cancelled, .message = "a project name is required" }
+    }
+    return name
+}
+
+// Whether to run `git init`. A `--git` in either spelling is a decision already
+// made — only its ABSENCE on a terminal is a question, and off a terminal it
+// stays the documented default of no.
+choose_git :: fn(parsed: ParsedArgs) -> bool | PromptError {
+    if parsed.flags["git"] != null {
+        return parsed.bool_flag("git")
+    }
+    if !TTY.is_tty() {
+        return false
+    }
+    return confirm("Initialise a git repository?", false)
 }
 
 // ---- the target -----------------------------------------------------------
@@ -252,7 +315,7 @@ report :: fn(project: NewProject, git_initialised: bool) -> string {
     out.append("  ${SOURCE_DIR}/${ENTRY_FILENAME}  module \"${SOURCE_DIR}\", holding `main`\n")
     out.append("  .gitignore      build/ — every artefact lands there\n")
     if git_initialised {
-        out.append("  .git            initialised by `--git`\n")
+        out.append("  .git            a git repository was initialised here\n")
     }
     out.append("\n")
     if !project.in_place {

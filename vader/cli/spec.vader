@@ -186,13 +186,13 @@ FMT_FLAGS: FlagSpec[]: [
     },
 ]
 
-// `new`'s one flag. Everything else about a scaffold is a decision the command
-// makes for you — the point is that a first project needs no decisions.
+// `new`'s one flag. On a terminal its ABSENCE is a question rather than a
+// silent no, so `--git=false` is how a script says no without being asked.
 NEW_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "git",
         .kind = .Bool,
-        .help = "Also run `git init` in the new project",
+        .help = "Run `git init` too; on a terminal you are asked when it is omitted",
     },
 ]
 

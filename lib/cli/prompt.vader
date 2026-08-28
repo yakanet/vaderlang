@@ -16,6 +16,10 @@
 //     `defer`, which covers the normal return and a panic alike (the runtime runs
 //     pending defers before aborting). Ctrl-C is a BYTE here, not a signal, so it
 //     unwinds through the same path.
+//   * **Each prompt starts with an empty key queue.** Keys typed before a
+//     question appears are dropped rather than answering it — a burst read by one
+//     widget does not carry into the next. That is deliberate for a prompt: an
+//     answer should be given to a question the user has actually seen.
 //   * **ASCII only in the frames.** A pointer is `>`, a checked box is `[x]`.
 //     Not every Windows console is on a UTF-8 code page, and a mangled glyph is a
 //     worse default than a plain one.
