@@ -2610,7 +2610,7 @@ Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + 
 ### Linking
 
 ```bash
-vader build --target=native --ldflags="helper.o -lcrypto -L/usr/local/lib" prog.vader
+vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" prog.vader
 ```
 
 `--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format; everything goes through `--ldflags`.
@@ -3243,8 +3243,8 @@ Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compil
 
 A first-class debug/inspection target. The bytecode IR is emitted as a standalone build artifact in one of two formats:
 
-- `--target=ir` → `.vir` — **binary** module, compact, what `vader run program.vir` consumes.
-- `--target=ir-text` → `.virt` — **textual**, line-oriented, human-readable; `vader run program.virt` re-parses it back into the in-memory bytecode without touching the original source.
+- `--emit=bytecode` → `.vir` — **binary** module, compact, what `vader run program.vir` consumes.
+- `--emit=bytecode-text` → `.virt` — **textual**, line-oriented, human-readable; `vader run program.virt` re-parses it back into the in-memory bytecode without touching the original source.
 
 Both formats:
 - mirror the in-memory bytecode 1:1 (stack-based);
@@ -3288,10 +3288,10 @@ to the program like any other argument.
 |---------|-------------|
 | `vader run <file> [args…]` | Interpret via VM; everything after `<file>` is the program's argv. A bare `vader` (no action) is where the REPL will live *(not yet implemented)* |
 | `vader build [file\|--manifest]` | Compile to binary (default target = native) |
-| `vader build --target=native` | C-emit → `cc` → native binary (default) |
-| `vader build --target=wasm` | Targets WebAssembly *(not yet implemented)* |
-| `vader build --target=ir` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
-| `vader build --target=c` | Emits the generated C source only |
+| `vader build --emit=executable` | C-emit → `cc` → native binary (default) |
+| `vader build --target=wasm32-browser` | Targets WebAssembly *(not yet implemented)* — the artefact stays `--emit=executable`; wasm is a platform, not an artefact kind |
+| `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
+| `vader build --emit=c` | Emits the generated C source only |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
@@ -3655,7 +3655,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 13. **WASM emitter**: from bytecode
 14. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
 15. **C runtime**: Cheney semi-space copying GC (stop-the-world, shadow-stack roots), string helpers, basic syscalls
-16. **CLI**: `run`, `build` (with `--target=ir|native|wasm`), `fmt`, `test`, `dump`, REPL
+16. **CLI**: `run`, `build` (with `--emit=bytecode|native|wasm`), `fmt`, `test`, `dump`, REPL
 17. **Snapshot tests**: for each sample, snapshot the output of every stage
 
 ### B. Deferred decisions / topics to revisit

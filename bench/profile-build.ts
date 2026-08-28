@@ -160,11 +160,11 @@ function main(): void {
   console.log(`  GC     : ${GC_ENV.VADER_GC_OLD_BYTES ? `old=${(+GC_ENV.VADER_GC_OLD_BYTES / 1048576) | 0}MB (override)` : "RAM-proportional (auto)"}\n`);
 
   // --- Stage 1: front-end → C, with the in-compiler per-pass profiler on. ----
-  // `build --target=c --out=-` routes through the fully-instrumented
+  // `build --emit=c --out=-` routes through the fully-instrumented
   // emit_c_source (so the c-emit pass + the prof dump fire) and emits the
   // real, linkable native C — the same path bootstrap/build.sh takes.
   const emit = runTimed(
-    [args.vader, "build", "--target=c", "--out=-", args.input],
+    [args.vader, "build", "--emit=c", "--out=-", args.input],
     { ...GC_ENV, VADER_PROFILE: "1" },
     cPath,
   );
@@ -203,7 +203,7 @@ function main(): void {
   if (args.gcProfile) {
     console.log("\n=== GC live-set by type (VADER_GC_PROFILE) ===");
     const gc = runTimed(
-      [args.vader, "build", "--target=c", "--out=-", args.input],
+      [args.vader, "build", "--emit=c", "--out=-", args.input],
       { ...GC_ENV, VADER_GC_PROFILE: "1" },
       join(tmp, "selfcompile2.c"),
     );

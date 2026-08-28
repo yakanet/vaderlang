@@ -48,7 +48,7 @@ if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1.c (exit $LASTEXIT
 if ($LASTEXITCODE -ne 0) { throw "stage1 compilation failed (exit $LASTEXITCODE)" }
 
 Step "[3/3] Building vader = stage2 (via stage1, --release)"
-& .\build\stage1.exe build --release --target=native --out=build\vader --cc=$ccAbs vader\cli\main.vader
+& .\build\stage1.exe build --release --emit=executable --out=build\vader --cc=$ccAbs vader\cli\main.vader
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 
 Write-Host "==> done  vader built at build\vader.exe" -ForegroundColor Green

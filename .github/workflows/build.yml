@@ -39,7 +39,7 @@ jobs:
         run: bash bootstrap/build.sh
 
       - name: Smoke test the rebuilt compiler
-        run: ./build/vader build --target=c --out=build/_smoke.c tests/snippets/return_42/_main.vader
+        run: ./build/vader build --emit=c --out=build/_smoke.c tests/snippets/return_42/_main.vader
 
   # Type-check the only first-party TypeScript left in the repo root: the Bun
   # test runner and the benchmark programs (tests/ + bench/). The compiler

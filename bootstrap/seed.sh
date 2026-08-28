@@ -141,7 +141,7 @@ cmd_check() {
     # `--release` is what keeps `#line` directives out of the seed. This is the
     # ONLY place the emission is spelled out, so it cannot drift against the writer.
     mkdir -p build
-    if ! "$VADER" build --release --target=c --out=build/bootstrap.check.c \
+    if ! "$VADER" build --release --emit=c --out=build/bootstrap.check.c \
            vader/bootstrap/bootstrap.vader >/dev/null 2>&1; then
         note "re-emitting the seed failed — cannot check freshness."
         exit 2

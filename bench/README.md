@@ -29,7 +29,7 @@ Every program prints a one-line checksum so cross-language equivalence is verifi
 
 | stack             | entry-point                                       | how it runs                                                |
 |-------------------|---------------------------------------------------|------------------------------------------------------------|
-| `vader-native`    | `bench/<name>/<name>.vader` → native binary       | `./build/vader build --target=native --release`, then exec |
+| `vader-native`    | `bench/<name>/<name>.vader` → native binary       | `./build/vader build --emit=executable --release`, then exec |
 | `bun-ts`          | `bench/<name>/<name>.ts`                          | direct `bun bench/<name>/<name>.ts`                        |
 | `go`              | `bench/<name>/<name>.go` → native binary          | `go build`, then exec                                      |
 | `java`            | `bench/<name>/<name>.java` → `<name>.class`       | `javac --release 25 -d bench/<name>`, then `java -cp bench/<name> <Name>` |

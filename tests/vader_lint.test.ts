@@ -40,7 +40,7 @@ test("vader lint is silent when every export is reached", async () => {
 test("vader build never runs the unused-export lint (P-lean)", async () => {
   // The default build must not gain the lint : building the dead-export fixture
   // to C emits no W0012 (and succeeds — a dead export is not an error).
-  const { stdout, stderr, exit } = await runCli(["build", "--target=c", "--out=-", DEAD]);
+  const { stdout, stderr, exit } = await runCli(["build", "--emit=c", "--out=-", DEAD]);
   const out = `${stdout}\n${stderr}`;
   expect(countW0012(out)).toBe(0);
   expect(exit).toBe(0);

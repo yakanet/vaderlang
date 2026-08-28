@@ -40,7 +40,7 @@ function withScratch<T>(body: (file: string) => Promise<T>): Promise<T> {
 
 test("an unknown flag is rejected, a correct one still works", async () => {
   await withScratch(async (file) => {
-    const badBuild = await runCli(["build", "--releaze", "--target=c", "--out=-", file], undefined, MEDIUM_BUILD);
+    const badBuild = await runCli(["build", "--releaze", "--emit=c", "--out=-", file], undefined, MEDIUM_BUILD);
     expect(badBuild.exit).not.toBe(0);
     expect(badBuild.stderr).toContain("unknown flag --releaze");
 
@@ -49,7 +49,7 @@ test("an unknown flag is rejected, a correct one still works", async () => {
     expect(badDump.stderr).toContain("unknown flag --stagee");
 
     // No over-rejection.
-    const okBuild = await runCli(["build", "--release", "--target=c", "--out=-", file], undefined, MEDIUM_BUILD);
+    const okBuild = await runCli(["build", "--release", "--emit=c", "--out=-", file], undefined, MEDIUM_BUILD);
     expect(okBuild.exit).toBe(0);
     const okDump = await runCli(["dump", "--stage=lexer", file], undefined, MEDIUM_BUILD);
     expect(okDump.exit).toBe(0);
@@ -61,7 +61,7 @@ test("a single-dash token is rejected too, not taken for a filename", async () =
     // The gap that littered 384 stray `.c` files across the snippet corpus:
     // `-o` is not a flag `build` knows (its alias is, but `-q` isn't), and a
     // single-dash token used to be assumed positional and dropped in silence.
-    const bad = await runCli(["build", "-q", "--target=c", "--out=-", file], undefined, MEDIUM_BUILD);
+    const bad = await runCli(["build", "-q", "--emit=c", "--out=-", file], undefined, MEDIUM_BUILD);
     expect(bad.exit).not.toBe(0);
     expect(bad.stderr).toContain("unknown flag -q");
   });
@@ -72,7 +72,7 @@ test("an option written after the file says so", async () => {
     // The boundary leaves it in the tail rather than reading it, and `build`
     // takes one positional — so the message names the likely cause instead of
     // reporting a mysterious extra argument.
-    const late = await runCli(["build", file, "--release", "--target=c", "--out=-"], undefined, MEDIUM_BUILD);
+    const late = await runCli(["build", file, "--release", "--emit=c", "--out=-"], undefined, MEDIUM_BUILD);
     expect(late.exit).not.toBe(0);
     expect(late.stderr).toContain("options must come before the file");
   });

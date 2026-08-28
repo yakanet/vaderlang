@@ -3,7 +3,7 @@
 // The 12 memory opcodes are consumer-inert (no .vader source lowers to them
 // until the Buffer type lands), so this exercises them through a hand-authored
 // .virt op stream (tests/fixtures/membuf_gc.virt) compiled via the new
-// `vader build --target=c/native x.virt` path. It asserts two things the unit
+// `vader build --emit=c/native x.virt` path. It asserts two things the unit
 // suite cannot: (1) the c-emit arms emit the real `vader_buffer_*` helpers, not
 // `todo()` stubs; (2) a buffer's stored bytes survive a forced *moving*
 // collection — G1, the interior-pointer re-derivation discipline. The fixture
@@ -27,7 +27,7 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
   const cpath = join(dir, "membuf.c");
   const r = await runCli(
-    ["build", "--target=c", "--release", `--out=${cpath}`, FIXTURE],
+    ["build", "--emit=c", "--release", `--out=${cpath}`, FIXTURE],
     {},
     LONG_BUILD,
   );
@@ -47,7 +47,7 @@ test("membuf survives a forced moving collection (G1)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
   const bin = join(dir, exePath("membuf"));
   const b = await runCli(
-    ["build", "--target=native", "--release", `--out=${bin}`, FIXTURE],
+    ["build", "--emit=executable", "--release", `--out=${bin}`, FIXTURE],
     {},
     LONG_BUILD,
   );

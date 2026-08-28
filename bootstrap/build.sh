@@ -50,7 +50,7 @@ step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 "$CC_ABS" $STAGE0_CFLAGS -o build/stage1 build/stage1.c "$runtime" -Iruntime/c -lm
 
 step "[3/3] Building vader = stage2 (via stage1, --release)"
-./build/stage1 build --release --target=native --out=build/vader --cc="$CC_ABS" vader/cli/main.vader
+./build/stage1 build --release --emit=executable --out=build/vader --cc="$CC_ABS" vader/cli/main.vader
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"
 ./build/vader --version

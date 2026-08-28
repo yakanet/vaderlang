@@ -17,6 +17,7 @@ import "std/async"
 import "cli"
 import "std/process"
 import "vader/parser"
+import "vader/target"
 import "vader/resolver"
 import "vader/typecheck"
 import "vader/lower"
@@ -58,7 +59,8 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 1
     }
 
-    target       :: parsed.string_flag("target", "native")
+    emit         :: parsed.string_flag("emit", "executable")
+    target_flag  :: parsed.string_flag("target", "")
     use_manifest :: parsed.bool_flag("manifest")
     out_flag     :: parsed.string_flag("out", "")
     release      :: parsed.bool_flag("release")
@@ -97,24 +99,35 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
 
     if use_manifest {
-        eprintln("vader build --target=${target}: --manifest mode not yet implemented")
+        eprintln("vader build --emit=${emit}: --manifest mode not yet implemented")
         return 2
     }
 
-    if target == "c" {
+    // Validated even though nothing consumes it yet: an unread flag that accepts
+    // anything is worse than an absent one — `--target=native` (the old spelling)
+    // would be swallowed in silence and the build would quietly produce something
+    // else. `parse_target` names the offending fragment.
+    if target_flag != "" {
+        parsed_target :: parse_target(target_flag)
+        if parsed_target is TargetParseError as e {
+            eprintln("vader build --target=${target_flag}: ${e.reason} `${e.fragment}`")
+            return 2
+        }
+    }
+
+    if emit == "c" {
         return build_c(file, out_flag, release, include_path_flags, parallel_units)
     }
-    if target == "native" {
+    if emit == "executable" {
         return build_native(file, out_flag, release, cc, ldflags, include_path_flags, parallel_units)
     }
 
-    // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
-    // (.virt) bytecode module. The bytecode already exists post
+    // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
+    // text (.virt) module. The bytecode already exists post
     // `prepare_cfg_bytecode` ; this only needs the writer wired.
-    // TODO: --target=wasm — the WebAssembly backend is not ported yet (no
-    // wasm emitter in `vader/`). Recognised here so the flag round-trips with
-    // a clear message instead of an "unknown target" error.
-    eprintln("vader build --target=${target}: not yet implemented")
+    // A wasm module is not an emit kind: it is `--emit=executable
+    // --target=wasm32-browser`, and it waits on the wasm backend, not on this.
+    eprintln("vader build --emit=${emit}: not yet implemented")
     return 2
 }
 

@@ -3,7 +3,7 @@
 Full design: [docs/BOOTSTRAP.md](../docs/BOOTSTRAP.md).
 
 `bootstrap.c` is the C of `vader/bootstrap/bootstrap.vader` — a build-only
-`<input.vader> → <output.c>` compiler — produced by `vader build --target=c`.
+`<input.vader> → <output.c>` compiler — produced by `vader build --emit=c`.
 Any C compiler turns it into **stage0**, which carries the full compilation
 pipeline; the build then bootstraps in three stages to the shipped compiler. No
 pre-existing `vader` toolchain needed — only a C compiler.
@@ -21,7 +21,7 @@ dist/vader-*/vader --version       # self-contained — runs from anywhere
 ```
 
 Stages: `cc` the seed → `build/stage0`; stage0 emits the full compiler's C and the
-script links it → `build/stage1`; `stage1 build --target=native` → `build/vader`
+script links it → `build/stage1`; `stage1 build --emit=executable` → `build/vader`
 (= stage2, the deliverable). Override the compiler with `CC=clang`. The GC arenas
 auto-grow, so self-compiling needs no env tuning.
 

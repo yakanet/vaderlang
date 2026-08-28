@@ -87,7 +87,7 @@ vader build --out=hello examples/hello/hello.vader && ./hello   # or compile to 
 
 Starting your own instead of running an example: `vader new my-app` writes what a project needs — by default a `vader.json`, `src/main.vader` and a `.gitignore` — and `vader doctor` reports whether the toolchain around it is sound.
 
-Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual IR with `vader build --target=ir`.
+Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual IR with `vader build --emit=bytecode`.
 
 ---
 
@@ -163,7 +163,7 @@ Anything the action doesn't recognise is an error rather than a silently ignored
 | `vader help [action]` / `version`              | ✓       | Print usage (overall, or one action in full) / version. `--help`, `-h`, `--version`, `-v` are accepted spellings.                                                                                                                                                                                                                                                    |
 | `vader new [name]`                             | ✓       | Scaffold a project: a `vader.json` (whose presence makes the directory a module search root), `src/main.vader` declaring `module "src"`, and a `.gitignore` for `build/`. With a name it creates that directory. `--build` picks what describes the build — `manifest` (default) writes a `vader.json`, `driver` writes a `build.vader` the project drives itself with, `none` writes neither; the three are exclusive. On a terminal, a bare `vader new` asks what to make, what to call it, which build shape and whether to `git init`; through a pipe it takes the documented defaults, so scripts and CI are unaffected. A flag in either spelling skips its question, so `--git=false` declines without being asked.                                |
 | `vader run <file> [args…]`                     | ✓       | Interpret a `.vader` source or a `.virt` text bytecode dump through the bytecode VM. Everything after `<file>` becomes the program's own argv. Stdout/stderr go to the host.                                                                                                                                                                  |
-| `vader build [file] [--target=…] [--out=path]` | partial | `--target=native` (default) writes a native binary **and** the generated C (`<out>.c`). `--target=c` writes only the C. `--target=ir` writes textual `.vir`. `--target=wasm` is a stub. `--manifest` is reserved for multi-module projects.                                |
+| `vader build [file] [--emit=…] [--target=…] [--out=path]` | partial | `--emit=executable` (default) writes a native binary **and** the generated C (`<out>.c`). `--emit=c` writes only the C. `--emit=bytecode` / `--emit=bytecode-text` write the binary `.vir` / textual `.virt` module *(not yet implemented)*. `--target=<os>-<arch>` names the platform, defaulting to this machine. `--manifest` is reserved for multi-module projects. |
 | `vader fmt [path]`                             | partial | Opinionated formatter, no config. Written in Vader (`vader/fmt/`), dispatched through the VM. Flags: `--check` (read-only, exits 1 on drift), `--stdout` (single-file). Default rewrites in place. Idempotent and parse-equivalent; not yet a byte-for-byte no-op on the stdlib. |
 | `vader test [path]`                            | ✓       | Discover and run `@test` functions under `[path]` (default cwd). Each runs as a separate VM entry; failures report message + source span. Name override: `@test("readable name") my_test :: fn() -> void { … }`. Exits non-zero on any failure.                            |
 | `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text).                                                                                                                                                                                                     |
@@ -209,20 +209,20 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 
 | Target            | Output                                                              | Notes                                                                                                                |
 |-------------------|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `--target=native` | A native executable **plus** the intermediate C source (`<out>.c`)  | Default. Invokes `cc` (auto-detected). Runtime lives at `runtime/c/`. The `.c` is kept so it can be inspected/profiled. |
-| `--target=c`      | Just the generated C source                                         | Drive the C compiler yourself, or stash the C as a snapshot.                                                         |
-| `--target=ir`     | Textual `.vir` bytecode                                             | Round-trippable: `vader run program.vir` re-executes without re-parsing.                                             |
-| `--target=wasm`   | *(not yet implemented)*                                             | Direct WebAssembly emission with the WASM GC proposal. Deferred to post-MVP.                                         |
+| `--emit=executable` | A native executable **plus** the intermediate C source (`<out>.c`)  | Default. Invokes `cc` (auto-detected). Runtime lives at `runtime/c/`. The `.c` is kept so it can be inspected/profiled. |
+| `--emit=c`      | Just the generated C source                                         | Drive the C compiler yourself, or stash the C as a snapshot.                                                         |
+| `--emit=bytecode`     | Textual `.vir` bytecode                                             | Round-trippable: `vader run program.vir` re-executes without re-parsing.                                             |
+| `--target=wasm32-browser` | *(not yet implemented)*                                     | Direct WebAssembly emission with the WASM GC proposal. A `.wasm` module is `--emit=executable` for a wasm platform, not an artefact kind of its own. Deferred to post-MVP. |
 
 ```sh
-vader build --target=native --out=/tmp/foo foo.vader            # native binary + foo.c
-vader build --target=native --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (CC env var is a fallback)
+vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c
+vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (CC env var is a fallback)
 ```
 
 **Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
 
 ```sh
-vader build --target=native --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
+vader build --emit=executable --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
 file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS Windows
 ```
 

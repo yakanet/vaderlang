@@ -67,7 +67,7 @@ const WORKLOADS: readonly Workload[] = [
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
   // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
   // and the one thing the runtime-only workloads above can't catch (an O(n²) crept
-  // into a typecheck / lower / emit pass). `--target=c --release` stops after the
+  // into a typecheck / lower / emit pass). `--emit=c --release` stops after the
   // compiler's own passes (no cc / linker time, no `#line` bloat). stdout is empty
   // (the "wrote" line is on stderr) so `checksum` is "" ; the exit-0 guard in
   // `timedRun` already asserts the compile succeeded. NB: this time GROWS as the
@@ -139,9 +139,9 @@ const IMPLS: readonly Impl[] = [
     source: (w) => w === "selfcompile_c" ? "vader/cli/main.vader" : `bench/${w}/${w}.vader`,
     build: (w) => w === "selfcompile_c"
       ? Promise.resolve()
-      : runBuild("./build/vader", ["build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
+      : runBuild("./build/vader", ["build", "--emit=executable", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
     run: (w) => w === "selfcompile_c"
-      ? { cmd: "./build/vader", args: ["build", "--target=c", "--release", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
+      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {

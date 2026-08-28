@@ -67,15 +67,25 @@ export COMMON_FLAGS: FlagSpec[]: [
     },
 ]
 
-// `--target`'s five values. `ir` / `ir-text` / `wasm` are recognised but
-// unimplemented — `cmd_build` says so per target rather than rejecting them as
-// unknown, and the help admits it here instead of listing them as if they work.
-BUILD_TARGETS: ValueSpec[]: [
-    ValueSpec { .name = "native", .help = "Native binary, via the C emitter" },
+// `--emit`'s four values: WHAT to produce. It used to be spelled `--target`, and
+// the rename is the point — a target is a PLATFORM everywhere else (Rust, Zig,
+// Go, Odin), and "produce C for Windows" needs both answers at once, which one
+// flag cannot carry. `--emit` is Rust's name for this axis (`--emit=llvm-ir,asm`).
+//
+// `wasm` is gone from the list on purpose, and is not a loss: a `.wasm` module is
+// `--emit=executable --target=wasm32-browser`, the executable OF that platform.
+// The separation files it where it belongs instead of leaving it among artefact
+// kinds it never resembled.
+//
+// `bytecode` / `bytecode-text` replace `ir` / `ir-text` to match the vocabulary
+// the pipeline already uses everywhere else (`dump --stage=bytecode`, the
+// `bytecode.snapshot.virt` files, SPEC's "Bytecode emitter"). The file
+// extensions do not change: `.vir` and `.virt`.
+EMIT_VALUES: ValueSpec[]: [
+    ValueSpec { .name = "executable", .help = "Native binary, via the C emitter" },
     ValueSpec { .name = "c", .help = "The generated C source only" },
-    ValueSpec { .name = "ir", .help = "Binary bytecode module (not yet implemented)" },
-    ValueSpec { .name = "ir-text", .help = "Textual bytecode dump (not yet implemented)" },
-    ValueSpec { .name = "wasm", .help = "WebAssembly module (not yet implemented)" },
+    ValueSpec { .name = "bytecode", .help = "Binary bytecode module (not yet implemented)" },
+    ValueSpec { .name = "bytecode-text", .help = "Textual bytecode dump (not yet implemented)" },
 ]
 
 BUILD_FLAGS: FlagSpec[]: [
@@ -86,12 +96,23 @@ BUILD_FLAGS: FlagSpec[]: [
         .value_name = "path",
     },
     FlagSpec {
+        .name = "emit",
+        .alias = "e",
+        .help = "What to produce",
+        .value_name = "artefact",
+        .default_text = "executable",
+        .values = EMIT_VALUES,
+    },
+    // No `.values`: the target is a `<os>-<arch>` PAIR, not an enumeration —
+    // spelling out five OSes times three architectures would be a worse help
+    // text than the form itself. `vader/target::parse_target` validates it and
+    // names the offending fragment.
+    FlagSpec {
         .name = "target",
         .alias = "t",
-        .help = "What to produce",
-        .value_name = "target",
-        .default_text = "native",
-        .values = BUILD_TARGETS,
+        .help = "Platform to build for, as `<os>-<arch>`",
+        .value_name = "os-arch",
+        .default_text = "this machine",
     },
     FlagSpec {
         .name = "release",

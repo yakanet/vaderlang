@@ -569,7 +569,7 @@ test.concurrent("a named file bypasses the driver, and says so", async () => {
   // silently dropping a project's rules would make them untrustworthy.
   const dir = stage(LINT);
   staged.push(dir);
-  const r = await run(["build", "--target=c", "--out=-", "src/main.vader"], { cwd: dir });
+  const r = await run(["build", "--emit=c", "--out=-", "src/main.vader"], { cwd: dir });
   expect(r.stderr).toContain("not applied");
   expect(r.exit).toBe(0);
 }, HEAVY_BUILD);
@@ -579,7 +579,7 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
   const dir = stage(LINT);
   staged.push(dir);
   const quiet =
-    await run(["build", "--target=c", "--out=-", "--no-hooks", "src/main.vader"], { cwd: dir });
+    await run(["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"], { cwd: dir });
   expect(quiet.stderr).not.toContain("not applied");
 
   // With no file either, --no-hooks means the driver is not even looked for.
