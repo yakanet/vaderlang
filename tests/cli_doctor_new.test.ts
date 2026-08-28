@@ -133,3 +133,59 @@ test("a GC size written with a suffix is reported as the bytes it really means",
   expect(knob.status).toBe("fail");
   expect(knob.summary).toContain("512");
 }, MEDIUM_BUILD);
+
+test("$VADER_HOME points a binary at a toolchain that is not beside it", async () => {
+  // The reason the variable exists. Without it a bare binary resolves `std/…`
+  // only from a directory that happens to hold a `lib/`, which is why running a
+  // project from anywhere needs a `dist/` bundle. Here the project is in a temp
+  // directory with no toolchain in sight, and the build works anyway.
+  await withTempDir(async (workspace) => {
+    const created = await spawnCapture(["new", "elsewhere"], { cwd: workspace });
+    expect(created.exit).toBe(0);
+    const project = join(workspace, "elsewhere");
+
+    // No symlinks this time — nothing beside the project, nothing beside the
+    // binary. Only the variable.
+    const ran = await spawnCapture(["run", "src/main.vader"], {
+      cwd: project,
+      env: { VADER_HOME: REPO },
+      timeoutMs: MEDIUM_BUILD,
+    });
+    expect(ran.exit).toBe(0);
+    expect(ran.stdout).toContain("hello from elsewhere");
+
+    // And doctor says which probe answered, rather than reporting a
+    // home-provided root as "beside the binary".
+    const { exit, stdout } = await spawnCapture(["doctor", "--json"], {
+      cwd: project,
+      env: { VADER_HOME: REPO },
+    });
+    expect(exit).toBe(0);
+    const report = JSON.parse(stdout);
+    const home = report.checks.find((c: { name: string }) => c.name === "toolchain-home");
+    expect(home.status).toBe("ok");
+    const lib = report.checks.find((c: { name: string }) => c.name === "library-root");
+    expect(lib.summary).toContain("VADER_HOME");
+  });
+}, MEDIUM_BUILD);
+
+test("a stale $VADER_HOME is ignored, and doctor is what says so", async () => {
+  // Ignoring it is the deliberate choice: a value left over from a moved install
+  // must not brick every invocation. The cost is that a typo looks like nothing
+  // happened, which is why the warning has to exist.
+  await withTempDir(async (workspace) => {
+    const { exit, stdout } = await spawnCapture(["doctor", "--json"], {
+      env: { VADER_HOME: workspace },
+    });
+    // Still exits 0: the build works, it just works the ordinary way.
+    expect(exit).toBe(0);
+    const report = JSON.parse(stdout);
+    const home = report.checks.find((c: { name: string }) => c.name === "toolchain-home");
+    expect(home.status).toBe("warn");
+    expect(home.detail).toContain(workspace);
+    // The ordinary probe still answered, so nothing is broken.
+    const lib = report.checks.find((c: { name: string }) => c.name === "library-root");
+    expect(lib.status).toBe("ok");
+    expect(lib.summary).not.toContain("VADER_HOME");
+  });
+}, MEDIUM_BUILD);

@@ -20,6 +20,7 @@
 
 module "vader/resolver"
 
+import "std/env"
 import "std/io"
 import "std/path"
 import "std/sort"
@@ -281,9 +282,56 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string = sidecar
 /// its own `lib/` must not have it searched ahead of its own modules. See
 /// `loader::project_include_paths`.
 export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
+    home :: home_root(subdir, marker)
+    if home != null {
+        return home
+    }
     exe_root :: join_path(current_executable_location().dir_of(), subdir)
     if exists(join_path(exe_root, marker)) {
         return exe_root
+    }
+    return null
+}
+
+/// Environment variable naming the toolchain's own directory — the one holding
+/// `lib/`, `runtime/` and (in a bundle) `src/`.
+///
+/// Optional. Without it the toolchain is found beside the binary, then relative
+/// to the working directory, and those two are all a bare binary has — which is
+/// why it only works from a directory that happens to hold a `lib/`.
+export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
+
+/// `<$VADER_HOME>/subdir` when the variable is set AND that directory holds
+/// `marker`, else null.
+///
+/// Probed BEFORE the executable's own neighbourhood: an explicit setting beats an
+/// implicit guess, which is the only reason to have the variable — pointing a
+/// binary at a toolchain that is not the one beside it.
+///
+/// A value that does not hold the marker is IGNORED rather than fatal, so a stale
+/// `VADER_HOME` left over from a moved install degrades to the ordinary probe
+/// instead of bricking every invocation. That silence is deliberate and it is
+/// paid for by `vader doctor`, which reports the variable as set-and-unusable.
+///
+/// ⚠️ The root it returns is ABSOLUTE, so it becomes an absolute module-id prefix
+/// — the same thing a `dist/` bundle already does, and the reason the cwd fallback
+/// in `resolve_sidecar` stays relative (see its note on snapshot-order drift). Do
+/// not set this variable when running the snapshot corpus.
+///
+/// @param subdir  resource directory under the home, e.g. `"lib"`, `"runtime/c"`.
+/// @param marker  file proving the candidate really is that resource.
+/// @return        the resolved root, or null when unset or unusable.
+export home_root :: fn(subdir: string, marker: string) -> string | null {
+    home :: get_env(TOOLCHAIN_HOME_VAR)
+    if home == null {
+        return null
+    }
+    if home == "" {
+        return null
+    }
+    candidate :: join_path(home, subdir)
+    if exists(join_path(candidate, marker)) {
+        return candidate
     }
     return null
 }

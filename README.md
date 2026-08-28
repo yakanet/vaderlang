@@ -108,7 +108,7 @@ tar -xzf vader-linux-x64.tar.gz && ./vader-linux-x64/vader --version
 tar -xf vader-windows-x64.zip && vader-windows-x64\vader.exe --version
 ```
 
-The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries), `src/vader/` (the compiler's own sources, which compiling a project's `build.vader` needs) and `runtime/c/` from next to itself, so keep the extracted folder intact.
+The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries), `src/vader/` (the compiler's own sources, which compiling a project's `build.vader` needs) and `runtime/c/` from next to itself, so keep the extracted folder intact. If you would rather move the binary on its own, set `VADER_HOME` to the extracted folder — it takes precedence over the search beside the binary.
 
 On macOS, Gatekeeper blocks the unsigned binary on first launch — strip the quarantine attribute:
 
@@ -180,6 +180,12 @@ Accepted by every action, after the action name. All three are **reserved** — 
 ### Short aliases
 
 `-o` (`--out`), `-t` (`--target`), `-r` (`--release`), `-s` (`--stage`), `-h` (`--help`), `-v` (`--version`). A `Str` flag takes its value after `=` or a space, in either spelling: `-o out.c`, `-o=out.c`, `--out out.c`, `--out=out.c` are the same thing.
+
+### Environment
+
+- `VADER_HOME` — directory holding the toolchain (`lib/`, `runtime/`, and `src/` in a bundle). Optional, and it outranks the two implicit probes: beside the binary, then under the working directory. Set it to run a binary that lives apart from the files it loads. A value that does not hold `lib/std/io/io.vader` is ignored rather than fatal, so a stale setting degrades to the ordinary search instead of breaking every build — `vader doctor` reports it.
+- `CC` is **not** read by `vader build`; pass `--cc=<path>` instead. Only the bootstrap scripts honour it. `vader doctor` warns when it is set, since the difference is otherwise invisible.
+- `VADER_GC_*` tune the collector. They are read as plain byte counts: `VADER_GC_OLD_MAX=512M` means 512 **bytes**, not 512 MB. `vader doctor` reports the value each one actually resolves to.
 
 ### `dump` stages
 

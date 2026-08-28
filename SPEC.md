@@ -2351,10 +2351,11 @@ When `vader.json` is absent or omits `modules`, the scan covers only the entry f
 
 `std/` lives under the toolchain's **library root**, `lib/` — a module root that hosts every namespace the toolchain ships, not the stdlib's own directory. It is resolved out-of-band, independently of `vader.json`:
 
+- **`$VADER_HOME`** — `<$VADER_HOME>/lib/`, probed with the same marker. Optional, and it outranks the other two: an explicit setting beats an implicit guess, which is the only reason the variable exists — pointing a binary at a toolchain that is not the one beside it. A value that does **not** hold the marker is *ignored*, not fatal, so a stale setting left over from a moved install degrades to the ordinary probe rather than bricking every invocation; `vader doctor` reports it as set-and-unusable. `$VADER_HOME` also supplies the C runtime (`runtime/c/`) and, for a driven build, the compiler's own sources (`vader/` in a checkout, `src/vader/` in a bundle).
 - **Sidecar of the binary** — `<dir-of-binary>/lib/`, probed with the marker `std/io/io.vader`. This is what a `dist/` bundle uses.
 - **Relative fallback** — the bare `lib/`, i.e. `<cwd>/lib`, which is what a source checkout uses.
 
-The fallback is deliberately *relative*: the resolved root becomes a module-id prefix, and an absolute root reshuffles map-keyed insertion order, drifting snapshots.
+The fallback is deliberately *relative*: the resolved root becomes a module-id prefix, and an absolute root reshuffles map-keyed insertion order, drifting snapshots. `$VADER_HOME` is absolute, so it carries that hazard exactly as a bundle does — do not set it when running the snapshot corpus (the test harness clears it for that reason).
 
 A `vader.json` may also name it through `includePaths` (`["lib"]`), which is searched **before** the out-of-band probe. That ordering is load-bearing during a layout migration: a binary whose probe is baked to the previous layout still resolves against the renamed tree, which is what makes the bootstrap seed survive the rename.
 

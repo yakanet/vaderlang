@@ -126,7 +126,12 @@ export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Pro
     cwd: opts.cwd,
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, ...(opts.env ?? {}) },
+    // `VADER_HOME` is cleared unless a test asks for it: it outranks every other
+    // toolchain probe, so a developer who has it exported would silently run the
+    // whole corpus against a different `lib/` — and, being absolute, against
+    // different module ids, which is snapshot drift with no visible cause. The
+    // opts spread comes after, so a test that sets it deliberately still wins.
+    env: { ...process.env, VADER_HOME: undefined, ...(opts.env ?? {}) },
   });
   const killTimer = setTimeout(() => proc.kill("SIGKILL"), opts.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS);
   try {
