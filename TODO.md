@@ -48,6 +48,25 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 - [x] **Call-site function names lose their color under the LSP** (fixed 2026-07-26). Server side was already right — both callee shapes are tagged `Function` (asserted end-to-end by `test_call_sites_are_tagged_function`). The cause was the COLOUR KEY, not a missing mapping: LSP4IJ's `DefaultSemanticTokensColorsProvider` maps `function` → `LSP_FUNCTION`, whose fallback is `DefaultLanguageHighlighterColors.FUNCTION_CALL` — a key themes leave at the default foreground, while the TextMate scope `entity.name.function.call.vader` IS coloured. So the semantic token replaced a coloured scope with an uncoloured key (tell-tale: the same call inside a string interpolation, where no AST token is emitted, stayed blue). Fix: `VaderSemanticTokensFeature` returns `null` for `function` — LSP4IJ null-checks the key and skips the highlight, leaving the grammar's colour in place. Everything else delegates to LSP4IJ's default, so its user-configurable `LSP_*` colour keys are preserved.
 
 
+- [ ] **`match` lowers to independent `if`s, never a `switch`** (noted 2026-08-28, user observation, confirmed on the emitted C). A six-arm `match` over an `enum(u8)` emits:
+
+  ```c
+  static vader_string_t mt_name(uint8_t l0) {
+      if (l0 == INT32_C(0)) { return 1u; }
+      if (l0 == INT32_C(1)) { return 2u; }
+      ...
+      vader_unreachable("unreachable return in mt$name");
+  }
+  ```
+
+  SPEC §"Pattern match → if/else chains" documents this as the deliberate MVP lowering ("naive code is fine for the bytecode emitter to optimise later"), so it is a debt taken knowingly, not an oversight.
+
+  **The nuance that decides what to measure**: because every arm `return`s, these are semantically already an `else if` chain — control never falls through, so the *branch count* is not the cost. What is lost is the DENSITY information. `switch (l0)` over `0..5` tells the C compiler a jump table is legal; a run of comparisons leaves it to prove that, which gcc/clang often do for this exact shape but not always, and never once the values are sparse or the arms carry guards.
+
+  **So the first move is a measurement, not a rewrite.** Compile a dense enum `match` at `-O3` and look for a jump table (`jmp *%rax` / `.rodata` offsets) versus a comparison chain. If the table is already there, this is worth nothing on the C backend and stays a note for the future WASM emitter, where `br_table` has to be chosen explicitly and nothing will infer it. If it is not, the fix is narrow: emit `switch` when every arm is a literal over one integer scrutinee, keep the `if` chain for everything else (type tests, guards, string arms, or-patterns). Cross-ref the bytecode side — the VM dispatches the same shape and has no table either.
+
+  ⚠️ Not to be confused with a correctness matter: the chain is correct today, and `@partial` / T3013 exhaustiveness is unaffected either way.
+
 - [ ] **Null-narrowing crosses `&&` but not `||`** (found 2026-08-28, writing `vader/resolver/target_select.vader`). The two short-circuit operators are treated asymmetrically, and only one of them is right:
 
   ```vader
