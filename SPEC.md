@@ -3287,9 +3287,13 @@ machine that wrote it, not a surprise on whichever platform compiles it next.
 #### `VADER_OS` — the target as a value
 
 `VADER_OS` and `VADER_ARCH` are constants of the compilation target, seeded into
-the prelude, usable with no import and foldable at comptime:
+the prelude and foldable at comptime. Their *types* are not: naming a variant
+means importing `std/target`, since `.Windows` alone does not infer from a
+comparison (`T3028` — an operand is not an inference site).
 
 ```vader
+import "std/target"
+
 SEP :: if VADER_OS == Os.Windows { '\\' } else { '/' }
 ```
 
@@ -3301,6 +3305,28 @@ environment wants the second.
 
 The rule of thumb: **`VADER_OS` chooses a value, `@target` chooses code.** A
 separator or a limit is a value; twenty lines of platform API is code.
+
+#### Tests are never targeted
+
+`@test` sits on the *declaration*, which is the bare `@target` one, so a test is
+never itself selected away — and `@target(.Windows) @test` is `R2036`, since a
+body has no declaration of its own to carry the decorator. That is the model
+being consistent, not a gap: a test names a behaviour, and the behaviour is the
+same everywhere even when the code implementing it is not. What varies is the
+*expectation*, and an expectation is a value:
+
+```vader
+import "std/target"
+
+@test
+test_separator_matches_the_platform :: fn() -> void {
+    want :: if VADER_OS == Os.Windows { '\\' } else { '/' }
+    assert_eq(SEP, want)
+}
+```
+
+The same test then runs on every target and checks the body that target selected,
+which is more coverage than a per-platform test would give, not less.
 
 ### Native (Linux, macOS, Windows)
 

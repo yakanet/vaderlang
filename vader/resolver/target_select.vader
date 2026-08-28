@@ -44,49 +44,6 @@ import "vader/target"
 /// @param files   the module's parsed files.
 /// @param target  the compilation target, or null to disable selection.
 /// @return        files whose programs hold only the selected declarations.
-/// Names of the `@test` fns this selection dropped.
-///
-/// Discarding a test is correct — it belongs to another platform — but doing it
-/// SILENTLY is the failure mode this tree has already paid for twice (the 157
-/// `@test` that nearly vanished in the `toolchain/` move, the formatter corpus
-/// that registered and passed while asserting nothing). A run that quietly
-/// covers half of what you think it covers is worse than one that admits it.
-///
-/// @param files   the module's parsed files, before selection.
-/// @param target  the compilation target, or null when nothing selects.
-export discarded_target_tests :: fn(files: SourceFile[], target: Target | null) -> string[] {
-    out: string[]! = []
-    if target == null {
-        return out
-    }
-    kept :: select_target_bodies(files, target, [])
-    for f in files {
-        for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                if target_selectors(fd.decorators) == null {
-                    continue
-                }
-                if !carries_test(fd) {
-                    continue
-                }
-                if !survives(fd.name, kept) {
-                    out.push(fd.name)
-                }
-            }
-        }
-    }
-    return out
-}
-
-carries_test :: fn(fd: AST.FnDecl) -> bool {
-    for d in fd.decorators {
-        if d.name == "test" {
-            return true
-        }
-    }
-    return false
-}
-
 // Whether THIS body's code is still present anywhere in the selected files. The
 // merged node keeps the winner's body verbatim, spans included, so the body's own
 // span is what identifies it — the declaration's name does not.
@@ -103,21 +60,6 @@ body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
                     if kb.span == b.span {
                         return true
                     }
-                }
-            }
-        }
-    }
-    return false
-}
-
-// Name is enough: a group has one name, and this only asks about `@test` fns,
-// which are never overloaded.
-survives :: fn(name: string, kept: SourceFile[]) -> bool {
-    for f in kept {
-        for d in f.program.decls {
-            if d is AST.FnDecl as k {
-                if k.name == name {
-                    return true
                 }
             }
         }
@@ -438,7 +380,8 @@ import "std/testing"
 // A module with one platform-specific test, seen from two targets. The point is
 // not the count but that the answer is DIFFERENT per target: a report that says
 // nothing here is a report that hides half its coverage.
-@test test_discarded_tests_are_named :: fn() -> void {
-    // No files, no target: the empty case must stay empty rather than guess.
-    assert_eq(discarded_target_tests([], null).len(), 0)
+@test test_nothing_is_discarded_without_a_target :: fn() -> void {
+    // No target, nothing selects, nothing is discarded — the case that must not
+    // guess rather than the case that matters.
+    assert_eq(discarded_bodies([], null).len(), 0)
 }
