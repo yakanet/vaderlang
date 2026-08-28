@@ -19,6 +19,7 @@ import "std/process"
 import "std/math"
 import "std/time"
 import "std/string"
+import "std/target"
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -491,16 +492,13 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if max is Trap { return max }
         return HostOk { .value = StringVal { .value = read_keys(max.value) } }
     }
-    // ⚠️ TRANSITIONAL — see the note above `is_impure_host`. Serving this the way
-    // its siblings are served (by calling the stdlib fn, which the compiled
-    // compiler binds to the C runtime) would make `vader/` depend on an intrinsic
-    // the SEED does not know, and stage0 refuses to emit an unwired host import.
-    // Restored to a real call in the commit after the reseed.
+    // Both re-enter the same host the compiled compiler binds to: an `Os` / `Arch`
+    // ordinal rides in an i32 slot like any enum.
     .TargetCurrentOs -> {
-        return Trap { .message = "current_os: not served by this VM build" }
+        return HostOk { .value = I32Val { .value = i32(current_os()) } }
     }
     .TargetCurrentArch -> {
-        return Trap { .message = "current_arch: not served by this VM build" }
+        return HostOk { .value = I32Val { .value = i32(current_arch()) } }
     }
     .EnvGetEnv -> {
         name :: read_string(stack[arg_base], at_pc, "get_env name")

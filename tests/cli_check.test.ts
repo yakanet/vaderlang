@@ -54,12 +54,14 @@ test("VADER_OS resolves and folds under an explicit target", async () => {
   expect(mac.exit).toBe(0);
 });
 
-// Without a target nothing bakes, so the constant does not exist. Asserted
-// rather than left implicit: it is the visible half of the reseed debt, and it
-// should start passing differently the day the default lands.
-test("VADER_OS is absent when no target is given", async () => {
+// With no `--target=`, the target is this machine — so the constant is baked all
+// the same. This assertion used to be its opposite ("VADER_OS is absent when no
+// target is given"), which failed the moment the default landed. That was its
+// purpose: a limitation worth asserting is a limitation that tells you when it
+// stops being one.
+test("VADER_OS is baked with no target given, from the host", async () => {
   const r = await runCli(
     ["check", join(FIXTURES, "baked_constant", "main.vader")], undefined, MEDIUM_BUILD);
-  expect(r.exit).toBe(1);
-  expect(r.stderr).toContain("VADER_OS");
+  expect(r.exit).toBe(0);
+  expect(r.stderr.trim()).toBe("");
 });

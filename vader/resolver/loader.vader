@@ -125,6 +125,12 @@ export load_project_with_overlay :: fn(
     // unchanged. Everything downstream derives the entry folder + manifest root
     // from this normalised form.
     entry :: entry_path.to_posix()
+    // Resolved ONCE, here, before anything loads: selection has to see the same
+    // target in every module, and defaulting at each entry point instead would
+    // mean every command remembering to ask. `host_target()` reads the running
+    // platform, which is the right default — a build with no `--target=` is a
+    // build for this machine.
+    effective_target :: target ?? host_target()
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]! = []
     project_root :: find_manifest_root(entry)
@@ -180,7 +186,7 @@ export load_project_with_overlay :: fn(
                 }
                 _ -> {}
             }
-            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, target)
+            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
             // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
             // S4): `${sb}` interpolation and user `StringBuilder` code resolve
             // `StringBuilder {}` + `append`/`to_string` in the lowerer, a
@@ -197,7 +203,7 @@ export load_project_with_overlay :: fn(
                 is DiscoveredModule as sbm -> {
                     if !has_module(modules, sbm.folder) {
                         sb_queue: DiscoveredModule[]! = [sbm]
-                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, target)
+                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
                     }
                 }
                 _ -> {}
@@ -216,15 +222,12 @@ export load_project_with_overlay :: fn(
             // the stdlib — exactly as `build_core_seed` returns an empty map
             // without `std/core`: the constants name `Os` and `Arch`, so with no
             // module to name them from there is nothing to bake.
-            // Only when a target was given EXPLICITLY. The blocker was never
-            // the baking — it was the DEFAULT target, which needs
-            // `host_target()` → `current_os()`, an intrinsic the seed does not
-            // know. With `--target=` in hand there is nothing to ask the host,
-            // so `VADER_OS` works today for every command that takes one.
-            if target != null {
-                load_baked_target(modules, bases, index, loader_diags, overlay,
-                    factory, node_factory, target)
-            }
+            // The target this load selects for: the caller's, or this machine's.
+            // Defaulting here rather than at each entry point means every command
+            // — `run`, `test`, `lint`, `dump`, the LSP — selects consistently
+            // without having to remember to ask.
+            load_baked_target(modules, bases, index, loader_diags, overlay,
+                factory, node_factory, effective_target)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
