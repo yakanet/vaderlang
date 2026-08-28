@@ -88,10 +88,10 @@ export LoadedModule :: struct {
 /// project ; callers feed it to `resolve_project` / `check_project`.
 /// Reads every module from disk.
 export load_project :: fn(
-    entry_path: string, include_path_flags: string[], target: Target | null = null,
+    entry_path: string, include_path_flags: string[], selection: Selection | null = null,
 ) -> LoadedProject {
     return load_project_with_overlay(
-        entry_path, MutableMap<string, string> {}, include_path_flags, target)
+        entry_path, MutableMap<string, string> {}, include_path_flags, selection)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -113,7 +113,7 @@ export load_project :: fn(
 ///                    before the disk in `parse_module_files`.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
-    include_path_flags: string[], target: Target | null = null,
+    include_path_flags: string[], selection: Selection | null = null,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
@@ -131,7 +131,23 @@ export load_project_with_overlay :: fn(
     // mean every command remembering to ask. `host_target()` reads the running
     // platform, which is the right default — a build with no `--target=` is a
     // build for this machine.
-    effective_target :: target ?? host_target()
+    view :: selection ?? host_target()
+    // The baked constants need a CONCRETE target either way: `VADER_OS` has to
+    // exist in the union view too, where it takes the host's value. Only the
+    // FILTERING is switched off there.
+    bake_target :: if view is AllTargets {
+        host_target()
+    } else {
+        view
+    }
+    // Null here means "keep every body" — `select_target_bodies` returns its
+    // input unchanged. That is the union view, and the ONLY thing that reaches
+    // it is navigation.
+    effective_target: Target | null = if view is AllTargets {
+        null
+    } else {
+        view
+    }
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]! = []
     project_root :: find_manifest_root(entry)
@@ -223,12 +239,13 @@ export load_project_with_overlay :: fn(
             // the stdlib — exactly as `build_core_seed` returns an empty map
             // without `std/core`: the constants name `Os` and `Arch`, so with no
             // module to name them from there is nothing to bake.
-            // The target this load selects for: the caller's, or this machine's.
-            // Defaulting here rather than at each entry point means every command
-            // — `run`, `test`, `lint`, `dump`, the LSP — selects consistently
-            // without having to remember to ask.
+            // `bake_target`, not `effective_target`: the constants must exist in
+            // the union view too, where selection is off but `VADER_OS` is still
+            // a name any file may use. Defaulting here rather than at each entry
+            // point means every command — `run`, `test`, `lint`, `dump`, the LSP
+            // — bakes consistently without having to remember to ask.
             load_baked_target(modules, bases, index, loader_diags, overlay,
-                factory, node_factory, effective_target)
+                factory, node_factory, bake_target)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,

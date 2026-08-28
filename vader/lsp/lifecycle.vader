@@ -144,6 +144,10 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     caps["textDocumentSync"]        = text_document_sync
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
     caps["definitionProvider"]      = JsonBool { .value = true }
+    // implementationProvider : "where are this declaration's bodies". Declared
+    // because `@target` makes one name carry several — see
+    // `handlers/implementation`, which answers it over the union view.
+    caps["implementationProvider"]  = JsonBool { .value = true }
     caps["hoverProvider"]           = JsonBool { .value = true }
     caps["inlayHintProvider"]       = JsonBool { .value = true }
     caps["documentSymbolProvider"]  = JsonBool { .value = true }

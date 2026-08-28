@@ -9,6 +9,7 @@ module "vader/lsp/analysis"
 import "json"
 import "std/collections"
 import "vader/resolver"
+import "vader/target"
 import "vader/typecheck"
 import "vader/diagnostics"
 import "vader/lsp/protocol"
@@ -33,6 +34,18 @@ export ProjectCache :: struct {
     module_name_index: MutableMap<string, LoadedModule>
 }
 
+/// The navigation view of a project: loaded with NO target selection, so every
+/// `@target` body is present.
+///
+/// PARSED ONLY, deliberately. `implementation` asks a syntactic question —
+/// "which bodies does this declaration have" — and typing the other platforms'
+/// code would be both wasted work and, if its diagnostics ever escaped into the
+/// editor, exactly the property `@target` exists to remove.
+export UnionCache :: struct {
+    entry_path: string
+    project:    LoadedProject
+}
+
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.
 export ServerState :: struct {
@@ -45,6 +58,12 @@ export ServerState :: struct {
     /// rebuild happens once it settles. See `typed_project_for` +
     /// `flush_dirty_diagnostics`.
     cache:                      ProjectCache | null
+    /// Last union (no-selection) load — the navigation view. Separate from
+    /// `cache` because the cut happens at LOAD time: one `LoadedProject` cannot
+    /// serve both the targeted diagnostics and the navigation over every body.
+    /// Filled LAZILY, on the first request that needs it, so an editing session
+    /// that never navigates never pays for it.
+    union_cache:                UnionCache | null
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
@@ -89,6 +108,7 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
+        .union_cache             = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
         .library_root             = library_root,
@@ -158,6 +178,30 @@ export typed_project_for :: fn(self: ServerState!, file_path: string) -> Project
     }
     self.cache = entry
     return entry
+}
+
+/// The navigation view for `file_path`, loaded once and cached.
+///
+/// Loaded with `AllTargets`, so a body this machine does not build is present:
+/// `implementation` on a bare `@target` declaration must list the Windows body
+/// from a Mac, and the targeted load has already dropped it.
+///
+/// NEVER read this for diagnostics. Under it another platform's code is
+/// resolved, which is the blind spot `@target` exists to create on purpose.
+///
+/// @param self       the server state (carries the overlay + the cache).
+/// @param file_path  the entry file's filesystem path.
+/// @return           the cached-or-freshly-loaded union project.
+export union_project_for :: fn(self: ServerState!, file_path: string) -> LoadedProject {
+    cached :: self.union_cache
+    if cached != null {
+        if cached.entry_path == file_path {
+            return cached.project
+        }
+    }
+    project :: load_project_with_overlay(file_path, doc_overlay(self), [], AllTargets {})
+    self.union_cache = UnionCache { .entry_path = file_path, .project = project }
+    return project
 }
 
 /// Pick the `SourceFile` of `files` whose `path` matches the requested

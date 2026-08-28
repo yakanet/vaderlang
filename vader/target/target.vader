@@ -22,6 +22,28 @@ module "vader/target"
 import "std/string"
 import "std/target"
 
+/// No selection at all — every `@target` body is kept.
+///
+/// The NAVIGATION view, and the only one that can reach a body this machine does
+/// not build: `textDocument/implementation` on a bare declaration must list the
+/// Windows body from a Mac, and selection has already dropped it by the time any
+/// typed view exists.
+///
+/// It must NEVER feed diagnostics. Under it, another platform's code is resolved
+/// and type-checked — which is exactly the property `@target` exists to remove.
+/// A library's Windows bug would squiggle in a Linux editor.
+export AllTargets :: struct {}
+
+/// What a load selects on — one target, or all of them.
+///
+/// NOT named `Union`: `A | B` already IS a union in this language, and
+/// `Target | Union` made the word mean two things in one line.
+///
+/// Two views, and the split is load-bearing rather than ergonomic: the cut
+/// happens at LOAD time, so one `LoadedProject` cannot serve both. See the
+/// target plan §8.5.
+export Selection :: Target | AllTargets
+
 /// A compilation target — the pair a build is parameterised by.
 export Target :: struct {
     os: Os

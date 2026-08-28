@@ -249,6 +249,12 @@ dispatch :: fn(state: A.ServerState!, msg: JsonValue, shutdown_received: bool) -
         P.log_info("documentLink ${doc_uri(params)}")
         return DispatchResult.Continue
     }
+    if method == "textDocument/implementation" {
+        result :: H.handle_implementation(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("implementation ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
     if method == "textDocument/typeDefinition" {
         result :: H.handle_type_definition(state, params)
         P.write_frame(P.encode_response(id, result))

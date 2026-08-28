@@ -1,0 +1,132 @@
+// vader/lsp/handlers/implementation — `textDocument/implementation` handler.
+//
+// Where goto-`definition` jumps to a name's single binding, `implementation`
+// answers "and where are its BODIES" — a question that only exists because one
+// name can have several. Two constructs have that shape, and they are the same
+// shape:
+//
+//   - a bare `@target` declaration, whose bodies live under `@target(.Os, …)`;
+//   - a trait method, whose bodies live in each `implements` block.
+//
+// Only the first is served here. The trait half is a pre-existing gap (there has
+// never been an `implementation` handler at all) and wants the typed view's
+// `impl_methods`; this one is purely syntactic and needs no types.
+//
+// THE UNION VIEW, and this is the whole reason the handler exists. Selection
+// runs at LOAD time, so by the time any typed project exists, the bodies for
+// other platforms are gone — `implementation` on a Mac would list the Darwin
+// body and claim that is all there is. It reads `union_project_for` instead,
+// which loads with `AllTargets` and keeps every body. That view must never feed
+// diagnostics (see `analysis/state`), but listing locations is exactly what it
+// is for.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/span"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
+AST :: import "toolchain/ast"
+
+/// Resolve `textDocument/implementation` for the position in `params`.
+///
+/// Returns a `Location[]` — one per body of the `@target` group under the
+/// cursor — or `JsonNull` when the cursor is not on a name that has bodies. An
+/// empty array is never returned: "no implementations" and "not that kind of
+/// name" are the same answer to a client, and null is the cheaper one.
+///
+/// @param state   the server state (carries the overlay + both caches).
+/// @param params  the LSP request params (`textDocument`, `position`).
+/// @return        a JSON array of `Location`, or `JsonNull`.
+export handle_implementation :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" {
+        return JsonNull {}
+    }
+    file_path :: uri_to_path(uri)
+    if file_path == "" {
+        return JsonNull {}
+    }
+    project :: union_project_for(state, file_path)
+    name :: target_group_name_at(project, file_path,
+        cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
+    if name == "" {
+        return JsonNull {}
+    }
+    out: JsonValue[]! = []
+    for [_, lm] in project.modules {
+        for f in lm.module.files {
+            for d in f.program.decls {
+                if d is AST.FnDecl as fd {
+                    if fd.name != name {
+                        continue
+                    }
+                    // The bodies, not the declaration: jumping from a
+                    // declaration to itself is the one answer the user already
+                    // has. A `@target(.Os, …)` is always a body (SPEC §17).
+                    sel :: fd.decorators.target_selector_count()
+                    if sel == 0 {
+                        continue
+                    }
+                    out.push(location_json(path_to_uri(fd.name_span.start.file),
+                        fd.name_span.span_to_range_json(state.line_index_for_path(fd.name_span.start.file))))
+                }
+            }
+        }
+    }
+    if out.len() == 0 {
+        return JsonNull {}
+    }
+    return JsonArray { .items = out }
+}
+
+// The name of the `@target` group the cursor sits on, or "" when it sits on
+// something else.
+//
+// Matched on the DECLARATION's name span, not on an expression: `implementation`
+// is asked from the declaration, and resolving a call site would answer a
+// different question (that is `definition`'s job). Any member of the group
+// answers — a user who invokes it from one body means the group.
+target_group_name_at :: fn(
+    project: LoadedProject, file_path: string, line: i32, col: i32,
+) -> string {
+    for [_, lm] in project.modules {
+        sf :: source_file_for_path(lm.module.files, file_path)
+        if sf == null {
+            continue
+        }
+        for d in sf.program.decls {
+            if d is AST.FnDecl as fd {
+                if !has_target_decorator(fd.decorators) {
+                    continue
+                }
+                if span_contains(fd.name_span, line, col) {
+                    return fd.name
+                }
+            }
+        }
+    }
+    return ""
+}
+
+// How many OS selectors a `@target` carries: 0 for the bare form (THE
+// declaration), more for a body. Returns 0 when there is no `@target` at all —
+// callers pair it with `has_target_decorator`, which separates the two cases.
+target_selector_count :: fn(decorators: AST.Decorator[]) -> usize {
+    for d in decorators {
+        if d.name == "target" {
+            return d.args.len()
+        }
+    }
+    return 0
+}
+
+has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
+    for d in decorators {
+        if d.name == "target" {
+            return true
+        }
+    }
+    return false
+}

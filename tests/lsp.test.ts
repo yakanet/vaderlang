@@ -1338,3 +1338,63 @@ test("lsp: a project module outranks a shipped namespace of the same name", asyn
   expect(target).toContain("/json/json.vader");
   expect(target).not.toContain("/lib/json/");
 }, MEDIUM_BUILD);
+
+// `textDocument/implementation` over a `@target` group. The property under test
+// is the one the handler exists for: the body for a platform this machine does
+// NOT build must still be listed. Selection runs at load time, so the targeted
+// project the editor's diagnostics come from has already dropped it — the
+// handler reads a second, unselected load (`union_project_for`).
+//
+// Split across two files on purpose. That is the shape the model is written in
+// (SPEC §17: "same module; the file name means nothing"), and a handler that
+// only walked the open document would pass a single-file test and find nothing
+// in a real project.
+const TARGET_GROUP_SOURCE = `module "lsptest"
+
+@target
+export platform_tag :: fn() -> string
+
+@target(.Darwin, .Linux)
+platform_tag :: fn() -> string = "posix"
+
+main :: fn() -> i32 = if platform_tag() == "" { 1 } else { 0 }
+`;
+
+const TARGET_GROUP_WINDOWS = `module "lsptest"
+
+@target(.Windows)
+platform_tag :: fn() -> string = "win"
+`;
+
+test("lsp: implementation lists every @target body, including a foreign one", async () => {
+  const results = await driveLsp(
+    TARGET_GROUP_SOURCE,
+    [
+      // 0: on the bare declaration's name → both bodies.
+      { method: "textDocument/implementation", position: { line: 3, character: 11 } },
+      // 1: from a BODY's name → the same group. A user who invokes it there
+      //    means the group, not "this one body".
+      { method: "textDocument/implementation", position: { line: 6, character: 2 } },
+      // 2: on a name with no `@target` at all → null, not an empty array.
+      { method: "textDocument/implementation", position: { line: 8, character: 2 } },
+    ],
+    { "lsp-windows.vader": TARGET_GROUP_WINDOWS },
+  );
+
+  const bodies = results[0]!.result as { uri: string; range: { start: { line: number } } }[];
+  expect(Array.isArray(bodies)).toBe(true);
+  expect(bodies).toHaveLength(2);
+
+  // The foreign body is the assertion that matters. This suite runs on macOS,
+  // Linux and Windows, so naming one platform's file would pass for the wrong
+  // reason on the others: assert instead that BOTH files are represented, which
+  // means one of them was kept despite not being selected.
+  const files = new Set(bodies.map((b) => b.uri.split("/").pop()));
+  expect(files).toEqual(new Set(["lsp-test.vader", "lsp-windows.vader"]));
+
+  // Same group from a body.
+  expect(results[1]!.result).toHaveLength(2);
+
+  // `main` has no bodies to list.
+  expect(results[2]!.result).toBeNull();
+});
