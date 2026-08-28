@@ -10,10 +10,20 @@
 // declaration per name, and needs no knowledge of targets at all. A body that
 // loses is not "skipped later"; it never reaches them.
 //
-// ⚠️ CURRENT LIMIT: this FILTERS, it does not yet MERGE. When a specialised body
-// wins, the bare declaration is dropped whole — so its `export` and its vaderdoc
-// go with it. Merging (keep the envelope, swap the body) is the next step; until
-// then a group whose specialised body wins is private on that target.
+// When a specialised body wins, the bare declaration is not discarded: its
+// ENVELOPE is kept and the winning body grafted onto it. The envelope is the
+// name, the signature, the visibility and the decorators — everything a caller
+// and a reader depend on — so an exported function stays exported on every
+// target. Dropping the declaration whole (the first cut) made the group PRIVATE
+// wherever a specialisation won, which surfaced as `R2006 unresolved identifier`
+// at the call site of a perfectly good export.
+//
+// Spans are NOT rewritten. The merged node carries the declaration's own span as
+// its identity — what `rename` and `references` must target — while the grafted
+// body keeps the spans it was parsed with, so a diagnostic inside it names the
+// file it was written in. That is also what keeps the mechanism correct once the
+// resolver moves to file-scoped imports (TODO §1.13d): the body resolves against
+// its own file, not against the declaration's.
 
 module "vader/resolver"
 
@@ -33,18 +43,26 @@ import "vader/target"
 /// @param target  the compilation target, or null to disable selection.
 /// @return        files whose programs hold only the selected declarations.
 export select_target_bodies :: fn(files: SourceFile[], target: Target | null) -> SourceFile[] {
-    if target == null { return files }
+    if target == null {
+        return files
+    }
     // First pass, across the WHOLE module: which names have a specialised body
     // that matches? A bare declaration is only displaced by a body that actually
     // wins, so this cannot be decided file by file — the declaration and its
     // specialisation are routinely written in different files.
-    specialised :: MutableMap<string, bool> {}
+    winners :: MutableMap<string, AST.FnDecl> {}
+    bare :: MutableMap<string, bool> {}
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl as fd {
                 sel :: target_selectors(fd.decorators)
-                if sel != null && sel.len() > 0 && matches_target(sel, target) {
-                    specialised[fd.name] = true
+                if sel == null {
+                    continue
+                }
+                if sel.len() == 0 {
+                    bare[fd.name] = true
+                } else if matches_target(sel, target) {
+                    winners[fd.name] = fd
                 }
             }
         }
@@ -53,53 +71,115 @@ export select_target_bodies :: fn(files: SourceFile[], target: Target | null) ->
     for f in files {
         kept: AST.Decl[]! = []
         for d in f.program.decls {
-            if keep_decl(d, target, specialised) { kept.push(d) }
+            kept_decl :: resolve_decl(d, target, winners, bare)
+            if kept_decl != null {
+                kept.push(kept_decl)
+            }
         }
-        out.push(SourceFile {
-            .path = f.path,
-            .content = f.content,
-            // Spans are NOT rewritten — each declaration keeps the ones it was
-            // parsed with, so diagnostics name the file it was written in and
-            // file-scoped import resolution stays correct once the resolver
-            // moves to file scope (TODO §1.13d).
-            .program = Program {
-                .file = f.program.file,
-                .span = f.program.span,
-                .id = f.program.id,
-                .module = f.program.module,
-                .decls = kept,
+        out.push(
+            SourceFile {
+                .path = f.path,
+                .content = f.content,
+                .program = Program {
+                    .file = f.program.file,
+                    .span = f.program.span,
+                    .id = f.program.id,
+                    .module = f.program.module,
+                    .decls = kept,
+                },
+                .id_factory = f.id_factory,
             },
-            .id_factory = f.id_factory,
-        })
+        )        // Spans are NOT rewritten — each declaration keeps the ones it was
+        // parsed with, so diagnostics name the file it was written in and
+        // file-scoped import resolution stays correct once the resolver
+        // moves to file scope (TODO §1.13d).
+
     }
     return out
 }
 
-// A declaration survives unless a `@target` says otherwise.
-keep_decl :: fn(d: AST.Decl, target: Target, specialised: MutableMap<string, bool>) -> bool {
+// What a declaration becomes for this target: itself, a merge, or nothing.
+resolve_decl :: fn(
+    d: AST.Decl,
+    target: Target,
+    winners: MutableMap<string, AST.FnDecl>,
+    bare: MutableMap<string, bool>,
+) -> AST.Decl | null {
     if d is AST.FnDecl as fd {
         sel :: target_selectors(fd.decorators)
-        if sel == null { return true }
-        if sel.len() == 0 {
-            // Bare `@target`: the general branch. It loses to a specialised body
-            // that matches, and wins whenever none does.
-            return specialised[fd.name] == null
+        if sel == null {
+            return d
         }
-        return matches_target(sel, target)
+        if sel.len() == 0 {
+            // The bare declaration. It carries the envelope either way: on its own
+            // when nothing specialised matches, or with the winner's body grafted
+            // on when one does.
+            w :: winners[fd.name]
+            if w == null {
+                return d
+            }
+            return graft_body(fd, w)
+        }
+        // A specialised body. The winner has already been folded into the
+        // declaration above, so it must not appear a second time; a loser is
+        // simply gone. The only case where one survives on its own is a group
+        // with NO bare declaration, where the body IS the declaration.
+        if !matches_target(sel, target) { return null }
+        if bare[fd.name] != null        { return null }
+        return d
     }
-    return true
+    return d
+}
+
+// Build the merged node: the declaration's envelope, the winner's body.
+//
+// `@extern` / `@intrinsic` ride along from the body, because they say WHO
+// provides it and that is a property of the body, not of the group. Every other
+// decorator comes from the declaration — a `@no_return` on one body only would
+// make the group's TYPE depend on the target, through a channel nothing checks.
+graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
+    decorators: AST.Decorator[]! = []
+    for dec in decl.decorators {
+        if dec.name != "target" {
+            decorators.push(dec)
+        }
+    }
+    for dec in body.decorators {
+        if dec.name == "extern" || dec.name == "intrinsic" {
+            decorators.push(dec)
+        }
+    }
+    return AST.FnDecl {
+        .span = decl.span,
+        .id = decl.id,
+        .name = decl.name,
+        .name_span = decl.name_span,
+        .visibility = decl.visibility,
+        .type_params = decl.type_params,
+        .params = decl.params,
+        .return_type = decl.return_type,
+        .body = body.body,
+        .decorators = decorators,
+        .sam_synthetic = decl.sam_synthetic,
+        .is_expression_bodied = body.is_expression_bodied,
+        .materialized = decl.materialized,
+    }
 }
 
 // The OS list a `@target` carries, or null when the decl has no `@target` at
 // all. An empty (non-null) list is the bare form.
 target_selectors :: fn(decorators: AST.Decorator[]) -> Os[] | null {
     for d in decorators {
-        if d.name != "target" { continue }
+        if d.name != "target" {
+            continue
+        }
         out: Os[]! = []
         for a in d.args {
             if a is AST.DotVariantExpr as dv {
                 os :: parse_os(dv.variant.to_lower())
-                if os != null { out.push(os) }
+                if os != null {
+                    out.push(os)
+                }
             }
         }
         return out
@@ -109,7 +189,9 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> Os[] | null {
 
 matches_target :: fn(selectors: Os[], target: Target) -> bool {
     for os in selectors {
-        if os == target.os { return true }
+        if os == target.os {
+            return true
+        }
     }
     return false
 }
