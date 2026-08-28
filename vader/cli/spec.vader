@@ -186,9 +186,31 @@ FMT_FLAGS: FlagSpec[]: [
     },
 ]
 
-// `new`'s one flag. On a terminal its ABSENCE is a question rather than a
-// silent no, so `--git=false` is how a script says no without being asked.
+// The three shapes a project's build can take, DEFAULT FIRST — this array is also
+// what the interactive prompt offers, in this order, so the option under the
+// cursor is the one a bare `vader new` would have taken anyway.
+NEW_BUILD_SETUPS: ValueSpec[]: [
+    ValueSpec {
+        .name = "manifest",
+        .help = "a `vader.json`, which makes the directory a module search root",
+    },
+    ValueSpec {
+        .name = "driver",
+        .help = "a `build.vader`, and the project drives its own build",
+    },
+    ValueSpec { .name = "none", .help = "no build file at all — a single program" },
+]
+
 NEW_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "build",
+        .help = "What describes this project's build",
+        .value_name = "setup",
+        .default_text = "manifest",
+        .values = NEW_BUILD_SETUPS,
+    },
+    // On a terminal the ABSENCE of this flag is a question rather than a silent
+    // no, so `--git=false` is how a script declines without being asked.
     FlagSpec {
         .name = "git",
         .kind = .Bool,

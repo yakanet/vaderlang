@@ -214,3 +214,27 @@ test("a $VADER_HOME that is only a string PREFIX of the real root is not credite
     expect(home.status).toBe("warn");
   });
 }, MEDIUM_BUILD);
+
+test("each --build shape writes what it says, and only that", async () => {
+  // The three are exclusive, not cumulative: a driver SUPERSEDES the manifest as
+  // the build's description rather than sitting on top of it.
+  await withTempDir(async (workspace) => {
+    const shapes = [
+      { flag: "none", present: [], absent: ["vader.json", "build.vader"] },
+      { flag: "manifest", present: ["vader.json"], absent: ["build.vader"] },
+      { flag: "driver", present: ["build.vader"], absent: ["vader.json"] },
+    ];
+    for (const shape of shapes) {
+      const { exit } = await spawnCapture(["new", `--build=${shape.flag}`, shape.flag], {
+        cwd: workspace,
+      });
+      expect(exit).toBe(0);
+      const dir = join(workspace, shape.flag);
+      // Every shape writes the program and the ignore file.
+      expect(existsSync(join(dir, "src/main.vader"))).toBe(true);
+      expect(existsSync(join(dir, ".gitignore"))).toBe(true);
+      for (const f of shape.present) expect(existsSync(join(dir, f))).toBe(true);
+      for (const f of shape.absent) expect(existsSync(join(dir, f))).toBe(false);
+    }
+  });
+}, MEDIUM_BUILD);

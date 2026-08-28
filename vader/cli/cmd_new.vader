@@ -12,9 +12,12 @@
 //     name, and the compiler does not infer it from the filesystem.
 //   * a `.gitignore` covering `build/`, where every artefact lands.
 //
-// It writes those three and stops. It does not write a `build.vader`: a driven
-// build is a separate thing to learn, and scaffolding one into every project
-// would teach it as the default when it is the exception.
+// What describes the BUILD is a choice — `--build`, or a question on a terminal:
+// a `vader.json`, a `build.vader` the project drives itself with, or neither. The
+// three are exclusive rather than layered, because a driver supersedes the
+// manifest as the build's description instead of sitting on top of it. Offered as
+// a choice, a driven build is not taught as the default — which is what had kept
+// it out of the first cut.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -28,6 +31,23 @@ import "std/string"
 import "std/string_builder"
 TTY :: import "std/tty"
 import "vader/resolver"
+
+/// What describes a new project's build. Three exclusive shapes, not three
+/// layers: a driver supersedes the manifest as the build's description rather
+/// than sitting on top of it.
+BuildSetup :: enum(u8) {
+    /// Nothing but the program. Only the entry file's own folder is searched,
+    /// which is enough for a single module and nothing more.
+    None,
+    /// A `vader.json`. Its PRESENCE is what makes the directory a module search
+    /// root — the difference that surprises people whose second module does not
+    /// resolve.
+    Manifest,
+    /// A `build.vader`, which `vader build` finds and runs so the project decides
+    /// its own compilation (SPEC §11). Needs the compiler's own sources
+    /// reachable — `vader doctor` reports that as `compiler-sources`.
+    Driver,
+}
 
 /// Folder the entry module lives in — and therefore the module it declares.
 SOURCE_DIR :: "src"
@@ -67,6 +87,11 @@ cmd_new :: fn(args: string[]) -> i32 {
         eprintln("vader new: ${e.message}")
         return 1
     }
+    setup :: choose_build(parsed)
+    if setup is PromptError as e {
+        eprintln("vader new: ${e.message}")
+        return 1
+    }
     wants_git :: choose_git(parsed)
     if wants_git is PromptError as e {
         eprintln("vader new: ${e.message}")
@@ -77,7 +102,7 @@ cmd_new :: fn(args: string[]) -> i32 {
         eprintln("vader new: ${e.msg}")
         return 1
     }
-    written :: scaffold(target)
+    written :: scaffold(target, setup)
     if written is ScaffoldError as e {
         eprintln("vader new: ${e.msg}")
         return 1
@@ -91,7 +116,7 @@ cmd_new :: fn(args: string[]) -> i32 {
             eprintln(complaint)
         }
     }
-    println(report(target, git_initialised))
+    println(report(target, setup, git_initialised))
     return 0
 }
 
@@ -130,6 +155,49 @@ choose_target :: fn(typed: string) -> string | PromptError {
         return PromptError { .reason = .Cancelled, .message = "a project name is required" }
     }
     return name
+}
+
+// Which build shape to scaffold. `--build` settles it; without the flag a
+// terminal is asked and a pipe keeps the documented default, a manifest.
+choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
+    named :: parsed.string_flag("build", "")
+    if named != "" {
+        return setup_named(named)
+    }
+    if !TTY.is_tty() {
+        return .Manifest
+    }
+    picked :: select("How should this project build?", build_setup_labels())
+    if picked is PromptError as e {
+        return e
+    }
+    return setup_named(NEW_BUILD_SETUPS[picked].name)
+}
+
+// The prompt's options, rendered FROM the flag's declared values rather than
+// restated beside them. The first cut wrote its own three strings, in a
+// different order and different words — drift that was already visible in the
+// same diff, and would have grown with a fourth shape.
+build_setup_labels :: fn() -> string[] {
+    out: string[]! = []
+    for v in NEW_BUILD_SETUPS {
+        out.push("${v.name} — ${v.help}")
+    }
+    return out
+}
+
+// The flag's value, and the prompt's answer — both arrive as a name from
+// `NEW_BUILD_SETUPS`, so one function decodes both. `std/cli` has already
+// rejected anything outside the declared set, so the fall-through is unreachable
+// rather than a real default.
+setup_named :: fn(named: string) -> BuildSetup {
+    if named == "none" {
+        return .None
+    }
+    if named == "driver" {
+        return .Driver
+    }
+    return .Manifest
 }
 
 // Whether to run `git init`. A `--git` in either spelling is a decision already
@@ -219,19 +287,30 @@ directory_name :: fn(path: string) -> string {
 
 // Write the three files. Creating `<dir>/src` creates `<dir>` on the way — the
 // intrinsic is `mkdir -p`, and an existing directory is success.
-scaffold :: fn(project: NewProject) -> null | ScaffoldError {
+scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     made :: create_dir(join_path(project.dir, SOURCE_DIR))
     if made is IOError as e {
         return ScaffoldError {
             .msg = "cannot create `${project.dir}/${SOURCE_DIR}`: ${e.message()}",
         }
     }
-    manifest :: write_one(
-        join_path(project.dir, MANIFEST_FILENAME),
-        render_manifest(project.name),
-    )
-    if manifest is ScaffoldError {
-        return manifest
+    if setup == BuildSetup.Manifest {
+        manifest :: write_one(
+            join_path(project.dir, MANIFEST_FILENAME),
+            render_manifest(project.name),
+        )
+        if manifest is ScaffoldError {
+            return manifest
+        }
+    }
+    if setup == BuildSetup.Driver {
+        driver :: write_one(
+            join_path(project.dir, DRIVER_FILENAME),
+            render_driver(project.name),
+        )
+        if driver is ScaffoldError {
+            return driver
+        }
     }
     entry :: write_one(
         join_path(join_path(project.dir, SOURCE_DIR), ENTRY_FILENAME),
@@ -282,6 +361,41 @@ render_entry :: fn(name: string) -> string {
     return out.to_string()
 }
 
+/// A driver that does the ordinary thing, in the shape SPEC §11 teaches:
+/// `emit_native` rather than a hand-rolled drain, because `emit_native` IS that
+/// drain (`toolchain/build::drain`) and a scaffold that reimplements it would
+/// teach the long way round.
+///
+/// Declares `DRIVER_MODULE` because a single file at a project root is not
+/// importable by module name; the compiler writes an entry shim beside it that
+/// shares the module. See `vader/cli/driver.vader`.
+render_driver :: fn(name: string) -> string {
+    out :: StringBuilder {}
+    out.append("// ${DRIVER_FILENAME} — this project drives its own build.\n")
+    out.append("//\n")
+    out.append("// `vader build` with no file argument finds this file, compiles it, and runs\n")
+    out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
+    out.append("// shortcut that drains it — walk the messages yourself to lint or generate,\n")
+    out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
+    out.append("//\n")
+    out.append("// Only the entry file's own folder is a module search root here; there is no\n")
+    out.append("// `vader.json` to promote the project root. Add a second source directory\n")
+    out.append("// through `ctx.include_paths` when you need one.\n")
+    out.append("\n")
+    out.append("module \"${DRIVER_MODULE}\"\n")
+    out.append("\n")
+    out.append("import \"${DRIVER_CONTRACT_MODULE}\"\n")
+    out.append("\n")
+    out.append("build :: fn(args: string[]) -> i32 {\n")
+    out.append("    ctx :: new_build_context(args)\n")
+    out.append("    ctx.add_build_file(\"${SOURCE_DIR}/${ENTRY_FILENAME}\")\n")
+    out.append("    // Without this the binary takes the entry file's name, `main`.\n")
+    out.append("    ctx.out = \"${name}\"\n")
+    out.append("    return ctx.emit_native()\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
 /// One line: `build/` holds every artefact — the binary, the generated C, a
 /// driver's own build, and the generated module tree.
 render_gitignore :: fn() -> string = "build/\n"
@@ -304,14 +418,19 @@ init_git :: fn(dir: string) -> string | null {
 
 // What was written and what each file is for — the part that makes this a
 // teaching command rather than three `write_file_string` calls.
-report :: fn(project: NewProject, git_initialised: bool) -> string {
+report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> string {
     out :: StringBuilder {}
     if project.in_place {
         out.append("vader new: initialised ${project.name} here\n")
     } else {
         out.append("vader new: wrote ${project.dir}/\n")
     }
-    out.append("  ${MANIFEST_FILENAME}      makes this directory a module search root\n")
+    if setup == BuildSetup.Manifest {
+        out.append("  ${MANIFEST_FILENAME}      makes this directory a module search root\n")
+    }
+    if setup == BuildSetup.Driver {
+        out.append("  ${DRIVER_FILENAME}     drives the build; run it with a bare `vader build`\n")
+    }
     out.append("  ${SOURCE_DIR}/${ENTRY_FILENAME}  module \"${SOURCE_DIR}\", holding `main`\n")
     out.append("  .gitignore      build/ — every artefact lands there\n")
     if git_initialised {
@@ -321,7 +440,11 @@ report :: fn(project: NewProject, git_initialised: bool) -> string {
     if !project.in_place {
         out.append("  cd ${project.dir}\n")
     }
-    out.append("  vader run ${SOURCE_DIR}/${ENTRY_FILENAME}\n")
+    if setup == BuildSetup.Driver {
+        out.append("  vader build\n")
+    } else {
+        out.append("  vader run ${SOURCE_DIR}/${ENTRY_FILENAME}\n")
+    }
     return out.to_string()
 }
 
@@ -355,13 +478,54 @@ import "std/testing"
 }
 
 @test test_report_names_the_next_command :: fn() -> void {
-    text :: report(NewProject { .dir = "demo", .name = "demo", .in_place = false }, false)
+    text :: report(
+        NewProject { .dir = "demo", .name = "demo", .in_place = false },
+        BuildSetup.Manifest,
+        false,
+    )
     assert("cd demo" in text, "a created project says how to enter it")
     assert("vader run src/main.vader" in text, "and what to run once inside")
 }
 
 @test test_in_place_report_skips_the_cd :: fn() -> void {
-    text :: report(NewProject { .dir = ".", .name = "demo", .in_place = true }, false)
+    text :: report(
+        NewProject { .dir = ".", .name = "demo", .in_place = true },
+        BuildSetup.Manifest,
+        false,
+    )
     assert(!("cd " in text), "there is nowhere to cd to")
     assert("vader run src/main.vader" in text, "the run line still applies")
+}
+
+@test test_report_names_only_what_was_written :: fn() -> void {
+    // The three shapes are exclusive, so the report must not mention a file the
+    // scaffold did not write.
+    demo :: NewProject { .dir = "demo", .name = "demo", .in_place = false }
+    bare :: report(demo, BuildSetup.None, false)
+    assert(!(MANIFEST_FILENAME in bare), "`none` writes no manifest, so names none")
+    assert(!(DRIVER_FILENAME in bare), "and no driver either")
+
+    driven :: report(demo, BuildSetup.Driver, false)
+    assert(DRIVER_FILENAME in driven, "`driver` names the driver")
+    assert(!(MANIFEST_FILENAME in driven), "and supersedes the manifest rather than adding to it")
+    // A driven project is built by a bare `vader build`, not by naming the entry.
+    assert("vader build" in driven, "the next command matches the shape")
+}
+
+@test test_driver_template_declares_the_build_module :: fn() -> void {
+    // A root-level file is not importable by module name; the compiler writes an
+    // entry shim beside it that shares this module.
+    src :: render_driver("demo")
+    assert("module \"build\"" in src, "the driver declares `module \"build\"`")
+    assert("build :: fn(args: string[]) -> i32" in src, "with the reserved shape")
+    assert("add_build_file(\"src/main.vader\")" in src, "and it queues the entry")
+    assert("ctx.out = \"demo\"" in src, "named after the project")
+}
+
+@test test_build_flag_beats_the_question :: fn() -> void {
+    // Only the flag's ABSENCE is a question; `std/cli` has already rejected any
+    // value outside the declared set by the time this runs.
+    assert(setup_named("none") == BuildSetup.None, "none")
+    assert(setup_named("driver") == BuildSetup.Driver, "driver")
+    assert(setup_named("manifest") == BuildSetup.Manifest, "manifest")
 }

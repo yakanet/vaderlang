@@ -587,3 +587,36 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
   expect(bare.stderr).toContain("expected a file");
   expect(bare.exit).toBe(1);
 }, HEAVY_BUILD);
+
+// A driver `vader new --build=driver` wrote, built the same way a fixture is.
+//
+// It lives here rather than beside the other `vader new` tests for two reasons
+// this file's header already states: every driven build goes through `gated()`
+// and is `test.concurrent`, or it becomes a barrier that serialises the run; and
+// this is the corpus that would notice the scaffolded template drifting from the
+// `toolchain/build` contract, since it is the only place that compiles drivers.
+test.concurrent("driven build: a project scaffolded by `vader new`", async () => {
+  await gated(async () => {
+    const dir = mkdtempSync(`${tmpdir()}/vader-scaffolded-`);
+    staged.push(dir);
+    const created = await spawnCapture(["new", "--build=driver", "scaffolded"], { cwd: dir });
+    expect(created.exit).toBe(0);
+
+    const project = join(dir, "scaffolded");
+    for (const name of TOOLCHAIN_LINKS) {
+      symlinkSync(`${REPO}/${name}`, join(project, name));
+    }
+
+    const built = await spawnCapture(["build"], { cwd: project, timeoutMs: HEAVY_BUILD });
+    expect(built.exit).toBe(0);
+
+    // The binary is named after the PROJECT, which is what `ctx.out` in the
+    // template buys — without it the entry file's name would win.
+    const ran = await spawnCapture([], {
+      bin: exePath(join(project, "scaffolded")),
+      timeoutMs: HEAVY_BUILD,
+    });
+    expect(ran.exit).toBe(0);
+    expect(ran.stdout).toContain("hello from scaffolded");
+  });
+}, HEAVY_BUILD);
