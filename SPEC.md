@@ -2521,7 +2521,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur: handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
 | `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
 | `@internal` | struct field | Restricts a single struct field to its **declaring module**. Struct fields are **public by default** (the opposite polarity to top-level `export`, which is private-by-default); `@internal` opts one field out. Reading, writing, constructing-with, or pattern-binding the field from another module is rejected with `T3054`. An `@internal` field should usually carry a `default` so the type stays constructible across modules via `T {}` (otherwise the type is constructible only from inside its module — a deliberate "factory-only" pattern). |
-| `@target` or `@target(.Os, …)` | top-level fn | Selects which BODY of a function this build uses. **Bare** names the declaration itself — it carries the signature, the `export` and the vaderdoc, and optionally the general body; **with a list** it names a body for those operating systems. Only the OS axis selects code (see §17): there is no `@architecture`, because an architecture parameterises values and never includes or excludes a declaration. Rejected anywhere but a top-level fn (`P1014`) — on a struct, a trait or an impl member it would parse and then do nothing, and a silent no-op is worse than either answer. Its arguments are target *selectors*, compared syntactically before any name resolution; an unknown one is `R2035`. ⚠️ **Selection itself is not implemented yet** — the decorator parses, validates and is rejected where it does not belong, but no body is chosen. |
+| `@target` or `@target(.Os, …)` | top-level fn | Selects which BODY of a function this build uses — see §17 *Target selection*. **Bare** names the declaration: it carries the signature, the `export` and the vaderdoc, and optionally the general body. **With a list** it names a body for those operating systems, and is *always* a body, never a declaration. Only the OS axis selects code: there is no `@architecture`, because an architecture parameterises values and never includes or excludes a declaration. Rejected anywhere but a top-level fn (`P1014`) — on a struct, a trait or an impl member it would parse and then do nothing, and a silent no-op is worse than either answer. |
 | `@allow_unused` | any top-level decl | Exempts the declaration from the `W0007` dead-code lint (an unused private fn / const / type / enum / trait / alias). Use for intentional dead code : an API not yet wired, a helper kept for symmetry, or a test fixture's deliberate decoy. The declaration is treated as a reachability root — never flagged, and anything it references stays live. |
 
 `@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is **load-bearing**, not merely informational: a bodyless free fn *must* carry `@intrinsic` or `@extern` (`T3062`), so host-ness is always *declared* rather than implied by the missing body — a bodyless `Name :: fn(...)` is unambiguously a host, and a named function-*type* is spelled inline at its use sites (not as a bodyless declaration). The compiler then verifies, at bytecode emit, that every non-`@extern` host import is actually wired: its mangled name must be recognised by the intrinsic manifest (`intrinsic_id_for` — itself exhaustively dispatched by the VM and C backends, so `T3013` forces both to handle it) or map to a dedicated bytecode op; an unwired host fails the build rather than reaching runtime as an unbound `call.import`. This closes the chain bodyless ⟹ `@intrinsic` ⟹ recognised ⟹ served.
@@ -3226,6 +3226,81 @@ Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compil
 ---
 
 ## 17. Compilation Targets
+
+### Target selection — `@target`
+
+A build is parameterised by a target: an operating system and an architecture,
+written `<os>-<arch>` (`--target=darwin-arm64`), defaulting to the machine the
+compiler runs on. The two axes do **not** play the same role, and the asymmetry is
+the design rather than an accident:
+
+- **`os` selects code.** It is the only axis `@target` filters on.
+- **`arch` selects nothing.** It parameterises values — pointer width, `usize` —
+  and never includes or excludes a declaration. Hence no `@architecture`: its
+  absence is a consequence, not a gap.
+
+`Os` is `Windows | Linux | Darwin | Wasi | Browser`; `Arch` is `X86_64 | Arm64 |
+Wasm32`. `wasm` is not an OS — it is an architecture, and the two systems running
+on it are far enough apart (`Wasi` has a POSIX-shaped filesystem, `Browser` has
+none) that one value would hide the difference that matters.
+
+#### One declaration, several bodies
+
+```vader
+// path.vader — the declaration. Carries the signature, the export, the doc.
+/// True iff the path is absolute.
+@target
+export is_absolute :: fn(p: string) -> bool = p.starts_with("/")
+
+// path-windows.vader — a body. Same module; the file name means nothing.
+@target(.Windows)
+is_absolute :: fn(p: string) -> bool { /* drive letter, UNC */ }
+```
+
+A build keeps **one** body per declaration: the one whose list contains the
+target's OS, or else the general body the declaration itself carries. A body may
+come from the linker instead of Vader — `@target(.Windows) @extern("CreateFileW")`
+is a body too, which is why the presence of a `{ … }` is not what distinguishes a
+declaration from a body. **Bare versus list is.**
+
+Selection happens between parsing and name resolution. A body whose target does
+not match is therefore **never resolved and never type-checked** — not merely
+dropped from the output. This is what keeps a library's Windows bug from breaking
+a Linux build, and it is why `vader check --target=` exists: on any one machine,
+every other platform's code is unchecked until something asks for it.
+
+#### Rules
+
+| | |
+|---|---|
+| `R2035` | an argument that names no OS (`.Drawin`) — compared syntactically, since selection precedes name resolution |
+| `R2036` | a body whose name matches no bare declaration. The typo case |
+| `R2037` | a body carrying `export`. The declaration owns the visibility |
+| `R2038` | two bodies covering the same platform — the winner would depend on declaration order |
+| `R2039` | a second bare declaration for a name that already has one |
+| `P1014` | `@target` anywhere but a top-level fn |
+
+R2036 to R2039 are checked **before** selection, so they fire for every target
+rather than only the one being built: a malformed group is an error on the
+machine that wrote it, not a surprise on whichever platform compiles it next.
+
+#### `VADER_OS` — the target as a value
+
+`VADER_OS` and `VADER_ARCH` are constants of the compilation target, seeded into
+the prelude, usable with no import and foldable at comptime:
+
+```vader
+SEP :: if VADER_OS == Os.Windows { '\\' } else { '/' }
+```
+
+They answer *what this build is for*. `std/target::current_os()` answers the other
+question — *what the program is running on* — and the two differ whenever a build
+is cross-compiled, whenever code runs in the VM, and in the C seed, which is
+emitted on one machine and compiled on another. Code that manipulates its own
+environment wants the second.
+
+The rule of thumb: **`VADER_OS` chooses a value, `@target` chooses code.** A
+separator or a limit is a value; twenty lines of platform API is code.
 
 ### Native (Linux, macOS, Windows)
 
