@@ -16,6 +16,7 @@ import "std/collections"
 import "std/string"
 import "vader/resolver/symbol"
 import "vader/parser"
+import "vader/target"
 
 /// Build the std/core symbol seed once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without
@@ -23,6 +24,18 @@ import "vader/parser"
 /// user symbols" basis — see `resolve_module_with_collected_dp_seeded`.
 export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbol> {
     out :: MutableMap<string, Symbol> {}
+    // The baked target constants ride in the same seed as `std/core`, and for the
+    // same reason: `VADER_OS` has to be reachable from a file that imports
+    // nothing, or the "lightweight" half of the target model is a lie. It is
+    // absent when no `--target=` was given (nothing to bake) exactly as `std/core`
+    // is absent from a stdlib-less snippet — both leave the seed smaller rather
+    // than failing.
+    baked :: project.modules[BAKED_FOLDER]
+    if baked is LoadedModule as bm {
+        for [name, sym] in bm.collected.symbols {
+            out[name] = sym
+        }
+    }
     core_id :: find_core_module_id(project) ?? return out
     core_loaded :: project.modules[core_id] ?? return out
     for [name, sym] in core_loaded.collected.symbols {

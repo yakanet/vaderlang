@@ -40,3 +40,26 @@ test("check rejects a malformed target and names the fragment", async () => {
   expect(r.exit).toBe(2);
   expect(r.stderr).toContain("drawin");
 });
+
+// `VADER_OS` is the "lightweight" half of the target model: a value, reachable
+// from a file that imports nothing, foldable at comptime. It needs a target, and
+// an explicit `--target=` is one — the DEFAULT is what waits on the reseed.
+test("VADER_OS resolves and folds under an explicit target", async () => {
+  const probe = join(FIXTURES, "baked_constant", "main.vader");
+  const win = await runCli(
+    ["check", "--target=windows-x86_64", probe], undefined, MEDIUM_BUILD);
+  expect(win.exit).toBe(0);
+  const mac = await runCli(
+    ["check", "--target=darwin-arm64", probe], undefined, MEDIUM_BUILD);
+  expect(mac.exit).toBe(0);
+});
+
+// Without a target nothing bakes, so the constant does not exist. Asserted
+// rather than left implicit: it is the visible half of the reseed debt, and it
+// should start passing differently the day the default lands.
+test("VADER_OS is absent when no target is given", async () => {
+  const r = await runCli(
+    ["check", join(FIXTURES, "baked_constant", "main.vader")], undefined, MEDIUM_BUILD);
+  expect(r.exit).toBe(1);
+  expect(r.stderr).toContain("VADER_OS");
+});

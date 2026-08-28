@@ -216,10 +216,15 @@ export load_project_with_overlay :: fn(
             // the stdlib — exactly as `build_core_seed` returns an empty map
             // without `std/core`: the constants name `Os` and `Arch`, so with no
             // module to name them from there is nothing to bake.
-            // ⚠️ NOT CALLED YET — see `load_baked_target`. The call needs
-            // `host_target()`, hence `current_os()`, an intrinsic the SEED does
-            // not know; stage0 refuses to emit it and bootstrap step [2/3] dies.
-            // Wired in the commit that reseeds.
+            // Only when a target was given EXPLICITLY. The blocker was never
+            // the baking — it was the DEFAULT target, which needs
+            // `host_target()` → `current_os()`, an intrinsic the seed does not
+            // know. With `--target=` in hand there is nothing to ask the host,
+            // so `VADER_OS` works today for every command that takes one.
+            if target != null {
+                load_baked_target(modules, bases, index, loader_diags, overlay,
+                    factory, node_factory, target)
+            }
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
@@ -240,12 +245,6 @@ export load_project_with_overlay :: fn(
 // module, then enqueue its imports. Shared by the entry BFS and the
 // std/string_builder force-load so both follow identical ingestion logic
 // (and so the force-load can run as a separate, order-preserving pass).
-// ⚠️ TRANSITIONAL: written, tested by hand, NOT yet called — the call site is
-// commented out above with the reason. It needs `host_target()`, which needs the
-// `current_os` intrinsic, which the committed seed does not know: stage0 refuses
-// an unwired host import and the bootstrap dies at step [2/3]. The reseed commit
-// restores the call.
-@allow_unused
 // Generate and ingest the baked-constants module. Requires `std/target`, which
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
