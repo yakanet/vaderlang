@@ -39,14 +39,16 @@ main :: fn(argv: string[]) -> i32 {
         println(CLI_VERSION)
         return 0
     }
-    if action == "run"   { return cmd_run(action_args) }
-    if action == "build" { return cmd_build(action_args) }
-    if action == "fmt"   { return cmd_fmt(action_args) }
-    if action == "test"  { return cmd_test(action_args) }
-    if action == "dump"  { return cmd_dump(action_args) }
-    if action == "lsp"   { return cmd_lsp(action_args) }
-    if action == "dap"   { return cmd_dap(action_args) }
-    if action == "lint"  { return cmd_lint(action_args) }
+    if action == "new"    { return cmd_new(action_args) }
+    if action == "run"    { return cmd_run(action_args) }
+    if action == "build"  { return cmd_build(action_args) }
+    if action == "fmt"    { return cmd_fmt(action_args) }
+    if action == "test"   { return cmd_test(action_args) }
+    if action == "dump"   { return cmd_dump(action_args) }
+    if action == "lsp"    { return cmd_lsp(action_args) }
+    if action == "dap"    { return cmd_dap(action_args) }
+    if action == "lint"   { return cmd_lint(action_args) }
+    if action == "doctor" { return cmd_doctor(action_args) }
 
     eprintln("vader: unknown action \"${action}\"")
     eprintln("run \"vader help\" for usage")
@@ -83,19 +85,35 @@ parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
 action_file :: fn(parsed: ParsedArgs) -> Path =
     if parsed.positionals.len() == 0 { empty_path() } else { Path(parsed.positionals[0]) }
 
-// Reject a second positional for an action that takes exactly one. The message
-// names the likely cause: a flag written after the file, which the boundary
-// leaves in the tail rather than reading.
+// Reject a positional the action does not take — the SECOND one for an action
+// that takes an argument, the FIRST for one that takes none.
+//
+// Both halves come from the action's own usage line via `positional_noun`: an
+// empty noun means "takes none", and a present one is what the message calls it.
+// That is why there is one guard rather than one per noun — `build` says "file",
+// `new` says "name", and `doctor` names no argument because it accepts none.
+//
+// The message names the likely cause: a flag written after the argument, which
+// the boundary leaves in the tail rather than reading. That only applies to an
+// action that HAS an argument; for one that does not, the token is simply
+// unexpected wherever it came from.
 reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
-    if parsed.positionals.len() <= 1 {
+    cmd :: find_command(name)
+    // An unknown action never reaches here (`parse_action` rejects it first);
+    // the fallback keeps this total rather than assuming so.
+    noun :: if cmd == null { "" } else { positional_noun(cmd) }
+    // Annotated, not cast: the literals are free and the slot is compared against
+    // `positionals.len()`, a usize.
+    allowed: usize = if noun == "" { 0 } else { 1 }
+    if parsed.positionals.len() <= allowed {
         return false
     }
-    extra :: parsed.positionals[1]
-    if extra.starts_with("-") {
-        eprintln("vader ${name}: options must come before the file, got \"${extra}\" after it")
-    } else {
-        eprintln("vader ${name}: unexpected argument \"${extra}\"")
+    extra :: parsed.positionals[allowed]
+    if extra.starts_with("-") && noun != "" {
+        eprintln("vader ${name}: options must come before the ${noun}, got \"${extra}\" after it")
+        return true
     }
+    eprintln("vader ${name}: unexpected argument \"${extra}\"")
     return true
 }
 

@@ -1,0 +1,304 @@
+// vader/cli/cmd_new — the `vader new` command.
+//
+// Scaffolds a project, so the first one does not have to be reverse-engineered
+// from the test fixtures. What a project actually needs is small, and none of it
+// is discoverable:
+//
+//   * a `vader.json` — its PRESENCE is what makes the directory a module search
+//     root (`resolver::project_include_paths`). Without one, only the entry
+//     file's own folder is searched, which is the first thing that surprises
+//     someone whose second module does not resolve.
+//   * `src/main.vader` declaring `module "src"` — the module name is the folder
+//     name, and the compiler does not infer it from the filesystem.
+//   * a `.gitignore` covering `build/`, where every artefact lands.
+//
+// It writes those three and stops. It does not write a `build.vader`: a driven
+// build is a separate thing to learn, and scaffolding one into every project
+// would teach it as the default when it is the exception.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "cli"
+import "std/io"
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/string_builder"
+import "vader/resolver"
+
+/// Folder the entry module lives in — and therefore the module it declares.
+SOURCE_DIR :: "src"
+
+/// Entry file written inside `SOURCE_DIR`.
+ENTRY_FILENAME :: "main.vader"
+
+// ---- the command ----------------------------------------------------------
+
+/// `vader new [name]` — write a minimal project and say what each file is for.
+///
+/// With a name, it creates that directory; without one, it initialises the
+/// working directory in place. The two differ in what counts as "already taken":
+/// creating refuses ANY existing content, since writing into a directory the user
+/// did not mean to name is the mistake that cannot be undone; in place, only an
+/// existing `vader.json` refuses, because a directory with files in it is the
+/// normal case — you are adding a manifest to work already started.
+///
+/// @param args  the action's zone; the optional name is the one positional, and
+///              `--git` the only flag read.
+/// @return      0 when every file was written, 1 on a rejected target or a
+///              failed write. A `--git` that could not run is a warning, not a
+///              failure: the project is already on disk by then.
+cmd_new :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("new", args)
+    if parsed is i32 as code {
+        return code
+    }
+    if reject_extra_positionals("new", parsed) {
+        return 1
+    }
+    raw :: if parsed.positionals.len() == 0 { IN_PLACE } else { parsed.positionals[0] }
+    target :: resolve_target(raw)
+    if target is ScaffoldError as e {
+        eprintln("vader new: ${e.msg}")
+        return 1
+    }
+    written :: scaffold(target)
+    if written is ScaffoldError as e {
+        eprintln("vader new: ${e.msg}")
+        return 1
+    }
+    git_initialised := false
+    if parsed.bool_flag("git") {
+        complaint :: init_git(target.dir)
+        if complaint == null {
+            git_initialised = true
+        } else {
+            eprintln(complaint)
+        }
+    }
+    println(report(target, git_initialised))
+    return 0
+}
+
+// ---- the target -----------------------------------------------------------
+
+/// What `vader new` decided to write, and where.
+NewProject :: struct {
+    /// Directory to write into, spelled as the user typed it — a relative path
+    /// stays relative, so the report echoes what they can `cd` to.
+    dir:      string
+    /// The manifest's `name`: the directory's own last segment.
+    name:     string
+    /// True when this fills the working directory rather than a named one —
+    /// which is what decides whether the report has a `cd` line to offer.
+    in_place: bool
+}
+
+/// A refusal, with the sentence the user reads. Separate from a diagnostic:
+/// nothing here is wrong with a `.vader` file, so no code is allocated (§12).
+ScaffoldError :: struct {
+    msg: string
+}
+
+/// The path standing for "the working directory" — what a bare `vader new` gets.
+IN_PLACE :: "."
+
+// Decide where to write, or refuse. See `cmd_new` for why the two modes differ.
+resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
+    if raw == "" {
+        return ScaffoldError { .msg = "expected a project name, or none to fill this directory" }
+    }
+    if raw.starts_with("-") {
+        return ScaffoldError { .msg = "`${raw}` looks like a flag, not a project name" }
+    }
+    if raw == IN_PLACE {
+        if exists(join_path(IN_PLACE, MANIFEST_FILENAME)) {
+            return ScaffoldError {
+                .msg = "already a project — this directory holds a `${MANIFEST_FILENAME}`",
+            }
+        }
+        return NewProject {
+            .dir = IN_PLACE, .name = directory_name(current_working_directory()), .in_place = true,
+        }
+    }
+    if exists(raw) {
+        if !is_dir(raw) {
+            return ScaffoldError { .msg = "`${raw}` exists and is not a directory" }
+        }
+        entries :: read_dir(raw)
+        if entries is IOError as e {
+            return ScaffoldError { .msg = "`${raw}` cannot be read: ${e.message()}" }
+        }
+        if entries.len() > 0 {
+            hint :: "name a new directory, or run `vader new` inside it to fill it in place"
+            return ScaffoldError { .msg = "`${raw}` exists and is not empty — ${hint}" }
+        }
+    }
+    return NewProject { .dir = raw, .name = directory_name(raw), .in_place = false }
+}
+
+/// Last segment of a path, whatever separator wrote it — the project's name.
+///
+/// Windows hands `current_working_directory` back `/`-separated already, but a
+/// name the user TYPED can carry either, so it is normalised here rather than
+/// assumed.
+directory_name :: fn(path: string) -> string {
+    name :: path.to_posix().to_path().filename()
+    if name == "" {
+        return path
+    }
+    return name
+}
+
+// ---- writing --------------------------------------------------------------
+
+// Write the three files. Creating `<dir>/src` creates `<dir>` on the way — the
+// intrinsic is `mkdir -p`, and an existing directory is success.
+scaffold :: fn(project: NewProject) -> null | ScaffoldError {
+    made :: create_dir(join_path(project.dir, SOURCE_DIR))
+    if made is IOError as e {
+        return ScaffoldError {
+            .msg = "cannot create `${project.dir}/${SOURCE_DIR}`: ${e.message()}",
+        }
+    }
+    manifest :: write_one(
+        join_path(project.dir, MANIFEST_FILENAME),
+        render_manifest(project.name),
+    )
+    if manifest is ScaffoldError {
+        return manifest
+    }
+    entry :: write_one(
+        join_path(join_path(project.dir, SOURCE_DIR), ENTRY_FILENAME),
+        render_entry(project.name),
+    )
+    if entry is ScaffoldError {
+        return entry
+    }
+    return write_one(join_path(project.dir, ".gitignore"), render_gitignore())
+}
+
+write_one :: fn(path: string, content: string) -> null | ScaffoldError {
+    res :: write_file_string(path, content)
+    if res is IOError as e {
+        return ScaffoldError { .msg = "cannot write `${path}`: ${e.message()}" }
+    }
+    return null
+}
+
+/// The manifest, carrying only what something reads: the identity, and the
+/// include-path list the loader consults. An empty `includePaths` is not filler —
+/// it is where a second search root goes, and the file has to be there whatever
+/// it holds.
+render_manifest :: fn(name: string) -> string {
+    out :: StringBuilder {}
+    out.append("{\n")
+    out.append("    \"name\": \"${name}\",\n")
+    out.append("    \"version\": \"0.1.0\",\n")
+    out.append("    \"includePaths\": []\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
+/// The entry module. It declares `module "${SOURCE_DIR}"` because the module IS
+/// the folder — the one rule about the layout that nothing else states.
+render_entry :: fn(name: string) -> string {
+    out :: StringBuilder {}
+    out.append("// ${SOURCE_DIR}/${ENTRY_FILENAME} — entry point of ${name}.\n")
+    out.append("\n")
+    out.append("module \"${SOURCE_DIR}\"\n")
+    out.append("\n")
+    out.append("import \"std/io\"\n")
+    out.append("\n")
+    out.append("main :: fn() -> i32 {\n")
+    out.append("    println(\"hello from ${name}\")\n")
+    out.append("    return 0\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
+/// One line: `build/` holds every artefact — the binary, the generated C, a
+/// driver's own build, and the generated module tree.
+render_gitignore :: fn() -> string = "build/\n"
+
+// `--git`, and it WARNS rather than fails: the scaffold is already on disk by the
+// time this runs, so refusing after the fact would leave a project plus an error.
+init_git :: fn(dir: string) -> string | null {
+    res :: spawn(["git", "init", dir])
+    if res is ProcessError as e {
+        hint :: "the project is written, initialise it yourself"
+        return "vader new: `git init` could not run (${e.msg}) — ${hint}"
+    }
+    if res.exit != 0 {
+        return "vader new: `git init` exited ${res.exit} — ${res.stderr.trim()}"
+    }
+    return null
+}
+
+// ---- reporting ------------------------------------------------------------
+
+// What was written and what each file is for — the part that makes this a
+// teaching command rather than three `write_file_string` calls.
+report :: fn(project: NewProject, git_initialised: bool) -> string {
+    out :: StringBuilder {}
+    if project.in_place {
+        out.append("vader new: initialised ${project.name} here\n")
+    } else {
+        out.append("vader new: wrote ${project.dir}/\n")
+    }
+    out.append("  ${MANIFEST_FILENAME}      makes this directory a module search root\n")
+    out.append("  ${SOURCE_DIR}/${ENTRY_FILENAME}  module \"${SOURCE_DIR}\", holding `main`\n")
+    out.append("  .gitignore      build/ — every artefact lands there\n")
+    if git_initialised {
+        out.append("  .git            initialised by `--git`\n")
+    }
+    out.append("\n")
+    if !project.in_place {
+        out.append("  cd ${project.dir}\n")
+    }
+    out.append("  vader run ${SOURCE_DIR}/${ENTRY_FILENAME}\n")
+    return out.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_entry_declares_the_folder_as_its_module :: fn() -> void {
+    // The one rule the scaffold exists to state: module name = folder name.
+    src :: render_entry("demo")
+    assert("module \"src\"" in src, "the entry declares `module \"src\"`")
+    assert("main :: fn() -> i32" in src, "and holds a `main` the lowerer recognises")
+}
+
+@test test_manifest_carries_the_project_name :: fn() -> void {
+    manifest :: render_manifest("my-app")
+    assert("\"name\": \"my-app\"" in manifest, "the name reaches the manifest")
+    assert("\"includePaths\": []" in manifest, "and the include-path list is there to fill")
+}
+
+@test test_a_flag_is_not_a_project_name :: fn() -> void {
+    // `vader new --nope` reaches here only if the parser did not claim it; the
+    // message must not then read as "creating directory --nope".
+    target :: resolve_target("--nope")
+    assert(target is ScaffoldError, "a leading dash is refused")
+}
+
+@test test_directory_name_takes_the_last_segment :: fn() -> void {
+    assert_eq(directory_name("tmp/my-app"), "my-app")
+    assert_eq(directory_name("my-app"), "my-app")
+}
+
+@test test_report_names_the_next_command :: fn() -> void {
+    text :: report(NewProject { .dir = "demo", .name = "demo", .in_place = false }, false)
+    assert("cd demo" in text, "a created project says how to enter it")
+    assert("vader run src/main.vader" in text, "and what to run once inside")
+}
+
+@test test_in_place_report_skips_the_cd :: fn() -> void {
+    text :: report(NewProject { .dir = ".", .name = "demo", .in_place = true }, false)
+    assert(!("cd " in text), "there is nowhere to cd to")
+    assert("vader run src/main.vader" in text, "the run line still applies")
+}

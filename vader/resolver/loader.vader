@@ -427,24 +427,31 @@ plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
     .dir = dir, .prefix = "", .origin = origin,
 }
 
-// The project's generated-module tree, or "" when it has none.
-//
-// Gated on the directory EXISTING rather than on a manifest declaration: nothing
-// has to be configured for a driver's output to be found. That makes it a
-// filesystem probe, which module resolution otherwise avoids (SPEC §11) — but
-// what is probed is where a build ARTEFACT lives, not what a module is called:
-// the generated files still declare their own `module`, and an absent or empty
-// directory contributes nothing.
-//
-// Anchored on the manifest root when the project has one, and on the invocation
-// directory otherwise — the same shape as `resolve_sidecar`'s stdlib fallback,
-// and for the same reason: `find_manifest_root` returns null for a project with
-// no `vader.json`, which is most small projects and every test fixture. It also
-// matches what the DRIVER used to write the tree: the CLI hands it the invocation
-// directory as `args[1]`. The consequence to know is that compiling a
-// manifest-less project from a different directory will not find its generated
-// tree — exactly the existing limitation on finding its stdlib.
-generated_root_for :: fn(project_root: string | null) -> string {
+/// The project's generated-module tree, or "" when it has none.
+///
+/// Gated on the directory EXISTING rather than on a manifest declaration: nothing
+/// has to be configured for a driver's output to be found. That makes it a
+/// filesystem probe, which module resolution otherwise avoids (SPEC §11) — but
+/// what is probed is where a build ARTEFACT lives, not what a module is called:
+/// the generated files still declare their own `module`, and an absent or empty
+/// directory contributes nothing.
+///
+/// Anchored on the manifest root when the project has one, and on the invocation
+/// directory otherwise — the same shape as `resolve_sidecar`'s stdlib fallback,
+/// and for the same reason: `find_manifest_root` returns null for a project with
+/// no `vader.json`, which is most small projects and every test fixture. It also
+/// matches what the DRIVER used to write the tree: the CLI hands it the invocation
+/// directory as `args[1]`. The consequence to know is that compiling a
+/// manifest-less project from a different directory will not find its generated
+/// tree — exactly the existing limitation on finding its stdlib.
+///
+/// Exported so `vader doctor` reports the tree the LOADER will actually use,
+/// rather than re-deriving the same anchor-and-join and being able to drift
+/// from it.
+///
+/// @param project_root  the manifest root, or null for a project without one.
+/// @return              the generated tree's directory, or `""` when none exists.
+export generated_root_for :: fn(project_root: string | null) -> string {
     anchor :: match project_root {
         is string as pr -> pr
         is null         -> current_working_directory()

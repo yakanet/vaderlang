@@ -1,0 +1,274 @@
+// vader/cli/doctor_env — what `vader doctor` reads from the environment.
+//
+// Split from `cmd_doctor.vader` because it answers a different question: not
+// "is the toolchain present" but "is what the RUNTIME will read what the user
+// meant". The two share the `Check` shape and nothing else.
+//
+// The knobs are read by `runtime/c/vader_runtime.c`, and HOW they are read is the
+// whole point of checking them: `vader_gc_env_bytes` is a plain `strtoull` that
+// keeps the leading digits, drops the rest, and silently falls back to the
+// built-in default when nothing parses or the value is zero. So
+// `VADER_GC_OLD_MAX=512M` means 512 BYTES, not 512 MB, and nothing anywhere says
+// so — which is precisely the class of failure `doctor` exists for.
+//
+// Same module as `cmd_doctor.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/env"
+import "std/string"
+
+// Knobs read as a plain byte count.
+GC_BYTE_VARS: string[]: [
+    "VADER_GC_YOUNG_BYTES",
+    "VADER_GC_YOUNG_CAP",
+    "VADER_GC_YOUNG_MAX",
+    "VADER_GC_OLD_MAX",
+]
+
+// One environment toggle the runtime reads, and what being on does.
+//
+// A table rather than a check apiece: the rule for reading them is identical
+// (`vader_gc_env_bool` — on for any non-empty value not starting with `0`), and
+// only the consequence differs. The first pass had two of these in a loop and a
+// third written out longhand beside it, which is how the list came to be missing
+// five of them.
+EnvToggle :: struct {
+    name:   string
+    /// `.Warn` when being on changes what the program does or costs orders of
+    /// magnitude; `.Ok` when it only adds output.
+    status: CheckStatus
+    effect: string
+}
+
+ENV_TOGGLES: EnvToggle[]: [
+    EnvToggle {
+        .name = "VADER_GC_STRESS", .status = .Warn,
+        .effect = "every allocation collects — 100×–10000× slower",
+    },
+    EnvToggle {
+        .name = "VADER_GC_STRESS_MAJOR", .status = .Warn,
+        .effect = "every allocation forces a full major collect",
+    },
+    EnvToggle {
+        .name = "VADER_GC_CHECK_BOX", .status = .Warn,
+        .effect = "box tags are validated on every access",
+    },
+    EnvToggle {
+        .name = "VADER_GC_SCAN_ALL_OLD", .status = .Warn,
+        .effect = "every minor rescans the whole old generation",
+    },
+    EnvToggle {
+        .name = "VADER_ASYNC_VIRTUAL_CLOCK", .status = .Warn,
+        .effect = "async runs on a virtual clock — timers do not wait",
+    },
+    EnvToggle {
+        .name = "VADER_ALLOC_SITES", .status = .Warn,
+        .effect = "per-site alloc profiling, INERT unless the runtime was built "
+            + "with -DVADER_PROFILE_ALLOC_SITES",
+    },
+    EnvToggle { .name = "VADER_GC_PROFILE",   .status = .Ok, .effect = "GC stats at exit" },
+    EnvToggle { .name = "VADER_GC_HISTOGRAM", .status = .Ok, .effect = "old live-set histogram" },
+    EnvToggle { .name = "VADER_ATOM_PROFILE", .status = .Ok, .effect = "atom-table stats" },
+    EnvToggle { .name = "VADER_PROFILE",      .status = .Ok, .effect = "per-pass compile timings" },
+]
+
+// Every environment override in force, one check each. Unset variables produce
+// nothing — a report listing what is NOT set would bury what is.
+check_environment :: fn() -> Check[] {
+    out: Check[]! = []
+    for name in GC_BYTE_VARS {
+        raw :: get_env(name)
+        if raw == null {
+            continue
+        }
+        if raw == "" {
+            continue
+        }
+        out.push(gc_bytes_check(name, raw))
+    }
+    percent :: get_env("VADER_GC_RAM_PERCENT")
+    if percent != null && percent != "" {
+        out.push(gc_percent_check(percent))
+    }
+    ratio :: get_env("VADER_GC_YOUNG_RATIO")
+    if ratio != null && ratio != "" {
+        out.push(gc_ratio_check(ratio))
+    }
+    for toggle in ENV_TOGGLES {
+        raw :: get_env(toggle.name)
+        if raw == null {
+            continue
+        }
+        if !is_toggle_on(raw) {
+            continue
+        }
+        out.push(Check {
+            .name = env_check_name(toggle.name),
+            .status = toggle.status,
+            .summary = toggle.effect,
+            .detail = "${toggle.name}=${raw}",
+        })
+    }
+    // `CC` is honoured by the BOOTSTRAP scripts (`bootstrap/build.sh` line 24,
+    // `build.ps1` line 15) and by nothing else — `vader build` defaults to `cc`
+    // and reads only `--cc`. Someone who exported `CC=clang` and then wonders why
+    // the build invoked `cc` has no way to find that out, which is the whole shape
+    // of failure this command exists for.
+    cc_env :: get_env("CC")
+    if cc_env != null && cc_env != "" {
+        out.push(check_warn(
+            "cc-env",
+            "`CC` is set, but only the bootstrap scripts read it — `vader build` needs `--cc`",
+            "CC=${cc_env}",
+        ))
+    }
+    if out.len() == 0 {
+        out.push(check_ok("environment", "no runtime override in force", ""))
+    }
+    return out
+}
+
+// `vader_gc_env_bool`: on for any non-empty value whose first byte is not `0`.
+// So `=0` is off, and `=false` is ON — which is worth reporting rather than
+// guessing at, and is why the detail echoes the value verbatim.
+is_toggle_on :: fn(raw: string) = raw != "" && !raw.starts_with("0")
+
+// A byte-size knob, judged the way the runtime reads it.
+gc_bytes_check :: fn(name: string, raw: string) -> Check {
+    key :: env_check_name(name)
+    n :: read_leading_number(raw)
+    if n.digits == 0 {
+        return check_warn(key, "not a number — ignored, the default applies", "${name}=${raw}")
+    }
+    if !n.whole {
+        return check_fail(
+            key,
+            "read as ${n.value} BYTES — the runtime takes a plain byte count and drops the rest",
+            "${name}=${raw} ; write the full count, e.g. 536870912 for 512 MB",
+        )
+    }
+    if n.value == 0 {
+        return check_warn(key, "zero — ignored, the built-in default applies", "${name}=${raw}")
+    }
+    return check_ok(key, "${n.value} bytes", "${name}=${raw}")
+}
+
+// `VADER_GC_RAM_PERCENT` is the one knob the runtime range-checks: it keeps the
+// default unless the value lands in (0, 100].
+gc_percent_check :: fn(raw: string) -> Check {
+    key :: env_check_name("VADER_GC_RAM_PERCENT")
+    parsed :: parse_float(raw.trim())
+    if parsed is ParseError {
+        return check_warn(
+            key,
+            "not a number — ignored, the built-in default applies",
+            "VADER_GC_RAM_PERCENT=${raw}",
+        )
+    }
+    if parsed <= 0.0 || parsed > 100.0 {
+        return check_warn(
+            key,
+            "outside (0, 100] — ignored, the built-in default applies",
+            "VADER_GC_RAM_PERCENT=${raw}",
+        )
+    }
+    return check_ok(key, "${parsed}% of physical RAM", "VADER_GC_RAM_PERCENT=${raw}")
+}
+
+// `VADER_GC_YOUNG_RATIO` is read with `strtoul` and NOT range-checked, so a typo
+// reads as 0 — which turns adaptive young sizing off rather than being ignored.
+gc_ratio_check :: fn(raw: string) -> Check {
+    key :: env_check_name("VADER_GC_YOUNG_RATIO")
+    n :: read_leading_number(raw)
+    if n.digits == 0 {
+        return check_warn(
+            key,
+            "not a number — read as 0, which turns adaptive young sizing OFF",
+            "VADER_GC_YOUNG_RATIO=${raw}",
+        )
+    }
+    if n.value == 0 {
+        return check_ok(key, "adaptive young sizing off", "VADER_GC_YOUNG_RATIO=${raw}")
+    }
+    return check_ok(key, "young target = old live / ${n.value}", "VADER_GC_YOUNG_RATIO=${raw}")
+}
+
+// Check key for an environment variable: the lowercased name, so `--json`
+// consumers key on `vader_gc_old_max` rather than on a report position.
+env_check_name :: fn(var_name: string) = var_name.to_lower()
+
+// What `strtoull` would read off the front of `raw`.
+LeadingNumber :: struct {
+    value:  i64
+    /// How many leading digits were consumed. 0 means the value is not a number
+    /// at all, and the runtime keeps its default.
+    digits: usize
+    /// True when the digits ARE the whole string — false is the `512M` case,
+    /// where a suffix is silently dropped.
+    whole:  bool
+}
+
+read_leading_number :: fn(raw: string) -> LeadingNumber {
+    bs :: raw.bytes()
+    value: i64 = 0
+    n: usize = 0
+    for n < bs.len() {
+        b :: bs[n]
+        if b < '0' || b > '9' {
+            break
+        }
+        value = value * 10 + i64(b - '0')
+        n += 1
+    }
+    return LeadingNumber { .value = value, .digits = n, .whole = n > 0 && n == bs.len() }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_leading_number_stops_at_a_suffix :: fn() -> void {
+    n :: read_leading_number("512M")
+    assert_eq(n.value, 512)
+    assert(!n.whole, "and reports that it did not read the whole value")
+}
+
+@test test_leading_number_accepts_a_plain_count :: fn() -> void {
+    n :: read_leading_number("536870912")
+    assert_eq(n.value, 536870912)
+    assert(n.whole, "consumed entirely")
+}
+
+@test test_leading_number_rejects_a_non_number :: fn() -> void {
+    n :: read_leading_number("big")
+    assert_eq(n.digits, usize(0))
+}
+
+@test test_gc_byte_suffix_fails_rather_than_passing_quietly :: fn() -> void {
+    // The check that pays for the command: `512M` compiles, runs, and gives a
+    // 512-BYTE arena. Nothing else in the toolchain says so.
+    c :: gc_bytes_check("VADER_GC_OLD_MAX", "512M")
+    assert(c.status == CheckStatus.Fail, "a dropped suffix is a failure")
+    assert("512" in c.summary, "and the summary names the value actually read")
+}
+
+@test test_gc_byte_plain_count_is_ok :: fn() -> void {
+    c :: gc_bytes_check("VADER_GC_OLD_MAX", "536870912")
+    assert(c.status == CheckStatus.Ok, "a plain byte count is what the runtime wants")
+    assert_eq(c.name, "vader_gc_old_max")
+}
+
+@test test_gc_ratio_typo_reads_as_zero :: fn() -> void {
+    // `strtoul` returns 0 for a non-number, and 0 does not mean "default" here —
+    // it turns the heuristic off.
+    c :: gc_ratio_check("two")
+    assert(c.status == CheckStatus.Warn, "a typo is worth reporting")
+    assert("OFF" in c.summary, "and it says what the typo actually does")
+}
+
+@test test_gc_percent_out_of_range_is_ignored :: fn() -> void {
+    assert(gc_percent_check("0").status == CheckStatus.Warn, "0 is outside (0, 100]")
+    assert(gc_percent_check("120").status == CheckStatus.Warn, "so is 120")
+    assert(gc_percent_check("50").status == CheckStatus.Ok, "50 is honoured")
+}

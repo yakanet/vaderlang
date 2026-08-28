@@ -19,6 +19,7 @@
 module "vader/cli"
 
 import "cli"
+import "std/string"
 Lsp :: import "vader/lsp"
 
 /// One-line description of the program, for the help's title line.
@@ -185,12 +186,46 @@ FMT_FLAGS: FlagSpec[]: [
     },
 ]
 
+// `new`'s one flag. Everything else about a scaffold is a decision the command
+// makes for you — the point is that a first project needs no decisions.
+NEW_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "git",
+        .kind = .Bool,
+        .help = "Also run `git init` in the new project",
+    },
+]
+
+// `doctor` probes the `cc` a build would invoke, so it takes the same override
+// `build` does — checking a compiler other than the one you would pass is a
+// check of nothing.
+DOCTOR_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "json",
+        .kind = .Bool,
+        .help = "Report as JSON, for CI and agents",
+    },
+    FlagSpec {
+        .name = "cc",
+        .help = "C compiler to probe",
+        .value_name = "path",
+        .default_text = "cc",
+    },
+]
+
 /// Every action, in the order the help lists them.
 ///
 /// `tail` states what an action does with positionals past the first, which is
 /// what makes the argument boundary self-documenting: only `Forward` hands its
 /// tail to another program, and it is the reason flags must precede the path.
 export COMMANDS: CommandSpec[]: [
+    CommandSpec {
+        .name = "new",
+        .summary = "Scaffold a project",
+        .usage = "[name]",
+        .flags = NEW_FLAGS,
+        .tail = .None,
+    },
     CommandSpec {
         .name = "run",
         .summary = "Compile and run a file on the VM",
@@ -248,6 +283,13 @@ export COMMANDS: CommandSpec[]: [
         .tail = .None,
     },
     CommandSpec {
+        .name = "doctor",
+        .summary = "Check the toolchain and the project here",
+        .usage = "",
+        .flags = DOCTOR_FLAGS,
+        .tail = .None,
+    },
+    CommandSpec {
         .name = "help",
         .summary = "Show this message, or one action's options",
         .usage = "[action]",
@@ -274,6 +316,26 @@ export find_command :: fn(name: string) -> CommandSpec | null {
         }
     }
     return null
+}
+
+/// The noun an action's positional argument goes by, read off its usage line.
+///
+/// `"<file>"` gives `file`, `"[name]"` gives `name`, `"[path]"` gives `path`, and
+/// `""` — an action that takes no positional at all — gives `""`.
+///
+/// DERIVED rather than declared a second time: `usage` is already the one place
+/// saying what an action's argument is, and a `noun` field beside it would be a
+/// second place to keep in step. It is what lets one shared guard say "before the
+/// file" for `build` and "before the name" for `new`.
+///
+/// @param cmd  the action.
+/// @return     the bare noun, or `""` when the action takes no positional.
+export positional_noun :: fn(cmd: CommandSpec) -> string {
+    if cmd.usage == "" {
+        return ""
+    }
+    head :: cmd.usage.split(" ")[0]
+    return head.trim_prefix("<").trim_prefix("[").trim_suffix(">").trim_suffix("]")
 }
 
 /// An action's flags plus the common ones — what `std/cli::parse` is given.
@@ -348,6 +410,30 @@ import "std/testing"
             }
         }
     }
+}
+
+@test test_positional_noun_reads_the_usage_line :: fn() -> void {
+    // The noun the shared guard puts in its message. Deriving it is what keeps
+    // one guard correct for every action instead of one copy per noun.
+    for c in COMMANDS {
+        noun :: positional_noun(c)
+        assert(!(("[" in noun) || ("<" in noun)), "`${c.name}`: the brackets are stripped")
+        assert(!(" " in noun), "`${c.name}`: the noun is one word")
+    }
+    build :: find_command("build")
+    if build == null {
+        assert(false, "`build` should be a known action")
+        return
+    }
+    assert_eq(positional_noun(build), "file")
+    lsp :: find_command("lsp")
+    if lsp == null {
+        assert(false, "`lsp` should be a known action")
+        return
+    }
+    // An action with no usage tail takes no positional, and the guard reads that
+    // as "reject the first one" rather than "name it".
+    assert_eq(positional_noun(lsp), "")
 }
 
 @test test_find_command_hits_and_misses :: fn() -> void {

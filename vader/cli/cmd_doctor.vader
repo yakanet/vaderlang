@@ -1,0 +1,498 @@
+// vader/cli/cmd_doctor — the `vader doctor` command.
+//
+// Answers one question: can this toolchain build something here, and if not,
+// which piece is missing. Every check reports the PATH IT TOOK — which library
+// root fired, which `cc` a shell would run, which branch of the sidecar probe
+// answered — because the failures this exists to explain are all RESOLUTION
+// failures, and a resolution failure that only says "not found" leaves the user
+// to guess where it looked.
+//
+// Two output modes: a human report by default, `--json` for CI and agents. The
+// JSON shape is `{ "ok": bool, "checks": [{ name, status, summary, detail }] }`
+// and `name` is the stable key — the summaries are prose and will drift.
+//
+// Exit code: 1 when any check FAILS, 0 otherwise. A warning is worth knowing,
+// not a broken toolchain, so it never moves the exit code; a gate that wants
+// strictness reads the JSON.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "cli"
+Json :: import "json"
+import "std/env"
+import "std/io"
+import "std/process"
+import "std/string"
+TTY :: import "std/tty"
+import "vader/pipeline"
+import "vader/resolver"
+import "vader/version"
+
+// ---- the report -----------------------------------------------------------
+
+// How one check came out. `Warn` is "worth knowing", `Fail` is "this will not
+// build" — the split is what keeps the exit code meaningful.
+CheckStatus :: enum(u8) { Ok, Warn, Fail }
+
+// One line of the report.
+Check :: struct {
+    /// Stable key — what a `--json` consumer matches on. The summary is prose
+    /// and will drift; this must not.
+    name:    string
+    status:  CheckStatus
+    /// The verdict, one line, lowercase.
+    summary: string
+    /// What the check actually found: a resolved path, a value, the branch that
+    /// answered. Empty when the summary already says everything.
+    detail:  string
+}
+
+check_ok :: fn(name: string, summary: string, detail: string) = Check {
+    .name = name, .status = .Ok, .summary = summary, .detail = detail,
+}
+
+check_warn :: fn(name: string, summary: string, detail: string) = Check {
+    .name = name, .status = .Warn, .summary = summary, .detail = detail,
+}
+
+check_fail :: fn(name: string, summary: string, detail: string) = Check {
+    .name = name, .status = .Fail, .summary = summary, .detail = detail,
+}
+
+// ---- the command ----------------------------------------------------------
+
+/// `vader doctor` — report whether the toolchain and the current project are in
+/// a state that can build.
+///
+/// Takes no positional argument: it inspects the environment, not a file. The
+/// checks run in the order they are reported, and every one of them is cheap —
+/// filesystem probes plus a single `cc --version` spawn.
+///
+/// @param args  the action's zone; `--json` and `--cc` are the only flags read.
+/// @return      1 when any check failed (or an argument was rejected), else 0.
+cmd_doctor :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("doctor", args)
+    if parsed is i32 as code {
+        return code
+    }
+    // The shared guard reads `doctor`'s empty usage line as "takes no positional",
+    // so this rejects the FIRST one rather than the second.
+    if reject_extra_positionals("doctor", parsed) {
+        return 1
+    }
+    checks :: collect_checks(parsed.string_flag("cc", "cc"))
+    if parsed.bool_flag("json") {
+        println(render_json(checks))
+    } else {
+        println(render_text(checks))
+    }
+    return if has_failure(checks) { 1 } else { 0 }
+}
+
+// Every check, in report order.
+//
+// The two lookups every check would otherwise redo are done once here. That is
+// not for the syscalls — it is so the report cannot contradict itself: one
+// manifest walk-up decides both what the manifest check reports and where the
+// generated tree is anchored, and one executable-location query is both what the
+// probes used and what the "looked under …" messages name.
+collect_checks :: fn(cc: string) -> Check[] {
+    cwd :: current_working_directory()
+    manifest_root :: find_manifest_root(cwd)
+    exe_dir :: current_executable_location().dir_of()
+    out: Check[]! = [
+        check_compiler(),
+        check_cc(cc),
+        check_library_root(exe_dir),
+        check_compiler_sources(cwd, exe_dir),
+        check_runtime_headers(),
+        check_manifest(manifest_root),
+        check_generated_tree(manifest_root),
+    ]
+    out.push_all(check_environment())
+    return out
+}
+
+has_failure :: fn(checks: Check[]) -> bool {
+    for c in checks {
+        if c.status == .Fail {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- checks ---------------------------------------------------------------
+
+// Which binary is answering — the line a bug report needs, and the one that
+// catches "I rebuilt but ran the old one".
+//
+// It can degrade: `current_executable_location` falls back to `"."` when the OS
+// query fails, and that is worth saying out loud rather than printing as a path,
+// because every probe made BESIDE the binary then silently becomes a probe of the
+// working directory — which is the `library-root` and `compiler-sources` answers
+// two lines below.
+check_compiler :: fn() -> Check {
+    location :: current_executable_location()
+    if location == "." {
+        return check_warn(
+            "compiler",
+            "vader ${CLI_VERSION}, but the OS would not say where this binary is",
+            "`current_executable_location` fell back to `.`, so every check that "
+                + "probes beside the binary is really probing the working directory",
+        )
+    }
+    return check_ok("compiler", "vader ${CLI_VERSION}", location)
+}
+
+// The one dependency the user must supply. Resolving the path is half the check
+// and RUNNING it is the other half: a name found on PATH may still be a stub, a
+// broken symlink, or an unsigned binary the OS refuses.
+check_cc :: fn(cc: string) -> Check {
+    resolved :: resolve_program(cc)
+    if resolved == null {
+        // Naming one that IS there turns a dead end into a next step. This is not
+        // hypothetical on Windows: `vader build` passes `cc` on every platform,
+        // and Windows has no `cc` — `bootstrap/build.ps1` defaults to `gcc` for
+        // exactly that reason.
+        fallback :: first_available(CC_CANDIDATES)
+        if fallback == "" {
+            tried :: CC_CANDIDATES.join(", ")
+            return check_fail(
+                "cc",
+                "not found — a native build cannot link",
+                "looked for `${cc}`, and for ${tried}",
+            )
+        }
+        return check_fail(
+            "cc",
+            "`${cc}` not found — pass `--cc=${fallback}`",
+            "`${fallback}` is on PATH; `${cc}` is what this build would invoke",
+        )
+    }
+    res :: spawn([resolved, "--version"])
+    if res is ProcessError as e {
+        return check_fail("cc", "found, but would not run", "${resolved}: ${e.msg}")
+    }
+    if res.exit != 0 {
+        return check_warn("cc", "ran, but `--version` exited ${res.exit}", resolved)
+    }
+    return check_ok("cc", first_line(res.stdout), resolved)
+}
+
+/// C compilers to name when the requested one is missing, most conventional
+/// first.
+///
+/// `cc` is the POSIX-guaranteed name and what `vader build` defaults to; `gcc` is
+/// what the Windows bootstrap defaults to (`bootstrap/build.ps1`), where no `cc`
+/// exists at all. MSVC's `cl` is deliberately absent — `build.ps1` states it is
+/// not supported, so naming it would send someone down a path the toolchain does
+/// not take.
+CC_CANDIDATES: string[]: ["cc", "gcc", "clang"]
+
+// The first of `names` that resolves on PATH, or "" when none does.
+first_available :: fn(names: string[]) -> string {
+    for name in names {
+        if resolve_program(name) != null {
+            return name
+        }
+    }
+    return ""
+}
+
+// Which library root answered, and by which branch — the difference between a
+// bundle (works from any directory) and a bare binary (works only from one that
+// happens to hold a `lib/`) is invisible until an import fails.
+check_library_root :: fn(exe_dir: string) -> Check {
+    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
+    if bundled != null {
+        return check_ok("library-root", "found beside the binary — a bundle", bundled)
+    }
+    if exists(join_path(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)) {
+        return check_ok(
+            "library-root",
+            "found under the working directory — a bare binary",
+            "./${LIBRARY_ROOT_DIR} — every `std/…` import resolves only while the "
+                + "working directory holds it",
+        )
+    }
+    return check_fail(
+        "library-root",
+        "not found — no `std/…` import will resolve",
+        "looked for the marker `${LIBRARY_ROOT_MARKER}` under "
+            + "${join_path(exe_dir, LIBRARY_ROOT_DIR)} and ./${LIBRARY_ROOT_DIR}",
+    )
+}
+
+// What a `build.vader` project needs: the compiler's own modules, since the
+// driver links the compiler. A plain build never touches them, which is why this
+// warns rather than fails.
+check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
+    root :: compiler_source_root(cwd)
+    if exists(join_path(root, COMPILER_SOURCE_MARKER)) {
+        return check_ok(
+            "compiler-sources",
+            "found — a `${DRIVER_FILENAME}` project can be driven",
+            root,
+        )
+    }
+    return check_warn(
+        "compiler-sources",
+        "missing — a plain build works, a driven one does not",
+        "looked for `${COMPILER_SOURCE_MARKER}` under ${exe_dir} and "
+            + "${join_path(exe_dir, BUNDLED_SOURCE_DIR)}",
+    )
+}
+
+// The C runtime the native target links against.
+check_runtime_headers :: fn() -> Check {
+    root :: runtime_c_root()
+    header :: join_path(root, RUNTIME_HEADER)
+    if exists(header) {
+        return check_ok("runtime-c", "found", header)
+    }
+    return check_fail(
+        "runtime-c",
+        "not found — `--target=native` cannot compile the runtime",
+        "looked for `${RUNTIME_HEADER}` under ${root}",
+    )
+}
+
+// Header proving a candidate directory is the C runtime — the same marker
+// `pipeline::runtime_c_root` probes for.
+RUNTIME_HEADER :: "vader.h"
+
+// Whether this directory is a project root at all, and whether the roots its
+// manifest declares exist. A missing `vader.json` is not an error — it is the
+// first surprise, so it is reported rather than passed over.
+check_manifest :: fn(root: string | null) -> Check {
+    if root == null {
+        return check_ok(
+            "manifest",
+            "none — only the entry file's own folder is a search root",
+            "add a `${MANIFEST_FILENAME}` (see `vader new`) to make a directory one",
+        )
+    }
+    path :: join_path(root, MANIFEST_FILENAME)
+    manifest :: read_manifest(root)
+    if manifest.include_paths.len() == 0 {
+        return check_ok("manifest", "found, declaring no extra search root", path)
+    }
+    parts: string[]! = []
+    missing := 0
+    for p in manifest.include_paths {
+        dir :: join_path(root, p)
+        if !is_dir(dir) {
+            missing += 1
+            parts.push("${p} (missing)")
+            continue
+        }
+        parts.push("${p} (${origin_label(origin_of_root(dir))})")
+    }
+    rendered :: parts.join(", ")
+    detail :: "${path} — includePaths: ${rendered}"
+    if missing > 0 {
+        return check_warn("manifest", "an `includePaths` entry does not exist", detail)
+    }
+    return check_ok("manifest", "found", detail)
+}
+
+// How a root's origin reads in the report. The marker decides it, never the
+// spelling — which is the whole point of showing it.
+origin_label :: fn(origin: ModuleOrigin) =
+    if origin == .Toolchain { "toolchain" } else { "project" }
+
+// A driver writes its generated modules under the project root, and a tree that
+// cannot be written to fails mid-build with an IO error rather than a diagnostic.
+// Only checked when one already exists: probing otherwise would mean creating a
+// directory the user did not ask for.
+check_generated_tree :: fn(manifest_root: string | null) -> Check {
+    // The LOADER's own answer, not a second derivation of it: `generated_root_for`
+    // is what resolution will consult, and it returns "" when there is no tree.
+    root :: generated_root_for(manifest_root)
+    if root == "" {
+        return check_ok("generated-tree", "none — nothing has been generated here", "")
+    }
+    probe :: join_path(root, ".vader-doctor-probe")
+    written :: write_file_string(probe, "")
+    if written is IOError as e {
+        return check_fail(
+            "generated-tree",
+            "not writable — a driven build cannot emit",
+            "${probe}: ${e.message()}",
+        )
+    }
+    removed :: remove_file(probe)
+    if removed is IOError {
+        return check_warn("generated-tree", "writable, but the probe file stayed behind", probe)
+    }
+    return check_ok("generated-tree", "writable", root)
+}
+
+// ---- probes ---------------------------------------------------------------
+
+// Absolute path of `name` as a shell would resolve it, or null when nothing on
+// PATH matches.
+//
+// A name carrying a separator is already a path, not something to search for.
+// The PATH separator is `;` on Windows and `:` everywhere else, and the stdlib
+// exposes no platform query — so, like `pipeline::linked_binary`, this asks
+// rather than guesses: a `;` anywhere in PATH decides it, since Windows always
+// lists several entries and a POSIX directory name holding a `;` would have to
+// fight the shell to exist.
+resolve_program :: fn(name: string) -> string | null {
+    if "/" in name || "\\" in name {
+        if exists(name) {
+            return name
+        }
+        return null
+    }
+    raw :: get_env("PATH")
+    if raw == null {
+        return null
+    }
+    separator :: if ";" in raw { ";" } else { ":" }
+    for dir in raw.split(separator) {
+        // POSIX reads an empty entry as the working directory; so does this.
+        probe_dir :: if dir == "" { "." } else { dir }
+        bare :: join_path(probe_dir, name)
+        if exists(bare) {
+            return bare
+        }
+        // The Windows spelling, probed second: a bare name is what was typed.
+        // NOT gated on `separator == ";"`, tempting as that is — under MSYS or
+        // git-bash the PATH is `:`-separated while the binaries are still `.exe`,
+        // so the gate would report a perfectly good `cc` as missing. The probe
+        // only runs for a directory that did not hold the bare name anyway.
+        windows :: join_path(probe_dir, "${name}.exe")
+        if exists(windows) {
+            return windows
+        }
+    }
+    return null
+}
+
+first_line :: fn(s: string) -> string {
+    lines :: s.split("\n")
+    if lines.len() == 0 {
+        return ""
+    }
+    return lines[0].trim()
+}
+
+// ---- rendering ------------------------------------------------------------
+
+// Fixed-width so the summaries line up, and coloured AFTER padding: an SGR
+// sequence is bytes the terminal does not show but `pad_end` would count.
+status_label :: fn(status: CheckStatus) = match status {
+    .Ok   -> TTY.green("ok  ")
+    .Warn -> TTY.yellow("warn")
+    .Fail -> TTY.red("fail")
+}
+
+status_key :: fn(status: CheckStatus) = match status {
+    .Ok   -> "ok"
+    .Warn -> "warn"
+    .Fail -> "fail"
+}
+
+// Floor for the check-name column. The width is taken from the checks actually
+// reported rather than fixed: the environment keys are named after the variables
+// they read, so the longest one depends on what is set.
+NAME_COLUMN: usize: 18
+
+// Hangs the detail under the name column — `status_label` is four visible
+// columns plus its two-space gap, whatever the SGR bytes around it cost.
+DETAIL_INDENT :: "      "
+
+render_text :: fn(checks: Check[]) -> string {
+    width := NAME_COLUMN
+    for c in checks {
+        if c.name.len() > width {
+            width = c.name.len()
+        }
+    }
+    lines: string[]! = []
+    for c in checks {
+        name :: c.name.pad_end(width, ' ')
+        lines.push("${status_label(c.status)}  ${name}  ${c.summary}")
+        if c.detail != "" {
+            lines.push("${DETAIL_INDENT}${c.detail}")
+        }
+    }
+    lines.push("")
+    lines.push(verdict_line(checks))
+    return lines.join("\n")
+}
+
+verdict_line :: fn(checks: Check[]) -> string {
+    failures := 0
+    warnings := 0
+    for c in checks {
+        if c.status == .Fail {
+            failures += 1
+        }
+        if c.status == .Warn {
+            warnings += 1
+        }
+    }
+    if failures > 0 {
+        failed :: count(failures, "failure")
+        warned :: count(warnings, "warning")
+        return "${failed}, ${warned} — the toolchain is not ready"
+    }
+    if warnings > 0 {
+        return "no failures, ${count(warnings, "warning")}"
+    }
+    return "all clear"
+}
+
+// `1 warning` / `2 warnings`. A verdict line is the one sentence a user reads in
+// full, so it is worth not writing `(s)` in it.
+count :: fn(n: i32, noun: string) -> string {
+    if n == 1 {
+        return "1 ${noun}"
+    }
+    return "${n} ${noun}s"
+}
+
+render_json :: fn(checks: Check[]) -> string {
+    items: Json.JsonValue[]! = []
+    for c in checks {
+        entry :: MutableMap<string, Json.JsonValue> {}
+        entry["name"]    = Json.JsonString { .value = c.name }
+        entry["status"]  = Json.JsonString { .value = status_key(c.status) }
+        entry["summary"] = Json.JsonString { .value = c.summary }
+        entry["detail"]  = Json.JsonString { .value = c.detail }
+        items.push(Json.JsonObject { .entries = entry })
+    }
+    root :: MutableMap<string, Json.JsonValue> {}
+    root["ok"]     = Json.JsonBool { .value = !has_failure(checks) }
+    root["checks"] = Json.JsonArray { .items = items }
+    return Json.stringify_pretty(Json.JsonObject { .entries = root }, 2)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_resolve_program_takes_a_path_as_written :: fn() -> void {
+    // A name with a separator is a path: it must not be searched for on PATH.
+    assert(resolve_program("/nonexistent/cc") == null, "a missing path resolves to nothing")
+}
+
+@test test_exit_status_follows_the_worst_check :: fn() -> void {
+    warned :: [check_ok("a", "", ""), check_warn("b", "", "")]
+    assert(!has_failure(warned), "a warning is not a failure")
+    failed :: [check_ok("a", "", ""), check_fail("b", "", "")]
+    assert(has_failure(failed), "a failure is")
+}
+
+@test test_json_report_carries_the_stable_keys :: fn() -> void {
+    out :: render_json([check_fail("cc", "not found", "looked for `cc`")])
+    assert("\"ok\": false" in out, "the top-level verdict")
+    assert("\"name\": \"cc\"" in out, "the stable key")
+    assert("\"status\": \"fail\"" in out, "and the status as a word, not a number")
+}
