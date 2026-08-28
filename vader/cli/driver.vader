@@ -459,7 +459,9 @@ rebuild_driver :: fn(
     // Never fewer units than `DRIVER_CC_UNITS`, whatever the user asked of their
     // own build — see the constant.
     driver_units :: if units > DRIVER_CC_UNITS { units } else { DRIVER_CC_UNITS }
-    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], driver_units)
+    // A driven build has no `--target`: it produces for this machine, which is
+    // also the only platform whose toolchain it can invoke.
+    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], driver_units, null)
     remove_entry(entry)
     if code != 0 {
         return code

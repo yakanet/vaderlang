@@ -20,6 +20,7 @@ module "vader/pipeline"
 import "std/path"
 import "vader/diagnostics"
 import "vader/resolver"
+import "vader/target"
 import "vader/typecheck"
 import "vader/lower"
 import "vader/midir"
@@ -180,8 +181,10 @@ export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(fi
 ///
 /// @param file                entry source.
 /// @param include_path_flags  extra module search roots.
-export lower_to_entry_with :: fn(file: Path, include_path_flags: string[]) -> LoweredEntry =
-    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags))
+export lower_to_entry_with :: fn(
+    file: Path, include_path_flags: string[], target: Target | null = null,
+) -> LoweredEntry =
+    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags, target))
 
 /// Lower an ALREADY-EVALUATED pipeline.
 ///
@@ -243,8 +246,10 @@ export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode =
 /// @param want_debug          populate the per-op debug table (kept only when
 ///                            the C emit will keep `#line`).
 /// @param include_path_flags  extra module search roots.
-export prepare_cfg_bytecode_with :: fn(file: Path, want_debug: bool, include_path_flags: string[]) -> CfgBytecode =
-    prepare_cfg_bytecode_from(lower_to_entry_with(file, include_path_flags), file, want_debug)
+export prepare_cfg_bytecode_with :: fn(
+    file: Path, want_debug: bool, include_path_flags: string[], target: Target | null = null,
+) -> CfgBytecode =
+    prepare_cfg_bytecode_from(lower_to_entry_with(file, include_path_flags, target), file, want_debug)
 
 /// Carry an ALREADY-LOWERED entry through prune → CFG → bytecode.
 ///

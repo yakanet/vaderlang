@@ -107,19 +107,21 @@ cmd_build :: fn(args: string[]) -> i32 {
     // anything is worse than an absent one — `--target=native` (the old spelling)
     // would be swallowed in silence and the build would quietly produce something
     // else. `parse_target` names the offending fragment.
+    build_target: Target | null = null
     if target_flag != "" {
         parsed_target :: parse_target(target_flag)
         if parsed_target is TargetParseError as e {
             eprintln("vader build --target=${target_flag}: ${e.reason} `${e.fragment}`")
             return 2
         }
+        if parsed_target is Target as t { build_target = t }
     }
 
     if emit == "c" {
-        return build_c(file, out_flag, release, include_path_flags, parallel_units)
+        return build_c(file, out_flag, release, include_path_flags, parallel_units, build_target)
     }
     if emit == "executable" {
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, parallel_units)
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, parallel_units, build_target)
     }
 
     // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
@@ -135,8 +137,8 @@ cmd_build :: fn(args: string[]) -> i32 {
 // pipeline `dump --stage=c` uses) and return the generated C. Pipeline
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
-emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[]) -> string | null {
-    b :: prepared_module(file, release, include_path_flags)
+emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> string | null {
+    b :: prepared_module(file, release, include_path_flags, target)
     if b is null {
         return null
     }
@@ -158,8 +160,8 @@ emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[]) -> 
 // paths. Debug build → populate the per-op `debug` table so the c-emit keeps
 // `#line` ; release drops it (the seed + shipped compiler stay lean). Returns
 // null when an error-severity diagnostic blocks the build.
-prepared_module :: fn(file: Path, release: bool, include_path_flags: string[]) -> CfgBytecode | null {
-    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags)
+prepared_module :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> CfgBytecode | null {
+    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags, target)
     if !flush_build_diags(b.pre_diags, b.lower_diags) {
         return null
     }
@@ -179,13 +181,13 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout, for piping into another tool.
-build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], units: i32) -> i32 {
+build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
     if units >= 2 {
         out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-        prog :: emit_c_program_for(file, release, include_path_flags, units, out) ?? return 1
+        prog :: emit_c_program_for(file, release, include_path_flags, units, out, target) ?? return 1
         return write_split_files(out, prog)
     }
-    c_src :: emit_c_for_input(file, release, include_path_flags) ?? return 1
+    c_src :: emit_c_for_input(file, release, include_path_flags, target) ?? return 1
     if out_flag == "-" {
         print(c_src)
         return 0
@@ -201,11 +203,11 @@ build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: s
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
-emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[]) -> string | null =
+emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> string | null =
     if file.extension() == "virt" {
         emit_c_source_from_virt(file, release)
     } else {
-        emit_c_source(file, release, include_path_flags)
+        emit_c_source(file, release, include_path_flags, target)
     }
 
 // Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
@@ -241,15 +243,15 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32) -> i32 {
+build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
     out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
     if units >= 2 {
-        return build_native_split(file, out, release, cc, ldflags, include_path_flags, units)
+        return build_native_split(file, out, release, cc, ldflags, include_path_flags, units, target)
     }
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
     // `vader/pipeline`, so the two cannot drift on flags.
-    c_src :: emit_c_for_input(file, release, include_path_flags)
+    c_src :: emit_c_for_input(file, release, include_path_flags, target)
     if c_src is null {
         return 1
     }
@@ -263,8 +265,8 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 // a single `cc` invocation (still one process, but exercises the cross-TU
 // linkage) ; Inc 3 will replace this with a parallel `cc -c` pool. The `.c` set
 // is kept on failure for inspection.
-build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32) -> i32 {
-    prog :: emit_c_program_for(file, release, include_path_flags, units, out)
+build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
+    prog :: emit_c_program_for(file, release, include_path_flags, units, out, target)
     if prog is null {
         return 1
     }
@@ -322,12 +324,12 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // Prepare the module and emit it as a `CProgram`. The header basename embeds a
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
-emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], units: i32, out: Path) -> CProgram | null {
+emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], units: i32, out: Path, target: Target | null) -> CProgram | null {
     if file.extension() == "virt" {
         eprintln("vader build: --parallel is not supported for .virt input")
         return null
     }
-    b :: prepared_module(file, release, include_path_flags)
+    b :: prepared_module(file, release, include_path_flags, target)
     if b is null {
         return null
     }

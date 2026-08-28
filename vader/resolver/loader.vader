@@ -82,8 +82,11 @@ export LoadedModule :: struct {
 /// Build the module graph rooted at `entry_path`. Returns the loaded
 /// project ; callers feed it to `resolve_project` / `check_project`.
 /// Reads every module from disk.
-export load_project :: fn(entry_path: string, include_path_flags: string[]) -> LoadedProject {
-    return load_project_with_overlay(entry_path, MutableMap<string, string> {}, include_path_flags)
+export load_project :: fn(
+    entry_path: string, include_path_flags: string[], target: Target | null = null,
+) -> LoadedProject {
+    return load_project_with_overlay(
+        entry_path, MutableMap<string, string> {}, include_path_flags, target)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -105,7 +108,7 @@ export load_project :: fn(entry_path: string, include_path_flags: string[]) -> L
 ///                    before the disk in `parse_module_files`.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
-    include_path_flags: string[],
+    include_path_flags: string[], target: Target | null = null,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
@@ -173,7 +176,7 @@ export load_project_with_overlay :: fn(
                 }
                 _ -> {}
             }
-            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
+            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, target)
             // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
             // S4): `${sb}` interpolation and user `StringBuilder` code resolve
             // `StringBuilder {}` + `append`/`to_string` in the lowerer, a
@@ -190,7 +193,7 @@ export load_project_with_overlay :: fn(
                 is DiscoveredModule as sbm -> {
                     if !has_module(modules, sbm.folder) {
                         sb_queue: DiscoveredModule[]! = [sbm]
-                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
+                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, target)
                     }
                 }
                 _ -> {}
@@ -274,6 +277,7 @@ drain_load_queue :: fn(
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory!,
+    target: Target | null = null,
 ) -> void {
     cursor: usize = 0
     for cursor < queue.len() {
@@ -281,14 +285,14 @@ drain_load_queue :: fn(
         cursor = cursor + 1
         id :: m.folder
         if has_module(modules, id) { continue }
-        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory)
+        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory, target)
         ingested :: modules[id]
         match ingested {
             is null -> {}
             is LoadedModule as lm -> {
                 for raw in lm.collected.import_paths {
-                    target :: index[raw]
-                    match target {
+                    dep :: index[raw]
+                    match dep {
                         is DiscoveredModule as t -> {
                             if !has_module(modules, t.folder) { queue.push(t) }
                         }
@@ -345,10 +349,15 @@ ingest_module :: fn(
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory!,
+    target: Target | null,
 ) -> void {
     if m.files.len() == 0 { return }
-    sources :: parse_module_files(m.files, diags, overlay, node_factory)
-    if sources.len() == 0 { return }
+    parsed :: parse_module_files(m.files, diags, overlay, node_factory)
+    if parsed.len() == 0 { return }
+    // Target selection happens HERE — after parsing, before collection. Every
+    // pass downstream then sees one declaration per name and needs to know
+    // nothing about targets: a losing body does not reach them at all.
+    sources :: select_target_bodies(parsed, target)
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001 —
     // the failure mode that reverted the earlier lazy attempt.

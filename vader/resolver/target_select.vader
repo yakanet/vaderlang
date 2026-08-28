@@ -1,0 +1,115 @@
+// vader/resolver/target_select — choosing one body per `@target` group.
+//
+// The model, in one line: a function has ONE declaration and several candidate
+// bodies, and a build selects one. `@target` bare names the declaration (and may
+// carry the general body); `@target(.Os, …)` names a body for those systems.
+//
+// This runs between parsing and collection, and that placement is the whole
+// point: everything downstream — `add_fn`, T3053, overload resolution, the
+// comptime evaluator, the typechecker — then sees a module with exactly one
+// declaration per name, and needs no knowledge of targets at all. A body that
+// loses is not "skipped later"; it never reaches them.
+//
+// ⚠️ CURRENT LIMIT: this FILTERS, it does not yet MERGE. When a specialised body
+// wins, the bare declaration is dropped whole — so its `export` and its vaderdoc
+// go with it. Merging (keep the envelope, swap the body) is the next step; until
+// then a group whose specialised body wins is private on that target.
+
+module "vader/resolver"
+
+import "std/collections"
+import "std/string"
+import "toolchain/ast"
+import "std/target"
+import "vader/target"
+
+/// Filter every file's declarations down to the ones this target selects.
+///
+/// Returns the files unchanged when `target` is null — no `--target=` was given,
+/// so nothing selects and the module keeps every declaration, which is exactly
+/// today's behaviour for a tree that contains no `@target` at all.
+///
+/// @param files   the module's parsed files.
+/// @param target  the compilation target, or null to disable selection.
+/// @return        files whose programs hold only the selected declarations.
+export select_target_bodies :: fn(files: SourceFile[], target: Target | null) -> SourceFile[] {
+    if target == null { return files }
+    // First pass, across the WHOLE module: which names have a specialised body
+    // that matches? A bare declaration is only displaced by a body that actually
+    // wins, so this cannot be decided file by file — the declaration and its
+    // specialisation are routinely written in different files.
+    specialised :: MutableMap<string, bool> {}
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                sel :: target_selectors(fd.decorators)
+                if sel != null && sel.len() > 0 && matches_target(sel, target) {
+                    specialised[fd.name] = true
+                }
+            }
+        }
+    }
+    out: SourceFile[]! = []
+    for f in files {
+        kept: AST.Decl[]! = []
+        for d in f.program.decls {
+            if keep_decl(d, target, specialised) { kept.push(d) }
+        }
+        out.push(SourceFile {
+            .path = f.path,
+            .content = f.content,
+            // Spans are NOT rewritten — each declaration keeps the ones it was
+            // parsed with, so diagnostics name the file it was written in and
+            // file-scoped import resolution stays correct once the resolver
+            // moves to file scope (TODO §1.13d).
+            .program = Program {
+                .file = f.program.file,
+                .span = f.program.span,
+                .id = f.program.id,
+                .module = f.program.module,
+                .decls = kept,
+            },
+            .id_factory = f.id_factory,
+        })
+    }
+    return out
+}
+
+// A declaration survives unless a `@target` says otherwise.
+keep_decl :: fn(d: AST.Decl, target: Target, specialised: MutableMap<string, bool>) -> bool {
+    if d is AST.FnDecl as fd {
+        sel :: target_selectors(fd.decorators)
+        if sel == null { return true }
+        if sel.len() == 0 {
+            // Bare `@target`: the general branch. It loses to a specialised body
+            // that matches, and wins whenever none does.
+            return specialised[fd.name] == null
+        }
+        return matches_target(sel, target)
+    }
+    return true
+}
+
+// The OS list a `@target` carries, or null when the decl has no `@target` at
+// all. An empty (non-null) list is the bare form.
+target_selectors :: fn(decorators: AST.Decorator[]) -> Os[] | null {
+    for d in decorators {
+        if d.name != "target" { continue }
+        out: Os[]! = []
+        for a in d.args {
+            if a is AST.DotVariantExpr as dv {
+                os :: parse_os(dv.variant.to_lower())
+                if os != null { out.push(os) }
+            }
+        }
+        return out
+    }
+    return null
+}
+
+matches_target :: fn(selectors: Os[], target: Target) -> bool {
+    for os in selectors {
+        if os == target.os { return true }
+    }
+    return false
+}
