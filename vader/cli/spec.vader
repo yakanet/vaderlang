@@ -88,6 +88,23 @@ EMIT_VALUES: ValueSpec[]: [
     ValueSpec { .name = "bytecode-text", .help = "Textual bytecode dump (not yet implemented)" },
 ]
 
+// `check` takes the platform axis and the search roots, and nothing else: it
+// produces no artefact, so every flag about HOW to emit would be noise.
+CHECK_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "target",
+        .alias = "t",
+        .help = "Platform to check against, as `<os>-<arch>`",
+        .value_name = "os-arch",
+        .default_text = "this machine",
+    },
+    FlagSpec {
+        .name = "include-paths",
+        .help = "Extra module search roots (GCC -I style), highest precedence",
+        .value_name = "a,b",
+    },
+]
+
 BUILD_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "out",
@@ -303,6 +320,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Run @test functions",
         .usage = "[path]",
         .flags = [],
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "check",
+        .summary = "Type-check without emitting — works for any target",
+        .usage = "<file>",
+        .flags = CHECK_FLAGS,
         .tail = .None,
     },
     CommandSpec {

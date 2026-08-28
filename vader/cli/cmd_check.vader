@@ -1,0 +1,82 @@
+// vader/cli/cmd_check — type-check without emitting.
+//
+// The compensation for compile-time target selection. A body whose `@target`
+// does not match is never resolved or typed, so on any one machine the code for
+// every OTHER platform is unchecked — the same blind spot the `#ifdef` walls in
+// `runtime/c/` had, which is where the two Windows bugs of 2026-08 came from.
+//
+// This closes it, and cheaply: type-checking needs NO TOOLCHAIN, so
+// `check --target=windows-x86_64` runs from a Mac with no mingw in sight. A CI
+// loop over every supported target costs seconds and answers "does the Windows
+// code still compile" without a Windows machine.
+//
+// Why not `build --dry-run`: `--dry-run` conventionally means "do everything,
+// write nothing", which would still reach `cc` and fail to find a cross
+// compiler. Stopping at the type-checker is the whole point, not an
+// optimisation. `cargo check` draws the line in the same place.
+//
+// ⚠️ `--target` is effectively REQUIRED on code that uses `@target`, until the
+// reseed lands. With no flag there is no target, so nothing selects and every
+// body of a group survives — which then collides as T3053 on perfectly valid
+// code. The default ("this machine") needs `host_target()`, hence `current_os()`,
+// an intrinsic the committed seed does not know. TODO tracks it with the rest.
+//
+// Why not `dump --stage=typed-ast`: that is an INSPECTION tool. It prints the
+// AST on stdout and exits 0 whatever the diagnostics say, deliberately — you
+// want to see the tree despite the errors. A gate wants the opposite: nothing on
+// stdout, diagnostics on stderr, non-zero on failure. Same pipeline, opposite
+// contract.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "cli"
+import "vader/diagnostics"
+import "vader/pipeline"
+import "vader/target"
+
+/// `vader check [--target=<os>-<arch>] <file>` — run the front end and report.
+///
+/// @param args  positional args ; `args[0]` is the entry `.vader` file.
+/// @return      0 when the front end is clean, 1 on any error-severity
+///              diagnostic or a missing file, 2 on a malformed `--target`.
+export cmd_check :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("check", args)
+    if parsed is i32 as code {
+        return code
+    }
+    if reject_extra_positionals("check", parsed) {
+        return 1
+    }
+    file :: action_file(parsed)
+    if file == "" {
+        eprintln("vader check: expected a file argument")
+        return 1
+    }
+    target_flag :: parsed.string_flag("target", "")
+    target: Target | null = null
+    if target_flag != "" {
+        parsed_target :: parse_target(target_flag)
+        if parsed_target is TargetParseError as e {
+            eprintln("vader check --target=${target_flag}: ${e.reason} `${e.fragment}`")
+            return 2
+        }
+        if parsed_target is Target as t {
+            target = t
+        }
+    }
+    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    diags :: gather_pipeline_diags(pipeline)
+    // Diagnostics on STDERR, and stdout stays empty on success: a gate is read by
+    // a script before it is read by a person.
+    if diags.len() > 0 {
+        eprint(diags.dump_diagnostics_with_file())
+    }
+    if any_error_diag(diags) {
+        return 1
+    }
+    return 0
+}

@@ -47,6 +47,7 @@ main :: fn(argv: string[]) -> i32 {
     if action == "dump"   { return cmd_dump(action_args) }
     if action == "lsp"    { return cmd_lsp(action_args) }
     if action == "dap"    { return cmd_dap(action_args) }
+    if action == "check"  { return cmd_check(action_args) }
     if action == "lint"   { return cmd_lint(action_args) }
     if action == "doctor" { return cmd_doctor(action_args) }
 
