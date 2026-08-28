@@ -87,6 +87,29 @@ carries_test :: fn(fd: AST.FnDecl) -> bool {
     return false
 }
 
+// Whether THIS body's code is still present anywhere in the selected files. The
+// merged node keeps the winner's body verbatim, spans included, so the body's own
+// span is what identifies it — the declaration's name does not.
+body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
+    b :: fd.body
+    if b == null {
+        return false
+    }
+    for f in kept {
+        for d in f.program.decls {
+            if d is AST.FnDecl as k {
+                kb :: k.body
+                if kb != null {
+                    if kb.span == b.span {
+                        return true
+                    }
+                }
+            }
+        }
+    }
+    return false
+}
+
 // Name is enough: a group has one name, and this only asks about `@test` fns,
 // which are never overloaded.
 survives :: fn(name: string, kept: SourceFile[]) -> bool {
@@ -100,6 +123,48 @@ survives :: fn(name: string, kept: SourceFile[]) -> bool {
         }
     }
     return false
+}
+
+/// The bodies this selection discarded.
+///
+/// A private helper called ONLY from a `@target(.Windows)` body has no referencer
+/// left once that body is dropped, so W0007 reports it dead on every other
+/// platform — a false positive landing squarely on multi-platform code, which is
+/// where the lint should help most. Worse, the natural fix (`@allow_unused`
+/// everywhere) would blind the lint to code that really is dead.
+///
+/// So the discarded bodies still get a vote: `check_dead_code` walks them for
+/// references and treats those as extra roots. They are returned as AST rather
+/// than as a list of names on purpose — the reference walker already exists in
+/// `vader/typecheck`, and reimplementing it here would put the resolver above the
+/// type-checker in the import graph for no gain.
+///
+/// @param files   the module's parsed files, before selection.
+/// @param target  the compilation target, or null when nothing selects.
+export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST.FnDecl[] {
+    out: AST.FnDecl[]! = []
+    if target == null {
+        return out
+    }
+    kept :: select_target_bodies(files, target, [])
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                if target_selectors(fd.decorators) == null {
+                    continue
+                }
+                // Compared by BODY span, not by name: after merging, the bare
+                // declaration carries the winner's body under its own name, so a
+                // name test reports every loser as surviving — which is exactly
+                // the bug this function exists to prevent.
+                if body_survives(fd, kept) {
+                    continue
+                }
+                out.push(fd)
+            }
+        }
+    }
+    return out
 }
 
 export select_target_bodies :: fn(

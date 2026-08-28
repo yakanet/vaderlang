@@ -378,7 +378,7 @@ export check_project_with_bodies :: fn(
     // module's public surface. Entry-module-only, so it lints the
     // module being compiled. Name-based reachability — see dead_code.vader.
     check_dead_code(merge_module_program(entry_loaded.module.files).decls,
-        entry_loaded.module.module_name, diags)
+        entry_loaded.module.module_name, diags, entry_loaded.discarded_bodies)
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
     // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
@@ -421,7 +421,7 @@ export check_project_with_bodies :: fn(
         // project-wide rather than only in the entry module. Likewise W0007
         // (dead private code) below. Spans point at each module's own file, so
         // the LSP still filters to the open document.
-        check_dead_code(other_decls, other.module.module_name, diags)
+        check_dead_code(other_decls, other.module.module_name, diags, other.discarded_bodies)
     }
     // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.

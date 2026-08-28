@@ -1,0 +1,25 @@
+// A private helper reached ONLY from another platform's body.
+//
+// The body that calls it is discarded on every other target, so a naive
+// reachability walk finds no referencer and reports the helper dead — a false
+// positive landing squarely on multi-platform code, which is where the lint
+// should help most. The natural fix (`@allow_unused`) would be worse: it blinds
+// the lint to code that really is dead.
+//
+// So discarded bodies keep a vote — `resolver::discarded_bodies` hands them to
+// `check_dead_code` as extra roots. The snapshot is clean on both targets, and
+// that is the whole assertion.
+
+module "main"
+
+import "std/io"
+
+drive_prefix :: fn(p: string) -> string = p
+
+@target
+export normalize :: fn(p: string) -> string = p
+
+main :: fn() -> i32 {
+    println(normalize("x"))
+    return 0
+}

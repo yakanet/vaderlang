@@ -327,9 +327,11 @@ is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
 // merges every module's decls, so the same test there would root a fn named
 // `build` in any module at all.
 is_root_decl :: fn(
-    v: AST.Visibility, decorators: AST.Decorator[], name: string, module_name: string,
-) = is_public(v) || is_wired_root(decorators, name)
-    || (module_name == DRIVER_MODULE && name == DRIVER_ENTRY)
+    v: AST.Visibility,
+    decorators: AST.Decorator[],
+    name: string,
+    module_name: string,
+) = is_public(v) || is_wired_root(decorators, name) || module_name == DRIVER_MODULE && name == DRIVER_ENTRY
 
 // ---- shared traversal (W0007 + W0012) -------------------------------------
 
@@ -480,7 +482,17 @@ bfs_reachable :: fn(
 /// @param module_name  the module's declared name — what tells a build driver's
 ///                     `build` apart from any other fn of that name.
 /// @param diags        sink for the W0007 warnings.
-export check_dead_code :: fn(decls: AST.Decl[], module_name: string, diags: Diagnostic[]!) -> void {
+/// @param discarded    bodies target selection dropped. Their references count
+///                     as roots: a private helper reached only from another
+///                     platform's body is live source, not dead code, and saying
+///                     otherwise is a false positive on every multi-platform
+///                     module (see `resolver::discarded_bodies`).
+export check_dead_code :: fn(
+    decls: AST.Decl[],
+    module_name: string,
+    diags: Diagnostic[]!,
+    discarded: AST.FnDecl[] = [],
+) -> void {
     refs_by_name :: MutableMap<string, string[]!> {}
     root_names: string[]! = []
     seed_refs: string[]! = []
@@ -496,6 +508,9 @@ export check_dead_code :: fn(decls: AST.Decl[], module_name: string, diags: Diag
         } else {
             flaggable.push(DeadDecl { .name = nd.name, .name_span = nd.name_span })
         }
+    }
+    for d in discarded {
+        fn_refs(d, seed_refs)
     }
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     for fd in flaggable {

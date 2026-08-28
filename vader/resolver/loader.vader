@@ -81,6 +81,11 @@ export LoadedModule :: struct {
     /// ordinary case; non-empty means the run covers less than the source does,
     /// which a report must say out loud (see `cmd_test`).
     discarded_tests: string[] = []
+    /// Bodies target selection dropped. Kept so W0007 can still see what they
+    /// referenced: a helper called only from another platform's body is not dead
+    /// code, and reporting it as such is a false positive on exactly the code
+    /// this mechanism exists to enable.
+    discarded_bodies: AST.FnDecl[] = []
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -364,6 +369,7 @@ ingest_module :: fn(
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
     dropped_tests :: discarded_target_tests(parsed, target)
+    dropped_bodies :: discarded_bodies(parsed, target)
     sources :: select_target_bodies(parsed, target, diags)
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001 —
@@ -372,6 +378,7 @@ ingest_module :: fn(
     collected :: collect_files(sources, m.folder, m.name, factory, index, bases, diags)
     modules[m.folder] = LoadedModule {
         .discarded_tests = dropped_tests,
+        .discarded_bodies = dropped_bodies,
         .module = Module {
             .id           = m.folder,
             // Display path is the module's declared name (`module "..."`),

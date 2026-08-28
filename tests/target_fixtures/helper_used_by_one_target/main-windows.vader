@@ -1,0 +1,4 @@
+module "main"
+
+@target(.Windows)
+normalize :: fn(p: string) -> string = drive_prefix(p)
