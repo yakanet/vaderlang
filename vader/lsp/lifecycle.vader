@@ -10,8 +10,10 @@ module "vader/lsp"
 
 import "json"
 import "std/collections"
-import "vader/lsp/protocol"
+import "std/env"
 import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+import "vader/resolver"
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about
@@ -31,6 +33,7 @@ export handle_initialize :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     state.inlay_refresh_support = read_inlay_refresh_support(params)
     state.position_encoding = negotiate_position_encoding(params)
     log_info("vader-lsp: client.linkSupport=${state.definition_link_support} positionEncoding=${position_encoding_kind(state.position_encoding)}")
+    log_info(toolchain_home_line())
 
     capabilities :: server_capabilities(state.position_encoding)
 
@@ -42,6 +45,26 @@ export handle_initialize :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     result["capabilities"] = capabilities
     result["serverInfo"]   = JsonObject { .entries = server_info }
     return JsonObject { .entries = result }
+}
+
+// What `$VADER_HOME` did to this session, logged once at startup.
+//
+// The variable outranks every other toolchain probe, so a value pointing at
+// ANOTHER real toolchain silently redirects every hover, go-to-def and
+// diagnostic in the editor. `vader doctor` reports that — but nobody runs
+// `doctor` from inside an editor, and the server has no other way to say it. So
+// it goes in the log, which is the one channel an editor session does surface.
+toolchain_home_line :: fn() -> string {
+    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    if home == "" {
+        where :: "resolved beside the binary, then under the working directory"
+        return "vader-lsp: ${TOOLCHAIN_HOME_VAR} unset — toolchain ${where}"
+    }
+    if home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER) == null {
+        why :: "holds no ${LIBRARY_ROOT_MARKER} — IGNORED, the ordinary probe applies"
+        return "vader-lsp: ${TOOLCHAIN_HOME_VAR}=${home} ${why}"
+    }
+    return "vader-lsp: ${TOOLCHAIN_HOME_VAR}=${home} outranks every other toolchain probe"
 }
 
 // Pull `capabilities.textDocument.definition.linkSupport` out of the

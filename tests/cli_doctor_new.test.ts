@@ -189,3 +189,28 @@ test("a stale $VADER_HOME is ignored, and doctor is what says so", async () => {
     expect(lib.summary).not.toContain("VADER_HOME");
   });
 }, MEDIUM_BUILD);
+
+test("a $VADER_HOME that is only a string PREFIX of the real root is not credited", async () => {
+  // The report says which probe answered, and it must ask the resolver rather
+  // than compare paths as text: with the variable at `…/vaderlang` and the
+  // sources at `…/vaderlang2`, a `startsWith` test claims the sources came
+  // through the variable when they did not. That is the same "guess by name"
+  // mistake `ModuleOrigin` exists to end, and it was live for one commit.
+  await withTempDir(async (workspace) => {
+    const project = join(workspace, "proj");
+    mkdirSync(join(project, "vader/pipeline"), { recursive: true });
+
+    const { stdout } = await spawnCapture(["doctor", "--json"], {
+      cwd: project,
+      // Never created, and a strict string prefix of `project`.
+      env: { VADER_HOME: join(workspace, "pro") },
+    });
+    const report = JSON.parse(stdout);
+    const sources = report.checks.find((c: { name: string }) => c.name === "compiler-sources");
+    expect(sources.status).toBe("ok");
+    expect(sources.summary).not.toContain("VADER_HOME");
+
+    const home = report.checks.find((c: { name: string }) => c.name === "toolchain-home");
+    expect(home.status).toBe("warn");
+  });
+}, MEDIUM_BUILD);

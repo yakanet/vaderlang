@@ -11,7 +11,7 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { EXE_SUFFIX } from "./cli-bin.ts";
+import { EXE_SUFFIX, hermeticEnv } from "./cli-bin.ts";
 import { VM_ERROR_PREFIXES, listSnippets } from "./snapshot.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
@@ -68,7 +68,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
   // pipeline. `dump --stage=c` writes the generated C source to stdout.
   const emitProc = Bun.spawn(
     [VADER_BIN, "dump", "--stage=c", s.mainPath],
-    { stdout: "pipe", stderr: "pipe" },
+    { stdout: "pipe", stderr: "pipe", env: hermeticEnv() },
   );
   const cText = await new Response(emitProc.stdout).text();
   const emitErr = await new Response(emitProc.stderr).text();

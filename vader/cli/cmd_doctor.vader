@@ -102,11 +102,16 @@ collect_checks :: fn(cc: string) -> Check[] {
     cwd :: current_working_directory()
     manifest_root :: find_manifest_root(cwd)
     exe_dir :: current_executable_location().dir_of()
+    // `$VADER_HOME` as set, and what it resolves to — asked once, because THREE
+    // checks report on it and a report that contradicts itself about which probe
+    // answered is worse than no report.
+    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    home_lib :: home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     out: Check[]! = [
         check_compiler(),
         check_cc(cc),
-        check_toolchain_home(),
-        check_library_root(exe_dir),
+        check_toolchain_home(home, home_lib),
+        check_library_root(exe_dir, home_lib),
         check_compiler_sources(cwd, exe_dir),
         check_runtime_headers(),
         check_manifest(manifest_root),
@@ -203,26 +208,20 @@ first_available :: fn(names: string[]) -> string {
     return ""
 }
 
-// `$VADER_HOME`, and what it actually did. The variable is IGNORED when it does
-// not hold the toolchain, which is the right default for a stale value left over
-// from a moved install — a build that keeps working beats one that bricks. The
-// cost of that silence is that a typo looks like nothing happened, and this is
-// where it is paid back.
-unset_home :: fn() = check_ok(
-    "toolchain-home",
-    "unset — the toolchain is found beside the binary, then under the working directory",
-    "set ${TOOLCHAIN_HOME_VAR} to point this binary at another toolchain",
-)
-
-check_toolchain_home :: fn() -> Check {
-    home :: get_env(TOOLCHAIN_HOME_VAR)
-    if home == null {
-        return unset_home()
-    }
+// `$VADER_HOME`, and what it actually did — unset, in use, or set-and-ignored.
+//
+// A value that does not hold the toolchain is IGNORED, which is the right default
+// for a stale setting left over from a moved install: a build that keeps working
+// beats one that bricks. The cost of that silence is that a typo looks like
+// nothing happened, and this check is where it is paid back.
+check_toolchain_home :: fn(home: string, resolved: string | null) -> Check {
     if home == "" {
-        return unset_home()
+        return check_ok(
+            "toolchain-home",
+            "unset — the toolchain is found beside the binary, then under the working directory",
+            "set ${TOOLCHAIN_HOME_VAR} to point this binary at another toolchain",
+        )
     }
-    resolved :: home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if resolved == null {
         return check_warn(
             "toolchain-home",
@@ -240,11 +239,10 @@ check_toolchain_home :: fn() -> Check {
 // Which library root answered, and by which branch — the difference between a
 // bundle (works from any directory) and a bare binary (works only from one that
 // happens to hold a `lib/`) is invisible until an import fails.
-check_library_root :: fn(exe_dir: string) -> Check {
+check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
     // `sidecar_root` answers for `$VADER_HOME` too, and it wins there — so name
     // the branch rather than reporting a home-provided root as "beside the
     // binary", which is the one thing this check exists to distinguish.
-    from_home :: home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if from_home != null {
         return check_ok("library-root", "found through ${TOOLCHAIN_HOME_VAR}", from_home)
     }
@@ -274,9 +272,14 @@ check_library_root :: fn(exe_dir: string) -> Check {
 check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
     root :: compiler_source_root(cwd)
     if exists(join_path(root, COMPILER_SOURCE_MARKER)) {
+        // Same reason `library-root` names its branch: `$VADER_HOME` supplies
+        // these too, and "found" without saying from where is what makes a
+        // redirected toolchain invisible. Asked of the function that RESOLVES
+        // it, never inferred from the path — see `compiler_source_home`.
+        via :: if root == compiler_source_home() { " through ${TOOLCHAIN_HOME_VAR}" } else { "" }
         return check_ok(
             "compiler-sources",
-            "found — a `${DRIVER_FILENAME}` project can be driven",
+            "found${via} — a `${DRIVER_FILENAME}` project can be driven",
             root,
         )
     }

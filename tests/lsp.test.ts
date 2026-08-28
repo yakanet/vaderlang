@@ -15,7 +15,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
 
 ensureCliBuilt();
@@ -150,6 +150,7 @@ async function driveLsp(
   const proc = Bun.spawn({
     cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
+    env: hermeticEnv(),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
@@ -1193,6 +1194,7 @@ main :: fn() -> i32 {
   const proc = Bun.spawn({
     cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
+    env: hermeticEnv(),
     stdin: "pipe", stdout: "pipe", stderr: "pipe",
   });
   const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
@@ -1257,6 +1259,7 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   const proc = Bun.spawn({
     cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
+    env: hermeticEnv(),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",

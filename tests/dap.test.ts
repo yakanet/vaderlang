@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
 
 ensureCliBuilt();
 
@@ -74,6 +74,7 @@ async function sendDap(_program: string, requests: object[]): Promise<Json[]> {
   const proc = Bun.spawn({
     cmd: [CLI_BIN, "dap"],
     cwd: process.cwd(),
+    env: hermeticEnv(),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",

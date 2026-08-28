@@ -114,6 +114,21 @@ export interface SpawnOptions {
   readonly timeoutMs?: number;
 }
 
+/// The process environment a spawned `build/vader` should see, plus `extra`.
+///
+/// `VADER_HOME` is CLEARED. It outranks every other toolchain probe, so a
+/// developer who has it exported would silently run the whole corpus against a
+/// different `lib/` — and, being absolute, against different module ids, which is
+/// snapshot drift with no visible cause. `extra` is applied last, so a test that
+/// sets it deliberately still wins.
+///
+/// Exported because `spawnCapture` is not the only way the suite starts the
+/// compiler: the LSP and DAP suites drive it through their own `Bun.spawn` to
+/// keep stdin open, and they need the same hermeticity.
+export function hermeticEnv(extra?: Record<string, string>): Record<string, string | undefined> {
+  return { ...process.env, VADER_HOME: undefined, ...(extra ?? {}) };
+}
+
 // One spawn implementation for every test that drives a binary, so the pipe
 // drain and the kill timer below are written once. `runCli` is the positional
 // shorthand over it, kept for the suites that only ever run the CLI in place.
@@ -126,12 +141,7 @@ export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Pro
     cwd: opts.cwd,
     stdout: "pipe",
     stderr: "pipe",
-    // `VADER_HOME` is cleared unless a test asks for it: it outranks every other
-    // toolchain probe, so a developer who has it exported would silently run the
-    // whole corpus against a different `lib/` — and, being absolute, against
-    // different module ids, which is snapshot drift with no visible cause. The
-    // opts spread comes after, so a test that sets it deliberately still wins.
-    env: { ...process.env, VADER_HOME: undefined, ...(opts.env ?? {}) },
+    env: hermeticEnv(opts.env),
   });
   const killTimer = setTimeout(() => proc.kill("SIGKILL"), opts.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS);
   try {
