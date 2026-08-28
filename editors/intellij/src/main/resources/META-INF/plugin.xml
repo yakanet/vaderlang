@@ -29,6 +29,12 @@
              TextMate `main` leaf — gated to *.vader inside the contributor. -->
         <runLineMarkerContributor language="textmate"
                                   implementationClass="dev.vaderlang.intellij.VaderRunLineMarkerContributor"/>
+        <!-- `(I)` gutter icon on a bare `@target` declaration, like Java's
+             "is implemented by". Same TextMate-leaf technique as the ▶ above;
+             the bodies are found by scanning the folder, since a Vader module
+             IS a folder (R2022) and every body of a group lives in it. -->
+        <codeInsight.lineMarkerProvider language="textmate"
+                                        implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
         <applicationConfigurable
             instance="dev.vaderlang.intellij.VaderConfigurable"
             id="dev.vaderlang.intellij.config"
