@@ -30,6 +30,7 @@ module "vader/resolver"
 import "std/collections"
 import "std/string"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/diagnostics"
 import "std/target"
 import "vader/target"
@@ -119,7 +120,11 @@ export select_target_bodies :: fn(
 // visibility, so a body carrying its own would make a group's public surface
 // depend on which target you built.
 check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
-    bare :: MutableMap<string, bool> {}
+    // Where each name's bare declaration is, and which platforms its bodies have
+    // already claimed. Both carry a SPAN rather than a flag: a conflict
+    // diagnostic that cannot name the other side leaves the reader to find it.
+    bare :: MutableMap<string, Span> {}
+    claimed :: MutableMap<string, Span> {}
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl as fd {
@@ -127,9 +132,21 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                 if sel == null {
                     continue
                 }
-                if sel.len() == 0 {
-                    bare[fd.name] = true
+                if sel.len() != 0 {
+                    continue
                 }
+                prev :: bare[fd.name]
+                if prev != null {
+                    diags.push(
+                        resolver_error(
+                            .DuplicateTargetDeclaration,
+                            fd.name_span,
+                            "`${fd.name}` is already declared at ${span_origin(prev)}",
+                        ),
+                    )
+                    continue
+                }
+                bare[fd.name] = fd.name_span
             }
         }
     }
@@ -164,10 +181,33 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                         ),
                     )
                 }
+                // Overlap. Two bodies covering one platform makes the winner
+                // depend on declaration ORDER — the arbitrary silence the rest of
+                // this mechanism exists to avoid.
+                for os in sel {
+                    key :: "${fd.name}|${os.to_string()}"
+                    taken :: claimed[key]
+                    if taken != null {
+                        diags.push(
+                            resolver_error(
+                                .TargetBodiesOverlap,
+                                fd.name_span,
+                                "`${fd.name}` already has a body for `.${os.to_string()}` at ${span_origin(taken)}",
+                            ),
+                        )
+                    } else {
+                        claimed[key] = fd.name_span
+                    }
+                }
             }
         }
     }
 }
+
+// `file:line` of a span, for a diagnostic that points at a SECOND location. The
+// diagnostic's own span names the offending declaration; this names the one it
+// conflicts with, which is the half that makes the message actionable.
+span_origin :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}"
 
 // What a declaration becomes for this target: itself, a merge, or nothing.
 resolve_decl :: fn(

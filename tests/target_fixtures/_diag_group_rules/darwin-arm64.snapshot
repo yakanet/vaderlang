@@ -1,8 +1,15 @@
 # Diagnostics
 [main-windows.vader:6:1] error[R2036] `@target` body matches no declaration: `orphan` has no bare `@target` declaration in this module
 [main-windows.vader:11:8] error[R2037] `@target` body carries `export`: `leaky` is a body ; the bare `@target` declaration carries `export`
+[main-windows.vader:17:1] error[R2038] two `@target` bodies cover the same platform: `overlapping` already has a body for `.linux` at main-windows.vader:14
 [main.vader:16:1] warning[W0007] declaration is never used in its module: `leaky` is never used
+[main.vader:21:1] warning[W0007] declaration is never used in its module: `overlapping` is never used
+[main.vader:25:1] error[R2039] duplicate bare `@target` declaration: `overlapping` is already declared at main.vader:21
+[main.vader:25:1] error[T3053] function defined more than once with the same signature in a module: `overlapping` is already defined with the same signature in this module
+[main.vader:25:1] warning[W0007] declaration is never used in its module: `overlapping` is never used
 
 # Selected body
 main$leaky <- main.vader:16
 main$ok <- main.vader:13
+main$overlapping <- main-windows.vader:14
+main$overlapping <- main-windows.vader:14

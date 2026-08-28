@@ -9,3 +9,9 @@ orphan :: fn() -> i32 = 3
 // make the group's public surface depend on which target you built.
 @target(.Windows)
 export leaky :: fn() -> i32 = 4
+
+@target(.Darwin, .Linux)
+overlapping :: fn() -> i32 = 1
+
+@target(.Linux)
+overlapping :: fn() -> i32 = 2

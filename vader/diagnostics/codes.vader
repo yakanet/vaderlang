@@ -194,6 +194,8 @@ export ResolverCode :: enum(u8) {
     UnknownTargetSelector,                  // R2035
     TargetBodyWithoutDeclaration,           // R2036
     TargetBodyCarriesExport,                // R2037
+    TargetBodiesOverlap,                    // R2038
+    DuplicateTargetDeclaration,             // R2039
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -379,6 +381,8 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .UnknownTargetSelector              -> CodeInfo { .id = "R2035", .message = "unknown target selector" }
     .TargetBodyWithoutDeclaration       -> CodeInfo { .id = "R2036", .message = "`@target` body matches no declaration" }
     .TargetBodyCarriesExport            -> CodeInfo { .id = "R2037", .message = "`@target` body carries `export`" }
+    .TargetBodiesOverlap                -> CodeInfo { .id = "R2038", .message = "two `@target` bodies cover the same platform" }
+    .DuplicateTargetDeclaration         -> CodeInfo { .id = "R2039", .message = "duplicate bare `@target` declaration" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {

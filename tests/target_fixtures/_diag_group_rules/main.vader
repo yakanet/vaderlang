@@ -15,4 +15,13 @@ export ok :: fn() -> i32 = 1
 @target
 leaky :: fn() -> i32 = 5
 
+// R2038 — `.Linux` is covered twice below. Which body wins would otherwise
+// depend on declaration ORDER, which is the one thing selection must never be.
+@target
+overlapping :: fn() -> i32 = 0
+
+// R2039 — a second bare declaration for a name that already has one.
+@target
+overlapping :: fn() -> i32 = 9
+
 main :: fn() -> i32 = ok()
