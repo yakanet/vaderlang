@@ -1,0 +1,24 @@
+// Two bodies covering one platform would make the winner depend on declaration
+// ORDER — the arbitrary silence this whole mechanism exists to avoid. The second
+// case lists the same OS twice inside ONE `@target`, which gets its own wording:
+// pointing the reader at "the other body" would send them looking for one that
+// does not exist.
+
+module "main"
+
+@target
+tag :: fn() -> i32 = 0
+
+@target(.Linux)
+tag :: fn() -> i32 = 1
+
+@target(.Linux)
+tag :: fn() -> i32 = 2
+
+@target
+twice :: fn() -> i32 = 0
+
+@target(.Darwin, .Darwin)
+twice :: fn() -> i32 = 3
+
+main :: fn() -> i32 = tag() + twice()

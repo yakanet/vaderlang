@@ -1,0 +1,19 @@
+// A bare declaration with no general body, whose group covers other platforms
+// but not the one being built. Left alone it reaches the type checker as an
+// ordinary bodyless fn and comes out as T3062, whose advice — "must be
+// `@intrinsic` or `@extern`" — is exactly the wrong thing to do here, and which
+// names neither the target nor the group.
+//
+// `.Wasi` is deliberate: no CI target selects it, so this fixture reports the
+// same thing on every machine. A fixture whose diagnostics depend on the host
+// would pass here and diverge on the next runner.
+
+module "main"
+
+@target
+platform_tag :: fn() -> i32
+
+@target(.Wasi)
+platform_tag :: fn() -> i32 = 1
+
+main :: fn() -> i32 = platform_tag()

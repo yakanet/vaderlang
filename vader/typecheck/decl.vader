@@ -257,9 +257,15 @@ declare_fn :: fn(
     // Without either, the import is unbound and traps at runtime — so require
     // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
     // signatures go through other declarers and never reach `declare_fn`.
+    //
+    // A `@target` declaration is exempt: bodyless here means the group had no
+    // body for the target being built, which the resolver already reported as
+    // R2041 — naming the target and what the group DOES cover. Emitting this too
+    // would answer the same question a second time with the opposite advice
+    // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
     if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
         decl.decorators,
-    ) {
+    ) && !has_target_decorator(decl.decorators) {
         diags.push(
             typecheck_error(
                 .BodylessFnMustBeIntrinsic,
@@ -269,6 +275,15 @@ declare_fn :: fn(
         )
     }
     check_public_fn_visibility(decl, params, return_type, diags)
+}
+
+has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
+    for d in decorators {
+        if d.name == "target" {
+            return true
+        }
+    }
+    return false
 }
 
 // ---- T3052 : private type in a public interface ---------------------------

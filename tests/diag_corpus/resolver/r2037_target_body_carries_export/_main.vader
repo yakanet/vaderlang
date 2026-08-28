@@ -1,0 +1,12 @@
+// The declaration owns the visibility. A body carrying its own `export` would
+// make a group's public surface depend on which platform you built it for.
+
+module "main"
+
+@target
+tag :: fn() -> i32 = 0
+
+@target(.Linux)
+export tag :: fn() -> i32 = 1
+
+main :: fn() -> i32 = tag()

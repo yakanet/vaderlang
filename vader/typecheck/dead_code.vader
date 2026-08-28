@@ -574,7 +574,7 @@ export DeadExport :: struct {
 ///
 /// @param decls  the merged top-level decls of every non-stdlib module.
 /// @return       every dead exported fn, in the order encountered.
-export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
+export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExport[] {
     refs_by_name :: MutableMap<string, string[]!> {}
     root_names: string[]! = []
     seed_refs: string[]! = []
@@ -594,6 +594,13 @@ export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
             // job ; a public non-root type / const is registered but not flagged.)
             flaggable.push(DeadExport { .name = nd.name, .name_span = nd.name_span })
         }
+    }
+    // Same seeding as W0007, and for the same reason: an export called only from
+    // a `@target(.Windows)` body is alive, and a build for another platform must
+    // not call it dead. Without this the fix landed for private declarations and
+    // left the public ones reporting a false positive.
+    for d in discarded {
+        fn_refs(d, seed_refs)
     }
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     out: DeadExport[]! = []
@@ -629,10 +636,14 @@ export UnusedExportReport :: struct {
 /// "lint a loaded project", shared by `vader lint` (`vader/cli`) and the LSP
 /// (`vader/lsp/analysis`) so the stdlib filter and `main` detection never drift.
 ///
+/// Bodies target selection discarded are gathered from the same modules and fed
+/// in as reachability seeds — see `dead_exports`.
+///
 /// @param project  the loaded module graph (from `load_project` or the LSP cache).
 /// @return         findings + `has_main` (see `UnusedExportReport`).
 export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportReport {
     all_decls: AST.Decl[]! = []
+    all_discarded: AST.FnDecl[]! = []
     has_main := false
     // Where a module came from, not what it is called: `lib/` hosts every
     // namespace the toolchain ships, so a `std/` name test would put `json`,
@@ -641,6 +652,9 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     for [_, lm] in project.modules {
         if lm.module.origin == .Toolchain {
             continue
+        }
+        for d in lm.discarded_bodies {
+            all_discarded.push(d)
         }
         for d in concat_file_decls(lm.module.files) {
             all_decls.push(d)
@@ -659,7 +673,7 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     }
     return UnusedExportReport {
         .has_main = true,
-        .findings = dead_exports(all_decls),
+        .findings = dead_exports(all_decls, all_discarded),
     }
 }
 

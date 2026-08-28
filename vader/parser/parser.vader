@@ -1443,6 +1443,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
 }
 
 parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
+    p.reject_target_decorator(decorators, "an enum")
     p.advance()  // `enum`
     repr: TypeExpr | null = null
     if p.match_kind(.LParen) != null {
@@ -1493,6 +1494,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
 // `name :: value` — untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
+    p.reject_target_decorator(decorators, "a constant — use `VADER_OS`, which is a value")
     // Multi-line union with a leading pipe :
     //   T ::
     //       | A
@@ -1606,6 +1608,7 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
 // `name : Type : value` — typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
 parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
+    p.reject_target_decorator(decorators, "a constant — use `VADER_OS`, which is a value")
     name_tok :: p.advance()  // name
     p.advance()  // first `:`
     ty :: p.parse_type()

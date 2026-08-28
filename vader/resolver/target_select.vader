@@ -119,6 +119,7 @@ export select_target_bodies :: fn(
     // misspelled body an error on the machine that wrote it instead of a surprise
     // on whichever platform compiles it next — the matcher sees all the
     // candidates, so it may as well judge them all.
+    check_selectors(files, diags)
     check_groups(files, diags)
     if target == null {
         return files
@@ -129,6 +130,10 @@ export select_target_bodies :: fn(
     // specialisation are routinely written in different files.
     winners :: MutableMap<string, AST.FnDecl> {}
     bare :: MutableMap<string, bool> {}
+    // What each group's bodies DO cover, for the diagnostic below: a reader told
+    // only "nothing covers darwin" still has to go read the group to learn what
+    // it covers instead.
+    covered :: MutableMap<string, string> {}
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl as fd {
@@ -136,14 +141,25 @@ export select_target_bodies :: fn(
                 if sel == null {
                     continue
                 }
-                if sel.len() == 0 {
+                if sel.is_bare {
                     bare[fd.name] = true
-                } else if matches_target(sel, target) {
-                    winners[fd.name] = fd
+                } else {
+                    for os in sel.os {
+                        prev :: covered[fd.name]
+                        covered[fd.name] = if prev == null {
+                            ".${os.to_string()}"
+                        } else {
+                            "${prev}, .${os.to_string()}"
+                        }
+                    }
+                    if matches_target(sel.os, target) {
+                        winners[fd.name] = fd
+                    }
                 }
             }
         }
     }
+    report_uncovered(files, target, winners, covered, diags)
     out: SourceFile[]! = []
     for f in files {
         kept: AST.Decl[]! = []
@@ -188,7 +204,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
     // Where each name's bare declaration is, and which platforms its bodies have
     // already claimed. Both carry a SPAN rather than a flag: a conflict
     // diagnostic that cannot name the other side leaves the reader to find it.
-    bare :: MutableMap<string, Span> {}
+    bare :: MutableMap<string, AST.FnDecl> {}
     claimed :: MutableMap<string, Span> {}
     for f in files {
         for d in f.program.decls {
@@ -197,21 +213,32 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                 if sel == null {
                     continue
                 }
-                if sel.len() != 0 {
+                if !sel.is_bare {
                     continue
                 }
                 prev :: bare[fd.name]
                 if prev != null {
+                    // A group is keyed by NAME ALONE, so two overloads each
+                    // wanting their own per-platform bodies land here. Saying
+                    // only "already declared" sends the author looking for a
+                    // duplicate they did not write — the signatures differ, and
+                    // it is `@target` that cannot tell them apart.
+                    overloaded :: prev.params.len() != fd.params.len()
+                    why :: if overloaded {
+                        " — `@target` groups are keyed by name alone, so a name cannot carry two overloads"
+                    } else {
+                        ""
+                    }
                     diags.push(
                         resolver_error(
                             .DuplicateTargetDeclaration,
                             fd.name_span,
-                            "`${fd.name}` is already declared at ${span_origin(prev)}",
+                            "`${fd.name}` is already declared at ${span_origin(prev.name_span)}${why}",
                         ),
                     )
                     continue
                 }
-                bare[fd.name] = fd.name_span
+                bare[fd.name] = fd
             }
         }
     }
@@ -219,16 +246,17 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
         for d in f.program.decls {
             if d is AST.FnDecl as fd {
                 sel :: target_selectors(fd.decorators)
-                // Two statements, not `sel == null || sel.len() == 0`: narrowing
+                // Two statements, not `sel == null || sel.is_bare`: narrowing
                 // crosses `&&` but NOT `||` (TODO), so the second operand would
                 // still see `Os[] | null` and fail with T3008.
                 if sel == null {
                     continue
                 }
-                if sel.len() == 0 {
+                if sel.is_bare {
                     continue
                 }
-                if bare[fd.name] == null {
+                decl :: bare[fd.name]
+                if decl == null {
                     diags.push(
                         resolver_error(
                             .TargetBodyWithoutDeclaration,
@@ -236,6 +264,8 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                             "`${fd.name}` has no bare `@target` declaration in this module",
                         ),
                     )
+                } else {
+                    check_signature(decl, fd, diags)
                 }
                 if fd.visibility == .Public {
                     diags.push(
@@ -249,17 +279,19 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                 // Overlap. Two bodies covering one platform makes the winner
                 // depend on declaration ORDER — the arbitrary silence the rest of
                 // this mechanism exists to avoid.
-                for os in sel {
+                for os in sel.os {
                     key :: "${fd.name}|${os.to_string()}"
                     taken :: claimed[key]
                     if taken != null {
-                        diags.push(
-                            resolver_error(
-                                .TargetBodiesOverlap,
-                                fd.name_span,
-                                "`${fd.name}` already has a body for `.${os.to_string()}` at ${span_origin(taken)}",
-                            ),
-                        )
+                        // Same span on both sides means the OS is listed twice
+                        // in THIS list. Pointing the reader at "the other body"
+                        // would send them looking for one that does not exist.
+                        detail :: if taken == fd.name_span {
+                            "`${fd.name}` lists `.${os.to_string()}` twice in the same `@target`"
+                        } else {
+                            "`${fd.name}` already has a body for `.${os.to_string()}` at ${span_origin(taken)}"
+                        }
+                        diags.push(resolver_error(.TargetBodiesOverlap, fd.name_span, detail))
                     } else {
                         claimed[key] = fd.name_span
                     }
@@ -267,6 +299,114 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
             }
         }
     }
+}
+
+// The body's own signature is PARSED and then thrown away — `graft_body` keeps
+// the declaration's params and return type, because the declaration is the one
+// that carries the contract. That makes a divergent body silently wrong rather
+// than rejected, and the silence is total for exactly two shapes:
+//
+//   - a different ARITY — the body simply cannot mention the params it dropped,
+//     so nothing downstream notices;
+//   - the same names in a different ORDER — the body's code resolves against the
+//     declaration's slots, so `fn(b, a) = a - b` computes `a - b` at the
+//     DECLARATION's positions and returns the negation of what was written.
+//
+// Types are deliberately NOT compared here. The grafted node keeps the
+// declaration's types, so a body written against different ones fails to
+// type-check against them (T3020 on the return, an ordinary mismatch inside) —
+// caught downstream with a better message than this pass could give. Comparing
+// them would mean a structural TypeExpr comparator, and the only one in the tree
+// (`signature_help::render_type_expr`) falls back to `"?"`, which would make two
+// unrelated types compare EQUAL. A wrong comparator here is worse than none.
+check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]!) -> void {
+    if decl.params.len() != body.params.len() {
+        diags.push(
+            resolver_error(
+                .TargetBodySignatureDiffers,
+                body.name_span,
+                "`${body.name}` takes ${decl.params.len()} parameter(s) at ${span_origin(decl.name_span)}, "
+                    + "this body takes ${body.params.len()}",
+            ),
+        )
+        return
+    }
+    for i in 0..<decl.params.len() {
+        want :: decl.params[i].name
+        got :: body.params[i].name
+        if want != got {
+            diags.push(
+                resolver_error(
+                    .TargetBodySignatureDiffers,
+                    body.params[i].span,
+                    "parameter ${i + 1} of `${body.name}` is `${want}` at ${span_origin(decl.name_span)}, "
+                        + "`${got}` here — the body binds by POSITION, so a reordered name silently "
+                        + "computes something else",
+                ),
+            )
+        }
+    }
+}
+
+// A bare declaration with NO general body, whose group covers other platforms but
+// not this one. Left alone it reaches the type checker as an ordinary bodyless
+// fn and comes out as T3062, whose advice — "must be `@intrinsic` or `@extern`"
+// — is exactly the wrong thing to do here, and which names neither the target
+// nor the group. Reported before selection hands anything on.
+report_uncovered :: fn(
+    files: SourceFile[],
+    target: Target,
+    winners: MutableMap<string, AST.FnDecl>,
+    covered: MutableMap<string, string>,
+    diags: Diagnostic[]!,
+) -> void {
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                sel :: target_selectors(fd.decorators)
+                if sel == null {
+                    continue
+                }
+                if !sel.is_bare {
+                    continue
+                }
+                // A general body on the declaration IS the fallback — that is the
+                // whole point of the bare form carrying one.
+                if fd.body != null {
+                    continue
+                }
+                if winners[fd.name] != null {
+                    continue
+                }
+                // `@intrinsic` / `@extern` on the declaration means the host
+                // binds it; bodylessness is then intended, not a coverage hole.
+                if is_host_bound(fd) {
+                    continue
+                }
+                have :: covered[fd.name] ?? "(none)"
+                diags.push(
+                    resolver_error(
+                        .NoTargetBodyCoversTarget,
+                        fd.name_span,
+                        "`${fd.name}` has no body for `${display_target(target)}` and no general body ; "
+                            + "its `@target` bodies cover ${have}",
+                    ),
+                )
+            }
+        }
+    }
+}
+
+is_host_bound :: fn(fd: AST.FnDecl) -> bool {
+    for d in fd.decorators {
+        if d.name == "intrinsic" {
+            return true
+        }
+        if d.name == "extern" {
+            return true
+        }
+    }
+    return false
 }
 
 // `file:line` of a span, for a diagnostic that points at a SECOND location. The
@@ -286,7 +426,7 @@ resolve_decl :: fn(
         if sel == null {
             return d
         }
-        if sel.len() == 0 {
+        if sel.is_bare {
             // The bare declaration. It carries the envelope either way: on its own
             // when nothing specialised matches, or with the winner's body grafted
             // on when one does.
@@ -343,9 +483,21 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
     }
 }
 
-// The OS list a `@target` carries, or null when the decl has no `@target` at
-// all. An empty (non-null) list is the bare form.
-target_selectors :: fn(decorators: AST.Decorator[]) -> Os[] | null {
+/// A `@target`'s parsed selectors, plus whether it was written bare.
+///
+/// The two are NOT the same question, and collapsing them was a bug: an empty
+/// list used to mean both "written bare" and "every selector failed to parse",
+/// so a single typo — `@target(.Drawin)` — was read as a second bare
+/// declaration and reported as `R2039` plus `T3053`, neither of which names the
+/// typo. `is_bare` answers the form; `os` answers the content.
+TargetSelectors :: struct {
+    os:      Os[]
+    /// `true` for `@target` written with no argument list — THE declaration.
+    is_bare: bool
+}
+
+// The `@target` a declaration carries, or null when it has none.
+target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
     for d in decorators {
         if d.name != "target" {
             continue
@@ -359,9 +511,51 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> Os[] | null {
                 }
             }
         }
-        return out
+        return TargetSelectors { .os = out, .is_bare = d.args.len() == 0 }
     }
     return null
+}
+
+// Every unrecognised selector, named one by one. Reported from HERE rather than
+// from the resolver's decorator walker (`body.vader`), which only ever sees the
+// declarations selection KEPT: a body's `@target` is dropped by `graft_body`
+// when it wins and the body itself is gone when it loses, so a typo inside one
+// reached no check at all. A wrong selector on any body is an error on the
+// machine that wrote it, whichever platform is being built.
+check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl as fd {
+                for dec in fd.decorators {
+                    if dec.name != "target" {
+                        continue
+                    }
+                    for a in dec.args {
+                        if a is AST.DotVariantExpr as dv {
+                            if parse_os(dv.variant.to_lower()) == null {
+                                diags.push(
+                                    resolver_error(
+                                        .UnknownTargetSelector,
+                                        a.span,
+                                        "`.${dv.variant}` names no operating system",
+                                    ),
+                                )
+                            }
+                        } else {
+                            diags.push(
+                                resolver_error(
+                                    .UnknownTargetSelector,
+                                    a.span,
+                                    "a `@target` selector must be an operating-system variant, "
+                                        + "written `.Linux`, `.Darwin`, `.Windows`, `.Wasi` or `.Browser`",
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 matches_target :: fn(selectors: Os[], target: Target) -> bool {

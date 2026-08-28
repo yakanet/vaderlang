@@ -103,10 +103,10 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
 
-    // Validated even though nothing consumes it yet: an unread flag that accepts
-    // anything is worse than an absent one — `--target=native` (the old spelling)
-    // would be swallowed in silence and the build would quietly produce something
-    // else. `parse_target` names the offending fragment.
+    // Validated here rather than deeper, so a malformed target costs nothing:
+    // `--target=native` (the old spelling) would otherwise be swallowed in
+    // silence and the build would quietly produce something else.
+    // `parse_target` names the offending fragment.
     build_target: Target | null = null
     if target_flag != "" {
         parsed_target :: parse_target(target_flag)

@@ -3277,12 +3277,23 @@ every other platform's code is unchecked until something asks for it.
 | `R2036` | a body whose name matches no bare declaration. The typo case |
 | `R2037` | a body carrying `export`. The declaration owns the visibility |
 | `R2038` | two bodies covering the same platform — the winner would depend on declaration order |
-| `R2039` | a second bare declaration for a name that already has one |
-| `P1014` | `@target` anywhere but a top-level fn |
+| `R2039` | a second bare declaration for a name that already has one — including two OVERLOADS, since a group is keyed by name alone |
+| `R2040` | a body whose signature differs from the declaration's. The body binds by POSITION, so reordered parameter names silently compute something else |
+| `R2041` | no body covers the target being built, and the declaration carries no general body |
+| `P1014` | `@target` anywhere but a top-level fn, a struct, a trait, an enum or a constant |
 
-R2036 to R2039 are checked **before** selection, so they fire for every target
+R2035 to R2040 are checked **before** selection, so they fire for every target
 rather than only the one being built: a malformed group is an error on the
 machine that wrote it, not a surprise on whichever platform compiles it next.
+R2041 is the exception, and necessarily so — "nothing covers this" is a question
+only a target can answer.
+
+Only the declaration's signature is kept: `graft_body` takes the params, the
+return type and the type params from it, because the declaration is what carries
+the contract. R2040 exists because that makes a divergent body *silently* wrong.
+It compares arity and parameter names, not types — a body written against
+different types fails to type-check against the declaration's anyway, with a
+better message than this pass could give.
 
 #### `VADER_OS` — the target as a value
 

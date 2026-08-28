@@ -1,0 +1,11 @@
+// A `@target(.X)` is always a BODY, never a declaration. Without a bare
+// `@target` of the same name to carry the signature, the `export` and the
+// vaderdoc, telling a body from a declaration would mean looking elsewhere in
+// the module — the one non-local question the model exists to avoid.
+
+module "main"
+
+@target(.Linux)
+orphan :: fn() -> i32 = 1
+
+main :: fn() -> i32 = 0

@@ -1,0 +1,21 @@
+// One group, one declaration: it is the single place the signature lives. The
+// second case is the one that actually bites — two OVERLOADS, each wanting its
+// own per-platform bodies. A group is keyed by name alone, so `@target` cannot
+// tell them apart, and the diagnostic says so rather than reporting a duplicate
+// the author did not write.
+
+module "main"
+
+@target
+tag :: fn() -> i32 = 0
+
+@target
+tag :: fn() -> i32 = 1
+
+@target
+over :: fn(n: i32) -> i32 = 0
+
+@target
+over :: fn(a: i32, b: i32) -> i32 = 1
+
+main :: fn() -> i32 = tag() + over(1)

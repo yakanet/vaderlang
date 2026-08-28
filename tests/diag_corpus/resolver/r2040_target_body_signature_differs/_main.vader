@@ -1,0 +1,24 @@
+// The body's own signature is parsed and then thrown away: the grafted node
+// keeps the DECLARATION's params, because the declaration carries the contract.
+// That makes two shapes silently wrong rather than rejected, and this pins both.
+//
+// `swapped` is the dangerous one. Its body reads `a` as the second argument, but
+// the body binds by POSITION, so `a - b` computes the declaration's first minus
+// its second — the negation of what was written, with no diagnostic at all
+// before R2040 existed.
+
+module "main"
+
+@target
+sub :: fn(a: i32, b: i32) -> i32 = a - b
+
+@target(.Linux)
+sub :: fn(b: i32, a: i32) -> i32 = a - b
+
+@target
+arity :: fn(a: i32, b: i32) -> i32 = a
+
+@target(.Linux)
+arity :: fn() -> i32 = 42
+
+main :: fn() -> i32 = sub(1, 2) + arity(3, 4)

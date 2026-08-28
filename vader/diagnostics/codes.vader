@@ -196,6 +196,8 @@ export ResolverCode :: enum(u8) {
     TargetBodyCarriesExport,                // R2037
     TargetBodiesOverlap,                    // R2038
     DuplicateTargetDeclaration,             // R2039
+    TargetBodySignatureDiffers,             // R2040
+    NoTargetBodyCoversTarget,               // R2041
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -383,6 +385,8 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .TargetBodyCarriesExport            -> CodeInfo { .id = "R2037", .message = "`@target` body carries `export`" }
     .TargetBodiesOverlap                -> CodeInfo { .id = "R2038", .message = "two `@target` bodies cover the same platform" }
     .DuplicateTargetDeclaration         -> CodeInfo { .id = "R2039", .message = "duplicate bare `@target` declaration" }
+    .TargetBodySignatureDiffers         -> CodeInfo { .id = "R2040", .message = "`@target` body does not have the declaration's signature" }
+    .NoTargetBodyCoversTarget           -> CodeInfo { .id = "R2041", .message = "no `@target` body covers the target being built" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {

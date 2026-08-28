@@ -262,7 +262,7 @@ load_baked_target :: fn(
     if std_target is null { return }
     if !has_module(modules, std_target.folder) {
         pre: DiscoveredModule[]! = [std_target]
-        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory)
+        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
     }
     // A COPY of the overlay: the parameter is read-only, and the baked source is
     // this call's business, not the caller's.
@@ -276,7 +276,7 @@ load_baked_target :: fn(
         .origin = .Toolchain,
     }
     queue: DiscoveredModule[]! = [baked]
-    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory)
+    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, target)
 }
 
 drain_load_queue :: fn(
@@ -284,7 +284,12 @@ drain_load_queue :: fn(
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory!,
-    target: Target | null = null,
+    // NO default. It used to carry one, and two of the four call sites silently
+    // took it — including the `std/target` pre-load, which then ran with
+    // selection DISABLED and let every `@target` body through to the type
+    // checker. A default here makes "I forgot" and "I mean no target" the same
+    // keystroke; requiring the argument makes the compiler ask.
+    target: Target | null,
 ) -> void {
     cursor: usize = 0
     for cursor < queue.len() {

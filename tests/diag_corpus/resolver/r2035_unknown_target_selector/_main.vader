@@ -2,11 +2,22 @@
 // from a closed set and are compared syntactically, because the selection
 // happens before any name resolution. A misspelling is named here rather than
 // left to surface as an unresolved identifier several passes later.
+//
+// Both bodies belong to a group, so this pins R2035 ALONE. Written without one,
+// the same file also trips R2036 for each orphan body and R2006 at every call
+// site — which is what it used to do, back when an all-unknown selector list was
+// indistinguishable from the bare form.
 
 module "main"
 
+@target
+misspelled :: fn() -> i32 = 0
+
 @target(.Drawin)
 misspelled :: fn() -> i32 = 1
+
+@target
+not_a_selector :: fn() -> i32 = 0
 
 @target(42)
 not_a_selector :: fn() -> i32 = 2
