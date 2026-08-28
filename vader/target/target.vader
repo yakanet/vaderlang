@@ -1,0 +1,217 @@
+// vader/target — the compilation target, and the vocabulary for naming one.
+//
+// A target is a PAIR: an operating system and an architecture, written
+// `<os>-<arch>` on the command line (`--target=darwin-arm64`). The two axes do
+// NOT play the same role, and the asymmetry is deliberate:
+//
+//   - `os` selects CODE. It is what `@target` filters on, and the only axis a
+//     `.vader` file can branch on.
+//   - `arch` selects nothing. It parameterises VALUES — pointer width, `usize`
+//     — and no source file is ever included or excluded because of it.
+//
+// That is why there is no `@architecture` decorator: it is not a gap in the
+// matrix, it is the consequence of the asymmetry. The only 32/64 divergences
+// that would have justified one (stdcall name decoration, WoW64 redirection)
+// are specific to 32-bit Windows, which is not a supported target — see
+// `.claude/plans/2026-08-28-target-model.md` §1.
+//
+// This is the COMPILATION target. It is not the platform the compiler happens
+// to be running on: under `--target=windows-x86_64` from a Mac, the two differ,
+// and code that manipulates its OWN environment (resolving a path, spawning a
+// process) wants the latter. That question has its own answer and this module
+// is not it.
+
+module "vader/target"
+
+import "std/string"
+
+// ---- axes -----------------------------------------------------------------
+
+/// An operating system a Vader program can be built for. `wasm` is deliberately
+/// absent: it is an ARCHITECTURE, and the two OSes that run on it — `Wasi`, with
+/// a POSIX-shaped filesystem, and `Browser`, with none at all — are far enough
+/// apart that a single value would hide the difference that matters.
+export Os :: enum(u8) {
+    Windows,
+    Linux,
+    Darwin,
+    Wasi,
+    Browser,
+}
+
+/// An instruction set. 32-bit native targets are not supported: the divergences
+/// they carry live in the FFI surface, not in the language, and dropping them
+/// removes the only cases where `arch` would have had to select code.
+export Arch :: enum(u8) {
+    X86_64,
+    Arm64,
+    Wasm32,
+}
+
+/// A compilation target — the pair a build is parameterised by.
+export Target :: struct {
+    os:   Os
+    arch: Arch
+}
+
+// ---- naming ---------------------------------------------------------------
+
+/// The canonical spelling of an OS, as accepted on the command line.
+///
+/// @param os  the operating system.
+export os_name :: fn(os: Os) -> string = match os {
+    .Windows -> "windows"
+    .Linux   -> "linux"
+    .Darwin  -> "darwin"
+    .Wasi    -> "wasi"
+    .Browser -> "browser"
+}
+
+/// The canonical spelling of an architecture, as accepted on the command line.
+///
+/// @param arch  the instruction set.
+export arch_name :: fn(arch: Arch) -> string = match arch {
+    .X86_64 -> "x86_64"
+    .Arm64  -> "arm64"
+    .Wasm32 -> "wasm32"
+}
+
+/// Render a target as `<os>-<arch>` — the form `--target=` accepts and
+/// `parse_target` round-trips.
+///
+/// @param t  the target.
+export display_target :: fn(t: Target) -> string = "${os_name(t.os)}-${arch_name(t.arch)}"
+
+// ---- parsing --------------------------------------------------------------
+
+/// Why a target string could not be read. Carries the offending fragment so the
+/// caller can name it without re-splitting the input.
+export TargetParseError :: struct {
+    /// Human-readable reason, lowercase and without a trailing period.
+    reason: string
+    /// The fragment at fault — the whole string for a shape error, the OS or
+    /// arch fragment for an unknown value. Empty when the input was empty.
+    fragment: string
+}
+
+TargetParseError implements Error -> self.reason
+
+/// Read a `<os>-<arch>` target string.
+///
+/// Exactly two fragments, so neither axis may contain a `-`. That is a real
+/// constraint on future names rather than an accident: it keeps the form
+/// unambiguous without a rule about which hyphen separates.
+///
+/// @param s  the target string, e.g. `"darwin-arm64"`.
+/// @return   the parsed pair on success.
+/// @error    `TargetParseError` when the string is not two `-`-separated
+///           fragments, or when either names no known OS / architecture.
+export parse_target :: fn(s: string) -> Target | TargetParseError {
+    if s.byte_len() == 0 {
+        return TargetParseError { .reason = "empty target", .fragment = "" }
+    }
+    parts :: s.split("-")
+    if parts.len() != 2 {
+        return TargetParseError {
+            .reason = "target must be written `<os>-<arch>`",
+            .fragment = s,
+        }
+    }
+    [os_part, arch_part] :: parts
+    os :: parse_os(os_part)
+    if os == null {
+        return TargetParseError { .reason = "unknown operating system", .fragment = os_part }
+    }
+    arch :: parse_arch(arch_part)
+    if arch == null {
+        return TargetParseError { .reason = "unknown architecture", .fragment = arch_part }
+    }
+    return Target { .os = os, .arch = arch }
+}
+
+/// The OS named by `s`, or null when it names none.
+///
+/// @param s  a canonical OS name (`os_name`'s output).
+export parse_os :: fn(s: string) -> Os | null = match s {
+    "windows" -> .Windows
+    "linux"   -> .Linux
+    "darwin"  -> .Darwin
+    "wasi"    -> .Wasi
+    "browser" -> .Browser
+    _         -> null
+}
+
+/// The architecture named by `s`, or null when it names none.
+///
+/// @param s  a canonical architecture name (`arch_name`'s output).
+export parse_arch :: fn(s: string) -> Arch | null = match s {
+    "x86_64" -> .X86_64
+    "arm64"  -> .Arm64
+    "wasm32" -> .Wasm32
+    _        -> null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_display_round_trips :: fn() -> void {
+    t :: Target { .os = .Darwin, .arch = .Arm64 }
+    assert_eq(display_target(t), "darwin-arm64")
+}
+
+@test test_parse_target_reads_both_axes :: fn() -> void {
+    r :: parse_target("linux-x86_64")
+    assert(r is Target, "linux-x86_64 parses")
+    if r is Target as t {
+        assert(t.os == .Linux, "os is linux")
+        assert(t.arch == .X86_64, "arch is x86_64")
+    }
+}
+
+@test test_parse_target_rejects_extra_fragments :: fn() -> void {
+    // Exactly two fragments — a third is a shape error, not a longer arch name.
+    r :: parse_target("linux-x86_64-gnu")
+    assert(r is TargetParseError, "three fragments is an error")
+}
+
+@test test_parse_target_rejects_missing_separator :: fn() -> void {
+    r :: parse_target("darwin")
+    assert(r is TargetParseError, "no separator is an error")
+    if r is TargetParseError as e {
+        assert_eq(e.fragment, "darwin")
+    }
+}
+
+@test test_parse_target_names_the_bad_fragment :: fn() -> void {
+    r :: parse_target("drawin-arm64")
+    assert(r is TargetParseError, "unknown os is an error")
+    if r is TargetParseError as e {
+        assert_eq(e.fragment, "drawin")
+        assert_eq(e.reason, "unknown operating system")
+    }
+}
+
+@test test_parse_target_rejects_unknown_arch :: fn() -> void {
+    r :: parse_target("linux-riscv64")
+    assert(r is TargetParseError, "unknown arch is an error")
+    if r is TargetParseError as e {
+        assert_eq(e.fragment, "riscv64")
+    }
+}
+
+@test test_every_os_round_trips :: fn() -> void {
+    // Pins `os_name` and `parse_os` against each other, so adding an OS to one
+    // without the other fails here rather than at a call site.
+    all: Os[] = [.Windows, .Linux, .Darwin, .Wasi, .Browser]
+    for os in all {
+        assert(parse_os(os_name(os)) == os, "round trip ${os_name(os)}")
+    }
+}
+
+@test test_every_arch_round_trips :: fn() -> void {
+    all: Arch[] = [.X86_64, .Arm64, .Wasm32]
+    for arch in all {
+        assert(parse_arch(arch_name(arch)) == arch, "round trip ${arch_name(arch)}")
+    }
+}

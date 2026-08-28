@@ -791,6 +791,25 @@ match pair {
 
 A tuple pattern whose every leaf is a binding or `_` is *irrefutable* — the compiler treats it as covering the scrutinee, no wildcard arm needed.
 
+#### Array sources
+
+A `[...]` pattern also destructures an **array**. Arity is *not* checked: an array's
+length is dynamic, so the compiler cannot verify it against the pattern. Surplus
+elements are **silently dropped**, and missing ones **trap at runtime**
+(`array.get index N out of bounds`) rather than producing a diagnostic.
+
+```vader
+parts :: "a-b-c".split("-")
+[x, y] :: parts                        // x = "a", y = "b" — "c" is dropped, silently
+solo  :: "a".split("-")
+[p, q] :: solo                         // traps: array.get index 1 out of bounds (len=1)
+```
+
+Guard the length first, or use `...rest` below, whose result type is defined for
+every length. This is the one place where a tuple pattern and an array pattern
+differ in kind rather than in degree: `[a, b] := pair` is checked at compile time,
+`[a, b] := arr` is not checked at all.
+
 #### Spread destructuring (arrays only)
 
 A `let`-binding may end with `...rest` to collect the tail of an array source into a fresh array. At most one rest, last position only.
