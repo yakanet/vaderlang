@@ -1,3 +1,5 @@
+// `platform_tag`, not `platform_name` — the typo the fixture is about.
+
 module "main"
 
 @target(.Windows)

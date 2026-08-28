@@ -13,6 +13,7 @@ import "std/io"
 @target
 export platform_tag :: fn() -> string = "fallback"
 
-main :: fn() -> void {
+main :: fn() -> i32 {
     println(platform_tag())
+    return 0
 }

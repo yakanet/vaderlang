@@ -164,6 +164,7 @@ DUMP_STAGES: ValueSpec[]: [
         .help = "Desugared tree (match / interpolation / defer expanded)",
     },
     ValueSpec { .name = "dced-ast", .help = "Lowered tree post reachability prune" },
+    ValueSpec { .name = "targets", .help = "Which body each `@target` group selected" },
     ValueSpec { .name = "cfg", .help = "Mid-IR CFG (post DCE + escape annotation)" },
     ValueSpec { .name = "bytecode", .help = "Stack-machine ops + type/string/import tables" },
     ValueSpec { .name = "bytecode-cfg", .help = "Bytecode with CFG-level const-folding (text)" },
@@ -183,6 +184,13 @@ DUMP_FLAGS: FlagSpec[]: [
         .name = "module",
         .help = "Scope the module-filtered dumps to these modules + submodules",
         .value_name = "a,b",
+    },
+    FlagSpec {
+        .name = "target",
+        .alias = "t",
+        .help = "Platform to resolve `@target` against, as `<os>-<arch>`",
+        .value_name = "os-arch",
+        .default_text = "this machine",
     },
     FlagSpec {
         .name = "annotate",

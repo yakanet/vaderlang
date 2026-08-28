@@ -138,11 +138,14 @@ resolve_decl :: fn(
 // decorator comes from the declaration — a `@no_return` on one body only would
 // make the group's TYPE depend on the target, through a channel nothing checks.
 graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
+    // `@target` is KEPT on the merged node. It is what marks the declaration as
+    // the head of a group — `dump --stage=targets` reads it, and a reader opening
+    // the file still sees that this function has other bodies elsewhere. Nothing
+    // downstream acts on it: selection has already happened by the time anything
+    // else looks.
     decorators: AST.Decorator[]! = []
     for dec in decl.decorators {
-        if dec.name != "target" {
-            decorators.push(dec)
-        }
+        decorators.push(dec)
     }
     for dec in body.decorators {
         if dec.name == "extern" || dec.name == "intrinsic" {

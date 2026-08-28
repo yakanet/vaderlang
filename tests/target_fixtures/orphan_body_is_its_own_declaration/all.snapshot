@@ -1,0 +1,6 @@
+# Diagnostics
+[main-windows.vader:6:1] warning[W0007] declaration is never used in its module: `platform_tag` is never used
+
+# Selected body
+main$platform_name <- main.vader:18
+main$platform_tag <- main-windows.vader:6

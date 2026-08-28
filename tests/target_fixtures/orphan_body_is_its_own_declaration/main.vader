@@ -1,0 +1,20 @@
+// A `@target(.X)` body whose name matches no bare `@target` declaration.
+//
+// The plan calls for R2036 here — a body must belong to exactly one group — on
+// the grounds that a typo in the name is the mistake users will make most often.
+// That diagnostic is NOT implemented, and this fixture records what happens
+// instead: the orphan becomes its OWN declaration, valid on its target and
+// absent elsewhere.
+//
+// That is not silence — W0007 catches the typo, because nothing calls the
+// misspelled name. It is a weaker net than R2036 (it fires only when the orphan
+// is also unused, and it is a warning), but it is a net. Pinning it here means
+// implementing R2036 later will show up as a snapshot change rather than a
+// surprise.
+
+module "main"
+
+@target
+export platform_name :: fn() -> string = "posix"
+
+main :: fn() -> i32 = 0

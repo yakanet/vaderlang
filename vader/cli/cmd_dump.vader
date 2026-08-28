@@ -12,11 +12,13 @@ module "vader/cli"
 
 import "std/io"
 import "std/path"
+import "std/sort"
 import "std/string"
 import "cli"
 import "vader/lexer"
 import "vader/parser"
 import "vader/resolver"
+import "vader/target"
 import "vader/typecheck"
 import "vader/comptime"
 import "vader/lower"
@@ -24,7 +26,10 @@ import "vader/bytecode"
 import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
-import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+import "vader/c_emit" {
+    EmitOptions as CEmitOptions,
+    default_emit_options as default_c_emit_options,
+}
 Prof :: import "vader/profile"
 
 // ----------------------------------------------------------- dump
@@ -37,10 +42,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("dump", parsed) {
         return 1
     }
-
-    stage    :: parsed.string_flag("stage", "")
+    stage :: parsed.string_flag("stage", "")
     annotate :: parsed.bool_flag("annotate")
-    file     :: parsed.action_file()
+    file :: parsed.action_file()
     // `--module=a,b` scopes the module-filtered text dumps (resolver / typecheck
     // / comptime / lower / cfg) to those modules + their submodules ; empty =
     // default to the entry module's subtree. Lets a dump target any subset
@@ -51,13 +55,11 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if module_arg != "" {
         module_filter = module_arg.split(",")
     }
-
     if stage == "" || file == "" {
         eprintln("vader dump: expected --stage=<stage> <file>")
         eprintln("run \"vader help dump\" for the stage list")
         return 1
     }
-
     if stage == "lexer" {
         return run_lexer_stage(file)
     }
@@ -88,17 +90,17 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "c" {
         return run_c_stage(file)
     }
-
     if stage == "dced-ast" {
         return run_dced_stage(file, module_filter)
     }
-
+    if stage == "targets" {
+        return run_targets_stage(file, parsed.string_flag("target", ""))
+    }
     // Recognised stages we know about but can't run yet.
     if stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
     }
-
     // Reachable only for a stage listed in `DUMP_STAGES` that has no dispatch
     // arm above — a spec/dispatch mismatch, not user error. The parser rejects
     // anything outside the list before we get here.
@@ -112,8 +114,8 @@ cmd_dump :: fn(args: string[]) -> i32 {
 read_source :: fn(file: Path) -> string | null {
     src_or_err :: file.as_string().read_file_string()
     match src_or_err {
-        is string -> { return src_or_err }
-        is IOError  -> {
+        is string  -> { return src_or_err }
+        is IOError -> {
             eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
             return null
         }
@@ -175,13 +177,18 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
     modules: ResolvedModule[]! = []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {
-        if !module_in_scope(lm.module.display_path, scope) { continue }
+        if !module_in_scope(lm.module.display_path, scope) {
+            continue
+        }
         // One rebuild each, shared by the seed and the ambiguity scan.
         mod_paths :: all_wildcard_paths(lm.collected)
         mod_excludes :: all_wildcard_excludes(lm.collected)
         rm :: resolve_module_with_collected_dp_seeded(
-            lm.module.files[0].program, lm.module.files[0].path,
-            lm.module.display_path, project.factory, lm.collected,
+            lm.module.files[0].program,
+            lm.module.files[0].path,
+            lm.module.display_path,
+            project.factory,
+            lm.collected,
             build_wildcard_seed(mod_index, mod_paths, mod_excludes, core_seed),
             wildcard_ambiguities(mod_index, mod_paths, mod_excludes, core_seed),
         )
@@ -198,14 +205,19 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
     return ResolvedProject { .modules = modules }
 }
 
-
 // Merge loader-time and body-walker diagnostics into one ordered list.
 // Body diags carry no global span ordering ; concatenated by module-
 // iteration order.
 collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
     all: Diagnostic[]! = []
-    for d in project.diags { all.push(d) }
-    for m in resolved.modules { for d in m.diags { all.push(d) } }
+    for d in project.diags {
+        all.push(d)
+    }
+    for m in resolved.modules {
+        for d in m.diags {
+            all.push(d)
+        }
+    }
     return all
 }
 
@@ -248,7 +260,8 @@ run_cfg_stage :: fn(file: Path, module_filter: string[]) -> i32 {
     // Scope the dump to the entry's subtree (or `--module`) without the string
     // pool, so `dump --stage=cfg` reads as the code under inspection.
     opts :: DumpCfgOptions {
-        .scope = dump_scope(module_filter, pipeline.loaded), .include_strings = false,
+        .scope = dump_scope(module_filter, pipeline.loaded),
+        .include_strings = false,
     }
     print(dump_cfg_project(cfg, opts))
     print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
@@ -292,7 +305,9 @@ run_bytecode_stage :: fn(file: Path, annotate: bool) -> i32 {
     // double-newlined. `--annotate` routes through the disassembly
     // variant — NOT round-trippable, so it never feeds `parse_virt` or
     // the parity snapshots.
-    out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else { dump_bytecode(b.module, b.entry) }
+    out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else {
+        dump_bytecode(b.module, b.entry)
+    }
     print(out_text)
     print_dump_diags(b)
     return 0
@@ -348,6 +363,74 @@ run_lower_stage :: fn(file: Path, module_filter: string[]) -> i32 {
 // `main` + `@export` / `@extern` (tests dropped — this is the run/build
 // view, not the test-runner view). Validates the call-graph reachability
 // walk before it's wired into the emit paths.
+// `--stage=targets` — which body each `@target` group selected, one line per
+// group, and nothing else.
+//
+// A dedicated stage rather than reading `dced-ast` or the emitted C: those answer
+// the question in thousands of lines of which one matters, and they change shape
+// whenever codegen does. This is also the corpus oracle
+// (`tests/target_model.test.ts`), and it needs NO TOOLCHAIN — so it answers for
+// every target from any machine, which is what makes cross-target selection
+// testable in CI as it stands.
+run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
+    target: Target | null = null
+    if target_flag != "" {
+        parsed :: parse_target(target_flag)
+        if parsed is TargetParseError as e {
+            eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
+            return 2
+        }
+        if parsed is Target as t {
+            target = t
+        }
+    }
+    project :: load_project(file.as_string(), [], target)
+    println("# Selected body")
+    lines: string[]! = []
+    for [_, lm] in project.modules {
+        for f in lm.module.files {
+            for d in f.program.decls {
+                if d is FnDecl as fd {
+                    if !selected_by_target(fd) {
+                        continue
+                    }
+                    body :: fd.body
+                    origin :: if body is BlockExpr as b {
+                        "${b.span.start.file}:${b.span.start.line}"
+                    } else {
+                        "(no body)"
+                    }
+                    lines.push(
+                        "${mangle_module_id(lm.module.display_path)}\$${fd.name} <- ${origin}",
+                    )
+                }
+            }
+        }
+    }
+    sorted :: sort(lines, (a: string, b: string) -> compare_ascending(a, b))
+    for l in sorted {
+        println(l)
+    }
+    if lines.len() == 0 {
+        println("(none)")
+    }
+    return 0
+}
+
+// A group member survives selection with its `@target` decorator stripped only
+// when it was merged; a lone bare declaration keeps it. Either way, what marks a
+// declaration as belonging to a group is that it once carried `@target` — which
+// after merging is only visible on the ones that did NOT merge. So report on the
+// declarations the selection produced, not on the decorator.
+selected_by_target :: fn(fd: FnDecl) -> bool {
+    for d in fd.decorators {
+        if d.name == "target" {
+            return true
+        }
+    }
+    return false
+}
+
 run_dced_stage :: fn(file: Path, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[]! = []
@@ -373,7 +456,9 @@ run_dced_stage :: fn(file: Path, module_filter: string[]) -> i32 {
 filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
     out: Diagnostic[]! = []
     for d in diags {
-        if d.primary.start.file in files { out.push(d) }
+        if d.primary.start.file in files {
+            out.push(d)
+        }
     }
     return out
 }
@@ -402,8 +487,12 @@ print_dump_diags :: fn(b: CfgBytecode) -> void {
 // stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
 merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
     all: Diagnostic[]! = []
-    for d in head  { all.push(d) }
-    for d in extra { all.push(d) }
+    for d in head {
+        all.push(d)
+    }
+    for d in extra {
+        all.push(d)
+    }
     return all
 }
 

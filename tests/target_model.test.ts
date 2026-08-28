@@ -1,16 +1,12 @@
 // tests/target_model — coverage for the `@target` mechanism: one declaration,
 // several bodies, one chosen per compilation target.
 //
-// ⚠️ THE MECHANISM DOES NOT EXIST YET. Every fixture test below is `test.skip`
-// until it lands (plan: `.claude/plans/2026-08-28-target-model.md`). Two tests
-// are NOT skipped and must stay that way — `corpus is well-formed`, which pins
-// the fixtures against typos while nothing else can, and `the skips are still
-// warranted`, which FAILS the moment the mechanism ships. That second one is the
-// reason this file may be written ahead of the implementation at all: the tree
-// has already paid for tests that silently did not run — 152 gated formatter
-// tests that REGISTERED and PASSED while asserting nothing (since fixed; kept as
-// a record in TODO §"tests/ is a catch-all" precisely because a pass count cannot
-// reveal it). A skip nobody removes is the same failure wearing a different hat.
+// The fixtures ran skipped while the mechanism was being built, guarded by a test
+// that FAILED the day `dump --stage=targets` started working — which is how they
+// came to be un-skipped rather than forgotten. The tree has already paid for
+// tests that silently did not run (152 gated formatter tests that REGISTERED and
+// PASSED while asserting nothing, TODO §"tests/ is a catch-all"), and a skip
+// nobody removes is the same failure wearing a different hat.
 //
 // WHY A CORPUS OF ITS OWN, and not one of the five in CLAUDE §11:
 //
@@ -53,7 +49,7 @@
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
 import { snapshotDiff } from "./diff.ts";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Registers a `beforeAll`, so it belongs at module scope — calling it inside a
@@ -133,40 +129,53 @@ test("corpus is well-formed", () => {
   expect(problems).toEqual([]);
 });
 
-// The anti-rot guard. `--stage=targets` is rejected by the CLI's value spec
-// while the mechanism is unimplemented; the day it is accepted, this test fails
-// and says what to do. Without it, the skips below would be invisible rot.
-test("the skips are still warranted", async () => {
+// The oracle answers for a platform it is not running on — that is the property
+// the whole corpus depends on, so it is asserted directly rather than assumed by
+// every fixture below.
+test("the oracle answers for a foreign target", async () => {
   const probe = await runCli(
-    ["dump", "--stage=targets", join(CORPUS, "body_selection", "main.vader")],
+    ["dump", "--stage=targets", "--target=windows-x86_64",
+     join(CORPUS, "body_selection", "main.vader")],
     undefined,
     MEDIUM_BUILD,
   );
-  if (probe.exit === 0) {
-    throw new Error(
-      "`vader dump --stage=targets` now works: the @target mechanism has landed.\n" +
-        "Remove the `.skip` from the fixture tests in this file and regenerate the\n" +
-        "snapshots with the native CLI as the oracle (CLAUDE §11 'Running them').",
-    );
-  }
-  expect(probe.exit).not.toBe(0);
+  expect(probe.exit).toBe(0);
+  expect(probe.stdout).toContain("main-windows.vader");
 });
 
-// ---- the fixture tests, skipped until the mechanism lands ------------------
+// ---- the fixture tests -----------------------------------------------------
 
 for (const fx of FIXTURES) {
   for (const [target, snapshotPath] of fx.snapshots) {
     const label = target === "all" ? "every target" : target;
 
-    test.skip(`${fx.name} — ${label}`, async () => {
+    test(`${fx.name} — ${label}`, async () => {
       const expected = readFileSync(snapshotPath, "utf8");
+      // Options BEFORE the positional: the CLI has one boundary rule and a flag
+      // after the file is rejected, not ignored.
       const entry = join(fx.dir, "main.vader");
-      const args = ["dump", "--stage=targets", entry];
+      const args = ["dump", "--stage=targets"];
       if (target !== "all") args.push(`--target=${target}`);
+      args.push(entry);
 
-      const { stdout, stderr, exit } = await runCli(args, undefined, MEDIUM_BUILD);
+      const { stdout, exit } = await runCli(args, undefined, MEDIUM_BUILD);
       expect(exit).toBe(0);
-      const actual = renderSections(stdout, stderr);
+
+      // Diagnostics come from a SECOND run that actually type-checks. The
+      // `targets` stage stops at load — it answers "which body", not "is it
+      // well-typed" — so asking it for diagnostics would report `(none)` for a
+      // body with a deliberate type error, which is precisely what
+      // `discarded_body_not_typed` exists to catch.
+      const checkArgs = ["build", "--emit=c", "--out=-"];
+      if (target !== "all") checkArgs.push(`--target=${target}`);
+      checkArgs.push(entry);
+      const checked = await runCli(checkArgs, undefined, MEDIUM_BUILD);
+
+      const actual = renderSections(stdout, checked.stderr, fx.dir);
+      if (process.env["UPDATE_SNAPSHOTS"] === "1") {
+        writeFileSync(snapshotPath, actual);
+        return;
+      }
       if (actual !== expected) {
         throw new Error(snapshotDiff(`${fx.name}/${label}`, expected, actual));
       }
@@ -179,7 +188,14 @@ for (const fx of FIXTURES) {
  * so the SHAPE of a snapshot is defined once; what each fixture asserts still
  * lives beside it.
  */
-function renderSections(stdout: string, stderr: string): string {
-  const diagnostics = stderr.trim() === "" ? "(none)" : stderr.trim();
-  return `# Diagnostics\n${diagnostics}\n\n${stdout.trim()}\n`;
+function renderSections(stdout: string, stderr: string, fixtureDir: string): string {
+  // The compiler reports the path it was GIVEN, which the driver passes
+  // absolute. Snapshots have to be portable, so the fixture directory is
+  // stripped here rather than having the stage lie about what it read.
+  const strip = (s: string) => s.split(`${fixtureDir}/`).join("");
+  // `build` prints its own `# Diagnostics` banner; the section header belongs to
+  // the snapshot format, so the banner is dropped rather than nested.
+  const raw = strip(stderr.trim()).replace(/^# Diagnostics\n?/, "").trim();
+  const diagnostics = raw === "" ? "(none)" : raw;
+  return `# Diagnostics\n${diagnostics}\n\n${strip(stdout.trim())}\n`;
 }

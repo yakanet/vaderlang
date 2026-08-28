@@ -1,5 +1,5 @@
 # Diagnostics
-main-windows.vader:8:44: error[T3001]: type mismatch — expected `string`, got `i32`
+[main-windows.vader:8:34] error[T3020] function body returns a value incompatible with its declared return type: expected string, got {integer}
 
 # Selected body
-(none — the only candidate failed to typecheck)
+main$platform_tag <- main-windows.vader:8

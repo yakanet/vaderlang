@@ -3,6 +3,3 @@
 
 # Selected body
 main$platform_tag <- main-windows.vader:4
-
-# Run
-windows
