@@ -22,6 +22,7 @@ import "vader/diagnostics"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 import "toolchain/span"
+AST :: import "toolchain/ast"
 
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or
@@ -48,6 +49,7 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
             // same-file `b.cond` matches the first `cond` entry the document
             // has, which is another struct's. The type lookup declines unless
             // the cursor really follows a dot, so ordinary names are untouched.
+            after_dot :: cursor_follows_a_dot(index, line, character)
             by_type :: member_by_type(state, uri, index, line, character)
             if by_type != null {
                 origin_m :: index.span_at(line, character)
@@ -67,7 +69,7 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
                     // declined — the receiver has no declaring symbol (an array,
                     // a string), so its methods live on a built-in trait with no
                     // type to key on.
-                    ext :: resolve(state, index, nm)
+                    ext :: resolve(state, index, nm, after_dot)
                     if ext == null { return JsonNull {} }
                     return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, index.line_index)
                 }
@@ -99,10 +101,10 @@ member_by_type :: fn(
     // the entry path — so with two files open every goto-def is a cold one.
     // Testing after it made an ordinary identifier, which cannot be a member,
     // pay that: 0.03 s to 0.6 s, on the most interactive path there is.
-    nm_span :: index.span_at(line, character) ?? return null
-    if !follows_a_dot(index.source, nm_span.start.offset) {
+    if !cursor_follows_a_dot(index, line, character) {
         return null
     }
+    nm_span :: index.span_at(line, character) ?? return null
     file_path :: uri_to_path(uri)
     if file_path.bytes().len() == 0 {
         return null
@@ -131,7 +133,26 @@ member_owner_type :: fn(
     // No receiver ends at the dot — a leading-dot variant, whose type comes
     // from its context rather than from anything to its left.
     e :: find_expr_at(sf.program.decls, l, c, typed) ?? return null
+    // A match ARM's pattern is not an expression, so the smallest expression
+    // containing the cursor is the whole `match`. Its type is the match's
+    // RESULT — `i32` for `.Struct -> 23` — which names no enum, and the lookup
+    // then fell back to searching by name and picked another enum's `Struct`
+    // from another file. The SCRUTINEE is what the pattern is matched against,
+    // so it is the type that owns the variant.
+    if e is AST.MatchExpr as m {
+        return typed.expr_types[m.scrutinee.id]
+    }
     return typed.expr_types[e.id]
+}
+
+// Whether the identifier under the cursor starts a member access. Shared by the
+// typed lookup and the name-based fallback so both agree on what a member is.
+cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
+    sp :: index.span_at(line, character)
+    if sp == null {
+        return false
+    }
+    return follows_a_dot(index.source, sp.start.offset)
 }
 
 // Whether `offset` starts a member access: the byte immediately before it is a

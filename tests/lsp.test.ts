@@ -1573,3 +1573,47 @@ test("lsp: goto-def reaches a struct field", async () => {
   // `pixels` is declared on line 5 (0-based 4).
   expect(loc!.range.start.line).toBe(4);
 });
+
+// Two regressions the review found, pinned together because they share a cause:
+// fields and variants were indexed at the same RANK as top-level declarations,
+// and every lookup that answers "what does this name denote" saw them.
+//
+// `count` is a field of `Holder` AND a top-level fn, with the field declared
+// first — exactly the shape that made `vm_required(…)` in `comptime/eval_call`
+// resolve to a `bool` field instead of the function it calls. `.Two` in a match
+// PATTERN is the other: a pattern is not an expression, so the smallest
+// expression containing the cursor is the whole `match`, whose type is the
+// match's RESULT and names no enum at all.
+const MEMBER_RANK_SOURCE = `module "lsptest"
+
+Holder :: struct {
+    count: i32
+}
+
+Decoy :: enum(u8) { One, Two }
+Pick  :: enum(u8) { One, Two }
+
+count :: fn() -> i32 = 7
+
+classify :: fn(p: Pick) -> i32 = match p {
+    .One -> 1
+    .Two -> 2
+}
+
+use :: fn() -> i32 = count() + classify(.One)
+`;
+
+test("lsp: a field never masks a top-level fn of the same name", async () => {
+  const results = await driveLsp(MEMBER_RANK_SOURCE, [
+    // The CALL `count()` — must reach the fn on line 10 (0-based 9), not the
+    // field on line 4 (0-based 3), which is declared first.
+    { method: "textDocument/definition", position: { line: 16, character: 23 } },
+    // `.Two` in the match ARM — must reach `Pick.Two` (line 8, 0-based 7), not
+    // `Decoy.Two` on line 7, which the name-based path finds first.
+    { method: "textDocument/definition", position: { line: 13, character: 6 } },
+  ]);
+
+  const lineOf = (r: unknown) => (r as { range: { start: { line: number } } }).range.start.line;
+  expect(lineOf(results[0]!.result)).toBe(9);
+  expect(lineOf(results[1]!.result)).toBe(7);
+});

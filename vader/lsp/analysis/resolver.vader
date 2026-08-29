@@ -33,7 +33,17 @@ export ExternalHit :: struct {
 ///     `vader_root` unset, relative outside the project, …) ;
 ///   - the candidate file(s) parsed but didn't export the original
 ///     name.
-export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
+/// @param allow_member  whether to fall back to a MEMBER search when the name is
+///                      not a top-level one anywhere. Only true when the cursor
+///                      actually follows a dot: without the gate the search
+///                      fires on ordinary identifiers, and a parameter named
+///                      `decls` jumped to `DocIndex.decls` — a field it has
+///                      nothing to do with. It also costs a full re-read of
+///                      every wildcard module plus `std/core` (79 files, 1.2 MB
+///                      for `lower_expr.vader`), which a miss should not pay.
+export resolve :: fn(
+    state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
+) -> ExternalHit | null {
     if name.bytes().len() == 0 { return null }
     imp :: idx.find_import(name)
     if imp != null { return resolve_imported(state, idx, imp) }
@@ -52,6 +62,9 @@ export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> Externa
     wild :: resolve_wildcard(state, idx, name)
     if wild != null {
         return wild
+    }
+    if !allow_member {
+        return null
     }
     // Still nothing — the name may be a MEMBER: a method or a struct field,
     // i.e. whatever sits after a dot. Every strategy above hunts a top-level
