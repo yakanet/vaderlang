@@ -90,7 +90,7 @@ void* vader_bootstrap_collect_body_diags(void* l0) {
     void** gc_raw_roots[6] = { &l0, &l1, &l2, &l7, &l9, &l12 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a0_arr = vader_array_new(50u, 0u, 13u, 704u);
     l1 = (void*) _a0_arr;
     t0 = ((vader_struct_std_collections_MutableMap__string__TypedProgram_t*) ((vader_struct_vader_typecheck_CheckResult_t*) l0)->f_all_modules)->f_size;
     if (t0 == INT64_C(0)) {
@@ -171,17 +171,17 @@ vader_box_t vader_bootstrap_emit_c_source(vader_string_t l0) {
     }
     l2 = ((vader_struct_vader_bootstrap_CfgBytecode_t*) l1)->f_module;
     l4 = ((vader_struct_vader_bootstrap_CfgBytecode_t*) l1)->f_entry;
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 161u);
     l1 = (void*) _a0_arr;
     vader_struct_vader_c_emit_EmitOptions_t* _a1_obj = (vader_struct_vader_c_emit_EmitOptions_t*) vader_gc_alloc(sizeof(vader_struct_vader_c_emit_EmitOptions_t));
-    vader_obj_header_init(_a1_obj, 890u);
+    vader_obj_header_init(_a1_obj, 670u);
     _a1_obj->f_release = false;
     _a1_obj->f_entry_mangled = l4;
     _a1_obj->f_split = false;
     _a1_obj->f_atom_universe = l1;
     l1 = (void*) _a1_obj;
     t2 = vader_c_emit_emit_c(l2, l1);
-    t1 = vader_box_string(2u, t2);
+    t1 = vader_box_string(161u, t2);
     { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -255,7 +255,7 @@ void* vader_bootstrap_gather_pipeline_diags(void* l0) {
     void** gc_raw_roots[4] = { &l0, &l1, &l2, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a0_arr = vader_array_new(50u, 0u, 13u, 704u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_struct_vader_resolver_LoadedProject_t*) ((vader_struct_vader_bootstrap_EvaluatedPipeline_t*) l0)->f_loaded)->f_diags;
     l3 = ((vader_array_t*) l2)->length;
@@ -345,7 +345,7 @@ void* vader_bootstrap_lower_to_entry(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = vader_bootstrap_prepare_evaluated_project(l0);
-    vader_array_t* _a0_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a0_arr = vader_array_new(50u, 0u, 13u, 704u);
     l2 = (void*) _a0_arr;
     l3 = ((vader_struct_vader_bootstrap_EvaluatedPipeline_t*) l1)->f_loaded;
     l4 = ((vader_struct_vader_bootstrap_EvaluatedPipeline_t*) l1)->f_typed;
@@ -356,7 +356,7 @@ void* vader_bootstrap_lower_to_entry(vader_string_t l0) {
     l6 = vader_bootstrap_entry_main_name(l4, l6);
     l1 = vader_bootstrap_gather_pipeline_diags(l1);
     vader_struct_vader_bootstrap_LoweredEntry_t* _a1_obj = (vader_struct_vader_bootstrap_LoweredEntry_t*) vader_gc_alloc(sizeof(vader_struct_vader_bootstrap_LoweredEntry_t));
-    vader_obj_header_init(_a1_obj, 8u);
+    vader_obj_header_init(_a1_obj, 492u);
     _a1_obj->f_lowered = l3;
     _a1_obj->f_entry = l6;
     _a1_obj->f_pre_diags = l1;
@@ -408,7 +408,7 @@ void* vader_bootstrap_merge_diagnostics(void* l0, void* l1) {
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a0_arr = vader_array_new(50u, 0u, 13u, 704u);
     l2 = (void*) _a0_arr;
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;
@@ -485,7 +485,7 @@ void* vader_bootstrap_prepare_cfg_bytecode(vader_string_t l0) {
     l4 = ((vader_struct_vader_bootstrap_LoweredEntry_t*) l1)->f_pre_diags;
     l1 = ((vader_struct_vader_bootstrap_LoweredEntry_t*) l1)->f_lower_diags;
     vader_struct_vader_bootstrap_CfgBytecode_t* _a0_obj = (vader_struct_vader_bootstrap_CfgBytecode_t*) vader_gc_alloc(sizeof(vader_struct_vader_bootstrap_CfgBytecode_t));
-    vader_obj_header_init(_a0_obj, 9u);
+    vader_obj_header_init(_a0_obj, 490u);
     _a0_obj->f_entry = l3;
     _a0_obj->f_pre_diags = l4;
     _a0_obj->f_lower_diags = l1;
@@ -506,20 +506,20 @@ void* vader_bootstrap_prepare_evaluated_project(vader_string_t l0) {
     void** gc_raw_roots[7] = { &l1, &l2, &l3, &l4, &l5, &l6, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 161u);
     l1 = (void*) _a0_arr;
     l1 = vader_resolver_load_project(l0, l1, vader_box_obj(0u, NULL));
-    vader_array_t* _a1_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a1_arr = vader_array_new(50u, 0u, 13u, 704u);
     l2 = (void*) _a1_arr;
     l3 = vader_typecheck_check_project_with_bodies(l1, l2, false);
     l4 = vader_bootstrap_collect_body_diags(l3);
     l3 = vader_bootstrap_assemble_typed_project(l3);
-    vader_array_t* _a2_arr = vader_array_new(5u, 0u, 13u, 6u);
+    vader_array_t* _a2_arr = vader_array_new(50u, 0u, 13u, 704u);
     l5 = (void*) _a2_arr;
     l6 = vader_comptime_evaluate_project(l1, l3, l5);
     vader_comptime_vm_resolve_vm_required_decls(l1, l3, l6, l5);
     vader_struct_vader_bootstrap_EvaluatedPipeline_t* _a3_obj = (vader_struct_vader_bootstrap_EvaluatedPipeline_t*) vader_gc_alloc(sizeof(vader_struct_vader_bootstrap_EvaluatedPipeline_t));
-    vader_obj_header_init(_a3_obj, 11u);
+    vader_obj_header_init(_a3_obj, 491u);
     _a3_obj->f_loaded = l1;
     _a3_obj->f_typed = l3;
     _a3_obj->f_evaluated = l6;
@@ -541,7 +541,7 @@ int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = std_io_write_file_string(l0, l1);
-    if (l2.tag == 50u) {
+    if (l2.tag == 395u) {
         t0 = l2.payload.obj;
         l3 = ((vader_struct_std_io_IOError_t*) t0)->f_msg;
         t1 = concat_4(1185u, l0, 993u, l3);

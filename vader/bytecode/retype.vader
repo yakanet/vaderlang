@@ -1,0 +1,198 @@
+// vader/bytecode/retype — rebase a module's type table onto a shared one.
+//
+// `BytecodeModule.types` is index-addressed, so two targets that compile the
+// same program can hold the same type at different slots — and one extra type
+// on one target shifts every slot after it. Emitting several targets against
+// one C output then differs everywhere by renumbering alone: measured at 11 282
+// renumbered lines against 238 of real content, from a single lambda in a
+// `@target` body.
+//
+// This is the type-table half of what `EmitOptions.atom_universe` does for
+// string literals. Same shape: a canonical key (`bc_type_key`), a shared order,
+// and every reference rewritten to it.
+
+module "vader/bytecode"
+
+import "std/collections"
+import "std/sort"
+import "std/string"
+
+/// The union of several modules' type tables, as an ordered key list.
+///
+/// SORTED after the first entry, so the order is a property of the set and not
+/// of the order the modules were given.
+///
+/// SLOT 0 IS PINNED. The runtime requires `type_info_table[0]` to be a scan
+/// no-op — stack-object rooting relies on it, and it traps at startup otherwise.
+/// A plain sort moves it, which is how this was found.
+///
+/// @param mods  the modules to union, at least one.
+/// @return      the reserved slot-0 key, then every other distinct key, sorted.
+export union_of_type_tables :: fn(mods: BytecodeModule[]) -> string[] {
+    reserved :: bc_type_key(mods[0].types, 0)
+    seen: MutableSet<string>! = MutableSet<string> {}
+    seen.add(reserved)
+    keys: string[]! = []
+    for m in mods {
+        for i in 0..<m.types.len() {
+            k :: bc_type_key(m.types, i32(i))
+            if !seen.contains(k) {
+                seen.add(k)
+                keys.push(k)
+            }
+        }
+    }
+    out: string[]! = [reserved]
+    for k in sort(keys, (a: string, b: string) -> compare_ascending(a, b)) {
+        out.push(k)
+    }
+    return out
+}
+
+/// Rebase `m` so its type table IS `universe`, in that order.
+///
+/// Every index-bearing site is rewritten: the table's own cross-references, both
+/// signatures, the ops, the impl table and the vtables. A type the module does
+/// not use still takes its slot — the table is the universe, not a subset, which
+/// is what makes two targets agree on every index.
+///
+/// @param m         the module to rebase.
+/// @param universe  the shared key order, from `union_of_type_tables`.
+/// @return          the rebased module.
+export rebase_types :: fn(m: BytecodeModule, universe: string[]) -> BytecodeModule {
+    // key -> slot in the universe.
+    slot_of :: MutableMap<string, i32> {}
+    for i in 0..<universe.len() {
+        slot_of[universe[i]] = i32(i)
+    }
+    // old index -> new index. -1 stays -1: it is the "no type" marker, not a
+    // slot, and remapping it would point at the universe's first entry.
+    remap: i32[]! = []
+    for i in 0..<m.types.len() {
+        remap.push(slot_of[bc_type_key(m.types, i32(i))] ?? -1)
+    }
+
+    // The new table, in universe order. A slot this module has no type for is
+    // filled from its own key — a primitive or a ref reconstructs exactly, and
+    // anything else falls back to an opaque ref, which is only ever reached by
+    // code this module does not contain.
+    by_slot :: MutableMap<i32, BcType> {}
+    for i in 0..<m.types.len() {
+        s :: remap[i]
+        if s >= 0 {
+            by_slot[s] = remap_type(m.types[i], remap)
+        }
+    }
+    types: BcType[]! = []
+    for i in 0..<universe.len() {
+        types.push(by_slot[i32(i)] ?? placeholder_for(universe[i]))
+    }
+
+    fns: BcFunction[]! = []
+    for f in m.functions {
+        body: Op[]! = []
+        for op in f.body {
+            body.push(remap_type_in_op(op, remap))
+        }
+        fns.push(
+            BcFunction {
+                .name = f.name, .is_main = f.is_main,
+                .signature = remap_signature(f.signature, remap),
+                .locals = f.locals, .body = body, .debug = f.debug,
+                .jump_table = f.jump_table,
+            },
+        )
+    }
+    imports: BcImport[]! = []
+    for imp in m.imports {
+        imports.push(
+            BcImport {
+                .extern_name = imp.extern_name, .mangled_name = imp.mangled_name,
+                .signature = remap_signature(imp.signature, remap),
+                .is_extern = imp.is_extern,
+            },
+        )
+    }
+    impls: ImplEntry[]! = []
+    for e in m.impl_table {
+        impls.push(
+            ImplEntry {
+                .struct_type_index = remap_one(remap, e.struct_type_index),
+                .trait_name = e.trait_name,
+            },
+        )
+    }
+    vts: VtableRow[]! = []
+    for row in m.vtables {
+        entries: VtableEntry[]! = []
+        for e in row.entries {
+            entries.push(
+                VtableEntry {
+                    .receiver_type_index = remap_one(remap, e.receiver_type_index),
+                    .fn_index = e.fn_index,
+                },
+            )
+        }
+        vts.push(VtableRow { .key = row.key, .entries = entries })
+    }
+    return BytecodeModule {
+        .name = m.name, .types = types, .strings = m.strings, .data_pool = m.data_pool,
+        .functions = fns, .imports = imports, .exports = m.exports,
+        .impl_table = impls, .vtables = vts,
+    }
+}
+
+remap_one :: fn(remap: i32[], idx: i32) -> i32 {
+    if idx < 0 || usize(idx) >= remap.len() {
+        return idx
+    }
+    return remap[usize(idx)]
+}
+
+remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
+    pts: i32[]! = []
+    for pt in sig.param_types {
+        pts.push(remap_one(remap, pt))
+    }
+    return BcSignature {
+        .params = sig.params, .result = sig.result, .param_types = pts,
+        .result_type = remap_one(remap, sig.result_type), .param_names = sig.param_names,
+    }
+}
+
+remap_type :: fn(t: BcType, remap: i32[]) -> BcType {
+    if t is BcStruct as s {
+        fields: BcField[]! = []
+        for f in s.fields {
+            fields.push(BcField { .name = f.name, .type_index = remap_one(remap, f.type_index) })
+        }
+        return BcStruct { .name = s.name, .fields = fields, .symbol_id = s.symbol_id }
+    }
+    if t is BcArray as a {
+        return BcArray { .element = remap_one(remap, a.element) }
+    }
+    if t is BcUnion as u {
+        vs: i32[]! = []
+        for v in u.variants {
+            vs.push(remap_one(remap, v))
+        }
+        return BcUnion { .variants = vs }
+    }
+    if t is BcFn as f {
+        ps: i32[]! = []
+        for p in f.params {
+            ps.push(remap_one(remap, p))
+        }
+        return BcFn { .params = ps, .return_type = remap_one(remap, f.return_type) }
+    }
+    return t
+}
+
+// A slot this module has no type for. It exists only so the indices line up —
+// nothing in THIS module reaches it, since a reference to it would be a
+// reference to a type the module does not contain. An opaque ref carries no
+// layout claim, which is the safe thing for a slot that must never be read.
+//
+// Named after its key so a `.virt` dump of a rebased module says WHY the slot
+// is there rather than showing an anonymous `ref`.
+placeholder_for :: fn(key: string) -> BcType = BcRef { .trait_name = "\u{0}unused:${key}" }
