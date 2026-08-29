@@ -376,6 +376,12 @@ emit_c_for_targets :: fn(
         mods.push(b)
     }
     universe :: union_of_string_pools(mods)
+    // The type table needs the same treatment as the atom table, and for the
+    // same reason: it is index-addressed, so one extra type on one target shifts
+    // every slot after it. Measured without this, from a single lambda in a
+    // `@target` body: 11 282 renumbered lines against 238 of real content, and
+    // shared units fell from 37 to 7.
+    type_universe :: union_of_type_tables(modules_of(mods))
     // ONE header name for every target. It holds the struct typedefs, the
     // prototypes and the atom count — all identical once the universe is shared
     // — so per-target copies would differ in nothing but their own `#include`
@@ -386,7 +392,7 @@ emit_c_for_targets :: fn(
     for i in 0..<targets.len() {
         progs.push(
             emit_c_split(
-                mods[i].module,
+                rebase_types(mods[i].module, type_universe),
                 CEmitOptions {
                     .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
                 },
@@ -499,6 +505,14 @@ parse_target_list :: fn(spec: string) -> Target[] {
     }
     if out.len() == 0 {
         eprintln("vader build --seed-targets: no target named")
+    }
+    return out
+}
+
+modules_of :: fn(mods: CfgBytecode[]) -> BytecodeModule[] {
+    out: BytecodeModule[]! = []
+    for m in mods {
+        out.push(m.module)
     }
     return out
 }

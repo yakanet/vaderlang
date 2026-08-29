@@ -37,7 +37,7 @@ VADER=./build/vader ./bootstrap/seed.sh check --full --quiet >/dev/null
 seed_verdict=$?
 set -e
 if [ "$seed_verdict" != 0 ]; then
-  echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run bootstrap/seed.sh regenerate" >&2
+  echo "STALE SEED — bootstrap/seed/ no longer matches bootstrap.vader; run bootstrap/seed.sh regenerate" >&2
   exit 1
 fi
 

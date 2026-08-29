@@ -391,7 +391,7 @@ remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
 
 /// The type-bearing op variants. Returns -1 when the op carries no
 /// type index.
-type_index_of :: fn(op: Op) -> i32 {
+export type_index_of :: fn(op: Op) -> i32 {
     if op is StructNew as s    { return s.type_id }
     if op is StructGet as s    { return s.type_id }
     if op is StructSet as s    { return s.type_id }
@@ -436,7 +436,9 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>!) -> void
 
 /// Rewrite the type_id field of every type-bearing op. Returns the
 /// op as-is when it carries no type-id reference.
-remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
+/// Rewrite an op's type-index operand through `remap`. Exported for the
+/// multi-target retype, which needs the same rewrite over a whole module.
+export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
     if op is StructNew as s    { return StructNew    { .type_id = remap_idx(remap, s.type_id), .stack = s.stack } }
     if op is StructGet as s    { return StructGet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
     if op is StructSet as s    { return StructSet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index, .stack = s.stack } }

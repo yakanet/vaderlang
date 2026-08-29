@@ -20,6 +20,8 @@
 /// pipeline.
 module "vader/bytecode"
 
+import "std/string"
+
 export ValType :: enum(u8) {
     // Signed integers
     I8, I16, I32, I64, Isize,
@@ -667,4 +669,56 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
     .Void -> ArrayKind.Boxed
     .Ref -> ArrayKind.Ref
     .Any -> ArrayKind.Boxed
+}
+
+// ---- canonical keys -------------------------------------------------------
+
+/// A structural key for the type at `idx`, independent of its POSITION in the
+/// table.
+///
+/// `BytecodeModule.types` is index-addressed and the entries reference each
+/// other by index, so two targets that compile the same program can hold the
+/// same type at different slots. Emitting several targets against one table
+/// needs a name for a type that does not move — this is it.
+///
+/// A struct keys by NAME, not by its fields: the name is already unique
+/// post-monomorphisation, and descending into fields would not terminate on a
+/// recursive struct. Everything else keys structurally, which terminates
+/// because every path ends at a primitive, a ref or a struct.
+///
+/// @param types  the module's type table.
+/// @param idx    the slot to name; out of range yields `"?"`.
+/// @return       a key equal for equal types across modules.
+export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
+    if idx < 0 || usize(idx) >= types.len() {
+        return "?"
+    }
+    t :: types[usize(idx)]
+    if t is BcPrimitive as p {
+        return "p:${i32(p.val)}"
+    }
+    if t is BcStruct as s {
+        return "s:${s.name}"
+    }
+    if t is BcRef as r {
+        return "r:${r.trait_name}"
+    }
+    if t is BcArray as a {
+        return "a:<${bc_type_key(types, a.element)}>"
+    }
+    if t is BcUnion as u {
+        parts: string[]! = []
+        for v in u.variants {
+            parts.push(bc_type_key(types, v))
+        }
+        return "u:<${parts.join("|")}>"
+    }
+    if t is BcFn as f {
+        parts: string[]! = []
+        for p in f.params {
+            parts.push(bc_type_key(types, p))
+        }
+        return "f:(${parts.join("|")})->${bc_type_key(types, f.return_type)}"
+    }
+    return "?"
 }

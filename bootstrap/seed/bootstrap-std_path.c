@@ -72,10 +72,10 @@ vader_string_t std_path_to_posix(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___lambda_env_316_t* _a0_obj = (vader_struct___lambda_env_316_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_316_t));
-    vader_obj_header_init(_a0_obj, 183u);
+    vader_obj_header_init(_a0_obj, 260u);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 178u);
+    vader_obj_header_init(_a1_closure, 135u);
     _a1_closure->code = (void*) &vader_fn_lift_225;
     _a1_closure->env = t0;
     l1 = (void*) _a1_closure;
