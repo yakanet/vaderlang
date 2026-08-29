@@ -1545,13 +1545,17 @@ test("lsp: goto-def reaches a method on a built-in receiver", async () => {
     { method: "textDocument/definition", position: { line: 5, character: 19 } },
   ]);
 
-  for (const r of results) {
+  // `std/core`'s array trait, wherever the stdlib is rooted — the assertion is
+  // that it LANDED, not where the stdlib happens to live on this machine. The
+  // file NAME is compared rather than `endsWith` on the uri, and both queries at
+  // once, because `expect(uri.endsWith(...)).toBe(true)` throws the value away:
+  // a miss printed `false` and nothing else, so a CI-only failure said which
+  // assertion broke but never which file answered instead.
+  const landed = results.map((r) => {
     const loc = r.result as { uri: string } | null;
-    expect(loc).not.toBeNull();
-    // `std/core`'s array trait, wherever the stdlib is rooted — the assertion is
-    // that it LANDED, not where the stdlib happens to live on this machine.
-    expect(loc!.uri.endsWith("array.vader")).toBe(true);
-  }
+    return loc === null ? "(no answer)" : loc.uri.split("/").pop();
+  });
+  expect(landed).toEqual(["array.vader", "array.vader"]);
 });
 
 // Ctrl+click on a STRUCT FIELD. Only the struct's own name was indexed, so
