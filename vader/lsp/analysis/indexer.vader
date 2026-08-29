@@ -41,6 +41,10 @@ export DeclKind :: enum(u8) {
     Trait,
     TypeAlias,
     Const,
+    /// A struct field. Indexed so `img.pixels` has something to jump to — the
+    /// struct's own name was the only thing recorded, so a field access resolved
+    /// to nothing at all.
+    Field,
     // Intra-file bindings — visible only within `scope_span`.
     Param,
     Local,
@@ -311,6 +315,35 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
     return null
 }
 
+/// Find a METHOD by name — a fn declared inside a `trait` or an `implements`
+/// block.
+///
+/// Such a member is recorded by `top_entry` like any top-level fn (its
+/// `scope_span` is null, and `exported` is false because the visibility belongs
+/// to the enclosing trait). That is exactly why the cross-file resolver missed
+/// it: its wildcard lookup restricts to EXPORTED top-level decls, and a member
+/// never is one.
+///
+/// Struct FIELDS match too — `e.cond` is the same question as `e.len()`, and
+/// both are what sits after a dot. The kind filter is what keeps this from
+/// being a second `find_toplevel`: a name that denotes a struct, an enum or a
+/// const must not be offered as the target of `x.name`.
+///
+/// @param idx   the document index to search.
+/// @param name  the member name, as written after the dot.
+/// @return      the first matching fn or field, or null.
+export find_member :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
+    for d in idx.decls {
+        if d.kind != .Fn && d.kind != .Field {
+            continue
+        }
+        if d.name == name {
+            return d
+        }
+    }
+    return null
+}
+
 /// Find the import entry whose local name matches. Returns null on miss.
 export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
     for i in idx.imports {
@@ -342,6 +375,17 @@ collect_decl :: fn(
         }
         is StructDecl as s -> {
             entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, s.visibility == .Public, source, cmap))
+            // Fields too, for the same reason trait members are indexed just
+            // below: `img.pixels` is a reference to one, and without an entry
+            // goto-def has nothing to land on. Recorded at top level (no
+            // `scope_span`) — a field is reachable through any value of the
+            // struct, not only inside its declaration.
+            // `f.span` twice: `StructField` records no separate name span, so
+            // the jump lands on the field's line and the highlight covers the
+            // whole declaration rather than just the name.
+            for f in s.fields {
+                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap))
+            }
         }
         is EnumDecl as e -> {
             entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, e.visibility == .Public, source, cmap))

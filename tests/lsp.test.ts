@@ -1447,3 +1447,70 @@ test("lsp: references stay in the file the cursor is in", async () => {
     new Set(["lsp-test.vader"]),
   );
 });
+
+// Ctrl+click on a method of a BUILT-IN receiver. Measured dead before this:
+// `xs.push(1)`, `xs.len()`, `out.push_all(hb)` all returned no definition — the
+// form most of this tree is written in (CLAUDE §6 counts ~3000 container calls
+// in method form against zero bare).
+//
+// Two things had to be true and neither was. The cross-file resolver only ever
+// looked for TOP-LEVEL decls, and its wildcard pass restricted to EXPORTED ones
+// — but a trait member is recorded as top-level and NOT exported, since the
+// visibility belongs to the enclosing trait. And nothing imports `std/core`: it
+// is the prelude, so no import table leads to the place these declarations live.
+const BUILTIN_METHOD_SOURCE = `module "lsptest"
+
+main :: fn() -> i32 {
+    xs: i32[]! = []
+    xs.push(1)
+    return i32(xs.len())
+}
+`;
+
+test("lsp: goto-def reaches a method on a built-in receiver", async () => {
+  const results = await driveLsp(BUILTIN_METHOD_SOURCE, [
+    { method: "textDocument/definition", position: { line: 4, character: 8 } },
+    { method: "textDocument/definition", position: { line: 5, character: 19 } },
+  ]);
+
+  for (const r of results) {
+    const loc = r.result as { uri: string } | { targetUri: string }[] | null;
+    expect(loc).not.toBeNull();
+    // `std/core`'s array trait, wherever the stdlib is rooted — the assertion is
+    // that it LANDED, not where the stdlib happens to live on this machine.
+    const uri = Array.isArray(loc)
+      ? (loc[0] as { targetUri: string }).targetUri
+      : (loc as { uri: string }).uri;
+    expect(uri.endsWith("array.vader")).toBe(true);
+  }
+});
+
+// Ctrl+click on a STRUCT FIELD. Only the struct's own name was indexed, so
+// `img.pixels` resolved to nothing — the second half of the same omission that
+// left methods unreachable: a `FieldExpr` contributes its target and drops the
+// name after the dot, whether that name is a method or a field.
+const STRUCT_FIELD_SOURCE = `module "lsptest"
+
+Image :: struct {
+    width:  i32
+    pixels: i32[]
+}
+
+area :: fn(img: Image) -> i32 = img.width * i32(img.pixels.len())
+`;
+
+test("lsp: goto-def reaches a struct field", async () => {
+  const results = await driveLsp(STRUCT_FIELD_SOURCE, [
+    // `img.pixels` on the last line — the field, not the struct.
+    { method: "textDocument/definition", position: { line: 7, character: 54 } },
+  ]);
+
+  const loc = results[0]!.result as { targetSelectionRange?: { start: { line: number } } }[]
+    | { range: { start: { line: number } } } | null;
+  expect(loc).not.toBeNull();
+  const startLine = Array.isArray(loc)
+    ? loc[0]!.targetSelectionRange!.start.line
+    : (loc as { range: { start: { line: number } } }).range.start.line;
+  // `pixels` is declared on line 5 (0-based 4).
+  expect(startLine).toBe(4);
+});

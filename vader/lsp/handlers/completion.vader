@@ -675,6 +675,7 @@ ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
     .Trait     -> .Interface
     .TypeAlias -> .Class
     .Const     -> .Constant
+    .Field     -> .Field
     .Param     -> .Variable
     .Local     -> .Variable
     .ForIn     -> .Variable

@@ -53,6 +53,7 @@ lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
     .Trait     -> 11   // Interface
     .TypeAlias -> 5    // Class
     .Const     -> 14   // Constant
+    .Field     -> 8    // Field
     .Param     -> 13   // Variable
     .Local     -> 13   // Variable
     .ForIn     -> 13   // Variable
