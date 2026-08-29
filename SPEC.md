@@ -3578,7 +3578,7 @@ emitter, which is post-MVP.
 
 The fixed point has been reached: the Vader-built compiler reproduces its own
 generated C **byte-for-byte** (`stage1.c == stage2.c`), and a committed C seed
-(`bootstrap/bootstrap.c`) lets any machine with a C
+(`bootstrap/seed/`) lets any machine with a C
 compiler rebuild the entire toolchain from source with no Bun or TypeScript in
 the cold-start path — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md). CI rebuilds
 from the seed on every push.

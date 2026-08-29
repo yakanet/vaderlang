@@ -105,8 +105,20 @@ cmd_build :: fn(args: string[]) -> i32 {
         if parsed_target is Target as t { build_target = t }
     }
 
+    // Read before the `--emit` branch so a seed request that cannot be honoured
+    // is NAMED. Under the default `--emit=executable` it used to be dropped in
+    // silence, and the build handed back one ordinary host binary.
+    seed_flag :: parsed.string_flag("seed-targets", "")
+    if seed_flag != "" && emit != "c" {
+        eprintln("vader build: `--seed-targets` emits C for several targets — it needs `--emit=c`")
+        return 2
+    }
+    if seed_flag != "" && target_flag != "" {
+        eprintln("vader build: `--seed-targets` carries its own target list — drop `--target=${target_flag}`")
+        return 2
+    }
+
     if emit == "c" {
-        seed_flag :: parsed.string_flag("seed-targets", "")
         if seed_flag != "" {
             ts :: parse_target_list(seed_flag)
             if ts.len() == 0 {
@@ -367,10 +379,17 @@ keys_of_each :: fn(mods: BytecodeModule[]) -> string[][] {
 /// The union is SORTED rather than first-seen: the ids must not depend on the
 /// order the targets were listed in.
 ///
-/// @param file    the entry source.
-/// @param targets the targets to emit for, at least one.
-/// @param out     output stem; each target writes `<out>.<os>-<arch>.split.*`.
-/// @return        0 on success, 1 when any target fails to build.
+/// @param file                the entry source.
+/// @param out                 output stem. Units every target agreed on are
+///                            written once as `<out>-<module>.c`; the ones that
+///                            differ go to `<out>.<os>-<arch>-<module>.c`,
+///                            beside the shared `<out>.split.h` / `.split.g.c`.
+/// @param release             build at `-O3`; threaded through to each target's
+///                            front end, since it changes the bytecode.
+/// @param include_path_flags  `-I`-style module roots, as passed on the command
+///                            line — the same set for every target.
+/// @param targets             the targets to emit for, at least one.
+/// @return                    0 on success, 1 when any target fails to build.
 emit_c_for_targets :: fn(
     file: Path, out: Path, release: bool, include_path_flags: string[], targets: Target[],
 ) -> i32 {
@@ -440,6 +459,17 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             return 1
         }
     }
+    // The units all `#include` ONE header, so a per-target header has nowhere to
+    // go — unlike the globals and the units below, which fall back to per-target
+    // files. The header carries per-target material (the forward decls driven by
+    // `internal_fn_flags`, the trampoline / lift / import prototypes), so taking
+    // target 0's on faith would compile the others against declarations that are
+    // not theirs, and surface as a link error far from here.
+    if !all_equal(headers_of(progs)) {
+        eprintln("vader build --seed-targets: the targets emitted different headers, "
+            + "which the seed's one shared header cannot carry")
+        return 1
+    }
     if write_out("${out}.split.h".to_path(), first.header) != 0 {
         return 1
     }
@@ -479,6 +509,14 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     }
     return 0
+}
+
+headers_of :: fn(progs: CProgram[]) -> string[] {
+    out: string[]! = []
+    for pr in progs {
+        out.push(pr.header)
+    }
+    return out
 }
 
 globals_of :: fn(progs: CProgram[]) -> string[] {

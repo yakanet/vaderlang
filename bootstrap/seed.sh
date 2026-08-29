@@ -52,7 +52,7 @@ SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 # with one `@target` in the closure, nothing at all today), and a seed that
 # covers a platform before the platform ships is what keeps `seed.sh check`
 # reproducible from any machine.
-SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,wasi-wasm32,browser-wasm32"
+SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,windows-arm64,wasi-wasm32,browser-wasm32"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
@@ -235,7 +235,7 @@ regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER
 META
 
-    shared=$(ls bootstrap/seed/bootstrap.split.*.c 2>/dev/null | wc -l | tr -d ' ')
+    shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null | wc -l | tr -d ' ')
     per_target=$(ls bootstrap/seed/ | grep -cE '\.(darwin|linux|windows|wasi|browser)-' || true)
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
