@@ -57,6 +57,16 @@ export EmitOptions :: struct {
     release: bool
     entry_mangled: string
     split: bool = false
+    /// String literals the atom table must cover, in the order that fixes their
+    /// ids. Empty (the default) means "this module's own pool", which is the
+    /// behaviour every caller had.
+    ///
+    /// It exists for the seed. Atom ids are POSITIONS, so a literal present only
+    /// on one target shifts every id after it — measured across a darwin/windows
+    /// pair: 7028 of 7030 differing lines were renumberings, and 2 were real.
+    /// Emitting every target against one universe makes the ids agree, so the C
+    /// then differs only where the code does.
+    atom_universe: string[] = []
 }
 
 /// Default options : debug build, `#line` directives ON, entry resolved by
@@ -81,6 +91,9 @@ export EmitCtx :: struct {
     /// other literal → a contiguous id `1..M`. `string.const` inlines
     /// the id at its use site. Computed by `new_ctx`.
     atom_ids: i32[]
+    /// The literals the emitted table holds, in id order (id k is at index
+    /// k - 1). The module's own non-empty literals, or `opts.atom_universe`.
+    atom_table: string[]
     /// BcType index of the `null` primitive (`0` when absent). Tags the
     /// boxed null literal. Cached so per-op const emit stays a field read.
     null_tag: i32
@@ -100,7 +113,7 @@ export EmitCtx :: struct {
     split: bool
 }
 
-new_ctx :: fn(m: BytecodeModule, release: bool, split: bool) -> EmitCtx {
+new_ctx :: fn(m: BytecodeModule, release: bool, split: bool, universe: string[] = []) -> EmitCtx {
     names: string[]! = []
     for i in 0..<m.types.len() {
         match m.types[i] {
@@ -112,7 +125,8 @@ new_ctx :: fn(m: BytecodeModule, release: bool, split: bool) -> EmitCtx {
     return EmitCtx {
         .module = m,
         .struct_c_names = names,
-        .atom_ids = compute_atom_ids(m.strings),
+        .atom_ids = compute_atom_ids(m.strings, universe),
+        .atom_table = atom_table_of(m.strings, universe),
         .null_tag = null_primitive_tag(m.types),
         .string_tag = string_tag,
         .string_array_tag = string_array_tag(m.types, string_tag),
@@ -138,18 +152,76 @@ linkage_prefix :: fn(split: bool) -> string = if split { "" } else { "static " }
 ///
 /// @param strings  the bytecode string-literal pool.
 /// @return         atom ids parallel to `strings`.
-compute_atom_ids :: fn(strings: string[]) -> i32[] {
+compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
+    if universe.len() == 0 {
+        ids: i32[]! = []
+        next_id: i32 = 1
+        for i in 0..<strings.len() {
+            if strings[i] == "" {
+                ids.push(0)
+            } else {
+                ids.push(next_id)
+                next_id += 1
+            }
+        }
+        return ids
+    }
+    // Position in the UNIVERSE, so two targets that share it agree on every id.
+    // A literal the universe does not carry is a build-order bug rather than a
+    // recoverable case — it would silently alias another atom — so it takes 0
+    // (the empty atom) and `atom_universe_covers` is what a caller checks.
+    index :: MutableMap<string, i32> {}
+    for i in 0..<universe.len() {
+        if index[universe[i]] == null {
+            index[universe[i]] = i32(i) + 1
+        }
+    }
     ids: i32[]! = []
-    next_id: i32 = 1
     for i in 0..<strings.len() {
         if strings[i] == "" {
             ids.push(0)
         } else {
-            ids.push(next_id)
-            next_id += 1
+            ids.push(index[strings[i]] ?? 0)
         }
     }
     return ids
+}
+
+// The literals the table holds, in id order: the universe when one is given,
+// otherwise this module's own non-empty literals in pool order.
+atom_table_of :: fn(strings: string[], universe: string[]) -> string[] {
+    if universe.len() != 0 {
+        return universe
+    }
+    out: string[]! = []
+    for i in 0..<strings.len() {
+        if strings[i] != "" {
+            out.push(strings[i])
+        }
+    }
+    return out
+}
+
+/// Every non-empty literal of `strings` that `universe` does not carry.
+///
+/// The seed's build order must union the pools BEFORE emitting; this is what
+/// turns a mistake there into a named failure rather than a silent atom alias.
+///
+/// @param strings   a module's literal pool.
+/// @param universe  the shared atom universe.
+/// @return          the uncovered literals, empty when the universe is complete.
+export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string[] {
+    have :: MutableSet<string> {}
+    for u in universe {
+        have.add(u)
+    }
+    out: string[]! = []
+    for s in strings {
+        if s != "" && !have.contains(s) {
+            out.push(s)
+        }
+    }
+    return out
 }
 
 /// Top-level entry — produces the C source for a `BytecodeModule`.
@@ -159,7 +231,7 @@ compute_atom_ids :: fn(strings: string[]) -> i32[] {
 /// @param opts  emit-time switches (see `EmitOptions`).
 /// @return      a fresh string containing the generated C source.
 export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string {
-    ctx :: new_ctx(m, opts.release, opts.split)
+    ctx :: new_ctx(m, opts.release, opts.split, opts.atom_universe)
     out :: StringBuilder {}
 
     out.append("/* Generated by vader — do not edit. */\n")
@@ -242,18 +314,16 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// is referenced by its bare `ctx.atom_ids[i]` at each use site.
 emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     out.append("/* Compile-time atom table — see docs/ATOM_INTERNING.md. */\n")
-    strings :: ctx.module.strings
-
-    // Blob + entry table for the non-empty literals, in id order (a
-    // literal with atom id k lands at index k-1). Empty literals carry
-    // no atom — they alias VADER_ATOM_EMPTY (0) at their use sites.
+    // `ctx.atom_table` is already in id order (id k at index k-1) — the
+    // module's own non-empty literals, or the shared universe when one was
+    // given. Empty literals carry no atom; they alias VADER_ATOM_EMPTY (0).
     blob_lines: string[]! = []
     offsets: i32[]! = []
     lens: i32[]! = []
     offset: i32 = 0
-    for i in 0..<strings.len() {
-        if ctx.atom_ids[i] != 0 {
-            s :: strings[i]
+    for i in 0..<ctx.atom_table.len() {
+        {
+            s :: ctx.atom_table[i]
             byte_len :: i32(s.bytes().len())
             blob_lines.push("    ${c_string_lit(s)} \"\\0\"")
             offsets.push(offset)
