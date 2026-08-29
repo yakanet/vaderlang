@@ -29,6 +29,10 @@ coverage/
 # alongside as `bench/<name>/<name>` (Vader binary), `.c` (transient C),
 # `<name>_go` (Go binary) and `<name>.class` (Java, incl. nested `$X.class`).
 bench/*/*.c
+# A driven build writes its C beside the fixture when `--out` names the fixture
+# directory ; one such file (14 MB) reached main before this rule existed.
+tests/hook_fixtures/*.c
+tests/hook_fixtures/*/build/
 bench/*/*.o
 bench/*/*.h
 bench/*/*_go
