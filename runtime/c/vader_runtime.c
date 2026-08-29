@@ -785,7 +785,7 @@ void vader_atom_shutdown(void) {
     free(vader_atom_entries);
     free(g_atoms.buckets);
     free(g_atoms.free_list);
-    vader_atom_entries         = NULL;
+    vader_atom_entries      = NULL;
     g_atoms.buckets         = NULL;
     g_atoms.free_list       = NULL;
     g_atoms.count           = 0;

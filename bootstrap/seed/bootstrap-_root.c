@@ -492,7 +492,7 @@ bool __lambda_3722(void* l0, vader_box_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_4153(void* l0, vader_string_t l1, vader_string_t l2) {
+bool __lambda_4148(void* l0, vader_string_t l1, vader_string_t l2) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -502,7 +502,7 @@ bool __lambda_4153(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_5231(void* l0, vader_string_t l1, vader_string_t l2) {
+bool __lambda_5229(void* l0, vader_string_t l1, vader_string_t l2) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -512,7 +512,7 @@ bool __lambda_5231(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_5810(void* l0, uint32_t l1) {
+bool __lambda_5808(void* l0, uint32_t l1) {
     return l1 == 95u;
 }
 

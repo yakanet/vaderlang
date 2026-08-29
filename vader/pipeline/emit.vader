@@ -40,6 +40,68 @@ export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 export cc_opt_flags :: fn(release: bool) -> string[] =
     if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
 
+/// Which C toolchain `cc` is, since the two that matter spell link-time
+/// optimisation differently.
+export CcFlavour :: enum(u8) {
+    /// clang / LLVM — ThinLTO.
+    Clang
+    /// GCC, including a MinGW toolchain — `-flto=auto`.
+    Gcc
+    /// Anything else, or a probe that failed. No LTO: an unrecognised compiler
+    /// gets the plain split, which is correct everywhere, just not as fast.
+    Unknown
+}
+
+/// LLVM's ceiling, in IR instructions, on a callee ThinLTO will import across
+/// units. Its default is 100, which leaves out the container operations a split
+/// build most wants inlined. Past this value the bench readings stop improving
+/// monotonically — tuning it further would be fitting noise.
+///
+/// LLVM's knob, in LLVM's units, per callee — not a program-size threshold. It
+/// behaves the same for a 20-function program and for the compiler.
+THIN_LTO_IMPORT_LIMIT :: "300"
+
+/// Link-time-optimisation flags for one `cc` invocation, or none.
+///
+/// Splitting into one TU per module is what makes the compiles parallel, and it
+/// is also what stops `cc` inlining across the cut. LTO gives that back without
+/// giving up the parallelism: the per-unit compiles stay parallel, and the
+/// cross-unit work happens after — clang imports from summaries at the thin
+/// link, GCC partitions and runs LTRANS across cores.
+///
+/// RELEASE ONLY, and that is not incidental: a debug build wants `-O0 -g` and a
+/// fast turnaround, and the link stage of LTO optimises whatever it is given
+/// regardless of how the objects were compiled. Wiring it unconditionally made a
+/// debug `--split` build link at `-O3`, silently costing steppability — the very
+/// drift the note below exists to prevent, on a flag family it did not yet cover.
+///
+/// @param flavour  the toolchain family.
+/// @param release  false disables LTO entirely.
+/// @param linking  true for the link step, which carries the extra knobs.
+/// @return         flags to append, empty when LTO does not apply.
+export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> string[] {
+    if !release {
+        return []
+    }
+    // `-O3` on the LINK line is what drives the LTO backend: the objects hold
+    // bitcode, and the optimisation that matters happens here. Without it the
+    // backend runs at -O0 and a release build ships unoptimised code. Safe to
+    // state unconditionally because this whole function is release-only.
+    if flavour == .Clang {
+        if linking {
+            return ["-flto=thin", "-O3", "-Wl,-mllvm,-import-instr-limit=${THIN_LTO_IMPORT_LIMIT}"]
+        }
+        return ["-flto=thin"]
+    }
+    if flavour == .Gcc {
+        if linking {
+            return ["-flto=auto", "-O3"]
+        }
+        return ["-flto=auto"]
+    }
+    return []
+}
+
 // Compiler + `-std=c11` + optimisation flags — the single source of truth for
 // codegen policy across the mono (`cc_argv`) and split (`cc_compile_argv`)
 // builds, so they can't silently drift. `-falign-functions=64` keeps a hot

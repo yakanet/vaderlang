@@ -5058,7 +5058,7 @@ static vader_string_t vader_comptime_render_struct(void* l0) {
     std_string_builder_append(l1, l2);
     std_string_builder_append(l1, 158u);
     l3 = std_collections_keys__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue(((vader_struct_vader_comptime_StructValue_t*) l0)->f_fields);
-    vader_struct___lambda_env_5232_t* _a2_obj = (vader_struct___lambda_env_5232_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5232_t));
+    vader_struct___lambda_env_5230_t* _a2_obj = (vader_struct___lambda_env_5230_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5230_t));
     vader_obj_header_init(_a2_obj, 265u);
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));

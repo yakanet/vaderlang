@@ -53,6 +53,12 @@ export CProgram :: struct {
 /// with a module stem, which is always a sanitised identifier.
 export GLUE_UNIT :: "_glue"
 
+/// Unit name for a per-target globals file. The shared one keeps its own
+/// `<stem>.split.g.c` spelling, which the build scripts glob by name; a
+/// per-target one has to look like every other per-target unit so the
+/// `<stem>.<target>-*.c` glob picks it up.
+export GLOBALS_UNIT :: "_globals"
+
 /// Emit `m` as a header + globals TU + one function TU per Vader module.
 ///
 /// Reuses the monolithic section emitters, routing the type / declaration half
@@ -347,13 +353,11 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
 // module stem is empty or equal to the decl name — those land together under
 // `""`, which is one more module rather than a special case.
 module_stem_of :: fn(name: string) -> string {
-    bytes :: name.bytes()
-    for i in 0..<bytes.len() {
-        if bytes[i] == '$' {
-            return bytes[0..<i].bytes_to_string()
-        }
+    at :: name.index_of('$', 0)
+    if at < 0 {
+        return ""
     }
-    return ""
+    return name.bytes()[0..<usize(at)].bytes_to_string()
 }
 
 /// Fn indices sorted by mangled name — the deterministic visit order.

@@ -3964,30 +3964,30 @@ static vader_box_t vader_midir_closure_header_type(vader_box_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
-    void* t0 = NULL;
+    void* l4 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l3, &t0 };
+    void** gc_raw_roots[4] = { &l1, &l2, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0.tag == 922u) {
-        t0 = l0.payload.obj;
-        { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
+        l1 = l0.payload.obj;
+    } else {
+        vader_array_t* _a0_arr = vader_array_new(128u, 0u, 13u, 1180u);
+        l2 = (void*) _a0_arr;
+        vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 159u);
+        l3 = (void*) _a1_arr;
+        vader_struct_vader_types_PrimitiveType_t* _a2_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
+        vader_obj_header_init(_a2_obj, 928u);
+        _a2_obj->f_name = 2303u;
+        l4 = (void*) _a2_obj;
+        vader_struct_vader_types_FnType_t* _a3_obj = (vader_struct_vader_types_FnType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_FnType_t));
+        vader_obj_header_init(_a3_obj, 922u);
+        _a3_obj->f_params = l2;
+        _a3_obj->f_params_mutable = l3;
+        _a3_obj->f_return_type = vader_ref_box(l4);
+        l1 = (void*) _a3_obj;
     }
-    vader_array_t* _a0_arr = vader_array_new(128u, 0u, 13u, 1180u);
-    l1 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 159u);
-    l2 = (void*) _a1_arr;
-    vader_struct_vader_types_PrimitiveType_t* _a2_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
-    vader_obj_header_init(_a2_obj, 928u);
-    _a2_obj->f_name = 2303u;
-    l3 = (void*) _a2_obj;
-    vader_struct_vader_types_FnType_t* _a3_obj = (vader_struct_vader_types_FnType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_FnType_t));
-    vader_obj_header_init(_a3_obj, 922u);
-    _a3_obj->f_params = l1;
-    _a3_obj->f_params_mutable = l2;
-    _a3_obj->f_return_type = vader_ref_box(l3);
-    t0 = (void*) _a3_obj;
-    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_ref_box(l1); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

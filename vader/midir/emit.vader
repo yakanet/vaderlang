@@ -849,13 +849,8 @@ cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> Bl
 ///
 /// @param t  the closure's static type.
 /// @return   `t` when it is an `FnType`, else a nullary `fn() -> void`.
-closure_header_type :: fn(t: Type) -> Type {
-    if t is FnType {
-        return t
-    }
-    fallback :: FnType { .params = [], .return_type = TY_VOID }
-    return fallback
-}
+closure_header_type :: fn(t: Type) -> Type =
+    if t is FnType { t } else { FnType { .params = [], .return_type = TY_VOID } }
 
 // ============================================================================
 // Per-instr emit — covers the full `Instruction` set
