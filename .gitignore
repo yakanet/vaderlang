@@ -29,6 +29,8 @@ coverage/
 # alongside as `bench/<name>/<name>` (Vader binary), `.c` (transient C),
 # `<name>_go` (Go binary) and `<name>.class` (Java, incl. nested `$X.class`).
 bench/*/*.c
+bench/*/*.o
+bench/*/*.h
 bench/*/*_go
 bench/*/*.class
 bench/binary_trees/binary_trees
