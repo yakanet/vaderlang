@@ -14,7 +14,8 @@ type 11 struct std_core$Buffer {  }
 type 12 primitive u8
 type 13 struct $Cell_string { value:1 }
 type 14 struct $Cell_i64 { value:2 }
-type 15 struct "$Cell_Struct#tests/snippets/defer_capture_param/_main.vader:709<>" { value:4 }
+type 15 fn () -> 3
+type 16 struct "$Cell_Struct#tests/snippets/defer_capture_param/_main.vader:709<>" { value:4 }
 string 0 "running "
 string 1 "bumping by "
 string 2 "hello "
@@ -43,7 +44,7 @@ fn 0 snippet$log_at_exit (string,i64) -> void
   local.get 2
   local.get 3
   struct.new 6
-  make_closure 4 8
+  make_closure 4 15
   defer.push
   local.field 2 13 0
   local.set 4
@@ -64,7 +65,7 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local $cell_get_15 i64
   local __block_3 void
   local.get 0
-  struct.new 15
+  struct.new 16
   local.set 2
   local.get 1
   struct.new 14
@@ -72,7 +73,7 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local.get 2
   local.get 3
   struct.new 7
-  make_closure 5 8
+  make_closure 5 15
   defer.push
   i64.const 31
   call 7
@@ -212,10 +213,10 @@ fn 5 __defer_14 (ref) -> void
   local $field_5 i64
   local $cell_get_7 i64
   local.field 0 7 0
-  struct.get 15 0
+  struct.get 16 0
   local.set 1
   local.field 0 7 0
-  struct.get 15 0
+  struct.get 16 0
   struct.get 4 0
   ref.cast 2
   local.set 2

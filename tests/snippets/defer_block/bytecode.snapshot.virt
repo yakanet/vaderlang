@@ -5,7 +5,7 @@ type 2 struct __defer_env_2 {  }
 type 3 primitive void
 type 4 struct __defer_env_5 {  }
 type 5 primitive string
-type 6 ref _
+type 6 fn () -> 3
 string 0 "hi"
 string 1 "nested"
 string 2 "outer cleanup"

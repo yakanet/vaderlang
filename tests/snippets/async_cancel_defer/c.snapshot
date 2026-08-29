@@ -95,7 +95,7 @@ static const uint16_t vader_type_10_refs[] = { offsetof(vader_struct___asyncstat
 static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_fn_t, env) };
 
-const vader_type_info_t vader_type_info_table[16] = {
+const vader_type_info_t vader_type_info_table[15] = {
     [1] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Never_t), NULL, 0, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_2_t), NULL, 0, 0, NULL, 0, NULL },
@@ -105,9 +105,9 @@ const vader_type_info_t vader_type_info_table[16] = {
     [11] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_11_ptrs, 1, 0, NULL, 0, NULL },
     [12] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 16;
+const size_t vader_type_info_count = 15;
 
-const size_t vader_type_size[16] = {
+const size_t vader_type_size[15] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 16u,
@@ -123,7 +123,6 @@ const size_t vader_type_size[16] = {
     [12] = 16u,
     [13] = 16u,
     [14] = 16u,
-    [15] = 16u,
 };
 
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
@@ -347,7 +346,7 @@ static vader_box_t snippet___asyncstate_5_Async_resume(void* l0) {
                     vader_obj_header_init(_a4_obj, 7u);
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a5_closure, 15u);
+                    vader_obj_header_init(_a5_closure, 12u);
                     _a5_closure->code = (void*) &vader_fn_lift_5;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;
@@ -553,7 +552,7 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     vader_obj_header_init(_a4_obj, 9u);
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a5_closure, 15u);
+                    vader_obj_header_init(_a5_closure, 12u);
                     _a5_closure->code = (void*) &vader_fn_lift_8;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;

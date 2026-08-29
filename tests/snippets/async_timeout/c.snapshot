@@ -119,7 +119,7 @@ static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_type_22_ptrs[] = { offsetof(vader_struct_std_async_Timeout__string_t, f_child), offsetof(vader_struct_std_async_Timeout__string_t, f_timer) };
 
-const vader_type_info_t vader_type_info_table[30] = {
+const vader_type_info_t vader_type_info_table[29] = {
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_2_t), NULL, 0, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_5_t), vader_type_5_ptrs, 1, 0, NULL, 1, vader_type_5_refs },
     [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
@@ -131,9 +131,9 @@ const vader_type_info_t vader_type_info_table[30] = {
     [22] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_async_Timeout__string_t), vader_type_22_ptrs, 2, 0, NULL, 0, NULL },
     [26] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_async_Sleep_t), NULL, 0, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 30;
+const size_t vader_type_info_count = 29;
 
-const size_t vader_type_size[30] = {
+const size_t vader_type_size[29] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 4u,
@@ -163,7 +163,6 @@ const size_t vader_type_size[30] = {
     [26] = 16u,
     [27] = 16u,
     [28] = 16u,
-    [29] = 16u,
 };
 
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -347,7 +346,7 @@ static vader_box_t snippet___asyncstate_5_Async_resume(void* l0) {
                     vader_obj_header_init(_a4_obj, 3u);
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a5_closure, 28u);
+                    vader_obj_header_init(_a5_closure, 12u);
                     _a5_closure->code = (void*) &vader_fn_lift_2;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;

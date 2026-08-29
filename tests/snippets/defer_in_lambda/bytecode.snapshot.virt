@@ -13,6 +13,7 @@ type 10 primitive i64
 type 11 primitive u8
 type 12 struct $Cell_string { value:6 }
 type 13 struct $Cell_i32 { value:1 }
+type 14 fn () -> 3
 string 0 "captured-x"
 string 1 "--- now panic case ---"
 string 2 "result="
@@ -80,7 +81,7 @@ end
 
 fn 2 __lambda_1 (ref) -> void
   struct.new 2
-  make_closure 1 7
+  make_closure 1 14
   defer.push
   return
 end

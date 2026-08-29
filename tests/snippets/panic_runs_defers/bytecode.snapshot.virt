@@ -11,7 +11,8 @@ type 8 primitive string
 type 9 primitive i64
 type 10 primitive u8
 type 11 struct $Cell_i32 { value:1 }
-type 12 ref _
+type 12 fn () -> 2
+type 13 ref _
 string 0 "charging "
 string 1 "card declined"
 string 2 "reserve inventory"
@@ -34,7 +35,7 @@ fn 0 snippet$charge (i32) -> void
   struct.new 11
   local.tee 1
   struct.new 3
-  make_closure 3 5
+  make_closure 3 12
   defer.push
   i64.const 29
   call 5
@@ -69,7 +70,7 @@ end
 fn 1 snippet$reserve () -> void
   local __block_1 void
   struct.new 4
-  make_closure 4 5
+  make_closure 4 12
   defer.push
   string.const 2
   call 9
