@@ -370,9 +370,15 @@ library_root_under :: fn(state: ServerState, project_root: string) -> string {
     return default_library_root()
 }
 
-// Drop the last path segment. Returns the input verbatim when no
-// separator is present.
-dirname_path :: fn(p: string) -> string {
+/// Drop the last path segment. Returns the input verbatim when no separator is
+/// present.
+///
+/// Exported for `handlers/definition`, which needs a declaring symbol's FOLDER:
+/// a module is a folder, so an `implements` block may sit in any file of it.
+///
+/// @param p  a `/`-separated path.
+/// @return   everything before the last separator, or `p` unchanged.
+export dirname_path :: fn(p: string) -> string {
     pb :: p.bytes()
     n :: pb.len()
     if n == 0 { return p }
@@ -391,7 +397,9 @@ dirname_path :: fn(p: string) -> string {
 // Simple POSIX-style join. Falls back to bare concatenation if `a` is
 // empty. Doesn't normalise `..` segments — the OS resolves those at
 // read-time.
-path_join :: fn(a: string, b: string) -> string {
+/// Join two path segments with a single `/`. Exported alongside
+/// `dirname_path` for the folder walk in `handlers/definition`.
+export path_join :: fn(a: string, b: string) -> string {
     ab :: a.bytes()
     bb :: b.bytes()
     if ab.len() == 0 { return b }
@@ -419,7 +427,8 @@ export ensure_vader_ext :: fn(p: string) -> string {
 // String helper — `s.ends_with(".vader")`. We avoid the stdlib
 // `ends_with` because the public surface might rename or repackage it ;
 // keeping this inline keeps the resolver standalone.
-ends_with_vader :: fn(s: string) -> bool {
+/// True when `s` names a `.vader` file. Exported for the same folder walk.
+export ends_with_vader :: fn(s: string) -> bool {
     sb :: s.bytes()
     n :: sb.len()
     suffix :: ".vader"

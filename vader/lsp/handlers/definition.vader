@@ -129,7 +129,7 @@ member_by_type :: fn(
     ty :: member_owner_type(sf, cached.result.typed, nm_span, l, c) ?? return null
     sym :: type_symbol(ty) ?? return null
     da :: sym.defined_at ?? return null
-    return member_in_declaring_file(state, da.start.file, sym.name, name)
+    return member_in_declaring_module(state, da.start.file, sym.name, name)
 }
 
 // The type whose declaration owns the member under the cursor: the RECEIVER's
@@ -246,8 +246,47 @@ follows_a_dot :: fn(source: string, offset: usize) -> bool {
     return true
 }
 
-// Index the file that declares `owner` and find its member `name`.
+// Find `owner`'s member `name`, starting at the file that declares `owner` and
+// then across the rest of its FOLDER.
 //
+// The folder, because a module is one (R2022) and an `implements` block does not
+// have to sit beside the struct it targets: with `Alpha` and `Beta` declared in
+// one file and both impls in another, searching only the declaring file
+// answered with the first impl it happened to see. The declaring file is tried
+// first so the common single-file case costs one read.
+member_in_declaring_module :: fn(
+    state: ServerState, path: string, owner: string, name: string,
+) -> ExternalHit | null {
+    here :: member_in_file(state, path, owner, name)
+    if here != null {
+        return here
+    }
+    folder :: dirname_path(path)
+    if folder.bytes().len() == 0 {
+        return null
+    }
+    files_or :: read_dir(folder)
+    match files_or {
+        is IOError -> { return null }
+        is string[] as files -> {
+            for fname in files {
+                if !fname.ends_with_vader() {
+                    continue
+                }
+                full :: path_join(folder, fname)
+                if full == path {
+                    continue
+                }
+                hit :: member_in_file(state, full, owner, name)
+                if hit != null {
+                    return hit
+                }
+            }
+            return null
+        }
+    }
+}
+
 // Reads through `source_for_path` — the OVERLAY first, disk second — and not
 // `read_file_string`. `def_response` encodes the returned span with
 // `line_index_for_path`, which is overlay-backed, so reading the disk here
@@ -255,7 +294,7 @@ follows_a_dot :: fn(source: string, offset: usize) -> bool {
 // case: the first file this path targets is usually the one being edited, and
 // five unsaved lines inserted above a struct sent `o.name` to the wrong
 // declaration entirely.
-member_in_declaring_file :: fn(
+member_in_file :: fn(
     state: ServerState, path: string, owner: string, name: string,
 ) -> ExternalHit | null {
     src :: state.source_for_path(path)
