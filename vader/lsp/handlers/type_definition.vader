@@ -60,7 +60,17 @@ export handle_type_definition :: fn(state: ServerState!, params: JsonValue) -> J
 // is included so jumping to a generic param's introduction site works too. A
 // `T | null`-style union unwraps to its single non-null member — the common
 // nullable case — so the cursor still jumps to `T`'s declaration.
-type_symbol :: fn(t: Type) -> Symbol | null {
+/// The declaring `Symbol` of a named type, or null for one with no single
+/// declaration (primitives, arrays, tuples, a genuine sum type).
+///
+/// Shared with `definition.vader`, which uses it for the other half of the same
+/// question: typeDefinition asks "where is this VALUE's type declared", member
+/// goto-def asks "which type declares this member" — both start by naming the
+/// type's symbol.
+///
+/// @param t  the type to name.
+/// @return   its declaring symbol, or null.
+export type_symbol :: fn(t: Type) -> Symbol | null {
     if t is StructType    as s  { return s.symbol }
     if t is EnumType      as e  { return e.symbol }
     if t is DistinctType  as d  { return d.symbol }

@@ -26,7 +26,7 @@ import "toolchain/span"
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or
 /// `JsonNull` on miss.
-export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     line :: position_line(params)
@@ -44,6 +44,15 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                 origin :: index.span_at(line, character)
                 return def_response(state, origin, uri, loop_target, loop_target, index.line_index)
             }
+            // BEFORE the local index, and that ordering is the point: a
+            // same-file `b.cond` matches the first `cond` entry the document
+            // has, which is another struct's. The type lookup declines unless
+            // the cursor really follows a dot, so ordinary names are untouched.
+            by_type :: member_by_type(state, uri, index, line, character)
+            if by_type != null {
+                origin_m :: index.span_at(line, character)
+                return def_response(state, origin_m, by_type.uri, by_type.target.name_span, by_type.target.full_span, index.line_index)
+            }
             entry :: index.find_at(line, character)
             match entry {
                 is DeclEntry as found  -> {
@@ -51,16 +60,107 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                     return def_response(state, origin, uri, found.name_span, found.full_span, index.line_index)
                 }
                 is null -> {
-                    // Local miss : the name might be imported from
-                    // another file. Walk the import table, parse the
-                    // target module, and surface its decl's location.
                     nm :: index.name_at(line, character)
+                    origin :: index.span_at(line, character)
+                    // By name: imports, siblings, wildcards, and finally any
+                    // member of that name. The typed lookup above already
+                    // declined — the receiver has no declaring symbol (an array,
+                    // a string), so its methods live on a built-in trait with no
+                    // type to key on.
                     ext :: resolve(state, index, nm)
                     if ext == null { return JsonNull {} }
-                    origin :: index.span_at(line, character)
                     return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, index.line_index)
                 }
             }
+        }
+    }
+}
+
+// Resolve `name` as a member of the type it is accessed ON.
+//
+// Two shapes reach here, and both carry their answer in the typed program:
+//
+//   - `recv.name` — the receiver's type names the declaring struct or trait.
+//   - `.Variant`  — the dot-variant's OWN type names the enum, inferred from
+//     whatever slot it sits in.
+//
+// Returns null when the type has no declaring symbol (an array, a string: their
+// methods live on a built-in trait) — the caller then falls back to the
+// name-based search, which is right for exactly those.
+member_by_type :: fn(
+    state: ServerState!, uri: string, index: DocIndex, line: i32, character: i32,
+) -> ExternalHit | null {
+    name :: index.name_at(line, character)
+    if name.bytes().len() == 0 {
+        return null
+    }
+    file_path :: uri_to_path(uri)
+    if file_path.bytes().len() == 0 {
+        return null
+    }
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry] ?? return null
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return null
+    // LSP positions are 0-based ; the AST is 1-based.
+    l :: line + 1
+    c :: character + 1
+
+    // Only a name that FOLLOWS A DOT is a member. Without this the lookup would
+    // fire on every identifier and could answer with a same-named member of
+    // whatever type happens to sit there.
+    nm_span :: index.span_at(line, character) ?? return null
+    if !follows_a_dot(sf.content, nm_span.start.offset) {
+        return null
+    }
+    ty :: member_owner_type(sf, cached.result.typed, nm_span, l, c) ?? return null
+    sym :: type_symbol(ty) ?? return null
+    da :: sym.defined_at ?? return null
+    return member_in_declaring_file(da.start.file, sym.name, name, state.position_encoding)
+}
+
+// The type whose declaration owns the member under the cursor: the RECEIVER's
+// type for `recv.name`, or the expression's own type for a bare `.Variant`.
+member_owner_type :: fn(
+    sf: SourceFile, typed: TypedProgram, nm_span: Span, l: i32, c: i32,
+) -> Type | null {
+    recv :: find_receiver_before_dot(sf.program.decls, l, nm_span.start.column - 1, typed)
+    if recv != null {
+        return typed.expr_types[recv.id]
+    }
+    // No receiver ends at the dot — a leading-dot variant, whose type comes
+    // from its context rather than from anything to its left.
+    e :: find_expr_at(sf.program.decls, l, c, typed) ?? return null
+    return typed.expr_types[e.id]
+}
+
+// Whether the byte before `offset` is a `.`, skipping spaces so `a . b` reads
+// like `a.b`.
+follows_a_dot :: fn(source: string, offset: usize) -> bool {
+    bytes :: source.bytes()
+    i := offset
+    for i > 0 {
+        b :: bytes[i - 1]
+        if b == ' ' || b == '\t' {
+            i = i - 1
+            continue
+        }
+        return b == '.'
+    }
+    return false
+}
+
+// Index the file that declares `owner` and find its member `name`.
+member_in_declaring_file :: fn(
+    path: string, owner: string, name: string, encoding: PositionEncoding,
+) -> ExternalHit | null {
+    src_or :: read_file_string(path)
+    match src_or {
+        is IOError -> { return null }
+        is string as src -> {
+            uri :: path_to_uri(path)
+            sub :: build_index(uri, src, encoding)
+            d :: sub.find_member_of(owner, name) ?? return null
+            return ExternalHit { .uri = uri, .target = d }
         }
     }
 }

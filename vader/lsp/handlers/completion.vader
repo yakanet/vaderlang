@@ -665,6 +665,9 @@ CompletionItemKind :: enum(i32) {
     Keyword   = 14,
     Constant  = 21,
     Struct    = 22,
+    // LSP §3.17 EnumMember. Distinct from `Enum` — one is the type, the other
+    // is a value of it.
+    EnumMember = 20,
 }
 
 // Map an indexer `DeclKind` to its `CompletionItemKind`.
@@ -676,6 +679,7 @@ ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
     .TypeAlias -> .Class
     .Const     -> .Constant
     .Field     -> .Field
+    .EnumVariant -> .EnumMember
     .Param     -> .Variable
     .Local     -> .Variable
     .ForIn     -> .Variable

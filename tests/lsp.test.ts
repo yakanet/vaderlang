@@ -1499,6 +1499,66 @@ Image :: struct {
 area :: fn(img: Image) -> i32 = img.width * i32(img.pixels.len())
 `;
 
+// Two structs declare `cond`. Resolving by NAME lands on whichever comes first,
+// which is a coin flip — and the wrong half of it 250 lines from the right one.
+// The receiver's TYPE is what tells them apart, and the editor already knows it:
+// hovering `form` in a `is WhileFor` arm renders `WhileFor`. Goto-def now uses
+// the same information instead of throwing it away.
+const FIELD_PRECISION_SOURCE = `module "lsptest"
+
+Alpha :: struct { cond: i32 }
+Bravo :: struct { cond: i32 }
+
+read_alpha :: fn(a: Alpha) -> i32 = a.cond
+read_bravo :: fn(b: Bravo) -> i32 = b.cond
+`;
+
+test("lsp: goto-def picks the field of the RECEIVER's type", async () => {
+  const results = await driveLsp(FIELD_PRECISION_SOURCE, [
+    { method: "textDocument/definition", position: { line: 5, character: 38 } },
+    { method: "textDocument/definition", position: { line: 6, character: 38 } },
+  ]);
+
+  const lineOf = (r: unknown) => {
+    const loc = r as { targetSelectionRange?: { start: { line: number } } }[]
+      | { range: { start: { line: number } } };
+    return Array.isArray(loc)
+      ? loc[0]!.targetSelectionRange!.start.line
+      : loc.range.start.line;
+  };
+  // `Alpha.cond` is on line 3 (0-based 2), `Bravo.cond` on line 4 (0-based 3).
+  // Resolving by name alone would answer 2 for BOTH.
+  expect(lineOf(results[0]!.result)).toBe(2);
+  expect(lineOf(results[1]!.result)).toBe(3);
+});
+
+// An enum variant is the third thing that sits after a dot, and it was indexed
+// no more than fields were. `.Two` carries no receiver — its type comes from the
+// slot it is assigned to — so it exercises the other half of the type lookup.
+const ENUM_VARIANT_SOURCE = `module "lsptest"
+
+Choice :: enum(u8) {
+    One,
+    Two,
+}
+
+pick :: fn() -> Choice = .Two
+`;
+
+test("lsp: goto-def reaches an enum variant", async () => {
+  const results = await driveLsp(ENUM_VARIANT_SOURCE, [
+    { method: "textDocument/definition", position: { line: 7, character: 26 } },
+  ]);
+  const loc = results[0]!.result as { targetSelectionRange?: { start: { line: number } } }[]
+    | { range: { start: { line: number } } } | null;
+  expect(loc).not.toBeNull();
+  const startLine = Array.isArray(loc)
+    ? loc[0]!.targetSelectionRange!.start.line
+    : (loc as { range: { start: { line: number } } }).range.start.line;
+  // `Two` is declared on line 5 (0-based 4).
+  expect(startLine).toBe(4);
+});
+
 test("lsp: goto-def reaches a struct field", async () => {
   const results = await driveLsp(STRUCT_FIELD_SOURCE, [
     // `img.pixels` on the last line — the field, not the struct.

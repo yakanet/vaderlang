@@ -45,6 +45,9 @@ export DeclKind :: enum(u8) {
     /// struct's own name was the only thing recorded, so a field access resolved
     /// to nothing at all.
     Field,
+    /// An enum variant, for the same reason: `.GeneratorReturnMustBeIterator`
+    /// is a reference to one, and only the enum's own name was indexed.
+    EnumVariant,
     // Intra-file bindings — visible only within `scope_span`.
     Param,
     Local,
@@ -63,6 +66,14 @@ export DeclEntry :: struct {
     signature:  string
     doc:        string
     scope_span: Span | null
+    /// The type this member belongs to — the struct for a field, the trait or
+    /// the impl's for-type for a method. Empty for anything that is not a
+    /// member.
+    ///
+    /// It is what makes `form.cond` land on `WhileFor.cond` rather than on
+    /// whichever struct declares a `cond` first: the receiver's TYPE is known
+    /// (the editor hovers it), so the owner is the half that was missing.
+    owner:      string = ""
     /// True when this top-level decl is `export`ed. Lets the cross-file resolver
     /// restrict a WILDCARD lookup to a module's public surface — a bare
     /// `import "p"` exposes only p's exports, so goto-def must not land on p's
@@ -315,6 +326,29 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
     return null
 }
 
+/// Find the member `name` DECLARED BY `owner` — the precise lookup.
+///
+/// `find_member` answers "some declaration of this name", which is a coin flip
+/// for a field: `cond`, `span` and `name` recur across structs. This answers
+/// "this type's member", which is the question the user asked by clicking
+/// `form.cond`.
+///
+/// @param idx    the document index to search.
+/// @param owner  the declaring type's name, from the receiver's type.
+/// @param name   the member name.
+/// @return       the matching member, or null.
+export find_member_of :: fn(idx: DocIndex, owner: string, name: string) -> DeclEntry | null {
+    for d in idx.decls {
+        if d.owner != owner {
+            continue
+        }
+        if d.name == name {
+            return d
+        }
+    }
+    return null
+}
+
 /// Find a METHOD by name — a fn declared inside a `trait` or an `implements`
 /// block.
 ///
@@ -334,7 +368,7 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
 /// @return      the first matching fn or field, or null.
 export find_member :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     for d in idx.decls {
-        if d.kind != .Fn && d.kind != .Field {
+        if d.kind != .Fn && d.kind != .Field && d.kind != .EnumVariant {
             continue
         }
         if d.name == name {
@@ -384,11 +418,14 @@ collect_decl :: fn(
             // the jump lands on the field's line and the highlight covers the
             // whole declaration rather than just the name.
             for f in s.fields {
-                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap))
+                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap, s.name))
             }
         }
         is EnumDecl as e -> {
             entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, e.visibility == .Public, source, cmap))
+            for v in e.variants {
+                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, [], false, source, cmap, e.name))
+            }
         }
         is TraitDecl as t -> {
             entries.push(top_entry(t.name, .Trait, t.name_span, t.span, t.decorators, t.visibility == .Public, source, cmap))
@@ -430,6 +467,9 @@ top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span,
     decorators: Decorator[], exported: bool,
     source: string, cmap: CommentMap,
+    // The declaring type, for a member. Empty for everything else — see
+    // `DeclEntry.owner`.
+    owner: string = "",
 ) -> DeclEntry {
     sig :: head_signature(full_span, source)
     // `///` doc-comments sit above the decorators in the source. The
@@ -453,6 +493,7 @@ top_entry :: fn(
         .signature  = sig,
         .doc        = doc,
         .scope_span = null,
+        .owner      = owner,
         .exported   = exported,
     }
 }
