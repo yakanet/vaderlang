@@ -38,11 +38,12 @@ export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> Js
 toplevel_symbols :: fn(idx: DocIndex) -> DeclEntry[] {
     out: DeclEntry[]! = []
     for d in idx.decls {
-        // Members are excluded: they carry no `scope_span` like a top-level
-        // decl, but an outline that lists every field and variant as a SIBLING
-        // of its struct goes from 17 entries to 209 on `codes.vader`, and shows
-        // two `vm_required` at the same level. Nesting them under their owner is
-        // the feature; flattening them beside it is a regression.
+        // Members are excluded, not nested: they carry no `scope_span` like a
+        // top-level decl, but an outline listing every field and variant as a
+        // SIBLING of its struct went from 17 entries to 209 on `codes.vader`,
+        // with two `vm_required` at the same level. Nesting them under their
+        // owner would be a feature; nobody has asked for it, and this restores
+        // what the outline showed before members were indexed at all.
         if d.scope_span == null && !is_member_kind(d.kind) { out.push(d) }
     }
     return out

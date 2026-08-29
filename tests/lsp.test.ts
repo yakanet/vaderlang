@@ -36,7 +36,9 @@ interface Query {
     | "textDocument/inlayHint"
     | "textDocument/documentLink"
     | "textDocument/implementation"
-    | "textDocument/references";
+    | "textDocument/references"
+    | "textDocument/rename"
+    | "textDocument/prepareRename";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
@@ -133,6 +135,8 @@ async function driveLsp(
         position: at,
         range: q.range ?? { start: at, end: at },
         context: { diagnostics: [] },
+        // `rename` is the only method that needs a value the others ignore.
+        newName: "renamed",
       },
     });
   }
@@ -1469,6 +1473,40 @@ main :: fn() -> i32 {
 }
 `;
 
+// `rename` shares `cursor_in_file_span` with `references` and was guarded by
+// nothing. That is the half worth covering: a wrong find-usages is read and
+// dismissed, a wrong rename REWRITES another symbol across the project before
+// anyone sees it. Measured with the file test removed, a rename invoked on a
+// blank position rewrote two sites in the SIBLING file.
+//
+// `prepareRename` is asserted too, because it is what makes the editor OFFER the
+// rename: with the bug it returned a range covering nothing in the open file,
+// so the user was invited to rename something that was not there.
+test("lsp: rename stays in the file the cursor is in", async () => {
+  const results = await driveLsp(
+    REF_OTHER_FILE_ONLY,
+    [
+      // 0: line 3 column 3 — blank here, inside `bravo` in the sibling.
+      { method: "textDocument/rename", position: { line: 2, character: 2 } },
+      // 1: `alpha`'s declaration — the positive half.
+      { method: "textDocument/rename", position: { line: 3, character: 2 } },
+      // 2: the same blank position, asked whether a rename is even possible.
+      { method: "textDocument/prepareRename", position: { line: 2, character: 2 } },
+    ],
+    { "lsp-other.vader": REF_SIBLING },
+  );
+
+  expect(results[0]!.result).toBeNull();
+  expect(results[2]!.result).toBeNull();
+
+  const edit = results[1]!.result as { changes: Record<string, unknown[]> };
+  const files = Object.keys(edit.changes);
+  expect(files).toHaveLength(1);
+  expect(files[0]!.endsWith("lsp-test.vader")).toBe(true);
+  // Declaration + two uses, the same three sites find-usages reports.
+  expect(edit.changes[files[0]!]).toHaveLength(3);
+});
+
 test("lsp: goto-def reaches a method on a built-in receiver", async () => {
   const results = await driveLsp(BUILTIN_METHOD_SOURCE, [
     { method: "textDocument/definition", position: { line: 4, character: 8 } },
@@ -1557,8 +1595,10 @@ test("lsp: goto-def reaches an enum variant", async () => {
   // too would be a branch no run can take.
   const loc = results[0]!.result as { range: { start: { line: number } } } | null;
   expect(loc).not.toBeNull();
-  // `Choice.Two` is on line 10 (0-based 9); `Decoy.Two`, which the name-based
-  // path would find first, is on line 5.
+  // `Choice.Two` is on line 10 (0-based 9); the decoy's `Two` is on line 5.
+  // What the decoy pins is the `owner` filter in `find_member_of`: remove it and
+  // this answers 4, the decoy. It does NOT pin the name-based path — since
+  // `is_member_kind`, that path finds no variant at all and would answer null.
   expect(loc!.range.start.line).toBe(9);
 });
 
@@ -1613,6 +1653,11 @@ test("lsp: a field never masks a top-level fn of the same name", async () => {
     { method: "textDocument/definition", position: { line: 13, character: 6 } },
   ]);
 
+  // Asserted non-null first: without the scrutinee branch the second query
+  // answers null, and reading `.range` off it throws a TypeError that says
+  // nothing about WHERE the lookup landed.
+  expect(results[0]!.result).not.toBeNull();
+  expect(results[1]!.result).not.toBeNull();
   const lineOf = (r: unknown) => (r as { range: { start: { line: number } } }).range.start.line;
   expect(lineOf(results[0]!.result)).toBe(9);
   expect(lineOf(results[1]!.result)).toBe(7);
