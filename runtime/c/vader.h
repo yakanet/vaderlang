@@ -160,11 +160,28 @@ typedef struct {
     uint64_t    hash;            /* cached FNV-1a-64 of the bytes ; see above */
 } vader_atom_entry_t;
 
+/* The global atom table's entries array. Public ONLY so the lookup helpers
+ * below can be `static inline` — everything else about the table stays private
+ * to vader_runtime.c. The buffer MOVES on grow, so always read through this
+ * pointer; never cache the address of an entry across an intern. */
+extern vader_atom_entry_t* vader_atom_entries;
+
 /* Lookup helpers — inline, hot path. Bounds-checking on the atom id is
- * the caller's responsibility ; an invalid id reads garbage. */
-const vader_atom_entry_t* vader_atom_entry(vader_atom_t a);
-const char*               vader_atom_data(vader_atom_t a);
-size_t                    vader_atom_len(vader_atom_t a);
+ * the caller's responsibility ; an invalid id reads garbage.
+ *
+ * These are `static inline` HERE rather than out-of-line in vader_runtime.c
+ * because emitted code reaches them from its own translation unit, where a
+ * cross-TU call cannot be inlined: `s[i]` in a scan loop became one real call
+ * per byte. */
+static inline const vader_atom_entry_t* vader_atom_entry(vader_atom_t a) {
+    return &vader_atom_entries[a];
+}
+static inline const char* vader_atom_data(vader_atom_t a) {
+    return vader_atom_entries[a].data;
+}
+static inline size_t vader_atom_len(vader_atom_t a) {
+    return (size_t) vader_atom_entries[a].len;
+}
 
 /* Intern canonical bytes — returns the atom whose bytes equal `data[0..len]`.
  * On a hash miss, copies the bytes into a fresh owner buffer.
@@ -1226,9 +1243,17 @@ vader_string_t vader_spawn_take_stderr(vader_i64_t handle);
  * at intern (computed once per unique string, not per call). O(1) field read, no
  * loop, no allocation. Content-based so map iteration order stays GC-stable.
  * Backs `string implements Hash` → `MutableMap` bucketing. */
-uint64_t       vader_string_hash(vader_string_t s);
-size_t         vader_string_byte_len(vader_string_t s);
-uint8_t        vader_string_byte_at(vader_string_t s, size_t i);
+static inline uint64_t vader_string_hash(vader_string_t s) {
+    return vader_atom_entries[s].hash;
+}
+static inline size_t vader_string_byte_len(vader_string_t s) {
+    return vader_atom_len(s);
+}
+static inline uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
+    const vader_atom_entry_t* e = vader_atom_entry(s);
+    if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
+    return ((const uint8_t*) e->data)[i];
+}
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header
