@@ -444,6 +444,19 @@ rebuild_driver :: fn(
         remove_entry(entry)
         return 1
     }
+    // Bounded, unlike the user's own `--split`: a driven build does NOT own the
+    // machine. The suite runs four of them at once (`VADER_TEST_GATE`), and one
+    // build fans out one `cc` per Vader module — measured at 17-28 concurrent
+    // compilers on this tree, so 70-110 during the suite. That is what put the
+    // Windows job over its 30 s per-test budget: `vader-vm-self` scenarios that
+    // need 0.10 s of real work timed out, while the same suite passes in 205 s
+    // on an uncontended Windows guest.
+    //
+    // Eight restores the bound the driver had before the partition became one TU
+    // per module, and is a floor on the runners this project targets (GitHub's
+    // are 4-core). A real `min(units, cores)` wants a CPU-count host fn the tree
+    // does not have yet.
+    DRIVER_CC_JOBS :: 8
     // The driver is a normal native build; `toolchain/build` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
     // The driver ALWAYS splits, whatever the user asked of their own build.
@@ -452,7 +465,7 @@ rebuild_driver :: fn(
     // diffs or ships, so it only stands to gain the idle cores.
     // A driven build has no `--target`: it produces for this machine, which is
     // also the only platform whose toolchain it can invoke.
-    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], true, null)
+    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], true, null, DRIVER_CC_JOBS)
     remove_entry(entry)
     if code != 0 {
         return code

@@ -130,7 +130,9 @@ cmd_build :: fn(args: string[]) -> i32 {
         return build_c(file, out_flag, release, include_path_flags, split, build_target)
     }
     if emit == "executable" {
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target)
+        // 0: the user's own build owns the machine, so it keeps the full fan-out
+        // the `--split` measurements were taken with.
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0)
     }
 
     // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
@@ -252,10 +254,10 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null) -> i32 {
+build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32) -> i32 {
     out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
     if split {
-        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target)
+        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target, cc_jobs)
     }
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
@@ -272,7 +274,7 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 // `--split --emit=executable` : emit the program as a header + globals TU + one
 // function TU per Vader module, then compile them concurrently and link. The
 // `.c` set is kept on failure for inspection.
-build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null) -> i32 {
+build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32) -> i32 {
     prog :: emit_c_program_for(file, release, include_path_flags, out, target)
     if prog is null {
         return 1
@@ -295,21 +297,38 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     // an out-of-line call, so the loop never vectorised.
     flavour :: cc_flavour(cc)
 
-    // Fan out one `cc -c` per TU (+ the runtime) as concurrent async spawns, so
-    // the OS compiles them across cores. `all` joins them ; `block_on` drives
-    // the cooperative scheduler from this synchronous entry.
-    tasks: Async<ProcessResult | ProcessError>[]! = []
+    // One `cc -c` per TU (+ the runtime), spawned concurrently so the OS
+    // compiles them across cores. `all` joins a wave ; `block_on` drives the
+    // cooperative scheduler from this synchronous entry.
+    //
+    // `cc_jobs` bounds how many run at once, 0 meaning no bound. It exists for
+    // the case where the MACHINE, not this build, is the scarce resource — see
+    // `DRIVER_CC_JOBS` at the driver's call site. A bound turns one wave into
+    // ceil(n / cc_jobs) waves, each as long as its slowest unit, so it costs
+    // some parallelism; that is why the user's own `--split` passes 0.
+    argvs: string[][]! = []
     obj_files: string[]! = []
     for cf in c_files {
         obj :: "${cf}.o"
         obj_files.push(obj)
-        tasks.push(spawn_async(cc_compile_argv(cc, cf.as_string(), obj, rt, release, flavour)))
+        argvs.push(cc_compile_argv(cc, cf.as_string(), obj, rt, release, flavour))
     }
     rt_obj :: "${out}.split.runtime.o"
     obj_files.push(rt_obj)
-    tasks.push(spawn_async(cc_compile_argv(cc, "${rt}/vader_runtime.c", rt_obj, rt, release, flavour)))
+    argvs.push(cc_compile_argv(cc, "${rt}/vader_runtime.c", rt_obj, rt, release, flavour))
 
-    results :: block_on(all(tasks))
+    wave :: if cc_jobs > 0 { usize(cc_jobs) } else { argvs.len() }
+    results: (ProcessResult | ProcessError)[]! = []
+    start: usize = 0
+    for start < argvs.len() {
+        stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
+        tasks: Async<ProcessResult | ProcessError>[]! = []
+        for k in start..<stop {
+            tasks.push(spawn_async(argvs[k]))
+        }
+        results.push_all(block_on(all(tasks)))
+        start = stop
+    }
     for r in results {
         if r is ProcessError as e {
             eprintln("vader build: ${e.message()}")

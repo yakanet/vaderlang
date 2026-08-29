@@ -872,6 +872,18 @@ interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
 
+// The edits a SINGLE-file refactor produces. `changes` is keyed by URI, and a
+// map's key order carries no meaning, so reaching for `[0]` is only sound once
+// the count is pinned — otherwise the assertion below rides on whichever key the
+// runtime happened to enumerate first. That is the shape that hid the built-in
+// receiver bug for three CI runs, and the rename test already writes the guard
+// out at its own call site.
+function soleFileEdits(edit: WorkspaceEditT): TextEditT[] {
+  const files = Object.keys(edit.changes);
+  expect(files).toHaveLength(1);
+  return edit.changes[files[0]!]!;
+}
+
 const CODE_ACTION_SOURCE = `module "lsp_test"
 
 classify :: fn(x: i32) -> i32 {
@@ -895,7 +907,7 @@ test("lsp: code action converts a 2-arm match to if/else", async () => {
   expect(conv).toBeDefined();
   expect(conv!.kind).toBe("refactor.rewrite");
 
-  const fileEdits = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]!;
+  const fileEdits = soleFileEdits(conv!.edit);
   expect(fileEdits[0]!.newText).toContain("if x == 0");
   expect(fileEdits[0]!.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
@@ -926,7 +938,7 @@ test("lsp: code action converts a two-is-arm match (no wildcard) to if", async (
   const actions = results[0]!.result as CodeActionT[];
   const conv = actions.find((a) => a.title === "Convert match to if");
   expect(conv).toBeDefined();
-  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  const edit = soleFileEdits(conv!.edit)[0]!;
   expect(edit.newText).toContain("cell is null");
   expect(edit.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
@@ -954,7 +966,7 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   const conv = actions.find((a) => a.title === "Convert if to match");
   expect(conv).toBeDefined();
   expect(conv!.kind).toBe("refactor.rewrite");
-  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  const edit = soleFileEdits(conv!.edit)[0]!;
   expect(edit.newText).toContain("match v");
   expect(edit.newText).toContain("is i32 as n");
   // The `_` arm — `->` may be padded to align with the longer arm's arrow.
@@ -982,7 +994,7 @@ test("lsp: code action converts a free call to method syntax", async () => {
   const actions = results[0]!.result as CodeActionT[];
   const conv = actions.find((a) => a.title === "Convert to method call");
   expect(conv).toBeDefined();
-  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  const edit = soleFileEdits(conv!.edit)[0]!;
   expect(edit.newText).toContain("n.dbl()");
 }, { timeout: MEDIUM_BUILD });
 
