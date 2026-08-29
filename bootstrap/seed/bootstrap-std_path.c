@@ -48,7 +48,7 @@ vader_string_t std_path_parent(vader_string_t l0) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     if (l2 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 411u; }
+        { vader_gc_top = gc_frame.prev; return 412u; }
     }
     l3 = vader_import_3(l1);
     t0 = ((int64_t) (ptrdiff_t) l2);
@@ -79,7 +79,7 @@ vader_string_t std_path_to_posix(vader_string_t l0) {
     _a1_closure->code = (void*) &vader_fn_lift_225;
     _a1_closure->env = t0;
     l1 = (void*) _a1_closure;
-    t1 = std_string_replace_chars_where(l0, l1, 411u);
+    t1 = std_string_replace_chars_where(l0, l1, 412u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
