@@ -1398,3 +1398,52 @@ test("lsp: implementation lists every @target body, including a foreign one", as
   // `main` has no bodies to list.
   expect(results[2]!.result).toBeNull();
 });
+
+// The reference index is project-wide and FLAT, so a lookup by position alone
+// matches the first site anywhere covering that line and column — in a real tree
+// almost always another file. Measured on this repo before the fix: find-usages
+// on `push_all` at `resolver/loader.vader:650:20` answered with three sites in
+// `parser/dump.vader`, on `label`. Rename shared the lookup, so it would have
+// rewritten that unrelated symbol across the project.
+//
+// The query position is BLANK in the open file and holds `bravo` in the sibling.
+// That is what makes the test bite regardless of order: a first attempt put a
+// declaration at the same position in both files and passed WITH the bug
+// reinstated, because the flat index happened to reach the open file first. Here
+// there is nothing in the open file to reach — the buggy lookup has only the
+// sibling's site to find, so it answers with another file or not at all.
+const REF_OTHER_FILE_ONLY = `module "lsptest"
+
+
+alpha :: fn() -> i32 = 1
+
+main :: fn() -> i32 = alpha() + alpha()
+`;
+
+const REF_SIBLING = `module "lsptest"
+
+bravo :: fn() -> i32 = 2
+
+use_bravo :: fn() -> i32 = bravo()
+`;
+
+test("lsp: references stay in the file the cursor is in", async () => {
+  const results = await driveLsp(
+    REF_OTHER_FILE_ONLY,
+    [
+      // 0: line 3 column 3 — blank here, inside `bravo` in the sibling.
+      { method: "textDocument/references", position: { line: 2, character: 2 } },
+      // 1: `alpha`'s declaration, so the test also pins that references still work.
+      { method: "textDocument/references", position: { line: 3, character: 2 } },
+    ],
+    { "lsp-other.vader": REF_SIBLING },
+  );
+
+  expect(results[0]!.result).toEqual([]);
+
+  const sites = results[1]!.result as { uri: string }[];
+  expect(sites).toHaveLength(3);
+  expect(new Set(sites.map((s) => s.uri.split("/").pop()))).toEqual(
+    new Set(["lsp-test.vader"]),
+  );
+});

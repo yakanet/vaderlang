@@ -25,7 +25,7 @@ export handle_references :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     index :: build_reference_index(cached.project, cached.result)
 
     // LSP positions are 0-based ; the Vader AST is 1-based.
-    target :: symbol_at(index, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
+    target :: symbol_at(index, file_path, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
     if target == null { return JsonArray { .items = [] } }
 
     include_decl :: include_declaration(params)
@@ -54,9 +54,9 @@ line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>
 
 // The (import-resolved) symbol id of the reference whose span contains the
 // 1-based cursor, or null when the cursor isn't on a recorded identifier.
-symbol_at :: fn(index: ReferenceIndex, line: i32, col: i32) -> i32 | null {
+symbol_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> i32 | null {
     for s in index.sites {
-        if cursor_in_span(s.span, line, col) { return s.symbol_id }
+        if cursor_in_file_span(s.span, file, line, col) { return s.symbol_id }
     }
     return null
 }

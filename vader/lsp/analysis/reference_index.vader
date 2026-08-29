@@ -53,8 +53,30 @@ export ReferenceIndex :: struct {
     sites: RefSite[]
 }
 
+/// True when `sp` is in `file` AND the 1-based (line, col) falls inside it.
+///
+/// The FILE test is the whole point. The index is project-wide and flat, so a
+/// position alone matches the first site anywhere that happens to cover that
+/// line and column — in a 30 kLoC tree, almost always a different file. That is
+/// not a corner case: `push_all` at `resolver/loader.vader:650:20` resolved to
+/// `label` at `parser/dump.vader:650:18`, and find-usages answered with three
+/// sites in a file the cursor was never in. Rename used the same lookup, so it
+/// would have rewritten that other symbol project-wide.
+///
+/// @param sp    the site's span.
+/// @param file  the document the cursor is in, as the loader spells it.
+/// @param line  1-based cursor line.
+/// @param col   1-based cursor column.
+export cursor_in_file_span :: fn(sp: Span, file: string, line: i32, col: i32) -> bool {
+    if sp.start.file != file {
+        return false
+    }
+    return cursor_in_span(sp, line, col)
+}
+
 /// True when the 1-based (line, col) falls inside the half-open span
-/// [start, end). Shared by the references `symbol_at` and the rename `site_at`.
+/// [start, end). Position only — callers that have a file MUST use
+/// `cursor_in_file_span`, which is every caller serving a cursor.
 export cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
     if line < sp.start.line { return false }
     if line == sp.start.line && col < sp.start.column { return false }
