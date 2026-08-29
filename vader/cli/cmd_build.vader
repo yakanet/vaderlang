@@ -376,38 +376,96 @@ emit_c_for_targets :: fn(
         mods.push(b)
     }
     universe :: union_of_string_pools(mods)
-    // ONE header name for every target, and one file. It holds the struct
-    // typedefs, the prototypes and the atom count — all identical once the
-    // universe is shared — so per-target copies would differ in nothing but
-    // their own `#include` line, which is what a first attempt produced: 39
-    // files "differing" on line 1 alone.
+    // ONE header name for every target. It holds the struct typedefs, the
+    // prototypes and the atom count — all identical once the universe is shared
+    // — so per-target copies would differ in nothing but their own `#include`
+    // line, which is what a first attempt produced: 39 files "differing" on
+    // line 1 alone.
     header_name :: "${canonicalise(out).filename()}.split.h"
+    progs: CProgram[]! = []
     for i in 0..<targets.len() {
-        stem :: "${out}.${display_target(targets[i])}".to_path()
-        prog :: emit_c_split(
-            mods[i].module,
-            CEmitOptions {
-                .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
-            },
-            1,
-            header_name,
+        progs.push(
+            emit_c_split(
+                mods[i].module,
+                CEmitOptions {
+                    .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
+                },
+                1,
+                header_name,
+            ),
         )
-        // The header goes to the SHARED path, rewritten identically by each
-        // target — cheap, and it keeps "one header" true by construction rather
-        // than by a caller remembering to write it once.
-        if write_out("${out}.split.h".to_path(), prog.header) != 0 {
+    }
+    return write_deduplicated(out, targets, progs)
+}
+
+// Write the programs with everything identical stored ONCE.
+//
+// A unit is shared when every target emitted the same bytes for it, and only
+// then; the rest go under `<out>.<os>-<arch>.split.<k>.c`. Which units differ is
+// data, not a rule — with one `@target` body in the closure it was exactly one
+// out of 39, 28 KB against 11.3 MB.
+write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32 {
+    first :: progs[0]
+    for i in 1..<progs.len() {
+        // A differing unit COUNT means the targets disagree on which modules
+        // exist, which the k-indexed layout cannot express — fail rather than
+        // write a set of files whose indices mean different things.
+        if progs[i].units.len() != first.units.len() {
+            eprintln("vader build --seed-targets: `${display_target(targets[i])}` emitted "
+                + "${progs[i].units.len()} units, `${display_target(targets[0])}` emitted "
+                + "${first.units.len()}")
             return 1
         }
-        if write_out("${stem}.split.g.c".to_path(), prog.globals) != 0 {
+    }
+    if write_out("${out}.split.h".to_path(), first.header) != 0 {
+        return 1
+    }
+    if all_equal(globals_of(progs)) {
+        if write_out("${out}.split.g.c".to_path(), first.globals) != 0 {
             return 1
         }
-        for k in 0..<prog.units.len() {
-            if write_out("${stem}.split.${k}.c".to_path(), prog.units[k]) != 0 {
+    } else {
+        for i in 0..<targets.len() {
+            if write_out("${out}.${display_target(targets[i])}.split.g.c".to_path(), progs[i].globals) != 0 {
                 return 1
             }
         }
     }
+    for k in 0..<first.units.len() {
+        col: string[]! = []
+        for pr in progs {
+            col.push(pr.units[k])
+        }
+        if all_equal(col) {
+            if write_out("${out}.split.${k}.c".to_path(), first.units[k]) != 0 {
+                return 1
+            }
+        } else {
+            for i in 0..<targets.len() {
+                if write_out("${out}.${display_target(targets[i])}.split.${k}.c".to_path(), progs[i].units[k]) != 0 {
+                    return 1
+                }
+            }
+        }
+    }
     return 0
+}
+
+globals_of :: fn(progs: CProgram[]) -> string[] {
+    out: string[]! = []
+    for pr in progs {
+        out.push(pr.globals)
+    }
+    return out
+}
+
+all_equal :: fn(xs: string[]) -> bool {
+    for i in 1..<xs.len() {
+        if xs[i] != xs[0] {
+            return false
+        }
+    }
+    return true
 }
 
 // `<os>-<arch>,<os>-<arch>,…`. EMPTY on failure, after naming the offending
