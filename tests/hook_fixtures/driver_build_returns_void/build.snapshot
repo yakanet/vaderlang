@@ -1,6 +1,6 @@
 # stderr
 
 # Diagnostics
-[<project>/build.vader:8:1] error[H6002] invalid `build` signature: `build` must return `i32` — the build's exit status
+[build.vader:8:1] error[H6002] invalid `build` signature: `build` must return `i32` — the build's exit status
 # exit
 1

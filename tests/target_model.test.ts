@@ -199,8 +199,16 @@ function renderSections(stdout: string, stderr: string, fixtureDir: string): str
   // the platform form left absolute paths in the snapshots — a failure invisible
   // on macOS and caught on the Windows guest.
   const posixDir = fixtureDir.split("\\").join("/");
+  // Diagnostics now name a path RELATIVE to the working directory when the file
+  // is under it (`vader/diagnostics/render.vader`), so the repo-relative form
+  // has to be stripped as well — without it these snapshots grew a
+  // `tests/target_fixtures/<name>/` prefix on every line.
+  const relDir = posixDir.split("/").slice(-3).join("/");
   const strip = (s: string) =>
-    s.split(`${fixtureDir}/`).join("").split(`${posixDir}/`).join("");
+    s
+      .split(`${fixtureDir}/`).join("")
+      .split(`${posixDir}/`).join("")
+      .split(`${relDir}/`).join("");
   // `build` prints its own `# Diagnostics` banner; the section header belongs to
   // the snapshot format, so the banner is dropped rather than nested.
   const raw = strip(stderr.trim()).replace(/^# Diagnostics\n?/, "").trim();

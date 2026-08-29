@@ -1,6 +1,6 @@
 # stderr
 
 # Diagnostics
-[<project>/build.vader:1:1] error[H6001] `build.vader` declares no `build` function: add `build :: fn(args: string[]) -> void`
+[build.vader:1:1] error[H6001] `build.vader` declares no `build` function: add `build :: fn(args: string[]) -> void`
 # exit
 1

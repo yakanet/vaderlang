@@ -2,6 +2,6 @@
 vader build: wrote <project>/build/driver/driver
 
 # Diagnostics
-[<project>/build.vader:1:1] error[H6003] the build driver queued no entry file: call `ctx.add_build_file(...)` before iterating `messages()`
+[build.vader:1:1] error[H6003] the build driver queued no entry file: call `ctx.add_build_file(...)` before iterating `messages()`
 # exit
 1

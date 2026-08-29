@@ -2,6 +2,6 @@
 vader build: wrote <project>/build/driver/driver
 
 # Diagnostics
-[<project>/build.vader:1:1] error[H6006] code generation did not reach a fixed point: `gen/tick` still changed after 8 rounds
+[build.vader:1:1] error[H6006] code generation did not reach a fixed point: `gen/tick` still changed after 8 rounds
 # exit
 1

@@ -14,6 +14,7 @@
 
 module "vader/diagnostics"
 
+import "std/io"
 import "std/string" { compare_ascending as string_less }
 import "std/string_builder"
 import "std/sort"
@@ -51,9 +52,18 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
     limit :: if cap { min(unique.len(), MAX_SHOWN_DIAGNOSTICS) } else { unique.len() }
     sb := StringBuilder {}
     sb.append("\n# Diagnostics")
+    // Read ONCE per render, not per diagnostic, and at RUNTIME. A module-level
+    // `CWD :: current_working_directory()` would be comptime-folded and bake the
+    // build machine's directory into the binary — the same trap that made
+    // `VADER_OS` wrong.
+    base :: if show_file {
+        current_working_directory()
+    } else {
+        ""
+    }
     for d in unique[0..<limit] {
         sb.append_char('\n')
-        sb.format_diagnostic(d, show_file)
+        sb.format_diagnostic(d, show_file, base)
     }
     if unique.len() > limit {
         sb.append_char('\n')
@@ -98,7 +108,33 @@ diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
 // Format one diagnostic as `[file:line:col] error[CODE] message: detail`. The
 // severity word is TTY-coloured only on the user-facing (show_file) channel ;
 // the machine channel stays plain so the `*.snapshot` fixtures are byte-stable.
-format_diagnostic :: fn(sb: StringBuilder!, d: Diagnostic, show_file: bool) -> void {
+// `file` shortened against `base`, or unchanged when it is not underneath it.
+//
+// A run from the project root turns a 78-character absolute path into
+// `tests/target_fixtures/…`, which is the difference between a readable console
+// line and one that scrolls. Relativising a path OUTSIDE `base` is refused on
+// purpose: it would produce a `../../..` chain, longer than the absolute form
+// and harder to follow — the stdlib of an installed toolchain is exactly that
+// case.
+//
+// The suffix must start at a SEPARATOR: `/proj` must not shorten
+// `/project/x.vader` to `ect/x.vader`.
+relative_to :: fn(file: string, base: string) -> string {
+    if base.is_empty() {
+        return file
+    }
+    prefix :: if base.ends_with("/") {
+        base
+    } else {
+        "${base}/"
+    }
+    if !file.starts_with(prefix) {
+        return file
+    }
+    return file[prefix.len()..<file.len()]
+}
+
+format_diagnostic :: fn(sb: StringBuilder!, d: Diagnostic, show_file: bool, base: string) -> void {
     sev_word :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"
@@ -117,7 +153,11 @@ format_diagnostic :: fn(sb: StringBuilder!, d: Diagnostic, show_file: bool) -> v
     if !d.detail.is_empty() {
         detail = ": ${d.detail}"
     }
-    loc :: if show_file { "${p.file}:${p.line}:${p.column}" } else { "${p.line}:${p.column}" }
+    loc :: if show_file {
+        "${relative_to(p.file, base)}:${p.line}:${p.column}"
+    } else {
+        "${p.line}:${p.column}"
+    }
     sb.append("[${loc}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
 }
 

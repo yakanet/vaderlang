@@ -42,6 +42,19 @@ export LSP_FLAGS: FlagSpec[]: [
         .help = "Filesystem root of the compiler tree, same purpose",
         .value_name = "path",
     },
+    // Accepted and ignored. `vscode-languageclient` APPENDS `--stdio` to the
+    // server's argv whenever the transport is `TransportKind.stdio`, which the
+    // VSCode extension uses — the client does not offer a way to suppress it,
+    // and every other language server accepts it for the same reason. Since
+    // argv parsing became strict (`9255d3add`), rejecting it took the whole
+    // extension down: "Server initialization failed", five restarts, then give
+    // up. There is nothing to select — stdio is the only transport this server
+    // speaks — so the flag names the transport rather than choosing it.
+    FlagSpec {
+        .name = "stdio",
+        .help = "Accepted for LSP-client compatibility; stdio is the only transport",
+        .kind = .Bool,
+    },
 ]
 
 /// LSP server entry. Blocks reading frames until EOF or `exit` notification.
