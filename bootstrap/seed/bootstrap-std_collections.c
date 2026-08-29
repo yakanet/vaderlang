@@ -1,5 +1,69 @@
 #include "bootstrap.split.h"
 
+static void std_collections_ensure_index__i32__Any(void* l0);
+static void std_collections_ensure_index__i32__bool(void* l0);
+static void std_collections_ensure_index__i32__i32(void* l0);
+static void std_collections_ensure_index__i32__string(void* l0);
+static void std_collections_ensure_index__i32__usize(void* l0);
+static void std_collections_ensure_index__i64__Any(void* l0);
+static void std_collections_ensure_index__i64__bool(void* l0);
+static void std_collections_ensure_index__string__Any(void* l0);
+static void std_collections_ensure_index__string__bool(void* l0);
+static void std_collections_ensure_index__string__i32(void* l0);
+static void std_collections_ensure_index__string__i64(void* l0);
+static void std_collections_ensure_index__string__string(void* l0);
+static void std_collections_ensure_index__string__usize(void* l0);
+static void std_collections_ensure_index__u64__Any(void* l0);
+static void std_collections_ensure_index__u64__usize(void* l0);
+static void std_collections_ensure_index__usize__Any(void* l0);
+static void std_collections_ensure_index__usize__bool(void* l0);
+static void std_collections_ensure_index__usize__i32(void* l0);
+static void std_collections_ensure_index__usize__string(void* l0);
+static void std_collections_put__i64__bool(void* l0, int64_t l1, bool l2);
+static void std_collections_rehash__i32__Any(void* l0, size_t l1);
+static void std_collections_rehash__i32__bool(void* l0, size_t l1);
+static void std_collections_rehash__i32__i32(void* l0, size_t l1);
+static void std_collections_rehash__i32__string(void* l0, size_t l1);
+static void std_collections_rehash__i32__usize(void* l0, size_t l1);
+static void std_collections_rehash__i64__Any(void* l0, size_t l1);
+static void std_collections_rehash__i64__bool(void* l0, size_t l1);
+static void std_collections_rehash__string__Any(void* l0, size_t l1);
+static void std_collections_rehash__string__bool(void* l0, size_t l1);
+static void std_collections_rehash__string__i32(void* l0, size_t l1);
+static void std_collections_rehash__string__i64(void* l0, size_t l1);
+static void std_collections_rehash__string__string(void* l0, size_t l1);
+static void std_collections_rehash__string__usize(void* l0, size_t l1);
+static void std_collections_rehash__u64__Any(void* l0, size_t l1);
+static void std_collections_rehash__u64__usize(void* l0, size_t l1);
+static void std_collections_rehash__usize__Any(void* l0, size_t l1);
+static void std_collections_rehash__usize__bool(void* l0, size_t l1);
+static void std_collections_rehash__usize__i32(void* l0, size_t l1);
+static void std_collections_rehash__usize__string(void* l0, size_t l1);
+static size_t std_collections_slot_for(uint64_t l0, size_t l1);
+static size_t std_collections_slot_holding__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall(void* l0, int32_t l1, int32_t l2);
+static size_t std_collections_slot_holding__i32__NarrowSlot(void* l0, int32_t l1, int32_t l2);
+static size_t std_collections_slot_holding__i32__bool(void* l0, int32_t l1, int32_t l2);
+static size_t std_collections_slot_holding__string__NarrowSlot(void* l0, vader_string_t l1, int32_t l2);
+static void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2);
+static void std_collections_write_entry__i32__bool(void* l0, int32_t l1, bool l2);
+static void std_collections_write_entry__i32__i32(void* l0, int32_t l1, int32_t l2);
+static void std_collections_write_entry__i32__string(void* l0, int32_t l1, vader_string_t l2);
+static void std_collections_write_entry__i32__usize(void* l0, int32_t l1, size_t l2);
+static void std_collections_write_entry__i64__Any(void* l0, int64_t l1, vader_box_t l2);
+static void std_collections_write_entry__i64__bool(void* l0, int64_t l1, bool l2);
+static void std_collections_write_entry__string__Any(void* l0, vader_string_t l1, vader_box_t l2);
+static void std_collections_write_entry__string__bool(void* l0, vader_string_t l1, bool l2);
+static void std_collections_write_entry__string__i32(void* l0, vader_string_t l1, int32_t l2);
+static void std_collections_write_entry__string__i64(void* l0, vader_string_t l1, int64_t l2);
+static void std_collections_write_entry__string__string(void* l0, vader_string_t l1, vader_string_t l2);
+static void std_collections_write_entry__string__usize(void* l0, vader_string_t l1, size_t l2);
+static void std_collections_write_entry__u64__Any(void* l0, uint64_t l1, vader_box_t l2);
+static void std_collections_write_entry__u64__usize(void* l0, uint64_t l1, size_t l2);
+static void std_collections_write_entry__usize__Any(void* l0, size_t l1, vader_box_t l2);
+static void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2);
+static void std_collections_write_entry__usize__i32(void* l0, size_t l1, int32_t l2);
+static void std_collections_write_entry__usize__string(void* l0, size_t l1, vader_string_t l2);
+
 bool std_collections_add__i32(void* l0, int32_t l1) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
@@ -276,7 +340,7 @@ bool std_collections_contains_key__string__bool(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i32__Any(void* l0) {
+static void std_collections_ensure_index__i32__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -311,7 +375,7 @@ void std_collections_ensure_index__i32__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i32__bool(void* l0) {
+static void std_collections_ensure_index__i32__bool(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -346,7 +410,7 @@ void std_collections_ensure_index__i32__bool(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i32__i32(void* l0) {
+static void std_collections_ensure_index__i32__i32(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -381,7 +445,7 @@ void std_collections_ensure_index__i32__i32(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i32__string(void* l0) {
+static void std_collections_ensure_index__i32__string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -416,7 +480,7 @@ void std_collections_ensure_index__i32__string(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i32__usize(void* l0) {
+static void std_collections_ensure_index__i32__usize(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -451,7 +515,7 @@ void std_collections_ensure_index__i32__usize(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i64__Any(void* l0) {
+static void std_collections_ensure_index__i64__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -486,7 +550,7 @@ void std_collections_ensure_index__i64__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__i64__bool(void* l0) {
+static void std_collections_ensure_index__i64__bool(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -521,7 +585,7 @@ void std_collections_ensure_index__i64__bool(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__Any(void* l0) {
+static void std_collections_ensure_index__string__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -556,7 +620,7 @@ void std_collections_ensure_index__string__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__bool(void* l0) {
+static void std_collections_ensure_index__string__bool(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -591,7 +655,7 @@ void std_collections_ensure_index__string__bool(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__i32(void* l0) {
+static void std_collections_ensure_index__string__i32(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -626,7 +690,7 @@ void std_collections_ensure_index__string__i32(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__i64(void* l0) {
+static void std_collections_ensure_index__string__i64(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -661,7 +725,7 @@ void std_collections_ensure_index__string__i64(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__string(void* l0) {
+static void std_collections_ensure_index__string__string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -696,7 +760,7 @@ void std_collections_ensure_index__string__string(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__string__usize(void* l0) {
+static void std_collections_ensure_index__string__usize(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -731,7 +795,7 @@ void std_collections_ensure_index__string__usize(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__u64__Any(void* l0) {
+static void std_collections_ensure_index__u64__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -766,7 +830,7 @@ void std_collections_ensure_index__u64__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__u64__usize(void* l0) {
+static void std_collections_ensure_index__u64__usize(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -801,7 +865,7 @@ void std_collections_ensure_index__u64__usize(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__usize__Any(void* l0) {
+static void std_collections_ensure_index__usize__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -836,7 +900,7 @@ void std_collections_ensure_index__usize__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__usize__bool(void* l0) {
+static void std_collections_ensure_index__usize__bool(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -871,7 +935,7 @@ void std_collections_ensure_index__usize__bool(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__usize__i32(void* l0) {
+static void std_collections_ensure_index__usize__i32(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -906,7 +970,7 @@ void std_collections_ensure_index__usize__i32(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_ensure_index__usize__string(void* l0) {
+static void std_collections_ensure_index__usize__string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -3093,7 +3157,7 @@ void std_collections_put__i64__Any(void* l0, int64_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_put__i64__bool(void* l0, int64_t l1, bool l2) {
+static void std_collections_put__i64__bool(void* l0, int64_t l1, bool l2) {
     size_t l3, l4, l5, l8, l9;
     uint64_t l6;
     int64_t l7;
@@ -4780,7 +4844,7 @@ void std_collections_put__usize__string(void* l0, size_t l1, vader_string_t l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i32__Any(void* l0, size_t l1) {
+static void std_collections_rehash__i32__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -4851,7 +4915,7 @@ void std_collections_rehash__i32__Any(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i32__bool(void* l0, size_t l1) {
+static void std_collections_rehash__i32__bool(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -4922,7 +4986,7 @@ void std_collections_rehash__i32__bool(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i32__i32(void* l0, size_t l1) {
+static void std_collections_rehash__i32__i32(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -4993,7 +5057,7 @@ void std_collections_rehash__i32__i32(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i32__string(void* l0, size_t l1) {
+static void std_collections_rehash__i32__string(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5064,7 +5128,7 @@ void std_collections_rehash__i32__string(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i32__usize(void* l0, size_t l1) {
+static void std_collections_rehash__i32__usize(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5135,7 +5199,7 @@ void std_collections_rehash__i32__usize(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i64__Any(void* l0, size_t l1) {
+static void std_collections_rehash__i64__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5206,7 +5270,7 @@ void std_collections_rehash__i64__Any(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__i64__bool(void* l0, size_t l1) {
+static void std_collections_rehash__i64__bool(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5277,7 +5341,7 @@ void std_collections_rehash__i64__bool(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__Any(void* l0, size_t l1) {
+static void std_collections_rehash__string__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5354,7 +5418,7 @@ void std_collections_rehash__string__Any(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__bool(void* l0, size_t l1) {
+static void std_collections_rehash__string__bool(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5431,7 +5495,7 @@ void std_collections_rehash__string__bool(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__i32(void* l0, size_t l1) {
+static void std_collections_rehash__string__i32(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5508,7 +5572,7 @@ void std_collections_rehash__string__i32(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__i64(void* l0, size_t l1) {
+static void std_collections_rehash__string__i64(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5585,7 +5649,7 @@ void std_collections_rehash__string__i64(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__string(void* l0, size_t l1) {
+static void std_collections_rehash__string__string(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5662,7 +5726,7 @@ void std_collections_rehash__string__string(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__string__usize(void* l0, size_t l1) {
+static void std_collections_rehash__string__usize(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5739,7 +5803,7 @@ void std_collections_rehash__string__usize(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__u64__Any(void* l0, size_t l1) {
+static void std_collections_rehash__u64__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5810,7 +5874,7 @@ void std_collections_rehash__u64__Any(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__u64__usize(void* l0, size_t l1) {
+static void std_collections_rehash__u64__usize(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5881,7 +5945,7 @@ void std_collections_rehash__u64__usize(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__usize__Any(void* l0, size_t l1) {
+static void std_collections_rehash__usize__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -5952,7 +6016,7 @@ void std_collections_rehash__usize__Any(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__usize__bool(void* l0, size_t l1) {
+static void std_collections_rehash__usize__bool(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -6023,7 +6087,7 @@ void std_collections_rehash__usize__bool(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__usize__i32(void* l0, size_t l1) {
+static void std_collections_rehash__usize__i32(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -6094,7 +6158,7 @@ void std_collections_rehash__usize__i32(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_rehash__usize__string(void* l0, size_t l1) {
+static void std_collections_rehash__usize__string(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -6627,11 +6691,11 @@ bool std_collections_remove__string__NarrowSlot(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-size_t std_collections_slot_for(uint64_t l0, size_t l1) {
+static size_t std_collections_slot_for(uint64_t l0, size_t l1) {
     return (size_t) (int64_t) (((int64_t) (uint64_t) l0) & l1);
 }
 
-size_t std_collections_slot_holding__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall(void* l0, int32_t l1, int32_t l2) {
+static size_t std_collections_slot_holding__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall(void* l0, int32_t l1, int32_t l2) {
     uint64_t l3;
     size_t l4, l5, l6;
     int64_t t0;
@@ -6667,7 +6731,7 @@ size_t std_collections_slot_holding__i32__LoweredArrayLen___LoweredArrayLit___Lo
     return t2;
 }
 
-size_t std_collections_slot_holding__i32__NarrowSlot(void* l0, int32_t l1, int32_t l2) {
+static size_t std_collections_slot_holding__i32__NarrowSlot(void* l0, int32_t l1, int32_t l2) {
     uint64_t l3;
     size_t l4, l5, l6;
     int64_t t0;
@@ -6703,7 +6767,7 @@ size_t std_collections_slot_holding__i32__NarrowSlot(void* l0, int32_t l1, int32
     return t2;
 }
 
-size_t std_collections_slot_holding__i32__bool(void* l0, int32_t l1, int32_t l2) {
+static size_t std_collections_slot_holding__i32__bool(void* l0, int32_t l1, int32_t l2) {
     uint64_t l3;
     size_t l4, l5, l6;
     int64_t t0;
@@ -6739,7 +6803,7 @@ size_t std_collections_slot_holding__i32__bool(void* l0, int32_t l1, int32_t l2)
     return t2;
 }
 
-size_t std_collections_slot_holding__string__NarrowSlot(void* l0, vader_string_t l1, int32_t l2) {
+static size_t std_collections_slot_holding__string__NarrowSlot(void* l0, vader_string_t l1, int32_t l2) {
     uint64_t l3;
     size_t l4, l5, l6;
     int32_t t0;
@@ -6848,7 +6912,7 @@ void* std_collections_values__u64__Symbol(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
+static void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -6879,7 +6943,7 @@ void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2)
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i32__bool(void* l0, int32_t l1, bool l2) {
+static void std_collections_write_entry__i32__bool(void* l0, int32_t l1, bool l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -6908,7 +6972,7 @@ void std_collections_write_entry__i32__bool(void* l0, int32_t l1, bool l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i32__i32(void* l0, int32_t l1, int32_t l2) {
+static void std_collections_write_entry__i32__i32(void* l0, int32_t l1, int32_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -6937,7 +7001,7 @@ void std_collections_write_entry__i32__i32(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i32__string(void* l0, int32_t l1, vader_string_t l2) {
+static void std_collections_write_entry__i32__string(void* l0, int32_t l1, vader_string_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -6967,7 +7031,7 @@ void std_collections_write_entry__i32__string(void* l0, int32_t l1, vader_string
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i32__usize(void* l0, int32_t l1, size_t l2) {
+static void std_collections_write_entry__i32__usize(void* l0, int32_t l1, size_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -6996,7 +7060,7 @@ void std_collections_write_entry__i32__usize(void* l0, int32_t l1, size_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i64__Any(void* l0, int64_t l1, vader_box_t l2) {
+static void std_collections_write_entry__i64__Any(void* l0, int64_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -7027,7 +7091,7 @@ void std_collections_write_entry__i64__Any(void* l0, int64_t l1, vader_box_t l2)
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__i64__bool(void* l0, int64_t l1, bool l2) {
+static void std_collections_write_entry__i64__bool(void* l0, int64_t l1, bool l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7056,7 +7120,7 @@ void std_collections_write_entry__i64__bool(void* l0, int64_t l1, bool l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__Any(void* l0, vader_string_t l1, vader_box_t l2) {
+static void std_collections_write_entry__string__Any(void* l0, vader_string_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -7088,7 +7152,7 @@ void std_collections_write_entry__string__Any(void* l0, vader_string_t l1, vader
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__bool(void* l0, vader_string_t l1, bool l2) {
+static void std_collections_write_entry__string__bool(void* l0, vader_string_t l1, bool l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7118,7 +7182,7 @@ void std_collections_write_entry__string__bool(void* l0, vader_string_t l1, bool
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__i32(void* l0, vader_string_t l1, int32_t l2) {
+static void std_collections_write_entry__string__i32(void* l0, vader_string_t l1, int32_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7148,7 +7212,7 @@ void std_collections_write_entry__string__i32(void* l0, vader_string_t l1, int32
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__i64(void* l0, vader_string_t l1, int64_t l2) {
+static void std_collections_write_entry__string__i64(void* l0, vader_string_t l1, int64_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7178,7 +7242,7 @@ void std_collections_write_entry__string__i64(void* l0, vader_string_t l1, int64
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__string(void* l0, vader_string_t l1, vader_string_t l2) {
+static void std_collections_write_entry__string__string(void* l0, vader_string_t l1, vader_string_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7209,7 +7273,7 @@ void std_collections_write_entry__string__string(void* l0, vader_string_t l1, va
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__string__usize(void* l0, vader_string_t l1, size_t l2) {
+static void std_collections_write_entry__string__usize(void* l0, vader_string_t l1, size_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7239,7 +7303,7 @@ void std_collections_write_entry__string__usize(void* l0, vader_string_t l1, siz
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__u64__Any(void* l0, uint64_t l1, vader_box_t l2) {
+static void std_collections_write_entry__u64__Any(void* l0, uint64_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -7270,7 +7334,7 @@ void std_collections_write_entry__u64__Any(void* l0, uint64_t l1, vader_box_t l2
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__u64__usize(void* l0, uint64_t l1, size_t l2) {
+static void std_collections_write_entry__u64__usize(void* l0, uint64_t l1, size_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7299,7 +7363,7 @@ void std_collections_write_entry__u64__usize(void* l0, uint64_t l1, size_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__usize__Any(void* l0, size_t l1, vader_box_t l2) {
+static void std_collections_write_entry__usize__Any(void* l0, size_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -7330,7 +7394,7 @@ void std_collections_write_entry__usize__Any(void* l0, size_t l1, vader_box_t l2
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2) {
+static void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7359,7 +7423,7 @@ void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__usize__i32(void* l0, size_t l1, int32_t l2) {
+static void std_collections_write_entry__usize__i32(void* l0, size_t l1, int32_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -7388,7 +7452,7 @@ void std_collections_write_entry__usize__i32(void* l0, size_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void std_collections_write_entry__usize__string(void* l0, size_t l1, vader_string_t l2) {
+static void std_collections_write_entry__usize__string(void* l0, size_t l1, vader_string_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };

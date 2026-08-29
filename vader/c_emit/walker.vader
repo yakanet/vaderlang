@@ -291,7 +291,7 @@ op_allocates :: fn(op: vm.Op) -> bool = match op {
 /// signature → local decls → temp decls → frame → body.
 emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder!) -> void {
     no_frame :: !(fn_index in ctx.may_alloc)
-    out.append("${linkage_prefix(ctx.split)}${signature_for(function)} {\n")
+    out.append("${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)} {\n")
     // Walk the body into a separate buffer first : temps are discovered
     // during the walk (materialisation), and their declarations belong in
     // the prelude *above* the body. After the walk, assemble

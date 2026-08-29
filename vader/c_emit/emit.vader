@@ -111,9 +111,18 @@ export EmitCtx :: struct {
     /// closure forward decls, so the output can be split across TUs. Mirrors
     /// `EmitOptions.split`. Read by `linkage_prefix`.
     split: bool
+    /// Per-function: true when NO other unit refers to it, so it can keep
+    /// internal linkage inside its own TU and stay inlinable. Parallel to
+    /// `module.functions`; EMPTY means "no analysis ran", which is the
+    /// monolithic build (everything is already `static` there) and any caller
+    /// that has not computed it. Filled by `split.vader::internal_fn_flags`.
+    internal_fns: bool[]
 }
 
-new_ctx :: fn(m: BytecodeModule, release: bool, split: bool, universe: string[] = []) -> EmitCtx {
+new_ctx :: fn(
+    m: BytecodeModule, release: bool, split: bool, universe: string[] = [],
+    internal_fns: bool[] = [],
+) -> EmitCtx {
     names: string[]! = []
     for i in 0..<m.types.len() {
         match m.types[i] {
@@ -133,6 +142,7 @@ new_ctx :: fn(m: BytecodeModule, release: bool, split: bool, universe: string[] 
         .may_alloc = compute_may_alloc(m.functions),
         .release = release,
         .split = split,
+        .internal_fns = internal_fns,
     }
 }
 
@@ -142,6 +152,26 @@ new_ctx :: fn(m: BytecodeModule, release: bool, split: bool, universe: string[] 
 /// another). Every emitted name is a globally-unique mangle, so external
 /// linkage is collision-free.
 linkage_prefix :: fn(split: bool) -> string = if split { "" } else { "static " }
+
+/// Storage class for one FUNCTION definition or prototype.
+///
+/// Same as `linkage_prefix` except in a split build, where a function no other
+/// unit refers to keeps internal linkage. That is what lets `cc` inline it: an
+/// externally-visible definition must be emitted as written, so the split was
+/// costing every intra-module call its inlining. 79 % of the compiler's own
+/// functions qualify.
+///
+/// @param ctx    the emit context; `internal_fns` empty means nothing qualifies.
+/// @param index  index into `module.functions`.
+fn_linkage_prefix :: fn(ctx: EmitCtx, index: i32) -> string {
+    if !ctx.split {
+        return "static "
+    }
+    if usize(index) < ctx.internal_fns.len() && ctx.internal_fns[usize(index)] {
+        return "static "
+    }
+    return ""
+}
 
 /// Runtime atom id for each string-literal pool index. The empty string
 /// maps to 0 (VADER_ATOM_EMPTY — reached via direct `== 0`, never the
@@ -766,14 +796,21 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
     .Boxed -> "vader_box_t"
 }
 
-/// `static <sig>;` forward decl for every fn in the module so call sites
-/// compile in any declaration order. A trailing blank line closes the
+/// Forward decl for every fn a call site outside its own unit can reach, so
+/// those compile in any declaration order. A trailing blank line closes the
 /// section.
+///
+/// In a split build the INTERNAL functions are deliberately absent: they are
+/// declared `static` at the top of their own unit instead
+/// (`split.vader::emit_internal_forward_decls`). A `static` definition preceded
+/// by a non-`static` declaration is invalid C, so the two have to agree.
 emit_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     fns :: ctx.module.functions
-    link :: linkage_prefix(ctx.split)
     for i in 0..<fns.len() {
-        out.append("${link}${signature_for(fns[i])};\n")
+        link :: fn_linkage_prefix(ctx, i32(i))
+        if link == "" || !ctx.split {
+            out.append("${link}${signature_for(fns[i])};\n")
+        }
     }
     out.append("\n")
 }

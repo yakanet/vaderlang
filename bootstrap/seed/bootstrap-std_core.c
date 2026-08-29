@@ -1,6 +1,42 @@
 #include "bootstrap.split.h"
 
-void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
+static void* std_core_BigInt_Div_div(void* l0, uint32_t l1);
+static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
+static bool std_core_any_below(void* l0, int32_t l1);
+static int32_t std_core_b2i(bool l0);
+static uint64_t std_core_b2u(bool l0);
+static int32_t std_core_bit_len(void* l0);
+static uint64_t std_core_bits64(void* l0, int32_t l1);
+static int32_t std_core_clz32(uint32_t l0);
+static void* std_core_d2d(uint64_t l0, uint64_t l1);
+static void* std_core_digits_of(uint64_t l0);
+static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1);
+static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2);
+static bool std_core_is_zero(void* l0);
+static vader_string_t std_core_join_range(void* l0, int32_t l1, int32_t l2);
+static uint64_t std_core_limb(void* l0, size_t l1);
+static int32_t std_core_log10_pow2(int32_t l0);
+static int32_t std_core_log10_pow5(int32_t l0);
+static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2);
+static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, int32_t l3, uint64_t l4);
+static bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1);
+static bool std_core_multiple_of_power_of_5(uint64_t l0, int32_t l1);
+static double std_core_parse_f64_slow(vader_string_t l0, bool l1);
+static int32_t std_core_pf_clz64(uint64_t l0);
+static bool std_core_pf_is_digit(uint8_t l0);
+static void* std_core_pf_product(int32_t l0, uint64_t l1);
+static int32_t std_core_pow5_factor(uint64_t l0);
+static int32_t std_core_pow5bits(int32_t l0);
+static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2);
+static vader_box_t std_core_scan_decimal(vader_string_t l0);
+static uint64_t std_core_sd_round_at(void* l0, int32_t l1, bool l2);
+static void* std_core_sd_scan(vader_string_t l0);
+static uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2);
+static void* std_core_shl(void* l0, int32_t l1);
+static void* std_core_umul128(uint64_t l0, uint64_t l1);
+static vader_string_t std_core_zeros(int32_t l0);
+
+static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
     void* l2 = NULL;
     void* l12 = NULL;
     uint64_t l3, l5, l7, l8, l9, l11;
@@ -96,7 +132,7 @@ vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) 
     vader_gc_top = gc_frame.prev;
 }
 
-void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
+static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
     vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) l2);
     return;
 }
@@ -191,7 +227,7 @@ bool std_core____Contains_contains__string(void* l0, vader_string_t l1) {
     return false;
 }
 
-bool std_core_any_below(void* l0, int32_t l1) {
+static bool std_core_any_below(void* l0, int32_t l1) {
     int32_t l2, l3;
     size_t l4, l5;
     bool l6;
@@ -251,7 +287,7 @@ bool std_core_any_below(void* l0, int32_t l1) {
     return false;
 }
 
-int32_t std_core_b2i(bool l0) {
+static int32_t std_core_b2i(bool l0) {
     int32_t l1;
     if (l0) {
         l1 = INT32_C(1);
@@ -261,7 +297,7 @@ int32_t std_core_b2i(bool l0) {
     return l1;
 }
 
-uint64_t std_core_b2u(bool l0) {
+static uint64_t std_core_b2u(bool l0) {
     uint64_t l1;
     if (l0) {
         l1 = (uint64_t) (int64_t) INT64_C(1);
@@ -271,7 +307,7 @@ uint64_t std_core_b2u(bool l0) {
     return l1;
 }
 
-int32_t std_core_bit_len(void* l0) {
+static int32_t std_core_bit_len(void* l0) {
     int32_t l1, l3, l5, l6;
     size_t l2, l4;
     size_t t0;
@@ -310,7 +346,7 @@ int32_t std_core_bit_len(void* l0) {
     return INT32_C(0);
 }
 
-uint64_t std_core_bits64(void* l0, int32_t l1) {
+static uint64_t std_core_bits64(void* l0, int32_t l1) {
     size_t l2, l5;
     int32_t l3;
     uint64_t l4, l6, l7, l8;
@@ -348,7 +384,7 @@ uint64_t std_core_bits64(void* l0, int32_t l1) {
     return (uint64_t) (int64_t) (l4 | l6);
 }
 
-int32_t std_core_clz32(uint32_t l0) {
+static int32_t std_core_clz32(uint32_t l0) {
     int32_t l1;
     uint32_t l2;
     int32_t t0;
@@ -368,7 +404,7 @@ int32_t std_core_clz32(uint32_t l0) {
     return l1;
 }
 
-void* std_core_d2d(uint64_t l0, uint64_t l1) {
+static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     int32_t l2, l11, l13, l14;
     uint64_t l3, l5, l7, l8, l9, l10, l17, l18, l20, l21, l22;
     bool l4, l6, l12, l19, l23;
@@ -651,7 +687,7 @@ void* std_core_d2d(uint64_t l0, uint64_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* std_core_digits_of(uint64_t l0) {
+static void* std_core_digits_of(uint64_t l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     uint64_t l2;
@@ -719,7 +755,7 @@ void* std_core_digits_of(uint64_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
+static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
     bool l2;
     uint64_t l3, l4, l9, l10, l11;
     int32_t l5, l7, l8;
@@ -935,7 +971,7 @@ vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) {
+static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) {
     bool l3;
     vader_string_t l4, l5, l8;
     int32_t l6, l7;
@@ -1100,7 +1136,7 @@ vader_string_t std_core_format_unsigned(uint64_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool std_core_is_zero(void* l0) {
+static bool std_core_is_zero(void* l0) {
     size_t l1, l2;
     vader_box_t t0;
     uint32_t t1;
@@ -1128,7 +1164,7 @@ bool std_core_is_zero(void* l0) {
     return true;
 }
 
-vader_string_t std_core_join_range(void* l0, int32_t l1, int32_t l2) {
+static vader_string_t std_core_join_range(void* l0, int32_t l1, int32_t l2) {
     vader_string_t l3, l6;
     int32_t l4;
     size_t l5;
@@ -1190,7 +1226,7 @@ size_t std_core_len(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint64_t std_core_limb(void* l0, size_t l1) {
+static uint64_t std_core_limb(void* l0, size_t l1) {
     size_t l2;
     uint64_t l3;
     vader_box_t t0;
@@ -1211,15 +1247,15 @@ uint64_t std_core_limb(void* l0, size_t l1) {
     return l3;
 }
 
-int32_t std_core_log10_pow2(int32_t l0) {
+static int32_t std_core_log10_pow2(int32_t l0) {
     return ((int32_t) (uint64_t) ((((int64_t) (int32_t) l0) * INT64_C(78913)) >> INT64_C(18)));
 }
 
-int32_t std_core_log10_pow5(int32_t l0) {
+static int32_t std_core_log10_pow5(int32_t l0) {
     return ((int32_t) (uint64_t) ((((int64_t) (int32_t) l0) * INT64_C(732923)) >> INT64_C(20)));
 }
 
-void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
+static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
     void* l3 = NULL;
     uint64_t l4, l7, l8, l9;
     size_t l5, l6;
@@ -1279,7 +1315,7 @@ void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, int32_t l3, uint64_t l4) {
+static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, int32_t l3, uint64_t l4) {
     uint64_t l5, l7, l8, l9, l10, l11, l12, l13, l14;
     void* l6 = NULL;
     int64_t t0;
@@ -1368,7 +1404,7 @@ void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, int32_t l
     vader_gc_top = gc_frame.prev;
 }
 
-bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {
+static bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {
     uint64_t l2;
     int64_t t0;
     t0 = ((int64_t) (int32_t) l1);
@@ -1378,7 +1414,7 @@ bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {
     return (l0 & l2) == INT64_C(0);
 }
 
-bool std_core_multiple_of_power_of_5(uint64_t l0, int32_t l1) {
+static bool std_core_multiple_of_power_of_5(uint64_t l0, int32_t l1) {
     int32_t t0;
     t0 = std_core_pow5_factor(l0);
     return (t0 >= l1);
@@ -1478,7 +1514,7 @@ vader_box_t std_core_parse_f64(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
+static double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     void* l10 = NULL;
@@ -1590,7 +1626,7 @@ double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t std_core_pf_clz64(uint64_t l0) {
+static int32_t std_core_pf_clz64(uint64_t l0) {
     int32_t l1;
     uint64_t l2;
     int64_t t0;
@@ -1610,7 +1646,7 @@ int32_t std_core_pf_clz64(uint64_t l0) {
     return l1;
 }
 
-bool std_core_pf_is_digit(uint8_t l0) {
+static bool std_core_pf_is_digit(uint8_t l0) {
     bool l1;
     if ((l0 >= INT32_C(48))) {
         l1 = (l0 <= INT32_C(57));
@@ -1620,7 +1656,7 @@ bool std_core_pf_is_digit(uint8_t l0) {
     return l1;
 }
 
-void* std_core_pf_product(int32_t l0, uint64_t l1) {
+static void* std_core_pf_product(int32_t l0, uint64_t l1) {
     int32_t l2;
     size_t l3;
     uint64_t l4, l6, l7;
@@ -1671,7 +1707,7 @@ void* std_core_pf_product(int32_t l0, uint64_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t std_core_pow5_factor(uint64_t l0) {
+static int32_t std_core_pow5_factor(uint64_t l0) {
     uint64_t l1;
     int32_t l2;
     int64_t t0;
@@ -1691,11 +1727,11 @@ int32_t std_core_pow5_factor(uint64_t l0) {
     return l2;
 }
 
-int32_t std_core_pow5bits(int32_t l0) {
+static int32_t std_core_pow5bits(int32_t l0) {
     return ((int32_t) (int64_t) (((((int64_t) (int32_t) l0) * INT64_C(1217359)) >> INT64_C(19)) + INT64_C(1)));
 }
 
-vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
+static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
     uint64_t l3;
     int32_t l4, l6;
     void* l5 = NULL;
@@ -1732,7 +1768,7 @@ vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t std_core_scan_decimal(vader_string_t l0) {
+static vader_box_t std_core_scan_decimal(vader_string_t l0) {
     size_t l1, l2;
     bool l3, l7, l8, l9, l11;
     uint64_t l4, l10;
@@ -1963,7 +1999,7 @@ vader_box_t std_core_scan_decimal(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint64_t std_core_sd_round_at(void* l0, int32_t l1, bool l2) {
+static uint64_t std_core_sd_round_at(void* l0, int32_t l1, bool l2) {
     uint64_t l3, l4;
     int32_t l5;
     bool l6, l7;
@@ -2001,7 +2037,7 @@ uint64_t std_core_sd_round_at(void* l0, int32_t l1, bool l2) {
     return l3;
 }
 
-void* std_core_sd_scan(vader_string_t l0) {
+static void* std_core_sd_scan(vader_string_t l0) {
     size_t l1, l2;
     bool l3, l6, l8;
     void* l4 = NULL;
@@ -2186,7 +2222,7 @@ void* std_core_sd_scan(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2) {
+static uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2) {
     uint64_t l3, l4;
     int64_t t0;
     t0 = (INT64_C(64) - l2);
@@ -2197,7 +2233,7 @@ uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2) {
     return (uint64_t) (int64_t) (l3 | l4);
 }
 
-void* std_core_shl(void* l0, int32_t l1) {
+static void* std_core_shl(void* l0, int32_t l1) {
     void* l2 = NULL;
     size_t l3, l4;
     int32_t l5;
@@ -2308,7 +2344,7 @@ double std_core_u64_BitsFloat_from_bits_vt(uint64_t l0) {
     return (((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(l0) }).__vd);
 }
 
-void* std_core_umul128(uint64_t l0, uint64_t l1) {
+static void* std_core_umul128(uint64_t l0, uint64_t l1) {
     uint64_t l2, l3, l4, l5, l6;
     int64_t t0;
     void* t1 = NULL;
@@ -2443,7 +2479,7 @@ size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 2075u);
+        t0 = std_core_write_string_at(l0, l1, 2076u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = std_core_write_string_at(l0, l1, 1453u);
@@ -2569,7 +2605,7 @@ size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
     return (size_t) (int64_t) (l1 + l3);
 }
 
-vader_string_t std_core_zeros(int32_t l0) {
+static vader_string_t std_core_zeros(int32_t l0) {
     vader_string_t l1;
     int32_t l2;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };

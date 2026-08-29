@@ -64,6 +64,13 @@ extern_decl :: fn(imp: BcImport) -> string {
 // name, erased param list (`void` when empty). Shared by the definition here
 // and the split-build prototype (`split.vader::emit_import_shim_protos`) so the
 // two can't drift on the ABI.
+/// Storage class for an import shim. `static inline` in a split build, because
+/// the shim lives in the SHARED HEADER there — a one-line ABI wrapper is worth
+/// nothing as an out-of-line cross-TU call, and it was the real barrier: with
+/// the shim in unit 0, wordcount's per-byte read still paid a call per byte
+/// even after the runtime accessor behind it became inline (+211 % vs mono).
+shim_linkage_prefix :: fn(split: bool) -> string = if split { "static inline " } else { "static " }
+
 import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
     parts: string[]! = []
@@ -73,7 +80,7 @@ import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
 }
 
 import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
-    head :: "${linkage_prefix(ctx.split)}${import_shim_signature(imp, idx)}"
+    head :: "${shim_linkage_prefix(ctx.split)}${import_shim_signature(imp, idx)}"
     m :: imp.mangled_name
     types :: ctx.module.types
 

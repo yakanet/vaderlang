@@ -7,9 +7,11 @@
 //
 // Layout (one program → several files) :
 //   - `<base>.h`    — every cross-TU declaration : struct typedefs / bodies,
-//                     fn-sig typedefs, ALL fn / import-shim / dispatcher /
-//                     closure prototypes, the atom-count macro, and `extern`
-//                     decls for the data globals defined in the globals TU.
+//                     fn-sig typedefs, the EXTERNAL fn / dispatcher / closure
+//                     prototypes, the import shims themselves (`static inline`,
+//                     so every unit absorbs them), the atom-count macro, and
+//                     `extern` decls for the data globals defined in the
+//                     globals TU.
 //                     (`vader_type_info_table` is already extern'd by
 //                     `vader.h`.)
 //   - `<base>.g.c`  — the data-global DEFINITIONS : atom table, data pool,
@@ -19,8 +21,9 @@
 //                     the bootstrap fixed point). Unit 0 also carries the
 //                     trampolines, import shims, dispatchers, and `main`.
 //
-// Every emitted symbol keeps external linkage (see `emit.vader::linkage_prefix`
-// gated on `EmitCtx.split`), so the mangle-unique names resolve across TUs.
+// A symbol keeps external linkage only when another unit refers to it
+// (`internal_fn_flags`); the rest stay `static` in their own TU so `cc` can
+// still inline them. The mangle-unique names resolve across TUs either way.
 // The monolithic path is untouched — `emit_c` stays the CI / release default.
 
 module "vader/c_emit"
@@ -64,8 +67,13 @@ export GLUE_UNIT :: "_glue"
 ///                     (resolved relative to each `.c` — keep them co-located).
 /// @return             the header, globals TU, and `num_units` function TUs.
 export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, header_name: string) -> CProgram {
-    ctx :: new_ctx(m, opts.release, true, opts.atom_universe)
-    n :: if num_units < 1 { 1 } else { num_units }
+    // The partition comes FIRST: the linkage analysis needs to know which unit
+    // each function lands in, and the context needs the analysis.
+    buckets :: partition_functions(m.functions)
+    ctx :: new_ctx(
+        m, opts.release, true, opts.atom_universe,
+        internal_fn_flags(m, buckets, opts.entry_mangled),
+    )
 
     // ---- shared header : every cross-TU declaration -----------------------
     hdr :: StringBuilder {}
@@ -80,7 +88,9 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
     emit_forward_decls(ctx, hdr)
     emit_closure_forward_decls(ctx, hdr)
     emit_vtable_forward_decls(ctx, hdr)
-    emit_import_shim_protos(ctx, hdr)
+    // The shim DEFINITIONS, not prototypes: they are `static inline` here so
+    // every unit inlines them instead of calling into unit 0.
+    emit_import_shims(ctx, hdr)
     emit_atom_count_define(ctx, hdr)
     emit_data_global_externs(ctx, hdr)
 
@@ -94,15 +104,17 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
     emit_type_info_table(ctx, glob)
 
     // ---- function TUs : one per MODULE, plus unit 0 for the fixed code ----
-    buckets :: partition_functions(m.functions)
     names :: unit_names_of(m.functions, buckets)
     units: string[]! = []
     for k in 0..<buckets.len() {
         u :: StringBuilder {}
         u.append("#include \"${header_name}\"\n\n")
+        // Prototypes for this unit's OWN internal functions — the shared header
+        // carries only the external ones, and a `static` definition needs a
+        // `static` declaration ahead of any mutually-recursive use.
+        emit_internal_forward_decls(ctx, buckets[usize(k)], u)
         if k == 0 {
             emit_fn_trampolines(ctx, u)
-            emit_import_shims(ctx, u)
             emit_vtable_dispatchers(ctx, u)
         }
         for idx in buckets[usize(k)] {
@@ -120,18 +132,113 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
     }
 }
 
-// ---- header-only declaration emitters -------------------------------------
-
-/// Prototype for every `call.import` shim (`vader_import_N`). Split builds
-/// scatter the shim definitions (unit 0) and their call sites (any unit), so
-/// each needs a prototype. The signature mirrors `host.vader::import_shim`.
-emit_import_shim_protos :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
-    imports :: ctx.module.imports
-    for i in 0..<imports.len() {
-        out.append("${import_shim_signature(imports[i], i32(i))};\n")
+/// `static <sig>;` for each of this unit's own internal functions, so a
+/// mutually-recursive pair inside one unit still compiles in any order.
+///
+/// The shared header cannot carry these: it is included by every TU, and a
+/// `static` declaration there would give each unit its own undefined symbol.
+///
+/// @param ctx      the emit context, for the per-fn linkage decision.
+/// @param bucket   function indices belonging to this unit.
+/// @param out      the accumulating unit source.
+emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], out: StringBuilder!) -> void {
+    fns :: ctx.module.functions
+    any: bool = false
+    for idx in bucket {
+        if fn_linkage_prefix(ctx, idx) != "" {
+            out.append("static ${signature_for(fns[usize(idx)])};\n")
+            any = true
+        }
     }
-    if imports.len() > 0 { out.append("\n") }
+    if any {
+        out.append("\n")
+    }
 }
+
+// ---- linkage analysis -----------------------------------------------------
+
+/// Per-function: true when NO unit but its own refers to it, so it can be
+/// `static` in that unit.
+///
+/// Splitting used to give every function external linkage, which forbids `cc`
+/// from inlining it — a definition another TU may call has to be emitted as
+/// written. That is what the split cost: measured at +10 % to +29 % on the
+/// stdlib-heavy bench workloads, against a monolithic build where everything
+/// is already `static`.
+///
+/// A function stays EXTERNAL when any of these holds. The list is the complete
+/// set of ways a name can be reached from outside its unit, and erring towards
+/// external is safe (it only forgoes an inline); erring the other way is a link
+/// error, so each entry is a reference site, not a heuristic:
+///   - an `@export` target — a host names it;
+///   - the entry point — `emit_main` calls it from unit 0;
+///   - a vtable target — the vtable arrays live in the globals TU;
+///   - taken as a fn-value — `emit_fn_trampolines` wraps it from unit 0;
+///   - called by a function in another unit.
+///
+/// @param m              the module being emitted.
+/// @param buckets        unit → function indices, from `partition_functions`.
+/// @param entry_mangled  mangled name of the entry fn, `""` when there is none.
+/// @return               flags parallel to `m.functions`.
+internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: string) -> bool[] {
+    n :: m.functions.len()
+    unit_of: i32[]! = []
+    external: bool[]! = []
+    for i in 0..<n {
+        unit_of.push(-1)
+        external.push(false)
+    }
+    for u in 0..<buckets.len() {
+        for idx in buckets[u] {
+            unit_of[usize(idx)] = i32(u)
+        }
+    }
+
+    for e in m.exports {
+        external[usize(e.fn_index)] = true
+    }
+    for row in m.vtables {
+        for en in row.entries {
+            external[usize(en.fn_index)] = true
+        }
+    }
+    usage :: scan_fn_value_usage(m.functions)
+    for i in 0..<n {
+        if usage.fn_ref_type[i] >= 0 || usage.is_closure[i] {
+            external[i] = true
+        }
+        if entry_mangled != "" && m.functions[i].name == entry_mangled {
+            external[i] = true
+        }
+    }
+
+    for i in 0..<n {
+        home :: unit_of[i]
+        for op in m.functions[i].body {
+            callee :: callee_index_of(op)
+            if callee >= 0 && unit_of[usize(callee)] != home {
+                external[usize(callee)] = true
+            }
+        }
+    }
+
+    out: bool[]! = []
+    for i in 0..<n {
+        out.push(!external[i])
+    }
+    return out
+}
+
+/// Index of the function `op` refers to, or `-1` when it refers to none.
+/// `fn.ref` counts: the reference itself crosses units even though the call
+/// through it does not.
+callee_index_of :: fn(op: Op) -> i32 {
+    if op is Call as c  { return c.function_index }
+    if op is FnRef as f { return f.function_index }
+    return -1
+}
+
+// ---- header-only declaration emitters -------------------------------------
 
 /// `#define VADER_COMPTIME_ATOM_COUNT N` for the shared header — the unit that
 /// carries `main` reads it to size `vader_atom_init_with_comptime`. Mirrors the

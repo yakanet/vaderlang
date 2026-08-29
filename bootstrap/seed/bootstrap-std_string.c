@@ -1,5 +1,11 @@
 #include "bootstrap.split.h"
 
+static ptrdiff_t std_string_byte_find(vader_string_t l0, vader_string_t l1, size_t l2);
+static bool std_string_bytes_match_at(void* l0, size_t l1, void* l2, size_t l3);
+static bool std_string_is_utf8_continuation(uint8_t l0);
+static uint8_t std_string_to_lower_byte(uint8_t l0);
+static uint32_t std_string_to_lower_cp(uint32_t l0);
+
 vader_box_t std_string_StringChars_Iterator_next(void* l0) {
     size_t l1, l2;
     void* l3 = NULL;
@@ -45,7 +51,7 @@ bool std_string_byte_contains(vader_string_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-ptrdiff_t std_string_byte_find(vader_string_t l0, vader_string_t l1, size_t l2) {
+static ptrdiff_t std_string_byte_find(vader_string_t l0, vader_string_t l1, size_t l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     size_t l5, l6, l7;
@@ -85,7 +91,7 @@ ptrdiff_t std_string_byte_find(vader_string_t l0, vader_string_t l1, size_t l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-bool std_string_bytes_match_at(void* l0, size_t l1, void* l2, size_t l3) {
+static bool std_string_bytes_match_at(void* l0, size_t l1, void* l2, size_t l3) {
     size_t l4, l5;
     uint8_t l6, l7;
     int64_t t0;
@@ -374,7 +380,7 @@ bool std_string_is_surrogate(uint32_t l0) {
     return l2;
 }
 
-bool std_string_is_utf8_continuation(uint8_t l0) {
+static bool std_string_is_utf8_continuation(uint8_t l0) {
     bool l1;
     if ((l0 >= INT32_C(128))) {
         l1 = (l0 < INT32_C(192));
@@ -714,7 +720,7 @@ vader_string_t std_string_to_lower(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint8_t std_string_to_lower_byte(uint8_t l0) {
+static uint8_t std_string_to_lower_byte(uint8_t l0) {
     bool l1;
     uint8_t l2;
     if ((l0 >= INT32_C(65))) {
@@ -729,7 +735,7 @@ uint8_t std_string_to_lower_byte(uint8_t l0) {
     return l0;
 }
 
-uint32_t std_string_to_lower_cp(uint32_t l0) {
+static uint32_t std_string_to_lower_cp(uint32_t l0) {
     bool l1;
     uint32_t l2;
     int32_t t0;

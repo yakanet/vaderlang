@@ -1,6 +1,13 @@
 #include "bootstrap.split.h"
 
-void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, void* l3) {
+static void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, void* l3);
+static void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2, void* l3);
+static void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2, void* l3);
+static void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType(void* l0, void* l1, size_t l2, size_t l3, void* l4);
+static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, size_t l3, void* l4);
+static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size_t l3, void* l4);
+
+static void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, void* l3) {
     size_t l4, l6, l8, l10;
     vader_box_t l5 = vader_box_null(), l9 = vader_box_null(), l11 = vader_box_null();
     bool l7;
@@ -68,7 +75,7 @@ void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, void* l3
     vader_gc_top = gc_frame.prev;
 }
 
-void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2, void* l3) {
+static void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2, void* l3) {
     size_t l4, l6, l8, l10;
     vader_string_t l5, l9, l11;
     bool l7;
@@ -139,7 +146,7 @@ void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2, void* l3) {
+static void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2, void* l3) {
     size_t l4, l5, l6, l8, l9, l10, l11;
     bool l7;
     int64_t t0;
@@ -207,7 +214,7 @@ void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
+static void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
     size_t l5, l6, l8, l9;
     vader_box_t l7 = vader_box_null(), l10 = vader_box_null(), l11 = vader_box_null(), l12 = vader_box_null(), l13 = vader_box_null(), l14 = vader_box_null();
     int64_t t0;
@@ -332,7 +339,7 @@ void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___EnumType___
     vader_gc_top = gc_frame.prev;
 }
 
-void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
+static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
     size_t l5, l6, l8, l9;
     vader_string_t l7, l10, l11, l12, l13, l14;
     int64_t t0;
@@ -464,7 +471,7 @@ void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, size_t l3,
     vader_gc_top = gc_frame.prev;
 }
 
-void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
+static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
     size_t l5, l6, l7, l8, l9, l10, l11, l12, l13, l14;
     int64_t t0;
     uint64_t t1;

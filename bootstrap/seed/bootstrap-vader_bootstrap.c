@@ -1,6 +1,19 @@
 #include "bootstrap.split.h"
 
-void* vader_bootstrap_assemble_typed_project(void* l0) {
+static void* vader_bootstrap_assemble_typed_project(void* l0);
+static void* vader_bootstrap_collect_body_diags(void* l0);
+static vader_box_t vader_bootstrap_emit_c_source(vader_string_t l0);
+static vader_string_t vader_bootstrap_entry_main_name(void* l0, vader_string_t l1);
+static bool vader_bootstrap_flush_build_diags(void* l0, void* l1);
+static void* vader_bootstrap_gather_pipeline_diags(void* l0);
+static void* vader_bootstrap_lower_to_entry(vader_string_t l0);
+static void* vader_bootstrap_merge_diagnostics(void* l0, void* l1);
+static vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0);
+static void* vader_bootstrap_prepare_cfg_bytecode(vader_string_t l0);
+static void* vader_bootstrap_prepare_evaluated_project(vader_string_t l0);
+static int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1);
+
+static void* vader_bootstrap_assemble_typed_project(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l4 = NULL;
@@ -74,7 +87,7 @@ void* vader_bootstrap_assemble_typed_project(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_collect_body_diags(void* l0) {
+static void* vader_bootstrap_collect_body_diags(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l7 = NULL;
@@ -149,7 +162,7 @@ void* vader_bootstrap_collect_body_diags(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_bootstrap_emit_c_source(vader_string_t l0) {
+static vader_box_t vader_bootstrap_emit_c_source(vader_string_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -186,7 +199,7 @@ vader_box_t vader_bootstrap_emit_c_source(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_bootstrap_entry_main_name(void* l0, vader_string_t l1) {
+static vader_string_t vader_bootstrap_entry_main_name(void* l0, vader_string_t l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     vader_string_t t0, t1;
@@ -206,7 +219,7 @@ vader_string_t vader_bootstrap_entry_main_name(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_bootstrap_flush_build_diags(void* l0, void* l1) {
+static bool vader_bootstrap_flush_build_diags(void* l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     size_t t0;
@@ -246,7 +259,7 @@ bool vader_bootstrap_flush_build_diags(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_gather_pipeline_diags(void* l0) {
+static void* vader_bootstrap_gather_pipeline_diags(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l5 = NULL;
@@ -333,7 +346,7 @@ void* vader_bootstrap_gather_pipeline_diags(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_lower_to_entry(vader_string_t l0) {
+static void* vader_bootstrap_lower_to_entry(vader_string_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -378,7 +391,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 < INT64_C(3))) {
-        std_io_eprintln__string(2198u);
+        std_io_eprintln__string(2199u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
@@ -399,7 +412,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_merge_diagnostics(void* l0, void* l1) {
+static void* vader_bootstrap_merge_diagnostics(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -450,7 +463,7 @@ void* vader_bootstrap_merge_diagnostics(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0) {
+static vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0) {
     vader_string_t t0, t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -462,7 +475,7 @@ vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_prepare_cfg_bytecode(vader_string_t l0) {
+static void* vader_bootstrap_prepare_cfg_bytecode(vader_string_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l4 = NULL;
@@ -495,7 +508,7 @@ void* vader_bootstrap_prepare_cfg_bytecode(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_bootstrap_prepare_evaluated_project(vader_string_t l0) {
+static void* vader_bootstrap_prepare_evaluated_project(vader_string_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -531,7 +544,7 @@ void* vader_bootstrap_prepare_evaluated_project(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
+static int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
     vader_box_t l2 = vader_box_null();
     vader_string_t l3;
     void* t0 = NULL;
