@@ -137,6 +137,7 @@ export source_for :: fn(self: ServerState, uri: string) -> string | null {
 /// file is neither open nor readable — the LineIndex then clamps every offset to
 /// 0, degrading gracefully rather than crashing. Used to encode ranges for
 /// cross-file results (goto-def / references targets in other modules).
+///
 export source_for_path :: fn(self: ServerState, path: string) -> string {
     open :: self.docs[path_to_uri(path)]
     if open is string as s { return s }
@@ -306,19 +307,14 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
     if uri.bytes().len() == 0 { return }
-    self.docs[uri] = ""
+    // Removed rather than blanked. `remove` needs a `MutableMap<K, V>!`, which
+    // is why the placeholders were written; `self` is `ServerState!` here, so
+    // it is reachable. A blanked entry still answers as a real one.
+    self.docs.remove(uri)
     self.cache = null
     self.cache_prev = null
-    // Suppress any pending debounced publish for this now-closed doc — a later
-    // flush must not re-squiggle a file we just cleared. MutableMap has no
-    // remove ; `false` is the "don't publish" marker `flush_dirty_diagnostics`
-    // skips.
-    self.dirty[uri] = false
-    // Indices map carries the parsed AST + tokens — drop the entry so
-    // a stale index never serves a closed-doc request. MutableMap has
-    // no remove ; rebuilding an empty index would still pin memory, so
-    // we substitute a tiny placeholder built from "".
-    self.indices[uri] = build_index(uri, "", self.position_encoding)
+    self.dirty.remove(uri)
+    self.indices.remove(uri)
     clear_diagnostics_for_uri(self, uri)
 }
 
@@ -327,14 +323,14 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
 /// (vader/lsp/main.vader) calls this once an edit burst settles — so the project
 /// is type-checked once per quiescent window instead of once per keystroke.
 /// Nulls the cache before each publish so diagnostics reflect the current text,
-/// not the stale typed project served during the burst. Entries marked `false`
-/// (a doc closed mid-burst) are skipped.
+/// not the stale typed project served during the burst. A doc closed mid-burst
+/// is simply absent — `handle_did_close` removes its key.
 export flush_dirty_diagnostics :: fn(self: ServerState!) -> void {
     published := false
     for [uri, needs_publish] in self.dirty {
         if needs_publish {
             self.cache = null
-    self.cache_prev = null
+            self.cache_prev = null
             publish_diagnostics_for_uri(self, uri)
             published = true
         }
@@ -360,8 +356,7 @@ send_inlay_hint_refresh :: fn(self: ServerState!) -> void {
 }
 
 /// True iff a didChange has left some document's diagnostics pending a publish.
-/// Drives the debounce gate in the event loop. Walks the map because closed
-/// docs leave `false` markers that don't count as dirty.
+/// Drives the debounce gate in the event loop.
 export has_dirty :: fn(self: ServerState) -> bool {
     for [_, needs_publish] in self.dirty {
         if needs_publish { return true }
