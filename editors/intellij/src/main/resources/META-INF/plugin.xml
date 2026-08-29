@@ -47,6 +47,11 @@
              silence, which is how the ▶ above went unnoticed. -->
         <codeInsight.lineMarkerProvider language="TEXT"
                                         implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
+        <!-- Ctrl+click on `[path:line:col]` in the Run console. The compiler
+             prints paths relative to its working directory, and IntelliJ's
+             built-in filters only link absolute ones — so shortening them cost
+             navigation until this landed. -->
+        <consoleFilterProvider implementation="dev.vaderlang.intellij.VaderConsoleFilterProvider"/>
         <applicationConfigurable
             instance="dev.vaderlang.intellij.VaderConfigurable"
             id="dev.vaderlang.intellij.config"
