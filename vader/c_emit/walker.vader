@@ -1884,7 +1884,18 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         line(s, "${name} = (void*) ${obj};")
         push_tmp(s, name, .Ref)
     } else {
-        todo("struct.new on non-struct type ${op.type_id}")
+        // Say what the slot ACTUALLY holds, not just that it is wrong. A
+        // `struct.new` whose type index is not a struct means the module's type
+        // table disagrees with its own ops, and the two ways that happens —
+        // an index past the end, or an entry of the wrong shape — need different
+        // investigations. This message once cost a day for want of naming which.
+        types :: s.ctx.module.types
+        found :: if usize(op.type_id) >= types.len() {
+            "index past the end of a ${types.len()}-entry table"
+        } else {
+            "the entry is `${bc_type_key(types, op.type_id)}` in a ${types.len()}-entry table"
+        }
+        todo("struct.new on non-struct type ${op.type_id}: ${found}")
     }
 }
 

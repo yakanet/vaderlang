@@ -391,7 +391,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 < INT64_C(3))) {
-        std_io_eprintln__string(2199u);
+        std_io_eprintln__string(2209u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
@@ -470,7 +470,7 @@ static vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0) {
     t0 = std_path_to_posix(l0);
     t1 = std_path_to_path(t0);
     t0 = std_path_filename(t1);
-    t1 = std_string_trim_suffix(t0, 410u);
+    t1 = std_string_trim_suffix(t0, 411u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -557,7 +557,7 @@ static int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
     if (l2.tag == 395u) {
         t0 = l2.payload.obj;
         l3 = ((vader_struct_std_io_IOError_t*) t0)->f_msg;
-        t1 = concat_4(1185u, l0, 993u, l3);
+        t1 = concat_4(1188u, l0, 995u, l3);
         std_io_eprintln__string(t1);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
