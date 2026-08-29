@@ -204,7 +204,7 @@ fn 4 snippet$__asyncstate_14$Async$resume (ref) -> any
           local.set 8
           local.field 0 7 0
           struct.new 6
-          make_closure 3 11
+          make_closure 3 13
           ref.cast 13
           local.set 9
           local.get 8
@@ -271,7 +271,7 @@ fn 4 snippet$__asyncstate_14$Async$resume (ref) -> any
           local.set 14
           local.field 0 7 0
           struct.new 4
-          make_closure 2 11
+          make_closure 2 13
           ref.cast 13
           local.set 15
           local.get 14

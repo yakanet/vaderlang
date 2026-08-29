@@ -238,7 +238,7 @@ fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
           local.set 9
           local.field 0 7 0
           struct.new 5
-          make_closure 2 12
+          make_closure 2 14
           ref.cast 14
           local.set 10
           local.get 9

@@ -349,7 +349,7 @@ static vader_box_t snippet___asyncstate_11_Async_resume(void* l0) {
                     _a4_obj->f_cap_0 = ((vader_struct___asyncstate_11_t*) l0)->f_s0;
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a5_closure, 12u);
+                    vader_obj_header_init(_a5_closure, 14u);
                     _a5_closure->code = (void*) &vader_fn_lift_2;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;

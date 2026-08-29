@@ -6074,8 +6074,8 @@ vader_box_t vader_fn_tramp_1183(void* env, vader_box_t a0, vader_box_t a1, vader
 extern vader_fn_t vader_fn_static_1183;
 vader_box_t vader_fn_tramp_1282(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_1282;
-vader_box_t vader_fn_tramp_2382(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static_2382;
+vader_box_t vader_fn_tramp_2383(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static_2383;
 vader_box_t vader_fn_lift_225(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_285(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift_299(void* env, vader_box_t a0, vader_box_t a1);
@@ -6100,20 +6100,20 @@ vader_box_t vader_fn_lift_1778(void* env);
 vader_box_t vader_fn_lift_1780(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_1781(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_1782(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift_2130(void* env, vader_box_t a0, vader_box_t a1);
-vader_box_t vader_fn_lift_2453(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift_2522(void* env, vader_box_t a0, vader_box_t a1);
-vader_box_t vader_fn_lift_2523(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift_2131(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift_2454(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift_2523(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift_2524(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2525(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2526(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2527(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2528(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2529(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift_2530(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift_2530(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift_2531(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift_2532(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift_2533(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift_2534(void* env, vader_box_t a0, vader_box_t a1);
 
 static inline size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_import_1(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }

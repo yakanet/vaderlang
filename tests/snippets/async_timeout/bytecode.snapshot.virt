@@ -28,7 +28,6 @@ type 25 ref Async
 type 26 struct std_async$Sleep { ms:20,deadline:20,armed:17 }
 type 27 union 0,8
 type 28 ref _
-type 29 ref _
 string 0 "work cleanup"
 string 1 "done"
 string 2 "timed out: "
@@ -240,7 +239,7 @@ fn 3 snippet$__asyncstate_5$Async$resume (ref) -> any
           local.field 0 5 1
           local.set 9
           struct.new 3
-          make_closure 2 28
+          make_closure 2 12
           ref.cast 12
           local.set 10
           local.get 9

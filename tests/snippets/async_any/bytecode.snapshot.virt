@@ -37,9 +37,8 @@ type 34 struct std_collections$MutableMap__usize__bool { ekeys:37,evals:36,index
 type 35 array 4
 type 36 array 18
 type 37 array 19
-type 38 ref _
-type 39 array 3
-type 40 ref _
+type 38 array 3
+type 39 ref _
 string 0 "boom"
 string 1 "winner cleanup"
 string 2 "ok"
@@ -373,7 +372,7 @@ fn 7 snippet$__asyncstate_11$Async$resume (ref) -> any
           local.field 0 10 1
           local.set 9
           struct.new 9
-          make_closure 6 38
+          make_closure 6 15
           ref.cast 15
           local.set 10
           local.get 9
@@ -592,7 +591,7 @@ fn 9 snippet$__asyncstate_23$Async$resume (ref) -> any
           local.set 8
           local.get 7
           local.get 8
-          array.new 39 2
+          array.new 38 2
           local.set 9
           array.new 37 0
           local.set 10

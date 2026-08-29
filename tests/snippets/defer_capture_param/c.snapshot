@@ -106,9 +106,10 @@ static const uint16_t vader_type_6_ptrs[] = { offsetof(vader_struct___defer_env_
 static const uint16_t vader_type_7_ptrs[] = { offsetof(vader_struct___defer_env_15_t, f_cap_0), offsetof(vader_struct___defer_env_15_t, f_cap_1) };
 static const uint16_t vader_type_9_ptrs[] = { offsetof(vader_struct___lambda_env_21_t, f_cap_0) };
 static const uint16_t vader_type_13_strs[] = { offsetof(vader_struct__Cell_string_t, f_value) };
-static const uint16_t vader_type_15_refs[] = { offsetof(vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t, f_value) };
+static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_type_16_refs[] = { offsetof(vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t, f_value) };
 
-const vader_type_info_t vader_type_info_table[16] = {
+const vader_type_info_t vader_type_info_table[17] = {
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Counter_t), NULL, 0, 0, NULL, 0, NULL },
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_2_t), vader_type_6_ptrs, 2, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_15_t), vader_type_7_ptrs, 2, 0, NULL, 0, NULL },
@@ -116,11 +117,12 @@ const vader_type_info_t vader_type_info_table[16] = {
     [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [13] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_string_t), NULL, 0, 1, vader_type_13_strs, 0, NULL },
     [14] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_i64_t), NULL, 0, 0, NULL, 0, NULL },
-    [15] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t), NULL, 0, 0, NULL, 1, vader_type_15_refs },
+    [15] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_15_ptrs, 1, 0, NULL, 0, NULL },
+    [16] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t), NULL, 0, 0, NULL, 1, vader_type_16_refs },
 };
-const size_t vader_type_info_count = 16;
+const size_t vader_type_info_count = 17;
 
-const size_t vader_type_size[16] = {
+const size_t vader_type_size[17] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 8u,
@@ -137,6 +139,7 @@ const size_t vader_type_size[16] = {
     [13] = 16u,
     [14] = 16u,
     [15] = 16u,
+    [16] = 16u,
 };
 
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -169,7 +172,7 @@ static void snippet_log_at_exit(vader_string_t l0, int64_t l1) {
     _a2_obj->f_cap_1 = l3;
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a3_closure, 8u);
+    vader_obj_header_init(_a3_closure, 15u);
     _a3_closure->code = (void*) &vader_fn_lift_4;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
@@ -197,7 +200,7 @@ static void snippet_bump_at_exit(void* l0, int64_t l1) {
     vader_gc_top = &gc_frame;
 #line 24 "tests/snippets/defer_capture_param/_main.vader"
     vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t* _a0_obj = (vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t*) vader_gc_alloc(sizeof(vader_struct__Cell_Struct_tests_snippets_defer_capture_param__main_vader_709___t));
-    vader_obj_header_init(_a0_obj, 15u);
+    vader_obj_header_init(_a0_obj, 16u);
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l2 = vader_ref_box(t0);
@@ -213,7 +216,7 @@ static void snippet_bump_at_exit(void* l0, int64_t l1) {
     _a2_obj->f_cap_1 = l3;
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a3_closure, 8u);
+    vader_obj_header_init(_a3_closure, 15u);
     _a3_closure->code = (void*) &vader_fn_lift_5;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;

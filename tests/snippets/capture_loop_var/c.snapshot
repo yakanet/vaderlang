@@ -285,7 +285,7 @@ static int32_t snippet_main(void) {
                 _a9_obj->f_cap_0 = l6;
                 t2 = (void*) _a9_obj;
                 vader_fn_t* _a10_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                vader_obj_header_init(_a10_closure, 12u);
+                vader_obj_header_init(_a10_closure, 18u);
                 _a10_closure->code = (void*) &vader_fn_lift_4;
                 _a10_closure->env = t2;
                 t2 = (void*) _a10_closure;
@@ -375,7 +375,7 @@ static int32_t snippet_main(void) {
                     _a18_obj->f_cap_0 = vader_ref_box(t2);
                     t2 = (void*) _a18_obj;
                     vader_fn_t* _a19_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a19_closure, 12u);
+                    vader_obj_header_init(_a19_closure, 18u);
                     _a19_closure->code = (void*) &vader_fn_lift_6;
                     _a19_closure->env = t2;
                     t2 = (void*) _a19_closure;
