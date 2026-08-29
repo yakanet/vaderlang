@@ -165,6 +165,11 @@ BUILD_FLAGS: FlagSpec[]: [
         .value_name = "N",
         .default_text = "1",
     },
+    FlagSpec {
+        .name = "seed-targets",
+        .help = "With --emit=c: emit split C for each target against one shared atom table",
+        .value_name = "a,b",
+    },
 ]
 
 // The twelve IR stages. This array is the only list of them: `cmd_dump`
