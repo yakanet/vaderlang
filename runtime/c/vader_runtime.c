@@ -611,7 +611,6 @@ static void vader_gc_mark_cstack_conservative(void) {
  * ============================================================ */
 
 typedef struct {
-    vader_atom_entry_t* entries;
     vader_u32_t         count;
     vader_u32_t         capacity;
 
@@ -634,6 +633,16 @@ typedef struct {
 } vader_atom_table_t;
 
 static vader_atom_table_t g_atoms = {0};
+
+/* The entries array itself lives OUTSIDE the table struct, as a public global,
+ * so `vader.h` can define the lookup helpers `static inline` — which its comment
+ * has promised since they were written, and which they were not. Every `s[i]`
+ * in emitted code went through an out-of-line cross-TU call: 26 M calls per
+ * pass in the wordcount bench, worth 60 % of its runtime.
+ *
+ * Storage, not a mirror of `g_atoms.entries` — a second copy of the pointer
+ * would desync the day someone reallocs without updating both. */
+vader_atom_entry_t* vader_atom_entries = NULL;
 static int  g_atoms_initialized = 0;
 static int  g_atom_profile = 0;
 
@@ -685,9 +694,9 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
         vader_u32_t want = (count + 1u) * 2u;
         if (want > initial_cap) initial_cap = want;
     }
-    g_atoms.entries = (vader_atom_entry_t*)
+    vader_atom_entries = (vader_atom_entry_t*)
         malloc(initial_cap * sizeof(vader_atom_entry_t));
-    if (g_atoms.entries == NULL) vader_trap("vader_atom_init: entries malloc failed");
+    if (vader_atom_entries == NULL) vader_trap("vader_atom_init: entries malloc failed");
     g_atoms.capacity = initial_cap;
     g_atoms.count    = 0;
 
@@ -716,25 +725,25 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
      * `data` pointer is owned by the binary's `.rodata` section, so the
      * shutdown path must skip the `free(data)` step on these entries. */
     if (count > 0u && comptime_table != NULL) {
-        memcpy(&g_atoms.entries[1], comptime_table,
+        memcpy(&vader_atom_entries[1], comptime_table,
                count * sizeof(vader_atom_entry_t));
         g_atoms.count = 1u + count;
         /* Force PERM on every comptime entry — the codegen-emitted
          * table sets it too, but enforcing here keeps the runtime
          * invariant local. */
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
-            g_atoms.entries[i].flags |= VADER_ATOM_FLAG_PERM;
+            vader_atom_entries[i].flags |= VADER_ATOM_FLAG_PERM;
         }
         /* Build the bucket index over the comptime atoms in a single
          * pass — cheaper than running through `vader_atom_intern` and
          * its hash-lookup-then-install dance for each one. */
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
-            const vader_atom_entry_t* e = &g_atoms.entries[i];
+            const vader_atom_entry_t* e = &vader_atom_entries[i];
             /* Codegen's positional comptime-table literals omit `hash` (it
              * zero-fills) — recompute it here so comptime atoms hash like any
              * interned string ; its low bits index the bucket. */
             uint64_t hash64 = vader_atom_hash64(e->data, e->len);
-            g_atoms.entries[i].hash = hash64;
+            vader_atom_entries[i].hash = hash64;
             vader_atom_bucket_install(i, (vader_u32_t) hash64);
         }
     }
@@ -744,7 +753,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
  * the empty string is reached by direct `a == 0` checks, never via hash
  * probe (it would collide with the "empty slot" sentinel). */
 static void vader_atom_install_empty(void) {
-    vader_atom_entry_t* e = &g_atoms.entries[0];
+    vader_atom_entry_t* e = &vader_atom_entries[0];
     e->parent        = 0;
     e->parent_offset = 0;
     e->len           = 0;
@@ -763,7 +772,7 @@ void vader_atom_shutdown(void) {
      * table. Calling it inline here lets us read the live state. */
     if (g_atom_profile) vader_atom_profile_dump();
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
-        vader_atom_entry_t* e = &g_atoms.entries[i];
+        vader_atom_entry_t* e = &vader_atom_entries[i];
         /* Free owner buffers from dynamic intern only — PERM entries
          * carry rodata pointers we must NOT free. Slice atoms borrow
          * from their parent ; no free either. The static empty-string
@@ -773,10 +782,10 @@ void vader_atom_shutdown(void) {
             free((void*) e->data);
         }
     }
-    free(g_atoms.entries);
+    free(vader_atom_entries);
     free(g_atoms.buckets);
     free(g_atoms.free_list);
-    g_atoms.entries         = NULL;
+    vader_atom_entries         = NULL;
     g_atoms.buckets         = NULL;
     g_atoms.free_list       = NULL;
     g_atoms.count           = 0;
@@ -787,18 +796,6 @@ void vader_atom_shutdown(void) {
     g_atoms.free_capacity   = 0;
     g_atoms.owner_bytes     = 0;
     g_atoms_initialized     = 0;
-}
-
-const vader_atom_entry_t* vader_atom_entry(vader_atom_t a) {
-    return &g_atoms.entries[a];
-}
-
-const char* vader_atom_data(vader_atom_t a) {
-    return g_atoms.entries[a].data;
-}
-
-size_t vader_atom_len(vader_atom_t a) {
-    return (size_t) g_atoms.entries[a].len;
 }
 
 /* ---- intern internals ---- */
@@ -820,10 +817,6 @@ static uint64_t vader_atom_hash64(const char* data, size_t len) {
 
 /* String `Hash` — O(1) read of the cached FNV-1a-64 (computed once at intern).
  * See the `vader_atom_entry_t.hash` note in vader.h. */
-uint64_t vader_string_hash(vader_string_t s) {
-    return g_atoms.entries[s].hash;
-}
-
 /* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
  * on miss. The empty-slot sentinel in `buckets[]` is also 0 ; callers
  * short-circuit len==0 before reaching this so the sentinel can never
@@ -835,7 +828,7 @@ static vader_atom_t vader_atom_lookup(const char* data, size_t len, vader_u32_t 
     for (;;) {
         vader_atom_t a = g_atoms.buckets[idx];
         if (a == VADER_ATOM_EMPTY) return VADER_ATOM_EMPTY;
-        const vader_atom_entry_t* e = &g_atoms.entries[a];
+        const vader_atom_entry_t* e = &vader_atom_entries[a];
         if (e->len == len && memcmp(e->data, data, len) == 0) {
             return a;
         }
@@ -871,19 +864,19 @@ static void vader_atom_grow_buckets(void) {
      * exist. */
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
         /* Rehash from the cached FNV-64 (low bits) — no byte re-walk. */
-        vader_atom_bucket_install(i, (vader_u32_t) g_atoms.entries[i].hash);
+        vader_atom_bucket_install(i, (vader_u32_t) vader_atom_entries[i].hash);
     }
 }
 
 /* Entries grow — double capacity, realloc in place. Pointers into the
  * array are NOT stable across calls ; every reader rederefs through
- * `g_atoms.entries`, so a realloc that relocates the array is safe. */
+ * `vader_atom_entries`, so a realloc that relocates the array is safe. */
 static void vader_atom_grow_entries(void) {
     g_atoms.capacity *= 2u;
     vader_atom_entry_t* p = (vader_atom_entry_t*)
-        realloc(g_atoms.entries, g_atoms.capacity * sizeof(vader_atom_entry_t));
+        realloc(vader_atom_entries, g_atoms.capacity * sizeof(vader_atom_entry_t));
     if (p == NULL) vader_trap("vader_atom_grow_entries: realloc failed");
-    g_atoms.entries = p;
+    vader_atom_entries = p;
 }
 
 /* Allocate a fresh atom slot — reuses a tombstoned id from the free
@@ -906,7 +899,7 @@ static vader_atom_t vader_atom_alloc_slot(void) {
  * lost a lookup race). */
 static vader_atom_t vader_atom_install_owner(char* buf, size_t len, uint64_t hash) {
     vader_atom_t a = vader_atom_alloc_slot();
-    vader_atom_entry_t* e = &g_atoms.entries[a];
+    vader_atom_entry_t* e = &vader_atom_entries[a];
     e->parent        = 0;
     e->parent_offset = 0;
     e->len           = (vader_u32_t) len;
@@ -970,7 +963,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
     if (parent >= g_atoms.count) {
         vader_trap("vader_atom_slice: parent atom id out of range");
     }
-    const vader_atom_entry_t* pe = &g_atoms.entries[parent];
+    const vader_atom_entry_t* pe = &vader_atom_entries[parent];
     if (offset > pe->len || len > pe->len - offset) {
         vader_trap("vader_atom_slice: range overflows parent length");
     }
@@ -981,15 +974,15 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * trivial (one hop, never recursive). */
     vader_atom_t root        = parent;
     size_t       root_offset = offset;
-    if (g_atoms.entries[root].parent != 0) {
-        root_offset += g_atoms.entries[root].parent_offset;
-        root         = g_atoms.entries[root].parent;
+    if (vader_atom_entries[root].parent != 0) {
+        root_offset += vader_atom_entries[root].parent_offset;
+        root         = vader_atom_entries[root].parent;
     }
 
     /* Hash on the candidate bytes ; dedupe regardless of where the
      * canonical representative lives (might be owner, might be slice
      * sharing different bytes that happen to compare equal). */
-    const char* candidate = g_atoms.entries[root].data + root_offset;
+    const char* candidate = vader_atom_entries[root].data + root_offset;
     uint64_t hash         = vader_atom_hash64(candidate, len);
     vader_atom_t found    = vader_atom_lookup(candidate, len, (vader_u32_t) hash);
     if (found != VADER_ATOM_EMPTY) return found;
@@ -1000,7 +993,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * value) — `vader_atom_to_cstr` handles slice atoms by duplicating
      * to a heap NUL-term copy. */
     vader_atom_t a = vader_atom_alloc_slot();
-    vader_atom_entry_t* e = &g_atoms.entries[a];
+    vader_atom_entry_t* e = &vader_atom_entries[a];
     e->parent        = root;
     e->parent_offset = (vader_u32_t) root_offset;
     e->len           = (vader_u32_t) len;
@@ -1019,7 +1012,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
 }
 
 const char* vader_atom_to_cstr(vader_atom_t a) {
-    const vader_atom_entry_t* e = &g_atoms.entries[a];
+    const vader_atom_entry_t* e = &vader_atom_entries[a];
     if (e->parent == 0) {
         return e->data;     /* owner : NUL-term inline at data[len] */
     }
@@ -1039,7 +1032,7 @@ const char* vader_atom_to_cstr(vader_atom_t a) {
  * cstr per string arg per FFI call, which makes that scan hot. */
 void vader_cstr_free_for(vader_string_t s, const char* p) {
     if (p == NULL) return;
-    if (g_atoms.entries[s].parent == 0) return;  /* owner : table-owned */
+    if (vader_atom_entries[s].parent == 0) return;  /* owner : table-owned */
     free((void*) p);
 }
 
@@ -1052,7 +1045,7 @@ void vader_atom_cstr_free(const char* p) {
      * boundaries (cold). A faster discriminator (e.g. a header bit on
      * dup'd buffers) is a Phase 1 optimisation. */
     for (vader_u32_t i = 0; i < g_atoms.count; ++i) {
-        if (g_atoms.entries[i].parent == 0 && g_atoms.entries[i].data == p) {
+        if (vader_atom_entries[i].parent == 0 && vader_atom_entries[i].data == p) {
             return;  /* owner data — owned by table */
         }
     }
@@ -1085,13 +1078,13 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 
 static void vader_atom_mark(vader_atom_t a) {
     if (a == VADER_ATOM_EMPTY || a >= g_atoms.count) return;
-    vader_atom_entry_t* e = &g_atoms.entries[a];
+    vader_atom_entry_t* e = &vader_atom_entries[a];
     if (e->flags & (VADER_ATOM_FLAG_PERM | VADER_ATOM_FLAG_MARK)) return;
     e->flags |= VADER_ATOM_FLAG_MARK;
     /* Slice → owner : keep the parent alive too. Chain depth is at
      * most 1 (the slice ctor flattens), so no recursion needed. */
     if (e->parent != 0 && e->parent < g_atoms.count) {
-        vader_atom_entry_t* p = &g_atoms.entries[e->parent];
+        vader_atom_entry_t* p = &vader_atom_entries[e->parent];
         if ((p->flags & VADER_ATOM_FLAG_PERM) == 0) {
             p->flags |= VADER_ATOM_FLAG_MARK;
         }
@@ -1246,7 +1239,7 @@ static void vader_atom_free_list_push(vader_u32_t id) {
 static void vader_atom_sweep(void) {
     size_t freed_bytes = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
-        vader_atom_entry_t* e = &g_atoms.entries[i];
+        vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->flags & VADER_ATOM_FLAG_PERM) continue;
         /* Skip already-tombstoned slots (data NULL means reclaimed in a
          * previous sweep ; they live in the free list). */
@@ -1275,7 +1268,7 @@ static void vader_atom_sweep(void) {
     memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(vader_u32_t));
     g_atoms.bucket_count = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
-        const vader_atom_entry_t* e = &g_atoms.entries[i];
+        const vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->data == NULL) continue;
         /* Reinsert from the cached FNV-64 (low bits) — no byte re-walk. */
         vader_atom_bucket_install(i, (vader_u32_t) e->hash);
@@ -3014,19 +3007,9 @@ void vader_array_clear(vader_array_t* a) {
 
 /* ----------------------------------------------------------------- std/string */
 
-size_t vader_string_byte_len(vader_string_t s) {
-    return vader_atom_len(s);
-}
-
 /* Header-free byte read : the `i`-th UTF-8 byte of `s`, straight off the interned
  * atom (no `const u8[]` view alloc). Bounds-checked to match `s.bytes()[i]`.
  * One `vader_atom_entry` load shares the base for the length check and the read. */
-uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
-    const vader_atom_entry_t* e = vader_atom_entry(s);
-    if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
-    return ((const uint8_t*) e->data)[i];
-}
-
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
  * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors
