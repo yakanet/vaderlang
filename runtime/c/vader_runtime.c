@@ -1697,9 +1697,24 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
         vader_buffer_t* b = (vader_buffer_t*) obj;
         return sizeof(vader_buffer_t) + b->byte_count;
     }
-    if (type_index >= vader_type_info_count) return 0;
+    /* A heap object the GC cannot size is a CODEGEN bug: the emitter stamped a
+     * header with a type index carrying no `vader_type_info` entry (the table
+     * covers Struct / Fn / Array only, so an erased `ref` gets none).
+     *
+     * This used to return 0, and every caller read that as "stop": the Cheney
+     * drain stopped forwarding, the major's survivor walk stopped marking — so
+     * live OLD objects went unmarked and were swept — and the atom mark stopped,
+     * freeing the bytes of strings still in use. One un-sizeable object thus
+     * became arbitrary corruption somewhere else entirely, which is exactly what
+     * makes this class of bug so expensive to find. Trap at the object instead. */
+    if (type_index >= vader_type_info_count) {
+        vader_trap("vader_gc: heap object with a type index past the info table");
+    }
     const vader_type_info_t* info = &vader_type_info_table[type_index];
-    if (info->kind == VADER_TYPE_KIND_NONE) return 0;
+    if (info->kind == VADER_TYPE_KIND_NONE) {
+        vader_trap("vader_gc: heap object whose type has no info entry — the "
+                   "emitter stamped a header the collector cannot size");
+    }
     return info->size;
 }
 
