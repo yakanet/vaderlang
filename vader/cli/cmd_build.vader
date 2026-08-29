@@ -33,19 +33,6 @@ Prof :: import "vader/profile"
 // ----------------------------------------------------------- build
 
 
-// Split-unit count for `--parallel[=N]` (`s` is the raw flag value, `""` when
-// absent). Parallel split is OPT-IN — the default is the monolithic emitter,
-// which produces the fast, fully-inlined release binary (a split binary loses
-// cross-TU inlining → ~8-15% slower to run ; measured). A dev iterating on the
-// compiler opts into the ~3× faster build with `--parallel=N`, accepting the
-// slower binary for that iteration. Cases:
-//   - absent (or malformed / < 1) → 1 → monolithic (`emit_c`, single TU) ;
-//   - `N` (N ≥ 2)                 → N function TUs compiled in parallel.
-// `--parallel` is declared `.Int`, so the parser already rejected a non-numeric
-// value with a proper message — this only applies the floor. It used to swallow
-// `--parallel=abc` as 1 without a word.
-clamp_parallel_units :: fn(n: i32) -> i32 = if n < 1 { 1 } else { n }
-
 // Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
 // for an absent/empty flag). These prepend the module search order (GCC `-I`).
 parse_include_path_flag :: fn(raw: string) -> string[] =
@@ -67,7 +54,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     release      :: parsed.bool_flag("release")
     cc           :: parsed.string_flag("cc", "cc")
     ldflags      :: parsed.string_flag("ldflags", "")
-    parallel_units :: clamp_parallel_units(parsed.int_flag("parallel", 1))
+    split :: parsed.bool_flag("split")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     // No target validation here: `--target`'s accepted set lives on its
@@ -84,7 +71,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     // the compiler is part of its own import closure. See `driver.vader`.
     if file == "" && !use_manifest {
         if driver != null {
-            return run_build_driver(root, cc, ldflags, parallel_units)
+            return run_build_driver(root, cc, ldflags)
         }
         eprintln("vader build: expected a file, --manifest (vader.json), or a `${DRIVER_FILENAME}` here")
         return 1
@@ -128,10 +115,10 @@ cmd_build :: fn(args: string[]) -> i32 {
             out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
             return emit_c_for_targets(file, out, release, include_path_flags, ts)
         }
-        return build_c(file, out_flag, release, include_path_flags, parallel_units, build_target)
+        return build_c(file, out_flag, release, include_path_flags, split, build_target)
     }
     if emit == "executable" {
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, parallel_units, build_target)
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target)
     }
 
     // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
@@ -191,10 +178,10 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout, for piping into another tool.
-build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
-    if units >= 2 {
+build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], split: bool, target: Target | null) -> i32 {
+    if split {
         out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-        prog :: emit_c_program_for(file, release, include_path_flags, units, out, target) ?? return 1
+        prog :: emit_c_program_for(file, release, include_path_flags, out, target) ?? return 1
         return write_split_files(out, prog)
     }
     c_src :: emit_c_for_input(file, release, include_path_flags, target) ?? return 1
@@ -253,10 +240,10 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
+build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null) -> i32 {
     out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-    if units >= 2 {
-        return build_native_split(file, out, release, cc, ldflags, include_path_flags, units, target)
+    if split {
+        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target)
     }
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
@@ -270,13 +257,11 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 
 // ----------------------------------------------------------- split build
 
-// `--split --target=native` : emit the program as a header + globals TU + N
-// function TUs (external linkage), then compile + link. Inc 2 compiles them in
-// a single `cc` invocation (still one process, but exercises the cross-TU
-// linkage) ; Inc 3 will replace this with a parallel `cc -c` pool. The `.c` set
-// is kept on failure for inspection.
-build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], units: i32, target: Target | null) -> i32 {
-    prog :: emit_c_program_for(file, release, include_path_flags, units, out, target)
+// `--split --emit=executable` : emit the program as a header + globals TU + one
+// function TU per Vader module, then compile them concurrently and link. The
+// `.c` set is kept on failure for inspection.
+build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null) -> i32 {
+    prog :: emit_c_program_for(file, release, include_path_flags, out, target)
     if prog is null {
         return 1
     }
@@ -346,9 +331,9 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // Prepare the module and emit it as a `CProgram`. The header basename embeds a
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
-emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], units: i32, out: Path, target: Target | null) -> CProgram | null {
+emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null) -> CProgram | null {
     if file.extension() == "virt" {
-        eprintln("vader build: --parallel is not supported for .virt input")
+        eprintln("vader build: --split is not supported for .virt input")
         return null
     }
     b :: prepared_module(file, release, include_path_flags, target)
@@ -358,7 +343,7 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
     // The `#include` name is the header's basename (split TUs sit next to it) —
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
-    return emit_c_split(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry }, units, header_name)
+    return emit_c_split(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry }, header_name)
 }
 
 /// Emit the split C for SEVERAL targets against one shared atom universe.
@@ -408,7 +393,6 @@ emit_c_for_targets :: fn(
                 CEmitOptions {
                     .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
                 },
-                1,
                 header_name,
             ),
         )

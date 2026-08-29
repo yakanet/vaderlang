@@ -1,7 +1,7 @@
 // vader/pipeline/emit — the native link.
 //
 // Bytecode → C → binary, monolithic: one C unit plus the external runtime, one
-// `cc`. The split path (`--parallel`) stays in the CLI, which owns that flag;
+// `cc`. The split path (`--split`) stays in the CLI, which owns that flag;
 // the monolithic build is the canonical one anyway (byte-identical, fully
 // inlined).
 //
