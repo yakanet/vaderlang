@@ -37,8 +37,20 @@ $runtime = "runtime\c\vader_runtime.c"
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 New-Item -ItemType Directory -Force build | Out-Null
 
-Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags]"
-& $ccAbs $stage0cflags -o build\stage0.exe bootstrap\bootstrap.c $runtime -Iruntime\c -lm
+# The seed is a SET: the units every target shares, plus the ones that differ for
+# this host. A unit lands in the second group only when the targets actually
+# emitted different bytes for it, so today there are none — the list is globbed
+# rather than hardcoded, and starts working the day one appears.
+$hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
+$hostTarget = "windows-$hostArch"
+$seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Filter 'bootstrap.split.*.c' | ForEach-Object { $_.FullName })
+$seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget.split.*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+if ($seedShared.Count -eq 0) {
+    throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
+}
+
+Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget]"
+& $ccAbs $stage0cflags -o build\stage0.exe @seedShared @seedHost $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
 
 Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
