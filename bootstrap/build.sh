@@ -42,8 +42,35 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 
 mkdir -p build
 
-step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS]"
-"$CC_ABS" $STAGE0_CFLAGS -o build/stage0 bootstrap/bootstrap.c "$runtime" -Iruntime/c -lm
+host_target() {
+    case "$(uname -s)" in
+      Darwin)  os=darwin ;;
+      Linux)   os=linux ;;
+      MINGW*|MSYS*|CYGWIN*) os=windows ;;
+      *) echo "bootstrap/build.sh: unsupported OS $(uname -s)" >&2; exit 1 ;;
+    esac
+    case "$(uname -m)" in
+      arm64|aarch64) arch=arm64 ;;
+      x86_64|amd64)  arch=x86_64 ;;
+      *) echo "bootstrap/build.sh: unsupported arch $(uname -m)" >&2; exit 1 ;;
+    esac
+    printf '%s-%s' "$os" "$arch"
+}
+
+# The seed is a SET: the units every target shares, plus the ones that differ
+# for this host. A unit lands in the second group only when the targets actually
+# emitted different bytes for it, so today there are none — the list is built by
+# globbing rather than hardcoded, and starts working the day one appears.
+HOST_TARGET="$(host_target)"
+seed_shared=$(ls bootstrap/seed/bootstrap.split.*.c 2>/dev/null)
+seed_host=$(ls bootstrap/seed/bootstrap."$HOST_TARGET".split.*.c 2>/dev/null || true)
+if [ -z "$seed_shared" ]; then
+    echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
+    exit 1
+fi
+
+step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET]"
+"$CC_ABS" $STAGE0_CFLAGS -o build/stage0 $seed_shared $seed_host "$runtime" -Iruntime/c -lm
 
 step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 ./build/stage0 vader/cli/main.vader build/stage1.c
