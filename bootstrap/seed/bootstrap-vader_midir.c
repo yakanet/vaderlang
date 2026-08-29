@@ -1,5 +1,146 @@
 #include "bootstrap.split.h"
 
+static void* vader_midir_annotate_function(void* l0);
+static void vader_midir_append_alias(void* l0, int32_t l1, int32_t l2);
+static vader_string_t vader_midir_array_element_name(vader_box_t l0);
+static uint8_t vader_midir_array_element_val_type(vader_box_t l0);
+static uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1);
+static vader_box_t vader_midir_build_args(void* l0, void* l1);
+static vader_box_t vader_midir_build_array_len(void* l0, void* l1);
+static vader_box_t vader_midir_build_array_lit(void* l0, void* l1);
+static vader_box_t vader_midir_build_array_push(void* l0, void* l1);
+static vader_box_t vader_midir_build_array_slice(void* l0, void* l1);
+static void vader_midir_build_assign(void* l0, void* l1);
+static vader_box_t vader_midir_build_binary(void* l0, void* l1);
+static vader_box_t vader_midir_build_block_body(void* l0, void* l1);
+static void vader_midir_build_block_into(void* l0, void* l1, int32_t l2);
+static vader_box_t vader_midir_build_call(void* l0, void* l1);
+static vader_box_t vader_midir_build_cast(void* l0, void* l1);
+static vader_box_t vader_midir_build_cell_get(void* l0, void* l1);
+static vader_box_t vader_midir_build_cell_new(void* l0, void* l1);
+static void* vader_midir_build_cfg_signature(void* l0, vader_box_t l1, void* l2);
+static vader_box_t vader_midir_build_data_const(void* l0, void* l1);
+static vader_box_t vader_midir_build_expr(void* l0, vader_box_t l1);
+static void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2);
+static vader_box_t vader_midir_build_field_access(void* l0, void* l1);
+static vader_box_t vader_midir_build_ident(void* l0, void* l1);
+static vader_box_t vader_midir_build_if(void* l0, void* l1, vader_box_t l2);
+static void vader_midir_build_if_arm(void* l0, void* l1, vader_box_t l2);
+static void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2);
+static vader_box_t vader_midir_build_index(void* l0, void* l1);
+static vader_box_t vader_midir_build_intrinsic_call(void* l0, void* l1);
+static void vader_midir_build_loop(void* l0, void* l1);
+static vader_box_t vader_midir_build_make_closure(void* l0, void* l1);
+static vader_box_t vader_midir_build_short_circuit(void* l0, void* l1, vader_box_t l2);
+static void vader_midir_build_stmt(void* l0, vader_box_t l1);
+static vader_box_t vader_midir_build_string_slice(void* l0, void* l1);
+static vader_box_t vader_midir_build_struct_lit(void* l0, void* l1);
+static vader_box_t vader_midir_build_type_check(void* l0, void* l1);
+static vader_box_t vader_midir_build_type_const(void* l0, void* l1);
+static vader_box_t vader_midir_build_unary(void* l0, void* l1);
+static vader_box_t vader_midir_build_unreachable_type(void* l0, vader_box_t l1, void* l2, vader_string_t l3, bool l4);
+static vader_box_t vader_midir_build_virtual_call(void* l0, void* l1);
+static void* vader_midir_build_vtables_from_entries(void* l0, void* l1);
+static bool vader_midir_can_pass_through_stack(vader_box_t l0, vader_box_t l1, void* l2);
+static bool vader_midir_can_pass_through_terminator(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_midir_cf_block(void* l0, void* l1, int32_t l2);
+static void vader_midir_cf_br(void* l0, void* l1, int32_t l2);
+static void vader_midir_cf_else(void* l0, void* l1);
+static void vader_midir_cf_end(void* l0, void* l1);
+static void vader_midir_cf_if(void* l0, void* l1, int32_t l2);
+static void vader_midir_cf_loop(void* l0, void* l1, int32_t l2);
+static bool vader_midir_changed_blocks(void* l0, void* l1);
+static void* vader_midir_compact_locals(void* l0);
+static void* vader_midir_compute_carried_across_loop_headers(void* l0, void* l1);
+static void* vader_midir_compute_dominators(void* l0, void* l1);
+static void* vader_midir_compute_escaping(void* l0, void* l1);
+static void* vader_midir_compute_liveness(void* l0);
+static void* vader_midir_compute_post_dominators(void* l0);
+static int32_t vader_midir_cond_branch_merge(void* l0, int32_t l1, int32_t l2);
+static void* vader_midir_convert_data_pool(void* l0);
+static bool vader_midir_convert_eligible(uint8_t l0);
+static vader_box_t vader_midir_convert_function(void* l0, void* l1);
+static void* vader_midir_count_uses(void* l0);
+static vader_box_t vader_midir_debug_pos_of_span(void* l0);
+static int32_t vader_midir_declare_local(void* l0, vader_string_t l1, vader_box_t l2, vader_box_t l3);
+static bool vader_midir_decorators_have(void* l0, vader_string_t l1);
+static void vader_midir_defer_or_resolve_branch(void* l0, int32_t l1, int32_t l2);
+static void* vader_midir_die_once(void* l0);
+static bool vader_midir_dominates(void* l0, int32_t l1, int32_t l2);
+static void vader_midir_drain_pending(void* l0, int32_t l1, bool l2, int32_t l3, int32_t l4);
+static vader_box_t vader_midir_dst_of(vader_box_t l0);
+static void vader_midir_emit(void* l0, vader_box_t l1);
+static int32_t vader_midir_emit_block_contents(void* l0, int32_t l1, int32_t l2);
+static void vader_midir_emit_cfg_function_body(void* l0, int32_t l1, void* l2, void* l3, bool l4);
+static int32_t vader_midir_emit_const(void* l0, vader_box_t l1, vader_box_t l2, void* l3);
+static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2);
+static void vader_midir_emit_first_get(void* l0, int64_t l1, int32_t l2, void* l3);
+static void vader_midir_emit_get(void* l0, int32_t l1, void* l2);
+static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2);
+static void vader_midir_emit_range(void* l0, int32_t l1, int32_t l2);
+static void vader_midir_emit_result(void* l0, int64_t l1, int32_t l2, void* l3);
+static void vader_midir_emit_result_if_any(void* l0, int64_t l1, vader_box_t l2, void* l3);
+static void vader_midir_emit_set(void* l0, int32_t l1, void* l2);
+static vader_string_t vader_midir_extern_symbol_name(void* l0);
+static void* vader_midir_find_loop_exits(void* l0, void* l1, void* l2);
+static vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vader_string_t l2);
+static vader_box_t vader_midir_first_stack_operand(vader_box_t l0);
+static vader_box_t vader_midir_first_terminator_operand(vader_box_t l0);
+static void* vader_midir_fn_metadata(void* l0);
+static void* vader_midir_fold_moves(void* l0);
+static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2);
+static void vader_midir_for_each_read_in_terminator(vader_box_t l0, void* l1);
+static void vader_midir_for_each_read_local(vader_box_t l0, void* l1);
+static void* vader_midir_freeze_block(void* l0);
+static int32_t vader_midir_fresh_tmp(void* l0, vader_string_t l1, vader_box_t l2);
+static bool vader_midir_instruction_has_side_effect(vader_box_t l0);
+static void vader_midir_intern_data_value_strings(vader_box_t l0, void* l1);
+static int32_t vader_midir_intern_string_pool(void* l0, vader_string_t l1);
+static int32_t vader_midir_intersect_dom_tree(int32_t l0, int32_t l1, void* l2);
+static vader_box_t vader_midir_intrinsic_op_for_name(vader_string_t l0);
+static bool vader_midir_is_dest_passing_shape(vader_box_t l0);
+static bool vader_midir_is_short_circuit_op(uint8_t l0);
+static bool vader_midir_loop_exit_present(void* l0, int32_t l1);
+static vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0);
+static void* vader_midir_make_extern_decl(void* l0);
+static void* vader_midir_make_struct_decl(void* l0);
+static void* vader_midir_natural_loop_bodies(void* l0, void* l1, void* l2);
+static bool vader_midir_needs_ref_cast(vader_box_t l0);
+static int32_t vader_midir_new_block(void* l0, void* l1);
+static void* vader_midir_new_project_ctx(void* l0);
+static void* vader_midir_no_hints(void);
+static void* vader_midir_optimise_function(void* l0);
+static int64_t vader_midir_pos_key(int32_t l0, size_t l1);
+static void* vader_midir_predecessors_of(void* l0);
+static void* vader_midir_prune_block(void* l0, void* l1, size_t l2);
+static void vader_midir_push_emit(void* l0, vader_box_t l1, void* l2);
+static int32_t vader_midir_push_op_with_span(void* l0, vader_box_t l1, void* l2);
+static bool vader_midir_read_may_carry_ref(vader_box_t l0);
+static void vader_midir_record_alias(void* l0, void* l1, int32_t l2, int32_t l3);
+static vader_box_t vader_midir_remap_instr(vader_box_t l0, void* l1);
+static int32_t vader_midir_remap_local(void* l0, int32_t l1);
+static vader_box_t vader_midir_remap_local_opt(void* l0, vader_box_t l1);
+static void* vader_midir_remap_locals(void* l0, void* l1);
+static vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1);
+static void vader_midir_reserve_cfg_extern(void* l0, void* l1);
+static void vader_midir_reserve_cfg_function(void* l0, void* l1);
+static void vader_midir_reserve_cfg_struct(void* l0, void* l1);
+static vader_box_t vader_midir_resolve_loop_frame(void* l0, vader_box_t l1);
+static int32_t vader_midir_resolve_vtable_fn_index(void* l0, void* l1);
+static void* vader_midir_reverse_postorder(void* l0);
+static void* vader_midir_schedule_stack(void* l0);
+static bool vader_midir_scope_contains_target(void* l0, int32_t l1);
+static bool vader_midir_sets_equal(void* l0, void* l1);
+static int32_t vader_midir_struct_symbol_id(vader_box_t l0);
+static void* vader_midir_successors_of(void* l0);
+static void vader_midir_synthesise_cfg_intrinsic_wrappers(void* l0, void* l1);
+static void vader_midir_terminate(void* l0, vader_box_t l1);
+static bool vader_midir_try_fuse_local_field(void* l0, int32_t l1, int32_t l2);
+static void vader_midir_walk_rpo(void* l0, int32_t l1, void* l2, void* l3);
+static void vader_midir_walk_rpo_reverse(void* l0, int32_t l1, void* l2, void* l3);
+static vader_box_t vader_midir_with_dst(vader_box_t l0, int32_t l1);
+static void* vader_midir_with_peephole_out(void* l0, void* l1);
+
 void* vader_midir_annotate_escape(void* l0) {
     int32_t l1, l2;
     void* l3 = NULL;
@@ -191,7 +332,7 @@ void* vader_midir_annotate_escape(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_annotate_function(void* l0) {
+static void* vader_midir_annotate_function(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -659,7 +800,7 @@ void* vader_midir_annotate_function(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_append_alias(void* l0, int32_t l1, int32_t l2) {
+static void vader_midir_append_alias(void* l0, int32_t l1, int32_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* t0 = NULL;
@@ -681,7 +822,7 @@ void vader_midir_append_alias(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_midir_array_element_name(vader_box_t l0) {
+static vader_string_t vader_midir_array_element_name(vader_box_t l0) {
     void* t0 = NULL;
     vader_string_t t1;
     vader_box_t* gc_roots[1] = { &l0 };
@@ -697,7 +838,7 @@ vader_string_t vader_midir_array_element_name(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-uint8_t vader_midir_array_element_val_type(vader_box_t l0) {
+static uint8_t vader_midir_array_element_val_type(vader_box_t l0) {
     void* t0;
     uint8_t t1;
     if (l0.tag == 919u) {
@@ -708,7 +849,7 @@ uint8_t vader_midir_array_element_val_type(vader_box_t l0) {
     return (uint8_t) (int32_t) INT32_C(18);
 }
 
-uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
+static uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
     uint64_t l2;
     void* l3 = NULL;
     void* t0 = NULL;
@@ -757,7 +898,7 @@ uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_args(void* l0, void* l1) {
+static vader_box_t vader_midir_build_args(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -799,7 +940,7 @@ vader_box_t vader_midir_build_args(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_array_len(void* l0, void* l1) {
+static vader_box_t vader_midir_build_array_len(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -833,7 +974,7 @@ vader_box_t vader_midir_build_array_len(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_array_lit(void* l0, void* l1) {
+static vader_box_t vader_midir_build_array_lit(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -893,7 +1034,7 @@ vader_box_t vader_midir_build_array_lit(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_array_push(void* l0, void* l1) {
+static vader_box_t vader_midir_build_array_push(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null();
     void* l4 = NULL;
     int32_t l5, l6;
@@ -929,7 +1070,7 @@ vader_box_t vader_midir_build_array_push(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_array_slice(void* l0, void* l1) {
+static vader_box_t vader_midir_build_array_slice(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null(), l4 = vader_box_null(), l5 = vader_box_null();
     int32_t l6, l8, l9, l10;
     void* l7 = NULL;
@@ -978,7 +1119,7 @@ vader_box_t vader_midir_build_array_slice(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_assign(void* l0, void* l1) {
+static void vader_midir_build_assign(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -1081,7 +1222,7 @@ void vader_midir_build_assign(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_binary(void* l0, void* l1) {
+static vader_box_t vader_midir_build_binary(void* l0, void* l1) {
     int32_t l2, l4, l6;
     vader_box_t l3 = vader_box_null();
     vader_string_t l5;
@@ -1133,7 +1274,7 @@ vader_box_t vader_midir_build_binary(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_block_body(void* l0, void* l1) {
+static vader_box_t vader_midir_build_block_body(void* l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     vader_box_t l5 = vader_box_null();
@@ -1179,7 +1320,7 @@ vader_box_t vader_midir_build_block_body(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_block_into(void* l0, void* l1, int32_t l2) {
+static void vader_midir_build_block_into(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     size_t l4, l5;
     vader_box_t l6 = vader_box_null();
@@ -1221,7 +1362,7 @@ void vader_midir_build_block_into(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_call(void* l0, void* l1) {
+static vader_box_t vader_midir_build_call(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -1346,7 +1487,7 @@ vader_box_t vader_midir_build_call(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_cast(void* l0, void* l1) {
+static vader_box_t vader_midir_build_cast(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -1379,7 +1520,7 @@ vader_box_t vader_midir_build_cast(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_cell_get(void* l0, void* l1) {
+static vader_box_t vader_midir_build_cell_get(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -1412,7 +1553,7 @@ vader_box_t vader_midir_build_cell_get(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_cell_new(void* l0, void* l1) {
+static vader_box_t vader_midir_build_cell_new(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -1600,7 +1741,7 @@ void* vader_midir_build_cfg_project(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_build_cfg_signature(void* l0, vader_box_t l1, void* l2) {
+static void* vader_midir_build_cfg_signature(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -1659,7 +1800,7 @@ void* vader_midir_build_cfg_signature(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_data_const(void* l0, void* l1) {
+static vader_box_t vader_midir_build_data_const(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     int32_t l3, l5;
     void* l4 = NULL;
@@ -1688,7 +1829,7 @@ vader_box_t vader_midir_build_data_const(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_expr(void* l0, vader_box_t l1) {
+static vader_box_t vader_midir_build_expr(void* l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     vader_box_t l3 = vader_box_null();
@@ -1915,7 +2056,7 @@ vader_box_t vader_midir_build_expr(void* l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2) {
+static void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2) {
     void* l3 = NULL;
     void* l8 = NULL;
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
@@ -1987,7 +2128,7 @@ void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_field_access(void* l0, void* l1) {
+static vader_box_t vader_midir_build_field_access(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -2023,7 +2164,7 @@ vader_box_t vader_midir_build_field_access(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_ident(void* l0, void* l1) {
+static vader_box_t vader_midir_build_ident(void* l0, void* l1) {
     void* l2 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -2134,13 +2275,13 @@ vader_box_t vader_midir_build_ident(void* l0, void* l1) {
     l4 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_type;
     l2 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_span;
     l11 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_symbol)->f_name;
-    l11 = concat_2(2187u, l11);
+    l11 = concat_2(2188u, l11);
     t4 = vader_midir_build_unreachable_type(l0, l4, l2, l11, false);
     { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_if(void* l0, void* l1, vader_box_t l2) {
+static vader_box_t vader_midir_build_if(void* l0, void* l1, vader_box_t l2) {
     int32_t l3, l7, l8, l9;
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
     void* l6 = NULL;
@@ -2235,7 +2376,7 @@ vader_box_t vader_midir_build_if(void* l0, void* l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_if_arm(void* l0, void* l1, vader_box_t l2) {
+static void vader_midir_build_if_arm(void* l0, void* l1, vader_box_t l2) {
     int32_t l3;
     vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[2] = { &l0, &l1 };
@@ -2251,7 +2392,7 @@ void vader_midir_build_if_arm(void* l0, void* l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
+static void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -2331,7 +2472,7 @@ void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
                     l21 = (size_t) (int64_t) INT64_C(0);
                     l22 = ((int64_t) (int32_t) l11);
                     l21 = std_core_write_int(l20, l21, l22);
-                    l23 = 2331u;
+                    l23 = 2332u;
                     l21 = std_core_write_string_at(l20, l21, l23);
                     l21 = std_core_write_string_at(l20, l21, l17);
                     l16 = std_core_finish_buffer(l20, l21);
@@ -2363,7 +2504,7 @@ void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
                 l21 = (size_t) (int64_t) INT64_C(0);
                 l22 = ((int64_t) (int32_t) l11);
                 l21 = std_core_write_int(l20, l21, l22);
-                l23 = 2331u;
+                l23 = 2332u;
                 l21 = std_core_write_string_at(l20, l21, l23);
                 l21 = std_core_write_string_at(l20, l21, l17);
                 l16 = std_core_finish_buffer(l20, l21);
@@ -2431,7 +2572,7 @@ void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
                                 t0 = ((int64_t) (size_t) l8);
                                 l29 = (uint64_t) (int64_t) t0;
                                 l18 = std_core_write_unsigned(l6, l18, l29);
-                                l18 = std_core_write_string_at(l6, l18, 2331u);
+                                l18 = std_core_write_string_at(l6, l18, 2332u);
                                 l18 = std_core_write_string_at(l6, l18, l17);
                                 l16 = std_core_finish_buffer(l6, l18);
                                 t1 = std_collections_get__string__bool(l4, l16);
@@ -2471,7 +2612,7 @@ void* vader_midir_build_impl_table_from_vtable(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_index(void* l0, void* l1) {
+static vader_box_t vader_midir_build_index(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null(), l4 = vader_box_null();
     int32_t l5, l7, l8;
     void* l6 = NULL;
@@ -2515,7 +2656,7 @@ vader_box_t vader_midir_build_index(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_intrinsic_call(void* l0, void* l1) {
+static vader_box_t vader_midir_build_intrinsic_call(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
@@ -2556,7 +2697,7 @@ vader_box_t vader_midir_build_intrinsic_call(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_loop(void* l0, void* l1) {
+static void vader_midir_build_loop(void* l0, void* l1) {
     void* l2 = NULL;
     void* l8 = NULL;
     int32_t l3, l4, l5, l7;
@@ -2665,7 +2806,7 @@ void vader_midir_build_loop(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_make_closure(void* l0, void* l1) {
+static vader_box_t vader_midir_build_make_closure(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null(), l7 = vader_box_null();
     void* l5 = NULL;
@@ -2703,7 +2844,7 @@ vader_box_t vader_midir_build_make_closure(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_short_circuit(void* l0, void* l1, vader_box_t l2) {
+static vader_box_t vader_midir_build_short_circuit(void* l0, void* l1, vader_box_t l2) {
     int32_t l3, l6, l9, l10, l11;
     vader_box_t l4 = vader_box_null();
     bool l5;
@@ -2863,7 +3004,7 @@ vader_box_t vader_midir_build_short_circuit(void* l0, void* l1, vader_box_t l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_build_stmt(void* l0, vader_box_t l1) {
+static void vader_midir_build_stmt(void* l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     vader_box_t l3 = vader_box_null(), l5 = vader_box_null();
@@ -3049,7 +3190,7 @@ void vader_midir_build_stmt(void* l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_string_slice(void* l0, void* l1) {
+static vader_box_t vader_midir_build_string_slice(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null(), l4 = vader_box_null(), l5 = vader_box_null();
     int32_t l6, l8, l9, l10;
     void* l7 = NULL;
@@ -3098,7 +3239,7 @@ vader_box_t vader_midir_build_string_slice(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_struct_lit(void* l0, void* l1) {
+static vader_box_t vader_midir_build_struct_lit(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -3139,7 +3280,7 @@ vader_box_t vader_midir_build_struct_lit(void* l0, void* l1) {
         }
     }
     l7 = ((vader_struct_vader_lower_LoweredStructLit_t*) l1)->f_type;
-    l6 = vader_midir_fresh_tmp(l0, 2025u, l7);
+    l6 = vader_midir_fresh_tmp(l0, 2026u, l7);
     l3 = ((vader_struct_vader_lower_LoweredStructLit_t*) l1)->f_span;
     l7 = ((vader_struct_vader_lower_LoweredStructLit_t*) l1)->f_type;
     vader_struct_vader_midir_InstrStructNew_t* _a2_obj = (vader_struct_vader_midir_InstrStructNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrStructNew_t));
@@ -3156,7 +3297,7 @@ vader_box_t vader_midir_build_struct_lit(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_type_check(void* l0, void* l1) {
+static vader_box_t vader_midir_build_type_check(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -3173,7 +3314,7 @@ vader_box_t vader_midir_build_type_check(void* l0, void* l1) {
     }
     l2 = ((int32_t) l3.payload.i);
     l3 = ((vader_struct_vader_lower_LoweredTypeCheck_t*) l1)->f_type;
-    l4 = vader_midir_fresh_tmp(l0, 2096u, l3);
+    l4 = vader_midir_fresh_tmp(l0, 2097u, l3);
     l5 = ((vader_struct_vader_lower_LoweredTypeCheck_t*) l1)->f_span;
     l3 = ((vader_struct_vader_lower_LoweredTypeCheck_t*) l1)->f_check_type;
     vader_struct_vader_midir_InstrTypeCheck_t* _a0_obj = (vader_struct_vader_midir_InstrTypeCheck_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrTypeCheck_t));
@@ -3189,7 +3330,7 @@ vader_box_t vader_midir_build_type_check(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_type_const(void* l0, void* l1) {
+static vader_box_t vader_midir_build_type_const(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l5 = vader_box_null();
     int32_t l3;
     void* l4 = NULL;
@@ -3199,7 +3340,7 @@ vader_box_t vader_midir_build_type_const(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_vader_lower_LoweredTypeConst_t*) l1)->f_type;
-    l3 = vader_midir_fresh_tmp(l0, 2099u, l2);
+    l3 = vader_midir_fresh_tmp(l0, 2100u, l2);
     l4 = ((vader_struct_vader_lower_LoweredTypeConst_t*) l1)->f_span;
     l2 = ((vader_struct_vader_lower_LoweredTypeConst_t*) l1)->f_type;
     l5 = ((vader_struct_vader_lower_LoweredTypeConst_t*) l1)->f_value;
@@ -3216,7 +3357,7 @@ vader_box_t vader_midir_build_type_const(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_unary(void* l0, void* l1) {
+static vader_box_t vader_midir_build_unary(void* l0, void* l1) {
     int32_t l2, l4;
     vader_box_t l3 = vader_box_null();
     void* l5 = NULL;
@@ -3234,7 +3375,7 @@ vader_box_t vader_midir_build_unary(void* l0, void* l1) {
     }
     l2 = ((int32_t) l3.payload.i);
     l3 = ((vader_struct_vader_lower_LoweredUnary_t*) l1)->f_type;
-    l4 = vader_midir_fresh_tmp(l0, 2183u, l3);
+    l4 = vader_midir_fresh_tmp(l0, 2184u, l3);
     l5 = ((vader_struct_vader_lower_LoweredUnary_t*) l1)->f_span;
     l6 = ((vader_struct_vader_lower_LoweredUnary_t*) l1)->f_op;
     l3 = ((vader_struct_vader_lower_LoweredUnary_t*) l1)->f_type;
@@ -3252,7 +3393,7 @@ vader_box_t vader_midir_build_unary(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_unreachable_type(void* l0, vader_box_t l1, void* l2, vader_string_t l3, bool l4) {
+static vader_box_t vader_midir_build_unreachable_type(void* l0, vader_box_t l1, void* l2, vader_string_t l3, bool l4) {
     vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
     vader_box_t t0 = vader_box_null();
@@ -3270,7 +3411,7 @@ vader_box_t vader_midir_build_unreachable_type(void* l0, vader_box_t l1, void* l
     if (t1) {
         l5 = vader_box_obj(0u, NULL);
     } else {
-        t2 = vader_midir_declare_local(l0, 2184u, l1, vader_box_obj(0u, NULL));
+        t2 = vader_midir_declare_local(l0, 2185u, l1, vader_box_obj(0u, NULL));
         l5 = vader_box_i32(163u, t2);
     }
     vader_struct_vader_midir_TermUnreachable_t* _a0_obj = (vader_struct_vader_midir_TermUnreachable_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_TermUnreachable_t));
@@ -3284,7 +3425,7 @@ vader_box_t vader_midir_build_unreachable_type(void* l0, vader_box_t l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_build_virtual_call(void* l0, void* l1) {
+static vader_box_t vader_midir_build_virtual_call(void* l0, void* l1) {
     int32_t l2;
     vader_box_t l3 = vader_box_null(), l5 = vader_box_null();
     void* l4 = NULL;
@@ -3316,7 +3457,7 @@ vader_box_t vader_midir_build_virtual_call(void* l0, void* l1) {
         l3 = vader_box_obj(0u, NULL);
     } else {
         l5 = ((vader_struct_vader_lower_LoweredVirtualCall_t*) l1)->f_type;
-        t2 = vader_midir_fresh_tmp(l0, 2290u, l5);
+        t2 = vader_midir_fresh_tmp(l0, 2291u, l5);
         l3 = vader_box_i32(163u, t2);
     }
     l6 = ((vader_struct_vader_lower_LoweredVirtualCall_t*) l1)->f_span;
@@ -3338,7 +3479,7 @@ vader_box_t vader_midir_build_virtual_call(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_build_vtables_from_entries(void* l0, void* l1) {
+static void* vader_midir_build_vtables_from_entries(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -3501,7 +3642,7 @@ void* vader_midir_build_vtables_from_entries(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_can_pass_through_stack(vader_box_t l0, vader_box_t l1, void* l2) {
+static bool vader_midir_can_pass_through_stack(vader_box_t l0, vader_box_t l1, void* l2) {
     int32_t l3, l5;
     vader_box_t l4;
     int32_t t0;
@@ -3526,7 +3667,7 @@ bool vader_midir_can_pass_through_stack(vader_box_t l0, vader_box_t l1, void* l2
     return l5 == l3;
 }
 
-bool vader_midir_can_pass_through_terminator(vader_box_t l0, vader_box_t l1, void* l2) {
+static bool vader_midir_can_pass_through_terminator(vader_box_t l0, vader_box_t l1, void* l2) {
     int32_t l3, l5;
     vader_box_t l4;
     int32_t t0;
@@ -3551,7 +3692,7 @@ bool vader_midir_can_pass_through_terminator(vader_box_t l0, vader_box_t l1, voi
     return l5 == l3;
 }
 
-void vader_midir_cf_block(void* l0, void* l1, int32_t l2) {
+static void vader_midir_cf_block(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     int32_t l4;
@@ -3574,7 +3715,7 @@ void vader_midir_cf_block(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_cf_br(void* l0, void* l1, int32_t l2) {
+static void vader_midir_cf_br(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     int32_t l4;
     void** gc_raw_roots[3] = { &l0, &l1, &l3 };
@@ -3589,7 +3730,7 @@ void vader_midir_cf_br(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_cf_else(void* l0, void* l1) {
+static void vader_midir_cf_else(void* l0, void* l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     int32_t l3, l7;
@@ -3642,7 +3783,7 @@ void vader_midir_cf_else(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_cf_end(void* l0, void* l1) {
+static void vader_midir_cf_end(void* l0, void* l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -3725,7 +3866,7 @@ void vader_midir_cf_end(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_cf_if(void* l0, void* l1, int32_t l2) {
+static void vader_midir_cf_if(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     int32_t l4;
@@ -3748,7 +3889,7 @@ void vader_midir_cf_if(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_cf_loop(void* l0, void* l1, int32_t l2) {
+static void vader_midir_cf_loop(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     int32_t l4;
@@ -3781,7 +3922,7 @@ void vader_midir_cf_loop(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_changed_blocks(void* l0, void* l1) {
+static bool vader_midir_changed_blocks(void* l0, void* l1) {
     size_t l2, l3, l4, l5;
     void* t0;
     int64_t t1;
@@ -3818,7 +3959,7 @@ bool vader_midir_changed_blocks(void* l0, void* l1) {
     return false;
 }
 
-void* vader_midir_compact_locals(void* l0) {
+static void* vader_midir_compact_locals(void* l0) {
     vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l11 = vader_box_null(), l13 = vader_box_null(), l18 = vader_box_null();
     void* l2 = NULL;
     void* l6 = NULL;
@@ -4197,7 +4338,7 @@ void* vader_midir_compact_locals(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_compute_carried_across_loop_headers(void* l0, void* l1) {
+static void* vader_midir_compute_carried_across_loop_headers(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -4460,7 +4601,7 @@ void* vader_midir_compute_carried_across_loop_headers(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_compute_dominators(void* l0, void* l1) {
+static void* vader_midir_compute_dominators(void* l0, void* l1) {
     size_t l2, l9, l14, l15;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -4585,7 +4726,7 @@ void* vader_midir_compute_dominators(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_compute_escaping(void* l0, void* l1) {
+static void* vader_midir_compute_escaping(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -5055,7 +5196,7 @@ void* vader_midir_compute_escaping(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_compute_liveness(void* l0) {
+static void* vader_midir_compute_liveness(void* l0) {
     size_t l1, l4, l15, l16, l27, l28, l30, l31, l33, l34;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -5444,7 +5585,7 @@ void* vader_midir_compute_liveness(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_compute_post_dominators(void* l0) {
+static void* vader_midir_compute_post_dominators(void* l0) {
     size_t l1, l4, l5, l9, l10, l17, l24, l25;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -5747,7 +5888,7 @@ void* vader_midir_compute_post_dominators(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_cond_branch_merge(void* l0, int32_t l1, int32_t l2) {
+static int32_t vader_midir_cond_branch_merge(void* l0, int32_t l1, int32_t l2) {
     void* l3;
     size_t l4;
     int32_t l5;
@@ -5770,7 +5911,7 @@ int32_t vader_midir_cond_branch_merge(void* l0, int32_t l1, int32_t l2) {
     return l5;
 }
 
-void* vader_midir_convert_data_pool(void* l0) {
+static void* vader_midir_convert_data_pool(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l6 = NULL;
@@ -5909,7 +6050,7 @@ void* vader_midir_convert_data_pool(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_convert_eligible(uint8_t l0) {
+static bool vader_midir_convert_eligible(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         return true;
     }
@@ -5970,7 +6111,7 @@ bool vader_midir_convert_eligible(uint8_t l0) {
     vader_unreachable("unreachable return in vader_midir$convert_eligible");
 }
 
-vader_box_t vader_midir_convert_function(void* l0, void* l1) {
+static vader_box_t vader_midir_convert_function(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -6154,7 +6295,7 @@ vader_box_t vader_midir_convert_function(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_count_uses(void* l0) {
+static void* vader_midir_count_uses(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -6237,7 +6378,7 @@ void* vader_midir_count_uses(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_debug_pos_of_span(void* l0) {
+static vader_box_t vader_midir_debug_pos_of_span(void* l0) {
     vader_string_t l1;
     int32_t l2, l3;
     bool t0;
@@ -6265,7 +6406,7 @@ vader_box_t vader_midir_debug_pos_of_span(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_declare_local(void* l0, vader_string_t l1, vader_box_t l2, vader_box_t l3) {
+static int32_t vader_midir_declare_local(void* l0, vader_string_t l1, vader_box_t l2, vader_box_t l3) {
     int32_t l4;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -6288,7 +6429,7 @@ int32_t vader_midir_declare_local(void* l0, vader_string_t l1, vader_box_t l2, v
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_decorators_have(void* l0, vader_string_t l1) {
+static bool vader_midir_decorators_have(void* l0, vader_string_t l1) {
     void* l2;
     size_t l3, l4;
     void* t0;
@@ -6318,7 +6459,7 @@ bool vader_midir_decorators_have(void* l0, vader_string_t l1) {
     return false;
 }
 
-void vader_midir_defer_or_resolve_branch(void* l0, int32_t l1, int32_t l2) {
+static void vader_midir_defer_or_resolve_branch(void* l0, int32_t l1, int32_t l2) {
     size_t l3, l6, l12;
     int64_t l4;
     void* l5 = NULL;
@@ -6411,7 +6552,7 @@ void vader_midir_defer_or_resolve_branch(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_die_once(void* l0) {
+static void* vader_midir_die_once(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -6501,7 +6642,7 @@ void* vader_midir_die_once(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_dominates(void* l0, int32_t l1, int32_t l2) {
+static bool vader_midir_dominates(void* l0, int32_t l1, int32_t l2) {
     int32_t l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13;
     l3 = l2;
     {
@@ -6535,7 +6676,7 @@ bool vader_midir_dominates(void* l0, int32_t l1, int32_t l2) {
     return false;
 }
 
-void vader_midir_drain_pending(void* l0, int32_t l1, bool l2, int32_t l3, int32_t l4) {
+static void vader_midir_drain_pending(void* l0, int32_t l1, bool l2, int32_t l3, int32_t l4) {
     int32_t l5, l11, l12;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -6591,7 +6732,7 @@ void vader_midir_drain_pending(void* l0, int32_t l1, bool l2, int32_t l3, int32_
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_dst_of(vader_box_t l0) {
+static vader_box_t vader_midir_dst_of(vader_box_t l0) {
     void* t0;
     vader_box_t t1;
     if (l0.tag == 831u) {
@@ -6851,7 +6992,7 @@ void* vader_midir_eliminate_dead_cfg(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit(void* l0, vader_box_t l1) {
+static void vader_midir_emit(void* l0, vader_box_t l1) {
     void* l2 = NULL;
     size_t l3;
     int64_t t0;
@@ -6875,7 +7016,7 @@ void vader_midir_emit(void* l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_emit_block_contents(void* l0, int32_t l1, int32_t l2) {
+static int32_t vader_midir_emit_block_contents(void* l0, int32_t l1, int32_t l2) {
     void* l3 = NULL;
     void* l9 = NULL;
     void* l15 = NULL;
@@ -7698,7 +7839,7 @@ void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_cfg_function_body(void* l0, int32_t l1, void* l2, void* l3, bool l4) {
+static void vader_midir_emit_cfg_function_body(void* l0, int32_t l1, void* l2, void* l3, bool l4) {
     void* l5 = NULL;
     void* l7 = NULL;
     void* l8 = NULL;
@@ -7825,7 +7966,7 @@ void vader_midir_emit_cfg_function_body(void* l0, int32_t l1, void* l2, void* l3
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_emit_const(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static int32_t vader_midir_emit_const(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
     int32_t l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[2] = { &l1, &l2 };
@@ -7845,7 +7986,7 @@ int32_t vader_midir_emit_const(void* l0, vader_box_t l1, vader_box_t l2, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
+static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -7952,7 +8093,7 @@ void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_first_get(void* l0, int64_t l1, int32_t l2, void* l3) {
+static void vader_midir_emit_first_get(void* l0, int64_t l1, int32_t l2, void* l3) {
     bool t0;
     void** gc_raw_roots[2] = { &l0, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -7966,7 +8107,7 @@ void vader_midir_emit_first_get(void* l0, int64_t l1, int32_t l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_get(void* l0, int32_t l1, void* l2) {
+static void vader_midir_emit_get(void* l0, int32_t l1, void* l2) {
     void* l3 = NULL;
     size_t l4;
     int64_t t0;
@@ -7990,7 +8131,7 @@ void vader_midir_emit_get(void* l0, int32_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
+static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l10 = NULL;
@@ -9039,7 +9180,7 @@ void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_range(void* l0, int32_t l1, int32_t l2) {
+static void vader_midir_emit_range(void* l0, int32_t l1, int32_t l2) {
     int32_t l3, l4, l5, l7, l8, l14, l16, l18, l22, l23, l25;
     bool l6, l12;
     void* l9 = NULL;
@@ -9138,7 +9279,7 @@ void vader_midir_emit_range(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_result(void* l0, int64_t l1, int32_t l2, void* l3) {
+static void vader_midir_emit_result(void* l0, int64_t l1, int32_t l2, void* l3) {
     bool t0;
     void** gc_raw_roots[2] = { &l0, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -9152,7 +9293,7 @@ void vader_midir_emit_result(void* l0, int64_t l1, int32_t l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_result_if_any(void* l0, int64_t l1, vader_box_t l2, void* l3) {
+static void vader_midir_emit_result_if_any(void* l0, int64_t l1, vader_box_t l2, void* l3) {
     int32_t l4;
     vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[2] = { &l0, &l3 };
@@ -9167,7 +9308,7 @@ void vader_midir_emit_result_if_any(void* l0, int64_t l1, vader_box_t l2, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_emit_set(void* l0, int32_t l1, void* l2) {
+static void vader_midir_emit_set(void* l0, int32_t l1, void* l2) {
     void* l3 = NULL;
     size_t l4;
     int64_t t0;
@@ -9191,7 +9332,7 @@ void vader_midir_emit_set(void* l0, int32_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_midir_extern_symbol_name(void* l0) {
+static vader_string_t vader_midir_extern_symbol_name(void* l0) {
     void* l1;
     void* l4;
     void* l5;
@@ -9272,7 +9413,7 @@ vader_string_t vader_midir_extern_symbol_name(void* l0) {
     return t0;
 }
 
-void* vader_midir_find_loop_exits(void* l0, void* l1, void* l2) {
+static void* vader_midir_find_loop_exits(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -9396,7 +9537,7 @@ void* vader_midir_find_loop_exits(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vader_string_t l2) {
+static vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vader_string_t l2) {
     void* l3;
     size_t l4, l6;
     vader_box_t l5;
@@ -9441,7 +9582,7 @@ vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vader_stri
     return t3;
 }
 
-vader_box_t vader_midir_first_stack_operand(vader_box_t l0) {
+static vader_box_t vader_midir_first_stack_operand(vader_box_t l0) {
     void* l1;
     vader_box_t t0;
     void* t1;
@@ -9644,7 +9785,7 @@ vader_box_t vader_midir_first_stack_operand(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_midir$first_stack_operand");
 }
 
-vader_box_t vader_midir_first_terminator_operand(vader_box_t l0) {
+static vader_box_t vader_midir_first_terminator_operand(vader_box_t l0) {
     vader_box_t t0;
     void* t1;
     if (l0.tag == 854u) {
@@ -9667,7 +9808,7 @@ vader_box_t vader_midir_first_terminator_operand(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_midir$first_terminator_operand");
 }
 
-void* vader_midir_fn_metadata(void* l0) {
+static void* vader_midir_fn_metadata(void* l0) {
     vader_string_t l1;
     bool l2, l3;
     void* l4 = NULL;
@@ -9695,7 +9836,7 @@ void* vader_midir_fn_metadata(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_fold_moves(void* l0) {
+static void* vader_midir_fold_moves(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -9811,7 +9952,7 @@ void* vader_midir_fold_moves(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
+static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -10043,7 +10184,7 @@ void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_for_each_read_in_terminator(vader_box_t l0, void* l1) {
+static void vader_midir_for_each_read_in_terminator(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
@@ -10075,7 +10216,7 @@ void vader_midir_for_each_read_in_terminator(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_for_each_read_local(vader_box_t l0, void* l1) {
+static void vader_midir_for_each_read_local(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     void* t0 = NULL;
@@ -10376,7 +10517,7 @@ void vader_midir_for_each_read_local(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_freeze_block(void* l0) {
+static void* vader_midir_freeze_block(void* l0) {
     int32_t l1;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -10421,7 +10562,7 @@ void* vader_midir_freeze_block(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_fresh_tmp(void* l0, vader_string_t l1, vader_box_t l2) {
+static int32_t vader_midir_fresh_tmp(void* l0, vader_string_t l1, vader_box_t l2) {
     vader_string_t l3;
     size_t l4;
     void* l5 = NULL;
@@ -10450,11 +10591,11 @@ int32_t vader_midir_fresh_tmp(void* l0, vader_string_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_instruction_has_side_effect(vader_box_t l0) {
+static bool vader_midir_instruction_has_side_effect(vader_box_t l0) {
     return (l0.tag == 821u || l0.tag == 822u || l0.tag == 825u || l0.tag == 826u || l0.tag == 830u || l0.tag == 836u || l0.tag == 838u || l0.tag == 846u);
 }
 
-void vader_midir_intern_data_value_strings(vader_box_t l0, void* l1) {
+static void vader_midir_intern_data_value_strings(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     void* t0 = NULL;
@@ -10519,7 +10660,7 @@ void vader_midir_intern_data_value_strings(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_intern_string_pool(void* l0, vader_string_t l1) {
+static int32_t vader_midir_intern_string_pool(void* l0, vader_string_t l1) {
     vader_box_t l2 = vader_box_null();
     int32_t l3;
     int32_t t0;
@@ -10541,7 +10682,7 @@ int32_t vader_midir_intern_string_pool(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_intersect_dom_tree(int32_t l0, int32_t l1, void* l2) {
+static int32_t vader_midir_intersect_dom_tree(int32_t l0, int32_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -10664,7 +10805,7 @@ int32_t vader_midir_intersect_dom_tree(int32_t l0, int32_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_intrinsic_op_for_name(vader_string_t l0) {
+static vader_box_t vader_midir_intrinsic_op_for_name(vader_string_t l0) {
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t1 };
@@ -10712,7 +10853,7 @@ vader_box_t vader_midir_intrinsic_op_for_name(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_is_dest_passing_shape(vader_box_t l0) {
+static bool vader_midir_is_dest_passing_shape(vader_box_t l0) {
     void* t0;
     bool t1;
     if ((l0.tag == 744u || l0.tag == 763u)) {
@@ -10726,7 +10867,7 @@ bool vader_midir_is_dest_passing_shape(vader_box_t l0) {
     return false;
 }
 
-bool vader_midir_is_short_circuit_op(uint8_t l0) {
+static bool vader_midir_is_short_circuit_op(uint8_t l0) {
     bool l1;
     if (l0 == INT32_C(10)) {
         l1 = true;
@@ -10736,7 +10877,7 @@ bool vader_midir_is_short_circuit_op(uint8_t l0) {
     return l1;
 }
 
-bool vader_midir_loop_exit_present(void* l0, int32_t l1) {
+static bool vader_midir_loop_exit_present(void* l0, int32_t l1) {
     void* l2;
     void* l3;
     void* l4;
@@ -10781,7 +10922,7 @@ bool vader_midir_loop_exit_present(void* l0, int32_t l1) {
     return false;
 }
 
-vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0) {
+static vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -10883,7 +11024,7 @@ vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_make_extern_decl(void* l0) {
+static void* vader_midir_make_extern_decl(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l5 = NULL;
@@ -10951,7 +11092,7 @@ void* vader_midir_make_extern_decl(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_make_struct_decl(void* l0) {
+static void* vader_midir_make_struct_decl(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l5 = NULL;
@@ -11004,7 +11145,7 @@ void* vader_midir_make_struct_decl(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_natural_loop_bodies(void* l0, void* l1, void* l2) {
+static void* vader_midir_natural_loop_bodies(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -11163,7 +11304,7 @@ void* vader_midir_natural_loop_bodies(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_needs_ref_cast(vader_box_t l0) {
+static bool vader_midir_needs_ref_cast(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     if (!(l0.tag == 928u)) {
@@ -11171,10 +11312,10 @@ bool vader_midir_needs_ref_cast(vader_box_t l0) {
     }
     t0 = l0.payload.obj;
     t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-    return t1 != 2292u;
+    return t1 != 2293u;
 }
 
-int32_t vader_midir_new_block(void* l0, void* l1) {
+static int32_t vader_midir_new_block(void* l0, void* l1) {
     int32_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -11199,7 +11340,7 @@ int32_t vader_midir_new_block(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_new_project_ctx(void* l0) {
+static void* vader_midir_new_project_ctx(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -11238,7 +11379,7 @@ void* vader_midir_new_project_ctx(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_no_hints(void) {
+static void* vader_midir_no_hints(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* l2 = NULL;
@@ -11315,7 +11456,7 @@ void* vader_midir_no_hints(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_optimise_function(void* l0) {
+static void* vader_midir_optimise_function(void* l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     int32_t l2;
@@ -11346,14 +11487,14 @@ void* vader_midir_optimise_function(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int64_t vader_midir_pos_key(int32_t l0, size_t l1) {
+static int64_t vader_midir_pos_key(int32_t l0, size_t l1) {
     int64_t l2, l3;
     l2 = (((int64_t) (int32_t) l0) * INT64_C(1000000));
     l3 = ((int64_t) (size_t) l1);
     return (l2 + l3);
 }
 
-void* vader_midir_predecessors_of(void* l0) {
+static void* vader_midir_predecessors_of(void* l0) {
     size_t l1, l4, l7, l8;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -11420,7 +11561,7 @@ void* vader_midir_predecessors_of(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
+static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     vader_box_t l3 = vader_box_null(), l4 = vader_box_null(), l12 = vader_box_null(), l14 = vader_box_null();
     void* l5 = NULL;
     void* l6 = NULL;
@@ -11621,7 +11762,7 @@ void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_push_emit(void* l0, vader_box_t l1, void* l2) {
+static void vader_midir_push_emit(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     vader_box_t l4 = vader_box_null();
     int32_t l5;
@@ -11646,7 +11787,7 @@ void vader_midir_push_emit(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_push_op_with_span(void* l0, vader_box_t l1, void* l2) {
+static int32_t vader_midir_push_op_with_span(void* l0, vader_box_t l1, void* l2) {
     int32_t l3, l6;
     void* l4 = NULL;
     vader_box_t l5 = vader_box_null();
@@ -11674,7 +11815,7 @@ int32_t vader_midir_push_op_with_span(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_read_may_carry_ref(vader_box_t l0) {
+static bool vader_midir_read_may_carry_ref(vader_box_t l0) {
     uint8_t l1;
     bool l2;
     l1 = vader_bytecode_val_type_of_type(l0);
@@ -11686,7 +11827,7 @@ bool vader_midir_read_may_carry_ref(vader_box_t l0) {
     return l2;
 }
 
-void vader_midir_record_alias(void* l0, void* l1, int32_t l2, int32_t l3) {
+static void vader_midir_record_alias(void* l0, void* l1, int32_t l2, int32_t l3) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -11696,7 +11837,7 @@ void vader_midir_record_alias(void* l0, void* l1, int32_t l2, int32_t l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_remap_instr(vader_box_t l0, void* l1) {
+static vader_box_t vader_midir_remap_instr(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l10 = NULL;
@@ -12234,7 +12375,7 @@ vader_box_t vader_midir_remap_instr(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_midir_remap_local(void* l0, int32_t l1) {
+static int32_t vader_midir_remap_local(void* l0, int32_t l1) {
     size_t l2, l3;
     int64_t t0;
     int32_t t1;
@@ -12253,7 +12394,7 @@ int32_t vader_midir_remap_local(void* l0, int32_t l1) {
     return l1;
 }
 
-vader_box_t vader_midir_remap_local_opt(void* l0, vader_box_t l1) {
+static vader_box_t vader_midir_remap_local_opt(void* l0, vader_box_t l1) {
     int32_t l2;
     vader_box_t t0;
     int32_t t1;
@@ -12271,7 +12412,7 @@ vader_box_t vader_midir_remap_local_opt(void* l0, vader_box_t l1) {
     return t0;
 }
 
-void* vader_midir_remap_locals(void* l0, void* l1) {
+static void* vader_midir_remap_locals(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -12305,7 +12446,7 @@ void* vader_midir_remap_locals(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1) {
+static vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     int32_t l4, l5, l6;
@@ -12357,7 +12498,7 @@ vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_reserve_cfg_extern(void* l0, void* l1) {
+static void vader_midir_reserve_cfg_extern(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     vader_box_t l3 = vader_box_null();
@@ -12400,7 +12541,7 @@ void vader_midir_reserve_cfg_extern(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_reserve_cfg_function(void* l0, void* l1) {
+static void vader_midir_reserve_cfg_function(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -12457,7 +12598,7 @@ void vader_midir_reserve_cfg_function(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
+static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
     int32_t l2, l7, l8;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -12662,7 +12803,7 @@ void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_resolve_loop_frame(void* l0, vader_box_t l1) {
+static vader_box_t vader_midir_resolve_loop_frame(void* l0, vader_box_t l1) {
     void* l2;
     void* l6;
     size_t l3;
@@ -12722,7 +12863,7 @@ vader_box_t vader_midir_resolve_loop_frame(void* l0, vader_box_t l1) {
     return t1;
 }
 
-int32_t vader_midir_resolve_vtable_fn_index(void* l0, void* l1) {
+static int32_t vader_midir_resolve_vtable_fn_index(void* l0, void* l1) {
     void* l2 = NULL;
     vader_string_t l3;
     vader_box_t l4 = vader_box_null();
@@ -12750,7 +12891,7 @@ int32_t vader_midir_resolve_vtable_fn_index(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_reverse_postorder(void* l0) {
+static void* vader_midir_reverse_postorder(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     size_t l3;
@@ -12794,7 +12935,7 @@ void* vader_midir_reverse_postorder(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_schedule_stack(void* l0) {
+static void* vader_midir_schedule_stack(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -12908,7 +13049,7 @@ void* vader_midir_schedule_stack(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_midir_scope_contains_target(void* l0, int32_t l1) {
+static bool vader_midir_scope_contains_target(void* l0, int32_t l1) {
     void* l2;
     size_t l3, l4;
     int32_t l5, l6;
@@ -12939,7 +13080,7 @@ bool vader_midir_scope_contains_target(void* l0, int32_t l1) {
     return false;
 }
 
-bool vader_midir_sets_equal(void* l0, void* l1) {
+static bool vader_midir_sets_equal(void* l0, void* l1) {
     size_t l2, l3;
     void* l4;
     void* l5;
@@ -12976,7 +13117,7 @@ bool vader_midir_sets_equal(void* l0, void* l1) {
     return true;
 }
 
-int32_t vader_midir_struct_symbol_id(vader_box_t l0) {
+static int32_t vader_midir_struct_symbol_id(vader_box_t l0) {
     void* t0;
     int32_t t1;
     if (l0.tag == 930u) {
@@ -12987,7 +13128,7 @@ int32_t vader_midir_struct_symbol_id(vader_box_t l0) {
     return -(INT32_C(1));
 }
 
-void* vader_midir_successors_of(void* l0) {
+static void* vader_midir_successors_of(void* l0) {
     vader_box_t l1 = vader_box_null();
     void* l2 = NULL;
     int32_t l3, l4;
@@ -13028,7 +13169,7 @@ void* vader_midir_successors_of(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_synthesise_cfg_intrinsic_wrappers(void* l0, void* l1) {
+static void vader_midir_synthesise_cfg_intrinsic_wrappers(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -13181,7 +13322,7 @@ void vader_midir_synthesise_cfg_intrinsic_wrappers(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_terminate(void* l0, vader_box_t l1) {
+static void vader_midir_terminate(void* l0, vader_box_t l1) {
     void* l2;
     size_t l3;
     int64_t t0;
@@ -13205,7 +13346,7 @@ void vader_midir_terminate(void* l0, vader_box_t l1) {
     return;
 }
 
-bool vader_midir_try_fuse_local_field(void* l0, int32_t l1, int32_t l2) {
+static bool vader_midir_try_fuse_local_field(void* l0, int32_t l1, int32_t l2) {
     size_t l3, l5;
     void* l4 = NULL;
     void* l8 = NULL;
@@ -13251,7 +13392,7 @@ bool vader_midir_try_fuse_local_field(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_walk_rpo(void* l0, int32_t l1, void* l2, void* l3) {
+static void vader_midir_walk_rpo(void* l0, int32_t l1, void* l2, void* l3) {
     int32_t l4;
     void* l5 = NULL;
     size_t l6, l7;
@@ -13306,7 +13447,7 @@ void vader_midir_walk_rpo(void* l0, int32_t l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_midir_walk_rpo_reverse(void* l0, int32_t l1, void* l2, void* l3) {
+static void vader_midir_walk_rpo_reverse(void* l0, int32_t l1, void* l2, void* l3) {
     size_t l4, l6;
     void* l5 = NULL;
     int32_t l7;
@@ -13361,7 +13502,7 @@ void vader_midir_walk_rpo_reverse(void* l0, int32_t l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_midir_with_dst(vader_box_t l0, int32_t l1) {
+static vader_box_t vader_midir_with_dst(vader_box_t l0, int32_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l12 = NULL;
@@ -13673,7 +13814,7 @@ vader_box_t vader_midir_with_dst(vader_box_t l0, int32_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_midir_with_peephole_out(void* l0, void* l1) {
+static void* vader_midir_with_peephole_out(void* l0, void* l1) {
     vader_string_t l2;
     bool l3;
     void* l4 = NULL;

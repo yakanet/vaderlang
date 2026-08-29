@@ -1,6 +1,8 @@
 #include "bootstrap.split.h"
 
-void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
+static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1);
+
+static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l0, &l3 };

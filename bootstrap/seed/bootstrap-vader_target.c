@@ -1,6 +1,9 @@
 #include "bootstrap.split.h"
 
-vader_string_t vader_target_arch_variant(uint8_t l0) {
+static vader_string_t vader_target_arch_variant(uint8_t l0);
+static vader_string_t vader_target_os_variant(uint8_t l0);
+
+static vader_string_t vader_target_arch_variant(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         return 796u;
     }
@@ -20,7 +23,7 @@ vader_string_t vader_target_baked_module_source(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = concat_3(1756u, 1921u, 235u);
+    l1 = concat_3(1756u, 1922u, 235u);
     l2 = vader_target_os_variant(((vader_struct_vader_target_Target_t*) l0)->f_os);
     l2 = concat_2(1421u, l2);
     l3 = vader_target_arch_variant(((vader_struct_vader_target_Target_t*) l0)->f_arch);
@@ -76,7 +79,7 @@ void* vader_target_host_target(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_target_os_variant(uint8_t l0) {
+static vader_string_t vader_target_os_variant(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         return 795u;
     }
@@ -97,7 +100,7 @@ vader_string_t vader_target_os_variant(uint8_t l0) {
 
 vader_box_t vader_target_parse_os(vader_string_t l0) {
     vader_box_t l1;
-    if (l0 == 2304u) {
+    if (l0 == 2305u) {
         l1 = vader_box_i32(163u, INT32_C(0));
     } else {
         if (l0 == 1689u) {
@@ -106,7 +109,7 @@ vader_box_t vader_target_parse_os(vader_string_t l0) {
             if (l0 == 1330u) {
                 l1 = vader_box_i32(163u, INT32_C(2));
             } else {
-                if (l0 == 2298u) {
+                if (l0 == 2299u) {
                     l1 = vader_box_i32(163u, INT32_C(3));
                 } else {
                     if (l0 == 1194u) {

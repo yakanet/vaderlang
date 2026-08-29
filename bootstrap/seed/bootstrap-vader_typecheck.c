@@ -1,6 +1,501 @@
 #include "bootstrap.split.h"
 
-void vader_typecheck_add_trait_unique__i32(void* l0, int32_t l1, vader_string_t l2) {
+static void vader_typecheck_add_trait_unique__i32(void* l0, int32_t l1, vader_string_t l2);
+static void vader_typecheck_add_trait_unique__string(void* l0, vader_string_t l1, vader_string_t l2);
+static vader_box_t vader_typecheck_alias_for(void* l0, vader_box_t l1, void* l2);
+static vader_string_t vader_typecheck_annotate_hint(vader_box_t l0);
+static bool vader_typecheck_any_contains(void* l0);
+static vader_box_t vader_typecheck_apply_readonly_default(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_arg_mutability_cleared(vader_box_t l0);
+static void* vader_typecheck_arg_mutability_cleared_each(void* l0);
+static vader_string_t vader_typecheck_arith_trait_method(uint8_t l0);
+static vader_box_t vader_typecheck_arm_narrow_for(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_typecheck_assign_binding_types(vader_box_t l0, vader_box_t l1, void* l2, void* l3);
+static void vader_typecheck_assign_tuple(void* l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_async_call_result_type(void* l0, void* l1, vader_box_t l2);
+static vader_box_t vader_typecheck_auto_const_module_array(vader_box_t l0);
+static vader_box_t vader_typecheck_awaitable_element_of(vader_box_t l0);
+static void* vader_typecheck_bfs_reachable(void* l0, void* l1, void* l2);
+static void vader_typecheck_bind_pattern_types(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
+static void vader_typecheck_bind_struct_pattern(void* l0, vader_box_t l1, void* l2, void* l3);
+static bool vader_typecheck_block_has_await(void* l0);
+static bool vader_typecheck_block_has_yield(void* l0);
+static vader_box_t vader_typecheck_bounded_trait_args(vader_box_t l0, vader_string_t l1, void* l2);
+static void vader_typecheck_broadcast_enum_types(void* l0, void* l1);
+static void vader_typecheck_broadcast_struct_decls(void* l0);
+static void* vader_typecheck_build_namespace_export_params(vader_string_t l0, void* l1, void* l2);
+static void* vader_typecheck_build_namespace_exports(vader_string_t l0, void* l1, void* l2);
+static void* vader_typecheck_build_namespace_private_names(vader_string_t l0, void* l1, void* l2);
+static void* vader_typecheck_build_namespace_type_members(vader_string_t l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_bump_loop_depth(vader_box_t l0);
+static bool vader_typecheck_call_needs_arg_normalisation(void* l0, void* l1);
+static vader_box_t vader_typecheck_callee_generator_symbol(void* l0, void* l1);
+static bool vader_typecheck_callee_is_no_return(vader_box_t l0, void* l1);
+static vader_string_t vader_typecheck_callee_name(vader_box_t l0);
+static vader_box_t vader_typecheck_callee_param_decls(void* l0, void* l1, void* l2);
+static bool vader_typecheck_carries_mutable_state(vader_box_t l0, void* l1);
+static bool vader_typecheck_cast_allowed(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_cast_call_target(void* l0, void* l1, void* l2, void* l3);
+static vader_string_t vader_typecheck_chain_key(int32_t l0, void* l1);
+static bool vader_typecheck_char_fits(uint32_t l0, vader_string_t l1);
+static void vader_typecheck_check_args_no_expected(void* l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_check_block(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5);
+static bool vader_typecheck_check_common(vader_box_t l0, vader_box_t l1);
+static void vader_typecheck_check_const_value(void* l0, void* l1, void* l2);
+static void vader_typecheck_check_dead_code(void* l0, vader_string_t l1, void* l2, void* l3);
+static void vader_typecheck_check_defer(void* l0, void* l1, void* l2, vader_box_t l3, void* l4);
+static vader_box_t vader_typecheck_check_else_branch_expr(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5);
+static vader_box_t vader_typecheck_check_else_with_narrow(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, vader_box_t l5, void* l6);
+static vader_box_t vader_typecheck_check_equality(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
+static void vader_typecheck_check_field(void* l0, void* l1, vader_box_t l2, void* l3, void* l4, void* l5, void* l6);
+static void vader_typecheck_check_fn_body(void* l0, void* l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_check_fn_redefinitions(void* l0, void* l1, void* l2);
+static void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, void* l4);
+static vader_box_t vader_typecheck_check_generic_arg(void* l0, size_t l1, void* l2, void* l3, void* l4, void* l5, void* l6);
+static void vader_typecheck_check_impl_coherence(void* l0, void* l1, void* l2);
+static void vader_typecheck_check_impl_missing_methods(void* l0, void* l1, void* l2);
+static void vader_typecheck_check_internal_field(void* l0, void* l1, vader_string_t l2, void* l3, void* l4, void* l5);
+static void vader_typecheck_check_is_overlap(void* l0, vader_box_t l1, vader_box_t l2, void* l3);
+static void vader_typecheck_check_item_no_expected(vader_box_t l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_check_let(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_check_logical(void* l0, vader_box_t l1, vader_box_t l2, void* l3);
+static void vader_typecheck_check_loop_jump(void* l0, vader_box_t l1, void* l2, vader_box_t l3, void* l4);
+static void vader_typecheck_check_main_signature(void* l0, void* l1, vader_box_t l2, void* l3);
+static void vader_typecheck_check_missing_fields(void* l0, void* l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_check_module_fn_redefinitions(vader_string_t l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_check_module_impl_coherence(vader_string_t l0, void* l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_check_operator_rhs(vader_box_t l0, vader_box_t l1, vader_string_t l2, vader_string_t l3, void* l4, void* l5, void* l6);
+static void vader_typecheck_check_pattern_bound_exprs(vader_box_t l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_check_public_fn_visibility(void* l0, void* l1, vader_box_t l2, void* l3);
+static void vader_typecheck_check_return(void* l0, void* l1, void* l2, vader_box_t l3, void* l4);
+static bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2);
+static void vader_typecheck_check_stmt(vader_box_t l0, void* l1, void* l2, vader_box_t l3, void* l4);
+static vader_box_t vader_typecheck_check_struct_body(void* l0, void* l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_check_trait_ambiguity(void* l0, vader_box_t l1, void* l2, void* l3);
+static void vader_typecheck_check_typeparam_bounds(void* l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_check_yield(void* l0, void* l1, void* l2, vader_box_t l3, void* l4);
+static uint8_t vader_typecheck_classify(uint8_t l0);
+static vader_box_t vader_typecheck_coherence_key(vader_box_t l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_collapse_if_unresolved(vader_box_t l0, vader_box_t l1, vader_box_t l2);
+static void* vader_typecheck_collect_and_narrows(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_block_names(void* l0, void* l1);
+static vader_box_t vader_typecheck_collect_decl_refs(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_decorator_names(void* l0, void* l1);
+static void* vader_typecheck_collect_direct_imports(void* l0, void* l1, void* l2);
+static void vader_typecheck_collect_expr_names(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_impl(void* l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_collect_opt_block_names(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_opt_expr_names(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_opt_pattern_names(vader_box_t l0, void* l1);
+static void* vader_typecheck_collect_overload_candidates(vader_string_t l0, vader_string_t l1, void* l2);
+static void vader_typecheck_collect_pattern_names(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_stmt_names(vader_box_t l0, void* l1);
+static void vader_typecheck_collect_type_param_names(void* l0, void* l1);
+static void vader_typecheck_collect_unbound_type_params(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_collect_variant(vader_box_t l0, void* l1);
+static void* vader_typecheck_commit_overload_pick(void* l0, void* l1, void* l2, vader_box_t l3);
+static vader_box_t vader_typecheck_complement_narrowed_type(vader_box_t l0, vader_box_t l1, void* l2);
+static bool vader_typecheck_container_is_immutable(vader_box_t l0, void* l1);
+static bool vader_typecheck_contains(void* l0, int64_t l1);
+static bool vader_typecheck_contains_name(void* l0, vader_string_t l1);
+static bool vader_typecheck_contains_unresolved(vader_box_t l0);
+static void vader_typecheck_cross_publish_fn_decls(void* l0);
+static void vader_typecheck_cross_publish_trait_decls(void* l0);
+static int32_t vader_typecheck_cur_field_narrow_gen(void* l0, vader_string_t l1);
+static int32_t vader_typecheck_cur_narrow_gen(void* l0, int32_t l1);
+static void vader_typecheck_declare_const(void* l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, void* l3, void* l4, void* l5);
+static void vader_typecheck_declare_enum(void* l0, void* l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_declare_fn(void* l0, void* l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_declare_fn_param(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_declare_fn_return(void* l0, void* l1, void* l2);
+static void vader_typecheck_declare_impl_method_for_trait(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_declare_impl_return(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
+static void vader_typecheck_declare_module(void* l0, void* l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_declare_named_with_args(vader_string_t l0, void* l1, void* l2, void* l3, void* l4, vader_string_t l5, void* l6, void* l7);
+static void vader_typecheck_declare_type_alias(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_declared_lvalue_type(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_declared_struct_field_type(vader_box_t l0, vader_string_t l1, void* l2);
+static bool vader_typecheck_declares_mutable_self(void* l0, vader_box_t l1);
+static void* vader_typecheck_decorated_decl_decorators(vader_box_t l0);
+static vader_string_t vader_typecheck_decorated_decl_name(vader_box_t l0);
+static void* vader_typecheck_default_each(void* l0);
+static vader_box_t vader_typecheck_deprecated_message(void* l0);
+static vader_box_t vader_typecheck_desugared_param_type(vader_box_t l0, bool l1);
+static vader_box_t vader_typecheck_detect_is_narrow(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_detect_is_narrow_for_block(vader_box_t l0, void* l1);
+static void* vader_typecheck_diag_sink(void);
+static void* vader_typecheck_diag_sink_stmt(void);
+static vader_box_t vader_typecheck_dispatch_bounded_method(vader_box_t l0, vader_string_t l1, void* l2);
+static vader_string_t vader_typecheck_dispatch_bounded_method_trait(vader_box_t l0, vader_string_t l1, void* l2);
+static vader_string_t vader_typecheck_dispatch_key(vader_box_t l0);
+static bool vader_typecheck_distinct_backing(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_distinct_op_fallback(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5);
+static vader_string_t vader_typecheck_element_hint_for(void* l0, void* l1);
+static void vader_typecheck_emit_assign_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5);
+static void vader_typecheck_emit_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, uint8_t l4, void* l5, void* l6);
+static void vader_typecheck_emit_return_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5);
+static void* vader_typecheck_empty_fallback(void* l0);
+static void* vader_typecheck_empty_impls(void);
+static bool vader_typecheck_equals_type_shape(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_expr_has_await(vader_box_t l0);
+static bool vader_typecheck_expr_has_yield(vader_box_t l0);
+static bool vader_typecheck_expr_is_immutable(vader_box_t l0, void* l1);
+static vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0);
+static void* vader_typecheck_extern_decorator_args(void* l0);
+static vader_string_t vader_typecheck_extern_symbol_name_for(void* l0);
+static vader_string_t vader_typecheck_field_annotate_hint(vader_box_t l0, void* l1);
+static vader_string_t vader_typecheck_field_chain_key(void* l0, void* l1);
+static void* vader_typecheck_file_overload_table(void* l0, vader_string_t l1);
+static void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1);
+static vader_string_t vader_typecheck_find_owner(void* l0, int64_t l1);
+static vader_box_t vader_typecheck_find_struct_field_type(void* l0, vader_string_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_find_trait_id_by_name(vader_string_t l0, void* l1);
+static vader_box_t vader_typecheck_first_unexported_in(void* l0);
+static vader_box_t vader_typecheck_first_unexported_type(vader_box_t l0);
+static bool vader_typecheck_flows_into(vader_box_t l0, vader_box_t l1, size_t l2, void* l3);
+static bool vader_typecheck_fn_has_type_params(void* l0);
+static bool vader_typecheck_fn_mutability_widens(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_fn_param_compatible(vader_box_t l0, vader_box_t l1);
+static void vader_typecheck_fn_refs(void* l0, void* l1);
+static vader_box_t vader_typecheck_fn_signature_key(void* l0, void* l1);
+static bool vader_typecheck_for_form_has_await(vader_box_t l0);
+static vader_box_t vader_typecheck_for_in_element(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_for_type_symbol(vader_box_t l0, void* l1);
+static void* vader_typecheck_gen_state_symbol_of(int32_t l0, vader_string_t l1, vader_string_t l2);
+static vader_box_t vader_typecheck_generator_call_result_type(void* l0, void* l1, vader_box_t l2);
+static vader_box_t vader_typecheck_generator_element_type(void* l0, vader_box_t l1, void* l2);
+static bool vader_typecheck_generator_receiver_is_iterator(vader_box_t l0, void* l1);
+static bool vader_typecheck_has_expr_bodied_fn(void* l0);
+static bool vader_typecheck_has_extern_decorator(void* l0);
+static bool vader_typecheck_has_impl_method(vader_box_t l0, vader_string_t l1, void* l2);
+static bool vader_typecheck_has_intrinsic_decorator(void* l0);
+static bool vader_typecheck_has_mutable_const_storage(vader_box_t l0);
+static bool vader_typecheck_has_mutable_self(void* l0);
+static bool vader_typecheck_has_target_decorator(void* l0);
+static bool vader_typecheck_ident_is_immutable(void* l0, void* l1);
+static bool vader_typecheck_if_has_yield(void* l0);
+static vader_box_t vader_typecheck_immutable_root_param(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_immutable_root_symbol(vader_box_t l0, void* l1);
+static bool vader_typecheck_impl_has_method(void* l0, vader_string_t l1);
+static bool vader_typecheck_impl_is_generic(void* l0, void* l1);
+static void* vader_typecheck_imported_fn_sig_keys(void* l0, void* l1, void* l2);
+static void* vader_typecheck_imported_overloads_in(void* l0, vader_string_t l1, vader_string_t l2);
+static vader_box_t vader_typecheck_imported_overloads_table_in(void* l0, vader_string_t l1);
+static void vader_typecheck_index_impl_metadata(void* l0, void* l1, vader_box_t l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_index_key_expected(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_index_set_value_expected(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_infer_against_array(void* l0, void* l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_against_tuple(void* l0, void* l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_array_type_value(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_infer_await(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_binary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_cast(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_dot_variant(void* l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_expr(vader_box_t l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_field(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_field_intrinsic(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_infer_fn_type_value(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_infer_generic_inst(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_ident(void* l0, void* l1);
+static vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5);
+static vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_intrinsic(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_lambda(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5);
+static vader_box_t vader_typecheck_infer_mutable_type_value(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_infer_no_expected(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_null_coalesce(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_param(void* l0, size_t l1, vader_box_t l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_range(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_seq_lit(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_infer_struct_lit(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_infer_unary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static bool vader_typecheck_int_fits(uint64_t l0, vader_string_t l1);
+static vader_box_t vader_typecheck_into_iterator_element(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_into_tuple_target(vader_box_t l0, size_t l1, void* l2);
+static void vader_typecheck_invalidate_narrow_on_assign(vader_box_t l0, vader_box_t l1, void* l2);
+static bool vader_typecheck_is_assignable_array(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_assignable_fn(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_assignable_freechar(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_is_assignable_freefloat(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_is_assignable_freeint(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_is_assignable_struct(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_assignable_trait_from(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_assignable_tuple(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_assignable_union(vader_box_t l0, void* l1, vader_box_t l2);
+static bool vader_typecheck_is_body_independent_value(vader_box_t l0);
+static bool vader_typecheck_is_bool(vader_box_t l0);
+static bool vader_typecheck_is_concrete_float(vader_box_t l0);
+static bool vader_typecheck_is_concrete_int(vader_box_t l0);
+static bool vader_typecheck_is_const_reassign(void* l0, void* l1);
+static bool vader_typecheck_is_divergent_stmt(vader_box_t l0, void* l1);
+static bool vader_typecheck_is_enum_like(vader_box_t l0);
+static bool vader_typecheck_is_extern_abi_type(vader_box_t l0, bool l1);
+static bool vader_typecheck_is_float(vader_box_t l0);
+static bool vader_typecheck_is_free_numeric(vader_box_t l0);
+static bool vader_typecheck_is_fresh_allocation(vader_box_t l0);
+static bool vader_typecheck_is_generator_symbol(void* l0, void* l1);
+static bool vader_typecheck_is_integer(vader_box_t l0);
+static bool vader_typecheck_is_integer_index(vader_box_t l0);
+static bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0);
+static bool vader_typecheck_is_metatype(vader_box_t l0);
+static bool vader_typecheck_is_never(vader_box_t l0);
+static bool vader_typecheck_is_nonprimary_pick(void* l0, vader_box_t l1);
+static bool vader_typecheck_is_null_type(vader_box_t l0);
+static bool vader_typecheck_is_numeric(vader_box_t l0);
+static bool vader_typecheck_is_overlap_checkable(vader_box_t l0);
+static bool vader_typecheck_is_plain_string_literal(vader_box_t l0);
+static bool vader_typecheck_is_primitive_named(vader_box_t l0, vader_string_t l1);
+static bool vader_typecheck_is_private_user_type(void* l0);
+static bool vader_typecheck_is_public(uint8_t l0);
+static bool vader_typecheck_is_range_type(vader_box_t l0);
+static bool vader_typecheck_is_resolved_enough(vader_box_t l0);
+static bool vader_typecheck_is_root_decl(uint8_t l0, void* l1, vader_string_t l2, vader_string_t l3);
+static bool vader_typecheck_is_string(vader_box_t l0);
+static bool vader_typecheck_is_type_expr(vader_box_t l0, void* l1);
+static bool vader_typecheck_is_type_kind(int32_t l0);
+static bool vader_typecheck_is_user_type_kind(int32_t l0);
+static bool vader_typecheck_is_value_only_type(vader_box_t l0);
+static bool vader_typecheck_is_wired_root(void* l0, vader_string_t l1);
+static vader_box_t vader_typecheck_iterable_behind(void* l0, void* l1, int32_t l2);
+static vader_box_t vader_typecheck_iterable_type_span(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_iterator_element_of(vader_box_t l0);
+static vader_box_t vader_typecheck_join_if_branches(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_lift_enum_placeholder(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_lookup_callee_fn_decl(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_lookup_decl(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_decl_in(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_decl_symbol_stmt(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_external_type(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_fn_symbol_by_span(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_lookup_in(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_pre_resolved_field(int32_t l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_lookup_return_type(void* l0, void* l1);
+static vader_box_t vader_typecheck_lookup_sym_by_name(void* l0, vader_string_t l1);
+static vader_box_t vader_typecheck_lookup_sym_by_name_orch(void* l0, vader_string_t l1);
+static vader_box_t vader_typecheck_lookup_trait_decl(vader_string_t l0, void* l1);
+static vader_box_t vader_typecheck_lookup_trait_method(vader_box_t l0, vader_string_t l1);
+static vader_box_t vader_typecheck_lookup_type_name(void* l0, void* l1);
+static vader_box_t vader_typecheck_lower_binary(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_lower_call_in_type_position(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_lower_generic_inst(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_lower_ident(void* l0, void* l1);
+static void vader_typecheck_mark_binding_borrow(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_typecheck_mark_loop_var_borrow(void* l0, vader_box_t l1, void* l2);
+static bool vader_typecheck_marks_mutable_anywhere(vader_box_t l0);
+static void vader_typecheck_materialize_all_sams_pre_resolve(void* l0);
+static void vader_typecheck_merge_external_alias_types(void* l0, void* l1);
+static void vader_typecheck_merge_external_impl_methods(void* l0, void* l1, void* l2);
+static void* vader_typecheck_merge_module_program(void* l0);
+static void vader_typecheck_merge_struct_decls(void* l0, void* l1);
+static void* vader_typecheck_mismatch_diagnostic(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3);
+static void* vader_typecheck_mismatch_diagnostic_hinted(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3, vader_string_t l4);
+static vader_string_t vader_typecheck_missing_enum_variant_name(void* l0, void* l1, void* l2);
+static vader_string_t vader_typecheck_module_const_hint_for(void* l0, void* l1);
+static vader_string_t vader_typecheck_mutability_level_hint(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3);
+static vader_string_t vader_typecheck_mutation_fix_hint(vader_box_t l0, void* l1);
+static vader_string_t vader_typecheck_mutation_fix_hint_within(vader_box_t l0, void* l1, int32_t l2);
+static bool vader_typecheck_name_is_type_param(void* l0, vader_string_t l1);
+static void* vader_typecheck_named_head(vader_string_t l0, void* l1, uint8_t l2, void* l3, bool l4, void* l5);
+static vader_box_t vader_typecheck_namespace_base_mod_id(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_namespace_call_mod_id(void* l0, void* l1);
+static vader_box_t vader_typecheck_namespace_member_params(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_namespace_member_type(void* l0, void* l1, void* l2);
+static bool vader_typecheck_namespace_private_member_reported(int32_t l0, vader_string_t l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_narrow_field_if_active(void* l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_narrow_for_binding(void* l0, int32_t l1, vader_box_t l2);
+static vader_box_t vader_typecheck_narrow_for_expected(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_narrow_for_field(void* l0, vader_string_t l1, vader_box_t l2);
+static vader_box_t vader_typecheck_narrowed_with_scrutinee_immutability(vader_box_t l0, vader_box_t l1, void* l2);
+static bool vader_typecheck_narrowing_immutability(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_needs_return_inference(void* l0);
+static void* vader_typecheck_new_fn_context(vader_box_t l0, vader_box_t l1);
+static void* vader_typecheck_new_typed_program(void* l0);
+static bool vader_typecheck_nominal_eq(int32_t l0, void* l1, int32_t l2, void* l3);
+static vader_box_t vader_typecheck_normalize_call_args(void* l0, void* l1, void* l2);
+static bool vader_typecheck_not_decidable(vader_box_t l0);
+static vader_box_t vader_typecheck_numeric_propagation(uint8_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_numeric_result(void* l0, vader_box_t l1, vader_box_t l2, void* l3);
+static vader_box_t vader_typecheck_op_expected_ctx(uint8_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_opt_or_void(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_overload_params_matching(vader_string_t l0, void* l1, void* l2);
+static int32_t vader_typecheck_overload_specificity(vader_box_t l0, vader_box_t l1);
+static void* vader_typecheck_pad_trait_default_args(void* l0, void* l1, void* l2);
+static ptrdiff_t vader_typecheck_param_index_by_name(void* l0, vader_string_t l1);
+static bool vader_typecheck_param_mutable_at(void* l0, size_t l1);
+static vader_box_t vader_typecheck_param_type(void* l0, vader_box_t l1, void* l2, void* l3);
+static void* vader_typecheck_params_mutable_of(void* l0);
+static int32_t vader_typecheck_parse_tuple_index(vader_string_t l0);
+static void vader_typecheck_patch_fn_return_type(void* l0, vader_box_t l1, void* l2);
+static vader_string_t vader_typecheck_path_name(vader_box_t l0, vader_string_t l1);
+static vader_box_t vader_typecheck_pattern_type_of(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_pick_bound_or_default(vader_box_t l0);
+static vader_box_t vader_typecheck_pick_ctx_return(vader_box_t l0);
+static vader_box_t vader_typecheck_pick_field_vs_null(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_pick_final_return(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_pick_ident_vs_null(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_pick_overload(void* l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_pick_return(vader_box_t l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_pick_seq_variant(void* l0, size_t l1);
+static vader_box_t vader_typecheck_pick_tuple_variant(vader_box_t l0, size_t l1);
+static void vader_typecheck_pop_field_narrow(void* l0, vader_string_t l1, vader_box_t l2);
+static void vader_typecheck_pop_narrow(void* l0, int32_t l1, vader_box_t l2);
+static void vader_typecheck_pop_then_narrows(void* l0, void* l1);
+static void vader_typecheck_populate_baked_symbols(void* l0, void* l1, void* l2);
+static void vader_typecheck_populate_core_symbols(void* l0, void* l1, void* l2);
+static void vader_typecheck_populate_core_symbols_into(void* l0, void* l1, vader_box_t l2);
+static void vader_typecheck_populate_external_types(void* l0, void* l1, void* l2);
+static void vader_typecheck_populate_from(void* l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_populate_imported_fn_overloads(void* l0, void* l1, void* l2);
+static void vader_typecheck_populate_resolver_imports(void* l0);
+static void vader_typecheck_populate_resolver_imports_for_others(void* l0, void* l1, void* l2);
+static int64_t vader_typecheck_pow2_i64(int64_t l0);
+static void vader_typecheck_prepopulate_namespace_member_types(void* l0, void* l1, void* l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_primary_overload_ft(vader_box_t l0, void* l1);
+static vader_string_t vader_typecheck_producer_hint_for(void* l0, void* l1);
+static void vader_typecheck_pull_referenced_external_types(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_push_divergent_narrow_if(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_push_field_narrow(void* l0, vader_string_t l1, vader_box_t l2);
+static bool vader_typecheck_push_immutability_diag_at(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_box_t l4, void* l5);
+static bool vader_typecheck_push_immutability_diag_hinted(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_string_t l4, void* l5);
+static bool vader_typecheck_push_immutable_path_write(bool l0, void* l1, vader_box_t l2, void* l3);
+static void vader_typecheck_push_module_exported_fns(void* l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_push_narrow(void* l0, int32_t l1, vader_box_t l2);
+static void vader_typecheck_push_op_undefined(void* l0, vader_box_t l1, vader_box_t l2, void* l3);
+static void vader_typecheck_push_op_undefined_1(void* l0, vader_box_t l1, vader_string_t l2, void* l3);
+static void vader_typecheck_push_overload(void* l0, vader_string_t l1, void* l2);
+static void vader_typecheck_push_renamed_imports(void* l0);
+static void* vader_typecheck_push_then_narrows(void* l0, void* l1);
+static void vader_typecheck_push_trait_missing(void* l0, vader_box_t l1, vader_string_t l2, void* l3);
+static vader_box_t vader_typecheck_readonly_children(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_receiver_fits_first_param(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_typecheck_record_empty_array_init(void* l0, vader_box_t l1, void* l2);
+static void vader_typecheck_record_expr(void* l0, vader_box_t l1, vader_box_t l2);
+static void vader_typecheck_record_impl_trait(void* l0, vader_string_t l1, vader_string_t l2);
+static void vader_typecheck_record_local_producer(void* l0, void* l1);
+static void vader_typecheck_record_struct_trait(void* l0, vader_box_t l1, vader_string_t l2);
+static void vader_typecheck_record_struct_trait_args(void* l0, vader_box_t l1, vader_string_t l2, void* l3);
+static void* vader_typecheck_redirect(void* l0, void* l1);
+static void* vader_typecheck_redirect_import(void* l0, void* l1);
+static void* vader_typecheck_redirect_import_typed(void* l0, void* l1);
+static bool vader_typecheck_register_alias_const(void* l0, void* l1);
+static void vader_typecheck_register_aliases(void* l0, void* l1);
+static void vader_typecheck_register_deprecated(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_register_external(void* l0, void* l1, void* l2);
+static void vader_typecheck_register_generator_iter_impls(void* l0);
+static void vader_typecheck_register_impl_metadata(void* l0, void* l1, void* l2);
+static void vader_typecheck_register_refs(void* l0, vader_string_t l1, void* l2);
+static void vader_typecheck_reject_immutable_into_mutable_param(void* l0, size_t l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_reject_marker_in_is_test(vader_box_t l0, void* l1);
+static void vader_typecheck_reject_marker_on_value_type(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_reject_mutable_module_const(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_typecheck_reject_mutating_method_on_immutable(void* l0, void* l1, vader_box_t l2, void* l3, void* l4);
+static bool vader_typecheck_removed_covers(vader_box_t l0, vader_box_t l1);
+static void vader_typecheck_repin_free_ufcs_receiver(vader_box_t l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_repin_operand(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5);
+static void vader_typecheck_report_mixed_mutability(vader_box_t l0, void* l1, void* l2);
+static bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t l1, void* l2, void* l3);
+static void vader_typecheck_report_private_leak(vader_box_t l0, void* l1, vader_string_t l2, vader_string_t l3, void* l4);
+static void vader_typecheck_report_unbound_type_args(void* l0, void* l1, void* l2, void* l3, vader_box_t l4, size_t l5, void* l6, void* l7);
+static void* vader_typecheck_repr_range(vader_string_t l0);
+static void vader_typecheck_reset_expr_tables(void* l0);
+static vader_box_t vader_typecheck_resolve_ctx(vader_box_t l0, void* l1);
+static void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_resolve_field_chain_static(void* l0, void* l1);
+static vader_box_t vader_typecheck_resolve_index_param(void* l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_resolve_loop_target(void* l0, vader_string_t l1);
+static vader_box_t vader_typecheck_resolve_named_type(void* l0, void* l1);
+static vader_string_t vader_typecheck_resolve_repr(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_resolve_struct_field(vader_box_t l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_resolve_struct_trait_args(vader_box_t l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_resolve_target(vader_string_t l0, void* l1);
+static vader_box_t vader_typecheck_resolved_field_type(int32_t l0, void* l1, vader_string_t l2, void* l3, void* l4);
+static void vader_typecheck_retire_field_chains_under(void* l0, vader_string_t l1);
+static bool vader_typecheck_rooted_in_storageless_const(vader_box_t l0, void* l1);
+static bool vader_typecheck_same_array_modulo_mutability(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_same_written_shape(vader_box_t l0, vader_box_t l1);
+static bool vader_typecheck_satisfies_trait(vader_box_t l0, void* l1, void* l2);
+static bool vader_typecheck_scalar_castable(vader_box_t l0);
+static void* vader_typecheck_scratch_diags(void);
+static vader_string_t vader_typecheck_scrutinee_field_key(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_scrutinee_narrow_base(vader_box_t l0, void* l1);
+static int32_t vader_typecheck_scrutinee_sym_id(vader_box_t l0, void* l1);
+static void vader_typecheck_seed_explicit_type_args(vader_box_t l0, void* l1, void* l2, void* l3);
+static void vader_typecheck_seed_ufcs_bindings(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_settle_external_expr_bodied_returns(void* l0, void* l1);
+static void* vader_typecheck_span_of_value(void* l0);
+static vader_string_t vader_typecheck_static_string_value(void* l0);
+static bool vader_typecheck_stmt_has_await(vader_box_t l0);
+static bool vader_typecheck_stmt_has_yield(vader_box_t l0);
+static void* vader_typecheck_stmt_span(vader_box_t l0);
+static vader_box_t vader_typecheck_strip_mutability(vader_box_t l0);
+static void* vader_typecheck_strip_mutability_each(void* l0);
+static bool vader_typecheck_struct_args_compatible(void* l0, void* l1);
+static bool vader_typecheck_struct_mutability_widens(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_substitute_alias_args(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_substitute_array_element(vader_box_t l0, vader_box_t l1);
+static void* vader_typecheck_substitute_each(void* l0, void* l1);
+static void* vader_typecheck_substitute_each_map(void* l0, void* l1);
+static vader_box_t vader_typecheck_substitute_impl_method(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_substitute_map(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_substitute_self(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_substitute_self_in(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_substitute_struct_field(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_substitute_trait_typeparams(vader_box_t l0, void* l1, vader_string_t l2, void* l3, void* l4);
+static vader_box_t vader_typecheck_subtract_type(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_subtract_type_with_impls(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_symbol_by_id(int32_t l0, void* l1);
+static void* vader_typecheck_synth_resolved(void);
+static bool vader_typecheck_then_is_divergent(void* l0, void* l1);
+static vader_box_t vader_typecheck_try_curry_receiver(void* l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_try_default_trait_method(void* l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_try_default_trait_method_dispatch(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_try_free_fn_ufcs_dispatch(vader_box_t l0, void* l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_try_free_fn_ufcs_with_first(vader_string_t l0, vader_box_t l1, vader_string_t l2, void* l3);
+static vader_box_t vader_typecheck_try_impl_method_ufcs(vader_box_t l0, void* l1, void* l2, void* l3);
+static bool vader_typecheck_try_into(vader_box_t l0, vader_box_t l1, void* l2, size_t l3);
+static vader_box_t vader_typecheck_try_namespace_field(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_try_trait_method(void* l0, vader_string_t l1, void* l2);
+static vader_box_t vader_typecheck_try_trait_method_dispatch(vader_box_t l0, void* l1, void* l2);
+static bool vader_typecheck_try_trait_widen(vader_box_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_try_tuple_index_dispatch(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_try_typeparam_bound_method(vader_box_t l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_try_union_common_field_dispatch(vader_box_t l0, void* l1, void* l2, void* l3);
+static bool vader_typecheck_type_contains_unresolved(vader_box_t l0);
+static vader_box_t vader_typecheck_type_for_result(vader_string_t l0, void* l1);
+static vader_box_t vader_typecheck_type_from_expr_opt_in(vader_box_t l0, void* l1);
+static vader_box_t vader_typecheck_type_from_symbol(void* l0, void* l1);
+static vader_box_t vader_typecheck_type_of_symbol(void* l0, void* l1);
+static bool vader_typecheck_types_overlap(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_ufcs_generator_symbol(vader_string_t l0, vader_box_t l1, void* l2);
+static vader_box_t vader_typecheck_ufcs_method_params(vader_string_t l0, vader_box_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_ufcs_method_type(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
+static bool vader_typecheck_ufcs_name_has_candidates(vader_string_t l0, vader_string_t l1, void* l2);
+static void vader_typecheck_unify_args(void* l0, void* l1, void* l2);
+static void vader_typecheck_unify_struct_to_trait_args(vader_box_t l0, vader_box_t l1, void* l2, void* l3);
+static void vader_typecheck_unify_type_param(vader_box_t l0, vader_box_t l1, void* l2);
+static void vader_typecheck_unify_unions(void* l0, void* l1, void* l2);
+static vader_box_t vader_typecheck_union_common_field(void* l0, vader_string_t l1, void* l2, void* l3);
+static vader_box_t vader_typecheck_union_member_for_free(vader_box_t l0, vader_box_t l1);
+static vader_box_t vader_typecheck_union_mixed_mutability(vader_box_t l0);
+static vader_box_t vader_typecheck_union_variants(vader_box_t l0);
+static void vader_typecheck_validate_extern(void* l0, void* l1, vader_box_t l2, void* l3, void* l4);
+static void vader_typecheck_walk_bodies(void* l0, void* l1, void* l2, uint8_t l3);
+static void* vader_typecheck_walk_elements(void* l0, vader_box_t l1, void* l2, void* l3, void* l4);
+static void vader_typecheck_walk_fn_body(void* l0, void* l1, void* l2, uint8_t l3);
+static vader_box_t vader_typecheck_walk_substitute(vader_box_t l0, void* l1, void* l2);
+static void vader_typecheck_warn_shared_repeat_element(void* l0, void* l1, void* l2);
+static vader_string_t vader_typecheck_where_of(void* l0);
+static void vader_typecheck_widen_empty_array_on_push(void* l0, void* l1);
+static vader_box_t vader_typecheck_with_immutable(vader_box_t l0, bool l1);
+static void* vader_typecheck_with_immutable_each(void* l0, bool l1);
+static bool vader_typecheck_written_marks_shape(vader_box_t l0, vader_box_t l1);
+
+static void vader_typecheck_add_trait_unique__i32(void* l0, int32_t l1, vader_string_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     size_t l5, l6;
@@ -49,7 +544,7 @@ void vader_typecheck_add_trait_unique__i32(void* l0, int32_t l1, vader_string_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_add_trait_unique__string(void* l0, vader_string_t l1, vader_string_t l2) {
+static void vader_typecheck_add_trait_unique__string(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     size_t l5, l6;
@@ -98,7 +593,7 @@ void vader_typecheck_add_trait_unique__string(void* l0, vader_string_t l1, vader
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_alias_for(void* l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_alias_for(void* l0, vader_box_t l1, void* l2) {
     bool t0;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l1, &t1 };
@@ -114,7 +609,7 @@ vader_box_t vader_typecheck_alias_for(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_annotate_hint(vader_box_t l0) {
+static vader_string_t vader_typecheck_annotate_hint(vader_box_t l0) {
     vader_box_t l1 = vader_box_null();
     vader_string_t l2, l3;
     size_t l4, l5;
@@ -168,7 +663,7 @@ vader_string_t vader_typecheck_annotate_hint(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_any_contains(void* l0) {
+static bool vader_typecheck_any_contains(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t t0;
@@ -198,7 +693,7 @@ bool vader_typecheck_any_contains(void* l0) {
     return false;
 }
 
-vader_box_t vader_typecheck_apply_readonly_default(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_apply_readonly_default(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -266,7 +761,7 @@ vader_box_t vader_typecheck_apply_readonly_default(vader_box_t l0, vader_box_t l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_arg_mutability_cleared(vader_box_t l0) {
+static vader_box_t vader_typecheck_arg_mutability_cleared(vader_box_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
@@ -311,7 +806,7 @@ vader_box_t vader_typecheck_arg_mutability_cleared(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_arg_mutability_cleared_each(void* l0) {
+static void* vader_typecheck_arg_mutability_cleared_each(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     size_t l3, l4;
@@ -347,12 +842,12 @@ void* vader_typecheck_arg_mutability_cleared_each(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_arith_trait_method(uint8_t l0) {
+static vader_string_t vader_typecheck_arith_trait_method(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         return 1084u;
     }
     if (l0 == INT32_C(1)) {
-        return 2040u;
+        return 2041u;
     }
     if (l0 == INT32_C(2)) {
         return 1763u;
@@ -366,7 +861,7 @@ vader_string_t vader_typecheck_arith_trait_method(uint8_t l0) {
     return 0u;
 }
 
-vader_box_t vader_typecheck_arm_narrow_for(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_arm_narrow_for(vader_box_t l0, vader_box_t l1, void* l2) {
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[3] = { &l0, &l1, &t1 };
@@ -392,7 +887,7 @@ vader_box_t vader_typecheck_arm_narrow_for(vader_box_t l0, vader_box_t l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_assign_binding_types(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
+static void vader_typecheck_assign_binding_types(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     uint64_t l5;
     void* t0 = NULL;
@@ -426,7 +921,7 @@ void vader_typecheck_assign_binding_types(vader_box_t l0, vader_box_t l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_assign_tuple(void* l0, vader_box_t l1, void* l2, void* l3) {
+static void vader_typecheck_assign_tuple(void* l0, vader_box_t l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l8 = vader_box_null(), l10 = vader_box_null(), l12 = vader_box_null();
     size_t l5, l6;
     void* l7 = NULL;
@@ -589,7 +1084,7 @@ void vader_typecheck_assign_tuple(void* l0, vader_box_t l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_async_call_result_type(void* l0, void* l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_async_call_result_type(void* l0, void* l1, vader_box_t l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -694,7 +1189,7 @@ vader_box_t vader_typecheck_async_result_arg(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_auto_const_module_array(vader_box_t l0) {
+static vader_box_t vader_typecheck_auto_const_module_array(vader_box_t l0) {
     void* l1 = NULL;
     bool t0;
     vader_box_t t1 = vader_box_null();
@@ -715,7 +1210,7 @@ vader_box_t vader_typecheck_auto_const_module_array(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_awaitable_element_of(vader_box_t l0) {
+static vader_box_t vader_typecheck_awaitable_element_of(vader_box_t l0) {
     void* l1;
     bool l2;
     vader_string_t t0;
@@ -742,7 +1237,7 @@ vader_box_t vader_typecheck_awaitable_element_of(vader_box_t l0) {
     return l0;
 }
 
-void* vader_typecheck_bfs_reachable(void* l0, void* l1, void* l2) {
+static void* vader_typecheck_bfs_reachable(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -867,7 +1362,7 @@ void* vader_typecheck_bfs_reachable(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_bind_pattern_types(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
+static void vader_typecheck_bind_pattern_types(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l11 = NULL;
     size_t l6, l8;
@@ -967,7 +1462,7 @@ void vader_typecheck_bind_pattern_types(vader_box_t l0, vader_box_t l1, vader_bo
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_bind_struct_pattern(void* l0, vader_box_t l1, void* l2, void* l3) {
+static void vader_typecheck_bind_struct_pattern(void* l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l5 = NULL;
     void* l8 = NULL;
@@ -1037,7 +1532,7 @@ void vader_typecheck_bind_struct_pattern(void* l0, vader_box_t l1, void* l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_block_has_await(void* l0) {
+static bool vader_typecheck_block_has_await(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t l4;
@@ -1073,7 +1568,7 @@ bool vader_typecheck_block_has_await(void* l0) {
     return t1;
 }
 
-bool vader_typecheck_block_has_yield(void* l0) {
+static bool vader_typecheck_block_has_yield(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t t0;
@@ -1110,7 +1605,7 @@ bool vader_typecheck_block_has_yield(void* l0) {
     return false;
 }
 
-vader_box_t vader_typecheck_bounded_trait_args(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_bounded_trait_args(vader_box_t l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -1167,7 +1662,7 @@ vader_box_t vader_typecheck_bounded_trait_args(vader_box_t l0, vader_string_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_broadcast_enum_types(void* l0, void* l1) {
+static void vader_typecheck_broadcast_enum_types(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -1409,7 +1904,7 @@ void vader_typecheck_broadcast_enum_types(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_broadcast_struct_decls(void* l0) {
+static void vader_typecheck_broadcast_struct_decls(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -1799,7 +2294,7 @@ void* vader_typecheck_build_impl_registry(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_build_namespace_export_params(vader_string_t l0, void* l1, void* l2) {
+static void* vader_typecheck_build_namespace_export_params(vader_string_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -1894,7 +2389,7 @@ void* vader_typecheck_build_namespace_export_params(vader_string_t l0, void* l1,
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_build_namespace_exports(vader_string_t l0, void* l1, void* l2) {
+static void* vader_typecheck_build_namespace_exports(vader_string_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -1995,7 +2490,7 @@ void* vader_typecheck_build_namespace_exports(vader_string_t l0, void* l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_build_namespace_private_names(vader_string_t l0, void* l1, void* l2) {
+static void* vader_typecheck_build_namespace_private_names(vader_string_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -2079,7 +2574,7 @@ void* vader_typecheck_build_namespace_private_names(vader_string_t l0, void* l1,
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_build_namespace_type_members(vader_string_t l0, void* l1, void* l2, void* l3) {
+static void* vader_typecheck_build_namespace_type_members(vader_string_t l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l17 = vader_box_null(), l18 = vader_box_null(), l20 = vader_box_null();
     void* l5 = NULL;
     void* l6 = NULL;
@@ -2193,7 +2688,7 @@ void* vader_typecheck_build_namespace_type_members(vader_string_t l0, void* l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_bump_loop_depth(vader_box_t l0) {
+static vader_box_t vader_typecheck_bump_loop_depth(vader_box_t l0) {
     vader_box_t l1 = vader_box_null(), l2 = vader_box_null(), l6 = vader_box_null();
     int32_t l3;
     size_t l4;
@@ -2239,7 +2734,7 @@ vader_box_t vader_typecheck_bump_loop_depth(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_call_needs_arg_normalisation(void* l0, void* l1) {
+static bool vader_typecheck_call_needs_arg_normalisation(void* l0, void* l1) {
     size_t l2, l3;
     void* l4;
     void* t0;
@@ -2272,7 +2767,7 @@ bool vader_typecheck_call_needs_arg_normalisation(void* l0, void* l1) {
     return false;
 }
 
-vader_box_t vader_typecheck_callee_generator_symbol(void* l0, void* l1) {
+static vader_box_t vader_typecheck_callee_generator_symbol(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l6 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -2324,7 +2819,7 @@ vader_box_t vader_typecheck_callee_generator_symbol(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_callee_is_no_return(vader_box_t l0, void* l1) {
+static bool vader_typecheck_callee_is_no_return(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     size_t l4, l5;
@@ -2365,7 +2860,7 @@ bool vader_typecheck_callee_is_no_return(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_callee_name(vader_box_t l0) {
+static vader_string_t vader_typecheck_callee_name(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     if (l0.tag == 433u) {
@@ -2386,7 +2881,7 @@ vader_string_t vader_typecheck_callee_name(vader_box_t l0) {
     return 471u;
 }
 
-vader_box_t vader_typecheck_callee_param_decls(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_callee_param_decls(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l8 = NULL;
@@ -2483,7 +2978,7 @@ vader_box_t vader_typecheck_callee_param_decls(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_carries_mutable_state(vader_box_t l0, void* l1) {
+static bool vader_typecheck_carries_mutable_state(vader_box_t l0, void* l1) {
     void* l2;
     void* l3;
     int32_t l4;
@@ -2508,7 +3003,7 @@ bool vader_typecheck_carries_mutable_state(vader_box_t l0, void* l1) {
     return false;
 }
 
-bool vader_typecheck_cast_allowed(vader_box_t l0, vader_box_t l1, void* l2) {
+static bool vader_typecheck_cast_allowed(vader_box_t l0, vader_box_t l1, void* l2) {
     bool l3;
     void* l4 = NULL;
     vader_string_t l5, l6;
@@ -2572,7 +3067,7 @@ bool vader_typecheck_cast_allowed(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_cast_call_target(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_cast_call_target(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l9 = vader_box_null();
     void* l5 = NULL;
     void* l8 = NULL;
@@ -2624,7 +3119,7 @@ vader_box_t vader_typecheck_cast_call_target(void* l0, void* l1, void* l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_chain_key(int32_t l0, void* l1) {
+static vader_string_t vader_typecheck_chain_key(int32_t l0, void* l1) {
     vader_string_t l2, l7;
     void* l3 = NULL;
     size_t l4, l6;
@@ -2663,7 +3158,7 @@ vader_string_t vader_typecheck_chain_key(int32_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_char_fits(uint32_t l0, vader_string_t l1) {
+static bool vader_typecheck_char_fits(uint32_t l0, vader_string_t l1) {
     void* l2 = NULL;
     int64_t l3;
     bool t0;
@@ -2681,7 +3176,7 @@ bool vader_typecheck_char_fits(uint32_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_args_no_expected(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_args_no_expected(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     size_t l5, l6;
     void* t0 = NULL;
@@ -2760,7 +3255,7 @@ vader_box_t vader_typecheck_check_arith(void* l0, vader_box_t l1, vader_box_t l2
         if (l5) {
             vader_struct_vader_types_PrimitiveType_t* _a0_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
             vader_obj_header_init(_a0_obj, 928u);
-            _a0_obj->f_name = 2008u;
+            _a0_obj->f_name = 2009u;
             t0 = (void*) _a0_obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2824,7 +3319,7 @@ vader_box_t vader_typecheck_check_arith(void* l0, vader_box_t l1, vader_box_t l2
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l10 = NULL;
     void* l15 = NULL;
@@ -2919,7 +3414,7 @@ void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
                     l31 = vader_typecheck_expr_is_immutable(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                     l32 = (uint8_t) (int32_t) INT32_C(59);
                     l33 = ((vader_struct_toolchain_ast_IndexExpr_t*) ((vader_struct_toolchain_ast_AssignStmt_t*) l0)->f_target.payload.obj)->f_span;
-                    l34 = 2059u;
+                    l34 = 2060u;
                     l35 = vader_typecheck_mutation_fix_hint(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                     t0 = vader_typecheck_push_immutability_diag_hinted(l31, l32, l33, l34, l35, l2);
                     if (t0) {
@@ -3106,7 +3601,7 @@ void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
                 l31 = vader_typecheck_expr_is_immutable(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                 l32 = (uint8_t) (int32_t) INT32_C(59);
                 l33 = ((vader_struct_toolchain_ast_IndexExpr_t*) ((vader_struct_toolchain_ast_AssignStmt_t*) l0)->f_target.payload.obj)->f_span;
-                l34 = 2059u;
+                l34 = 2060u;
                 l35 = vader_typecheck_mutation_fix_hint(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                 t0 = vader_typecheck_push_immutability_diag_hinted(l31, l32, l33, l34, l35, l2);
                 if (t0) {
@@ -3311,7 +3806,7 @@ void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
                 l31 = vader_typecheck_expr_is_immutable(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                 l32 = (uint8_t) (int32_t) INT32_C(59);
                 l33 = ((vader_struct_toolchain_ast_IndexExpr_t*) ((vader_struct_toolchain_ast_AssignStmt_t*) l0)->f_target.payload.obj)->f_span;
-                l34 = 2059u;
+                l34 = 2060u;
                 l35 = vader_typecheck_mutation_fix_hint(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
                 t0 = vader_typecheck_push_immutability_diag_hinted(l31, l32, l33, l34, l35, l2);
                 if (t0) {
@@ -3498,7 +3993,7 @@ void vader_typecheck_check_assign(void* l0, void* l1, void* l2, void* l3) {
             l31 = vader_typecheck_expr_is_immutable(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
             l32 = (uint8_t) (int32_t) INT32_C(59);
             l33 = ((vader_struct_toolchain_ast_IndexExpr_t*) ((vader_struct_toolchain_ast_AssignStmt_t*) l0)->f_target.payload.obj)->f_span;
-            l34 = 2059u;
+            l34 = 2060u;
             l35 = vader_typecheck_mutation_fix_hint(((vader_struct_toolchain_ast_IndexExpr_t*) l15)->f_target, l1);
             t0 = vader_typecheck_push_immutability_diag_hinted(l31, l32, l33, l34, l35, l2);
             if (t0) {
@@ -3702,7 +4197,7 @@ vader_box_t vader_typecheck_check_bitwise(void* l0, vader_box_t l1, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_block(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
+static vader_box_t vader_typecheck_check_block(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
     void* l6 = NULL;
     void* l9 = NULL;
     vader_box_t l7 = vader_box_null(), l12 = vader_box_null(), l17 = vader_box_null();
@@ -3785,7 +4280,7 @@ vader_box_t vader_typecheck_check_block(void* l0, vader_box_t l1, void* l2, void
     }
     vader_struct_vader_types_PrimitiveType_t* _a2_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
     vader_obj_header_init(_a2_obj, 928u);
-    _a2_obj->f_name = 2292u;
+    _a2_obj->f_name = 2293u;
     t0 = (void*) _a2_obj;
     l7 = vader_ref_box(t0);
     if (((vader_struct_toolchain_ast_BlockExpr_t*) l0)->f_trailing.tag == 0u) {
@@ -3875,7 +4370,7 @@ vader_box_t vader_typecheck_check_block(void* l0, vader_box_t l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_check_common(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_check_common(vader_box_t l0, vader_box_t l1) {
     void* l2;
     size_t l3, l4;
     vader_box_t l5;
@@ -3959,7 +4454,7 @@ vader_box_t vader_typecheck_check_compare(void* l0, vader_box_t l1, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_const_value(void* l0, void* l1, void* l2) {
+static void vader_typecheck_check_const_value(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     void* l10 = NULL;
@@ -4023,7 +4518,7 @@ void vader_typecheck_check_const_value(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_dead_code(void* l0, vader_string_t l1, void* l2, void* l3) {
+static void vader_typecheck_check_dead_code(void* l0, vader_string_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -4168,7 +4663,7 @@ void vader_typecheck_check_dead_code(void* l0, vader_string_t l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_defer(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_defer(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
     vader_box_t l5 = vader_box_null();
     bool l6;
     void* l7 = NULL;
@@ -4205,7 +4700,7 @@ void vader_typecheck_check_defer(void* l0, void* l1, void* l2, vader_box_t l3, v
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_else_branch_expr(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
+static vader_box_t vader_typecheck_check_else_branch_expr(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
     vader_box_t l6 = vader_box_null(), l9 = vader_box_null();
     void* l7 = NULL;
     int32_t l8;
@@ -4248,7 +4743,7 @@ vader_box_t vader_typecheck_check_else_branch_expr(vader_box_t l0, vader_box_t l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_else_with_narrow(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, vader_box_t l5, void* l6) {
+static vader_box_t vader_typecheck_check_else_with_narrow(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, vader_box_t l5, void* l6) {
     vader_box_t l7 = vader_box_null(), l10 = vader_box_null();
     void* l8 = NULL;
     int32_t l9;
@@ -4290,7 +4785,7 @@ vader_box_t vader_typecheck_check_else_with_narrow(void* l0, vader_box_t l1, vad
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_equality(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_check_equality(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
     bool l5, l9;
     vader_box_t l6 = vader_box_null(), l7 = vader_box_null();
     void* l8 = NULL;
@@ -4524,7 +5019,7 @@ vader_box_t vader_typecheck_check_expr(vader_box_t l0, vader_box_t l1, void* l2,
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_field(void* l0, void* l1, vader_box_t l2, void* l3, void* l4, void* l5, void* l6) {
+static void vader_typecheck_check_field(void* l0, void* l1, vader_box_t l2, void* l3, void* l4, void* l5, void* l6) {
     vader_box_t l7 = vader_box_null(), l12 = vader_box_null(), l14 = vader_box_null();
     void* l8 = NULL;
     void* l10 = NULL;
@@ -4601,7 +5096,7 @@ void vader_typecheck_check_field(void* l0, void* l1, vader_box_t l2, void* l3, v
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_fn_body(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_check_fn_body(void* l0, void* l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l8 = vader_box_null(), l10 = vader_box_null(), l15 = vader_box_null();
     bool l6, l7, l9, l11;
     size_t l12;
@@ -4689,7 +5184,7 @@ void vader_typecheck_check_fn_body(void* l0, void* l1, void* l2, void* l3, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_fn_redefinitions(void* l0, void* l1, void* l2) {
+static void vader_typecheck_check_fn_redefinitions(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -4739,7 +5234,7 @@ void vader_typecheck_check_fn_redefinitions(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l6 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null(), l24 = vader_box_null(), l26 = vader_box_null();
     void* l7 = NULL;
     void* l10 = NULL;
@@ -4774,7 +5269,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
         if (l14) {
             l15 = (uint8_t) (int32_t) INT32_C(6);
             l16 = ((vader_struct_toolchain_ast_ForStmt_t*) l0)->f_span;
-            l17 = 2049u;
+            l17 = 2050u;
             l18 = l5.payload.s;
             l19 = 903u;
             l20 = concat_3(l17, l18, l19);
@@ -4815,7 +5310,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
                 t2 = ((vader_struct_toolchain_ast_WhileFor_t*) l7)->f_cond.payload.obj;
                 l7 = ((vader_struct_toolchain_ast_ArrayTypeExpr_t*) t2)->f_span;
                 l11 = vader_types_display_type(l8);
-                l11 = concat_2(2301u, l11);
+                l11 = concat_2(2302u, l11);
                 l7 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(16), l7, l11);
                 vader_array_push((vader_array_t*) l2, vader_ref_box(l7));
             } else {
@@ -4829,7 +5324,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
         if (l14) {
             l15 = (uint8_t) (int32_t) INT32_C(6);
             l16 = ((vader_struct_toolchain_ast_ForStmt_t*) l0)->f_span;
-            l17 = 2049u;
+            l17 = 2050u;
             l18 = l5.payload.s;
             l19 = 903u;
             l20 = concat_3(l17, l18, l19);
@@ -4881,7 +5376,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
             if (l14) {
                 l15 = (uint8_t) (int32_t) INT32_C(6);
                 l16 = ((vader_struct_toolchain_ast_ForStmt_t*) l0)->f_span;
-                l17 = 2049u;
+                l17 = 2050u;
                 l18 = l5.payload.s;
                 l19 = 903u;
                 l20 = concat_3(l17, l18, l19);
@@ -4917,7 +5412,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
             if (l14) {
                 l15 = (uint8_t) (int32_t) INT32_C(6);
                 l16 = ((vader_struct_toolchain_ast_ForStmt_t*) l0)->f_span;
-                l17 = 2049u;
+                l17 = 2050u;
                 l18 = l5.payload.s;
                 l19 = 903u;
                 l20 = concat_3(l17, l18, l19);
@@ -4951,7 +5446,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
             if (l14) {
                 l15 = (uint8_t) (int32_t) INT32_C(6);
                 l16 = ((vader_struct_toolchain_ast_ForStmt_t*) l0)->f_span;
-                l17 = 2049u;
+                l17 = 2050u;
                 l18 = l5.payload.s;
                 l19 = 903u;
                 l20 = concat_3(l17, l18, l19);
@@ -4982,7 +5477,7 @@ void vader_typecheck_check_for(void* l0, void* l1, void* l2, vader_box_t l3, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_generic_arg(void* l0, size_t l1, void* l2, void* l3, void* l4, void* l5, void* l6) {
+static vader_box_t vader_typecheck_check_generic_arg(void* l0, size_t l1, void* l2, void* l3, void* l4, void* l5, void* l6) {
     vader_box_t l7 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
@@ -5015,7 +5510,7 @@ vader_box_t vader_typecheck_check_generic_arg(void* l0, size_t l1, void* l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_impl_coherence(void* l0, void* l1, void* l2) {
+static void vader_typecheck_check_impl_coherence(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -5088,7 +5583,7 @@ void vader_typecheck_check_impl_coherence(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_impl_missing_methods(void* l0, void* l1, void* l2) {
+static void vader_typecheck_check_impl_missing_methods(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l7 = NULL;
     void* l9 = NULL;
@@ -5175,7 +5670,7 @@ vader_box_t vader_typecheck_check_in(void* l0, vader_box_t l1, vader_box_t l2, v
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_internal_field(void* l0, void* l1, vader_string_t l2, void* l3, void* l4, void* l5) {
+static void vader_typecheck_check_internal_field(void* l0, void* l1, vader_string_t l2, void* l3, void* l4, void* l5) {
     vader_string_t l6, l7;
     void* l8 = NULL;
     void* l11 = NULL;
@@ -5223,7 +5718,7 @@ void vader_typecheck_check_internal_field(void* l0, void* l1, vader_string_t l2,
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_is_overlap(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static void vader_typecheck_check_is_overlap(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
     void* l4 = NULL;
     vader_string_t l5, l6;
     bool t0;
@@ -5255,7 +5750,7 @@ void vader_typecheck_check_is_overlap(void* l0, vader_box_t l1, vader_box_t l2, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_item_no_expected(vader_box_t l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_item_no_expected(vader_box_t l0, void* l1, void* l2, void* l3) {
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l0, &t1 };
@@ -5278,7 +5773,7 @@ void vader_typecheck_check_item_no_expected(vader_box_t l0, void* l1, void* l2, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_let(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_let(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null(), l10 = vader_box_null();
     void* l6 = NULL;
     void* l14 = NULL;
@@ -5379,7 +5874,7 @@ void vader_typecheck_check_let(void* l0, void* l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_logical(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static vader_box_t vader_typecheck_check_logical(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
     bool l4;
     void* l5 = NULL;
     vader_string_t l6;
@@ -5427,7 +5922,7 @@ vader_box_t vader_typecheck_check_logical(void* l0, vader_box_t l1, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_loop_jump(void* l0, vader_box_t l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_loop_jump(void* l0, vader_box_t l1, void* l2, vader_box_t l3, void* l4) {
     vader_string_t l5, l7;
     vader_box_t l6 = vader_box_null(), l9 = vader_box_null();
     void* l8 = NULL;
@@ -5480,7 +5975,7 @@ void vader_typecheck_check_loop_jump(void* l0, vader_box_t l1, void* l2, vader_b
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_main_signature(void* l0, void* l1, vader_box_t l2, void* l3) {
+static void vader_typecheck_check_main_signature(void* l0, void* l1, vader_box_t l2, void* l3) {
     void* l4 = NULL;
     void* l7 = NULL;
     uint8_t l5;
@@ -5516,7 +6011,7 @@ void vader_typecheck_check_main_signature(void* l0, void* l1, vader_box_t l2, vo
             if ((size_t) INT32_C(0) >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
             t2 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT32_C(0));
             t3 = t2.payload.obj;
-            t0 = vader_typecheck_is_primitive_named(((vader_struct_vader_types_ArrayType_t*) t3)->f_element, 2008u);
+            t0 = vader_typecheck_is_primitive_named(((vader_struct_vader_types_ArrayType_t*) t3)->f_element, 2009u);
             if (t0) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -5543,7 +6038,7 @@ void vader_typecheck_check_main_signature(void* l0, void* l1, vader_box_t l2, vo
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_missing_fields(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_check_missing_fields(void* l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l6 = NULL;
     void* l9 = NULL;
@@ -5605,7 +6100,7 @@ void vader_typecheck_check_missing_fields(void* l0, void* l1, void* l2, void* l3
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_module_fn_redefinitions(vader_string_t l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_module_fn_redefinitions(vader_string_t l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -5808,7 +6303,7 @@ void vader_typecheck_check_module_fn_redefinitions(vader_string_t l0, void* l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_module_impl_coherence(vader_string_t l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_check_module_impl_coherence(vader_string_t l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l7 = NULL;
     void* l10 = NULL;
@@ -5918,7 +6413,7 @@ void vader_typecheck_check_module_impl_coherence(vader_string_t l0, void* l1, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_operator_rhs(vader_box_t l0, vader_box_t l1, vader_string_t l2, vader_string_t l3, void* l4, void* l5, void* l6) {
+static vader_box_t vader_typecheck_check_operator_rhs(vader_box_t l0, vader_box_t l1, vader_string_t l2, vader_string_t l3, void* l4, void* l5, void* l6) {
     vader_string_t l7, l10, l11;
     void* l8 = NULL;
     void* l12 = NULL;
@@ -5969,7 +6464,7 @@ vader_box_t vader_typecheck_check_operator_rhs(vader_box_t l0, vader_box_t l1, v
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_pattern_bound_exprs(vader_box_t l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_pattern_bound_exprs(vader_box_t l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
@@ -6561,7 +7056,7 @@ void* vader_typecheck_check_project_with_bodies(void* l0, void* l1, bool l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_public_fn_visibility(void* l0, void* l1, vader_box_t l2, void* l3) {
+static void vader_typecheck_check_public_fn_visibility(void* l0, void* l1, vader_box_t l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     vader_string_t l5;
@@ -6604,7 +7099,7 @@ void vader_typecheck_check_public_fn_visibility(void* l0, void* l1, vader_box_t 
                 if ((size_t) l7 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l9 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l7);
                 l5 = ((vader_struct_toolchain_ast_FnDecl_t*) l0)->f_name;
-                vader_typecheck_report_private_leak(l9, l8, l5, 2046u, l3);
+                vader_typecheck_report_private_leak(l9, l8, l5, 2047u, l3);
                 t1 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t1;
                 goto loop_33;
@@ -6616,7 +7111,7 @@ void vader_typecheck_check_public_fn_visibility(void* l0, void* l1, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_return(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_return(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null(), l12 = vader_box_null();
     bool l6;
     void* l7 = NULL;
@@ -6652,7 +7147,7 @@ void vader_typecheck_check_return(void* l0, void* l1, void* l2, vader_box_t l3, 
         } else {
             vader_struct_vader_types_PrimitiveType_t* _a1_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
             vader_obj_header_init(_a1_obj, 928u);
-            _a1_obj->f_name = 2292u;
+            _a1_obj->f_name = 2293u;
             l7 = (void*) _a1_obj;
             t0 = l5.payload.obj;
             l9 = ((vader_struct_vader_typecheck_FnContext_t*) t0)->f_return_type;
@@ -6699,7 +7194,7 @@ void vader_typecheck_check_return(void* l0, void* l1, void* l2, vader_box_t l3, 
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2) {
+static bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2) {
     size_t l3, l5, l6, l10, l12;
     bool l4;
     void* l7 = NULL;
@@ -6736,7 +7231,7 @@ bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2) {
                     l10 = vader_import_0(l9);
                     l11 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(50) + l10));
                     l12 = (size_t) (int64_t) INT64_C(0);
-                    l12 = std_core_write_string_at(l11, l12, 2070u);
+                    l12 = std_core_write_string_at(l11, l12, 2071u);
                     l12 = std_core_write_string_at(l11, l12, l9);
                     l12 = std_core_write_string_at(l11, l12, 894u);
                     t2 = ((int64_t) (size_t) l3);
@@ -6766,7 +7261,7 @@ bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_stmt(vader_box_t l0, void* l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_stmt(vader_box_t l0, void* l1, void* l2, vader_box_t l3, void* l4) {
     void* l5 = NULL;
     void* l6 = NULL;
     vader_box_t l7 = vader_box_null();
@@ -6830,7 +7325,7 @@ void vader_typecheck_check_stmt(vader_box_t l0, void* l1, void* l2, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_check_struct_body(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_check_struct_body(void* l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l9 = NULL;
     void* l13 = NULL;
@@ -6911,7 +7406,7 @@ vader_box_t vader_typecheck_check_struct_body(void* l0, void* l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_trait_ambiguity(void* l0, vader_box_t l1, void* l2, void* l3) {
+static void vader_typecheck_check_trait_ambiguity(void* l0, vader_box_t l1, void* l2, void* l3) {
     vader_string_t l4, l5, l9;
     void* l6 = NULL;
     void* l8 = NULL;
@@ -6944,7 +7439,7 @@ void vader_typecheck_check_trait_ambiguity(void* l0, vader_box_t l1, void* l2, v
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_typeparam_bounds(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_check_typeparam_bounds(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -7036,7 +7531,7 @@ void vader_typecheck_check_typeparam_bounds(void* l0, void* l1, void* l2, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_check_yield(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
+static void vader_typecheck_check_yield(void* l0, void* l1, void* l2, vader_box_t l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null();
     bool l6;
     void* l8 = NULL;
@@ -7078,7 +7573,7 @@ void vader_typecheck_check_yield(void* l0, void* l1, void* l2, vader_box_t l3, v
     vader_gc_top = gc_frame.prev;
 }
 
-uint8_t vader_typecheck_classify(uint8_t l0) {
+static uint8_t vader_typecheck_classify(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         return (uint8_t) (int32_t) INT32_C(0);
     }
@@ -7145,7 +7640,7 @@ uint8_t vader_typecheck_classify(uint8_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$classify");
 }
 
-vader_box_t vader_typecheck_coherence_key(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_coherence_key(vader_box_t l0, vader_string_t l1, void* l2) {
     vader_string_t l3, l4;
     bool t0;
     vader_box_t t1 = vader_box_null();
@@ -7167,7 +7662,7 @@ vader_box_t vader_typecheck_coherence_key(vader_box_t l0, vader_string_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_collapse_if_unresolved(vader_box_t l0, vader_box_t l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_collapse_if_unresolved(vader_box_t l0, vader_box_t l1, vader_box_t l2) {
     void* t0 = NULL;
     vader_box_t* gc_roots[3] = { &l0, &l1, &l2 };
     void** gc_raw_roots[1] = { &t0 };
@@ -7189,7 +7684,7 @@ vader_box_t vader_typecheck_collapse_if_unresolved(vader_box_t l0, vader_box_t l
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_collect_and_narrows(vader_box_t l0, void* l1) {
+static void* vader_typecheck_collect_and_narrows(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -7248,7 +7743,7 @@ void* vader_typecheck_collect_and_narrows(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_block_names(void* l0, void* l1) {
+static void vader_typecheck_collect_block_names(void* l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     vader_box_t t0 = vader_box_null();
@@ -7280,7 +7775,7 @@ void vader_typecheck_collect_block_names(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_collect_decl_refs(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_collect_decl_refs(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     void* l6 = NULL;
@@ -7505,7 +8000,7 @@ vader_box_t vader_typecheck_collect_decl_refs(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_decorator_names(void* l0, void* l1) {
+static void vader_typecheck_collect_decorator_names(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     size_t l3, l4, l6, l7;
@@ -7555,7 +8050,7 @@ void vader_typecheck_collect_decorator_names(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_collect_direct_imports(void* l0, void* l1, void* l2) {
+static void* vader_typecheck_collect_direct_imports(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -7690,7 +8185,7 @@ void* vader_typecheck_collect_direct_imports(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_expr_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_expr_names(vader_box_t l0, void* l1) {
     vader_string_t l2;
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
@@ -8057,7 +8552,7 @@ void vader_typecheck_collect_expr_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_impl(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_collect_impl(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -8114,7 +8609,7 @@ void vader_typecheck_collect_impl(void* l0, void* l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_opt_block_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_opt_block_names(vader_box_t l0, void* l1) {
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[2] = { &l1, &t0 };
@@ -8129,7 +8624,7 @@ void vader_typecheck_collect_opt_block_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_opt_expr_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_opt_expr_names(vader_box_t l0, void* l1) {
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -8142,7 +8637,7 @@ void vader_typecheck_collect_opt_expr_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_opt_pattern_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_opt_pattern_names(vader_box_t l0, void* l1) {
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -8155,7 +8650,7 @@ void vader_typecheck_collect_opt_pattern_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_collect_overload_candidates(vader_string_t l0, vader_string_t l1, void* l2) {
+static void* vader_typecheck_collect_overload_candidates(vader_string_t l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l8 = NULL;
@@ -8212,7 +8707,7 @@ void* vader_typecheck_collect_overload_candidates(vader_string_t l0, vader_strin
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_pattern_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_pattern_names(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     size_t l3, l4;
@@ -8325,7 +8820,7 @@ void vader_typecheck_collect_pattern_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_stmt_names(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_stmt_names(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* t0 = NULL;
     vader_box_t* gc_roots[2] = { &l0, &l2 };
@@ -8410,7 +8905,7 @@ void vader_typecheck_collect_stmt_names(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_type_param_names(void* l0, void* l1) {
+static void vader_typecheck_collect_type_param_names(void* l0, void* l1) {
     void* l2 = NULL;
     size_t l3, l4;
     void* t0 = NULL;
@@ -8440,7 +8935,7 @@ void vader_typecheck_collect_type_param_names(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_unbound_type_params(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_collect_unbound_type_params(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     int32_t l4, l8;
@@ -8610,7 +9105,7 @@ void vader_typecheck_collect_unbound_type_params(vader_box_t l0, void* l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_collect_variant(vader_box_t l0, void* l1) {
+static void vader_typecheck_collect_variant(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null();
     void* l3 = NULL;
     size_t l4, l5;
@@ -8685,7 +9180,7 @@ void vader_typecheck_collect_variant(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_commit_overload_pick(void* l0, void* l1, void* l2, vader_box_t l3) {
+static void* vader_typecheck_commit_overload_pick(void* l0, void* l1, void* l2, vader_box_t l3) {
     void* l4 = NULL;
     size_t l5;
     void* t0 = NULL;
@@ -8710,7 +9205,7 @@ void* vader_typecheck_commit_overload_pick(void* l0, void* l1, void* l2, vader_b
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_complement_narrowed_type(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_complement_narrowed_type(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     vader_box_t l5 = vader_box_null(), l6 = vader_box_null();
@@ -8733,7 +9228,7 @@ vader_box_t vader_typecheck_complement_narrowed_type(vader_box_t l0, vader_box_t
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_container_is_immutable(vader_box_t l0, void* l1) {
+static bool vader_typecheck_container_is_immutable(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     size_t l3;
     vader_box_t l4 = vader_box_null();
@@ -8760,7 +9255,7 @@ bool vader_typecheck_container_is_immutable(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_contains(void* l0, int64_t l1) {
+static bool vader_typecheck_contains(void* l0, int64_t l1) {
     bool l2;
     int64_t l3;
     bool t0;
@@ -8779,7 +9274,7 @@ bool vader_typecheck_contains(void* l0, int64_t l1) {
     return l2;
 }
 
-bool vader_typecheck_contains_name(void* l0, vader_string_t l1) {
+static bool vader_typecheck_contains_name(void* l0, vader_string_t l1) {
     void* l2;
     size_t l3, l4;
     vader_box_t t0;
@@ -8809,7 +9304,7 @@ bool vader_typecheck_contains_name(void* l0, vader_string_t l1) {
     return false;
 }
 
-bool vader_typecheck_contains_unresolved(vader_box_t l0) {
+static bool vader_typecheck_contains_unresolved(vader_box_t l0) {
     void* l1;
     void* l4;
     size_t l2, l3;
@@ -8929,7 +9424,7 @@ bool vader_typecheck_contains_unresolved(vader_box_t l0) {
     return false;
 }
 
-void vader_typecheck_cross_publish_fn_decls(void* l0) {
+static void vader_typecheck_cross_publish_fn_decls(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -9074,7 +9569,7 @@ void vader_typecheck_cross_publish_fn_decls(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_cross_publish_trait_decls(void* l0) {
+static void vader_typecheck_cross_publish_trait_decls(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -9237,7 +9732,7 @@ void vader_typecheck_cross_publish_trait_decls(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_typecheck_cur_field_narrow_gen(void* l0, vader_string_t l1) {
+static int32_t vader_typecheck_cur_field_narrow_gen(void* l0, vader_string_t l1) {
     vader_box_t l2 = vader_box_null();
     int32_t l3;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -9254,7 +9749,7 @@ int32_t vader_typecheck_cur_field_narrow_gen(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_typecheck_cur_narrow_gen(void* l0, int32_t l1) {
+static int32_t vader_typecheck_cur_narrow_gen(void* l0, int32_t l1) {
     vader_box_t l2;
     int32_t l3;
     l2 = std_collections_get__i32__i32(((vader_struct_vader_typecheck_TypedProgram_t*) l0)->f_narrow_kill_gens, l1);
@@ -9266,7 +9761,7 @@ int32_t vader_typecheck_cur_narrow_gen(void* l0, int32_t l1) {
     return l3;
 }
 
-void vader_typecheck_declare_const(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_declare_const(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l7 = NULL;
     void* l10 = NULL;
@@ -9318,7 +9813,7 @@ void vader_typecheck_declare_const(void* l0, void* l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, void* l3, void* l4, void* l5) {
+static void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, void* l3, void* l4, void* l5) {
     void* l6 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -9431,7 +9926,7 @@ void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, void* l3, 
         l8 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_name_span;
         l9 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_type_params;
         l10 = ((vader_struct_vader_resolver_ResolvedModule_t*) l2)->f_path;
-        l11 = (void*) &vader_fn_static_2380;
+        l11 = (void*) &vader_fn_static_2382;
         vader_typecheck_declare_named_with_args(l7, l8, l9, l1, l3, l10, l4, l11);
         l7 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_name;
         l12 = std_collections_get__string__Any(l1, l7);
@@ -9471,7 +9966,7 @@ void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, void* l3, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_enum(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_declare_enum(void* l0, void* l1, void* l2, void* l3, void* l4) {
     vader_string_t l5;
     vader_box_t l6 = vader_box_null();
     void* l7 = NULL;
@@ -9500,7 +9995,7 @@ void vader_typecheck_declare_enum(void* l0, void* l1, void* l2, void* l3, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_fn(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_declare_fn(void* l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l6 = NULL;
     void* l12 = NULL;
@@ -9599,7 +10094,7 @@ void vader_typecheck_declare_fn(void* l0, void* l1, void* l2, void* l3, void* l4
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_declare_fn_param(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_declare_fn_param(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l7 = vader_box_null();
     void* l5 = NULL;
     vader_string_t l6;
@@ -9638,7 +10133,7 @@ vader_box_t vader_typecheck_declare_fn_param(void* l0, void* l1, void* l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_declare_fn_return(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_declare_fn_return(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
     bool t0;
     void* t1 = NULL;
@@ -9658,7 +10153,7 @@ vader_box_t vader_typecheck_declare_fn_return(void* l0, void* l1, void* l2) {
         }
         vader_struct_vader_types_PrimitiveType_t* _a1_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a1_obj, 928u);
-        _a1_obj->f_name = 2292u;
+        _a1_obj->f_name = 2293u;
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -9668,7 +10163,7 @@ vader_box_t vader_typecheck_declare_fn_return(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_impl_method_for_trait(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
+static void vader_typecheck_declare_impl_method_for_trait(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l6 = NULL;
     void* l9 = NULL;
@@ -9720,7 +10215,7 @@ void vader_typecheck_declare_impl_method_for_trait(void* l0, vader_box_t l1, vad
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_declare_impl_return(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_declare_impl_return(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
     vader_box_t t0 = vader_box_null(), t2 = vader_box_null();
@@ -9755,7 +10250,7 @@ vader_box_t vader_typecheck_declare_impl_return(void* l0, vader_box_t l1, vader_
         }
         vader_struct_vader_types_PrimitiveType_t* _a1_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a1_obj, 928u);
-        _a1_obj->f_name = 2292u;
+        _a1_obj->f_name = 2293u;
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -9768,13 +10263,13 @@ vader_box_t vader_typecheck_declare_impl_return(void* l0, vader_box_t l1, vader_
     }
     vader_struct_vader_types_PrimitiveType_t* _a3_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
     vader_obj_header_init(_a3_obj, 928u);
-    _a3_obj->f_name = 2292u;
+    _a3_obj->f_name = 2293u;
     t1 = (void*) _a3_obj;
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_module(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_declare_module(void* l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -9843,7 +10338,7 @@ void vader_typecheck_declare_module(void* l0, void* l1, void* l2, void* l3, void
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_named_with_args(vader_string_t l0, void* l1, void* l2, void* l3, void* l4, vader_string_t l5, void* l6, void* l7) {
+static void vader_typecheck_declare_named_with_args(vader_string_t l0, void* l1, void* l2, void* l3, void* l4, vader_string_t l5, void* l6, void* l7) {
     void* l8 = NULL;
     void* l10 = NULL;
     void* l11 = NULL;
@@ -9897,7 +10392,7 @@ void vader_typecheck_declare_named_with_args(vader_string_t l0, void* l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_declare_type_alias(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_declare_type_alias(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null();
     void* l5 = NULL;
     void* l8 = NULL;
@@ -9948,7 +10443,7 @@ void vader_typecheck_declare_type_alias(void* l0, void* l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_declared_lvalue_type(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_declared_lvalue_type(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     uint64_t l4;
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null();
@@ -10004,7 +10499,7 @@ vader_box_t vader_typecheck_declared_lvalue_type(vader_box_t l0, vader_box_t l1,
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_declared_struct_field_type(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_declared_struct_field_type(vader_box_t l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l7 = NULL;
@@ -10043,7 +10538,7 @@ vader_box_t vader_typecheck_declared_struct_field_type(vader_box_t l0, vader_str
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_declares_mutable_self(void* l0, vader_box_t l1) {
+static bool vader_typecheck_declares_mutable_self(void* l0, vader_box_t l1) {
     bool t0;
     void* t1;
     t0 = vader_typecheck_has_mutable_self(l0);
@@ -10058,7 +10553,7 @@ bool vader_typecheck_declares_mutable_self(void* l0, vader_box_t l1) {
     return false;
 }
 
-void* vader_typecheck_decorated_decl_decorators(vader_box_t l0) {
+static void* vader_typecheck_decorated_decl_decorators(vader_box_t l0) {
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &t0 };
@@ -10097,7 +10592,7 @@ void* vader_typecheck_decorated_decl_decorators(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_decorated_decl_name(vader_box_t l0) {
+static vader_string_t vader_typecheck_decorated_decl_name(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     if (l0.tag == 428u) {
@@ -10136,7 +10631,7 @@ vader_string_t vader_typecheck_decorated_decl_name(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$decorated_decl_name");
 }
 
-void* vader_typecheck_default_each(void* l0) {
+static void* vader_typecheck_default_each(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     size_t l3, l4;
@@ -10193,7 +10688,7 @@ vader_box_t vader_typecheck_default_if_free(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_deprecated_message(void* l0) {
+static vader_box_t vader_typecheck_deprecated_message(void* l0) {
     void* l1;
     void* l4;
     size_t l2, l3;
@@ -10258,7 +10753,7 @@ vader_box_t vader_typecheck_deprecated_message(void* l0) {
     return t4;
 }
 
-vader_box_t vader_typecheck_desugared_param_type(vader_box_t l0, bool l1) {
+static vader_box_t vader_typecheck_desugared_param_type(vader_box_t l0, bool l1) {
     bool l2;
     bool t0;
     vader_box_t t1 = vader_box_null();
@@ -10275,7 +10770,7 @@ vader_box_t vader_typecheck_desugared_param_type(vader_box_t l0, bool l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_detect_is_narrow(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_detect_is_narrow(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l14 = NULL;
     void* l19 = NULL;
@@ -10768,7 +11263,7 @@ vader_box_t vader_typecheck_detect_is_narrow(vader_box_t l0, void* l1, void* l2)
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_detect_is_narrow_for_block(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_detect_is_narrow_for_block(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l13 = NULL;
     void* l19 = NULL;
@@ -11228,7 +11723,7 @@ vader_box_t vader_typecheck_detect_is_narrow_for_block(vader_box_t l0, void* l1)
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_diag_sink(void) {
+static void* vader_typecheck_diag_sink(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -11239,7 +11734,7 @@ void* vader_typecheck_diag_sink(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_diag_sink_stmt(void) {
+static void* vader_typecheck_diag_sink_stmt(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -11250,7 +11745,7 @@ void* vader_typecheck_diag_sink_stmt(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_dispatch_bounded_method(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_dispatch_bounded_method(vader_box_t l0, vader_string_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -11298,7 +11793,7 @@ vader_box_t vader_typecheck_dispatch_bounded_method(vader_box_t l0, vader_string
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_dispatch_bounded_method_trait(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_string_t vader_typecheck_dispatch_bounded_method_trait(vader_box_t l0, vader_string_t l1, void* l2) {
     vader_string_t l3;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -11357,7 +11852,7 @@ vader_string_t vader_typecheck_dispatch_bounded_method_trait(vader_box_t l0, vad
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_dispatch_key(vader_box_t l0) {
+static vader_string_t vader_typecheck_dispatch_key(vader_box_t l0) {
     vader_box_t t0 = vader_box_null();
     vader_string_t t1;
     vader_box_t* gc_roots[2] = { &l0, &t0 };
@@ -11369,7 +11864,7 @@ vader_string_t vader_typecheck_dispatch_key(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_distinct_backing(vader_box_t l0, void* l1) {
+static bool vader_typecheck_distinct_backing(vader_box_t l0, void* l1) {
     void* l2;
     size_t l3, l4;
     bool l5;
@@ -11400,7 +11895,7 @@ bool vader_typecheck_distinct_backing(vader_box_t l0, void* l1) {
     if (l0.tag == 928u) {
         l2 = l0.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) l2)->f_name;
-        if (t1 != 2292u) {
+        if (t1 != 2293u) {
             t1 = ((vader_struct_vader_types_PrimitiveType_t*) l2)->f_name;
             l5 = t1 != 1787u;
         } else {
@@ -11414,7 +11909,7 @@ bool vader_typecheck_distinct_backing(vader_box_t l0, void* l1) {
     return false;
 }
 
-vader_box_t vader_typecheck_distinct_op_fallback(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
+static vader_box_t vader_typecheck_distinct_op_fallback(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
     bool l6;
     vader_box_t l7 = vader_box_null(), l8 = vader_box_null();
     vader_box_t t0 = vader_box_null();
@@ -11450,7 +11945,7 @@ vader_box_t vader_typecheck_distinct_op_fallback(void* l0, vader_box_t l1, vader
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_element_hint_for(void* l0, void* l1) {
+static vader_string_t vader_typecheck_element_hint_for(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l4 = vader_box_null();
     void* l3 = NULL;
     vader_string_t l5, l6;
@@ -11468,14 +11963,14 @@ vader_string_t vader_typecheck_element_hint_for(void* l0, void* l1) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     l3 = l4.payload.obj;
-    l5 = vader_typecheck_path_name(l2, 2053u);
+    l5 = vader_typecheck_path_name(l2, 2054u);
     l6 = vader_typecheck_where_of(l3);
     t0 = concat_4(227u, l5, 875u, l6);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_emit_assign_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5) {
+static void vader_typecheck_emit_assign_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5) {
     vader_box_t l6 = vader_box_null();
     bool l7;
     void* l8 = NULL;
@@ -11516,7 +12011,7 @@ void vader_typecheck_emit_assign_mismatch_if(vader_box_t l0, vader_box_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_emit_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, uint8_t l4, void* l5, void* l6) {
+static void vader_typecheck_emit_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, uint8_t l4, void* l5, void* l6) {
     vader_string_t l7, l8;
     void* l9 = NULL;
     bool t0;
@@ -11537,7 +12032,7 @@ void vader_typecheck_emit_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_emit_return_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5) {
+static void vader_typecheck_emit_return_mismatch_if(vader_box_t l0, vader_box_t l1, void* l2, size_t l3, void* l4, void* l5) {
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     void** gc_raw_roots[3] = { &l2, &l4, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -11547,7 +12042,7 @@ void vader_typecheck_emit_return_mismatch_if(vader_box_t l0, vader_box_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_empty_fallback(void* l0) {
+static void* vader_typecheck_empty_fallback(void* l0) {
     void* l1 = NULL;
     void* l4 = NULL;
     vader_string_t l2;
@@ -11580,7 +12075,7 @@ void* vader_typecheck_empty_fallback(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_empty_impls(void) {
+static void* vader_typecheck_empty_impls(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* l2 = NULL;
@@ -11811,7 +12306,7 @@ bool vader_typecheck_equals_type(vader_box_t l0, vader_box_t l1) {
     vader_unreachable("unreachable return in vader_typecheck$equals_type");
 }
 
-bool vader_typecheck_equals_type_shape(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_equals_type_shape(vader_box_t l0, vader_box_t l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null();
     bool t0;
     vader_box_t* gc_roots[4] = { &l0, &l1, &l2, &l3 };
@@ -11824,7 +12319,7 @@ bool vader_typecheck_equals_type_shape(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_expr_has_await(vader_box_t l0) {
+static bool vader_typecheck_expr_has_await(vader_box_t l0) {
     void* l1;
     bool l2;
     size_t l3, l4, l6;
@@ -12039,7 +12534,7 @@ bool vader_typecheck_expr_has_await(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_expr_has_yield(vader_box_t l0) {
+static bool vader_typecheck_expr_has_yield(vader_box_t l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t l4;
@@ -12100,7 +12595,7 @@ bool vader_typecheck_expr_has_yield(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$expr_has_yield");
 }
 
-bool vader_typecheck_expr_is_immutable(vader_box_t l0, void* l1) {
+static bool vader_typecheck_expr_is_immutable(vader_box_t l0, void* l1) {
     bool l2;
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
@@ -12127,7 +12622,7 @@ bool vader_typecheck_expr_is_immutable(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0) {
+static vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0) {
     if (l0.tag == 443u) {
         return 580u;
     }
@@ -12215,7 +12710,7 @@ vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$expr_kind_name");
 }
 
-void* vader_typecheck_extern_decorator_args(void* l0) {
+static void* vader_typecheck_extern_decorator_args(void* l0) {
     void* l1 = NULL;
     void* l4 = NULL;
     size_t l2, l3;
@@ -12252,7 +12747,7 @@ void* vader_typecheck_extern_decorator_args(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_extern_symbol_name_for(void* l0) {
+static vader_string_t vader_typecheck_extern_symbol_name_for(void* l0) {
     void* l1;
     void* l4;
     void* l5;
@@ -12333,7 +12828,7 @@ vader_string_t vader_typecheck_extern_symbol_name_for(void* l0) {
     return t0;
 }
 
-vader_string_t vader_typecheck_field_annotate_hint(vader_box_t l0, void* l1) {
+static vader_string_t vader_typecheck_field_annotate_hint(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -12424,7 +12919,7 @@ vader_string_t vader_typecheck_field_annotate_hint(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_field_chain_key(void* l0, void* l1) {
+static vader_string_t vader_typecheck_field_chain_key(void* l0, void* l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     void* l6 = NULL;
@@ -12498,7 +12993,7 @@ vader_string_t vader_typecheck_field_chain_key(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_file_overload_table(void* l0, vader_string_t l1) {
+static void* vader_typecheck_file_overload_table(void* l0, vader_string_t l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -12537,7 +13032,7 @@ void* vader_typecheck_file_overload_table(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1) {
+static void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1) {
     vader_string_t l2, l8, l14;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -12610,7 +13105,7 @@ void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1) {
                                         t1 = l13.payload.obj;
                                         t3 = ((vader_struct_toolchain_ast_StructDecl_t*) t1)->f_name;
                                         if (t3 == l0) {
-                                            l2 = 2025u;
+                                            l2 = 2026u;
                                         } else {
                                         }
                                     } else {
@@ -12646,7 +13141,7 @@ void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1) {
                                     t1 = l13.payload.obj;
                                     t3 = ((vader_struct_toolchain_ast_StructDecl_t*) t1)->f_name;
                                     if (t3 == l0) {
-                                        l2 = 2025u;
+                                        l2 = 2026u;
                                     } else {
                                     }
                                 } else {
@@ -12692,7 +13187,7 @@ void* vader_typecheck_find_named_decl_in_project(vader_string_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_find_owner(void* l0, int64_t l1) {
+static vader_string_t vader_typecheck_find_owner(void* l0, int64_t l1) {
     void* l2;
     void* l3;
     void* l4;
@@ -12739,7 +13234,7 @@ vader_string_t vader_typecheck_find_owner(void* l0, int64_t l1) {
     return 488u;
 }
 
-vader_box_t vader_typecheck_find_struct_field_type(void* l0, vader_string_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_find_struct_field_type(void* l0, vader_string_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l7 = NULL;
     size_t l5, l6;
@@ -12777,7 +13272,7 @@ vader_box_t vader_typecheck_find_struct_field_type(void* l0, vader_string_t l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_find_trait_id_by_name(vader_string_t l0, void* l1) {
+static vader_box_t vader_typecheck_find_trait_id_by_name(vader_string_t l0, void* l1) {
     void* l2;
     void* l3;
     void* l4;
@@ -12894,7 +13389,7 @@ vader_box_t vader_typecheck_find_user(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_first_unexported_in(void* l0) {
+static vader_box_t vader_typecheck_first_unexported_in(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t l4;
@@ -12927,7 +13422,7 @@ vader_box_t vader_typecheck_first_unexported_in(void* l0) {
     return t0;
 }
 
-vader_box_t vader_typecheck_first_unexported_type(vader_box_t l0) {
+static vader_box_t vader_typecheck_first_unexported_type(vader_box_t l0) {
     void* l1;
     vader_box_t l2;
     bool t0;
@@ -13037,7 +13532,7 @@ vader_box_t vader_typecheck_first_unexported_type(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$first_unexported_type");
 }
 
-bool vader_typecheck_flows_into(vader_box_t l0, vader_box_t l1, size_t l2, void* l3) {
+static bool vader_typecheck_flows_into(vader_box_t l0, vader_box_t l1, size_t l2, void* l3) {
     bool t0;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     void** gc_raw_roots[1] = { &l3 };
@@ -13052,7 +13547,7 @@ bool vader_typecheck_flows_into(vader_box_t l0, vader_box_t l1, size_t l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_fn_has_type_params(void* l0) {
+static bool vader_typecheck_fn_has_type_params(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t t0;
@@ -13109,7 +13604,7 @@ bool vader_typecheck_fn_is_generator(void* l0) {
     return t1;
 }
 
-bool vader_typecheck_fn_mutability_widens(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_fn_mutability_widens(vader_box_t l0, vader_box_t l1) {
     void* l2;
     void* l3;
     size_t l4, l5;
@@ -13156,13 +13651,13 @@ bool vader_typecheck_fn_mutability_widens(vader_box_t l0, vader_box_t l1) {
     return false;
 }
 
-bool vader_typecheck_fn_param_compatible(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_fn_param_compatible(vader_box_t l0, vader_box_t l1) {
     bool t0;
     t0 = vader_typecheck_is_assignable(l0, l1);
     return t0;
 }
 
-void vader_typecheck_fn_refs(void* l0, void* l1) {
+static void vader_typecheck_fn_refs(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     size_t l3, l4;
@@ -13197,7 +13692,7 @@ void vader_typecheck_fn_refs(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_fn_signature_key(void* l0, void* l1) {
+static vader_box_t vader_typecheck_fn_signature_key(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l8 = NULL;
@@ -13245,7 +13740,7 @@ vader_box_t vader_typecheck_fn_signature_key(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_for_form_has_await(vader_box_t l0) {
+static bool vader_typecheck_for_form_has_await(vader_box_t l0) {
     void* t0;
     bool t1;
     if (l0.tag == 440u) {
@@ -13264,7 +13759,7 @@ bool vader_typecheck_for_form_has_await(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$for_form_has_await");
 }
 
-vader_box_t vader_typecheck_for_in_element(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_for_in_element(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l8 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -13351,7 +13846,7 @@ vader_box_t vader_typecheck_for_in_element(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_for_type_symbol(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_for_type_symbol(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* t0 = NULL;
     vader_string_t t1;
@@ -13406,7 +13901,7 @@ void* vader_typecheck_gen_state_symbol(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_gen_state_symbol_of(int32_t l0, vader_string_t l1, vader_string_t l2) {
+static void* vader_typecheck_gen_state_symbol_of(int32_t l0, vader_string_t l1, vader_string_t l2) {
     int32_t l3;
     vader_string_t l4;
     void* t0 = NULL;
@@ -13428,7 +13923,7 @@ void* vader_typecheck_gen_state_symbol_of(int32_t l0, vader_string_t l1, vader_s
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_generator_call_result_type(void* l0, void* l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_generator_call_result_type(void* l0, void* l1, vader_box_t l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -13468,7 +13963,7 @@ vader_box_t vader_typecheck_generator_call_result_type(void* l0, void* l1, vader
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_generator_element_type(void* l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_generator_element_type(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l11 = NULL;
     bool l4;
@@ -13523,7 +14018,7 @@ vader_box_t vader_typecheck_generator_element_type(void* l0, vader_box_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_generator_receiver_is_iterator(vader_box_t l0, void* l1) {
+static bool vader_typecheck_generator_receiver_is_iterator(vader_box_t l0, void* l1) {
     void* t0 = NULL;
     vader_string_t t1;
     bool t2;
@@ -13544,7 +14039,7 @@ bool vader_typecheck_generator_receiver_is_iterator(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_has_expr_bodied_fn(void* l0) {
+static bool vader_typecheck_has_expr_bodied_fn(void* l0) {
     void* l1;
     void* l5;
     size_t l2, l3, l6, l7, l8, l9;
@@ -13642,7 +14137,7 @@ bool vader_typecheck_has_expr_bodied_fn(void* l0) {
     return false;
 }
 
-bool vader_typecheck_has_extern_decorator(void* l0) {
+static bool vader_typecheck_has_extern_decorator(void* l0) {
     void* l1;
     size_t l2, l3;
     void* t0;
@@ -13672,7 +14167,7 @@ bool vader_typecheck_has_extern_decorator(void* l0) {
     return false;
 }
 
-bool vader_typecheck_has_impl_method(vader_box_t l0, vader_string_t l1, void* l2) {
+static bool vader_typecheck_has_impl_method(vader_box_t l0, vader_string_t l1, void* l2) {
     vader_string_t l3;
     void* l4 = NULL;
     vader_box_t t0 = vader_box_null();
@@ -13691,7 +14186,7 @@ bool vader_typecheck_has_impl_method(vader_box_t l0, vader_string_t l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_has_intrinsic_decorator(void* l0) {
+static bool vader_typecheck_has_intrinsic_decorator(void* l0) {
     void* l1;
     size_t l2, l3;
     void* t0;
@@ -13721,7 +14216,7 @@ bool vader_typecheck_has_intrinsic_decorator(void* l0) {
     return false;
 }
 
-bool vader_typecheck_has_mutable_const_storage(vader_box_t l0) {
+static bool vader_typecheck_has_mutable_const_storage(vader_box_t l0) {
     void* t0;
     bool t1;
     if (l0.tag == 919u) {
@@ -13732,7 +14227,7 @@ bool vader_typecheck_has_mutable_const_storage(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_has_mutable_self(void* l0) {
+static bool vader_typecheck_has_mutable_self(void* l0) {
     void* l1;
     bool l2;
     size_t t0;
@@ -13754,7 +14249,7 @@ bool vader_typecheck_has_mutable_self(void* l0) {
     return l2;
 }
 
-bool vader_typecheck_has_target_decorator(void* l0) {
+static bool vader_typecheck_has_target_decorator(void* l0) {
     void* l1;
     size_t l2, l3;
     void* t0;
@@ -13771,7 +14266,7 @@ bool vader_typecheck_has_target_decorator(void* l0) {
                 if ((size_t) l3 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
                 t1 = ((vader_struct_toolchain_ast_Decorator_t*) t0)->f_name;
-                if (t1 == 2048u) {
+                if (t1 == 2049u) {
                     return true;
                 }
                 t2 = (l3 + INT64_C(1));
@@ -13795,7 +14290,7 @@ bool vader_typecheck_has_user(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_ident_is_immutable(void* l0, void* l1) {
+static bool vader_typecheck_ident_is_immutable(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     uint64_t l3;
@@ -13828,7 +14323,7 @@ bool vader_typecheck_ident_is_immutable(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_if_has_yield(void* l0) {
+static bool vader_typecheck_if_has_yield(void* l0) {
     vader_box_t l1;
     bool t0;
     void* t1;
@@ -13853,7 +14348,7 @@ bool vader_typecheck_if_has_yield(void* l0) {
     vader_unreachable("unreachable return in vader_typecheck$if_has_yield");
 }
 
-vader_box_t vader_typecheck_immutable_root_param(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_immutable_root_param(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     vader_box_t t0 = vader_box_null();
@@ -13878,7 +14373,7 @@ vader_box_t vader_typecheck_immutable_root_param(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_immutable_root_symbol(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_immutable_root_symbol(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -13910,7 +14405,7 @@ vader_box_t vader_typecheck_immutable_root_symbol(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_impl_has_method(void* l0, vader_string_t l1) {
+static bool vader_typecheck_impl_has_method(void* l0, vader_string_t l1) {
     void* l2;
     size_t l3, l4;
     void* t0;
@@ -13940,7 +14435,7 @@ bool vader_typecheck_impl_has_method(void* l0, vader_string_t l1) {
     return false;
 }
 
-bool vader_typecheck_impl_is_generic(void* l0, void* l1) {
+static bool vader_typecheck_impl_is_generic(void* l0, void* l1) {
     void* l2;
     size_t l3, l4, l7;
     vader_box_t l5;
@@ -13990,7 +14485,7 @@ bool vader_typecheck_impl_is_generic(void* l0, void* l1) {
     return false;
 }
 
-void* vader_typecheck_imported_fn_sig_keys(void* l0, void* l1, void* l2) {
+static void* vader_typecheck_imported_fn_sig_keys(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -14121,7 +14616,7 @@ void* vader_typecheck_imported_fn_sig_keys(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_imported_overloads_in(void* l0, vader_string_t l1, vader_string_t l2) {
+static void* vader_typecheck_imported_overloads_in(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* t0 = NULL;
@@ -14147,7 +14642,7 @@ void* vader_typecheck_imported_overloads_in(void* l0, vader_string_t l1, vader_s
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_imported_overloads_table_in(void* l0, vader_string_t l1) {
+static vader_box_t vader_typecheck_imported_overloads_table_in(void* l0, vader_string_t l1) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[1] = { &l0 };
@@ -14158,7 +14653,7 @@ vader_box_t vader_typecheck_imported_overloads_table_in(void* l0, vader_string_t
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_index_impl_metadata(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
+static void vader_typecheck_index_impl_metadata(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
     vader_string_t l5;
     bool l6;
     vader_box_t l7 = vader_box_null(), l9 = vader_box_null();
@@ -14255,7 +14750,7 @@ void vader_typecheck_index_impl_metadata(void* l0, void* l1, vader_box_t l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_index_key_expected(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_index_key_expected(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     vader_string_t l4;
@@ -14278,7 +14773,7 @@ vader_box_t vader_typecheck_index_key_expected(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_index_set_value_expected(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_index_set_value_expected(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     vader_string_t l4;
@@ -14301,7 +14796,7 @@ vader_box_t vader_typecheck_index_set_value_expected(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_against_array(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_against_array(void* l0, void* l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l8 = vader_box_null();
     void* l6 = NULL;
     bool l7;
@@ -14340,7 +14835,7 @@ vader_box_t vader_typecheck_infer_against_array(void* l0, void* l1, void* l2, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_against_tuple(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_against_tuple(void* l0, void* l1, void* l2, void* l3, void* l4) {
     size_t l5, l6;
     void* l7 = NULL;
     void* l9 = NULL;
@@ -14462,7 +14957,7 @@ vader_box_t vader_typecheck_infer_against_tuple(void* l0, void* l1, void* l2, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_array_type_value(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_infer_array_type_value(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* t0 = NULL;
@@ -14480,7 +14975,7 @@ vader_box_t vader_typecheck_infer_array_type_value(void* l0, void* l1, void* l2)
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_await(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_await(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null();
     bool l5;
     void* l6 = NULL;
@@ -14510,7 +15005,7 @@ vader_box_t vader_typecheck_infer_await(void* l0, void* l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_binary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_binary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null(), l11 = vader_box_null(), l12 = vader_box_null(), l13 = vader_box_null();
     bool l6;
     void* l8 = NULL;
@@ -14639,7 +15134,7 @@ vader_box_t vader_typecheck_infer_binary(void* l0, vader_box_t l1, void* l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l9 = vader_box_null(), l18 = vader_box_null(), l21 = vader_box_null(), l22 = vader_box_null(), l23 = vader_box_null();
     void* l6 = NULL;
     void* l12 = NULL;
@@ -15114,7 +15609,7 @@ vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_cast(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_cast(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l6 = vader_box_null();
     void* l5 = NULL;
     vader_string_t l7, l8;
@@ -15142,7 +15637,7 @@ vader_box_t vader_typecheck_infer_cast(void* l0, void* l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_dot_variant(void* l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_dot_variant(void* l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l10 = NULL;
     void* l13 = NULL;
@@ -15281,7 +15776,7 @@ vader_box_t vader_typecheck_infer_dot_variant(void* l0, vader_box_t l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_expr(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_expr(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     size_t l5, l6;
@@ -15355,7 +15850,7 @@ vader_box_t vader_typecheck_infer_expr(vader_box_t l0, vader_box_t l1, void* l2,
         }
         vader_struct_vader_types_PrimitiveType_t* _a6_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a6_obj, 928u);
-        _a6_obj->f_name = 2008u;
+        _a6_obj->f_name = 2009u;
         t0 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -15515,7 +16010,7 @@ vader_box_t vader_typecheck_infer_expr(vader_box_t l0, vader_box_t l1, void* l2,
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_field(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_field(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
@@ -15573,7 +16068,7 @@ vader_box_t vader_typecheck_infer_field(void* l0, void* l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_field_intrinsic(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_infer_field_intrinsic(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l6 = vader_box_null();
     void* l4 = NULL;
     void* l8 = NULL;
@@ -15725,7 +16220,7 @@ vader_box_t vader_typecheck_infer_field_intrinsic(void* l0, void* l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_fn_type_value(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_infer_fn_type_value(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l7 = NULL;
     size_t l4, l5;
@@ -15768,7 +16263,7 @@ vader_box_t vader_typecheck_infer_fn_type_value(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_generic_inst(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_generic_inst(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l8 = vader_box_null();
     void* l5 = NULL;
     void* l9 = NULL;
@@ -15803,7 +16298,7 @@ vader_box_t vader_typecheck_infer_generic_inst(void* l0, void* l1, void* l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_ident(void* l0, void* l1) {
+static vader_box_t vader_typecheck_infer_ident(void* l0, void* l1) {
     void* l2 = NULL;
     uint64_t l3;
     vader_box_t l4 = vader_box_null();
@@ -15832,7 +16327,7 @@ vader_box_t vader_typecheck_infer_ident(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
+static vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
     vader_box_t l6 = vader_box_null(), l10 = vader_box_null(), l12 = vader_box_null(), l13 = vader_box_null(), l14 = vader_box_null();
     void* l7 = NULL;
     void* l11 = NULL;
@@ -15893,7 +16388,7 @@ vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l
     if (l12.tag == 0u) {
         vader_struct_vader_types_PrimitiveType_t* _a4_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a4_obj, 928u);
-        _a4_obj->f_name = 2292u;
+        _a4_obj->f_name = 2293u;
         l7 = (void*) _a4_obj;
         vader_array_t* _a5_arr = vader_array_new(128u, 2u, 13u, 1180u);
         ((void**) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = l7;
@@ -15902,7 +16397,7 @@ vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l
         l13 = vader_typecheck_union_of(t1);
         vader_struct_vader_types_PrimitiveType_t* _a6_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a6_obj, 928u);
-        _a6_obj->f_name = 2292u;
+        _a6_obj->f_name = 2293u;
         l7 = (void*) _a6_obj;
         t2 = vader_typecheck_collapse_if_unresolved(l13, l10, vader_ref_box(l7));
         { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -15930,7 +16425,7 @@ vader_box_t vader_typecheck_infer_if(void* l0, vader_box_t l1, void* l2, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null(), l18 = vader_box_null(), l19 = vader_box_null(), l21 = vader_box_null(), l35 = vader_box_null(), l39 = vader_box_null(), l40 = vader_box_null();
     void* l6 = NULL;
     void* l14 = NULL;
@@ -15973,12 +16468,12 @@ vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3) 
     if (l4.tag == 928u) {
         t0 = l4.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-        if (t1 == 2008u) {
+        if (t1 == 2009u) {
             t2 = vader_typecheck_is_range_type(l5);
             if (t2) {
                 vader_struct_vader_types_PrimitiveType_t* _a3_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
                 vader_obj_header_init(_a3_obj, 928u);
-                _a3_obj->f_name = 2008u;
+                _a3_obj->f_name = 2009u;
                 t0 = (void*) _a3_obj;
                 { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -15987,7 +16482,7 @@ vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3) 
                 t0 = ((vader_struct_toolchain_ast_IndexExpr_t*) l0)->f_index.payload.obj;
                 l6 = ((vader_struct_toolchain_ast_ArrayTypeExpr_t*) t0)->f_span;
                 l7 = vader_types_display_type(l5);
-                l7 = concat_2(2011u, l7);
+                l7 = concat_2(2012u, l7);
                 l6 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(0), l6, l7);
                 vader_array_push((vader_array_t*) l2, vader_ref_box(l6));
             } else {
@@ -16407,7 +16902,7 @@ vader_box_t vader_typecheck_infer_index(void* l0, void* l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_intrinsic(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_intrinsic(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l10 = vader_box_null(), l11 = vader_box_null();
     void* l5 = NULL;
     void* l12 = NULL;
@@ -16523,7 +17018,7 @@ vader_box_t vader_typecheck_infer_intrinsic(void* l0, void* l1, void* l2, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_lambda(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_lambda(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l9 = vader_box_null(), l11 = vader_box_null();
     void* l6 = NULL;
     void* l10 = NULL;
@@ -16584,7 +17079,7 @@ vader_box_t vader_typecheck_infer_lambda(void* l0, vader_box_t l1, void* l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
+static vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void* l3, vader_box_t l4, void* l5) {
     vader_box_t l6 = vader_box_null(), l10 = vader_box_null(), l20 = vader_box_null(), l21 = vader_box_null(), l22 = vader_box_null(), l23 = vader_box_null(), l25 = vader_box_null(), l26 = vader_box_null(), l27 = vader_box_null(), l28 = vader_box_null(), l30 = vader_box_null(), l36 = vader_box_null(), l39 = vader_box_null(), l41 = vader_box_null(), l52 = vader_box_null(), l58 = vader_box_null(), l60 = vader_box_null();
     int32_t l7, l24, l37;
     vader_string_t l8, l33, l34, l44, l45, l46, l49, l59;
@@ -16874,7 +17369,7 @@ vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void
                 l8 = vader_types_display_type(l10);
                 t1 = l6.payload.obj;
                 l33 = vader_types_display_type(vader_ref_box(t1));
-                l8 = concat_5(2284u, l8, 132u, l33, 118u);
+                l8 = concat_5(2285u, l8, 132u, l33, 118u);
                 l13 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(10), l13, l8);
                 vader_array_push((vader_array_t*) l3, vader_ref_box(l13));
             } else {
@@ -16887,7 +17382,7 @@ vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void
                     l12 = ((vader_struct_toolchain_ast_MatchExpr_t*) l0)->f_span;
                     t1 = l6.payload.obj;
                     l33 = vader_types_display_type(vader_ref_box(t1));
-                    l8 = concat_5(2285u, l8, 132u, l33, 118u);
+                    l8 = concat_5(2286u, l8, 132u, l33, 118u);
                     l12 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(10), l12, l8);
                     vader_array_push((vader_array_t*) l3, vader_ref_box(l12));
                 } else {
@@ -16938,7 +17433,7 @@ vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void
         if (l11) {
             l9 = ((vader_struct_toolchain_ast_MatchExpr_t*) l0)->f_span;
             l8 = vader_types_display_type(l6);
-            l8 = concat_3(2303u, l8, 956u);
+            l8 = concat_3(2304u, l8, 956u);
             l9 = vader_diagnostics_warning((uint8_t) (int32_t) INT32_C(2), l9, l8);
             vader_array_push((vader_array_t*) l3, vader_ref_box(l9));
         } else {
@@ -16949,7 +17444,7 @@ vader_box_t vader_typecheck_infer_match(void* l0, vader_box_t l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_mutable_type_value(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_infer_mutable_type_value(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* t0 = NULL;
@@ -16967,7 +17462,7 @@ vader_box_t vader_typecheck_infer_mutable_type_value(void* l0, void* l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_no_expected(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_no_expected(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     vader_box_t l5 = vader_box_null();
     size_t t0;
@@ -16997,7 +17492,7 @@ vader_box_t vader_typecheck_infer_no_expected(void* l0, void* l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_null_coalesce(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_null_coalesce(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null();
     void* l6 = NULL;
     size_t l9;
@@ -17049,7 +17544,7 @@ vader_box_t vader_typecheck_infer_null_coalesce(void* l0, vader_box_t l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_param(void* l0, size_t l1, vader_box_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_param(void* l0, size_t l1, vader_box_t l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null();
     void* l6 = NULL;
     void* l16 = NULL;
@@ -17131,7 +17626,7 @@ vader_box_t vader_typecheck_infer_param(void* l0, size_t l1, vader_box_t l2, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_range(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_range(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
     size_t l6;
     void* l7 = NULL;
@@ -17177,7 +17672,7 @@ vader_box_t vader_typecheck_infer_range(void* l0, void* l1, void* l2, void* l3) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_seq_lit(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_seq_lit(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -17260,7 +17755,7 @@ vader_box_t vader_typecheck_infer_seq_lit(void* l0, vader_box_t l1, void* l2, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_struct_lit(void* l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_infer_struct_lit(void* l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l6 = vader_box_null();
     void* l5 = NULL;
     vader_string_t l7;
@@ -17310,7 +17805,7 @@ vader_box_t vader_typecheck_infer_struct_lit(void* l0, void* l1, void* l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_infer_unary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_infer_unary(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null();
     uint8_t l6;
     void* t0 = NULL;
@@ -17365,7 +17860,7 @@ vader_box_t vader_typecheck_infer_unary(void* l0, vader_box_t l1, void* l2, void
         t1 = vader_typecheck_is_integer(l5);
         if (!(t1)) {
             l7 = l5;
-            vader_typecheck_push_op_undefined_1(l0, l7, 2338u, l3);
+            vader_typecheck_push_op_undefined_1(l0, l7, 2339u, l3);
             vader_struct_vader_types_UnresolvedType_t* _a5_obj = (vader_struct_vader_types_UnresolvedType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_UnresolvedType_t));
             vader_obj_header_init(_a5_obj, 936u);
             t0 = (void*) _a5_obj;
@@ -17377,7 +17872,7 @@ vader_box_t vader_typecheck_infer_unary(void* l0, vader_box_t l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_int_fits(uint64_t l0, vader_string_t l1) {
+static bool vader_typecheck_int_fits(uint64_t l0, vader_string_t l1) {
     bool l2;
     void* l3 = NULL;
     int64_t l4, l5;
@@ -17390,10 +17885,10 @@ bool vader_typecheck_int_fits(uint64_t l0, vader_string_t l1) {
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    if (l1 == 2150u) {
+    if (l1 == 2151u) {
         l2 = true;
     } else {
-        l2 = l1 == 2202u;
+        l2 = l1 == 2203u;
     }
     if (l2) {
         { vader_gc_top = gc_frame.prev; return true; }
@@ -17427,7 +17922,7 @@ bool vader_typecheck_int_fits(uint64_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_into_iterator_element(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_into_iterator_element(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     vader_box_t t0 = vader_box_null();
@@ -17470,7 +17965,7 @@ vader_box_t vader_typecheck_into_iterator_element(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_into_tuple_target(vader_box_t l0, size_t l1, void* l2) {
+static vader_box_t vader_typecheck_into_tuple_target(vader_box_t l0, size_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l6 = NULL;
@@ -17530,7 +18025,7 @@ vader_box_t vader_typecheck_into_tuple_target(vader_box_t l0, size_t l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_invalidate_narrow_on_assign(vader_box_t l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_invalidate_narrow_on_assign(vader_box_t l0, vader_box_t l1, void* l2) {
     bool l3;
     void* l4 = NULL;
     void* l7 = NULL;
@@ -17751,7 +18246,7 @@ bool vader_typecheck_is_assignable(vader_box_t l0, vader_box_t l1) {
     return l4;
 }
 
-bool vader_typecheck_is_assignable_array(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_array(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     bool l4;
     vader_box_t l5, l6;
@@ -17798,7 +18293,7 @@ bool vader_typecheck_is_assignable_array(vader_box_t l0, void* l1, vader_box_t l
     return t0;
 }
 
-bool vader_typecheck_is_assignable_fn(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_fn(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     size_t l4, l5;
     vader_box_t l6, l7;
@@ -17855,7 +18350,7 @@ bool vader_typecheck_is_assignable_fn(vader_box_t l0, void* l1, vader_box_t l2) 
     return t0;
 }
 
-bool vader_typecheck_is_assignable_freechar(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_is_assignable_freechar(vader_box_t l0, vader_box_t l1) {
     void* l2;
     bool l3;
     vader_string_t t0;
@@ -17880,7 +18375,7 @@ bool vader_typecheck_is_assignable_freechar(vader_box_t l0, vader_box_t l1) {
     return t1;
 }
 
-bool vader_typecheck_is_assignable_freefloat(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_is_assignable_freefloat(vader_box_t l0, vader_box_t l1) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -17898,7 +18393,7 @@ bool vader_typecheck_is_assignable_freefloat(vader_box_t l0, vader_box_t l1) {
     return t2;
 }
 
-bool vader_typecheck_is_assignable_freeint(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_is_assignable_freeint(vader_box_t l0, vader_box_t l1) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -17916,7 +18411,7 @@ bool vader_typecheck_is_assignable_freeint(vader_box_t l0, vader_box_t l1) {
     return t2;
 }
 
-bool vader_typecheck_is_assignable_struct(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_struct(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     void* l6;
     int32_t l4, l5;
@@ -17942,7 +18437,7 @@ bool vader_typecheck_is_assignable_struct(vader_box_t l0, void* l1, vader_box_t 
     return t0;
 }
 
-bool vader_typecheck_is_assignable_trait_from(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_trait_from(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     void* l6;
     int32_t l4, l5;
@@ -17968,7 +18463,7 @@ bool vader_typecheck_is_assignable_trait_from(vader_box_t l0, void* l1, vader_bo
     return t0;
 }
 
-bool vader_typecheck_is_assignable_tuple(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_tuple(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     size_t l4, l5;
     vader_box_t l6, l7;
@@ -18011,7 +18506,7 @@ bool vader_typecheck_is_assignable_tuple(vader_box_t l0, void* l1, vader_box_t l
     return t0;
 }
 
-bool vader_typecheck_is_assignable_union(vader_box_t l0, void* l1, vader_box_t l2) {
+static bool vader_typecheck_is_assignable_union(vader_box_t l0, void* l1, vader_box_t l2) {
     void* l3;
     void* l7;
     size_t l4, l5;
@@ -18047,7 +18542,7 @@ bool vader_typecheck_is_assignable_union(vader_box_t l0, void* l1, vader_box_t l
     return t0;
 }
 
-bool vader_typecheck_is_body_independent_value(vader_box_t l0) {
+static bool vader_typecheck_is_body_independent_value(vader_box_t l0) {
     void* l1;
     size_t l2, l3;
     void* t0;
@@ -18109,7 +18604,7 @@ bool vader_typecheck_is_body_independent_value(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_bool(vader_box_t l0) {
+static bool vader_typecheck_is_bool(vader_box_t l0) {
     bool l1;
     void* t0;
     vader_string_t t1;
@@ -18123,7 +18618,7 @@ bool vader_typecheck_is_bool(vader_box_t l0) {
     return l1;
 }
 
-bool vader_typecheck_is_concrete_float(vader_box_t l0) {
+static bool vader_typecheck_is_concrete_float(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -18136,7 +18631,7 @@ bool vader_typecheck_is_concrete_float(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_concrete_int(vader_box_t l0) {
+static bool vader_typecheck_is_concrete_int(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -18149,7 +18644,7 @@ bool vader_typecheck_is_concrete_int(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_const_reassign(void* l0, void* l1) {
+static bool vader_typecheck_is_const_reassign(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     uint64_t l3;
@@ -18174,7 +18669,7 @@ bool vader_typecheck_is_const_reassign(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_is_divergent_stmt(vader_box_t l0, void* l1) {
+static bool vader_typecheck_is_divergent_stmt(vader_box_t l0, void* l1) {
     void* l2;
     void* l3;
     size_t l4;
@@ -18215,7 +18710,7 @@ bool vader_typecheck_is_empty_substitution(void* l0) {
     return true;
 }
 
-bool vader_typecheck_is_enum_like(vader_box_t l0) {
+static bool vader_typecheck_is_enum_like(vader_box_t l0) {
     void* t0;
     if (l0.tag == 921u) {
         return true;
@@ -18227,7 +18722,7 @@ bool vader_typecheck_is_enum_like(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_extern_abi_type(vader_box_t l0, bool l1) {
+static bool vader_typecheck_is_extern_abi_type(vader_box_t l0, bool l1) {
     void* l2;
     vader_string_t t0;
     if (l0.tag == 936u) {
@@ -18236,7 +18731,7 @@ bool vader_typecheck_is_extern_abi_type(vader_box_t l0, bool l1) {
     if (l0.tag == 928u) {
         l2 = l0.payload.obj;
         t0 = ((vader_struct_vader_types_PrimitiveType_t*) l2)->f_name;
-        if (t0 == 2292u) {
+        if (t0 == 2293u) {
             return l1;
         }
         t0 = ((vader_struct_vader_types_PrimitiveType_t*) l2)->f_name;
@@ -18248,7 +18743,7 @@ bool vader_typecheck_is_extern_abi_type(vader_box_t l0, bool l1) {
     return false;
 }
 
-bool vader_typecheck_is_float(vader_box_t l0) {
+static bool vader_typecheck_is_float(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -18267,7 +18762,7 @@ bool vader_typecheck_is_float(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_free_numeric(vader_box_t l0) {
+static bool vader_typecheck_is_free_numeric(vader_box_t l0) {
     if (l0.tag == 925u) {
         return true;
     }
@@ -18280,7 +18775,7 @@ bool vader_typecheck_is_free_numeric(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_fresh_allocation(vader_box_t l0) {
+static bool vader_typecheck_is_fresh_allocation(vader_box_t l0) {
     return (l0.tag == 409u || l0.tag == 465u || l0.tag == 472u);
 }
 
@@ -18302,7 +18797,7 @@ bool vader_typecheck_is_gen_state_struct(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_is_generator_symbol(void* l0, void* l1) {
+static bool vader_typecheck_is_generator_symbol(void* l0, void* l1) {
     void* l2;
     int32_t l3;
     vader_box_t l4;
@@ -18319,7 +18814,7 @@ bool vader_typecheck_is_generator_symbol(void* l0, void* l1) {
     return false;
 }
 
-bool vader_typecheck_is_integer(vader_box_t l0) {
+static bool vader_typecheck_is_integer(vader_box_t l0) {
     bool l1;
     void* t0;
     vader_string_t t1;
@@ -18344,7 +18839,7 @@ bool vader_typecheck_is_integer(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_integer_index(vader_box_t l0) {
+static bool vader_typecheck_is_integer_index(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     bool t2;
@@ -18360,7 +18855,7 @@ bool vader_typecheck_is_integer_index(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0) {
+static bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0) {
     void* l1;
     size_t l2, l3;
     vader_box_t l4;
@@ -18405,18 +18900,18 @@ bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0) {
     return true;
 }
 
-bool vader_typecheck_is_metatype(vader_box_t l0) {
+static bool vader_typecheck_is_metatype(vader_box_t l0) {
     return l0.tag == 933u;
 }
 
-bool vader_typecheck_is_never(vader_box_t l0) {
+static bool vader_typecheck_is_never(vader_box_t l0) {
     if (l0.tag == 926u) {
         return true;
     }
     return false;
 }
 
-bool vader_typecheck_is_nonprimary_pick(void* l0, vader_box_t l1) {
+static bool vader_typecheck_is_nonprimary_pick(void* l0, vader_box_t l1) {
     vader_box_t l2;
     bool t0;
     if (l1.tag == 0u) {
@@ -18427,7 +18922,7 @@ bool vader_typecheck_is_nonprimary_pick(void* l0, vader_box_t l1) {
     return !(t0);
 }
 
-bool vader_typecheck_is_null_type(vader_box_t l0) {
+static bool vader_typecheck_is_null_type(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     if (l0.tag == 928u) {
@@ -18438,7 +18933,7 @@ bool vader_typecheck_is_null_type(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_numeric(vader_box_t l0) {
+static bool vader_typecheck_is_numeric(vader_box_t l0) {
     bool l1;
     void* t0;
     vader_string_t t1;
@@ -18468,7 +18963,7 @@ bool vader_typecheck_is_numeric(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_overlap_checkable(vader_box_t l0) {
+static bool vader_typecheck_is_overlap_checkable(vader_box_t l0) {
     if (l0.tag == 936u) {
         return false;
     }
@@ -18484,7 +18979,7 @@ bool vader_typecheck_is_overlap_checkable(vader_box_t l0) {
     return true;
 }
 
-bool vader_typecheck_is_plain_string_literal(vader_box_t l0) {
+static bool vader_typecheck_is_plain_string_literal(vader_box_t l0) {
     void* t0;
     size_t t1;
     vader_box_t t2;
@@ -18504,7 +18999,7 @@ bool vader_typecheck_is_plain_string_literal(vader_box_t l0) {
     return t2.tag == 469u;
 }
 
-bool vader_typecheck_is_primitive_named(vader_box_t l0, vader_string_t l1) {
+static bool vader_typecheck_is_primitive_named(vader_box_t l0, vader_string_t l1) {
     void* t0;
     vader_string_t t1;
     if (l0.tag == 928u) {
@@ -18515,7 +19010,7 @@ bool vader_typecheck_is_primitive_named(vader_box_t l0, vader_string_t l1) {
     return false;
 }
 
-bool vader_typecheck_is_private_user_type(void* l0) {
+static bool vader_typecheck_is_private_user_type(void* l0) {
     bool t0;
     if (((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_visibility != INT32_C(1)) {
         return false;
@@ -18524,11 +19019,11 @@ bool vader_typecheck_is_private_user_type(void* l0) {
     return t0;
 }
 
-bool vader_typecheck_is_public(uint8_t l0) {
+static bool vader_typecheck_is_public(uint8_t l0) {
     return l0 == INT32_C(0);
 }
 
-bool vader_typecheck_is_range_type(vader_box_t l0) {
+static bool vader_typecheck_is_range_type(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
     if (l0.tag == 930u) {
@@ -18539,7 +19034,7 @@ bool vader_typecheck_is_range_type(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_resolved_enough(vader_box_t l0) {
+static bool vader_typecheck_is_resolved_enough(vader_box_t l0) {
     if (l0.tag == 936u) {
         return false;
     }
@@ -18555,7 +19050,7 @@ bool vader_typecheck_is_resolved_enough(vader_box_t l0) {
     return true;
 }
 
-bool vader_typecheck_is_root_decl(uint8_t l0, void* l1, vader_string_t l2, vader_string_t l3) {
+static bool vader_typecheck_is_root_decl(uint8_t l0, void* l1, vader_string_t l2, vader_string_t l3) {
     bool l4, l5;
     bool t0;
     t0 = vader_typecheck_is_public(l0);
@@ -18577,21 +19072,21 @@ bool vader_typecheck_is_root_decl(uint8_t l0, void* l1, vader_string_t l2, vader
     return l4;
 }
 
-bool vader_typecheck_is_string(vader_box_t l0) {
+static bool vader_typecheck_is_string(vader_box_t l0) {
     bool l1;
     void* t0;
     vader_string_t t1;
     if (l0.tag == 928u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-        l1 = t1 == 2008u;
+        l1 = t1 == 2009u;
     } else {
         l1 = false;
     }
     return l1;
 }
 
-bool vader_typecheck_is_type_expr(vader_box_t l0, void* l1) {
+static bool vader_typecheck_is_type_expr(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     uint64_t l3;
@@ -18737,7 +19232,7 @@ bool vader_typecheck_is_type_expr(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_is_type_kind(int32_t l0) {
+static bool vader_typecheck_is_type_kind(int32_t l0) {
     bool l1;
     if (l0 == INT32_C(1)) {
         l1 = true;
@@ -18772,7 +19267,7 @@ bool vader_typecheck_is_type_kind(int32_t l0) {
     return l1;
 }
 
-bool vader_typecheck_is_user_type_kind(int32_t l0) {
+static bool vader_typecheck_is_user_type_kind(int32_t l0) {
     if (l0 == INT32_C(1)) {
         return true;
     }
@@ -18788,7 +19283,7 @@ bool vader_typecheck_is_user_type_kind(int32_t l0) {
     return false;
 }
 
-bool vader_typecheck_is_value_only_type(vader_box_t l0) {
+static bool vader_typecheck_is_value_only_type(vader_box_t l0) {
     void* l1;
     size_t l2, l3;
     void* t0;
@@ -18829,12 +19324,12 @@ bool vader_typecheck_is_void(vader_box_t l0) {
     if (l0.tag == 928u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-        return t1 == 2292u;
+        return t1 == 2293u;
     }
     return false;
 }
 
-bool vader_typecheck_is_wired_root(void* l0, vader_string_t l1) {
+static bool vader_typecheck_is_wired_root(void* l0, vader_string_t l1) {
     void* l2;
     void* l5;
     size_t l3, l4;
@@ -18854,7 +19349,7 @@ bool vader_typecheck_is_wired_root(void* l0, vader_string_t l1) {
                 if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                 l5 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
                 t0 = ((vader_struct_toolchain_ast_Decorator_t*) l5)->f_name;
-                if (t0 == 2050u) {
+                if (t0 == 2051u) {
                     return true;
                 }
                 t0 = ((vader_struct_toolchain_ast_Decorator_t*) l5)->f_name;
@@ -18883,7 +19378,7 @@ bool vader_typecheck_is_wired_root(void* l0, vader_string_t l1) {
     return false;
 }
 
-vader_box_t vader_typecheck_iterable_behind(void* l0, void* l1, int32_t l2) {
+static vader_box_t vader_typecheck_iterable_behind(void* l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     int32_t l4, l9;
@@ -18958,7 +19453,7 @@ vader_box_t vader_typecheck_iterable_behind(void* l0, void* l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_iterable_type_span(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_iterable_type_span(vader_box_t l0, void* l1) {
     void* l2;
     void* l3;
     void* l6;
@@ -19023,7 +19518,7 @@ vader_box_t vader_typecheck_iterable_type_span(vader_box_t l0, void* l1) {
     return t1;
 }
 
-vader_box_t vader_typecheck_iterator_element_of(vader_box_t l0) {
+static vader_box_t vader_typecheck_iterator_element_of(vader_box_t l0) {
     void* l1;
     bool l2;
     vader_string_t t0;
@@ -19052,7 +19547,7 @@ vader_box_t vader_typecheck_iterator_element_of(vader_box_t l0) {
     return t2;
 }
 
-vader_box_t vader_typecheck_join_if_branches(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_join_if_branches(vader_box_t l0, vader_box_t l1) {
     void* t0 = NULL;
     bool t1;
     vader_box_t t2 = vader_box_null();
@@ -19269,7 +19764,7 @@ vader_box_t vader_typecheck_join_if_branches(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lift_enum_placeholder(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_lift_enum_placeholder(vader_box_t l0, void* l1) {
     void* l2;
     void* l3;
     int32_t l4;
@@ -19301,7 +19796,7 @@ vader_box_t vader_typecheck_lift_enum_placeholder(vader_box_t l0, void* l1) {
     return l0;
 }
 
-vader_box_t vader_typecheck_lookup_callee_fn_decl(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_callee_fn_decl(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* l5 = NULL;
@@ -19383,7 +19878,7 @@ vader_box_t vader_typecheck_lookup_const_symbol(void* l0, void* l1) {
     return t1;
 }
 
-vader_box_t vader_typecheck_lookup_decl(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_decl(void* l0, void* l1) {
     vader_string_t l2, l3;
     void* l4 = NULL;
     int32_t l5;
@@ -19425,7 +19920,7 @@ vader_box_t vader_typecheck_lookup_decl(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_decl_in(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_decl_in(void* l0, void* l1) {
     int32_t l2;
     vader_box_t l3 = vader_box_null();
     void* t0 = NULL;
@@ -19445,7 +19940,7 @@ vader_box_t vader_typecheck_lookup_decl_in(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_decl_symbol_stmt(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_decl_symbol_stmt(void* l0, void* l1) {
     void* l2 = NULL;
     void* l7 = NULL;
     void* l8 = NULL;
@@ -19554,7 +20049,7 @@ vader_box_t vader_typecheck_lookup_decl_symbol_stmt(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_external_type(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_external_type(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     vader_string_t l3;
@@ -19585,7 +20080,7 @@ vader_box_t vader_typecheck_lookup_external_type(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_fn_symbol_by_span(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_lookup_fn_symbol_by_span(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -19657,7 +20152,7 @@ vader_box_t vader_typecheck_lookup_fn_symbol_by_span(void* l0, void* l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_in(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_in(void* l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     uint64_t l4, l5;
@@ -19703,7 +20198,7 @@ vader_box_t vader_typecheck_lookup_in(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_pre_resolved_field(int32_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_lookup_pre_resolved_field(int32_t l0, vader_string_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
@@ -19722,7 +20217,7 @@ vader_box_t vader_typecheck_lookup_pre_resolved_field(int32_t l0, vader_string_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_return_type(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_return_type(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -19802,7 +20297,7 @@ vader_box_t vader_typecheck_lookup_struct_trait_args(vader_box_t l0, vader_strin
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_sym_by_name(void* l0, vader_string_t l1) {
+static vader_box_t vader_typecheck_lookup_sym_by_name(void* l0, vader_string_t l1) {
     void* l2;
     void* l5;
     size_t l3, l4;
@@ -19834,7 +20329,7 @@ vader_box_t vader_typecheck_lookup_sym_by_name(void* l0, vader_string_t l1) {
     return t2;
 }
 
-vader_box_t vader_typecheck_lookup_sym_by_name_orch(void* l0, vader_string_t l1) {
+static vader_box_t vader_typecheck_lookup_sym_by_name_orch(void* l0, vader_string_t l1) {
     void* l2;
     void* l5;
     size_t l3, l4;
@@ -19866,7 +20361,7 @@ vader_box_t vader_typecheck_lookup_sym_by_name_orch(void* l0, vader_string_t l1)
     return t2;
 }
 
-vader_box_t vader_typecheck_lookup_trait_decl(vader_string_t l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_trait_decl(vader_string_t l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -19950,7 +20445,7 @@ vader_box_t vader_typecheck_lookup_trait_decl(vader_string_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lookup_trait_method(vader_box_t l0, vader_string_t l1) {
+static vader_box_t vader_typecheck_lookup_trait_method(vader_box_t l0, vader_string_t l1) {
     void* l2;
     void* l5;
     size_t l3, l4;
@@ -19988,7 +20483,7 @@ vader_box_t vader_typecheck_lookup_trait_method(vader_box_t l0, vader_string_t l
     return t0;
 }
 
-vader_box_t vader_typecheck_lookup_type_name(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lookup_type_name(void* l0, void* l1) {
     void* l2 = NULL;
     uint64_t l3;
     vader_box_t l4 = vader_box_null();
@@ -20012,7 +20507,7 @@ vader_box_t vader_typecheck_lookup_type_name(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lower_binary(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_lower_binary(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     size_t l5, l6;
@@ -20059,7 +20554,7 @@ vader_box_t vader_typecheck_lower_binary(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lower_call_in_type_position(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_lower_call_in_type_position(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l8 = NULL;
@@ -20133,7 +20628,7 @@ vader_box_t vader_typecheck_lower_call_in_type_position(void* l0, void* l1, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lower_generic_inst(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_lower_generic_inst(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l9 = NULL;
@@ -20208,7 +20703,7 @@ vader_box_t vader_typecheck_lower_generic_inst(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_lower_ident(void* l0, void* l1) {
+static vader_box_t vader_typecheck_lower_ident(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     uint64_t l4;
@@ -20239,7 +20734,7 @@ vader_box_t vader_typecheck_lower_ident(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_mark_binding_borrow(vader_box_t l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_mark_binding_borrow(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     uint64_t l5;
@@ -20272,7 +20767,7 @@ void vader_typecheck_mark_binding_borrow(vader_box_t l0, vader_box_t l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_mark_loop_var_borrow(void* l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_mark_loop_var_borrow(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     uint64_t l4;
@@ -20304,7 +20799,7 @@ void vader_typecheck_mark_loop_var_borrow(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_marks_mutable_anywhere(vader_box_t l0) {
+static bool vader_typecheck_marks_mutable_anywhere(vader_box_t l0) {
     void* l1;
     size_t l2, l3;
     bool l4;
@@ -20361,7 +20856,7 @@ bool vader_typecheck_marks_mutable_anywhere(vader_box_t l0) {
     return false;
 }
 
-void vader_typecheck_materialize_all_sams_pre_resolve(void* l0) {
+static void vader_typecheck_materialize_all_sams_pre_resolve(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -20491,7 +20986,7 @@ void vader_typecheck_materialize_all_sams_pre_resolve(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_merge_external_alias_types(void* l0, void* l1) {
+static void vader_typecheck_merge_external_alias_types(void* l0, void* l1) {
     vader_string_t l2, l8;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -20619,7 +21114,7 @@ void vader_typecheck_merge_external_alias_types(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_merge_external_impl_methods(void* l0, void* l1, void* l2) {
+static void vader_typecheck_merge_external_impl_methods(void* l0, void* l1, void* l2) {
     vader_string_t l3, l9, l11, l23, l32, l38, l39, l40, l41, l42, l43, l44, l50;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -20799,7 +21294,7 @@ void vader_typecheck_merge_external_impl_methods(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_merge_module_program(void* l0) {
+static void* vader_typecheck_merge_module_program(void* l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     vader_string_t l2;
@@ -20837,7 +21332,7 @@ void* vader_typecheck_merge_module_program(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_merge_struct_decls(void* l0, void* l1) {
+static void vader_typecheck_merge_struct_decls(void* l0, void* l1) {
     vader_string_t l2, l8, l48;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -21048,7 +21543,7 @@ void vader_typecheck_merge_struct_decls(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_mismatch_diagnostic(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3) {
+static void* vader_typecheck_mismatch_diagnostic(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3) {
     void* t0 = NULL;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     void** gc_raw_roots[2] = { &l2, &t0 };
@@ -21059,7 +21554,7 @@ void* vader_typecheck_mismatch_diagnostic(vader_box_t l0, vader_box_t l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_mismatch_diagnostic_hinted(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3, vader_string_t l4) {
+static void* vader_typecheck_mismatch_diagnostic_hinted(vader_box_t l0, vader_box_t l1, void* l2, uint8_t l3, vader_string_t l4) {
     vader_string_t l5, l6;
     bool t0;
     void* t1 = NULL;
@@ -21091,7 +21586,7 @@ void* vader_typecheck_mismatch_diagnostic_hinted(vader_box_t l0, vader_box_t l1,
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_missing_enum_variant_name(void* l0, void* l1, void* l2) {
+static vader_string_t vader_typecheck_missing_enum_variant_name(void* l0, void* l1, void* l2) {
     void* l3;
     void* l4;
     void* l5;
@@ -21163,7 +21658,7 @@ vader_string_t vader_typecheck_missing_enum_variant_name(void* l0, void* l1, voi
     return 0u;
 }
 
-vader_string_t vader_typecheck_module_const_hint_for(void* l0, void* l1) {
+static vader_string_t vader_typecheck_module_const_hint_for(void* l0, void* l1) {
     void* l2 = NULL;
     int32_t l3;
     vader_box_t l4 = vader_box_null();
@@ -21200,7 +21695,7 @@ vader_string_t vader_typecheck_module_const_hint_for(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_mutability_level_hint(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static vader_string_t vader_typecheck_mutability_level_hint(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
     void* l6 = NULL;
     void* l7 = NULL;
@@ -21242,7 +21737,7 @@ vader_string_t vader_typecheck_mutability_level_hint(vader_box_t l0, vader_box_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_mutation_fix_hint(vader_box_t l0, void* l1) {
+static vader_string_t vader_typecheck_mutation_fix_hint(vader_box_t l0, void* l1) {
     vader_string_t t0;
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &l1 };
@@ -21253,7 +21748,7 @@ vader_string_t vader_typecheck_mutation_fix_hint(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_mutation_fix_hint_within(vader_box_t l0, void* l1, int32_t l2) {
+static vader_string_t vader_typecheck_mutation_fix_hint_within(vader_box_t l0, void* l1, int32_t l2) {
     void* l3 = NULL;
     vader_box_t l4 = vader_box_null();
     vader_string_t l5;
@@ -21310,7 +21805,7 @@ vader_string_t vader_typecheck_mutation_fix_hint_within(vader_box_t l0, void* l1
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_name_is_type_param(void* l0, vader_string_t l1) {
+static bool vader_typecheck_name_is_type_param(void* l0, vader_string_t l1) {
     void* l2;
     void* l5;
     void* l7;
@@ -21390,7 +21885,7 @@ bool vader_typecheck_name_is_type_param(void* l0, vader_string_t l1) {
     return false;
 }
 
-void* vader_typecheck_named_head(vader_string_t l0, void* l1, uint8_t l2, void* l3, bool l4, void* l5) {
+static void* vader_typecheck_named_head(vader_string_t l0, void* l1, uint8_t l2, void* l3, bool l4, void* l5) {
     void* t0 = NULL;
     void** gc_raw_roots[4] = { &l1, &l3, &l5, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
@@ -21408,7 +21903,7 @@ void* vader_typecheck_named_head(vader_string_t l0, void* l1, uint8_t l2, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_namespace_base_mod_id(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_namespace_base_mod_id(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     uint64_t l3;
@@ -21450,7 +21945,7 @@ vader_box_t vader_typecheck_namespace_base_mod_id(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_namespace_call_mod_id(void* l0, void* l1) {
+static vader_box_t vader_typecheck_namespace_call_mod_id(void* l0, void* l1) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[2] = { &l0, &l1 };
@@ -21461,7 +21956,7 @@ vader_box_t vader_typecheck_namespace_call_mod_id(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_namespace_member_params(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_namespace_member_params(void* l0, void* l1, void* l2) {
     vader_string_t l3;
     vader_box_t l4 = vader_box_null();
     void* l5 = NULL;
@@ -21500,7 +21995,7 @@ vader_box_t vader_typecheck_namespace_member_params(void* l0, void* l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_namespace_member_type(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_namespace_member_type(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     uint64_t l4;
@@ -21554,7 +22049,7 @@ vader_box_t vader_typecheck_namespace_member_type(void* l0, void* l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_namespace_private_member_reported(int32_t l0, vader_string_t l1, void* l2, void* l3, void* l4) {
+static bool vader_typecheck_namespace_private_member_reported(int32_t l0, vader_string_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null();
     vader_string_t l6;
     void* l7 = NULL;
@@ -21580,7 +22075,7 @@ bool vader_typecheck_namespace_private_member_reported(int32_t l0, vader_string_
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_narrow_field_if_active(void* l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_narrow_field_if_active(void* l0, vader_box_t l1, void* l2) {
     vader_string_t l3;
     size_t t0;
     vader_box_t t1 = vader_box_null();
@@ -21601,7 +22096,7 @@ vader_box_t vader_typecheck_narrow_field_if_active(void* l0, vader_box_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_narrow_for_binding(void* l0, int32_t l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_narrow_for_binding(void* l0, int32_t l1, vader_box_t l2) {
     void* l3;
     vader_box_t l4;
     int32_t l5, l6;
@@ -21618,7 +22113,7 @@ vader_box_t vader_typecheck_narrow_for_binding(void* l0, int32_t l1, vader_box_t
     return ((vader_struct_vader_typecheck_NarrowSlot_t*) l3)->f_ty;
 }
 
-vader_box_t vader_typecheck_narrow_for_expected(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_narrow_for_expected(vader_box_t l0, vader_box_t l1) {
     bool l2;
     void* t0;
     vader_string_t t1;
@@ -21675,7 +22170,7 @@ vader_box_t vader_typecheck_narrow_for_expected(vader_box_t l0, vader_box_t l1) 
     return l0;
 }
 
-vader_box_t vader_typecheck_narrow_for_field(void* l0, vader_string_t l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_narrow_for_field(void* l0, vader_string_t l1, vader_box_t l2) {
     void* l3 = NULL;
     vader_box_t l4 = vader_box_null();
     int32_t l5, l6;
@@ -21697,7 +22192,7 @@ vader_box_t vader_typecheck_narrow_for_field(void* l0, vader_string_t l1, vader_
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_narrowed_with_scrutinee_immutability(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_narrowed_with_scrutinee_immutability(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l4 = vader_box_null(), l5 = vader_box_null();
     bool l6;
     vader_box_t t0 = vader_box_null();
@@ -21720,7 +22215,7 @@ vader_box_t vader_typecheck_narrowed_with_scrutinee_immutability(vader_box_t l0,
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_narrowing_immutability(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_narrowing_immutability(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -21784,7 +22279,7 @@ bool vader_typecheck_narrowing_immutability(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_needs_return_inference(void* l0) {
+static bool vader_typecheck_needs_return_inference(void* l0) {
     bool l1;
     bool t0;
     t0 = ((vader_struct_toolchain_ast_FnDecl_t*) l0)->f_is_expression_bodied;
@@ -21796,7 +22291,7 @@ bool vader_typecheck_needs_return_inference(void* l0) {
     return l1;
 }
 
-void* vader_typecheck_new_fn_context(vader_box_t l0, vader_box_t l1) {
+static void* vader_typecheck_new_fn_context(vader_box_t l0, vader_box_t l1) {
     void* t0 = NULL;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     void** gc_raw_roots[1] = { &t0 };
@@ -21849,7 +22344,7 @@ void* vader_typecheck_new_substitution(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_new_typed_program(void* l0) {
+static void* vader_typecheck_new_typed_program(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -22689,7 +23184,7 @@ void* vader_typecheck_new_typed_project(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_nominal_eq(int32_t l0, void* l1, int32_t l2, void* l3) {
+static bool vader_typecheck_nominal_eq(int32_t l0, void* l1, int32_t l2, void* l3) {
     bool t0;
     if (l0 != l2) {
         return false;
@@ -22698,7 +23193,7 @@ bool vader_typecheck_nominal_eq(int32_t l0, void* l1, int32_t l2, void* l3) {
     return t0;
 }
 
-vader_box_t vader_typecheck_normalize_call_args(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_normalize_call_args(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l8 = NULL;
     void* l10 = NULL;
@@ -22812,7 +23307,7 @@ vader_box_t vader_typecheck_normalize_call_args(void* l0, void* l1, void* l2) {
                             l15 = ((vader_struct_toolchain_ast_CallArg_t*) l10)->f_span;
                             l16 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(50));
                             l17 = (size_t) (int64_t) INT64_C(0);
-                            l17 = std_core_write_string_at(l16, l17, 2065u);
+                            l17 = std_core_write_string_at(l16, l17, 2066u);
                             t4 = ((vader_array_t*) l0)->length;
                             t3 = ((int64_t) (size_t) t4);
                             l18 = (uint64_t) (int64_t) t3;
@@ -22935,11 +23430,11 @@ vader_box_t vader_typecheck_normalize_call_args(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_not_decidable(vader_box_t l0) {
+static bool vader_typecheck_not_decidable(vader_box_t l0) {
     return (l0.tag == 933u || l0.tag == 934u || l0.tag == 936u);
 }
 
-vader_box_t vader_typecheck_numeric_propagation(uint8_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_numeric_propagation(uint8_t l0, vader_box_t l1) {
     uint8_t l2;
     int32_t l3, l4;
     bool l5;
@@ -23111,7 +23606,7 @@ vader_box_t vader_typecheck_numeric_propagation(uint8_t l0, vader_box_t l1) {
     vader_unreachable("unreachable return in vader_typecheck$numeric_propagation");
 }
 
-vader_box_t vader_typecheck_numeric_result(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static vader_box_t vader_typecheck_numeric_result(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
     bool l4;
     void* l5 = NULL;
     void* l9 = NULL;
@@ -23270,7 +23765,7 @@ vader_box_t vader_typecheck_numeric_result(void* l0, vader_box_t l1, vader_box_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_op_expected_ctx(uint8_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_op_expected_ctx(uint8_t l0, vader_box_t l1) {
     uint8_t l2;
     vader_box_t t0;
     void* t1;
@@ -23417,7 +23912,7 @@ vader_box_t vader_typecheck_op_expected_ctx(uint8_t l0, vader_box_t l1) {
     vader_unreachable("unreachable return in vader_typecheck$op_expected_ctx");
 }
 
-vader_box_t vader_typecheck_opt_or_void(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_opt_or_void(vader_box_t l0, void* l1, void* l2) {
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l0, &t1 };
@@ -23427,7 +23922,7 @@ vader_box_t vader_typecheck_opt_or_void(vader_box_t l0, void* l1, void* l2) {
     if (l0.tag == 0u) {
         vader_struct_vader_types_PrimitiveType_t* _a0_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a0_obj, 928u);
-        _a0_obj->f_name = 2292u;
+        _a0_obj->f_name = 2293u;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -23436,7 +23931,7 @@ vader_box_t vader_typecheck_opt_or_void(vader_box_t l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_overload_params_matching(vader_string_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_overload_params_matching(vader_string_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l7 = NULL;
     void* l8 = NULL;
@@ -23522,7 +24017,7 @@ vader_box_t vader_typecheck_overload_params_matching(vader_string_t l0, void* l1
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_typecheck_overload_specificity(vader_box_t l0, vader_box_t l1) {
+static int32_t vader_typecheck_overload_specificity(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l8 = NULL;
@@ -23605,7 +24100,7 @@ int32_t vader_typecheck_overload_specificity(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_pad_trait_default_args(void* l0, void* l1, void* l2) {
+static void* vader_typecheck_pad_trait_default_args(void* l0, void* l1, void* l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void* l8 = NULL;
@@ -23656,7 +24151,7 @@ void* vader_typecheck_pad_trait_default_args(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-ptrdiff_t vader_typecheck_param_index_by_name(void* l0, vader_string_t l1) {
+static ptrdiff_t vader_typecheck_param_index_by_name(void* l0, vader_string_t l1) {
     size_t l2, l3;
     void* t0;
     vader_string_t t1;
@@ -23684,7 +24179,7 @@ ptrdiff_t vader_typecheck_param_index_by_name(void* l0, vader_string_t l1) {
     return (ptrdiff_t) (int64_t) -(INT64_C(1));
 }
 
-bool vader_typecheck_param_mutable_at(void* l0, size_t l1) {
+static bool vader_typecheck_param_mutable_at(void* l0, size_t l1) {
     size_t l2;
     vader_box_t t0;
     bool t1;
@@ -23700,7 +24195,7 @@ bool vader_typecheck_param_mutable_at(void* l0, size_t l1) {
     return t1;
 }
 
-vader_box_t vader_typecheck_param_type(void* l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_param_type(void* l0, vader_box_t l1, void* l2, void* l3) {
     bool l4;
     vader_box_t l5 = vader_box_null(), l7 = vader_box_null();
     void* l6 = NULL;
@@ -23733,7 +24228,7 @@ vader_box_t vader_typecheck_param_type(void* l0, vader_box_t l1, void* l2, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_params_mutable_of(void* l0) {
+static void* vader_typecheck_params_mutable_of(void* l0) {
     bool l1, l6;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -23782,7 +24277,7 @@ void* vader_typecheck_params_mutable_of(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_typecheck_parse_tuple_index(vader_string_t l0) {
+static int32_t vader_typecheck_parse_tuple_index(vader_string_t l0) {
     size_t l1, l3;
     int32_t l2, l6, l7;
     uint8_t l4;
@@ -23822,7 +24317,7 @@ int32_t vader_typecheck_parse_tuple_index(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_patch_fn_return_type(void* l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_patch_fn_return_type(void* l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l7 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -23866,7 +24361,7 @@ void vader_typecheck_patch_fn_return_type(void* l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_path_name(vader_box_t l0, vader_string_t l1) {
+static vader_string_t vader_typecheck_path_name(vader_box_t l0, vader_string_t l1) {
     void* l2 = NULL;
     vader_string_t l3, l4;
     vader_string_t t0;
@@ -23891,7 +24386,7 @@ vader_string_t vader_typecheck_path_name(vader_box_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pattern_type_of(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_pattern_type_of(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     vader_box_t l5 = vader_box_null(), l6 = vader_box_null();
@@ -23914,7 +24409,7 @@ vader_box_t vader_typecheck_pattern_type_of(vader_box_t l0, vader_box_t l1, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_bound_or_default(vader_box_t l0) {
+static vader_box_t vader_typecheck_pick_bound_or_default(vader_box_t l0) {
     void* l1 = NULL;
     vader_box_t t0 = vader_box_null();
     vader_string_t t1;
@@ -23950,7 +24445,7 @@ vader_box_t vader_typecheck_pick_bound_or_default(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_ctx_return(vader_box_t l0) {
+static vader_box_t vader_typecheck_pick_ctx_return(vader_box_t l0) {
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &t0 };
@@ -23966,7 +24461,7 @@ vader_box_t vader_typecheck_pick_ctx_return(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_field_vs_null(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_pick_field_vs_null(vader_box_t l0, vader_box_t l1) {
     void* t0;
     vader_box_t t1;
     if (l0.tag == 426u) {
@@ -23997,7 +24492,7 @@ vader_box_t vader_typecheck_pick_field_vs_null(vader_box_t l0, vader_box_t l1) {
     return t1;
 }
 
-vader_box_t vader_typecheck_pick_final_return(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_pick_final_return(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     bool l4;
     vader_box_t t0 = vader_box_null();
@@ -24037,7 +24532,7 @@ vader_box_t vader_typecheck_pick_final_return(vader_box_t l0, vader_box_t l1, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_ident_vs_null(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_pick_ident_vs_null(vader_box_t l0, vader_box_t l1) {
     bool l2;
     void* t0;
     vader_box_t t1;
@@ -24063,7 +24558,7 @@ vader_box_t vader_typecheck_pick_ident_vs_null(vader_box_t l0, vader_box_t l1) {
     return t1;
 }
 
-vader_box_t vader_typecheck_pick_overload(void* l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_pick_overload(void* l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l14 = NULL;
     void* l16 = NULL;
@@ -24328,7 +24823,7 @@ vader_box_t vader_typecheck_pick_overload(void* l0, vader_box_t l1, void* l2, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_return(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_pick_return(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
     vader_box_t* gc_roots[3] = { &l0, &l1, &t0 };
@@ -24348,7 +24843,7 @@ vader_box_t vader_typecheck_pick_return(vader_box_t l0, vader_box_t l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_pick_seq_variant(void* l0, size_t l1) {
+static vader_box_t vader_typecheck_pick_seq_variant(void* l0, size_t l1) {
     void* l2;
     size_t l3, l4, l6;
     vader_box_t l5;
@@ -24411,7 +24906,7 @@ vader_box_t vader_typecheck_pick_seq_variant(void* l0, size_t l1) {
     return t3;
 }
 
-vader_box_t vader_typecheck_pick_tuple_variant(vader_box_t l0, size_t l1) {
+static vader_box_t vader_typecheck_pick_tuple_variant(vader_box_t l0, size_t l1) {
     void* l2;
     void* l6;
     size_t l3, l4, l7;
@@ -24467,7 +24962,7 @@ vader_box_t vader_typecheck_pick_tuple_variant(vader_box_t l0, size_t l1) {
     return t1;
 }
 
-void vader_typecheck_pop_field_narrow(void* l0, vader_string_t l1, vader_box_t l2) {
+static void vader_typecheck_pop_field_narrow(void* l0, vader_string_t l1, vader_box_t l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -24485,7 +24980,7 @@ void vader_typecheck_pop_field_narrow(void* l0, vader_string_t l1, vader_box_t l
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_pop_narrow(void* l0, int32_t l1, vader_box_t l2) {
+static void vader_typecheck_pop_narrow(void* l0, int32_t l1, vader_box_t l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -24503,7 +24998,7 @@ void vader_typecheck_pop_narrow(void* l0, int32_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_pop_then_narrows(void* l0, void* l1) {
+static void vader_typecheck_pop_then_narrows(void* l0, void* l1) {
     size_t l2, l3, l4;
     void* l5 = NULL;
     int32_t l6;
@@ -24549,7 +25044,7 @@ void vader_typecheck_pop_then_narrows(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_baked_symbols(void* l0, void* l1, void* l2) {
+static void vader_typecheck_populate_baked_symbols(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -24663,7 +25158,7 @@ void vader_typecheck_populate_baked_symbols(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_core_symbols(void* l0, void* l1, void* l2) {
+static void vader_typecheck_populate_core_symbols(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l6 = NULL;
@@ -24746,7 +25241,7 @@ void vader_typecheck_populate_core_symbols(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_core_symbols_into(void* l0, void* l1, vader_box_t l2) {
+static void vader_typecheck_populate_core_symbols_into(void* l0, void* l1, vader_box_t l2) {
     vader_box_t l3 = vader_box_null(), l13 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -24829,7 +25324,7 @@ void vader_typecheck_populate_core_symbols_into(void* l0, void* l1, vader_box_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_external_types(void* l0, void* l1, void* l2) {
+static void vader_typecheck_populate_external_types(void* l0, void* l1, void* l2) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -24841,7 +25336,7 @@ void vader_typecheck_populate_external_types(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_from(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_populate_from(void* l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -24946,7 +25441,7 @@ void vader_typecheck_populate_from(void* l0, void* l1, void* l2, void* l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_imported_fn_overloads(void* l0, void* l1, void* l2) {
+static void vader_typecheck_populate_imported_fn_overloads(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l18 = vader_box_null(), l20 = vader_box_null();
     void* l4 = NULL;
     void* l7 = NULL;
@@ -24968,7 +25463,7 @@ void vader_typecheck_populate_imported_fn_overloads(void* l0, void* l1, void* l2
     void** gc_raw_roots[15] = { &l0, &l1, &l2, &l4, &l7, &l9, &l10, &l11, &l12, &l13, &l14, &l19, &l21, &l22, &l23 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 15u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l3 = std_collections_get__string__Any(l2, 1916u);
+    l3 = std_collections_get__string__Any(l2, 1917u);
     l4 = l1;
     l5 = ((vader_array_t*) l4)->length;
     l6 = (size_t) (int64_t) INT64_C(0);
@@ -25053,7 +25548,7 @@ void vader_typecheck_populate_imported_fn_overloads(void* l0, void* l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_resolver_imports(void* l0) {
+static void vader_typecheck_populate_resolver_imports(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -25107,7 +25602,7 @@ void vader_typecheck_populate_resolver_imports(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_populate_resolver_imports_for_others(void* l0, void* l1, void* l2) {
+static void vader_typecheck_populate_resolver_imports_for_others(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -25222,7 +25717,7 @@ void vader_typecheck_populate_resolver_imports_for_others(void* l0, void* l1, vo
     vader_gc_top = gc_frame.prev;
 }
 
-int64_t vader_typecheck_pow2_i64(int64_t l0) {
+static int64_t vader_typecheck_pow2_i64(int64_t l0) {
     int64_t l1, l2;
     l1 = INT64_C(1);
     l2 = INT64_C(0);
@@ -25239,7 +25734,7 @@ int64_t vader_typecheck_pow2_i64(int64_t l0) {
     return l1;
 }
 
-void vader_typecheck_prepopulate_namespace_member_types(void* l0, void* l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_prepopulate_namespace_member_types(void* l0, void* l1, void* l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l7 = NULL;
     void* l8 = NULL;
@@ -25303,7 +25798,7 @@ void vader_typecheck_prepopulate_namespace_member_types(void* l0, void* l1, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_primary_overload_ft(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_primary_overload_ft(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     uint64_t l3;
     vader_box_t l4 = vader_box_null();
@@ -25385,7 +25880,7 @@ vader_box_t vader_typecheck_primitive_from_name(vader_string_t l0) {
         t1 = vader_types_mk_primitive(l0);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2081u) {
+    if (l0 == 2082u) {
         vader_struct_vader_types_TypeMetaType_t* _a0_obj = (vader_struct_vader_types_TypeMetaType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_TypeMetaType_t));
         vader_obj_header_init(_a0_obj, 933u);
         t2 = (void*) _a0_obj;
@@ -25407,7 +25902,7 @@ vader_box_t vader_typecheck_primitive_from_name(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_producer_hint_for(void* l0, void* l1) {
+static vader_string_t vader_typecheck_producer_hint_for(void* l0, void* l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     int32_t l3;
@@ -25446,7 +25941,7 @@ vader_string_t vader_typecheck_producer_hint_for(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_pull_referenced_external_types(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_pull_referenced_external_types(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     size_t l4, l5;
@@ -25584,7 +26079,7 @@ void vader_typecheck_pull_referenced_external_types(vader_box_t l0, void* l1, vo
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_divergent_narrow_if(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_push_divergent_narrow_if(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     vader_box_t l4 = vader_box_null();
@@ -25652,7 +26147,7 @@ void vader_typecheck_push_divergent_narrow_if(vader_box_t l0, void* l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_push_field_narrow(void* l0, vader_string_t l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_push_field_narrow(void* l0, vader_string_t l1, vader_box_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l6 = NULL;
@@ -25674,7 +26169,7 @@ vader_box_t vader_typecheck_push_field_narrow(void* l0, vader_string_t l1, vader
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_push_immutability_diag_at(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_box_t l4, void* l5) {
+static bool vader_typecheck_push_immutability_diag_at(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_box_t l4, void* l5) {
     vader_string_t l6;
     void* l7 = NULL;
     vader_box_t* gc_roots[1] = { &l4 };
@@ -25692,7 +26187,7 @@ bool vader_typecheck_push_immutability_diag_at(bool l0, uint8_t l1, void* l2, va
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_push_immutability_diag_hinted(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_string_t l4, void* l5) {
+static bool vader_typecheck_push_immutability_diag_hinted(bool l0, uint8_t l1, void* l2, vader_string_t l3, vader_string_t l4, void* l5) {
     vader_string_t l6;
     void* l7 = NULL;
     void** gc_raw_roots[3] = { &l2, &l5, &l7 };
@@ -25708,18 +26203,18 @@ bool vader_typecheck_push_immutability_diag_hinted(bool l0, uint8_t l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_push_immutable_path_write(bool l0, void* l1, vader_box_t l2, void* l3) {
+static bool vader_typecheck_push_immutable_path_write(bool l0, void* l1, vader_box_t l2, void* l3) {
     bool t0;
     vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[2] = { &l1, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_typecheck_push_immutability_diag_at(l0, (uint8_t) (int32_t) INT32_C(59), l1, 2059u, l2, l3);
+    t0 = vader_typecheck_push_immutability_diag_at(l0, (uint8_t) (int32_t) INT32_C(59), l1, 2060u, l2, l3);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_module_exported_fns(void* l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_push_module_exported_fns(void* l0, void* l1, void* l2, void* l3) {
     vader_string_t l4, l5;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -25874,7 +26369,7 @@ void vader_typecheck_push_module_exported_fns(void* l0, void* l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_push_narrow(void* l0, int32_t l1, vader_box_t l2) {
+static vader_box_t vader_typecheck_push_narrow(void* l0, int32_t l1, vader_box_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l6 = NULL;
@@ -25896,7 +26391,7 @@ vader_box_t vader_typecheck_push_narrow(void* l0, int32_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_op_undefined(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
+static void vader_typecheck_push_op_undefined(void* l0, vader_box_t l1, vader_box_t l2, void* l3) {
     bool l4;
     void* l5 = NULL;
     vader_string_t l6, l7;
@@ -25922,7 +26417,7 @@ void vader_typecheck_push_op_undefined(void* l0, vader_box_t l1, vader_box_t l2,
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_op_undefined_1(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
+static void vader_typecheck_push_op_undefined_1(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
     void* l4 = NULL;
     vader_string_t l5;
     vader_box_t* gc_roots[1] = { &l1 };
@@ -25931,14 +26426,14 @@ void vader_typecheck_push_op_undefined_1(void* l0, vader_box_t l1, vader_string_
     vader_gc_top = &gc_frame;
     l4 = ((vader_struct_toolchain_ast_UnaryExpr_t*) l0)->f_span;
     l5 = vader_types_display_type(l1);
-    l5 = concat_4(2168u, l2, 937u, l5);
+    l5 = concat_4(2169u, l2, 937u, l5);
     l4 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(14), l4, l5);
     vader_array_push((vader_array_t*) l3, vader_ref_box(l4));
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_overload(void* l0, vader_string_t l1, void* l2) {
+static void vader_typecheck_push_overload(void* l0, vader_string_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l7 = NULL;
@@ -25999,7 +26494,7 @@ void vader_typecheck_push_overload(void* l0, vader_string_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_renamed_imports(void* l0) {
+static void vader_typecheck_push_renamed_imports(void* l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -26085,7 +26580,7 @@ void vader_typecheck_push_renamed_imports(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_push_then_narrows(void* l0, void* l1) {
+static void* vader_typecheck_push_then_narrows(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
@@ -26152,7 +26647,7 @@ void* vader_typecheck_push_then_narrows(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_push_trait_missing(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
+static void vader_typecheck_push_trait_missing(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
     void* l4 = NULL;
     vader_string_t l5;
     vader_box_t* gc_roots[1] = { &l1 };
@@ -26171,7 +26666,7 @@ void vader_typecheck_push_trait_missing(void* l0, vader_box_t l1, vader_string_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_readonly_children(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_readonly_children(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     void* l8 = NULL;
@@ -26241,7 +26736,7 @@ vader_box_t vader_typecheck_readonly_children(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_receiver_fits_first_param(vader_box_t l0, vader_box_t l1, void* l2) {
+static bool vader_typecheck_receiver_fits_first_param(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
     void* l5 = NULL;
     bool t0;
@@ -26275,7 +26770,7 @@ bool vader_typecheck_receiver_fits_first_param(vader_box_t l0, vader_box_t l1, v
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_empty_array_init(void* l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_record_empty_array_init(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     uint64_t l4;
     size_t l5;
@@ -26303,7 +26798,7 @@ void vader_typecheck_record_empty_array_init(void* l0, vader_box_t l1, void* l2)
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_expr(void* l0, vader_box_t l1, vader_box_t l2) {
+static void vader_typecheck_record_expr(void* l0, vader_box_t l1, vader_box_t l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     size_t l4;
@@ -26337,7 +26832,7 @@ void vader_typecheck_record_expr(void* l0, vader_box_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_impl_trait(void* l0, vader_string_t l1, vader_string_t l2) {
+static void vader_typecheck_record_impl_trait(void* l0, vader_string_t l1, vader_string_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -26346,7 +26841,7 @@ void vader_typecheck_record_impl_trait(void* l0, vader_string_t l1, vader_string
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_local_producer(void* l0, void* l1) {
+static void vader_typecheck_record_local_producer(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l7 = NULL;
@@ -26405,7 +26900,7 @@ void vader_typecheck_record_local_producer(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_struct_trait(void* l0, vader_box_t l1, vader_string_t l2) {
+static void vader_typecheck_record_struct_trait(void* l0, vader_box_t l1, vader_string_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     int32_t l5;
@@ -26432,7 +26927,7 @@ void vader_typecheck_record_struct_trait(void* l0, vader_box_t l1, vader_string_
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_record_struct_trait_args(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
+static void vader_typecheck_record_struct_trait_args(void* l0, vader_box_t l1, vader_string_t l2, void* l3) {
     vader_string_t l4;
     vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
@@ -26474,7 +26969,7 @@ void vader_typecheck_record_struct_trait_args(void* l0, vader_box_t l1, vader_st
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_redirect(void* l0, void* l1) {
+static void* vader_typecheck_redirect(void* l0, void* l1) {
     void* l2;
     vader_box_t t0;
     void* t1;
@@ -26487,7 +26982,7 @@ void* vader_typecheck_redirect(void* l0, void* l1) {
     return t1;
 }
 
-void* vader_typecheck_redirect_import(void* l0, void* l1) {
+static void* vader_typecheck_redirect_import(void* l0, void* l1) {
     void* l2;
     int32_t l3;
     vader_box_t l4;
@@ -26508,7 +27003,7 @@ void* vader_typecheck_redirect_import(void* l0, void* l1) {
     vader_unreachable("unreachable return in vader_typecheck$redirect_import");
 }
 
-void* vader_typecheck_redirect_import_typed(void* l0, void* l1) {
+static void* vader_typecheck_redirect_import_typed(void* l0, void* l1) {
     void* l2;
     vader_box_t t0;
     void* t1;
@@ -26521,7 +27016,7 @@ void* vader_typecheck_redirect_import_typed(void* l0, void* l1) {
     return t1;
 }
 
-bool vader_typecheck_register_alias_const(void* l0, void* l1) {
+static bool vader_typecheck_register_alias_const(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null(), l12 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -26577,7 +27072,7 @@ bool vader_typecheck_register_alias_const(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_aliases(void* l0, void* l1) {
+static void vader_typecheck_register_aliases(void* l0, void* l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     void* l8 = NULL;
@@ -26666,7 +27161,7 @@ void vader_typecheck_register_aliases(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_deprecated(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_register_deprecated(vader_box_t l0, void* l1, void* l2) {
     vader_string_t l3, l4;
     vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
@@ -26699,7 +27194,7 @@ void vader_typecheck_register_deprecated(vader_box_t l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_external(void* l0, void* l1, void* l2) {
+static void vader_typecheck_register_external(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     int32_t l4;
     vader_string_t l5, l6;
@@ -26741,7 +27236,7 @@ void vader_typecheck_register_external(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_generator_iter_impls(void* l0) {
+static void vader_typecheck_register_generator_iter_impls(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -26942,7 +27437,7 @@ void vader_typecheck_register_generator_iter_impls(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_impl_metadata(void* l0, void* l1, void* l2) {
+static void vader_typecheck_register_impl_metadata(void* l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l5 = vader_box_null(), l12 = vader_box_null(), l18 = vader_box_null(), l23 = vader_box_null(), l25 = vader_box_null();
     void* l4 = NULL;
     void* l8 = NULL;
@@ -27091,7 +27586,7 @@ void vader_typecheck_register_impl_metadata(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_register_refs(void* l0, vader_string_t l1, void* l2) {
+static void vader_typecheck_register_refs(void* l0, vader_string_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     size_t l5, l6;
@@ -27132,7 +27627,7 @@ void vader_typecheck_register_refs(void* l0, vader_string_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reject_immutable_into_mutable_param(void* l0, size_t l1, void* l2, void* l3, void* l4) {
+static void vader_typecheck_reject_immutable_into_mutable_param(void* l0, size_t l1, void* l2, void* l3, void* l4) {
     bool l5;
     void* l6 = NULL;
     vader_box_t l7 = vader_box_null();
@@ -27159,12 +27654,12 @@ void vader_typecheck_reject_immutable_into_mutable_param(void* l0, size_t l1, vo
     if ((size_t) l1 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l1);
     l7 = vader_typecheck_immutable_root_param(((vader_struct_toolchain_ast_CallArg_t*) t1)->f_value, l3);
-    vader_typecheck_push_immutability_diag_at(l5, (uint8_t) (int32_t) INT32_C(61), l6, 2057u, l7, l4);
+    vader_typecheck_push_immutability_diag_at(l5, (uint8_t) (int32_t) INT32_C(61), l6, 2058u, l7, l4);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reject_marker_in_is_test(vader_box_t l0, void* l1) {
+static void vader_typecheck_reject_marker_in_is_test(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     vader_string_t l3;
     bool t0;
@@ -27186,7 +27681,7 @@ void vader_typecheck_reject_marker_in_is_test(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reject_marker_on_value_type(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_reject_marker_on_value_type(vader_box_t l0, void* l1, void* l2) {
     vader_string_t l3;
     void* l4 = NULL;
     bool t0;
@@ -27206,7 +27701,7 @@ void vader_typecheck_reject_marker_on_value_type(vader_box_t l0, void* l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reject_mutable_module_const(vader_box_t l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_reject_mutable_module_const(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l11 = NULL;
     void* l13 = NULL;
@@ -27306,7 +27801,7 @@ void vader_typecheck_reject_mutable_module_const(vader_box_t l0, vader_box_t l1,
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reject_mutating_method_on_immutable(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
+static void vader_typecheck_reject_mutating_method_on_immutable(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
     bool l5;
     void* l6 = NULL;
     vader_string_t l7, l8, l9;
@@ -27342,7 +27837,7 @@ void vader_typecheck_reject_mutating_method_on_immutable(void* l0, void* l1, vad
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_removed_covers(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_removed_covers(vader_box_t l0, vader_box_t l1) {
     void* l2;
     size_t l3, l4;
     void* t0;
@@ -27378,7 +27873,7 @@ bool vader_typecheck_removed_covers(vader_box_t l0, vader_box_t l1) {
     return t2;
 }
 
-void vader_typecheck_repin_free_ufcs_receiver(vader_box_t l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_repin_free_ufcs_receiver(vader_box_t l0, void* l1, void* l2, void* l3) {
     bool l4;
     vader_box_t l5 = vader_box_null(), l8 = vader_box_null();
     void* l6 = NULL;
@@ -27417,7 +27912,7 @@ void vader_typecheck_repin_free_ufcs_receiver(vader_box_t l0, void* l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_repin_operand(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
+static vader_box_t vader_typecheck_repin_operand(vader_box_t l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4, void* l5) {
     vader_box_t t0 = vader_box_null();
     bool t1;
     vader_box_t* gc_roots[4] = { &l0, &l1, &l2, &t0 };
@@ -27435,7 +27930,7 @@ vader_box_t vader_typecheck_repin_operand(vader_box_t l0, vader_box_t l1, vader_
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_report_mixed_mutability(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_report_mixed_mutability(vader_box_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     vader_string_t l4, l5;
     void* l6 = NULL;
@@ -27460,7 +27955,7 @@ void vader_typecheck_report_mixed_mutability(vader_box_t l0, void* l1, void* l2)
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t l1, void* l2, void* l3) {
+static bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -27546,8 +28041,8 @@ bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t l1, voi
                 l20 = ((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_field_span;
                 l21 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l18)->f_name;
                 l22 = ((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_field;
-                l23 = vader_typecheck_path_name(((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_target, 2339u);
-                l24 = concat_7(2305u, l21, 396u, l22, 284u, l23, 347u);
+                l23 = vader_typecheck_path_name(((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_target, 2340u);
+                l24 = concat_7(2306u, l21, 396u, l22, 284u, l23, 347u);
                 l25 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(67), l20, l24);
                 vader_array_push((vader_array_t*) l3, vader_ref_box(l25));
                 { vader_gc_top = gc_frame.prev; return true; }
@@ -27558,7 +28053,7 @@ bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t l1, voi
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_report_private_leak(vader_box_t l0, void* l1, vader_string_t l2, vader_string_t l3, void* l4) {
+static void vader_typecheck_report_private_leak(vader_box_t l0, void* l1, vader_string_t l2, vader_string_t l3, void* l4) {
     void* l5 = NULL;
     vader_box_t l6 = vader_box_null();
     vader_string_t l7, l8;
@@ -27580,7 +28075,7 @@ void vader_typecheck_report_private_leak(vader_box_t l0, void* l1, vader_string_
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_report_unbound_type_args(void* l0, void* l1, void* l2, void* l3, vader_box_t l4, size_t l5, void* l6, void* l7) {
+static void vader_typecheck_report_unbound_type_args(void* l0, void* l1, void* l2, void* l3, vader_box_t l4, size_t l5, void* l6, void* l7) {
     size_t l8, l14, l15, l18, l22, l23, l24, l26, l27, l36;
     void* l9 = NULL;
     void* l16 = NULL;
@@ -28063,7 +28558,7 @@ void vader_typecheck_report_unbound_type_args(void* l0, void* l1, void* l2, void
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_repr_range(vader_string_t l0) {
+static void* vader_typecheck_repr_range(vader_string_t l0) {
     vader_box_t l1 = vader_box_null();
     int64_t l2, l3, l4;
     void* t0 = NULL;
@@ -28141,7 +28636,7 @@ void* vader_typecheck_repr_range(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_reset_expr_tables(void* l0) {
+static void vader_typecheck_reset_expr_tables(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -28305,7 +28800,7 @@ void vader_typecheck_reset_expr_tables(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_ctx(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_resolve_ctx(vader_box_t l0, void* l1) {
     void* t0;
     if (!(l0.tag == 0u)) {
         t0 = l0.payload.obj;
@@ -28314,7 +28809,7 @@ vader_box_t vader_typecheck_resolve_ctx(vader_box_t l0, void* l1) {
     return ((vader_struct_vader_typecheck_TypedProgram_t*) l1)->f_current_fn_ctx;
 }
 
-void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2) {
+static void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     void* l5 = NULL;
@@ -28424,7 +28919,7 @@ void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2
                         l32 = vader_import_0(l30);
                         l33 = std_core_new_byte_buffer((size_t) (int64_t) (l31 + l32));
                         l34 = (size_t) (int64_t) INT64_C(0);
-                        l35 = 2282u;
+                        l35 = 2283u;
                         l34 = std_core_write_string_at(l33, l34, l35);
                         l34 = std_core_write_int(l33, l34, l12);
                         l36 = 85u;
@@ -28485,7 +28980,7 @@ void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2
                         l32 = vader_import_0(l30);
                         l33 = std_core_new_byte_buffer((size_t) (int64_t) (l31 + l32));
                         l34 = (size_t) (int64_t) INT64_C(0);
-                        l35 = 2282u;
+                        l35 = 2283u;
                         l34 = std_core_write_string_at(l33, l34, l35);
                         l34 = std_core_write_int(l33, l34, l12);
                         l36 = 85u;
@@ -28516,7 +29011,7 @@ void* vader_typecheck_resolve_enum_indices(void* l0, vader_string_t l1, void* l2
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_field_chain_static(void* l0, void* l1) {
+static vader_box_t vader_typecheck_resolve_field_chain_static(void* l0, void* l1) {
     vader_string_t l2;
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
@@ -28552,7 +29047,7 @@ vader_box_t vader_typecheck_resolve_field_chain_static(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_index_param(void* l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_resolve_index_param(void* l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     int32_t l4;
@@ -28581,7 +29076,7 @@ vader_box_t vader_typecheck_resolve_index_param(void* l0, vader_box_t l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_loop_target(void* l0, vader_string_t l1) {
+static vader_box_t vader_typecheck_resolve_loop_target(void* l0, vader_string_t l1) {
     size_t l2;
     void* l3;
     vader_box_t l4, l6;
@@ -28628,7 +29123,7 @@ vader_box_t vader_typecheck_resolve_loop_target(void* l0, vader_string_t l1) {
     return t2;
 }
 
-vader_box_t vader_typecheck_resolve_named_type(void* l0, void* l1) {
+static vader_box_t vader_typecheck_resolve_named_type(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     int32_t l4;
@@ -28652,7 +29147,7 @@ vader_box_t vader_typecheck_resolve_named_type(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_resolve_repr(vader_box_t l0, void* l1, void* l2) {
+static vader_string_t vader_typecheck_resolve_repr(vader_box_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
@@ -28694,7 +29189,7 @@ vader_string_t vader_typecheck_resolve_repr(vader_box_t l0, void* l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_struct_field(vader_box_t l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_resolve_struct_field(vader_box_t l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l10 = vader_box_null(), l13 = vader_box_null();
     bool l5;
     vader_string_t l6, l7;
@@ -28796,7 +29291,7 @@ vader_box_t vader_typecheck_resolve_struct_field(vader_box_t l0, void* l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_struct_trait_args(vader_box_t l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_resolve_struct_trait_args(vader_box_t l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -28954,7 +29449,7 @@ vader_box_t vader_typecheck_resolve_struct_trait_args(vader_box_t l0, vader_stri
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolve_target(vader_string_t l0, void* l1) {
+static vader_box_t vader_typecheck_resolve_target(vader_string_t l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
     int32_t l4;
@@ -28984,7 +29479,7 @@ vader_box_t vader_typecheck_resolve_target(vader_string_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_resolved_field_type(int32_t l0, void* l1, vader_string_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_resolved_field_type(int32_t l0, void* l1, vader_string_t l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
     vader_box_t t0 = vader_box_null();
@@ -29002,7 +29497,7 @@ vader_box_t vader_typecheck_resolved_field_type(int32_t l0, void* l1, vader_stri
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_retire_field_chains_under(void* l0, vader_string_t l1) {
+static void vader_typecheck_retire_field_chains_under(void* l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -29068,7 +29563,7 @@ void vader_typecheck_retire_field_chains_under(void* l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_rooted_in_storageless_const(vader_box_t l0, void* l1) {
+static bool vader_typecheck_rooted_in_storageless_const(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     vader_box_t l3 = vader_box_null();
@@ -29095,7 +29590,7 @@ bool vader_typecheck_rooted_in_storageless_const(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_same_array_modulo_mutability(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_same_array_modulo_mutability(vader_box_t l0, vader_box_t l1) {
     void* l2;
     void* l3;
     bool l4, l5;
@@ -29120,7 +29615,7 @@ bool vader_typecheck_same_array_modulo_mutability(vader_box_t l0, vader_box_t l1
     return false;
 }
 
-bool vader_typecheck_same_written_shape(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_same_written_shape(vader_box_t l0, vader_box_t l1) {
     if (l0.tag == 399u) {
         return l1.tag == 919u;
     }
@@ -29130,7 +29625,7 @@ bool vader_typecheck_same_written_shape(vader_box_t l0, vader_box_t l1) {
     return (l1.tag == 920u || l1.tag == 921u || l1.tag == 928u || l1.tag == 930u || l1.tag == 931u);
 }
 
-bool vader_typecheck_satisfies_trait(vader_box_t l0, void* l1, void* l2) {
+static bool vader_typecheck_satisfies_trait(vader_box_t l0, void* l1, void* l2) {
     vader_string_t l3, l8;
     vader_box_t l4 = vader_box_null();
     void* l5 = NULL;
@@ -29175,7 +29670,7 @@ bool vader_typecheck_satisfies_trait(vader_box_t l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_scalar_castable(vader_box_t l0) {
+static bool vader_typecheck_scalar_castable(vader_box_t l0) {
     bool l1;
     bool t0;
     void* t1;
@@ -29197,7 +29692,7 @@ bool vader_typecheck_scalar_castable(vader_box_t l0) {
     return false;
 }
 
-void* vader_typecheck_scratch_diags(void) {
+static void* vader_typecheck_scratch_diags(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -29208,7 +29703,7 @@ void* vader_typecheck_scratch_diags(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_scrutinee_field_key(vader_box_t l0, void* l1) {
+static vader_string_t vader_typecheck_scrutinee_field_key(vader_box_t l0, void* l1) {
     void* t0 = NULL;
     vader_string_t t1;
     vader_box_t* gc_roots[1] = { &l0 };
@@ -29224,7 +29719,7 @@ vader_string_t vader_typecheck_scrutinee_field_key(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_scrutinee_narrow_base(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_scrutinee_narrow_base(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     uint64_t l3;
     vader_box_t l4 = vader_box_null();
@@ -29269,7 +29764,7 @@ vader_box_t vader_typecheck_scrutinee_narrow_base(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-int32_t vader_typecheck_scrutinee_sym_id(vader_box_t l0, void* l1) {
+static int32_t vader_typecheck_scrutinee_sym_id(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     uint64_t l3;
     vader_box_t l4 = vader_box_null();
@@ -29295,7 +29790,7 @@ int32_t vader_typecheck_scrutinee_sym_id(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_seed_explicit_type_args(vader_box_t l0, void* l1, void* l2, void* l3) {
+static void vader_typecheck_seed_explicit_type_args(vader_box_t l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -29360,7 +29855,7 @@ void vader_typecheck_seed_explicit_type_args(vader_box_t l0, void* l1, void* l2,
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_seed_ufcs_bindings(vader_box_t l0, void* l1, void* l2) {
+static void vader_typecheck_seed_ufcs_bindings(vader_box_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l6 = vader_box_null();
     void* l4 = NULL;
     size_t l5;
@@ -29394,7 +29889,7 @@ void vader_typecheck_seed_ufcs_bindings(vader_box_t l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_settle_external_expr_bodied_returns(void* l0, void* l1) {
+static void vader_typecheck_settle_external_expr_bodied_returns(void* l0, void* l1) {
     vader_string_t l2, l9, l12;
     int32_t l3;
     void* l4 = NULL;
@@ -29484,7 +29979,7 @@ void vader_typecheck_settle_external_expr_bodied_returns(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_span_of_value(void* l0) {
+static void* vader_typecheck_span_of_value(void* l0) {
     vader_box_t l1;
     void* t0;
     l1 = ((vader_struct_toolchain_ast_EnumVariant_t*) l0)->f_value_span;
@@ -29498,7 +29993,7 @@ void* vader_typecheck_span_of_value(void* l0) {
     vader_unreachable("unreachable return in vader_typecheck$span_of_value");
 }
 
-vader_string_t vader_typecheck_static_string_value(void* l0) {
+static vader_string_t vader_typecheck_static_string_value(void* l0) {
     vader_string_t l1, l6;
     void* l2 = NULL;
     size_t l3, l4;
@@ -29537,7 +30032,7 @@ vader_string_t vader_typecheck_static_string_value(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_stmt_has_await(vader_box_t l0) {
+static bool vader_typecheck_stmt_has_await(vader_box_t l0) {
     bool l1;
     vader_box_t l2;
     void* t0;
@@ -29586,7 +30081,7 @@ bool vader_typecheck_stmt_has_await(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_stmt_has_yield(vader_box_t l0) {
+static bool vader_typecheck_stmt_has_yield(vader_box_t l0) {
     vader_box_t l1;
     void* l2;
     void* t0;
@@ -29642,7 +30137,7 @@ bool vader_typecheck_stmt_has_yield(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$stmt_has_yield");
 }
 
-void* vader_typecheck_stmt_span(vader_box_t l0) {
+static void* vader_typecheck_stmt_span(vader_box_t l0) {
     void* t0;
     if (l0.tag == 447u) {
         t0 = l0.payload.obj;
@@ -29683,7 +30178,7 @@ void* vader_typecheck_stmt_span(vader_box_t l0) {
     vader_unreachable("unreachable return in vader_typecheck$stmt_span");
 }
 
-vader_box_t vader_typecheck_strip_mutability(vader_box_t l0) {
+static vader_box_t vader_typecheck_strip_mutability(vader_box_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -29747,7 +30242,7 @@ vader_box_t vader_typecheck_strip_mutability(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_strip_mutability_each(void* l0) {
+static void* vader_typecheck_strip_mutability_each(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     size_t l3, l4;
@@ -29783,7 +30278,7 @@ void* vader_typecheck_strip_mutability_each(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_struct_args_compatible(void* l0, void* l1) {
+static bool vader_typecheck_struct_args_compatible(void* l0, void* l1) {
     size_t l2, l3;
     vader_box_t l4, l5, l6, l7, l8, l9;
     bool t0;
@@ -29891,7 +30386,7 @@ bool vader_typecheck_struct_implements_trait(vader_box_t l0, vader_string_t l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_struct_mutability_widens(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_struct_mutability_widens(vader_box_t l0, vader_box_t l1) {
     void* l2;
     void* l3;
     int32_t l4, l5;
@@ -30055,7 +30550,7 @@ vader_box_t vader_typecheck_substitute(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_alias_args(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_substitute_alias_args(vader_box_t l0, void* l1, void* l2) {
     bool l3;
     size_t t0;
     vader_box_t t1 = vader_box_null();
@@ -30078,7 +30573,7 @@ vader_box_t vader_typecheck_substitute_alias_args(vader_box_t l0, void* l1, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_array_element(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_substitute_array_element(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -30431,7 +30926,7 @@ vader_box_t vader_typecheck_substitute_by_name(vader_box_t l0, void* l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_substitute_each(void* l0, void* l1) {
+static void* vader_typecheck_substitute_each(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -30467,7 +30962,7 @@ void* vader_typecheck_substitute_each(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_substitute_each_map(void* l0, void* l1) {
+static void* vader_typecheck_substitute_each_map(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -30503,7 +30998,7 @@ void* vader_typecheck_substitute_each_map(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_impl_method(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_substitute_impl_method(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l6 = NULL;
@@ -30541,7 +31036,7 @@ vader_box_t vader_typecheck_substitute_impl_method(vader_box_t l0, vader_box_t l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_map(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_substitute_map(vader_box_t l0, void* l1) {
     int32_t l2;
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
@@ -30611,7 +31106,7 @@ vader_box_t vader_typecheck_substitute_map(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_self(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_substitute_self(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -30746,7 +31241,7 @@ vader_box_t vader_typecheck_substitute_self(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_self_in(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_substitute_self_in(vader_box_t l0, vader_box_t l1) {
     bool l2;
     void* t0;
     if (l0.tag == 929u) {
@@ -30768,7 +31263,7 @@ vader_box_t vader_typecheck_substitute_self_in(vader_box_t l0, vader_box_t l1) {
     return l0;
 }
 
-vader_box_t vader_typecheck_substitute_struct_field(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_substitute_struct_field(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l4 = NULL;
     size_t t0;
@@ -30788,7 +31283,7 @@ vader_box_t vader_typecheck_substitute_struct_field(vader_box_t l0, void* l1, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_substitute_trait_typeparams(vader_box_t l0, void* l1, vader_string_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_substitute_trait_typeparams(vader_box_t l0, void* l1, vader_string_t l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
@@ -30857,7 +31352,7 @@ vader_box_t vader_typecheck_substitute_trait_typeparams(vader_box_t l0, void* l1
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_subtract_type(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_subtract_type(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -30927,7 +31422,7 @@ vader_box_t vader_typecheck_subtract_type(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_subtract_type_with_impls(vader_box_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_subtract_type_with_impls(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     vader_string_t l4;
     void* l5 = NULL;
@@ -31022,7 +31517,7 @@ vader_box_t vader_typecheck_subtract_type_with_impls(vader_box_t l0, vader_box_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_symbol_by_id(int32_t l0, void* l1) {
+static vader_box_t vader_typecheck_symbol_by_id(int32_t l0, void* l1) {
     void* l2;
     void* l5;
     size_t l3, l4;
@@ -31054,7 +31549,7 @@ vader_box_t vader_typecheck_symbol_by_id(int32_t l0, void* l1) {
     return t2;
 }
 
-void* vader_typecheck_synth_resolved(void) {
+static void* vader_typecheck_synth_resolved(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* l2 = NULL;
@@ -31265,7 +31760,7 @@ void* vader_typecheck_synth_resolved(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_then_is_divergent(void* l0, void* l1) {
+static bool vader_typecheck_then_is_divergent(void* l0, void* l1) {
     void* l2;
     size_t l3, l4, l5, l6, l7;
     void* t0;
@@ -31357,7 +31852,7 @@ bool vader_typecheck_try_array_to_iter(vader_box_t l0, vader_box_t l1) {
     return t4;
 }
 
-vader_box_t vader_typecheck_try_curry_receiver(void* l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_try_curry_receiver(void* l0, vader_box_t l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l10 = vader_box_null();
     void* l4 = NULL;
     void* l7 = NULL;
@@ -31496,7 +31991,7 @@ vader_box_t vader_typecheck_try_curry_receiver(void* l0, vader_box_t l1, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_default_trait_method(void* l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_try_default_trait_method(void* l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l9 = NULL;
     void* l12 = NULL;
@@ -31615,7 +32110,7 @@ vader_box_t vader_typecheck_try_default_trait_method(void* l0, vader_string_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_default_trait_method_dispatch(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_default_trait_method_dispatch(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     vader_string_t l4;
     vader_box_t t0 = vader_box_null();
@@ -31634,7 +32129,7 @@ vader_box_t vader_typecheck_try_default_trait_method_dispatch(vader_box_t l0, vo
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     vader_string_t l4, l5;
     vader_box_t t0 = vader_box_null();
@@ -31669,7 +32164,7 @@ vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, void* l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_free_fn_ufcs_dispatch(vader_box_t l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_try_free_fn_ufcs_dispatch(vader_box_t l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     vader_string_t l5, l6;
@@ -31717,7 +32212,7 @@ vader_box_t vader_typecheck_try_free_fn_ufcs_dispatch(vader_box_t l0, void* l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_free_fn_ufcs_with_first(vader_string_t l0, vader_box_t l1, vader_string_t l2, void* l3) {
+static vader_box_t vader_typecheck_try_free_fn_ufcs_with_first(vader_string_t l0, vader_box_t l1, vader_string_t l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l6 = vader_box_null(), l13 = vader_box_null(), l14 = vader_box_null(), l15 = vader_box_null(), l16 = vader_box_null(), l18 = vader_box_null();
     int32_t l5, l12, l17;
     void* l7 = NULL;
@@ -31863,7 +32358,7 @@ vader_box_t vader_typecheck_try_free_fn_ufcs_with_first(vader_string_t l0, vader
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_impl_method_ufcs(vader_box_t l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_try_impl_method_ufcs(vader_box_t l0, void* l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l8 = vader_box_null();
     void* l5 = NULL;
     vader_string_t l6, l7;
@@ -31915,7 +32410,7 @@ vader_box_t vader_typecheck_try_impl_method_ufcs(vader_box_t l0, void* l1, void*
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_try_into(vader_box_t l0, vader_box_t l1, void* l2, size_t l3) {
+static bool vader_typecheck_try_into(vader_box_t l0, vader_box_t l1, void* l2, size_t l3) {
     void* l4 = NULL;
     vader_string_t l5, l6;
     vader_box_t l7 = vader_box_null();
@@ -31967,7 +32462,7 @@ bool vader_typecheck_try_into(vader_box_t l0, vader_box_t l1, void* l2, size_t l
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_namespace_field(void* l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_namespace_field(void* l0, void* l1, void* l2) {
     vader_string_t l3;
     vader_box_t l4 = vader_box_null();
     void* l5 = NULL;
@@ -32026,7 +32521,7 @@ vader_box_t vader_typecheck_try_namespace_field(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_trait_method(void* l0, vader_string_t l1, void* l2) {
+static vader_box_t vader_typecheck_try_trait_method(void* l0, vader_string_t l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -32116,7 +32611,7 @@ vader_box_t vader_typecheck_try_trait_method(void* l0, vader_string_t l1, void* 
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_trait_method_dispatch(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_trait_method_dispatch(vader_box_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     vader_string_t l5;
@@ -32142,7 +32637,7 @@ vader_box_t vader_typecheck_try_trait_method_dispatch(vader_box_t l0, void* l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_try_trait_widen(vader_box_t l0, vader_box_t l1, void* l2) {
+static bool vader_typecheck_try_trait_widen(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     size_t l4, l5;
     vader_box_t l6 = vader_box_null();
@@ -32250,7 +32745,7 @@ bool vader_typecheck_try_trait_widen(vader_box_t l0, vader_box_t l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_tuple_index_dispatch(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_tuple_index_dispatch(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l8 = NULL;
     vader_box_t l4 = vader_box_null();
@@ -32300,7 +32795,7 @@ vader_box_t vader_typecheck_try_tuple_index_dispatch(vader_box_t l0, void* l1, v
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_typeparam_bound_method(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_try_typeparam_bound_method(vader_box_t l0, void* l1, void* l2) {
     vader_box_t l3 = vader_box_null(), l9 = vader_box_null();
     void* l4 = NULL;
     void* l8 = NULL;
@@ -32359,7 +32854,7 @@ vader_box_t vader_typecheck_try_typeparam_bound_method(vader_box_t l0, void* l1,
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_try_union_common_field_dispatch(vader_box_t l0, void* l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_try_union_common_field_dispatch(vader_box_t l0, void* l1, void* l2, void* l3) {
     void* l4 = NULL;
     vader_string_t l5;
     vader_box_t t0 = vader_box_null();
@@ -32483,7 +32978,7 @@ bool vader_typecheck_type_contains_type_param(vader_box_t l0) {
     return false;
 }
 
-bool vader_typecheck_type_contains_unresolved(vader_box_t l0) {
+static bool vader_typecheck_type_contains_unresolved(vader_box_t l0) {
     void* l1;
     void* l4;
     size_t l2, l3;
@@ -32633,7 +33128,7 @@ bool vader_typecheck_type_contains_unresolved(vader_box_t l0) {
     return false;
 }
 
-vader_box_t vader_typecheck_type_for_result(vader_string_t l0, void* l1) {
+static vader_box_t vader_typecheck_type_for_result(vader_string_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -32643,8 +33138,8 @@ vader_box_t vader_typecheck_type_for_result(vader_string_t l0, void* l1) {
     void** gc_raw_roots[4] = { &l1, &l3, &l4, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if (l0 == 2202u) {
-        t0 = vader_types_mk_primitive(2202u);
+    if (l0 == 2203u) {
+        t0 = vader_types_mk_primitive(2203u);
         { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == 1178u) {
@@ -32654,20 +33149,20 @@ vader_box_t vader_typecheck_type_for_result(vader_string_t l0, void* l1) {
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2008u) {
+    if (l0 == 2009u) {
         vader_struct_vader_types_PrimitiveType_t* _a1_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a1_obj, 928u);
-        _a1_obj->f_name = 2008u;
+        _a1_obj->f_name = 2009u;
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2081u) {
+    if (l0 == 2082u) {
         vader_struct_vader_types_TypeMetaType_t* _a2_obj = (vader_struct_vader_types_TypeMetaType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_TypeMetaType_t));
         vader_obj_header_init(_a2_obj, 933u);
         t1 = (void*) _a2_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2095u) {
+    if (l0 == 2096u) {
         vader_struct_vader_types_TypeMetaType_t* _a3_obj = (vader_struct_vader_types_TypeMetaType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_TypeMetaType_t));
         vader_obj_header_init(_a3_obj, 933u);
         t1 = (void*) _a3_obj;
@@ -32885,7 +33380,7 @@ vader_box_t vader_typecheck_type_from_expr(vader_box_t l0, void* l1, void* l2) {
     }
     t2 = l0.payload.obj;
     l3 = ((vader_struct_toolchain_ast_AwaitExpr_t*) t2)->f_span;
-    l3 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(1), l3, 2283u);
+    l3 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(1), l3, 2284u);
     vader_array_push((vader_array_t*) l2, vader_ref_box(l3));
     vader_struct_vader_types_UnresolvedType_t* _a11_obj = (vader_struct_vader_types_UnresolvedType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_UnresolvedType_t));
     vader_obj_header_init(_a11_obj, 936u);
@@ -32894,7 +33389,7 @@ vader_box_t vader_typecheck_type_from_expr(vader_box_t l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_type_from_expr_opt_in(vader_box_t l0, void* l1) {
+static vader_box_t vader_typecheck_type_from_expr_opt_in(vader_box_t l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* t0 = NULL;
@@ -32906,7 +33401,7 @@ vader_box_t vader_typecheck_type_from_expr_opt_in(vader_box_t l0, void* l1) {
     if (l0.tag == 0u) {
         vader_struct_vader_types_PrimitiveType_t* _a0_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
         vader_obj_header_init(_a0_obj, 928u);
-        _a0_obj->f_name = 2292u;
+        _a0_obj->f_name = 2293u;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -32918,7 +33413,7 @@ vader_box_t vader_typecheck_type_from_expr_opt_in(vader_box_t l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_type_from_symbol(void* l0, void* l1) {
+static vader_box_t vader_typecheck_type_from_symbol(void* l0, void* l1) {
     int32_t l2;
     vader_box_t l3 = vader_box_null();
     vader_string_t t0;
@@ -33004,7 +33499,7 @@ bool vader_typecheck_type_list_equals(void* l0, void* l1) {
     return true;
 }
 
-vader_box_t vader_typecheck_type_of_symbol(void* l0, void* l1) {
+static vader_box_t vader_typecheck_type_of_symbol(void* l0, void* l1) {
     int32_t l2;
     void* l3 = NULL;
     vader_box_t t0 = vader_box_null();
@@ -33110,7 +33605,7 @@ vader_box_t vader_typecheck_type_to_target_symbol(vader_box_t l0) {
     return t1;
 }
 
-bool vader_typecheck_types_overlap(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_types_overlap(vader_box_t l0, vader_box_t l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     size_t l4, l5;
@@ -33176,7 +33671,7 @@ bool vader_typecheck_types_overlap(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_ufcs_generator_symbol(vader_string_t l0, vader_box_t l1, void* l2) {
+static vader_box_t vader_typecheck_ufcs_generator_symbol(vader_string_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     vader_box_t l4 = vader_box_null();
     vader_box_t t0 = vader_box_null();
@@ -33200,7 +33695,7 @@ vader_box_t vader_typecheck_ufcs_generator_symbol(vader_string_t l0, vader_box_t
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_ufcs_method_params(vader_string_t l0, vader_box_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_ufcs_method_params(vader_string_t l0, vader_box_t l1, void* l2, void* l3) {
     vader_box_t l4 = vader_box_null(), l16 = vader_box_null(), l19 = vader_box_null();
     void* l5 = NULL;
     void* l8 = NULL;
@@ -33309,7 +33804,7 @@ vader_box_t vader_typecheck_ufcs_method_params(vader_string_t l0, vader_box_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_ufcs_method_type(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
+static vader_box_t vader_typecheck_ufcs_method_type(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l8 = NULL;
     size_t l6, l7;
@@ -33359,7 +33854,7 @@ vader_box_t vader_typecheck_ufcs_method_type(void* l0, vader_box_t l1, vader_box
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_ufcs_name_has_candidates(vader_string_t l0, vader_string_t l1, void* l2) {
+static bool vader_typecheck_ufcs_name_has_candidates(vader_string_t l0, vader_string_t l1, void* l2) {
     vader_box_t l3 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
@@ -33381,7 +33876,7 @@ bool vader_typecheck_ufcs_name_has_candidates(vader_string_t l0, vader_string_t 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_unify_args(void* l0, void* l1, void* l2) {
+static void vader_typecheck_unify_args(void* l0, void* l1, void* l2) {
     size_t l3, l4;
     vader_box_t l5 = vader_box_null(), l6 = vader_box_null();
     int64_t t0;
@@ -33416,7 +33911,7 @@ void vader_typecheck_unify_args(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_unify_struct_to_trait_args(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
+static void vader_typecheck_unify_struct_to_trait_args(vader_box_t l0, vader_box_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     vader_string_t l5;
     vader_box_t l6 = vader_box_null(), l9 = vader_box_null();
@@ -33466,7 +33961,7 @@ void vader_typecheck_unify_struct_to_trait_args(vader_box_t l0, vader_box_t l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_unify_type_param(vader_box_t l0, vader_box_t l1, void* l2) {
+static void vader_typecheck_unify_type_param(vader_box_t l0, vader_box_t l1, void* l2) {
     void* l3 = NULL;
     void* l15 = NULL;
     void* l18 = NULL;
@@ -33720,7 +34215,7 @@ void vader_typecheck_unify_type_param(vader_box_t l0, vader_box_t l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_unify_unions(void* l0, void* l1, void* l2) {
+static void vader_typecheck_unify_unions(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
@@ -33833,7 +34328,7 @@ void vader_typecheck_unify_unions(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_union_common_field(void* l0, vader_string_t l1, void* l2, void* l3) {
+static vader_box_t vader_typecheck_union_common_field(void* l0, vader_string_t l1, void* l2, void* l3) {
     void* l4 = NULL;
     void* l5 = NULL;
     void* l9 = NULL;
@@ -33898,7 +34393,7 @@ vader_box_t vader_typecheck_union_common_field(void* l0, vader_string_t l1, void
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_union_member_for_free(vader_box_t l0, vader_box_t l1) {
+static vader_box_t vader_typecheck_union_member_for_free(vader_box_t l0, vader_box_t l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     size_t l4, l5;
@@ -33945,7 +34440,7 @@ vader_box_t vader_typecheck_union_member_for_free(vader_box_t l0, vader_box_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_union_mixed_mutability(vader_box_t l0) {
+static vader_box_t vader_typecheck_union_mixed_mutability(vader_box_t l0) {
     void* l1;
     size_t l2, l3, l4, l5;
     vader_box_t l6, l7;
@@ -34061,7 +34556,7 @@ vader_box_t vader_typecheck_union_of(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_union_variants(vader_box_t l0) {
+static vader_box_t vader_typecheck_union_variants(vader_box_t l0) {
     void* t0;
     vader_box_t t1;
     if (l0.tag == 935u) {
@@ -34072,7 +34567,7 @@ vader_box_t vader_typecheck_union_variants(vader_box_t l0) {
     return t1;
 }
 
-void vader_typecheck_validate_extern(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
+static void vader_typecheck_validate_extern(void* l0, void* l1, vader_box_t l2, void* l3, void* l4) {
     void* l5 = NULL;
     void* l7 = NULL;
     void* l8 = NULL;
@@ -34200,7 +34695,7 @@ void vader_typecheck_validate_extern(void* l0, void* l1, vader_box_t l2, void* l
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_walk_bodies(void* l0, void* l1, void* l2, uint8_t l3) {
+static void vader_typecheck_walk_bodies(void* l0, void* l1, void* l2, uint8_t l3) {
     void* l4 = NULL;
     void* l8 = NULL;
     void* l10 = NULL;
@@ -34419,7 +34914,7 @@ void vader_typecheck_walk_bodies(void* l0, void* l1, void* l2, uint8_t l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_walk_elements(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
+static void* vader_typecheck_walk_elements(void* l0, vader_box_t l1, void* l2, void* l3, void* l4) {
     vader_box_t l5 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null();
     void* l9 = NULL;
     void* l10 = NULL;
@@ -34494,7 +34989,7 @@ void* vader_typecheck_walk_elements(void* l0, vader_box_t l1, void* l2, void* l3
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_walk_fn_body(void* l0, void* l1, void* l2, uint8_t l3) {
+static void vader_typecheck_walk_fn_body(void* l0, void* l1, void* l2, uint8_t l3) {
     bool l4;
     void* l5 = NULL;
     void* l6 = NULL;
@@ -34530,7 +35025,7 @@ void vader_typecheck_walk_fn_body(void* l0, void* l1, void* l2, uint8_t l3) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_walk_substitute(vader_box_t l0, void* l1, void* l2) {
+static vader_box_t vader_typecheck_walk_substitute(vader_box_t l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l10 = NULL;
     void* l11 = NULL;
@@ -34722,7 +35217,7 @@ vader_box_t vader_typecheck_walk_substitute(vader_box_t l0, void* l1, void* l2) 
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_warn_shared_repeat_element(void* l0, void* l1, void* l2) {
+static void vader_typecheck_warn_shared_repeat_element(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l7 = NULL;
     void* l11 = NULL;
@@ -34783,7 +35278,7 @@ void vader_typecheck_warn_shared_repeat_element(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t vader_typecheck_where_of(void* l0) {
+static vader_string_t vader_typecheck_where_of(void* l0) {
     vader_string_t l1;
     size_t l2;
     void* l3 = NULL;
@@ -34811,7 +35306,7 @@ vader_string_t vader_typecheck_where_of(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void vader_typecheck_widen_empty_array_on_push(void* l0, void* l1) {
+static void vader_typecheck_widen_empty_array_on_push(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l9 = NULL;
@@ -34913,7 +35408,7 @@ void vader_typecheck_widen_empty_array_on_push(void* l0, void* l1) {
     l3 = (void*) _a1_arr;
     vader_struct_vader_types_PrimitiveType_t* _a2_obj = (vader_struct_vader_types_PrimitiveType_t*) vader_gc_alloc(sizeof(vader_struct_vader_types_PrimitiveType_t));
     vader_obj_header_init(_a2_obj, 928u);
-    _a2_obj->f_name = 2292u;
+    _a2_obj->f_name = 2293u;
     l9 = (void*) _a2_obj;
     l5 = vader_types_mk_fn(l3, vader_ref_box(l9));
     std_collections_put__usize__Any(l2, l7, l5);
@@ -34927,7 +35422,7 @@ void vader_typecheck_widen_empty_array_on_push(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t vader_typecheck_with_immutable(vader_box_t l0, bool l1) {
+static vader_box_t vader_typecheck_with_immutable(vader_box_t l0, bool l1) {
     vader_box_t l2 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
@@ -34987,7 +35482,7 @@ vader_box_t vader_typecheck_with_immutable(vader_box_t l0, bool l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* vader_typecheck_with_immutable_each(void* l0, bool l1) {
+static void* vader_typecheck_with_immutable_each(void* l0, bool l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5;
@@ -35023,7 +35518,7 @@ void* vader_typecheck_with_immutable_each(void* l0, bool l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool vader_typecheck_written_marks_shape(vader_box_t l0, vader_box_t l1) {
+static bool vader_typecheck_written_marks_shape(vader_box_t l0, vader_box_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l6;
     vader_box_t l5 = vader_box_null();

@@ -1,6 +1,10 @@
 #include "bootstrap.split.h"
 
-vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
+static vader_string_t std_tty_escape(bool l0, vader_string_t l1);
+static vader_string_t std_tty_paint(vader_string_t l0, vader_string_t l1);
+static bool std_tty_should_colorize(void);
+
+static vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_string_t l2;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -13,7 +17,7 @@ vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_string_t std_tty_paint(vader_string_t l0, vader_string_t l1) {
+static vader_string_t std_tty_paint(vader_string_t l0, vader_string_t l1) {
     bool l2;
     vader_string_t l3, l4;
     vader_string_t t0;
@@ -36,7 +40,7 @@ vader_string_t std_tty_red(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool std_tty_should_colorize(void) {
+static bool std_tty_should_colorize(void) {
     bool l0;
     vader_box_t l1 = vader_box_null();
     bool t0;
