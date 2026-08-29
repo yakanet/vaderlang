@@ -94,6 +94,15 @@ member_by_type :: fn(
     if name.bytes().len() == 0 {
         return null
     }
+    // The DOT TEST COMES FIRST, before anything expensive. `typed_project_for`
+    // loads and typechecks the project, and the cache holds ONE entry keyed on
+    // the entry path — so with two files open every goto-def is a cold one.
+    // Testing after it made an ordinary identifier, which cannot be a member,
+    // pay that: 0.03 s to 0.6 s, on the most interactive path there is.
+    nm_span :: index.span_at(line, character) ?? return null
+    if !follows_a_dot(index.source, nm_span.start.offset) {
+        return null
+    }
     file_path :: uri_to_path(uri)
     if file_path.bytes().len() == 0 {
         return null
@@ -104,18 +113,10 @@ member_by_type :: fn(
     // LSP positions are 0-based ; the AST is 1-based.
     l :: line + 1
     c :: character + 1
-
-    // Only a name that FOLLOWS A DOT is a member. Without this the lookup would
-    // fire on every identifier and could answer with a same-named member of
-    // whatever type happens to sit there.
-    nm_span :: index.span_at(line, character) ?? return null
-    if !follows_a_dot(sf.content, nm_span.start.offset) {
-        return null
-    }
     ty :: member_owner_type(sf, cached.result.typed, nm_span, l, c) ?? return null
     sym :: type_symbol(ty) ?? return null
     da :: sym.defined_at ?? return null
-    return member_in_declaring_file(da.start.file, sym.name, name, state.position_encoding)
+    return member_in_declaring_file(state, da.start.file, sym.name, name)
 }
 
 // The type whose declaration owns the member under the cursor: the RECEIVER's
@@ -133,36 +134,55 @@ member_owner_type :: fn(
     return typed.expr_types[e.id]
 }
 
-// Whether the byte before `offset` is a `.`, skipping spaces so `a . b` reads
-// like `a.b`.
+// Whether `offset` starts a member access: the byte immediately before it is a
+// `.`, and that dot stands alone.
+//
+// IMMEDIATELY, with no spaces skipped. An earlier version skipped them so
+// `a . b` would read like `a.b`, and the two halves of the guard then disagreed:
+// the caller takes the dot's column as `name.column - 1`, which under a space is
+// the space. No receiver ends there, so it fell into the leading-dot branch and
+// took the type of the whole `a . b` expression — answering with a member of the
+// WRONG type. Declining is right: the name-based path still handles it.
+//
+// ALONE, because `...` is the spread operator. Its last dot passes a naive test,
+// and `{ ...name }` then looked up the local `name` as a member of its own type
+// — leaving a perfectly indexed local for a field that merely shares its name.
 follows_a_dot :: fn(source: string, offset: usize) -> bool {
-    bytes :: source.bytes()
-    i := offset
-    for i > 0 {
-        b :: bytes[i - 1]
-        if b == ' ' || b == '\t' {
-            i = i - 1
-            continue
-        }
-        return b == '.'
+    if offset == 0 {
+        return false
     }
-    return false
+    bytes :: source.bytes()
+    if bytes[offset - 1] != '.' {
+        return false
+    }
+    if offset >= 2 {
+        if bytes[offset - 2] == '.' {
+            return false
+        }
+    }
+    return true
 }
 
 // Index the file that declares `owner` and find its member `name`.
+//
+// Reads through `source_for_path` — the OVERLAY first, disk second — and not
+// `read_file_string`. `def_response` encodes the returned span with
+// `line_index_for_path`, which is overlay-backed, so reading the disk here
+// pairs one text's offsets with another text's line index. That is not a corner
+// case: the first file this path targets is usually the one being edited, and
+// five unsaved lines inserted above a struct sent `o.name` to the wrong
+// declaration entirely.
 member_in_declaring_file :: fn(
-    path: string, owner: string, name: string, encoding: PositionEncoding,
+    state: ServerState, path: string, owner: string, name: string,
 ) -> ExternalHit | null {
-    src_or :: read_file_string(path)
-    match src_or {
-        is IOError -> { return null }
-        is string as src -> {
-            uri :: path_to_uri(path)
-            sub :: build_index(uri, src, encoding)
-            d :: sub.find_member_of(owner, name) ?? return null
-            return ExternalHit { .uri = uri, .target = d }
-        }
+    src :: state.source_for_path(path)
+    if src.bytes().len() == 0 {
+        return null
     }
+    uri :: path_to_uri(path)
+    sub :: build_index(uri, src, state.position_encoding)
+    d :: sub.find_member_of(owner, name) ?? return null
+    return ExternalHit { .uri = uri, .target = d }
 }
 
 // Pick the response shape based on what the client said it could

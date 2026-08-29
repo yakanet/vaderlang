@@ -307,6 +307,9 @@ export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
 /// module's freshly-built index.
 export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     for d in idx.decls {
+        if is_member_kind(d.kind) {
+            continue
+        }
         if d.scope_span is null {
             if d.name == name { return d }
         }
@@ -319,12 +322,36 @@ export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
 /// `p`'s public surface — so goto-def / hover never lands on a private decl.
 export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     for d in idx.decls {
+        if is_member_kind(d.kind) {
+            continue
+        }
         if d.scope_span is null && d.exported {
             if d.name == name { return d }
         }
     }
     return null
 }
+
+// The name of an `implements` block's target type, or "" when it is not a plain
+// named type (`Box<T>`, a tuple, a union) — there is then no single owner a
+// receiver's type could match.
+impl_owner_name :: fn(t: TypeExpr) -> string {
+    if t is IdentExpr as id {
+        return id.name
+    }
+    return ""
+}
+
+/// True for a kind that is only reachable THROUGH something else — a struct
+/// field, an enum variant.
+///
+/// They are recorded with no `scope_span`, like a top-level decl, because they
+/// are visible wherever their owner is rather than inside a lexical region. But
+/// they are NOT names in scope: writing `pixels` bare is `R2006`. Every lookup
+/// that answers "what does this NAME denote here" must therefore exclude them —
+/// missing one made a call to `vm_required(…)` resolve to a struct field of that
+/// name declared earlier in the file.
+export is_member_kind :: fn(k: DeclKind) -> bool = k == .Field || k == .EnumVariant
 
 /// Find the member `name` DECLARED BY `owner` — the precise lookup.
 ///
@@ -432,7 +459,7 @@ collect_decl :: fn(
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in t.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, t.name))
             }
         }
         is TypeAliasDecl as ta -> {
@@ -453,7 +480,13 @@ collect_decl :: fn(
                 // and crashes the whole `documentSymbol` response client-side.
                 // Their body is still walked for intra-fn goto-def bindings.
                 if m.name != "" {
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap))
+                    // `owner` is the FOR-TYPE, not the trait: `b.show()` with
+                    // `b: Beta` must reach Beta's impl, and the receiver's type
+                    // is what names it. Only the plain `Type implements …` shape
+                    // yields a name — a generic instantiation has no single one,
+                    // and an empty owner degrades to the name-based lookup
+                    // rather than pointing somewhere wrong.
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, impl_owner_name(ib.for_type)))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
@@ -985,7 +1018,7 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
     n :: decls.len()
     for i < n {
         d :: decls[i]
-        if d.name != name {
+        if d.name != name || is_member_kind(d.kind) {
             i = i + 1
             continue
         }

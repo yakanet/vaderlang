@@ -642,6 +642,12 @@ call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
 visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
     out: DeclEntry[]! = []
     for d in idx.decls {
+        // A field or a variant is not a name in scope — writing it bare is
+        // R2006. Offering them here took `codes.vader` from 43 completions to
+        // 233, 188 of them uninsertable.
+        if is_member_kind(d.kind) {
+            continue
+        }
         ss :: d.scope_span
         if ss != null {
             if !span_contains(ss, line, col) { continue }

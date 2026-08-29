@@ -34,7 +34,9 @@ interface Query {
     | "textDocument/completion"
     | "textDocument/codeAction"
     | "textDocument/inlayHint"
-    | "textDocument/documentLink";
+    | "textDocument/documentLink"
+    | "textDocument/implementation"
+    | "textDocument/references";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
@@ -1474,14 +1476,11 @@ test("lsp: goto-def reaches a method on a built-in receiver", async () => {
   ]);
 
   for (const r of results) {
-    const loc = r.result as { uri: string } | { targetUri: string }[] | null;
+    const loc = r.result as { uri: string } | null;
     expect(loc).not.toBeNull();
     // `std/core`'s array trait, wherever the stdlib is rooted — the assertion is
     // that it LANDED, not where the stdlib happens to live on this machine.
-    const uri = Array.isArray(loc)
-      ? (loc[0] as { targetUri: string }).targetUri
-      : (loc as { uri: string }).uri;
-    expect(uri.endsWith("array.vader")).toBe(true);
+    expect(loc!.uri.endsWith("array.vader")).toBe(true);
   }
 });
 
@@ -1519,13 +1518,7 @@ test("lsp: goto-def picks the field of the RECEIVER's type", async () => {
     { method: "textDocument/definition", position: { line: 6, character: 38 } },
   ]);
 
-  const lineOf = (r: unknown) => {
-    const loc = r as { targetSelectionRange?: { start: { line: number } } }[]
-      | { range: { start: { line: number } } };
-    return Array.isArray(loc)
-      ? loc[0]!.targetSelectionRange!.start.line
-      : loc.range.start.line;
-  };
+  const lineOf = (r: unknown) => (r as { range: { start: { line: number } } }).range.start.line;
   // `Alpha.cond` is on line 3 (0-based 2), `Bravo.cond` on line 4 (0-based 3).
   // Resolving by name alone would answer 2 for BOTH.
   expect(lineOf(results[0]!.result)).toBe(2);
@@ -1535,7 +1528,17 @@ test("lsp: goto-def picks the field of the RECEIVER's type", async () => {
 // An enum variant is the third thing that sits after a dot, and it was indexed
 // no more than fields were. `.Two` carries no receiver — its type comes from the
 // slot it is assigned to — so it exercises the other half of the type lookup.
+//
+// TWO enums declare `Two`, deliberately. A first version had only one, and it
+// stayed GREEN with the typed lookup neutralised: the name-based path found the
+// single `Two` and looked right for the wrong reason. With a homonym, only the
+// slot's type can pick.
 const ENUM_VARIANT_SOURCE = `module "lsptest"
+
+Decoy :: enum(u8) {
+    One,
+    Two,
+}
 
 Choice :: enum(u8) {
     One,
@@ -1547,16 +1550,16 @@ pick :: fn() -> Choice = .Two
 
 test("lsp: goto-def reaches an enum variant", async () => {
   const results = await driveLsp(ENUM_VARIANT_SOURCE, [
-    { method: "textDocument/definition", position: { line: 7, character: 26 } },
+    { method: "textDocument/definition", position: { line: 12, character: 26 } },
   ]);
-  const loc = results[0]!.result as { targetSelectionRange?: { start: { line: number } } }[]
-    | { range: { start: { line: number } } } | null;
+  // `driveLsp` negotiates no client capabilities, so `linkSupport` is off and
+  // the server answers with a plain `Location`. Accepting a `LocationLink` here
+  // too would be a branch no run can take.
+  const loc = results[0]!.result as { range: { start: { line: number } } } | null;
   expect(loc).not.toBeNull();
-  const startLine = Array.isArray(loc)
-    ? loc[0]!.targetSelectionRange!.start.line
-    : (loc as { range: { start: { line: number } } }).range.start.line;
-  // `Two` is declared on line 5 (0-based 4).
-  expect(startLine).toBe(4);
+  // `Choice.Two` is on line 10 (0-based 9); `Decoy.Two`, which the name-based
+  // path would find first, is on line 5.
+  expect(loc!.range.start.line).toBe(9);
 });
 
 test("lsp: goto-def reaches a struct field", async () => {
@@ -1565,12 +1568,8 @@ test("lsp: goto-def reaches a struct field", async () => {
     { method: "textDocument/definition", position: { line: 7, character: 54 } },
   ]);
 
-  const loc = results[0]!.result as { targetSelectionRange?: { start: { line: number } } }[]
-    | { range: { start: { line: number } } } | null;
+  const loc = results[0]!.result as { range: { start: { line: number } } } | null;
   expect(loc).not.toBeNull();
-  const startLine = Array.isArray(loc)
-    ? loc[0]!.targetSelectionRange!.start.line
-    : (loc as { range: { start: { line: number } } }).range.start.line;
   // `pixels` is declared on line 5 (0-based 4).
-  expect(startLine).toBe(4);
+  expect(loc!.range.start.line).toBe(4);
 });
