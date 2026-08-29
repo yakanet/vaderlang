@@ -51,12 +51,21 @@ export handle_hover :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
 // Resolve the cursor position to a decl — a local / top-level one via the
 // document index, or an imported one via the cross-file resolver. Returns
 // null when the cursor isn't on a resolvable name.
-resolve_decl_at :: fn(state: ServerState, uri: string, line: i32, character: i32) -> DeclEntry | null {
+resolve_decl_at :: fn(state: ServerState!, uri: string, line: i32, character: i32) -> DeclEntry | null {
     idx :: state.index_for(uri) ?? return null
+    // The SAME member lookup goto-def uses, and in the same order. Without it
+    // the two disagreed on one token: Ctrl+click on `ctx.string_array_tag`
+    // landed on the field while the tooltip described the FUNCTION of that
+    // name. A tooltip that documents a different declaration than the jump is
+    // worse than no tooltip — it is confidently wrong.
+    by_type :: member_by_type(state, uri, idx, line, character)
+    if by_type != null {
+        return by_type.target
+    }
     found :: idx.find_at(line, character)
     if !(found is null) { return found }
     nm :: idx.name_at(line, character)
-    ext :: resolve(state, idx, nm) ?? return null
+    ext :: resolve(state, idx, nm, cursor_follows_a_dot(idx, line, character)) ?? return null
     return ext.target
 }
 

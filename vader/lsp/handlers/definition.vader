@@ -163,7 +163,10 @@ cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
 // the caller takes the dot's column as `name.column - 1`, which under a space is
 // the space. No receiver ends there, so it fell into the leading-dot branch and
 // took the type of the whole `a . b` expression — answering with a member of the
-// WRONG type. Declining is right: the name-based path still handles it.
+// WRONG type. Declining loses `a . b` entirely, since the name-based path is
+// gated on this same test: better nothing than a member of another type, and the
+// tree contains no such spelling (the 175 lines a naive grep finds are all
+// `-> .Variant` match arms).
 //
 // ALONE, because `...` is the spread operator. Its last dot passes a naive test,
 // and `{ ...name }` then looked up the local `name` as a member of its own type

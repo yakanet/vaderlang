@@ -209,10 +209,35 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
         is AST.IntrinsicCallExpr as ic -> {
             for a in ic.args { hv_walk_expr(a, typed, st) }
         }
-        // Leaves : IntLit, FloatLit, BoolLit, NullLit, CharLit, StringLit,
-        // IdentExpr, RangeExpr, DotVariantExpr, FnTypeExpr, ArrayTypeExpr —
-        // already considered above ; no children with independent expression
-        // spans worth recursing into.
+        // These three were listed as LEAVES and are not. Each carries child
+        // expressions with their own spans, and a cursor inside one reached
+        // nothing — invisible for as long as members were also findable by
+        // name, because the name search covered for the walk. Removing that
+        // fallback took the cover away and four correct answers with it.
+        //
+        // Surface in this tree: 306 range bounds holding a member access, 46
+        // left operands of `??`, 828 interpolations.
+        is AST.RangeExpr as r -> {
+            hv_walk_expr(r.lower, typed, st)
+            hv_walk_expr(r.upper, typed, st)
+        }
+        is AST.NullCoalesceExpr as nc -> {
+            hv_walk_expr(nc.left, typed, st)
+            fb :: AST.coalesce_fallback_expr(nc.fallback)
+            if fb != null {
+                hv_walk_expr(fb, typed, st)
+            }
+        }
+        is AST.StringLitExpr as sl -> {
+            for part in sl.parts {
+                if part is AST.StringLitInterp as ip {
+                    hv_walk_expr(ip.expr, typed, st)
+                }
+            }
+        }
+        // Leaves : IntLit, FloatLit, BoolLit, NullLit, CharLit, IdentExpr,
+        // DotVariantExpr, FnTypeExpr, ArrayTypeExpr — already considered
+        // above ; no children with independent expression spans.
         _ -> {}
     }
 }
