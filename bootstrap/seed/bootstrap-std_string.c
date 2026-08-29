@@ -21,8 +21,8 @@ vader_box_t std_string_StringChars_Iterator_next(void* l0) {
     l3 = ((vader_struct_std_string_StringChars_t*) l0)->f_bytes;
     l1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
     l3 = std_string_utf8_decode_len(l3, l1);
-    l4 = ((vader_struct___Tuple_279_t*) l3)->f__0;
-    l1 = ((vader_struct___Tuple_279_t*) l3)->f__1;
+    l4 = ((vader_struct___Tuple_280_t*) l3)->f__0;
+    l1 = ((vader_struct___Tuple_280_t*) l3)->f__1;
     t1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
     t2 = (t1 + l1);
     l1 = (size_t) (int64_t) t2;
@@ -307,8 +307,8 @@ ptrdiff_t std_string_index_of(vader_string_t l0, uint32_t l1, size_t l2) {
         loop_8: {
             if ((l5 < l4)) {
                 l6 = std_string_utf8_decode_len(l3, l5);
-                l7 = ((vader_struct___Tuple_279_t*) l6)->f__0;
-                l8 = ((vader_struct___Tuple_279_t*) l6)->f__1;
+                l7 = ((vader_struct___Tuple_280_t*) l6)->f__0;
+                l8 = ((vader_struct___Tuple_280_t*) l6)->f__1;
                 if (l7 == l1) {
                     { ptrdiff_t __vret = (ptrdiff_t) (int64_t) ((int64_t) (size_t) l5); vader_gc_top = gc_frame.prev; return __vret; }
                 }
@@ -449,8 +449,8 @@ ptrdiff_t std_string_last_index_of(vader_string_t l0, uint32_t l1, ptrdiff_t l2)
         loop_11: {
             if ((l6 < l4)) {
                 l7 = std_string_utf8_decode_len(l3, l6);
-                l8 = ((vader_struct___Tuple_279_t*) l7)->f__0;
-                l9 = ((vader_struct___Tuple_279_t*) l7)->f__1;
+                l8 = ((vader_struct___Tuple_280_t*) l7)->f__0;
+                l9 = ((vader_struct___Tuple_280_t*) l7)->f__1;
                 if ((((int64_t) (size_t) l6) >= l2)) {
                     l10 = l8 == l1;
                 } else {
@@ -697,8 +697,8 @@ vader_string_t std_string_to_lower(vader_string_t l0) {
         loop_11: {
             if ((l4 < l3)) {
                 l5 = std_string_utf8_decode_len(l2, l4);
-                l6 = ((vader_struct___Tuple_279_t*) l5)->f__0;
-                l7 = ((vader_struct___Tuple_279_t*) l5)->f__1;
+                l6 = ((vader_struct___Tuple_280_t*) l5)->f__0;
+                l7 = ((vader_struct___Tuple_280_t*) l5)->f__1;
                 t1 = std_string_to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) l6));
                 l8 = ((uint32_t) (uint32_t) t1);
                 std_string_builder_append_char(l1, l8);
@@ -930,7 +930,7 @@ void* std_string_utf8_decode_len(void* l0, size_t l1) {
     vader_gc_top = &gc_frame;
     l2 = std_string_utf8_decode(l0, l1);
     l3 = std_string_codepoint_byte_len(l2);
-    vader_struct___Tuple_279_t* _a0_obj = (vader_struct___Tuple_279_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_279_t));
+    vader_struct___Tuple_280_t* _a0_obj = (vader_struct___Tuple_280_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_280_t));
     vader_obj_header_init(_a0_obj, 180u);
     _a0_obj->f__0 = l2;
     _a0_obj->f__1 = l3;

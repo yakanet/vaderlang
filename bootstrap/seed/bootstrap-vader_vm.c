@@ -2061,8 +2061,8 @@ vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void* l3, vo
             loop_458: {
                 if ((l21 < l25)) {
                     l22 = std_string_utf8_decode_len(l19, l21);
-                    l26 = ((vader_struct___Tuple_279_t*) l22)->f__0;
-                    l27 = ((vader_struct___Tuple_279_t*) l22)->f__1;
+                    l26 = ((vader_struct___Tuple_280_t*) l22)->f__0;
+                    l27 = ((vader_struct___Tuple_280_t*) l22)->f__1;
                     if (l23 == l15) {
                         vader_struct_vader_vm_CharVal_t* _a29_obj = (vader_struct_vader_vm_CharVal_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_CharVal_t));
                         vader_obj_header_init(_a29_obj, 428u);
@@ -13609,7 +13609,7 @@ vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box_t l3, 
                                     } else {
                                     }
                                     t2 = std_string_utf8_decode_len(l3809, l3811);
-                                    l3815 = ((vader_struct___Tuple_279_t*) t2)->f__1;
+                                    l3815 = ((vader_struct___Tuple_280_t*) t2)->f__1;
                                     t0 = (l3811 + l3815);
                                     l3811 = (size_t) (int64_t) t0;
                                     l3816 = (size_t) (int64_t) INT64_C(1);
@@ -24593,7 +24593,7 @@ vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box_t l3, 
                                 } else {
                                 }
                                 t2 = std_string_utf8_decode_len(l3809, l3811);
-                                l3815 = ((vader_struct___Tuple_279_t*) t2)->f__1;
+                                l3815 = ((vader_struct___Tuple_280_t*) t2)->f__1;
                                 t0 = (l3811 + l3815);
                                 l3811 = (size_t) (int64_t) t0;
                                 l3816 = (size_t) (int64_t) INT64_C(1);

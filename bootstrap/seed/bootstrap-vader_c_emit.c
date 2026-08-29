@@ -2095,7 +2095,7 @@ void vader_c_emit_drop_resolved_for_local(void* l0, int32_t l1) {
     bool t3;
     vader_box_t* gc_roots[1] = { &t1 };
     void** gc_raw_roots[7] = { &l0, &l2, &l3, &l4, &l5, &l6, &t0 };
-    vader_struct___Tuple_1160_t _a11_storage = {0};
+    vader_struct___Tuple_1161_t _a11_storage = {0};
     void* gc_stack_objs[1] = { (void*) &_a11_storage };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
@@ -2152,13 +2152,13 @@ void vader_c_emit_drop_resolved_for_local(void* l0, int32_t l1) {
                 if ((size_t) l8 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
                 t1 = vader_array_box_slots(_a10_slotarr->buf)[_a10_slotarr->offset + (size_t) l8];
                 l10 = t1.payload.s;
-                vader_struct___Tuple_1160_t* _a12_obj = &_a11_storage;
+                vader_struct___Tuple_1161_t* _a12_obj = &_a11_storage;
                 vader_obj_header_init(_a12_obj, 1060u);
                 _a12_obj->f__0 = l9;
                 _a12_obj->f__1 = l10;
                 l4 = (void*) _a12_obj;
-                l11 = ((vader_struct___Tuple_1160_t*) l4)->f__0;
-                l12 = ((vader_struct___Tuple_1160_t*) l4)->f__1;
+                l11 = ((vader_struct___Tuple_1161_t*) l4)->f__0;
+                l12 = ((vader_struct___Tuple_1161_t*) l4)->f__1;
                 t2 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t2;
                 t3 = vader_c_emit_key_mentions_local(l11, l1);
