@@ -26,6 +26,7 @@
 
 module "vader/c_emit"
 
+import "std/iter"
 import "std/string"
 import "std/string_builder"
 import "std/abort"
@@ -183,7 +184,7 @@ fn_linkage_prefix :: fn(ctx: EmitCtx, index: i32) -> string {
 /// @param strings  the bytecode string-literal pool.
 /// @return         atom ids parallel to `strings`.
 compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
-    if universe.len() == 0 {
+    if universe.is_empty() {
         ids: i32[]! = []
         next_id: i32 = 1
         for i in 0..<strings.len() {

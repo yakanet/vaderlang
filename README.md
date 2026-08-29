@@ -119,7 +119,7 @@ xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 
 ## Build from source
 
-Vader is self-hosted, so building from a checkout needs only a **C compiler**. It bootstraps in three stages from a committed C **seed** (`bootstrap/bootstrap.c`) — the exact chain CI replays on every push:
+Vader is self-hosted, so building from a checkout needs only a **C compiler**. It bootstraps in three stages from a committed C **seed** (`bootstrap/seed/`) — the exact chain CI replays on every push:
 
 - **seed → stage0.** The seed is frozen C, once emitted by a Vader compiler for the build-only entrypoint `vader/bootstrap/bootstrap.vader`. `cc` turns it into `build/stage0`. This trusted starting point needs no pre-existing Vader toolchain — that's what breaks the chicken-and-egg.
 - **stage0 → stage1 → stage2.** stage0 builds the full compiler (`build/stage1`), which builds itself once more into `build/vader` (stage2). A fixed-point check confirms stage1 and stage2 emit identical C.

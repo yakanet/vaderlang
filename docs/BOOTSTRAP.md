@@ -138,9 +138,9 @@ once the self-hosted compiler is the source of truth.
 │ bootstrap/seed/  (committed seed, ~11 MB for EVERY target)
 │   bootstrap.split.h            shared declarations
 │   bootstrap.split.g.c          shared globals (holds the atom union)
-│   bootstrap.split.<k>.c        one per module, shared when every target
+│   bootstrap-<module>.c         one per module, shared when every target
 │                                emitted the same bytes for it
-│   bootstrap.<os>-<arch>.split.<k>.c   only the units that actually differ
+│   bootstrap.<os>-<arch>-<module>.c    only the units that actually differ
 └────────────┬─────────────────┘
              │
              ▼  cc -O0 <shared units> <this host's units> runtime/c/vader_runtime.c -o stage0
@@ -487,17 +487,17 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 mkdir -p build
-cc -O2 -o build/stage1 bootstrap/seed/bootstrap.split*.c runtime/c/vader_runtime.c -Iruntime/c -lm
+cc -O2 -o build/stage1 bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c runtime/c/vader_runtime.c -Iruntime/c -lm
 
 echo "stage1 built at build/stage1"
 echo "smoke test (stage1 compiles a trivial snippet to C):"
 ./build/stage1 tests/snippets/return_42/_main.vader build/_smoke.c && echo "  ok"
 ```
 
-The contract : `cc -O2 bootstrap/seed/bootstrap.split*.c
+The contract : `cc -O2 bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c
 runtime/c/vader_runtime.c -Iruntime/c -lm -o stage1`. The glob picks up the
 shared units; a host whose target has units of its own adds
-`bootstrap/seed/bootstrap.<os>-<arch>.split.*.c` (see `bootstrap/build.sh`). `runtime/c/` is the only
+`bootstrap/seed/bootstrap.<os>-<arch>-*.c` (see `bootstrap/build.sh`). `runtime/c/` is the only
 sidecar required (external link — see the Phase 2 decision). `stage1` is the
 build-only compiler : it takes `<input.vader> <output.c>`, so the smoke test
 compiles a snippet rather than running `--version`.
@@ -536,7 +536,7 @@ Bun, Node, or a pre-installed `vader` — only a C compiler. (The Bun
 
 The `rebuild` job, running on each push :
 
-1. `cc -O2 bootstrap/seed/bootstrap.split*.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/stage1`
+1. `cc -O2 bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/stage1`
 2. `./build/stage1 vader/cli/main.vader build/main.c` — stage1 emits the FULL compiler's C
 3. `cc -O2 build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader`
 4. `./build/vader --version` smoke test

@@ -28,6 +28,7 @@
 
 module "vader/c_emit"
 
+import "std/abort"
 import "std/string"
 import "std/string_builder"
 import "std/collections"
@@ -103,8 +104,9 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: str
     // ---- globals TU : the data-global definitions -------------------------
     glob :: StringBuilder {}
     glob.append("#include \"${header_name}\"\n\n")
-    // Re-emits `#define VADER_COMPTIME_ATOM_COUNT` too — identical to the
-    // header's, so the benign redefinition is silent.
+    // Re-emits `#define VADER_COMPTIME_ATOM_COUNT` too. Both sides count
+    // `ctx.atom_table`, so the redefinition is identical by construction — and
+    // stays silent — rather than by the two pools happening to match.
     emit_atom_comptime_table(ctx, glob)
     emit_data_pool(ctx, glob)
     emit_type_info_table(ctx, glob)
@@ -253,16 +255,16 @@ emit_atom_count_define :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     out.append("#define VADER_COMPTIME_ATOM_COUNT ${comptime_atom_count(ctx)}u\n\n")
 }
 
-/// Count of non-empty string literals — the number of comptime atoms
-/// (index 0 is VADER_ATOM_EMPTY, never emitted). Matches the entry count
-/// `emit_atom_comptime_table` produces.
-comptime_atom_count :: fn(ctx: EmitCtx) -> i32 {
-    n: i32 = 0
-    for i in 0..<ctx.module.strings.len() {
-        if ctx.atom_ids[i] != 0 { n += 1 }
-    }
-    return n
-}
+/// Count of the atoms `emit_atom_comptime_table` bakes — the length of
+/// `ctx.atom_table`, which is this module's own non-empty literals or the
+/// shared universe when one was given.
+///
+/// Reading the table rather than recounting the module's own pool is what keeps
+/// this equal to the `VADER_COMPTIME_ATOM_COUNT` the globals TU emits. With a
+/// universe the pool is the SMALLER of the two, so counting it sized
+/// `vader_atom_init_with_comptime` short of the entries actually baked, and
+/// every atom past the module's own count read uninitialised memory.
+comptime_atom_count :: fn(ctx: EmitCtx) -> i32 = i32(ctx.atom_table.len())
 
 /// `extern` decls for the data globals defined in the globals TU and read from
 /// the function units : the data-pool arrays (`data.const`), the atom table
@@ -333,17 +335,27 @@ sorted_module_stems :: fn(of_module: MutableMap<string, i32[]!>) -> string[] {
 
 // The module each bucket holds. Bucket 0 is the glue; every other takes the
 // module stem of its first function, which is the same for all of them because
-// `partition_functions` groups by exactly that.
+// `partition_functions` groups by exactly that — and is non-empty, since every
+// bucket past 0 comes from a map entry that holds at least one index.
+//
+// The names are what `unit_path` keys the output file on, so two units sharing
+// one would write the same file and lose every function but the last. That is
+// not hypothetical: it is the failure `partition_functions` documents above,
+// from back when runs were detected instead of grouped. Grouping closed the
+// route that produced several `_root`s; the check closes the one a module
+// literally stemmed `_glue` or `_root` would still take.
 unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     out: string[]! = [GLUE_UNIT]
     for k in 1..<buckets.len() {
-        b :: buckets[k]
-        if b.len() == 0 {
-            out.push(GLUE_UNIT)
-        } else {
-            stem :: module_stem_of(fns[usize(b[0])].name)
-            out.push(if stem == "" { "_root" } else { stem })
+        stem :: module_stem_of(fns[usize(buckets[k][0])].name)
+        out.push(if stem == "" { "_root" } else { stem })
+    }
+    seen :: MutableSet<string> {}
+    for n in out {
+        if n in seen {
+            todo("split: two units named `${n}` would write the same file")
         }
+        seen.add(n)
     }
     return out
 }

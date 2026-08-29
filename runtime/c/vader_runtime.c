@@ -815,8 +815,6 @@ static uint64_t vader_atom_hash64(const char* data, size_t len) {
     return h;
 }
 
-/* String `Hash` — O(1) read of the cached FNV-1a-64 (computed once at intern).
- * See the `vader_atom_entry_t.hash` note in vader.h. */
 /* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
  * on miss. The empty-slot sentinel in `buckets[]` is also 0 ; callers
  * short-circuit len==0 before reaching this so the sentinel can never
@@ -1686,8 +1684,11 @@ void* vader_gc_alloc(size_t bytes) {
 
 /* Size of an object in a from-space, in bytes. For variable-length buffers
  * (ARRAY_BUF sentinel) the size is read off the object itself; for
- * everything else the type info table provides a static size. Returns 0
- * for non-heap kinds (caller skips). */
+ * everything else the type info table provides a static size. TRAPS on a
+ * non-heap kind or an out-of-range index: a zero size used to be returned and
+ * silently skipped, which is what let a mis-stamped object stay invisible to
+ * three heap walks at once. The `bytes == 0` guards left at the call sites are
+ * unreachable and kept only as defence. */
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
         vader_array_buf_t* buf = (vader_array_buf_t*) obj;
@@ -3022,9 +3023,6 @@ void vader_array_clear(vader_array_t* a) {
 
 /* ----------------------------------------------------------------- std/string */
 
-/* Header-free byte read : the `i`-th UTF-8 byte of `s`, straight off the interned
- * atom (no `const u8[]` view alloc). Bounds-checked to match `s.bytes()[i]`.
- * One `vader_atom_entry` load shares the base for the length check and the read. */
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
  * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors

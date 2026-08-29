@@ -174,32 +174,35 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
     }
 }
 
-remap_type :: fn(t: BcType, remap: i32[]) -> BcType {
-    if t is BcStruct as s {
+// Exhaustive on purpose, with no `_` arm: `BcType` is a closed union, so a new
+// variant that carries a type index has to trip T3013 here rather than fall
+// through unrewritten and point at a slot from the pre-union numbering.
+remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
+    // No type index to rewrite — a primitive names itself, and an opaque ref
+    // carries only a trait name.
+    is BcPrimitive | BcRef -> t
+    is BcStruct as s -> {
         fields: BcField[]! = []
         for f in s.fields {
             fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
         }
-        return BcStruct { .name = s.name, .fields = fields, .symbol_id = s.symbol_id }
+        BcStruct { .name = s.name, .fields = fields, .symbol_id = s.symbol_id }
     }
-    if t is BcArray as a {
-        return BcArray { .element = remap_idx(remap, a.element) }
-    }
-    if t is BcUnion as u {
+    is BcArray as a -> BcArray { .element = remap_idx(remap, a.element) }
+    is BcUnion as u -> {
         vs: i32[]! = []
         for v in u.variants {
             vs.push(remap_idx(remap, v))
         }
-        return BcUnion { .variants = vs }
+        BcUnion { .variants = vs }
     }
-    if t is BcFn as f {
+    is BcFn as f -> {
         ps: i32[]! = []
         for p in f.params {
             ps.push(remap_idx(remap, p))
         }
-        return BcFn { .params = ps, .return_type = remap_idx(remap, f.return_type) }
+        BcFn { .params = ps, .return_type = remap_idx(remap, f.return_type) }
     }
-    return t
 }
 
 // A slot this module has no type for. It exists only so the indices line up —
