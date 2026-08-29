@@ -10,6 +10,7 @@
 
 module "vader/cli"
 
+import "std/collections"
 import "std/io"
 import "std/path"
 import "std/string"
@@ -118,6 +119,15 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
 
     if emit == "c" {
+        seed_flag :: parsed.string_flag("seed-targets", "")
+        if seed_flag != "" {
+            ts :: parse_target_list(seed_flag)
+            if ts.len() == 0 {
+                return 2
+            }
+            out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
+            return emit_c_for_targets(file, out, release, include_path_flags, ts)
+        }
         return build_c(file, out_flag, release, include_path_flags, parallel_units, build_target)
     }
     if emit == "executable" {
@@ -337,6 +347,107 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
     return emit_c_split(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry }, units, header_name)
+}
+
+/// Emit the split C for SEVERAL targets against one shared atom universe.
+///
+/// The seed's shape. Atom ids are positions, so each target's own literal pool
+/// numbers them differently and every file ends up differing by renumbering
+/// alone — measured at 7026 renumbered lines against 2 of real content. Unioning
+/// the pools first makes the ids agree, so the emitted C differs only where the
+/// code does.
+///
+/// The union is SORTED rather than first-seen: the ids must not depend on the
+/// order the targets were listed in.
+///
+/// @param file    the entry source.
+/// @param targets the targets to emit for, at least one.
+/// @param out     output stem; each target writes `<out>.<os>-<arch>.split.*`.
+/// @return        0 on success, 1 when any target fails to build.
+emit_c_for_targets :: fn(
+    file: Path, out: Path, release: bool, include_path_flags: string[], targets: Target[],
+) -> i32 {
+    mods: CfgBytecode[]! = []
+    for t in targets {
+        b :: prepared_module(file, release, include_path_flags, t)
+        if b is null {
+            return 1
+        }
+        mods.push(b)
+    }
+    universe :: union_of_string_pools(mods)
+    // ONE header name for every target, and one file. It holds the struct
+    // typedefs, the prototypes and the atom count — all identical once the
+    // universe is shared — so per-target copies would differ in nothing but
+    // their own `#include` line, which is what a first attempt produced: 39
+    // files "differing" on line 1 alone.
+    header_name :: "${canonicalise(out).filename()}.split.h"
+    for i in 0..<targets.len() {
+        stem :: "${out}.${display_target(targets[i])}".to_path()
+        prog :: emit_c_split(
+            mods[i].module,
+            CEmitOptions {
+                .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
+            },
+            1,
+            header_name,
+        )
+        // The header goes to the SHARED path, rewritten identically by each
+        // target — cheap, and it keeps "one header" true by construction rather
+        // than by a caller remembering to write it once.
+        if write_out("${out}.split.h".to_path(), prog.header) != 0 {
+            return 1
+        }
+        if write_out("${stem}.split.g.c".to_path(), prog.globals) != 0 {
+            return 1
+        }
+        for k in 0..<prog.units.len() {
+            if write_out("${stem}.split.${k}.c".to_path(), prog.units[k]) != 0 {
+                return 1
+            }
+        }
+    }
+    return 0
+}
+
+// `<os>-<arch>,<os>-<arch>,…`. EMPTY on failure, after naming the offending
+// fragment — a union return would distribute the `!` marker onto the element
+// type, and an empty list is already the only invalid answer.
+parse_target_list :: fn(spec: string) -> Target[] {
+    out: Target[]! = []
+    for part in spec.split(",") {
+        if part == "" {
+            continue
+        }
+        parsed :: parse_target(part)
+        if parsed is TargetParseError as e {
+            eprintln("vader build --seed-targets: ${e.reason} `${e.fragment}`")
+            return []
+        }
+        if parsed is Target as t {
+            out.push(t)
+        }
+    }
+    if out.len() == 0 {
+        eprintln("vader build --seed-targets: no target named")
+    }
+    return out
+}
+
+// Every non-empty literal any target uses, sorted. Sorted and not first-seen so
+// the ids are a property of the SET, not of the order the targets were given.
+union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
+    seen: MutableSet<string>! = MutableSet<string> {}
+    out: string[]! = []
+    for m in mods {
+        for s in m.module.strings {
+            if s != "" && !seen.contains(s) {
+                seen.add(s)
+                out.push(s)
+            }
+        }
+    }
+    return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
 // Write the split program : `<out>.split.h`, `<out>.split.g.c`, and
