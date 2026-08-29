@@ -383,7 +383,18 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     ctx.imports = new_imports
 }
 
-remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
+/// One index through a remap table. `-1` in stays `-1` — it is the "no type"
+/// marker, not a slot. An index PAST the table is a corrupt module, and returns
+/// `-1` rather than the stale index, so it degrades to "no type" instead of
+/// silently pointing somewhere plausible.
+///
+/// Shared with `retype.vader`, which used to carry a near-copy that differed on
+/// exactly that out-of-range case.
+///
+/// @param remap  old index -> new index.
+/// @param idx    the index to translate.
+/// @return       the new index, or `-1`.
+export remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
     if idx < 0 { return idx }
     if usize(idx) >= remap.len() { return -1 }
     return remap[usize(idx)]

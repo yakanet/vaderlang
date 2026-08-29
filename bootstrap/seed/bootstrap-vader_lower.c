@@ -8947,7 +8947,7 @@ static vader_box_t vader_lower_comptime_value_to_lowered(vader_box_t l0, vader_b
     if (l0.tag == 699u) {
         l5 = l0.payload.obj;
         l6 = std_collections_keys__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue(((vader_struct_vader_comptime_StructValue_t*) l5)->f_fields);
-        vader_struct___lambda_env_4154_t* _a13_obj = (vader_struct___lambda_env_4154_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_4154_t));
+        vader_struct___lambda_env_4149_t* _a13_obj = (vader_struct___lambda_env_4149_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_4149_t));
         vader_obj_header_init(_a13_obj, 263u);
         t0 = (void*) _a13_obj;
         vader_fn_t* _a14_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));

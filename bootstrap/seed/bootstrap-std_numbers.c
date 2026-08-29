@@ -197,12 +197,12 @@ vader_string_t std_numbers_strip_numeric_text(vader_string_t l0, int32_t l1) {
     if (!(t1)) {
         { vader_string_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_struct___lambda_env_5811_t* _a1_obj = (vader_struct___lambda_env_5811_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5811_t));
+    vader_struct___lambda_env_5809_t* _a1_obj = (vader_struct___lambda_env_5809_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5809_t));
     vader_obj_header_init(_a1_obj, 266u);
     t0 = (void*) _a1_obj;
     vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a2_closure, 135u);
-    _a2_closure->code = (void*) &vader_fn_lift_2455;
+    _a2_closure->code = (void*) &vader_fn_lift_2456;
     _a2_closure->env = t0;
     l3 = (void*) _a2_closure;
     t2 = std_string_replace_chars_where(l5, l3, 0u);

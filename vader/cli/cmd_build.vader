@@ -314,7 +314,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     }
 
     // Link the objects into the final binary (link is inherently serial).
-    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags, flavour))
+    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags, release, flavour))
     if lres is ProcessError {
         eprintln("vader build: ${lres.message()}")
         return 1
@@ -344,6 +344,16 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
     return emit_c_split(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry }, header_name)
+}
+
+// Each module's per-index type keys — the shared input to the union and to
+// every rebase.
+keys_of_each :: fn(mods: BytecodeModule[]) -> string[][] {
+    out: string[][]! = []
+    for m in mods {
+        out.push(type_keys_of(m))
+    }
+    return out
 }
 
 /// Emit the split C for SEVERAL targets against one shared atom universe.
@@ -378,7 +388,11 @@ emit_c_for_targets :: fn(
     // every slot after it. Measured without this, from a single lambda in a
     // `@target` body: 11 282 renumbered lines against 238 of real content, and
     // shared units fell from 37 to 7.
-    type_universe :: union_of_type_tables(modules_of(mods))
+    // Keyed ONCE per module, then reused by the union and by every rebase —
+    // `bc_type_key` recurses through composite types, so re-deriving it per pass
+    // re-walks that graph for every target.
+    type_keys :: keys_of_each(modules_of(mods))
+    type_universe :: union_of_type_tables(type_keys)
     // ONE header name for every target. It holds the struct typedefs, the
     // prototypes and the atom count — all identical once the universe is shared
     // — so per-target copies would differ in nothing but their own `#include`
@@ -387,9 +401,18 @@ emit_c_for_targets :: fn(
     header_name :: "${canonicalise(out).filename()}.split.h"
     progs: CProgram[]! = []
     for i in 0..<targets.len() {
+        // A literal a target holds but the universe does not means the pools were
+        // unioned after something already emitted. Left unchecked it is a SILENT
+        // atom alias — the id lands on whatever sits at that slot — so it is
+        // named here instead.
+        gaps :: atom_universe_gaps(mods[i].module.strings, universe)
+        if gaps.len() > 0 {
+            eprintln("vader build: atom universe misses ${gaps.len()} literal(s) for ${targets[i]}, first `${gaps[0]}`")
+            return 1
+        }
         progs.push(
             emit_c_split(
-                rebase_types(mods[i].module, type_universe),
+                rebase_types(mods[i].module, type_keys[i], type_universe),
                 CEmitOptions {
                     .release = release, .entry_mangled = mods[i].entry, .atom_universe = universe,
                 },
@@ -426,7 +449,13 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     } else {
         for i in 0..<targets.len() {
-            if write_out("${out}.${display_target(targets[i])}.split.g.c".to_path(), progs[i].globals) != 0 {
+            // Through `unit_path`, not a second spelling of the rule: the build
+            // scripts glob per-target files as `<stem>.<target>-*.c`, and the
+            // `.split.g.c` form this used to write matched neither that nor the
+            // shared-globals line. Masked today because every target's globals
+            // are identical, so this branch never runs — and it would have
+            // surfaced as a missing symbol at link time, far from the cause.
+            if write_out(unit_path(out, display_target(targets[i]), GLOBALS_UNIT), progs[i].globals) != 0 {
                 return 1
             }
         }
@@ -572,7 +601,7 @@ cc_compile_argv :: fn(
 ) -> string[] {
     argv: string[]! = [cc]
     argv.push_all(cc_opt_flags(release))
-    argv.push_all(lto_flags(flavour, false))
+    argv.push_all(lto_flags(flavour, release, false))
     argv.push("-I")
     argv.push(rt)
     argv.push("-c")
@@ -582,29 +611,6 @@ cc_compile_argv :: fn(
     return argv
 }
 
-/// LLVM's ceiling, in IR instructions, on a callee ThinLTO will import across
-/// units. Its default is 100, which leaves out the container operations this
-/// build most wants inlined (`MutableMap::put` and its neighbours).
-///
-/// Past this value the bench readings stop improving monotonically — tuning it
-/// further would be fitting noise.
-///
-/// This is LLVM's knob, in LLVM's units, per callee — not a program-size
-/// threshold. It behaves the same for a 20-function program and for the
-/// compiler.
-THIN_LTO_IMPORT_LIMIT :: "300"
-
-/// Which C toolchain `cc` is, since the two that matter spell link-time
-/// optimisation differently.
-export CcFlavour :: enum(u8) {
-    /// clang / LLVM — ThinLTO.
-    Clang
-    /// GCC, including a MinGW toolchain — `-flto=auto`.
-    Gcc
-    /// Anything else, or a probe that failed. No LTO: an unrecognised compiler
-    /// gets the plain split, which is correct everywhere, just not as fast.
-    Unknown
-}
 
 /// Probe `cc --version`, once per build.
 ///
@@ -632,39 +638,12 @@ cc_flavour :: fn(cc: string) -> CcFlavour {
     return .Unknown
 }
 
-/// Link-time-optimisation flags for one `cc` invocation, or none.
-///
-/// Both families keep the per-unit compiles parallel and do the cross-unit work
-/// after: clang imports from summaries at the thin link, GCC partitions and runs
-/// its LTRANS phase across cores. `-flto=auto` needs GCC 10 or newer.
-///
-/// @param flavour  the toolchain family.
-/// @param linking  true for the link step, which carries the extra knobs.
-/// @return         flags to append, empty when the toolchain has no LTO here.
-lto_flags :: fn(flavour: CcFlavour, linking: bool) -> string[] {
-    if flavour == .Clang {
-        if linking {
-            return ["-flto=thin", "-O3", "-Wl,-mllvm,-import-instr-limit=${THIN_LTO_IMPORT_LIMIT}"]
-        }
-        return ["-flto=thin"]
-    }
-    if flavour == .Gcc {
-        if linking {
-            return ["-flto=auto", "-O3"]
-        }
-        return ["-flto=auto"]
-    }
-    return []
-}
-
-// `cc <objs...> [ldflags] -o <out> -lm` — the serial link step after the
-// parallel compiles. `-lm` satisfies the runtime's `floor` / `fmod` on glibc
 // (a no-op on macOS / MinGW).
 cc_link_argv :: fn(
-    cc: string, objs: string[], out: Path, ldflags: string, flavour: CcFlavour,
+    cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
 ) -> string[] {
     argv: string[]! = [cc]
-    argv.push_all(lto_flags(flavour, true))
+    argv.push_all(lto_flags(flavour, release, true))
     argv.push_all(objs)
     push_ldflags(argv, ldflags)
     argv.push("-o")

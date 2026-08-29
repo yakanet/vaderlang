@@ -693,32 +693,25 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
     if idx < 0 || usize(idx) >= types.len() {
         return "?"
     }
-    t :: types[usize(idx)]
-    if t is BcPrimitive as p {
-        return "p:${i32(p.val)}"
+    return match types[usize(idx)] {
+        is BcPrimitive as p -> "p:${i32(p.val)}"
+        // Structs key by NAME, not by their fields: the name is unique after
+        // monomorphisation, and descending would not terminate on a recursive
+        // struct.
+        is BcStruct as s -> "s:${s.name}"
+        is BcRef as r    -> "r:${r.trait_name}"
+        is BcArray as a  -> "a:<${bc_type_key(types, a.element)}>"
+        is BcUnion as u  -> "u:<${key_join(types, u.variants, "|")}>"
+        is BcFn as f     -> "f:(${key_join(types, f.params, "|")})->${bc_type_key(types, f.return_type)}"
     }
-    if t is BcStruct as s {
-        return "s:${s.name}"
+}
+
+/// Join the keys of `indices` with `sep` — the shared shape behind a union's
+/// variants and a fn's parameters.
+key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
+    parts: string[]! = []
+    for i in indices {
+        parts.push(bc_type_key(types, i))
     }
-    if t is BcRef as r {
-        return "r:${r.trait_name}"
-    }
-    if t is BcArray as a {
-        return "a:<${bc_type_key(types, a.element)}>"
-    }
-    if t is BcUnion as u {
-        parts: string[]! = []
-        for v in u.variants {
-            parts.push(bc_type_key(types, v))
-        }
-        return "u:<${parts.join("|")}>"
-    }
-    if t is BcFn as f {
-        parts: string[]! = []
-        for p in f.params {
-            parts.push(bc_type_key(types, p))
-        }
-        return "f:(${parts.join("|")})->${bc_type_key(types, f.return_type)}"
-    }
-    return "?"
+    return parts.join(sep)
 }
