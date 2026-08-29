@@ -159,11 +159,9 @@ BUILD_FLAGS: FlagSpec[]: [
         .value_name = "a,b",
     },
     FlagSpec {
-        .name = "parallel",
-        .kind = .Int,
-        .help = "Native only: compile the C across N parallel jobs",
-        .value_name = "N",
-        .default_text = "1",
+        .name = "split",
+        .kind = .Bool,
+        .help = "Native only: emit one C file per module and compile them concurrently",
     },
     FlagSpec {
         .name = "seed-targets",

@@ -53,7 +53,7 @@ export CProgram :: struct {
 /// with a module stem, which is always a sanitised identifier.
 export GLUE_UNIT :: "_glue"
 
-/// Emit `m` as a header + globals TU + `num_units` function TUs.
+/// Emit `m` as a header + globals TU + one function TU per Vader module.
 ///
 /// Reuses the monolithic section emitters, routing the type / declaration half
 /// to the header, the data half to the globals TU, and the code half to the
@@ -62,11 +62,11 @@ export GLUE_UNIT :: "_glue"
 ///
 /// @param m            the bytecode module to lower.
 /// @param opts         emit-time switches ; `entry_mangled` resolves `main`.
-/// @param num_units    number of function TUs (clamped to ≥ 1).
 /// @param header_name  basename of the shared header, `#include`d by every TU
 ///                     (resolved relative to each `.c` — keep them co-located).
-/// @return             the header, globals TU, and `num_units` function TUs.
-export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, header_name: string) -> CProgram {
+/// @return             the header, the globals TU, and one function TU per
+///                     module (plus unit 0 for the glue).
+export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: string) -> CProgram {
     // The partition comes FIRST: the linkage analysis needs to know which unit
     // each function lands in, and the context needs the analysis.
     buckets :: partition_functions(m.functions)
