@@ -58,6 +58,11 @@ export ServerState :: struct {
     /// rebuild happens once it settles. See `typed_project_for` +
     /// `flush_dirty_diagnostics`.
     cache:                      ProjectCache | null
+    /// The entry `cache` displaced, kept so alternating between two files does
+    /// not reload on every request. Invalidated with `cache`, always — a stale
+    /// second slot is the same defect as a stale first one, twice as hard to
+    /// notice.
+    cache_prev:                 ProjectCache | null
     /// Last union (no-selection) load — the navigation view. Separate from
     /// `cache` because the cut happens at LOAD time: one `LoadedProject` cannot
     /// serve both the targeted diagnostics and the navigation over every body.
@@ -108,6 +113,7 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
+        .cache_prev              = null,
         .union_cache             = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
@@ -168,6 +174,23 @@ export typed_project_for :: fn(self: ServerState!, file_path: string) -> Project
     cached :: self.cache
     if cached != null {
         if cached.entry_path == file_path { return cached }
+        // The one it displaces is kept as the PREVIOUS entry. A single slot made
+        // alternating between two open files reload on every request: measured
+        // at 4.7 s for six member clicks across two files, ~1 s each. Two slots
+        // turn that into two loads total, which is the common shape — bouncing
+        // between a definition and its use.
+        //
+        // TWO, not more: each entry holds a whole typed project (~80 MB retained
+        // for this tree), and this server has frozen an IDE once already.
+        prev :: self.cache_prev
+        if prev != null {
+            if prev.entry_path == file_path {
+                // Promote, so the pair keeps alternating for free.
+                self.cache_prev = cached
+                self.cache = prev
+                return prev
+            }
+        }
     }
     // dump_types = false : the LSP reads expr_types (hover/defs) but never the
     // dump-only expr_kinds / node_spans tables.
@@ -176,6 +199,7 @@ export typed_project_for :: fn(self: ServerState!, file_path: string) -> Project
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
         .module_name_index = module_index_by_name(fc.project),
     }
+    self.cache_prev = self.cache
     self.cache = entry
     return entry
 }
@@ -244,6 +268,7 @@ export handle_did_open :: fn(self: ServerState!, params: JsonValue) -> void {
     self.docs[uri] = text
     self.indices[uri] = build_index(uri, text, self.position_encoding)
     self.cache = null
+    self.cache_prev = null
     publish_diagnostics_for_uri(self, uri)
 }
 
@@ -283,6 +308,7 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
     if uri.bytes().len() == 0 { return }
     self.docs[uri] = ""
     self.cache = null
+    self.cache_prev = null
     // Suppress any pending debounced publish for this now-closed doc — a later
     // flush must not re-squiggle a file we just cleared. MutableMap has no
     // remove ; `false` is the "don't publish" marker `flush_dirty_diagnostics`
@@ -308,6 +334,7 @@ export flush_dirty_diagnostics :: fn(self: ServerState!) -> void {
     for [uri, needs_publish] in self.dirty {
         if needs_publish {
             self.cache = null
+    self.cache_prev = null
             publish_diagnostics_for_uri(self, uri)
             published = true
         }

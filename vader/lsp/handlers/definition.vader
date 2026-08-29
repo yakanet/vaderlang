@@ -120,6 +120,12 @@ member_by_type :: fn(
     if file_path.bytes().len() == 0 {
         return null
     }
+    // DURING an edit burst this project is deliberately stale: `handle_did_change`
+    // rebuilds the document index but keeps the typed cache, so the debounce can
+    // typecheck once instead of per keystroke. The AST here is then the PREVIOUS
+    // text, and no receiver ends where the new one says the dot is — so this
+    // answers null until the burst settles. That is the right outcome: a stale
+    // AST would otherwise jump to a position the text no longer has.
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] ?? return null
     sf :: source_file_for_path(entry.module.files, file_path) ?? return null
