@@ -186,7 +186,15 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
 // from `from_uri`). Shared by the destructure (`resolve_imported`) and wildcard
 // (`resolve_wildcard`) paths — the only difference is where the `name` and path
 // come from.
-resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool) -> ExternalHit | null {
+/// Find `name` among the top-level decls of the module at `module_path`.
+///
+/// Exported for the namespace-alias path in `handlers/definition`: `AST.Foo` has
+/// no receiver type to key on, so resolving `Foo` as an export of `AST`'s module
+/// is the only route to it.
+///
+/// @param exported_only  true for a wildcard or an alias, which expose only the
+///                       public surface; false for a same-module sibling.
+export resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool) -> ExternalHit | null {
     abs :: module_path_to_absolute(module_path, import_roots(state, from_uri), from_uri)
     if abs.bytes().len() == 0 { return null }
 

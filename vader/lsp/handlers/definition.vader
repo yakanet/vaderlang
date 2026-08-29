@@ -105,6 +105,17 @@ member_by_type :: fn(
         return null
     }
     nm_span :: index.span_at(line, character) ?? return null
+    // A namespace alias FIRST, and cheaply: `AST.MatchExpr` has no receiver
+    // whose type could be read — the alias names a module, not a value — so the
+    // typed path below can never answer it. Resolving the member as an EXPORT of
+    // that module is the only route, and it is the spelling CLAUDE §7 makes
+    // mandatory once an alias is taken.
+    alias_path :: alias_before(index, nm_span.start.offset)
+    if alias_path != null {
+        // `true`: an alias exposes only the module's public surface, exactly
+        // like a wildcard.
+        return resolve_in_module(state, uri, alias_path, name, true)
+    }
     file_path :: uri_to_path(uri)
     if file_path.bytes().len() == 0 {
         return null
@@ -154,6 +165,54 @@ cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
     }
     return follows_a_dot(index.source, sp.start.offset)
 }
+
+// The module path of the namespace alias immediately left of the dot at
+// `offset - 1`, or null when the receiver is not one.
+//
+// Compares BYTES rather than slicing the source. `Span.offset` is a byte offset
+// while `s[a..<b]` on a Vader string slices by CODEPOINT, so building the name
+// by slicing reads the wrong region the moment the file holds a single non-ASCII
+// character — and this file's own comments are full of em dashes.
+alias_before :: fn(index: DocIndex, offset: usize) -> string | null {
+    if offset < 2 {
+        return null
+    }
+    bytes :: index.source.bytes()
+    end :: offset - 1
+    for [alias, path] in index.namespace_aliases {
+        n :: alias.byte_len()
+        if n == 0 || n > end {
+            continue
+        }
+        start :: end - n
+        if !bytes_equal_at(bytes, start, alias) {
+            continue
+        }
+        // The match must be the WHOLE receiver: `MyAST.Foo` must not match an
+        // alias called `AST`.
+        if start > 0 {
+            b :: bytes[start - 1]
+            if is_word_byte(b) {
+                continue
+            }
+        }
+        return path
+    }
+    return null
+}
+
+bytes_equal_at :: fn(bytes: u8[], start: usize, text: string) -> bool {
+    tb :: text.bytes()
+    for i in 0..<tb.len() {
+        if bytes[start + i] != tb[i] {
+            return false
+        }
+    }
+    return true
+}
+
+is_word_byte :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+    || (b >= '0' && b <= '9') || b == '_'
 
 // Whether `offset` starts a member access: the byte immediately before it is a
 // `.`, and that dot stands alone.

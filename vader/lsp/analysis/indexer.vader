@@ -96,6 +96,14 @@ export DocIndex :: struct {
     tokens:  Token[]
     decls:   DeclEntry[]
     imports: ImportEntry[]
+    /// Namespace alias → module path, from `Name :: import "p"`.
+    ///
+    /// Kept because `Name.member` is the ONLY spelling CLAUDE §7 allows once an
+    /// alias is taken, and it resolved to nothing: the alias names a module, not
+    /// a value, so no receiver type can be read off it. Discarding the binding
+    /// (which `collect_import` used to do) left goto-def with no way back to the
+    /// module at all.
+    namespace_aliases: MutableMap<string, string>
     /// Paths of the file's wildcard imports (bare `import "p"`). Unlike a
     /// destructure, a wildcard binds no named `ImportEntry` — every export of
     /// `p` enters scope unqualified — so the cross-file resolver falls back to
@@ -129,8 +137,9 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     entries: DeclEntry[]! = []
     imports: ImportEntry[]! = []
     wildcard_paths: string[]! = []
+    namespace_aliases :: MutableMap<string, string> {}
     for d in parsed.program.decls {
-        collect_decl(d, source, cmap, entries, imports, wildcard_paths)
+        collect_decl(d, source, cmap, entries, imports, wildcard_paths, namespace_aliases)
     }
     return DocIndex {
         .uri            = uri,
@@ -138,6 +147,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .tokens         = parsed.tokens,
         .decls          = entries,
         .imports        = imports,
+        .namespace_aliases = namespace_aliases,
         .wildcard_paths = wildcard_paths,
         .loop_jumps     = collect_loop_jumps(parsed.program.decls),
         .line_index     = new_line_index(source, encoding),
@@ -418,6 +428,7 @@ export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
 collect_decl :: fn(
     d: Decl, source: string, cmap: CommentMap,
     entries: DeclEntry[]!, imports: ImportEntry[]!, wildcard_paths: string[]!,
+    namespace_aliases: MutableMap<string, string>!,
 ) -> void {
     match d {
         is FnDecl as f -> {
@@ -491,7 +502,7 @@ collect_decl :: fn(
                 ix_walk_fn_body(m, source, entries)
             }
         }
-        is ImportDecl as i -> { collect_import(i, imports, wildcard_paths) }
+        is ImportDecl as i -> { collect_import(i, imports, wildcard_paths, namespace_aliases) }
         is AssertDecl -> {}
     }
 }
@@ -855,9 +866,15 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
 
 // ---- import collection ---------------------------------------------------
 
-collect_import :: fn(d: ImportDecl, imports: ImportEntry[]!, wildcard_paths: string[]!) -> void {
+collect_import :: fn(
+    d: ImportDecl, imports: ImportEntry[]!, wildcard_paths: string[]!,
+    namespace_aliases: MutableMap<string, string>!,
+) -> void {
     match d.binding {
-        is NamedNamespaceImport -> {} // `name :: import "..."` — name is a namespace, not a value
+        // `Name :: import "..."` — the name is a namespace, not a value, so it
+        // binds no `ImportEntry`. Recorded separately: `Name.member` needs the
+        // path to look the member up as an EXPORT of that module.
+        is NamedNamespaceImport as ns -> { namespace_aliases[ns.name] = d.path }
         is WildcardImport -> { wildcard_paths.push(d.path) } // bare `import "..."` — every export enters scope unqualified
         is DestructureImport as de -> {
             for n in de.names {

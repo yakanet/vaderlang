@@ -1507,6 +1507,38 @@ test("lsp: rename stays in the file the cursor is in", async () => {
   expect(edit.changes[files[0]!]).toHaveLength(3);
 });
 
+// A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
+// type could be read — the alias names a module, not a value — so the typed path
+// can never answer it, and the name-based one never looked at aliases:
+// `collect_import` discarded the binding outright. That is the spelling CLAUDE
+// §7 makes MANDATORY once an alias is taken, so it was dead on the form the tree
+// is required to use.
+//
+// The local `trim` is a decoy: without the alias lookup, the answer is IT, in
+// this file. A real stdlib module is used rather than an invented sibling
+// because a module IS a folder (R2022) and a sibling one needs a manifest to be
+// found at all — the fixture would test the harness, not the feature.
+const ALIAS_SOURCE = `module "lsptest"
+
+S :: import "std/string"
+
+trim :: fn(x: string) -> string = x
+
+use :: fn(a: string) -> string = S.trim(a)
+`;
+
+test("lsp: goto-def follows a namespace alias", async () => {
+  const results = await driveLsp(ALIAS_SOURCE, [
+    { method: "textDocument/definition", position: { line: 6, character: 36 } },
+  ]);
+
+  const loc = results[0]!.result as { uri: string } | null;
+  expect(loc).not.toBeNull();
+  // `std/string`'s `trim`, wherever the stdlib is rooted — not the decoy, which
+  // would answer with this very file.
+  expect(loc!.uri.endsWith("string.vader")).toBe(true);
+});
+
 test("lsp: goto-def reaches a method on a built-in receiver", async () => {
   const results = await driveLsp(BUILTIN_METHOD_SOURCE, [
     { method: "textDocument/definition", position: { line: 4, character: 8 } },
