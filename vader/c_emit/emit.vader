@@ -322,14 +322,12 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     lens: i32[]! = []
     offset: i32 = 0
     for i in 0..<ctx.atom_table.len() {
-        {
-            s :: ctx.atom_table[i]
-            byte_len :: i32(s.bytes().len())
-            blob_lines.push("    ${c_string_lit(s)} \"\\0\"")
-            offsets.push(offset)
-            lens.push(byte_len)
-            offset += byte_len + 1
-        }
+        s :: ctx.atom_table[i]
+        byte_len :: i32(s.bytes().len())
+        blob_lines.push("    ${c_string_lit(s)} \"\\0\"")
+        offsets.push(offset)
+        lens.push(byte_len)
+        offset += byte_len + 1
     }
 
     if offsets.len() == 0 {
