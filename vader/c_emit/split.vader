@@ -82,10 +82,10 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
     emit_data_pool(ctx, glob)
     emit_type_info_table(ctx, glob)
 
-    // ---- function TUs : partitioned bodies + unit-0 fixed code ------------
-    buckets :: partition_functions(m.functions, n)
+    // ---- function TUs : one per MODULE, plus unit 0 for the fixed code ----
+    buckets :: partition_functions(m.functions)
     units: string[]! = []
-    for k in 0..<n {
+    for k in 0..<buckets.len() {
         u :: StringBuilder {}
         u.append("#include \"${header_name}\"\n\n")
         if k == 0 {
@@ -155,30 +155,49 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
 // ---- partitioning ----------------------------------------------------------
 
-/// Partition the fn indices into `num_units` buckets, balanced by body size.
+/// Partition the fn indices into one bucket per SOURCE MODULE, with bucket 0
+/// reserved for the fixed code (trampolines, import shims, dispatchers, `main`).
 ///
-/// Indices are visited in mangle-sorted order (deterministic → the split C is
-/// stable across builds, so the bootstrap fixed point holds) and greedily
-/// placed in the currently-smallest bucket by cumulative op count. Empty
-/// buckets are legal (fewer fns than units).
+/// Grouping by module rather than balancing by size is what makes a per-target
+/// seed affordable. A balanced partition reassigns every bucket the moment one
+/// function is added or removed, so a single `@target` body rewrote all eight
+/// units; grouped by module, a module's functions stay in that module's file
+/// whatever happens elsewhere.
 ///
-/// @param fns        the module's functions (index == position).
-/// @param num_units  bucket count (assumed ≥ 1).
-/// @return           `num_units` lists of fn indices, together covering all.
-partition_functions :: fn(fns: BcFunction[], num_units: i32) -> i32[][] {
+/// Modules come out in sorted order and functions within one in mangle order,
+/// so the output is deterministic and the bootstrap fixed point holds.
+///
+/// @param fns  the module's functions (index == position).
+/// @return     bucket 0 (empty, for the fixed code) then one per module.
+partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     order :: sorted_fn_indices(fns)
-
-    // Inner buckets are filled, the outer only read — and the element is covariant
-    // into the read-only array the signature promises, so `buckets` returns as-is.
-    buckets: i32[]![] = filled(usize(num_units), () -> [])
-    sizes: i32[]! = [0] * usize(num_units)
-
+    // Sorted by mangled name, so every function of one module is contiguous and
+    // the modules themselves come out in order — no map, no second sort.
+    buckets: i32[]![]! = [[]]
+    current: string = ""
     for idx in order {
-        target :: min_bucket(sizes)
-        buckets[usize(target)].push(idx)
-        sizes[usize(target)] += i32(fns[usize(idx)].body.len())
+        m :: module_stem_of(fns[usize(idx)].name)
+        if buckets.len() == 1 || m != current {
+            buckets.push([])
+            current = m
+        }
+        buckets[buckets.len() - 1].push(idx)
     }
     return buckets
+}
+
+// The module part of a mangled name: everything before the first `$`.
+// `mangle` emits `<module_stem>$<decl>`, and omits the prefix entirely when the
+// module stem is empty or equal to the decl name — those land together under
+// `""`, which is one more module rather than a special case.
+module_stem_of :: fn(name: string) -> string {
+    bytes :: name.bytes()
+    for i in 0..<bytes.len() {
+        if bytes[i] == '$' {
+            return bytes[0..<i].bytes_to_string()
+        }
+    }
+    return ""
 }
 
 /// Fn indices sorted by mangled name — the deterministic visit order.
@@ -188,11 +207,4 @@ sorted_fn_indices :: fn(fns: BcFunction[]) -> i32[] {
     return sort(idxs, (a: i32, b: i32) -> compare_ascending(fns[usize(a)].name, fns[usize(b)].name))
 }
 
-/// Index of the smallest-total bucket (first on a tie → deterministic).
-min_bucket :: fn(sizes: i32[]) -> i32 {
-    best: i32 = 0
-    for i in 1..<sizes.len() {
-        if sizes[i] < sizes[usize(best)] { best = i32(i) }
-    }
-    return best
-}
+
