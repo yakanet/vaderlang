@@ -19,7 +19,14 @@ if ! cmp -s build/fp1.c build/fp2.c; then
   exit 1
 fi
 
-# (c) seed freshness : delegated to `seed.sh check`, which owns the emission flags
+# (c) seed freshness, for EVERY target. `seed.sh check` re-emits the whole set
+# against one shared atom table and diffs the tree, so a unit that exists for one
+# target and not another is caught too. That subsumes the old target-independence
+# check this used to carry: the seed no longer has to be target-independent — it
+# carries each target's units, and the emitter stores a unit once only when every
+# target produced the same bytes for it.
+#
+# Delegated to `seed.sh check`, which owns the emission flags
 # (`--release` keeps `#line` out of the seed) — duplicating them here is how a
 # release gate silently stops certifying what it claims to. `--full` forces the
 # real re-emission rather than its git-only shortcut: this is the pre-release
@@ -34,30 +41,4 @@ if [ "$seed_verdict" != 0 ]; then
   exit 1
 fi
 
-# (d) the seed is target-INDEPENDENT. Unnamed until the target model landed, and
-# load-bearing from that moment: `seed.sh` emits with no `--target`, so it bakes
-# whatever machine regenerated it, while `seed.sh check` compares byte for byte.
-# The day something in the bootstrap closure selects on `@target` or reads
-# `VADER_OS`, a seed regenerated on macOS stops being re-emittable on Linux and
-# THIS job goes stale permanently — insatisfiable, on a runner nobody suspects.
-#
-# It holds today only because nothing in the closure uses either, so the baked
-# constants are eliminated. That is a property, not a guarantee, and §10.2 of the
-# target plan says the closure is the ONLY place `@target` would be useful — so
-# the first real client trips this. Failing here names the cause; failing in CI
-# a week later does not.
-#
-# One foreign target is enough: if the emission depended on the target at all,
-# it would differ from the committed seed. 4 s.
-./build/vader build --release --emit=c --out=build/seed.foreign.c \
-  --target=linux-x86_64 vader/bootstrap/bootstrap.vader >/dev/null 2>&1
-if ! cmp -s build/seed.foreign.c bootstrap/bootstrap.c; then
-  echo "TARGET-DEPENDENT SEED — bootstrap.c differs when emitted for linux-x86_64." >&2
-  echo "  The bootstrap closure now selects on the target, so one committed seed" >&2
-  echo "  can no longer serve three platforms. See the target plan §10.3: pin a" >&2
-  echo "  canonical emission target, keep \`@target\` out of the closure, or commit" >&2
-  echo "  one seed per platform. None is free." >&2
-  exit 1
-fi
-
-echo "fixed-point OK : stage1 == stage2, seed up to date, seed target-independent"
+echo "fixed-point OK : stage1 == stage2, seed up to date for every target"

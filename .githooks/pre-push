@@ -67,12 +67,12 @@ case "$verdict" in
     ;;
 esac
 
-log "$bold" "STALE SEED — bootstrap/bootstrap.c no longer matches bootstrap.vader."
+log "$bold" "STALE SEED — bootstrap/seed/ no longer matches bootstrap.vader."
 log "$bold" ""
 log "$bold" "  Every pushed commit is meant to carry a byte-fresh seed. Reseed, then push:"
 log "$bold" ""
 log "$bold" "    bootstrap/seed.sh regenerate"
-log "$bold" "    git commit -m 'chore(bootstrap): bump seed' bootstrap/bootstrap.c bootstrap/VERSION"
+log "$bold" "    git commit -m 'chore(bootstrap): bump seed' bootstrap/seed bootstrap/VERSION"
 log "$bold" "    git push"
 log "$bold" ""
 log "$bold" "  Or in one command:  bootstrap/seed.sh push"

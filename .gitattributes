@@ -8,4 +8,4 @@
 *.h text eol=lf
 
 # The committed C seed is generated.
-bootstrap/bootstrap.c -diff -merge linguist-generated=true
+bootstrap/seed/** -diff -merge linguist-generated=true

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The committed C seed's lifecycle — one script, because it is one artefact.
 #
-#   bootstrap/seed.sh check [--quiet] [--full]   is bootstrap.c what the sources emit?
+#   bootstrap/seed.sh check [--quiet] [--full]   is bootstrap/seed/ what the sources emit?
 #   bootstrap/seed.sh regenerate                 write a new one
 #   bootstrap/seed.sh push [git push args…]      reseed, commit the bump, push
 #
@@ -29,7 +29,7 @@
 #           guaranteed a path.
 #   stderr  the human-readable diagnosis (silenced by --quiet).
 #
-# On exit 1 the fresh emission is LEFT at build/bootstrap.check.c: that file IS
+# On exit 1 the fresh emission is LEFT at build/seed.check/: that tree IS
 # the new seed, and `regenerate` moves it into place rather than paying for a
 # second ~4 s compile of the identical input.
 set -euo pipefail
@@ -46,6 +46,13 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 # the day an import changes, and a false FRESH is the one answer this must never
 # give.
 SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
+
+# Every target the seed carries. All of them, including the two that have no
+# backend yet: a target costs only the units that actually differ for it (25 KB
+# with one `@target` in the closure, nothing at all today), and a seed that
+# covers a platform before the platform ships is what keeps `seed.sh check`
+# reproducible from any machine.
+SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,wasi-wasm32,browser-wasm32"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
@@ -102,9 +109,9 @@ cmd_check() {
     # both.
     if [ "$full" = 0 ]; then
         local last_reseed
-        last_reseed="$(git rev-list -1 HEAD -- bootstrap/bootstrap.c 2>/dev/null || true)"
+        last_reseed="$(git rev-list -1 HEAD -- bootstrap/seed 2>/dev/null || true)"
         if [ -n "$last_reseed" ] &&
-           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS bootstrap/bootstrap.c)" ] &&
+           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS bootstrap/seed)" ] &&
            [ -z "$(git diff --name-only "$last_reseed" HEAD -- $SEED_SOURCE_DIRS)" ]; then
             note "seed is fresh (nothing affecting it changed since the last reseed)."
             exit 0
@@ -138,31 +145,38 @@ cmd_check() {
         exit 2
     fi
 
-    # `--release` is what keeps `#line` directives out of the seed. This is the
-    # ONLY place the emission is spelled out, so it cannot drift against the writer.
-    mkdir -p build
-    if ! "$VADER" build --release --emit=c --out=build/bootstrap.check.c \
+    # `--release` keeps `#line` out of the seed, and `--seed-targets` emits every
+    # target against ONE atom table so the units that do not depend on the target
+    # come out byte-identical and are stored once. This is the ONLY place the
+    # emission is spelled out, so it cannot drift against the writer.
+    rm -rf build/seed.check
+    mkdir -p build/seed.check
+    if ! "$VADER" build --release --emit=c --seed-targets="$SEED_TARGETS" \
+           --out=build/seed.check/bootstrap \
            vader/bootstrap/bootstrap.vader >/dev/null 2>&1; then
         note "re-emitting the seed failed — cannot check freshness."
         exit 2
     fi
 
-    if cmp -s build/bootstrap.check.c bootstrap/bootstrap.c; then
-        rm -f build/bootstrap.check.c
+    # `diff -r` and not a per-file loop: it also catches a file that EXISTS on one
+    # side only, which is what a new per-target unit looks like the first time
+    # `@target` reaches the closure.
+    if diff -r -q build/seed.check bootstrap/seed >/dev/null 2>&1; then
+        rm -rf build/seed.check
         note "seed is fresh."
         printf '%s\n' "$VADER"
         exit 0
     fi
 
-    note "seed is STALE — bootstrap/bootstrap.c no longer matches bootstrap.vader."
-    note "  the fresh emission is at build/bootstrap.check.c."
+    note "seed is STALE — bootstrap/seed/ no longer matches bootstrap.vader."
+    note "  the fresh emission is at build/seed.check/."
     printf '%s\n' "$VADER"
     exit 1
 }
 
 # ---- regenerate -----------------------------------------------------------
 
-# Regenerate bootstrap/bootstrap.c from vader/bootstrap/bootstrap.vader, using an
+# Regenerate bootstrap/seed/ from vader/bootstrap/bootstrap.vader, using an
 # existing `vader` binary (on PATH or ./build/vader). The seed is the plain C of
 # the build-only entrypoint — stored uncompressed so git can delta successive
 # reseeds; see docs/BOOTSTRAP.md § "Seed lifecycle management".
@@ -208,8 +222,11 @@ cmd_regenerate() {
         exit 1
     fi
 
-    # STALE: build/bootstrap.check.c is the fresh emission `check` just made.
-    mv build/bootstrap.check.c bootstrap/bootstrap.c
+    # STALE: build/seed.check/ is the fresh emission `check` just made. Replace
+    # the directory wholesale — a per-file copy would leave behind a unit that
+    # the new emission no longer produces, and a stale unit still compiles.
+    rm -rf bootstrap/seed
+    mv build/seed.check bootstrap/seed
 
     cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)
@@ -218,13 +235,13 @@ regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER
 META
 
-    echo "seed regenerated ($(wc -c < bootstrap/bootstrap.c | tr -d ' ') bytes)."
-    # The seed carries `-diff` in .gitattributes, so `git diff` reports it as
-    # binary; ask git for the two versions explicitly to see the actual change.
+    shared=$(ls bootstrap/seed/bootstrap.split.*.c 2>/dev/null | wc -l | tr -d ' ')
+    per_target=$(ls bootstrap/seed/ | grep -cE '\.(darwin|linux|windows|wasi|browser)-' || true)
+    echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
-    echo "  diff <(git show HEAD:bootstrap/bootstrap.c) bootstrap/bootstrap.c"
+    echo "  git diff --stat bootstrap/seed"
     echo "then commit the bump separately:"
-    echo "  git add bootstrap/bootstrap.c bootstrap/VERSION"
+    echo "  git add bootstrap/seed bootstrap/VERSION"
     echo "  git commit -m 'chore(bootstrap): bump seed'"
 }
 
@@ -249,12 +266,12 @@ cmd_push() {
     # that from ending the push.
     ( cmd_regenerate )
 
-    if git diff --quiet -- bootstrap/bootstrap.c bootstrap/VERSION; then
+    if git diff --quiet -- bootstrap/seed bootstrap/VERSION; then
         step "Nothing to commit"
     else
         step "Committing the bump"
         git commit -q -m 'chore(bootstrap): bump seed' \
-          bootstrap/bootstrap.c bootstrap/VERSION
+          bootstrap/seed bootstrap/VERSION
         git --no-pager log --oneline -1
     fi
 
