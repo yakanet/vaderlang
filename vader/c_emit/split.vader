@@ -27,17 +27,28 @@ module "vader/c_emit"
 
 import "std/string"
 import "std/string_builder"
+import "std/collections"
 import "std/sort"
 import "vader/bytecode"
 
 /// A program emitted as several C translation units. `header` is the shared
-/// `.h`, `globals` the data-globals `.c`, and `units` the N function `.c`
-/// bodies (unit 0 also holds trampolines / shims / dispatchers / `main`).
+/// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies —
+/// one per source module, plus `unit_names[0] == GLUE_UNIT` for the trampolines,
+/// import shims, dispatchers and `main`.
 export CProgram :: struct {
     header:  string
     globals: string
     units:   string[]
+    /// The module each unit holds, parallel to `units`. Callers name files by
+    /// this rather than by index: an index shifts every later unit the moment a
+    /// module is added, which renames and rewrites files that did not change.
+    unit_names: string[]
 }
+
+/// Name of the unit holding the code that belongs to no module — trampolines,
+/// import shims, vtable dispatchers, `main`. Leading `_` so it cannot collide
+/// with a module stem, which is always a sanitised identifier.
+export GLUE_UNIT :: "_glue"
 
 /// Emit `m` as a header + globals TU + `num_units` function TUs.
 ///
@@ -84,6 +95,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
 
     // ---- function TUs : one per MODULE, plus unit 0 for the fixed code ----
     buckets :: partition_functions(m.functions)
+    names :: unit_names_of(m.functions, buckets)
     units: string[]! = []
     for k in 0..<buckets.len() {
         u :: StringBuilder {}
@@ -103,7 +115,9 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
         units.push("${u}")
     }
 
-    return CProgram { .header = "${hdr}", .globals = "${glob}", .units = units }
+    return CProgram {
+        .header = "${hdr}", .globals = "${glob}", .units = units, .unit_names = names,
+    }
 }
 
 // ---- header-only declaration emitters -------------------------------------
@@ -170,20 +184,55 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// @param fns  the module's functions (index == position).
 /// @return     bucket 0 (empty, for the fixed code) then one per module.
 partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
-    order :: sorted_fn_indices(fns)
-    // Sorted by mangled name, so every function of one module is contiguous and
-    // the modules themselves come out in order — no map, no second sort.
-    buckets: i32[]![]! = [[]]
-    current: string = ""
-    for idx in order {
+    // GROUPED, not run-detected. Sorting by mangled name does NOT make a
+    // module's functions contiguous: a name with no module (`main`, `concat_3`,
+    // a lifted lambda) sorts among the module-qualified ones by its own first
+    // letter, so the moduleless group interleaves with them. Detecting runs
+    // therefore produced several buckets called `_root`, which wrote the same
+    // file and lost every function but the last — a link failure listing
+    // undefined `vader_fn_lift_*`, and only in projects with enough bare names
+    // to straddle a module.
+    of_module :: MutableMap<string, i32[]!> {}
+    for idx in sorted_fn_indices(fns) {
         m :: module_stem_of(fns[usize(idx)].name)
-        if buckets.len() == 1 || m != current {
-            buckets.push([])
-            current = m
+        cur :: of_module[m]
+        if cur == null {
+            of_module[m] = [idx]
+        } else {
+            cur.push(idx)
         }
-        buckets[buckets.len() - 1].push(idx)
+    }
+    buckets: i32[]![]! = [[]]
+    for m in sorted_module_stems(of_module) {
+        buckets.push(of_module[m] ?? [])
     }
     return buckets
+}
+
+// The module stems, sorted — the deterministic unit order.
+sorted_module_stems :: fn(of_module: MutableMap<string, i32[]!>) -> string[] {
+    stems: string[]! = []
+    for [m, _] in of_module {
+        stems.push(m)
+    }
+    return sort(stems, (a: string, b: string) -> compare_ascending(a, b))
+}
+
+// The module each bucket holds. Bucket 0 is the glue; every other takes the
+// module stem of its first function, which is the same for all of them because
+// `partition_functions` groups by exactly that.
+unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
+    out: string[]! = [GLUE_UNIT]
+    for k in 1..<buckets.len() {
+        b :: buckets[k]
+        if b.len() == 0 {
+            out.push(GLUE_UNIT)
+        } else {
+            stem :: module_stem_of(fns[usize(b[0])].name)
+            out.push(if stem == "" { "_root" } else { stem })
+        }
+    }
+    return out
 }
 
 // The module part of a mangled name: everything before the first `$`.

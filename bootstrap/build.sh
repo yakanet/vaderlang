@@ -62,8 +62,11 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-seed_shared=$(ls bootstrap/seed/bootstrap.split.*.c 2>/dev/null)
-seed_host=$(ls bootstrap/seed/bootstrap."$HOST_TARGET".split.*.c 2>/dev/null || true)
+# `bootstrap-<module>.c` is shared; `bootstrap.<target>-<module>.c` belongs to
+# one target. The two patterns cannot overlap — a shared unit has no dot after
+# `bootstrap` — so the host's set is the union with the globals TU.
+seed_shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null)
+seed_host=$(ls bootstrap/seed/bootstrap."$HOST_TARGET"-*.c 2>/dev/null || true)
 if [ -z "$seed_shared" ]; then
     echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
     exit 1

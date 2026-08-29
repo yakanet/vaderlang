@@ -43,8 +43,8 @@ New-Item -ItemType Directory -Force build | Out-Null
 # rather than hardcoded, and starts working the day one appears.
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
 $hostTarget = "windows-$hostArch"
-$seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Filter 'bootstrap.split.*.c' | ForEach-Object { $_.FullName })
-$seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget.split.*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g.c','bootstrap-*.c' -Recurse | ForEach-Object { $_.FullName })
+$seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget-*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }

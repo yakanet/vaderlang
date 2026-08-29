@@ -340,13 +340,13 @@ void* vader_lower_analyze_closures(void* l0, void* l1) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l7 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l7);
-                vader_struct___Tuple_1169_t* _a2_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a2_obj, 1069u);
                 _a2_obj->f__0 = l8;
                 _a2_obj->f__1 = l3;
                 l9 = (void*) _a2_obj;
-                l10 = ((vader_struct___Tuple_1169_t*) l9)->f__0;
-                l11 = ((vader_struct___Tuple_1169_t*) l9)->f__1;
+                l10 = ((vader_struct___Tuple_1170_t*) l9)->f__0;
+                l11 = ((vader_struct___Tuple_1170_t*) l9)->f__1;
                 t1 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t1;
                 l12 = std_collections_get__string__Any(((vader_struct_vader_resolver_LoadedProject_t*) l0)->f_modules, l10);
@@ -1909,12 +1909,12 @@ void* vader_lower_bce_build_purity_ctx(void* l0) {
                 if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
                 if ((size_t) l7 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) l7);
-                vader_struct___Tuple_1249_t* _a10_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a10_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a10_obj, 1149u);
                 _a10_obj->f__0 = l8;
                 _a10_obj->f__1 = l3;
                 t1 = (void*) _a10_obj;
-                l9 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l9 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t2;
                 l10 = ((vader_struct_vader_lower_LoweredModule_t*) l9)->f_decls;
@@ -2182,12 +2182,12 @@ void vader_lower_bce_hoist_tag(void* l0) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
-                vader_struct___Tuple_1249_t* _a2_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a2_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a2_obj, 1149u);
                 _a2_obj->f__0 = l7;
                 _a2_obj->f__1 = l2;
                 t1 = (void*) _a2_obj;
-                l8 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l8 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
                 l9 = ((vader_struct_vader_lower_LoweredModule_t*) l8)->f_decls;
@@ -4708,12 +4708,12 @@ void* vader_lower_build_inline_index(void* l0) {
                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l6 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l6);
-                vader_struct___Tuple_1249_t* _a6_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a6_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a6_obj, 1149u);
                 _a6_obj->f__0 = l7;
                 _a6_obj->f__1 = l2;
                 t1 = (void*) _a6_obj;
-                l8 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l8 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
                 l9 = ((vader_struct_vader_lower_LoweredModule_t*) l8)->f_decls;
@@ -5566,12 +5566,12 @@ void* vader_lower_build_symbol_by_span_index(void* l0) {
                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l6 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l6);
-                vader_struct___Tuple_1204_t* _a6_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a6_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a6_obj, 1104u);
                 _a6_obj->f__0 = l7;
                 _a6_obj->f__1 = l2;
                 t1 = (void*) _a6_obj;
-                l8 = ((vader_struct___Tuple_1204_t*) t1)->f__1;
+                l8 = ((vader_struct___Tuple_1205_t*) t1)->f__1;
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 l9 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l8)->f_defined_at;
@@ -7277,12 +7277,12 @@ void vader_lower_close_over_field_shapes(void* l0, void* l1, void* l2, void* l3)
                 if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
                 if ((size_t) l12 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
                 l8 = vader_array_ref_load_obj(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l12);
-                vader_struct___Tuple_1249_t* _a7_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a7_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a7_obj, 1149u);
                 _a7_obj->f__0 = l13;
                 _a7_obj->f__1 = l8;
                 t0 = (void*) _a7_obj;
-                l14 = ((vader_struct___Tuple_1249_t*) t0)->f__1;
+                l14 = ((vader_struct___Tuple_1250_t*) t0)->f__1;
                 t2 = (l12 + INT64_C(1));
                 l12 = (size_t) (int64_t) t2;
                 l15 = ((vader_struct_vader_lower_LoweredModule_t*) l14)->f_decls;
@@ -7990,12 +7990,12 @@ void* vader_lower_collect_vtable_entries(void* l0, void* l1, void* l2) {
                 if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
                 if ((size_t) l8 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l8);
-                vader_struct___Tuple_1249_t* _a3_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a3_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a3_obj, 1149u);
                 _a3_obj->f__0 = l9;
                 _a3_obj->f__1 = l4;
                 t1 = (void*) _a3_obj;
-                l10 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l10 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t2;
                 l11 = ((vader_struct_vader_lower_LoweredModule_t*) l10)->f_decls;
@@ -9226,12 +9226,12 @@ void vader_lower_devirtualize_fn_refs(void* l0) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                vader_struct___Tuple_1249_t* _a2_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a2_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a2_obj, 1149u);
                 _a2_obj->f__0 = l6;
                 _a2_obj->f__1 = l1;
                 t1 = (void*) _a2_obj;
-                l7 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l7 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
                 l8 = ((vader_struct_vader_lower_LoweredModule_t*) l7)->f_decls;
@@ -9682,12 +9682,12 @@ void vader_lower_elide_bytes_views(void* l0, void* l1) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l11 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l7 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l11);
-                vader_struct___Tuple_1249_t* _a2_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a2_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a2_obj, 1149u);
                 _a2_obj->f__0 = l12;
                 _a2_obj->f__1 = l7;
                 t1 = (void*) _a2_obj;
-                l13 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l13 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l11 + INT64_C(1));
                 l11 = (size_t) (int64_t) t2;
                 l14 = ((vader_struct_vader_lower_LoweredModule_t*) l13)->f_decls;
@@ -11787,12 +11787,12 @@ void* vader_lower_ensure_local_symbol_index(void* l0, void* l1) {
                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l9 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l5 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l9);
-                vader_struct___Tuple_1204_t* _a6_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a6_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a6_obj, 1104u);
                 _a6_obj->f__0 = l10;
                 _a6_obj->f__1 = l5;
                 t0 = (void*) _a6_obj;
-                l11 = ((vader_struct___Tuple_1204_t*) t0)->f__1;
+                l11 = ((vader_struct___Tuple_1205_t*) t0)->f__1;
                 t1 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t1;
                 l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l11)->f_defined_at;
@@ -12680,12 +12680,12 @@ vader_box_t vader_lower_find_free_fn_ufcs(void* l0, vader_box_t l1, vader_string
                 if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
                 if ((size_t) l9 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 l7 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l9);
-                vader_struct___Tuple_1254_t* _a4_obj = (vader_struct___Tuple_1254_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1254_t));
+                vader_struct___Tuple_1255_t* _a4_obj = (vader_struct___Tuple_1255_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1255_t));
                 vader_obj_header_init(_a4_obj, 1154u);
                 _a4_obj->f__0 = l14;
                 _a4_obj->f__1 = l7;
                 t4 = (void*) _a4_obj;
-                l15 = ((vader_struct___Tuple_1254_t*) t4)->f__1;
+                l15 = ((vader_struct___Tuple_1255_t*) t4)->f__1;
                 t3 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t3;
                 l6 = std_collections_get__string__Any(((vader_struct_vader_resolver_ResolvedModule_t*) ((vader_struct_vader_typecheck_TypedProgram_t*) ((vader_struct_vader_comptime_EvaluatedProgram_t*) l15)->f_typed)->f_resolved)->f_fn_overloads, l2);
@@ -12991,12 +12991,12 @@ vader_box_t vader_lower_find_param_symbol(void* l0, void* l1) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l7 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l7);
-                vader_struct___Tuple_1204_t* _a2_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a2_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a2_obj, 1104u);
                 _a2_obj->f__0 = l8;
                 _a2_obj->f__1 = l3;
                 t1 = (void*) _a2_obj;
-                l9 = ((vader_struct___Tuple_1204_t*) t1)->f__1;
+                l9 = ((vader_struct___Tuple_1205_t*) t1)->f__1;
                 t0 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t0;
                 l10 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l9)->f_defined_at;
@@ -13069,12 +13069,12 @@ vader_box_t vader_lower_find_picked_overload_symbol(void* l0, vader_string_t l1,
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l8 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
-                vader_struct___Tuple_1254_t* _a2_obj = (vader_struct___Tuple_1254_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1254_t));
+                vader_struct___Tuple_1255_t* _a2_obj = (vader_struct___Tuple_1255_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1255_t));
                 vader_obj_header_init(_a2_obj, 1154u);
                 _a2_obj->f__0 = l9;
                 _a2_obj->f__1 = l4;
                 t0 = (void*) _a2_obj;
-                l10 = ((vader_struct___Tuple_1254_t*) t0)->f__1;
+                l10 = ((vader_struct___Tuple_1255_t*) t0)->f__1;
                 t2 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t2;
                 l3 = vader_lower_match_overload_in_bucket(((vader_struct_vader_comptime_EvaluatedProgram_t*) l10)->f_typed, l1, l2);
@@ -13227,12 +13227,12 @@ vader_box_t vader_lower_find_type_param_in_resolved(void* l0, vader_string_t l1,
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l9 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l5 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l9);
-                vader_struct___Tuple_1204_t* _a2_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a2_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a2_obj, 1104u);
                 _a2_obj->f__0 = l4;
                 _a2_obj->f__1 = l5;
                 t4 = (void*) _a2_obj;
-                l10 = ((vader_struct___Tuple_1204_t*) t4)->f__1;
+                l10 = ((vader_struct___Tuple_1205_t*) t4)->f__1;
                 t2 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t2;
                 t0 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l10)->f_name;
@@ -13287,12 +13287,12 @@ vader_box_t vader_lower_find_type_param_in_resolved(void* l0, vader_string_t l1,
                 if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
                 if ((size_t) l9 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
                 l5 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l9);
-                vader_struct___Tuple_1204_t* _a5_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a5_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a5_obj, 1104u);
                 _a5_obj->f__0 = l3;
                 _a5_obj->f__1 = l5;
                 t4 = (void*) _a5_obj;
-                l10 = ((vader_struct___Tuple_1204_t*) t4)->f__1;
+                l10 = ((vader_struct___Tuple_1205_t*) t4)->f__1;
                 t2 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t2;
                 t0 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l10)->f_name;
@@ -18748,12 +18748,12 @@ void vader_lower_inline_fns(void* l0) {
                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l7 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l7);
-                vader_struct___Tuple_1249_t* _a6_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a6_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a6_obj, 1149u);
                 _a6_obj->f__0 = l8;
                 _a6_obj->f__1 = l3;
                 t2 = (void*) _a6_obj;
-                l9 = ((vader_struct___Tuple_1249_t*) t2)->f__1;
+                l9 = ((vader_struct___Tuple_1250_t*) t2)->f__1;
                 t3 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t3;
                 l10 = ((vader_struct_vader_lower_LoweredModule_t*) l9)->f_decls;
@@ -20357,12 +20357,12 @@ vader_box_t vader_lower_lookup_type_param_symbol(void* l0, void* l1) {
                 if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
                 if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
-                vader_struct___Tuple_1204_t* _a3_obj = (vader_struct___Tuple_1204_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1204_t));
+                vader_struct___Tuple_1205_t* _a3_obj = (vader_struct___Tuple_1205_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1205_t));
                 vader_obj_header_init(_a3_obj, 1104u);
                 _a3_obj->f__0 = l3;
                 _a3_obj->f__1 = l4;
                 t4 = (void*) _a3_obj;
-                l14 = ((vader_struct___Tuple_1204_t*) t4)->f__1;
+                l14 = ((vader_struct___Tuple_1205_t*) t4)->f__1;
                 t2 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
                 l8 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l14)->f_defined_at;
@@ -28499,13 +28499,13 @@ void vader_lower_materialize_bound_impl(vader_string_t l0, vader_string_t l1, vo
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l12 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l8 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l12);
-                vader_struct___Tuple_1169_t* _a2_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a2_obj, 1069u);
                 _a2_obj->f__0 = l13;
                 _a2_obj->f__1 = l8;
                 l14 = (void*) _a2_obj;
-                l15 = ((vader_struct___Tuple_1169_t*) l14)->f__0;
-                l16 = ((vader_struct___Tuple_1169_t*) l14)->f__1;
+                l15 = ((vader_struct___Tuple_1170_t*) l14)->f__0;
+                l16 = ((vader_struct___Tuple_1170_t*) l14)->f__1;
                 t2 = (l12 + INT64_C(1));
                 l12 = (size_t) (int64_t) t2;
                 l18 = std_collections_get__string__Any(((vader_struct_vader_resolver_LoadedProject_t*) l4)->f_modules, l15);
@@ -28871,13 +28871,13 @@ void vader_lower_materialize_impl_members_for(void* l0, void* l1, void* l2, void
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l11 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l7 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l11);
-                vader_struct___Tuple_1169_t* _a2_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a2_obj, 1069u);
                 _a2_obj->f__0 = l12;
                 _a2_obj->f__1 = l7;
                 l13 = (void*) _a2_obj;
-                l14 = ((vader_struct___Tuple_1169_t*) l13)->f__0;
-                l15 = ((vader_struct___Tuple_1169_t*) l13)->f__1;
+                l14 = ((vader_struct___Tuple_1170_t*) l13)->f__0;
+                l15 = ((vader_struct___Tuple_1170_t*) l13)->f__1;
                 t1 = (l11 + INT64_C(1));
                 l11 = (size_t) (int64_t) t1;
                 l17 = std_collections_get__string__Any(((vader_struct_vader_resolver_LoadedProject_t*) l4)->f_modules, l14);
@@ -29507,13 +29507,13 @@ void* vader_lower_merge_subst(void* l0, void* l1) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l8 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
-                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
+                vader_struct___Tuple_1171_t* _a2_obj = (vader_struct___Tuple_1171_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1171_t));
                 vader_obj_header_init(_a2_obj, 1070u);
                 _a2_obj->f__0 = l9;
                 _a2_obj->f__1 = l3;
                 l4 = (void*) _a2_obj;
-                l10 = ((vader_struct___Tuple_1170_t*) l4)->f__0;
-                l11 = ((vader_struct___Tuple_1170_t*) l4)->f__1;
+                l10 = ((vader_struct___Tuple_1171_t*) l4)->f__0;
+                l11 = ((vader_struct___Tuple_1171_t*) l4)->f__1;
                 t0 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t0;
                 std_collections_put__i32__Any(((vader_struct_vader_typecheck_Substitution_t*) l2)->f_type_params, l10, l11);
@@ -29538,13 +29538,13 @@ void* vader_lower_merge_subst(void* l0, void* l1) {
                 if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
                 if ((size_t) l8 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l8);
-                vader_struct___Tuple_1170_t* _a5_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
+                vader_struct___Tuple_1171_t* _a5_obj = (vader_struct___Tuple_1171_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1171_t));
                 vader_obj_header_init(_a5_obj, 1070u);
                 _a5_obj->f__0 = l9;
                 _a5_obj->f__1 = l3;
                 l4 = (void*) _a5_obj;
-                l10 = ((vader_struct___Tuple_1170_t*) l4)->f__0;
-                l11 = ((vader_struct___Tuple_1170_t*) l4)->f__1;
+                l10 = ((vader_struct___Tuple_1171_t*) l4)->f__0;
+                l11 = ((vader_struct___Tuple_1171_t*) l4)->f__1;
                 t0 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t0;
                 std_collections_put__i32__Any(((vader_struct_vader_typecheck_Substitution_t*) l2)->f_type_params, l10, l11);
@@ -29908,12 +29908,12 @@ vader_box_t vader_lower_module_export(void* l0, vader_string_t l1, vader_string_
                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l9 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l5 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l9);
-                vader_struct___Tuple_1169_t* _a6_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a6_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a6_obj, 1069u);
                 _a6_obj->f__0 = l10;
                 _a6_obj->f__1 = l5;
                 t0 = (void*) _a6_obj;
-                l11 = ((vader_struct___Tuple_1169_t*) t0)->f__1;
+                l11 = ((vader_struct___Tuple_1170_t*) t0)->f__1;
                 t2 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t2;
                 t3 = ((vader_struct_vader_resolver_ResolvedModule_t*) ((vader_struct_vader_typecheck_TypedProgram_t*) l11)->f_resolved)->f_display_path;
@@ -31619,12 +31619,12 @@ void vader_lower_populate_comptime_value_index(void* l0) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                vader_struct___Tuple_1254_t* _a2_obj = (vader_struct___Tuple_1254_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1254_t));
+                vader_struct___Tuple_1255_t* _a2_obj = (vader_struct___Tuple_1255_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1255_t));
                 vader_obj_header_init(_a2_obj, 1154u);
                 _a2_obj->f__0 = l6;
                 _a2_obj->f__1 = l1;
                 t1 = (void*) _a2_obj;
-                l7 = ((vader_struct___Tuple_1254_t*) t1)->f__1;
+                l7 = ((vader_struct___Tuple_1255_t*) t1)->f__1;
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
                 l8 = ((vader_struct_vader_comptime_EvaluatedProgram_t*) l7)->f_comptime_decls;
@@ -31644,13 +31644,13 @@ void vader_lower_populate_comptime_value_index(void* l0) {
                             if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
                             if ((size_t) l12 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
                             l14 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l12);
-                            vader_struct___Tuple_1238_t* _a5_obj = (vader_struct___Tuple_1238_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1238_t));
+                            vader_struct___Tuple_1239_t* _a5_obj = (vader_struct___Tuple_1239_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1239_t));
                             vader_obj_header_init(_a5_obj, 1138u);
                             _a5_obj->f__0 = l13;
                             _a5_obj->f__1 = l14;
                             l15 = (void*) _a5_obj;
-                            l16 = ((vader_struct___Tuple_1238_t*) l15)->f__0;
-                            l17 = ((vader_struct___Tuple_1238_t*) l15)->f__1;
+                            l16 = ((vader_struct___Tuple_1239_t*) l15)->f__0;
+                            l17 = ((vader_struct___Tuple_1239_t*) l15)->f__1;
                             t2 = (l12 + INT64_C(1));
                             l12 = (size_t) (int64_t) t2;
                             std_collections_put__i32__Any(((vader_struct_vader_lower_LowerProjectCtx_t*) l0)->f_comptime_value_by_symbol_id, l16, l17);
@@ -31679,13 +31679,13 @@ void vader_lower_populate_comptime_value_index(void* l0) {
                 if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
                 if ((size_t) l5 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
                 l14 = vader_array_ref_load_box(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) l5);
-                vader_struct___Tuple_1238_t* _a8_obj = (vader_struct___Tuple_1238_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1238_t));
+                vader_struct___Tuple_1239_t* _a8_obj = (vader_struct___Tuple_1239_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1239_t));
                 vader_obj_header_init(_a8_obj, 1138u);
                 _a8_obj->f__0 = l13;
                 _a8_obj->f__1 = l14;
                 l1 = (void*) _a8_obj;
-                l16 = ((vader_struct___Tuple_1238_t*) l1)->f__0;
-                l17 = ((vader_struct___Tuple_1238_t*) l1)->f__1;
+                l16 = ((vader_struct___Tuple_1239_t*) l1)->f__0;
+                l17 = ((vader_struct___Tuple_1239_t*) l1)->f__1;
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
                 std_collections_put__i32__Any(((vader_struct_vader_lower_LowerProjectCtx_t*) l0)->f_comptime_value_by_symbol_id, l16, l17);
@@ -31729,13 +31729,13 @@ void vader_lower_populate_core_symbols(void* l0, void* l1) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
-                vader_struct___Tuple_1155_t* _a2_obj = (vader_struct___Tuple_1155_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1155_t));
+                vader_struct___Tuple_1156_t* _a2_obj = (vader_struct___Tuple_1156_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1156_t));
                 vader_obj_header_init(_a2_obj, 1055u);
                 _a2_obj->f__0 = l7;
                 _a2_obj->f__1 = l2;
                 l8 = (void*) _a2_obj;
-                l9 = ((vader_struct___Tuple_1155_t*) l8)->f__0;
-                l10 = ((vader_struct___Tuple_1155_t*) l8)->f__1;
+                l9 = ((vader_struct___Tuple_1156_t*) l8)->f__0;
+                l10 = ((vader_struct___Tuple_1156_t*) l8)->f__1;
                 t1 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t1;
                 std_collections_put__string__Any(((vader_struct_vader_lower_LowerProjectCtx_t*) l1)->f_core_symbols, l9, vader_ref_box(l10));
@@ -31790,13 +31790,13 @@ void vader_lower_populate_impls(void* l0, void* l1, void* l2) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l7 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l7);
-                vader_struct___Tuple_1169_t* _a2_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a2_obj, 1069u);
                 _a2_obj->f__0 = l8;
                 _a2_obj->f__1 = l3;
                 l9 = (void*) _a2_obj;
-                l10 = ((vader_struct___Tuple_1169_t*) l9)->f__0;
-                l11 = ((vader_struct___Tuple_1169_t*) l9)->f__1;
+                l10 = ((vader_struct___Tuple_1170_t*) l9)->f__0;
+                l11 = ((vader_struct___Tuple_1170_t*) l9)->f__1;
                 t1 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t1;
                 l12 = std_collections_get__string__Any(((vader_struct_vader_resolver_LoadedProject_t*) l0)->f_modules, l10);
@@ -32088,13 +32088,13 @@ bool vader_lower_project_has_main(void* l0) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                vader_struct___Tuple_1249_t _a2_storage;
-                vader_struct___Tuple_1249_t* _a3_obj = &_a2_storage;
+                vader_struct___Tuple_1250_t _a2_storage;
+                vader_struct___Tuple_1250_t* _a3_obj = &_a2_storage;
                 vader_obj_header_init(_a3_obj, 1149u);
                 _a3_obj->f__0 = l6;
                 _a3_obj->f__1 = l1;
                 t1 = (void*) _a3_obj;
-                l7 = ((vader_struct___Tuple_1249_t*) t1)->f__1;
+                l7 = ((vader_struct___Tuple_1250_t*) t1)->f__1;
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
                 l8 = ((vader_struct_vader_lower_LoweredModule_t*) l7)->f_decls;
@@ -32274,7 +32274,7 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
     size_t t4;
     vader_box_t* gc_roots[8] = { &l5, &l6, &l7, &l8, &l9, &l22, &l24, &t1 };
     void** gc_raw_roots[24] = { &l0, &l2, &l3, &l4, &l14, &l16, &l19, &l23, &l25, &l26, &l28, &l29, &l31, &l32, &l34, &l36, &l37, &l38, &l39, &l40, &l41, &l42, &l43, &t0 };
-    vader_struct___Tuple_1251_t _a28_storage = {0};
+    vader_struct___Tuple_1252_t _a28_storage = {0};
     void* gc_stack_objs[1] = { (void*) &_a28_storage };
     vader_gc_frame_t gc_frame = { vader_gc_top, 8u, 24u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
@@ -32384,13 +32384,13 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
                 if (_a23_slotarr->buf != NULL && _a23_slotarr->buf->header.forward != NULL) { _a23_slotarr->buf = vader_array_buf_forward(_a23_slotarr->buf); }
                 if ((size_t) l12 >= _a23_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a23_slotarr->buf, _a23_slotarr->offset + (size_t) l12);
-                vader_struct___Tuple_1249_t* _a24_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a24_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a24_obj, 1149u);
                 _a24_obj->f__0 = l13;
                 _a24_obj->f__1 = l2;
                 l14 = (void*) _a24_obj;
-                l15 = ((vader_struct___Tuple_1249_t*) l14)->f__0;
-                l16 = ((vader_struct___Tuple_1249_t*) l14)->f__1;
+                l15 = ((vader_struct___Tuple_1250_t*) l14)->f__0;
+                l16 = ((vader_struct___Tuple_1250_t*) l14)->f__1;
                 t2 = (l12 + INT64_C(1));
                 l12 = (size_t) (int64_t) t2;
                 l17 = ((vader_struct_vader_lower_LoweredProject_t*) l0)->f_entry;
@@ -32478,12 +32478,12 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
                 if (_a27_slotarr->buf != NULL && _a27_slotarr->buf->header.forward != NULL) { _a27_slotarr->buf = vader_array_buf_forward(_a27_slotarr->buf); }
                 if ((size_t) l12 >= _a27_slotarr->length) { vader_trap("array index out of bounds"); }
                 l2 = vader_array_ref_load_obj(_a27_slotarr->buf, _a27_slotarr->offset + (size_t) l12);
-                vader_struct___Tuple_1251_t* _a29_obj = &_a28_storage;
+                vader_struct___Tuple_1252_t* _a29_obj = &_a28_storage;
                 vader_obj_header_init(_a29_obj, 1151u);
                 _a29_obj->f__0 = l27;
                 _a29_obj->f__1 = l2;
                 t0 = (void*) _a29_obj;
-                l14 = ((vader_struct___Tuple_1251_t*) t0)->f__1;
+                l14 = ((vader_struct___Tuple_1252_t*) t0)->f__1;
                 t2 = (l12 + INT64_C(1));
                 l12 = (size_t) (int64_t) t2;
                 l16 = ((vader_struct__Cell_Struct_lib_std_collections_collections_vader_2450_i32_Union_Struct_vader_lower_lowered_ast_vader_6883___Struct_vader_lower_lowered_ast_vader_6538___Struct_vader_lower_lowered_ast_vader_6766_____t*) l5.payload.obj)->f_value;
@@ -32710,13 +32710,13 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
                 if (_a56_slotarr->buf != NULL && _a56_slotarr->buf->header.forward != NULL) { _a56_slotarr->buf = vader_array_buf_forward(_a56_slotarr->buf); }
                 if ((size_t) l12 >= _a56_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a56_slotarr->buf, _a56_slotarr->offset + (size_t) l12);
-                vader_struct___Tuple_1249_t* _a57_obj = (vader_struct___Tuple_1249_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1249_t));
+                vader_struct___Tuple_1250_t* _a57_obj = (vader_struct___Tuple_1250_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1250_t));
                 vader_obj_header_init(_a57_obj, 1149u);
                 _a57_obj->f__0 = l13;
                 _a57_obj->f__1 = l3;
                 l16 = (void*) _a57_obj;
-                l15 = ((vader_struct___Tuple_1249_t*) l16)->f__0;
-                l19 = ((vader_struct___Tuple_1249_t*) l16)->f__1;
+                l15 = ((vader_struct___Tuple_1250_t*) l16)->f__0;
+                l19 = ((vader_struct___Tuple_1250_t*) l16)->f__1;
                 t2 = (l12 + INT64_C(1));
                 l12 = (size_t) (int64_t) t2;
                 vader_array_t* _a58_arr = vader_array_new(490u, 0u, 13u, 443u);
@@ -36546,13 +36546,13 @@ void* vader_lower_surface_array_blanket_members(void* l0, void* l1, void* l2) {
                             if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
                             if ((size_t) l16 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                             l18 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l16);
-                            vader_struct___Tuple_1184_t* _a4_obj = (vader_struct___Tuple_1184_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1184_t));
+                            vader_struct___Tuple_1185_t* _a4_obj = (vader_struct___Tuple_1185_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1185_t));
                             vader_obj_header_init(_a4_obj, 1084u);
                             _a4_obj->f__0 = l17;
                             _a4_obj->f__1 = l18;
                             l19 = (void*) _a4_obj;
-                            l20 = ((vader_struct___Tuple_1184_t*) l19)->f__0;
-                            l21 = ((vader_struct___Tuple_1184_t*) l19)->f__1;
+                            l20 = ((vader_struct___Tuple_1185_t*) l19)->f__0;
+                            l21 = ((vader_struct___Tuple_1185_t*) l19)->f__1;
                             t2 = (l16 + INT64_C(1));
                             l16 = (size_t) (int64_t) t2;
                             t4 = std_string_starts_with(l20, l11);
@@ -36645,13 +36645,13 @@ void vader_lower_surface_referenced_intrinsic_externs(void* l0, void* l1, void* 
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l8 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
-                vader_struct___Tuple_1169_t* _a2_obj = (vader_struct___Tuple_1169_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1169_t));
+                vader_struct___Tuple_1170_t* _a2_obj = (vader_struct___Tuple_1170_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_1170_t));
                 vader_obj_header_init(_a2_obj, 1069u);
                 _a2_obj->f__0 = l9;
                 _a2_obj->f__1 = l4;
                 l10 = (void*) _a2_obj;
-                l11 = ((vader_struct___Tuple_1169_t*) l10)->f__0;
-                l12 = ((vader_struct___Tuple_1169_t*) l10)->f__1;
+                l11 = ((vader_struct___Tuple_1170_t*) l10)->f__0;
+                l12 = ((vader_struct___Tuple_1170_t*) l10)->f__1;
                 t1 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t1;
                 l13 = ((vader_struct_vader_resolver_LoadedProject_t*) l0)->f_entry;

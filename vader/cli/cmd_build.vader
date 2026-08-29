@@ -283,7 +283,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     if write_split_files(out, prog) != 0 {
         return 1
     }
-    c_files :: split_c_files(out, prog.units.len())
+    c_files :: split_c_files(out, prog.unit_names)
     rt :: runtime_c_root()
 
     // Fan out one `cc -c` per TU (+ the runtime) as concurrent async spawns, so
@@ -407,13 +407,11 @@ emit_c_for_targets :: fn(
 write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32 {
     first :: progs[0]
     for i in 1..<progs.len() {
-        // A differing unit COUNT means the targets disagree on which modules
-        // exist, which the k-indexed layout cannot express — fail rather than
-        // write a set of files whose indices mean different things.
-        if progs[i].units.len() != first.units.len() {
-            eprintln("vader build --seed-targets: `${display_target(targets[i])}` emitted "
-                + "${progs[i].units.len()} units, `${display_target(targets[0])}` emitted "
-                + "${first.units.len()}")
+        // The targets must agree on WHICH modules exist, name by name — a
+        // count alone would pass when one module replaced another.
+        if !same_unit_names(progs[i].unit_names, first.unit_names) {
+            eprintln("vader build --seed-targets: `${display_target(targets[i])}` and "
+                + "`${display_target(targets[0])}` emitted different module sets")
             return 1
         }
     }
@@ -436,13 +434,14 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         for pr in progs {
             col.push(pr.units[k])
         }
+        name :: first.unit_names[k]
         if all_equal(col) {
-            if write_out("${out}.split.${k}.c".to_path(), first.units[k]) != 0 {
+            if write_out(unit_path(out, "", name), first.units[k]) != 0 {
                 return 1
             }
         } else {
             for i in 0..<targets.len() {
-                if write_out("${out}.${display_target(targets[i])}.split.${k}.c".to_path(), progs[i].units[k]) != 0 {
+                if write_out(unit_path(out, display_target(targets[i]), name), progs[i].units[k]) != 0 {
                     return 1
                 }
             }
@@ -457,6 +456,18 @@ globals_of :: fn(progs: CProgram[]) -> string[] {
         out.push(pr.globals)
     }
     return out
+}
+
+same_unit_names :: fn(a: string[], b: string[]) -> bool {
+    if a.len() != b.len() {
+        return false
+    }
+    for i in 0..<a.len() {
+        if a[i] != b[i] {
+            return false
+        }
+    }
+    return true
 }
 
 all_equal :: fn(xs: string[]) -> bool {
@@ -515,20 +526,32 @@ write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
     if write_out("${out}.split.h".to_path(), prog.header) != 0 { return 1 }
     if write_out("${out}.split.g.c".to_path(), prog.globals) != 0 { return 1 }
     for k in 0..<prog.units.len() {
-        if write_out("${out}.split.${k}.c".to_path(), prog.units[k]) != 0 { return 1 }
+        if write_out(unit_path(out, "", prog.unit_names[k]), prog.units[k]) != 0 { return 1 }
     }
     return 0
 }
 
 // The `.c` files to compile : the globals TU + each function TU (the header is
 // included, not compiled).
-split_c_files :: fn(out: Path, unit_count: usize) -> Path[] {
+split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
     files: Path[]! = ["${out}.split.g.c".to_path()]
-    for k in 0..<unit_count {
-        files.push("${out}.split.${k}.c".to_path())
+    for n in unit_names {
+        files.push(unit_path(out, "", n))
     }
     return files
 }
+
+// `<out>-<module>.c`, or `<out>.<target>-<module>.c` when the unit is
+// target-specific. Named by MODULE and not by index: an index shifts every
+// later unit the moment a module is added, which renames and rewrites files
+// whose contents did not change — the same renumbering the atom table used to
+// do, one level up.
+unit_path :: fn(out: Path, target: string, unit: string) -> Path =
+    if target == "" {
+        "${out}-${unit}.c".to_path()
+    } else {
+        "${out}.${target}-${unit}.c".to_path()
+    }
 
 // `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
 // flags as the monolithic `cc_argv`, plus `-I <runtime>` so `#include "vader.h"`
