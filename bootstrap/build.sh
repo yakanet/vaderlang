@@ -27,7 +27,7 @@ if [ -z "$CC_ABS" ]; then
   echo "build.sh: C compiler '${CC:-cc}' not found on PATH (set CC=...)" >&2
   exit 1
 fi
-STAGE0_CFLAGS="${STAGE0_CFLAGS:--O0}"   # stage0 & stage1 are throwaways — fast cc
+STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1}"
 runtime="runtime/c/vader_runtime.c"
 
 # Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init —
@@ -110,8 +110,11 @@ mkdir -p build/gen/stage1
 ./build/stage0 vader/cli/main.vader build/gen/stage1/stage1
 cc_link_parallel "$STAGE0_CFLAGS" build/obj/stage1 build/stage1 build/gen/stage1/*.c "$runtime"
 
-step "[3/3] Building vader = stage2 (via stage1, --release)"
-./build/stage1 build --release --emit=executable --out=build/vader --cc="$CC_ABS" vader/cli/main.vader
+step "[3/3] Building vader = stage2 (via stage1, --release --split)"
+rm -rf build/gen/stage2
+mkdir -p build/gen/stage2
+./build/stage1 build --release --split --emit=executable --out=build/gen/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+mv build/gen/stage2/vader build/vader
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"
 ./build/vader --version

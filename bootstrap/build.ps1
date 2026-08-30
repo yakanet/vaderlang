@@ -24,7 +24,7 @@ Set-Location (Split-Path -Parent $PSScriptRoot)
 $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
 $ccAbs = $ccCmd.Source
-$stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O0' }
+$stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }
 $ccJobs = if ($env:CC_JOBS) { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 
@@ -90,9 +90,14 @@ $stage1Units = @(Get-ChildItem -Path $genDir -Filter '*.c' | ForEach-Object { $_
 $stage1Units += (Join-Path $PWD $runtime)
 CcLinkParallel $stage0cflags 'build\obj\stage1' 'build\stage1.exe' $stage1Units 'stage1'
 
-Step "[3/3] Building vader = stage2 (via stage1, --release)"
-& .\build\stage1.exe build --release --emit=executable --out=build\vader --cc=$ccAbs vader\cli\main.vader
+Step "[3/3] Building vader = stage2 (via stage1, --release --split)"
+$stage2Dir = Join-Path $PWD 'build\gen\stage2'
+Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $stage2Dir | Out-Null
+$stage2Out = Join-Path $stage2Dir 'vader'
+& .\build\stage1.exe build --release --split --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
+Move-Item -Force (Join-Path $stage2Dir 'vader.exe') 'build\vader.exe'
 
 Write-Host "==> done  vader built at build\vader.exe" -ForegroundColor Green
 & .\build\vader.exe --version
