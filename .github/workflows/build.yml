@@ -86,13 +86,23 @@ jobs:
           VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
 
-  # Heavy fixed-point check: build the toolchain, confirm stage1 and stage2 emit
-  # identical C for main.vader, and the committed seed is fresh. Bun-free, gated
-  # to manual dispatch / release tags — too slow for every PR. docs/BOOTSTRAP.md Phase 4.
+  # Fixed-point check: build the toolchain three-stage, confirm stage1 and stage2
+  # emit identical C for main.vader (release AND debug), that two split builds are
+  # byte-identical, and that the committed seed is fresh. Bun-free.
+  #
+  # Runs on every push and PR. It used to be gated to dispatch / tags as "too slow
+  # for every PR", which the numbers contradict: it measured 257 s and 286 s the
+  # two times it actually ran, against 10 m 59 s for the Windows job that sets the
+  # run's total. A 4-minute Linux job finishes inside that shadow, so the wall
+  # clock is unchanged and the cost is runner minutes only.
+  #
+  # It is also the ONLY job that would notice any of the three. `test-posix` and
+  # `test-windows` build stage0 from the seed and then self-compile stage1 from
+  # current sources, so they pass with a STALE seed — nothing else on push does.
+  # docs/BOOTSTRAP.md Phase 4.
   fixed-point:
     name: Fixed-point verification
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v6
       - name: verify.sh (stage1 == stage2 + seed freshness)

@@ -361,7 +361,7 @@ bootstrap/
 ├── seed.sh            — the seed's lifecycle: check | regenerate | push
 ├── build.sh           — cc (external runtime) → ./build/stage1
 ├── build.ps1          — Windows counterpart (mingw-w64)
-├── verify.sh          — fixed-point check (Phase 4, on-demand)
+├── verify.sh          — fixed-point check (Phase 4, every push + PR)
 └── README.md          — terse usage, points to docs/BOOTSTRAP.md
 ```
 
@@ -543,9 +543,15 @@ CI lives in the unified `.github/workflows/build.yml` workflow. **The Bun-free
 `seed-rebuild` job described below was REMOVED on 2026-08-30** (`1c19064b3`) —
 see the warning at the top of this document for what went with it. What remains
 is the `Test` job's own bootstrap, which runs after Bun is installed, plus the
-heavier `fixed-point` job
-(`verify.sh`) gated to `workflow_dispatch` and release tags. Neither installs
-Bun, Node, or a pre-installed `vader` — only a C compiler. (The Bun
+`fixed-point` job (`verify.sh`), which runs on **every push and PR** since
+2026-08-30. It used to be gated to `workflow_dispatch` and release tags as too
+slow; it measured 257 s and 286 s the two times it actually ran, against the
+10 m 59 s Windows job that sets a run's total, so it finishes inside that shadow
+for no wall-clock cost. That matters because it is the only job that would
+notice a stale seed: `test-posix` and `test-windows` build stage0 from the seed
+and then self-compile stage1 from current sources, so both pass with a seed that
+no longer matches. Neither installs Bun, Node, or a pre-installed `vader` — only
+a C compiler. (The Bun
 `test` / `dist` jobs in the same file are separate, isolated jobs.)
 
 The `rebuild` job, running on each push :
