@@ -2,7 +2,7 @@
 # Fixed-point check : build the 3-stage toolchain, then confirm stage1 and
 # stage2 (vader) emit identical C for main.vader, and the committed seed is
 # fresh. Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. Run on demand /
-# before releases — too slow for every PR. Honours $CC (via bootstrap/build.sh).
+# on every push and PR (it finishes inside the Windows job's shadow). Honours $CC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -17,6 +17,12 @@ cd "$(dirname "$0")/.."
 # just wrote it — so stage2's own is the only thing missing. Same flags on both
 # sides (`--release`, split being the default), which is the mode actually shipped;
 # `--emit=c` and `--emit=executable` produce identical C, verified.
+#
+# Same flags is not enough: the two EMITTING BINARIES must also be built the same
+# way, which `build.sh` now guarantees (stage1 is -O3+LTO in both modes). While it
+# was not, this gate reported a fixed-point failure on linux-x86_64 that was really
+# an -O sensitivity in the compiler — a true bug, but not this one, and the report
+# sent the reader hunting the wrong thing.
 #
 # `diff -r` and not `cmp`: the emission is a TREE of one unit per module, and a
 # unit present on one side only is exactly what a comparison of concatenated

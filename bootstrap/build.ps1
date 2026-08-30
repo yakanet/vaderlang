@@ -10,8 +10,9 @@
 # (the runtime uses __attribute__((weak))). The seed is plain C, compiled where
 # it is tracked -- nothing to decompress. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
-# stage1 via --cc. stage0 & stage1 are throwaways built -O1 ($env:STAGE0_CFLAGS);
-# only stage2/vader is built -O3 (via stage1's --release). Pass -Dist to also
+# stage1 via --cc. stage0 is a throwaway built -O1 ($env:STAGE0_CFLAGS); stage1 is
+# built -O3+LTO in both modes, because `verify.sh` compares its emission against
+# stage2's and two differently-built binaries do not answer that. Pass -Dist to also
 # assemble a self-contained dist\vader-windows-<arch>\ bundle. See docs/BOOTSTRAP.md.
 [CmdletBinding()]
 param([string]$CC = $(if ($env:CC) { $env:CC } else { 'gcc' }), [switch]$Dist, [switch]$ThreeStage)
@@ -109,18 +110,20 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags) {
 }
 
 # Two stages by default: stage1 is built `--release` and IS the shipped compiler.
-# `-ThreeStage` adds the round `verify.sh` needs to compare stage1 against stage2.
+# `-ThreeStage` adds the round `verify.sh` needs to compare stage1 against stage2 ;
+# only the OUTPUT PATH differs between the modes. stage1 carries the release flags
+# in both, which is load-bearing rather than tidy -- see bootstrap/build.sh, which
+# had the same -O1 mismatch and made the fixed-point gate report an -O sensitivity
+# as a fixed-point failure.
 if ($ThreeStage) {
     $stages = 3
     $stage1Out = 'build\stage1.exe'
-    $stage1Cflags = $stage0cflags
-    $stage1Ldflags = @($stage0cflags)
 } else {
     $stages = 2
     $stage1Out = 'build\vader.exe'
-    $stage1Cflags = @('-std=c11', '-O3', '-DNDEBUG', '-falign-functions=64') + (LtoCompileFlags)
-    $stage1Ldflags = LtoLinkFlags
 }
+$stage1Cflags = @('-std=c11', '-O3', '-DNDEBUG', '-falign-functions=64') + (LtoCompileFlags)
+$stage1Ldflags = LtoLinkFlags
 
 Step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"
 $work0 = Join-Path $PWD 'build\work\stage0'

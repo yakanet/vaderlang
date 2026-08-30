@@ -13,9 +13,11 @@
 # Needs only a C compiler — no Bun, no TS, no pre-existing vader binary.
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
 # is resolved to an absolute path and passed to stage1 via --cc, so the compiler
-# stage1 spawns is exactly the one used here. stage0 & stage1 are throwaways built
-# -O1 (STAGE0_CFLAGS): -O0 compiles faster but they run the heavy work, and -O1 wins
-# the total by ~11 s. Only stage2/vader is built -O3 (via stage1's --release).
+# stage1 spawns is exactly the one used here. stage0 is a throwaway built -O1
+# (STAGE0_CFLAGS): -O0 compiles faster but it runs the heavy work, and -O1 wins the
+# total by ~11 s. stage1 is built -O3+LTO in BOTH modes — under `--three-stage` it
+# is a throwaway too, but `verify.sh` compares its emission against stage2's, and
+# two binaries built differently do not answer the question that check asks.
 # Pass --dist to also assemble a self-contained dist/vader-<os>-<arch>/ bundle
 # (binary + lib/ + runtime/c). See docs/BOOTSTRAP.md.
 set -euo pipefail
@@ -157,18 +159,28 @@ fi
 # It behaves exactly as stage2 would — `verify.sh` is what proves that — and only
 # its machine code comes from the seed's codegen rather than from the tree's. The
 # gap between the two is the seed's AGE, which the pre-push hook keeps at zero.
-# `--three-stage` adds the round `verify.sh` needs to compare the two.
+# `--three-stage` adds the round `verify.sh` needs to compare the two ; only the
+# OUTPUT PATH differs between the modes.
+#
+# stage1 carries the release flags in BOTH modes, and that is load-bearing rather
+# than tidy. It was `-O1` under `--three-stage` (stage1 is a throwaway there, and
+# skipping -O3 saved ~11 s), which made `verify.sh` compare an -O1 binary's
+# emission against an -O3+LTO binary's — folding "does the compiler behave the
+# same at either -O level" into a check that only claims to test the fixed point.
+# On 2026-08-30 that reported a fixed-point failure on linux-x86_64 which was
+# nothing of the sort: with matched flags the fixed point holds there, byte for
+# byte. The mismatch was still telling the truth about something — the SAME C at
+# two -O levels really does emit differently on x86_64, which is UB in the
+# compiler and is tracked separately. A gate must test one thing.
 if [ "$three_stage" = 1 ]; then
     stages=3
     stage1_out=build/stage1
-    stage1_cflags="$STAGE0_CFLAGS"
-    stage1_ldflags="$STAGE0_CFLAGS"
 else
     stages=2
     stage1_out=build/vader
-    stage1_cflags="$(release_cflags) $(lto_compile_flags)"
-    stage1_ldflags="$(lto_link_flags)"
 fi
+stage1_cflags="$(release_cflags) $(lto_compile_flags)"
+stage1_ldflags="$(lto_link_flags)"
 
 step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
 rm -rf build/work/stage0
