@@ -243,8 +243,29 @@ static int g_gc_stress_major = 0;
  * tag can only be stray bytes (a heap-pointer's low 32 bits), so it pinpoints
  * which GC cycle first observes a corrupted bucket box — and whether the box's
  * payload still points at a valid heap object (tag-only clobber) or not. Off
- * by default: the scan's existing `tag >= count` fast-path stays silent. */
+ * by default: the scan's existing `tag >= count` fast-path stays silent.
+ *
+ * The same switch also arms `vader_gc_check_object_alignment` below. */
 static int g_gc_check_box = 0;
+
+/* Root-candidate alignment check — same `VADER_GC_CHECK_BOX=1` switch, because
+ * it catches the same disease one step earlier. Every arena hands out slots
+ * through `vader_gc_align` (VADER_GC_ALIGN == 8), so a live object's address is
+ * ALWAYS a multiple of 8. A root cell offering something else is not an object:
+ * it is stray bytes that happen to land inside an arena's range, and the range
+ * check alone waves it through.
+ *
+ * Letting it through is not a missed root, it is a WRITE: `vader_gc_forward`
+ * reaches `vader_gc_copy_into`, which stores the forwarding pointer INTO the
+ * source — 8 bytes at an arbitrary arena address, silently. Found on 2026-08-30
+ * via UBSan (70982 `member access within misaligned address` reports on a
+ * self-compile), which is a tool nobody runs by default ; this is the same
+ * finding, in the shipped binary, on demand.
+ *
+ * Deliberately NOT `#ifndef NDEBUG`. The divergence it explains appears only in
+ * `-O3 -DNDEBUG -flto` builds — stack layout is what decides which stray bytes
+ * are visible — so a debug-only guard would never fire where the bug lives. */
+static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index);
 
 /* Old-gen scan override — set via `VADER_GC_SCAN_ALL_OLD=1`. Forces
  * `vader_gc_scan_old_dirty_cards` to treat every card as dirty, i.e. to scan
@@ -1754,8 +1775,32 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object — the trace never visits it, so any inner dynamic
  * ref would be missed and freed under your feet. */
+/* Definition of the guard declared above. Kept out of the hot path's body so
+ * the fast case is a single load-and-test the branch predictor never misses. */
+static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index) {
+    if (!g_gc_check_box) return;
+    if (((uintptr_t) obj & (uintptr_t)(VADER_GC_ALIGN - 1u)) == 0u) return;
+    fprintf(stderr,
+        "\n[VADER_GC_CHECK_BOX] root candidate is not %u-aligned (cycle=%d)\n"
+        "  address    : %p  (%u mod %u)\n"
+        "  claimed tag: %u\n"
+        "  in young   : %s\n"
+        "  in old     : %s\n"
+        "Every arena slot is %u-aligned, so this is stray bytes read from a root\n"
+        "cell, not an object. Forwarding it would WRITE the forwarding pointer\n"
+        "into it. Run under a debugger to see which root cell holds it.\n",
+        VADER_GC_ALIGN, g_cycle,
+        obj, (unsigned)((uintptr_t) obj & (uintptr_t)(VADER_GC_ALIGN - 1u)), VADER_GC_ALIGN,
+        type_index,
+        vader_in_young_from(obj) ? "yes" : "no",
+        vader_in_old(obj)        ? "yes" : "no",
+        VADER_GC_ALIGN);
+    vader_trap("VADER_GC_CHECK_BOX: root candidate is not object-aligned");
+}
+
 static void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (obj == NULL) return NULL;
+    vader_gc_check_object_alignment(obj, type_index);
 
     if (g_cycle == VADER_CYCLE_MAJOR) {
         /* Mark phase: only old objects are sweepable. Young survivors and
