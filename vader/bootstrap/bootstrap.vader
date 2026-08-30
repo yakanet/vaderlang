@@ -4,7 +4,7 @@
 // It is the source the committed C seed (`bootstrap/seed/`) is generated from —
 // see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
 // invocation (`bootstrap/build.sh`) is
-// `stage0 vader/cli/main.vader build/stage1/stage1` —
+// `stage0 vader/cli/main.vader build/work/stage1/stage1` —
 // stage0 therefore has to carry a complete compilation pipeline, even though it
 // only ever compiles that one input.
 //
@@ -48,10 +48,11 @@ import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as _ }
 ///
 /// `argv[0]` is the binary path ; `argv[1]` is the input `.vader` source and
 /// `argv[2]` the output PREFIX — one TU per Vader module is written beside it,
-/// so `build/stage1/stage1` yields `stage1.split.h`, `stage1.split.g.c` and one
-/// `stage1-<module>.c` per module. The caller compiles them in parallel, which
-/// is the whole point : a single 300 k-line TU cannot be, and it is what forces
-/// stage1 to be built `-O0`. Diagnostics go to stderr ; an error-severity
+/// so `build/work/stage1/stage1` yields `stage1.split.h`, `stage1.split.g.c` and
+/// one `stage1-<module>.c` per module. The caller compiles them in parallel,
+/// which is the whole point : a single 300 k-line TU cannot be, and that is what
+/// used to pin stage1 to `-O0` — `cc -O1` costs 18.9 s on one TU against 4.8 s
+/// spread over 53. Diagnostics go to stderr ; an error-severity
 /// diagnostic aborts with exit 1 (nothing written). This is `stage1`'s entire
 /// CLI surface — `bootstrap/build.sh` invokes it positionally.
 ///
@@ -69,8 +70,9 @@ main :: fn(argv: string[]) -> i32 {
     output :: argv[2]
     // The header is `#include`d by every unit BY BASENAME, since they are all
     // co-located : spelling the full prefix here would embed the build
-    // directory into the emitted C.
-    header :: "${output.to_path().filename()}.split.h"
+    // directory into the emitted C. `to_posix` first — `filename` splits on
+    // `/` only, so a Windows prefix would come back whole.
+    header :: "${to_posix(output).to_path().filename()}.split.h"
     prog :: emit_c_program(input, header) ?? return 1
     return write_split_files(output, prog)
 }

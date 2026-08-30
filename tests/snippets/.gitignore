@@ -1,8 +1,12 @@
 */native
 */native.exe
 */native.c
+*/native-*.c
+*/native.split.*
 */_main
 */_main.exe
 */_main.c
+*/_main-*.c
+*/_main.split.*
 */*.o
 **/*.dSYM/

@@ -8,9 +8,13 @@ build/
 tmp_mappoc/
 tmp_vrun/
 
-# Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`)
+# Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`).
+# Split is the default emission, so one `vader build` writes `main.split.h`,
+# `main.split.g.c` and one `main-<module>.c` per module beside the binary.
 vader/cli/main
 vader/cli/main.c
+vader/cli/main-*.c
+vader/cli/main.split.*
 vader/cli/main.dSYM/
 .DS_Store
 .env
@@ -77,4 +81,5 @@ tests/snippets/*/native.c
 tests/hook_fixtures/*/app
 tests/hook_fixtures/*/hello
 tests/hook_fixtures/*/*.c
+tests/hook_fixtures/*/*.h
 tests/hook_fixtures/*/*.exe

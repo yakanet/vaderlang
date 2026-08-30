@@ -131,6 +131,14 @@ cmd_build :: fn(args: string[]) -> i32 {
 
     if emit == "c" {
         if seed_flag != "" {
+            // The seed set is split by construction — one unit per module, shared
+            // across targets. `--no-split` cannot be honoured here, so say so
+            // rather than accept and ignore it, as the two checks above do for
+            // a wrong `--emit` and a redundant `--target`.
+            if parsed.bool_flag("no-split") {
+                eprintln("vader build: `--seed-targets` always emits split C — drop `--no-split`")
+                return 2
+            }
             ts :: parse_target_list(seed_flag)
             if ts.len() == 0 {
                 return 2
@@ -374,6 +382,10 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
 emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null) -> CProgram | null {
+    // UNREACHABLE from the CLI: `split` (line 72) already excludes a `.virt`, and
+    // both callers gate on it. Kept as the guard for a future third caller that
+    // does not — the rule "a `.virt` has no front end to re-run" belongs next to
+    // the code that would re-run it, not only in the flag computation.
     if file.extension() == "virt" {
         eprintln("vader build: split needs a `.vader` front end; `.virt` takes the single TU")
         return null

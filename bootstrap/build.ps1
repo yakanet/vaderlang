@@ -8,7 +8,7 @@
 # (the runtime uses __attribute__((weak))). The seed is plain C, compiled where
 # it is tracked -- nothing to decompress. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
-# stage1 via --cc. stage0 & stage1 are throwaways built -O0 ($env:STAGE0_CFLAGS);
+# stage1 via --cc. stage0 & stage1 are throwaways built -O1 ($env:STAGE0_CFLAGS);
 # only stage2/vader is built -O3 (via stage1's --release). Pass -Dist to also
 # assemble a self-contained dist\vader-windows-<arch>\ bundle. See docs/BOOTSTRAP.md.
 [CmdletBinding()]
@@ -25,7 +25,7 @@ $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
 $ccAbs = $ccCmd.Source
 $stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }
-$ccJobs = if ($env:CC_JOBS) { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
+$ccJobs = if ($env:CC_JOBS -match '^[1-9][0-9]*$') { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 
 # Arena sizing is RAM-proportional (runtime\c\vader_runtime.c::vader_gc_init --
@@ -98,7 +98,12 @@ New-Item -ItemType Directory -Force $stage2Dir | Out-Null
 $stage2Out = Join-Path $stage2Dir 'vader'
 & .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
-Move-Item -Force (Join-Path $stage2Dir 'vader.exe') 'build\vader.exe'
+# `cc -o vader` writes `vader.exe` here and `vader` on Unix -- the same reason
+# `vader/pipeline::linked_binary` probes instead of guessing.
+$produced = @(Get-ChildItem -Path $stage2Dir -Filter 'vader*' -File |
+    Where-Object { $_.Extension -in @('.exe', '') })
+if ($produced.Count -eq 0) { throw "stage1 produced no binary under $stage2Dir" }
+Move-Item -Force $produced[0].FullName (Join-Path 'build' $produced[0].Name)
 
 Write-Host "==> done  vader built at build\vader.exe" -ForegroundColor Green
 & .\build\vader.exe --version

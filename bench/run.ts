@@ -141,7 +141,9 @@ const IMPLS: readonly Impl[] = [
       ? Promise.resolve()
       : runBuild("./build/vader", ["build", "--emit=executable", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
     run: (w) => w === "selfcompile_c"
-      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
+      // `--no-split`: this workload's history is a single-TU emission, and the
+      // split one is a different measurement scattering ~53 files per sample.
+      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--no-split", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {

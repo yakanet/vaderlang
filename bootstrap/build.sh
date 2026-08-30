@@ -8,7 +8,8 @@
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
 # is resolved to an absolute path and passed to stage1 via --cc, so the compiler
 # stage1 spawns is exactly the one used here. stage0 & stage1 are throwaways built
-# -O0 (STAGE0_CFLAGS); only stage2/vader is built -O3 (via stage1's --release).
+# -O1 (STAGE0_CFLAGS): -O0 compiles faster but they run the heavy work, and -O1 wins
+# the total by ~11 s. Only stage2/vader is built -O3 (via stage1's --release).
 # Pass --dist to also assemble a self-contained dist/vader-<os>-<arch>/ bundle
 # (binary + lib/ + runtime/c). See docs/BOOTSTRAP.md.
 set -euo pipefail
@@ -43,18 +44,28 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 mkdir -p build
 
 cc_jobs() {
-    if command -v nproc >/dev/null 2>&1; then
-      nproc
-    elif command -v sysctl >/dev/null 2>&1; then
-      sysctl -n hw.ncpu
-    else
-      echo 4
-    fi
+    n=$(getconf _NPROCESSORS_ONLN 2>/dev/null) || n=""
+    [ -n "$n" ] || n=$(nproc 2>/dev/null) || n=""
+    [ -n "$n" ] || n=$(sysctl -n hw.ncpu 2>/dev/null) || n=""
+    case "$n" in ''|*[!0-9]*|0) n=4 ;; esac
+    echo "$n"
 }
 CC_JOBS="${CC_JOBS:-$(cc_jobs)}"
+case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 
 compile_unit() {
-    "$CC_ABS" $UNIT_CFLAGS -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o"
+    unit_log="$UNIT_OBJDIR/$(basename "$1" .c).cclog"
+    if ! "$CC_ABS" $UNIT_CFLAGS -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o" \
+         >"$unit_log" 2>&1; then
+        echo "cc failed on $1" >&2
+        cat "$unit_log" >&2
+        return 1
+    fi
+    if [ -s "$unit_log" ]; then
+        cat "$unit_log" >&2
+    fi
+    rm -f "$unit_log"
+    return 0
 }
 export -f compile_unit
 
@@ -114,7 +125,16 @@ step "[3/3] Building vader = stage2 (via stage1, --release)"
 rm -rf build/work/stage2
 mkdir -p build/work/stage2
 ./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
-mv build/work/stage2/vader build/vader
+# `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
+# reason `vader/pipeline::linked_binary` probes instead of guessing.
+if [ -f build/work/stage2/vader ]; then
+    mv build/work/stage2/vader build/vader
+elif [ -f build/work/stage2/vader.exe ]; then
+    mv build/work/stage2/vader.exe build/vader.exe
+else
+    echo "build.sh: stage1 produced no binary under build/work/stage2" >&2
+    exit 1
+fi
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"
 ./build/vader --version

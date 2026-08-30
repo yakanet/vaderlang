@@ -19,12 +19,64 @@ cd "$(dirname "$0")/.."
 # unit present on one side only is exactly what a comparison of concatenated
 # output would miss. The .o files live beside the sources because that is where
 # the CLI writes them, so they are excluded rather than moved.
+if [ ! -d build/work/stage2 ]; then
+  echo "verify.sh: build/work/stage2 is missing — build.sh did not produce step 3" >&2
+  exit 2
+fi
 rm -rf build/work/verify
 mkdir -p build/work/verify
 ./build/vader build --release --emit=c --out=build/work/verify/vader vader/cli/main.vader
-if ! diff -r -q --exclude='*.o' build/work/verify build/work/stage2 >/dev/null 2>&1; then
+
+# `diff -r` of two EMPTY trees returns 0, so the gate would pass vacuously on an
+# emission that wrote nothing. The old `cmp` on two files at least required both
+# to exist; this restores that much.
+emitted=$(ls build/work/verify/*.c 2>/dev/null | wc -l | tr -d ' ')
+if [ "$emitted" -lt 2 ]; then
+  echo "verify.sh: only $emitted unit(s) emitted — refusing to certify a fixed point" >&2
+  exit 2
+fi
+
+# diff exits 1 on a difference and 2 on an ERROR (missing or unreadable path).
+# Folding them together reports a structural problem as a fixed-point failure,
+# which sends the reader looking for a compiler bug that is not there.
+set +e
+diff -r -q --exclude='*.o' build/work/stage2 build/work/verify >/dev/null
+fp_rc=$?
+set -e
+if [ "$fp_rc" = 2 ]; then
+  echo "verify.sh: diff failed structurally comparing stage2 against the re-emission" >&2
+  exit 2
+fi
+if [ "$fp_rc" != 0 ]; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
   diff -r --exclude='*.o' build/work/stage2 build/work/verify | head -80 >&2
+  exit 1
+fi
+
+# (a2) the DEBUG emission, which the release comparison above no longer covers:
+# `--release` off means `prepare_cfg_bytecode_with` fills the per-op debug table
+# and c_emit keeps `#line`. A divergence confined to that surface — the span and
+# file provenance a DAP session reads — would otherwise pass unseen. A snippet is
+# enough: what is under test is the emitter path, not the input's size.
+rm -rf build/work/verify-debug
+mkdir -p build/work/verify-debug/a build/work/verify-debug/b
+DBG_SNIPPET=tests/snippets/return_42/_main.vader
+# The SAME basename on both sides: every unit `#include`s the header by basename,
+# so two different prefixes would diverge on that line alone and report a failure
+# that is entirely an artefact of the test.
+./build/stage1 build --emit=c --out=build/work/verify-debug/a/dbg "$DBG_SNIPPET"
+./build/vader  build --emit=c --out=build/work/verify-debug/b/dbg "$DBG_SNIPPET" 2>/dev/null
+set +e
+diff -r -q --exclude='*.o' build/work/verify-debug/a build/work/verify-debug/b >/dev/null
+dbg_rc=$?
+set -e
+if [ "$dbg_rc" = 2 ]; then
+  echo "verify.sh: diff failed structurally on the debug emission" >&2
+  exit 2
+fi
+if [ "$dbg_rc" != 0 ]; then
+  echo "FIXED-POINT FAILED (debug emission) — stage1 and stage2 disagree" >&2
+  diff -r --exclude='*.o' build/work/verify-debug/a build/work/verify-debug/b | head -40 >&2
   exit 1
 fi
 
