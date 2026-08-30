@@ -1,9 +1,10 @@
 // vader/bootstrap/bootstrap — build-only compiler entrypoint (the seed source).
 //
-// A minimal compiler whose only job is `<input.vader> -> <output.c>`. It is the
-// source the committed C seed (`bootstrap/bootstrap.c`) is generated from —
+// A minimal compiler whose only job is `<input.vader> -> one C TU per module`.
+// It is the source the committed C seed (`bootstrap/seed/`) is generated from —
 // see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
-// invocation (`bootstrap/build.sh`) is `stage0 vader/cli/main.vader stage1.c` —
+// invocation (`bootstrap/build.sh`) is
+// `stage0 vader/cli/main.vader build/stage1/stage1` —
 // stage0 therefore has to carry a complete compilation pipeline, even though it
 // only ever compiles that one input.
 //
@@ -43,33 +44,63 @@ import "vader/midir"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as _ }
 
-/// Build-only entrypoint : compile `<input.vader>` to `<output.c>`.
+/// Build-only entrypoint : compile `<input.vader>` to a multi-unit C program.
 ///
 /// `argv[0]` is the binary path ; `argv[1]` is the input `.vader` source and
-/// `argv[2]` the output `.c` path. Diagnostics go to stderr ; an error-severity
+/// `argv[2]` the output PREFIX — one TU per Vader module is written beside it,
+/// so `build/stage1/stage1` yields `stage1.split.h`, `stage1.split.g.c` and one
+/// `stage1-<module>.c` per module. The caller compiles them in parallel, which
+/// is the whole point : a single 300 k-line TU cannot be, and it is what forces
+/// stage1 to be built `-O0`. Diagnostics go to stderr ; an error-severity
 /// diagnostic aborts with exit 1 (nothing written). This is `stage1`'s entire
-/// CLI surface — `bootstrap/build.sh`'s smoke test invokes it positionally.
+/// CLI surface — `bootstrap/build.sh` invokes it positionally.
 ///
-/// @param argv  process argv ; `argv[1]` = input, `argv[2]` = output.
+/// The prefix's DIRECTORY must exist — the caller creates it. Nothing here
+/// mkdir's, so a typo fails as a write error rather than scattering a tree.
+///
+/// @param argv  process argv ; `argv[1]` = input, `argv[2]` = output prefix.
 /// @return      0 on success, 1 on a usage error / compile error / write error.
 main :: fn(argv: string[]) -> i32 {
     if argv.len() < 3 {
-        eprintln("usage: bootstrap <input.vader> <output.c>")
+        eprintln("usage: bootstrap <input.vader> <output-prefix>")
         return 1
     }
     input  :: argv[1]
     output :: argv[2]
-    c_src :: emit_c_source(input) ?? return 1
-    return write_out(output, c_src)
+    // The header is `#include`d by every unit BY BASENAME, since they are all
+    // co-located : spelling the full prefix here would embed the build
+    // directory into the emitted C.
+    header :: "${output.to_path().filename()}.split.h"
+    prog :: emit_c_program(input, header) ?? return 1
+    return write_split_files(output, prog)
+}
+
+// `<out>.split.h`, `<out>.split.g.c`, and `<out>-<module>.c` per function unit —
+// the same layout `vader/cli`'s split build writes, so one convention covers the
+// seed, a driven build, and this entrypoint.
+write_split_files :: fn(out: string, prog: CProgram) -> i32 {
+    if write_out("${out}.split.h", prog.header) != 0 {
+        return 1
+    }
+    if write_out("${out}.split.g.c", prog.globals) != 0 {
+        return 1
+    }
+    for k in 0..<prog.units.len() {
+        if write_out("${out}-${prog.unit_names[k]}.c", prog.units[k]) != 0 {
+            return 1
+        }
+    }
+    return 0
 }
 
 // ---- pipeline driver (duplicated from vader/cli/main.vader) ----------------
 
 // Lower `file` through the canonical CFG → bytecode → c_emit path (the same
-// pipeline `dump --stage=c` uses) and return the generated C. Pipeline
-// diagnostics go to stderr ; returns null when an error-severity diagnostic
-// blocks the build, so the caller emits nothing and exits non-zero.
-emit_c_source :: fn(file: string) -> string | null {
+// pipeline `dump --stage=c` uses) and return the split C program — header,
+// globals TU, and one TU per Vader module. Pipeline diagnostics go to stderr ;
+// returns null when an error-severity diagnostic blocks the build, so the
+// caller emits nothing and exits non-zero.
+emit_c_program :: fn(file: string, header_name: string) -> CProgram | null {
     b :: prepare_cfg_bytecode(file)
     if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
     // Designate the program entry by mangled name (same source as the bytecode
@@ -77,7 +108,9 @@ emit_c_source :: fn(file: string) -> string | null {
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
     // which has its own `main`) flags several fns `is_main`.
     // Debug build (`.release = false`) — the seed is cc'd with `-O2` separately.
-    return emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry })
+    return emit_c_split(
+        b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }, header_name,
+    )
 }
 
 // Render the merged pipeline diagnostics to stderr and report whether the
