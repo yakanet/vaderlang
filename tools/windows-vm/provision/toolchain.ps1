@@ -5,9 +5,12 @@
 # Every package is a pinned zip fetched straight from its upstream release, so a
 # reprovision is reproducible and no package manager sits in the loop. The Bun
 # pin tracks .github/workflows/build.yml so the local suite and CI run the same
-# runtime; llvm-mingw replaces the mingw-w64 gcc CI uses, because GCC has no
-# usable aarch64-windows host build and bootstrap/build.ps1 already accepts
-# `-CC clang`.
+# runtime; llvm-mingw is the guest's NATIVE toolchain, because GCC has no usable
+# aarch64-windows host build and bootstrap/build.ps1 already accepts `-CC clang`.
+# A mingw-w64 GCC is installed BESIDE it, x86_64 under Prism: CI builds with gcc,
+# and a guest that only had clang could not reproduce a gcc-only failure — which
+# is exactly what happened on 2026-08-30. Slow, but an oracle for the toolchain
+# CI actually uses. Reach it with `bootstrap/build.ps1 -CC C:\vader-tools\mingw64\bin\gcc.exe`.
 #
 # Note what is deliberately NOT done here: no Defender exclusion for C:\vader.
 # Real-time scanning is part of what a Windows build costs, and the point of
@@ -19,6 +22,13 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $LLVM_MINGW_VERSION = '20260826'
+# mingw-w64 GCC, x86_64. The guest is ARM64, so this one runs under Prism —
+# slower, and that is fine: it is here as an ORACLE, not as the fast path.
+# CI builds with gcc and the guest only had clang, which cost a full day on a
+# failure that reproduced on neither. `.zip` and not `.7z` so `Expand-Archive`
+# suffices, like every other package here.
+$WINLIBS_VERSION = '11.2.0-14.0.0-9.0.0-ucrt-r7'
+$WINLIBS_ARCHIVE = 'winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r7.zip'
 $BUN_VERSION        = '1.3.13'
 $PWSH_VERSION       = '7.6.5'
 
@@ -31,6 +41,12 @@ $packages = @(
         url   = "https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_VERSION/llvm-mingw-$LLVM_MINGW_VERSION-ucrt-aarch64.zip"
         bin   = 'bin'
         probe = 'clang.exe'
+    },
+    @{
+        name  = 'mingw64'
+        url   = "https://github.com/brechtsanders/winlibs_mingw/releases/download/$WINLIBS_VERSION/$WINLIBS_ARCHIVE"
+        bin   = 'bin'
+        probe = 'gcc.exe'
     },
     @{
         name  = 'bun'
