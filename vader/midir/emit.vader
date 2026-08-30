@@ -381,7 +381,14 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         if used_keys[key] !is bool { continue }
         fn_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
         if fn_idx < 0 { continue }
-        receiver_idx :: intern_type(ve.struct_type, ctx)
+        receiver_key :: type_intern_key(ve.struct_type)
+        receiver_slot :: ctx.type_key[receiver_key]
+        if receiver_slot !is i32 { continue }
+        // NO `is BcStruct` guard here, unlike the impl table: a vtable dispatches
+        // on any receiver shape — `i32 implements Display` pins a `BcPrimitive`
+        // slot — and requiring a struct drops those rows into a runtime
+        // "vtable miss in Display.to_string".
+        receiver_idx :: receiver_slot
         existing :: rows_by_key[key]
         if existing is usize as ei {
             out[ei].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
