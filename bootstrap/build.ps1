@@ -95,9 +95,17 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags) {
     }
     if ($failed) { throw "$what compilation failed for: $($failed -join ', ')" }
     $objs = @(Get-ChildItem -Path $objDir -Filter '*.o' | ForEach-Object { $_.FullName })
-    $link = if ($null -ne $ldflags) { @($ldflags) } else { @($flags) }
+    if ($objs.Count -eq 0) { throw "$what link: no objects under $objDir" }
+    # `@(...)` on $null yields a ONE-element array holding $null, which reaches a
+    # native command as an empty argument -- and gcc reads an empty file name as
+    # stdin ("-E or -x required when input is from standard input"). Filter it.
+    $link = @(@(if ($null -ne $ldflags) { $ldflags } else { $flags }) |
+        Where-Object { $null -ne $_ -and "$_" -ne '' })
     & $ccAbs @link -o $outFile @objs -lm
-    if ($LASTEXITCODE -ne 0) { throw "$what link failed (exit $LASTEXITCODE)" }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "link command was: $ccAbs $($link -join ' ') -o $outFile <$($objs.Count) objects> -lm"
+        throw "$what link failed (exit $LASTEXITCODE)"
+    }
 }
 
 # Two stages by default: stage1 is built `--release` and IS the shipped compiler.
