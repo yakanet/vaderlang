@@ -141,9 +141,10 @@ const IMPLS: readonly Impl[] = [
       ? Promise.resolve()
       : runBuild("./build/vader", ["build", "--emit=executable", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
     run: (w) => w === "selfcompile_c"
-      // `--no-split`: this workload's history is a single-TU emission, and the
-      // split one is a different measurement scattering ~53 files per sample.
-      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--no-split", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
+      // No `--no-split`: this measures the DEFAULT emission, which is what every
+      // real caller takes. The baseline was recorded on the single-TU path and is
+      // updated with this change rather than the measurement bent to fit it.
+      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile", "vader/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {
