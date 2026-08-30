@@ -193,6 +193,15 @@ DUMP_STAGES: ValueSpec[]: [
 ]
 
 DUMP_FLAGS: FlagSpec[]: [
+    // Same spelling and meaning as `build`'s: a dump that cannot see the roots a
+    // build sees is not dumping the same program. Reaching for a dump is the one
+    // way to observe an order-sensitive materialisation bug WITHOUT perturbing
+    // it, and that only works if the dump can reproduce the build's module graph.
+    FlagSpec {
+        .name = "include-paths",
+        .help = "Extra module search roots (GCC -I style), highest precedence",
+        .value_name = "a,b",
+    },
     FlagSpec {
         .name = "stage",
         .alias = "s",
