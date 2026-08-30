@@ -42,6 +42,35 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 
 mkdir -p build
 
+cc_jobs() {
+    if command -v nproc >/dev/null 2>&1; then
+      nproc
+    elif command -v sysctl >/dev/null 2>&1; then
+      sysctl -n hw.ncpu
+    else
+      echo 4
+    fi
+}
+CC_JOBS="${CC_JOBS:-$(cc_jobs)}"
+
+compile_unit() {
+    "$CC_ABS" $UNIT_CFLAGS -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o"
+}
+export -f compile_unit
+
+cc_link_parallel() {
+    UNIT_CFLAGS="$1"
+    UNIT_OBJDIR="$2"
+    unit_out="$3"
+    shift 3
+    export CC_ABS UNIT_CFLAGS UNIT_OBJDIR
+    rm -rf "$UNIT_OBJDIR"
+    mkdir -p "$UNIT_OBJDIR"
+    printf '%s\n' "$@" \
+      | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
+    "$CC_ABS" $UNIT_CFLAGS -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
+}
+
 host_target() {
     case "$(uname -s)" in
       Darwin)  os=darwin ;;
@@ -72,12 +101,14 @@ if [ -z "$seed_shared" ]; then
     exit 1
 fi
 
-step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET]"
-"$CC_ABS" $STAGE0_CFLAGS -o build/stage0 $seed_shared $seed_host "$runtime" -Iruntime/c -lm
+step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
+cc_link_parallel "$STAGE0_CFLAGS" build/obj/stage0 build/stage0 $seed_shared $seed_host "$runtime"
 
 step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
-./build/stage0 vader/cli/main.vader build/stage1.c
-"$CC_ABS" $STAGE0_CFLAGS -o build/stage1 build/stage1.c "$runtime" -Iruntime/c -lm
+rm -rf build/gen/stage1
+mkdir -p build/gen/stage1
+./build/stage0 vader/cli/main.vader build/gen/stage1/stage1
+cc_link_parallel "$STAGE0_CFLAGS" build/obj/stage1 build/stage1 build/gen/stage1/*.c "$runtime"
 
 step "[3/3] Building vader = stage2 (via stage1, --release)"
 ./build/stage1 build --release --emit=executable --out=build/vader --cc="$CC_ABS" vader/cli/main.vader

@@ -25,6 +25,7 @@ $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
 $ccAbs = $ccCmd.Source
 $stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O0' }
+$ccJobs = if ($env:CC_JOBS) { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 
 # Arena sizing is RAM-proportional (runtime\c\vader_runtime.c::vader_gc_init --
@@ -49,15 +50,45 @@ if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }
 
-Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget]"
-& $ccAbs $stage0cflags -o build\stage0.exe @seedShared @seedHost $runtime -Iruntime\c -lm
-if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
+function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what) {
+    $objDir = Join-Path $PWD $objDirRel
+    Remove-Item -Recurse -Force $objDir -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force $objDir | Out-Null
+    $rtInc = Join-Path $PWD 'runtime\c'
+    $cc = $ccAbs
+    $failed = $units | ForEach-Object -ThrottleLimit $ccJobs -Parallel {
+        $c = $using:cc
+        $f = $using:flags
+        $inc = $using:rtInc
+        $obj = Join-Path $using:objDir ([IO.Path]::GetFileNameWithoutExtension($_) + '.o')
+        # `2>&1` is load bearing: a cc WARNING left on the runspace's error
+        # stream reaches the parent pipeline, where the script's 'Stop'
+        # preference makes it terminating -- the build died on a warning before
+        # $LASTEXITCODE could be read. Folding it into the output stream keeps
+        # the text and makes the exit code the only verdict.
+        $out = & $c $f "-I$inc" -c $_ -o $obj 2>&1
+        if ($out) { Write-Host (($out | Out-String).TrimEnd()) }
+        if ($LASTEXITCODE -ne 0) { $_ }
+    }
+    if ($failed) { throw "$what compilation failed for: $($failed -join ', ')" }
+    $objs = @(Get-ChildItem -Path $objDir -Filter '*.o' | ForEach-Object { $_.FullName })
+    & $ccAbs $flags -o $outFile @objs -lm
+    if ($LASTEXITCODE -ne 0) { throw "$what link failed (exit $LASTEXITCODE)" }
+}
+
+Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"
+$seedUnits = @($seedShared) + @($seedHost) + @((Join-Path $PWD $runtime))
+CcLinkParallel $stage0cflags 'build\obj\stage0' 'build\stage0.exe' $seedUnits 'stage0'
 
 Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
-& .\build\stage0.exe vader\cli\main.vader build\stage1.c
-if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1.c (exit $LASTEXITCODE)" }
-& $ccAbs $stage0cflags -o build\stage1.exe build\stage1.c $runtime -Iruntime\c -lm
-if ($LASTEXITCODE -ne 0) { throw "stage1 compilation failed (exit $LASTEXITCODE)" }
+$genDir = Join-Path $PWD 'build\gen\stage1'
+Remove-Item -Recurse -Force $genDir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $genDir | Out-Null
+& .\build\stage0.exe vader\cli\main.vader (Join-Path $genDir 'stage1')
+if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1 units (exit $LASTEXITCODE)" }
+$stage1Units = @(Get-ChildItem -Path $genDir -Filter '*.c' | ForEach-Object { $_.FullName })
+$stage1Units += (Join-Path $PWD $runtime)
+CcLinkParallel $stage0cflags 'build\obj\stage1' 'build\stage1.exe' $stage1Units 'stage1'
 
 Step "[3/3] Building vader = stage2 (via stage1, --release)"
 & .\build\stage1.exe build --release --emit=executable --out=build\vader --cc=$ccAbs vader\cli\main.vader

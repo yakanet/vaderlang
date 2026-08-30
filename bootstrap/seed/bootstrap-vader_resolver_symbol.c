@@ -2,49 +2,49 @@
 
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     if (l0 == INT32_C(0)) {
-        return 1484u;
+        return 1494u;
     }
     if (l0 == INT32_C(1)) {
-        return 2034u;
+        return 2045u;
     }
     if (l0 == INT32_C(2)) {
-        return 1382u;
+        return 1390u;
     }
     if (l0 == INT32_C(3)) {
-        return 2079u;
+        return 2090u;
     }
     if (l0 == INT32_C(4)) {
-        return 1589u;
+        return 1599u;
     }
     if (l0 == INT32_C(5)) {
-        return 2098u;
+        return 2109u;
     }
     if (l0 == INT32_C(6)) {
-        return 1305u;
+        return 1313u;
     }
     if (l0 == INT32_C(7)) {
-        return 1597u;
+        return 1607u;
     }
     if (l0 == INT32_C(8)) {
-        return 1814u;
+        return 1824u;
     }
     if (l0 == INT32_C(9)) {
-        return 2099u;
+        return 2110u;
     }
     if (l0 == INT32_C(10)) {
-        return 1703u;
+        return 1713u;
     }
     if (l0 == INT32_C(11)) {
-        return 1170u;
+        return 1178u;
     }
     if (l0 == INT32_C(12)) {
-        return 1219u;
+        return 1227u;
     }
     if (l0 == INT32_C(13)) {
-        return 1218u;
+        return 1226u;
     }
     if (l0 == INT32_C(14)) {
-        return 2053u;
+        return 2064u;
     }
     vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
 }
@@ -61,7 +61,7 @@ void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_
     ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next = l7;
     VADER_WRITE_BARRIER((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0);
     vader_struct_vader_resolver_symbol_Symbol_t* _a0_obj = (vader_struct_vader_resolver_symbol_Symbol_t*) vader_gc_alloc(sizeof(vader_struct_vader_resolver_symbol_Symbol_t));
-    vader_obj_header_init(_a0_obj, 893u);
+    vader_obj_header_init(_a0_obj, 900u);
     _a0_obj->f_id = l6;
     _a0_obj->f_kind = l1;
     _a0_obj->f_name = l2;
