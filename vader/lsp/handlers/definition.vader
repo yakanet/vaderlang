@@ -19,6 +19,7 @@ module "vader/lsp/handlers"
 import "json"
 import "std/collections"
 import "vader/diagnostics"
+import "vader/types"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 import "toolchain/span"
@@ -133,9 +134,59 @@ member_by_type :: fn(
     l :: line + 1
     c :: character + 1
     ty :: member_owner_type(sf, cached.result.typed, nm_span, l, c) ?? return null
-    sym :: type_symbol(ty) ?? return null
+    sym :: type_symbol(ty)
+    if sym == null {
+        // A BUILT-IN receiver has no declaring symbol, so `type_symbol` — which
+        // answers for the nominal types only — declines. Arrays still have an
+        // owner: the traits an intrinsic `T[] implements …` block names.
+        if ty is ArrayType {
+            return array_member(state, cached, name)
+        }
+        return null
+    }
     da :: sym.defined_at ?? return null
     return member_in_declaring_module(state, da.start.file, sym.name, name)
+}
+
+// `name` as a member of one of the traits an intrinsic `T[] implements …` block
+// names — `ArrayOps` for `len` / `push` / …, plus `Contains`, `Into`, `Mul`.
+//
+// Read off the PROJECT's own decls rather than `CheckResult.impls`: that
+// registry is built from the entry module's declarations alone
+// (`orchestrate.vader`, `build_impl_registry(merge_module_program(entry…))`), so
+// the blanket impl in `std/core` is absent from it for every user file. The
+// completion handler documents the same gap on the same table.
+//
+// EVERY array-targeted impl is tried, not the first found: they are four, and
+// only one declares the member being asked about.
+//
+// Without this the lookup fell through to the name-based one, which is blind to
+// the receiver's type. `len` is declared four times across the stdlib, so
+// `xs.len()` answered with whichever the FOLDER ENUMERATION served first — and
+// nothing sorts it: measured `array.vader` on APFS and on a container's
+// overlayfs, `primitives.vader` on the CI runner's ext4. Right on a Mac by luck,
+// wrong on CI, for four red runs.
+//
+// A `string` receiver is still not covered: `len(s: string)` is a free function
+// in `primitives.vader`, not a trait member, so there is no owning declaration
+// to point at and the fallback still decides.
+array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> ExternalHit | null {
+    for [_, m] in cached.project.modules {
+        for f in m.module.files {
+            for d in f.program.decls {
+                if d is AST.ImplDecl as im {
+                    if !(im.for_type is AST.ArrayTypeExpr) {
+                        continue
+                    }
+                    hit :: member_in_declaring_module(state, im.span.start.file, im.trait_name, name)
+                    if hit != null {
+                        return hit
+                    }
+                }
+            }
+        }
+    }
+    return null
 }
 
 // The type whose declaration owns the member under the cursor: the RECEIVER's
