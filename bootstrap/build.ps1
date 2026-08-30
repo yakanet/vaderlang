@@ -91,12 +91,12 @@ $stage1Units = @(Get-ChildItem -Path $work1 -Filter '*.c' | ForEach-Object { $_.
 $stage1Units += (Join-Path $PWD $runtime)
 CcLinkParallel $stage0cflags 'build\work\stage1' 'build\stage1.exe' $stage1Units 'stage1'
 
-Step "[3/3] Building vader = stage2 (via stage1, --release --split)"
+Step "[3/3] Building vader = stage2 (via stage1, --release)"
 $stage2Dir = Join-Path $PWD 'build\work\stage2'
 Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage2Dir | Out-Null
 $stage2Out = Join-Path $stage2Dir 'vader'
-& .\build\stage1.exe build --release --split --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
+& .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 Move-Item -Force (Join-Path $stage2Dir 'vader.exe') 'build\vader.exe'
 

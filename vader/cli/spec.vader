@@ -159,9 +159,9 @@ BUILD_FLAGS: FlagSpec[]: [
         .value_name = "a,b",
     },
     FlagSpec {
-        .name = "split",
+        .name = "no-split",
         .kind = .Bool,
-        .help = "Native only: emit one C file per module and compile them concurrently",
+        .help = "Emit ONE C translation unit instead of one per module (slower, not the default)",
     },
     FlagSpec {
         .name = "seed-targets",

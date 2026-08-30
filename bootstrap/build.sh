@@ -110,10 +110,10 @@ mkdir -p build/work/stage1
 ./build/stage0 vader/cli/main.vader build/work/stage1/stage1
 cc_link_parallel "$STAGE0_CFLAGS" build/work/stage1 build/stage1 build/work/stage1/*.c "$runtime"
 
-step "[3/3] Building vader = stage2 (via stage1, --release --split)"
+step "[3/3] Building vader = stage2 (via stage1, --release)"
 rm -rf build/work/stage2
 mkdir -p build/work/stage2
-./build/stage1 build --release --split --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
 mv build/work/stage2/vader build/vader
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"

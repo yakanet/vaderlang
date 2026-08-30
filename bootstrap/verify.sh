@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 #
 # Only ONE emission is needed. `build/work/stage2/` already IS stage1's — build.sh
 # just wrote it — so stage2's own is the only thing missing. Same flags on both
-# sides (`--release --split`), which happens to be the mode actually shipped;
+# sides (`--release`, split being the default), which is the mode actually shipped;
 # `--emit=c` and `--emit=executable` produce identical C, verified.
 #
 # `diff -r` and not `cmp`: the emission is a TREE of one unit per module, and a
@@ -21,10 +21,30 @@ cd "$(dirname "$0")/.."
 # the CLI writes them, so they are excluded rather than moved.
 rm -rf build/work/verify
 mkdir -p build/work/verify
-./build/vader build --release --split --emit=c --out=build/work/verify/vader vader/cli/main.vader
+./build/vader build --release --emit=c --out=build/work/verify/vader vader/cli/main.vader
 if ! diff -r -q --exclude='*.o' build/work/verify build/work/stage2 >/dev/null 2>&1; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
   diff -r --exclude='*.o' build/work/stage2 build/work/verify | head -80 >&2
+  exit 1
+fi
+
+# (b) reproducibility : the same stage1, the same input, twice -> the same binary.
+#
+# This is the property the mono build used to carry by being the only path, and
+# the one that has to stand on its own before the mono emitter can go (TODO §3.5
+# a'). Only step 3 is rebuilt: it is the step the CLI drives, and the two before
+# it are plain `cc` invocations this script's own build.sh makes.
+#
+# The output path deliberately differs from step 3's. Objects embed it and do
+# differ; the linker absorbs that, and the binary must not.
+CC_ABS="$(command -v "${CC:-cc}" || true)"
+rm -rf build/work/repro
+mkdir -p build/work/repro
+./build/stage1 build --release --emit=executable \
+  --out=build/work/repro/vader --cc="$CC_ABS" vader/cli/main.vader >/dev/null
+if ! cmp -s build/work/repro/vader build/vader; then
+  echo "NOT REPRODUCIBLE — two split builds of the same input differ" >&2
+  ls -l build/work/repro/vader build/vader >&2
   exit 1
 fi
 

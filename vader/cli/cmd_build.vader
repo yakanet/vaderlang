@@ -54,13 +54,24 @@ cmd_build :: fn(args: string[]) -> i32 {
     release      :: parsed.bool_flag("release")
     cc           :: parsed.string_flag("cc", "cc")
     ldflags      :: parsed.string_flag("ldflags", "")
-    split :: parsed.bool_flag("split")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     // No target validation here: `--target`'s accepted set lives on its
     // `FlagSpec.values` in `spec.vader`, so the parser already rejected an
     // unknown one and named the alternatives.
     file :: action_file(parsed)
+    // Split is the DEFAULT: one TU per module, compiled concurrently. `--no-split`
+    // asks for the single monolithic TU, which is slower to compile and differs
+    // from the split output only in ways nothing depends on any more.
+    //
+    // Two input shapes can only be served by the single TU, and they SELECT it
+    // rather than being rejected: `--out=-` writes to stdout, which cannot
+    // receive one file per module, and a `.virt` input carries a bytecode module
+    // the split path has no front end to re-run. Neither is a user error — the
+    // request names the only shape that can satisfy it.
+    split :: !parsed.bool_flag("no-split")
+        && out_flag != "-"
+        && file.extension() != "virt"
 
     no_hooks :: parsed.bool_flag("no-hooks")
     root :: current_working_directory()
@@ -364,7 +375,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
 emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null) -> CProgram | null {
     if file.extension() == "virt" {
-        eprintln("vader build: --split is not supported for .virt input")
+        eprintln("vader build: split needs a `.vader` front end; `.virt` takes the single TU")
         return null
     }
     b :: prepared_module(file, release, include_path_flags, target)

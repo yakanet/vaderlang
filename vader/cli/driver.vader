@@ -459,10 +459,9 @@ rebuild_driver :: fn(
     DRIVER_CC_JOBS :: 8
     // The driver is a normal native build; `toolchain/build` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
-    // The driver ALWAYS splits, whatever the user asked of their own build.
-    // `--split` is opt-in for a normal build because its output is not
-    // byte-identical to the monolithic one; a driver is a build artefact nobody
-    // diffs or ships, so it only stands to gain the idle cores.
+    // The driver splits like every other build; what it does NOT inherit is the
+    // user's `--no-split`, since a driver is a build artefact nobody diffs or
+    // ships and only stands to gain the idle cores.
     // A driven build has no `--target`: it produces for this machine, which is
     // also the only platform whose toolchain it can invoke.
     code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], true, null, DRIVER_CC_JOBS)
