@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-# Build the full Vader compiler from the committed C seed — a 3-stage bootstrap:
-#   seed   ─cc→            build/stage0   (bootstrap compiler; emits C only)
-#   stage0 ─emit C→ cc→    build/stage1   (intermediate full compiler)
-#   stage1 ─build native→  build/vader    (= stage2, the shipped compiler)
+# Build the full Vader compiler from the committed C seed — TWO stages:
+#   seed   ─cc→                 build/stage0  (bootstrap compiler; emits C only)
+#   stage0 ─emit C→ cc release→ build/vader   (= stage1, the shipped compiler)
+#
+# stage1 behaves exactly as a stage2 would — that is what `verify.sh` proves — and
+# only its machine code comes from the seed's codegen instead of the tree's. The
+# distance between the two is the seed's AGE, which `.githooks/pre-push` keeps at
+# zero for anything published. `--three-stage` adds the extra round:
+#   stage1 ─build native→  build/vader  (= stage2), with stage1 kept for comparison
+# which is what `verify.sh` needs, since the fixed point compares the two.
 #
 # Needs only a C compiler — no Bun, no TS, no pre-existing vader binary.
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
@@ -16,10 +22,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 dist=0
+three_stage=0
 for arg in "$@"; do
   case "$arg" in
     --dist) dist=1 ;;
-    *) echo "build.sh: unknown argument: $arg (only --dist is supported)" >&2; exit 2 ;;
+    --three-stage) three_stage=1 ;;
+    *) echo "build.sh: unknown argument: $arg (--dist, --three-stage)" >&2; exit 2 ;;
   esac
 done
 
@@ -53,6 +61,40 @@ cc_jobs() {
 CC_JOBS="${CC_JOBS:-$(cc_jobs)}"
 case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 
+# Release codegen policy, DUPLICATED from `vader/pipeline/emit.vader` — which
+# calls itself its single source of truth, and is right to. The two-stage build
+# hands `build/vader` to a `cc` this script drives, so the script has to know the
+# policy; there is no compiler in the loop yet to ask. Keep the two in step: the
+# flags, the toolchain probe and the import limit all live there.
+release_cflags() {
+    echo "-std=c11 -O3 -DNDEBUG -falign-functions=64"
+}
+
+cc_flavour() {
+    banner=$("$CC_ABS" --version 2>/dev/null | tr '[:upper:]' '[:lower:]') || banner=""
+    case "$banner" in
+      *clang*) echo clang ;;
+      *gcc*|*"free software foundation"*) echo gcc ;;
+      *) echo unknown ;;
+    esac
+}
+
+lto_compile_flags() {
+    case "$(cc_flavour)" in
+      clang) echo "-flto=thin" ;;
+      gcc)   echo "-flto=auto" ;;
+      *)     echo "" ;;
+    esac
+}
+
+lto_link_flags() {
+    case "$(cc_flavour)" in
+      clang) echo "-flto=thin -O3 -Wl,-mllvm,-import-instr-limit=300" ;;
+      gcc)   echo "-flto=auto -O3" ;;
+      *)     echo "" ;;
+    esac
+}
+
 compile_unit() {
     unit_log="$UNIT_OBJDIR/$(basename "$1" .c).cclog"
     if ! "$CC_ABS" $UNIT_CFLAGS -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o" \
@@ -73,11 +115,12 @@ cc_link_parallel() {
     UNIT_CFLAGS="$1"
     UNIT_OBJDIR="$2"
     unit_out="$3"
-    shift 3
+    unit_ldflags="$4"
+    shift 4
     export CC_ABS UNIT_CFLAGS UNIT_OBJDIR
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
-    "$CC_ABS" $UNIT_CFLAGS -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
+    "$CC_ABS" $unit_ldflags -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
 }
 
 host_target() {
@@ -110,30 +153,49 @@ if [ -z "$seed_shared" ]; then
     exit 1
 fi
 
-step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
+# Two stages by default: stage1 is built `--release` and IS the shipped compiler.
+# It behaves exactly as stage2 would — `verify.sh` is what proves that — and only
+# its machine code comes from the seed's codegen rather than from the tree's. The
+# gap between the two is the seed's AGE, which the pre-push hook keeps at zero.
+# `--three-stage` adds the round `verify.sh` needs to compare the two.
+if [ "$three_stage" = 1 ]; then
+    stages=3
+    stage1_out=build/stage1
+    stage1_cflags="$STAGE0_CFLAGS"
+    stage1_ldflags="$STAGE0_CFLAGS"
+else
+    stages=2
+    stage1_out=build/vader
+    stage1_cflags="$(release_cflags) $(lto_compile_flags)"
+    stage1_ldflags="$(lto_link_flags)"
+fi
+
+step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
 rm -rf build/work/stage0
 mkdir -p build/work/stage0
-cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 $seed_shared $seed_host "$runtime"
+cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 "$STAGE0_CFLAGS" $seed_shared $seed_host "$runtime"
 
-step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
+step "[2/$stages] Building stage1 (full compiler, via stage0)  — self-compiles"
 rm -rf build/work/stage1
 mkdir -p build/work/stage1
 ./build/stage0 vader/cli/main.vader build/work/stage1/stage1
-cc_link_parallel "$STAGE0_CFLAGS" build/work/stage1 build/stage1 build/work/stage1/*.c "$runtime"
+cc_link_parallel "$stage1_cflags" build/work/stage1 "$stage1_out" "$stage1_ldflags" build/work/stage1/*.c "$runtime"
 
-step "[3/3] Building vader = stage2 (via stage1, --release)"
-rm -rf build/work/stage2
-mkdir -p build/work/stage2
-./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
-# `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
-# reason `vader/pipeline::linked_binary` probes instead of guessing.
-if [ -f build/work/stage2/vader ]; then
-    mv build/work/stage2/vader build/vader
-elif [ -f build/work/stage2/vader.exe ]; then
-    mv build/work/stage2/vader.exe build/vader.exe
-else
-    echo "build.sh: stage1 produced no binary under build/work/stage2" >&2
-    exit 1
+if [ "$three_stage" = 1 ]; then
+    step "[3/3] Building vader = stage2 (via stage1, --release)"
+    rm -rf build/work/stage2
+    mkdir -p build/work/stage2
+    ./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+    # `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
+    # reason `vader/pipeline::linked_binary` probes instead of guessing.
+    if [ -f build/work/stage2/vader ]; then
+        mv build/work/stage2/vader build/vader
+    elif [ -f build/work/stage2/vader.exe ]; then
+        mv build/work/stage2/vader.exe build/vader.exe
+    else
+        echo "build.sh: stage1 produced no binary under build/work/stage2" >&2
+        exit 1
+    fi
 fi
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"

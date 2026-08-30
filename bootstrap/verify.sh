@@ -6,7 +6,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-./bootstrap/build.sh
+# `--three-stage`: the default build stops at stage1 and ships it. The fixed
+# point is a comparison BETWEEN stage1 and stage2, so this is the one caller that
+# needs the extra round.
+./bootstrap/build.sh --three-stage
 
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 #
