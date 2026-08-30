@@ -65,6 +65,24 @@ compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
     return may_alloc
 }
 
+/// True when the fn builds a GC struct on the C stack (`struct.new` with the
+/// escape-proven `stack` flag). Such a storage is hoisted into the prologue and
+/// its address goes into `gc_stack_objs[]` so the collector traces its FIELDS;
+/// left unrooted, the heap refs it captured go stale across a safepoint. Kept
+/// separate from `op_allocates` — a stack `struct.new` does NOT allocate, and
+/// folding it in would wrongly mark its callers as collectors too.
+fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool {
+    for i in 0..<fn_decl.body.len() {
+        op :: fn_decl.body[i]
+        if op is vm.StructNew as sn {
+            if sn.stack {
+                return true
+            }
+        }
+    }
+    return false
+}
+
 /// True when `fn_decl` contains an op that allocates on the GC heap.
 fn_has_direct_alloc :: fn(fn_decl: BcFunction) -> bool {
     for i in 0..<fn_decl.body.len() {
@@ -290,7 +308,15 @@ op_allocates :: fn(op: vm.Op) -> bool = match op {
 /// `no_frame` fns) can be assembled above it :
 /// signature → local decls → temp decls → frame → body.
 emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder!) -> void {
-    no_frame :: !(fn_index in ctx.may_alloc)
+    // `may_alloc` alone is not enough: a fn that builds a GC struct on the C
+    // stack needs the frame even when it cannot collect, because the storage is
+    // hoisted into the prologue and rooted through `gc_stack_objs[]`. Decided
+    // HERE and not after the walk — `FnState.no_frame` is read DURING the walk
+    // (the `return` emitter pops the frame only when there is one), so raising a
+    // frame afterwards yields a prologue whose pushes no return ever undoes, and
+    // `vader_gc_top` is left pointing at a dead frame. Measured: the build driver
+    // died on a signal.
+    no_frame :: !(fn_index in ctx.may_alloc) && !fn_builds_stack_object(function)
     out.append("${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)} {\n")
     // Walk the body into a separate buffer first : temps are discovered
     // during the walk (materialisation), and their declarations belong in
@@ -1861,13 +1887,17 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
             // so it is function-scoped — its address goes into `gc_stack_objs[]`
             // and must not dangle past a nested block — and zero-init it so a
             // scan before the header/fields are written sees type 0 (a no-op).
-            // A `no_frame` fn has no safepoint, so its storage stays inline and
-            // unrooted (nothing can move under it).
-            if !s.no_frame {
-                s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
-            } else {
-                line(s, "${cname} ${storage};")
-            }
+            // ALWAYS hoisted and rooted, `no_frame` included. The inline
+            // unrooted form used to be emitted for `no_frame` fns on the
+            // grounds that they have no safepoint, so nothing could move under
+            // them. Measured false on 2026-08-30: with it, emitting the seed
+            // produced SEVEN identical units and one holding 18 NUL bytes where
+            // an 18-character expression belonged — a string freed under a live
+            // handle — and the eight per-target emissions of a single run
+            // disagreed. Forcing a frame everywhere made all eight byte-identical
+            // and the corruption vanish. `emit_function_body` now raises a frame
+            // for any fn that has stack storage, so this list is never orphaned.
+            s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
             line(s, "${cname}* ${o} = &${storage};")
             o
         } else {
