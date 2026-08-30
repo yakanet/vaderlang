@@ -122,12 +122,30 @@ fi
 # real re-emission rather than its git-only shortcut: this is the pre-release
 # check, so it earns the 4 s. VADER pins the compiler to the one build.sh just
 # produced above, so the freshness verdict is about *this* toolchain.
+#
+# `seed.sh check` has THREE outcomes and they must not be folded: 0 fresh,
+# 1 stale, 2 "could not tell" (no usable compiler, a seed source tree missing, a
+# binary older than the sources). Reporting 2 as STALE sends the reader off to
+# regenerate a seed that may be perfectly fine — the very mistake this file
+# already guards against for `diff` a few lines up, made again here, and paid for
+# on 2026-08-30 with three rounds of guessing at a CI red whose message was not
+# what the gate actually meant.
+#
+# `--quiet` is dropped and the output is SHOWN rather than discarded: `seed.sh`
+# explains each verdict in its own words, and swallowing that is what left the
+# reader reverse-engineering a one-line summary from a remote log.
 set +e
-VADER=./build/vader ./bootstrap/seed.sh check --full --quiet >/dev/null
+seed_out=$(VADER=./build/vader ./bootstrap/seed.sh check --full 2>&1)
 seed_verdict=$?
 set -e
+if [ "$seed_verdict" = 2 ]; then
+  echo "SEED CHECK INCONCLUSIVE — the seed may be fine ; the check could not tell:" >&2
+  printf '%s\n' "$seed_out" >&2
+  exit 2
+fi
 if [ "$seed_verdict" != 0 ]; then
   echo "STALE SEED — bootstrap/seed/ no longer matches bootstrap.vader; run bootstrap/seed.sh regenerate" >&2
+  printf '%s\n' "$seed_out" >&2
   exit 1
 fi
 
