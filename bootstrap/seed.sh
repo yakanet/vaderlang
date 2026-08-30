@@ -222,6 +222,36 @@ cmd_regenerate() {
         exit 1
     fi
 
+    # Corruption gate. The compiler can emit C that does not even parse: a live
+    # string collected out from under its handle writes `length` bytes of recycled
+    # memory, so an expression comes out as NUL bytes of exactly its own width
+    # (`__vret = vader_ref_box(t3)` → `__vret = ` + 18 NULs). Seen on 2026-08-30
+    # under ubuntu-24.04 / gcc 13.3.0, on ONE of the eight per-target emissions of
+    # a single run — see .claude/plans/2026-08-30-gc-observable-conservative-scan.md.
+    #
+    # Emitted C is text and never legitimately contains a NUL, so this costs one
+    # grep and turns the worst outcome — committing a seed that cannot build, which
+    # breaks the cold bootstrap for everyone — into a refusal. It is a canary for a
+    # bug still open, not a fix: a corruption that lands on printable bytes walks
+    # straight past it. When it fires, do NOT retry until it passes; re-run the
+    # emission under `VADER_GC_CHECK_BOX=1`, which traps upstream of the damage.
+    # `tr -d` then `cmp` and not `grep`: a NUL cannot survive command substitution,
+    # and `grep -P '\x00'` is GNU-only — this pair is POSIX and behaves the same on
+    # the BSD tools macOS ships.
+    local corrupt
+    corrupt="$(find build/seed.check -type f \( -name '*.c' -o -name '*.h' \) -exec sh -c '
+        for f do
+            tr -d "\000" < "$f" | cmp -s - "$f" || printf "%s\n" "$f"
+        done' sh {} +)"
+    if [ -n "$corrupt" ]; then
+        echo "error: the fresh emission contains NUL bytes — refusing to write a corrupt seed." >&2
+        echo "$corrupt" | sed 's/^/  /' >&2
+        echo "  Emitted C is text; a NUL means a string was collected while still live." >&2
+        echo "  Do NOT retry until it passes. Re-run under VADER_GC_CHECK_BOX=1 — it traps upstream." >&2
+        echo "  See .claude/plans/2026-08-30-gc-observable-conservative-scan.md" >&2
+        exit 1
+    fi
+
     # STALE: build/seed.check/ is the fresh emission `check` just made. Replace
     # the directory wholesale — a per-file copy would leave behind a unit that
     # the new emission no longer produces, and a stale unit still compiles.
