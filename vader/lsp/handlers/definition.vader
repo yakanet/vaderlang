@@ -142,10 +142,62 @@ member_by_type :: fn(
         if ty is ArrayType {
             return array_member(state, cached, name)
         }
-        return null
+        return ufcs_member(state, cached, ty, name)
     }
     da :: sym.defined_at ?? return null
     return member_in_declaring_module(state, da.start.file, sym.name, name)
+}
+
+// `name` as the UFCS call `name(receiver, …)` — a FREE function whose first
+// parameter accepts the receiver's type.
+//
+// `s.len()` on a string has no owning declaration to point at: `len(s: string)`
+// is a free function in `primitives.vader`, not a trait member, so
+// `type_symbol` declines and there is no impl block to walk. It used to fall
+// through to the name-based lookup, which is blind to the receiver's type and
+// answered `array.vader` here — `ArrayOps.len` — because that is what the
+// folder enumeration served first.
+//
+// The FIRST PARAMETER's type is what decides, read from the owning module's
+// typed program rather than from the written syntax: `param_types` holds the
+// RESOLVED type, so an alias or an import spelling cannot make two different
+// types compare equal by their source text.
+ufcs_member :: fn(state: ServerState, cached: ProjectCache, recv: Type, name: string) -> ExternalHit | null {
+    want :: display_type(recv)
+    for [id, m] in cached.project.modules {
+        typed :: cached.result.all_modules[id] ?? continue
+        for f in m.module.files {
+            for d in f.program.decls {
+                if d is AST.FnDecl as fd {
+                    if fd.name != name || fd.params.len() == 0 {
+                        continue
+                    }
+                    pt :: typed.param_types[fd.params[0].span.hash()] ?? continue
+                    if display_type(pt) != want {
+                        continue
+                    }
+                    hit :: toplevel_in_file(state, f.path, name)
+                    if hit != null {
+                        return hit
+                    }
+                }
+            }
+        }
+    }
+    return null
+}
+
+// The exported top-level `name` in `path`. Reads through `source_for_path` — the
+// OVERLAY first, disk second — for the same reason `member_in_file` does.
+toplevel_in_file :: fn(state: ServerState, path: string, name: string) -> ExternalHit | null {
+    src :: state.source_for_path(path)
+    if src.bytes().len() == 0 {
+        return null
+    }
+    uri :: path_to_uri(path)
+    sub :: build_index(uri, src, state.position_encoding)
+    d :: sub.find_exported_toplevel(name) ?? return null
+    return ExternalHit { .uri = uri, .target = d }
 }
 
 // `name` as a member of one of the traits an intrinsic `T[] implements …` block
