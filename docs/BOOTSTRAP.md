@@ -34,6 +34,18 @@ the plan that operationalises §2.7 ("Bootstrap success check").
 `bash bootstrap/build.sh` (`cc` with the external runtime), and gets a
 compiler capable of rebuilding itself from `vader/cli/main.vader`.
 
+> ⚠️ **NOTHING VERIFIES THIS AUTOMATICALLY ANY MORE** (2026-08-30). The
+> `seed-rebuild` job that did was removed as a duplicate of `Test`'s own
+> bootstrap — which it is on the surface: both run `bash bootstrap/build.sh`.
+> What differed is the ENVIRONMENT. `seed-rebuild` installed nothing;
+> `Test` runs `oven-sh/setup-bun@v2` first, and the Windows job needs Bun too.
+> So the day the bootstrap starts depending on Bun, Node, or anything that
+> setup drags in, every remaining job has it in hand and none of them notices.
+>
+> The goal above is now a claim this document makes and no job checks. Restoring
+> it costs one job that installs nothing and runs `bash bootstrap/build.sh`.
+> Until then, a contributor cloning with only a `cc` is trusting prose.
+
 **Why this approach** : aligns the in-repo bootstrap with the backend
 we already maintain (C emit), removes the Bun/TS dependency from the
 cold-start path, and matches the proven Nim / Chicken Scheme pattern.
@@ -53,7 +65,7 @@ cold-start path, and matches the proven Nim / Chicken Scheme pattern.
 | `bootstrap/` layout + scripts (`build`/`regenerate`/`verify`) + `.gitattributes` | ✅ done (commit 7655e1dc) — validated end-to-end (755 KB seed, `verify.sh` green) |
 | `--bundle-runtime` flag | ❌ later (optional improvement, runtime linked externally for now) |
 | **Commit the seed blob `bootstrap.c.gz`** | ✅ sealed (commit 5f718b89, 755 KB) — from HEAD aa48e9f3, fixed-point verified |
-| CI integration (Phase 3) | ✅ done — merged into `.github/workflows/build.yml` (the CI workflow): a Bun-free `seed-rebuild` job every push + a gated `fixed-point` job |
+| CI integration (Phase 3) | ⚠️ partial — the Bun-free `seed-rebuild` job was removed 2026-08-30; only the gated `fixed-point` job and `Test`'s own (Bun-installed) bootstrap remain |
 | README narrative / §2.8 `src/` deletion | ❌ later |
 | 3-stage build + next-to-exe resolution | ✅ done (2026-06-06) — see the note at the top of this file |
 
@@ -527,9 +539,11 @@ The first time `bootstrap.c.gz` is generated, you need a working Vader binary
 
 ## Phase 3 — CI integration — ✅ DONE (`.github/workflows/build.yml`)
 
-CI lives in the unified `.github/workflows/build.yml` workflow. A Bun-free
-`seed-rebuild` job runs on each push — it turns the seed into the full compiler
-(3-stage bootstrap) and smoke-tests it — plus a heavier `fixed-point` job
+CI lives in the unified `.github/workflows/build.yml` workflow. **The Bun-free
+`seed-rebuild` job described below was REMOVED on 2026-08-30** (`1c19064b3`) —
+see the warning at the top of this document for what went with it. What remains
+is the `Test` job's own bootstrap, which runs after Bun is installed, plus the
+heavier `fixed-point` job
 (`verify.sh`) gated to `workflow_dispatch` and release tags. Neither installs
 Bun, Node, or a pre-installed `vader` — only a C compiler. (The Bun
 `test` / `dist` jobs in the same file are separate, isolated jobs.)
@@ -661,8 +675,8 @@ ones.
 
 The invariant this trades into: **every *pushed* commit carries a byte-fresh
 seed**, rather than every commit. Intermediate local commits may carry a slightly
-stale one, which still builds the tree — exactly what the CI `seed-rebuild` job
-proves on every push.
+stale one, which still builds the tree — which the `Test` job's bootstrap still
+exercises on every push, though no longer in a Bun-free environment.
 
 Two things enforce it:
 
