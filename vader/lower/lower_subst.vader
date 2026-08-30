@@ -93,8 +93,23 @@ any_leaves_of :: fn(t: Type) -> Type {
         return mk_array(any_leaves_of(a.element), a.immutable)
     }
     if t is UnionType as u {
+        // Erase THEN dedupe. Every variant that carries no args erases to `Any`,
+        // so a union of N such variants — a type-param's trait bounds, say
+        // `Hash & Equals`, or a 19-trait array bound — would otherwise become a
+        // union of N `Any`s. That is a distinct SHAPE per arity: measured on one
+        // driven build, 136 distinct `MutableMap` shapes and a mangle 1 539
+        // characters long (`MutableMap__i32__ArrayClear___ArrayCopy___…`), each
+        // one materialised as its own struct decl. `Any | Any` is `Any`.
         new_vars: Type[]! = []
-        for v in u.variants { new_vars.push(any_leaves_of(v)) }
+        seen :: MutableSet<string> {}
+        for v in u.variants {
+            erased :: any_leaves_of(v)
+            key :: display_type_key(erased)
+            if seen.contains(key) { continue }
+            seen.add(key)
+            new_vars.push(erased)
+        }
+        if new_vars.len() == 1 { return new_vars[0] }
         return mk_union(new_vars)
     }
     if t is TupleType as tu {

@@ -22,7 +22,7 @@ type 19 struct std_core$Buffer {  }
 type 20 primitive u64
 type 21 primitive u8
 type 22 ref _
-type 23 struct std_async$All__Any___Any { children:34,results:35 }
+type 23 struct std_async$All__Any { children:34,results:35 }
 type 24 union 25,9
 type 25 array 22
 type 26 struct std_async$TryAll__i32__Any { inner:36 }
@@ -34,15 +34,14 @@ type 31 ref Async
 type 32 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
 type 33 union 0,9
 type 34 array 13
-type 35 struct std_collections$MutableMap__usize__Any { ekeys:40,evals:25,index:39,mask:18,size:18,tombs:18 }
+type 35 struct std_collections$MutableMap__usize__Any { ekeys:39,evals:25,index:38,mask:18,size:18,tombs:18 }
 type 36 struct std_async$All__Any___i32 { children:34,results:35 }
-type 37 struct std_collections$MutableMap__usize__Any___Any { ekeys:40,evals:25,index:39,mask:18,size:18,tombs:18 }
-type 38 union 22,0
-type 39 array 6
-type 40 array 18
-type 41 array 5
-type 42 union 28,9
-type 43 ref _
+type 37 union 22,0
+type 38 array 6
+type 39 array 18
+type 40 array 5
+type 41 union 28,9
+type 42 ref _
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -66,10 +65,6 @@ impl 19 ByteAccess
 impl 23 Async
 impl 26 Async
 impl 32 Async
-impl 37 Index
-impl 37 IndexSet
-impl 37 Contains
-impl 37 Into
 impl 35 Index
 impl 35 IndexSet
 impl 35 Contains
@@ -632,13 +627,13 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           local.set 18
           local.get 17
           local.get 18
-          array.new 41 2
+          array.new 40 2
           local.set 19
-          array.new 40 0
+          array.new 39 0
           local.set 20
           array.new 25 0
           local.set 21
-          array.new 39 0
+          array.new 38 0
           local.set 22
           local.get 20
           local.get 21
@@ -646,7 +641,7 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           i64.const 0
           i64.const 0
           i64.const 0
-          struct.new 37
+          struct.new 35
           local.set 23
           local.get 19
           local.get 23
@@ -763,13 +758,13 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           local.get 30
           local.get 31
           local.get 32
-          array.new 41 3
+          array.new 40 3
           local.set 33
-          array.new 40 0
+          array.new 39 0
           local.set 34
           array.new 25 0
           local.set 35
-          array.new 39 0
+          array.new 38 0
           local.set 36
           local.get 34
           local.get 35
@@ -777,7 +772,7 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           i64.const 0
           i64.const 0
           i64.const 0
-          struct.new 37
+          struct.new 35
           local.set 37
           local.get 33
           local.get 37
@@ -1301,7 +1296,7 @@ fn 23 std_collections$ensure_index__usize__Any (ref) -> void
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 39 0
+    array.new 38 0
     local.set 1
     i64.const 0
     local.set 2
@@ -1343,7 +1338,7 @@ fn 24 std_collections$rehash__usize__Any (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 39 0
+  array.new 38 0
   local.set 2
   i64.const 0
   local.set 3
