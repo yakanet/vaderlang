@@ -9,15 +9,22 @@ cd "$(dirname "$0")/.."
 ./bootstrap/build.sh
 
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
-# Re-emit from both with the SAME flags (--emit=c, no --release) so the diff
-# reflects only compiler behaviour, not the build's debug/release split.
+#
+# Only ONE emission is needed. `build/work/stage2/` already IS stage1's — build.sh
+# just wrote it — so stage2's own is the only thing missing. Same flags on both
+# sides (`--release --split`), which happens to be the mode actually shipped;
+# `--emit=c` and `--emit=executable` produce identical C, verified.
+#
+# `diff -r` and not `cmp`: the emission is a TREE of one unit per module, and a
+# unit present on one side only is exactly what a comparison of concatenated
+# output would miss. The .o files live beside the sources because that is where
+# the CLI writes them, so they are excluded rather than moved.
 rm -rf build/work/verify
 mkdir -p build/work/verify
-./build/stage1 build --emit=c --out=build/work/verify/fp1.c vader/cli/main.vader
-./build/vader  build --emit=c --out=build/work/verify/fp2.c vader/cli/main.vader 2>/dev/null
-if ! cmp -s build/work/verify/fp1.c build/work/verify/fp2.c; then
+./build/vader build --release --split --emit=c --out=build/work/verify/vader vader/cli/main.vader
+if ! diff -r -q --exclude='*.o' build/work/verify build/work/stage2 >/dev/null 2>&1; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
-  diff -u build/work/verify/fp1.c build/work/verify/fp2.c | head -80 >&2
+  diff -r --exclude='*.o' build/work/stage2 build/work/verify | head -80 >&2
   exit 1
 fi
 
