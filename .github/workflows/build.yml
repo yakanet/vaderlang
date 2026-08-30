@@ -40,8 +40,10 @@ jobs:
 
       - name: Smoke test the rebuilt compiler
         run: |
-          ./build/vader build --emit=c --no-split --out=build/_smoke.c tests/snippets/return_42/_main.vader
-          test -s build/_smoke.c
+          ./build/vader build --emit=c --out=build/_smoke tests/snippets/return_42/_main.vader
+          test -s build/_smoke.split.h
+          test -s build/_smoke.split.g.c
+          test -s build/_smoke-snippet.c
 
   # Type-check the only first-party TypeScript left in the repo root: the Bun
   # test runner and the benchmark programs (tests/ + bench/). The compiler
