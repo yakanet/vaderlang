@@ -11,11 +11,13 @@ cd "$(dirname "$0")/.."
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 # Re-emit from both with the SAME flags (--emit=c, no --release) so the diff
 # reflects only compiler behaviour, not the build's debug/release split.
-./build/stage1 build --emit=c --out=build/fp1.c vader/cli/main.vader
-./build/vader  build --emit=c --out=build/fp2.c vader/cli/main.vader 2>/dev/null
-if ! cmp -s build/fp1.c build/fp2.c; then
+rm -rf build/work/verify
+mkdir -p build/work/verify
+./build/stage1 build --emit=c --out=build/work/verify/fp1.c vader/cli/main.vader
+./build/vader  build --emit=c --out=build/work/verify/fp2.c vader/cli/main.vader 2>/dev/null
+if ! cmp -s build/work/verify/fp1.c build/work/verify/fp2.c; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
-  diff -u build/fp1.c build/fp2.c | head -80 >&2
+  diff -u build/work/verify/fp1.c build/work/verify/fp2.c | head -80 >&2
   exit 1
 fi
 

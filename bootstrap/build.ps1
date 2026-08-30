@@ -52,8 +52,6 @@ if ($seedShared.Count -eq 0) {
 
 function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what) {
     $objDir = Join-Path $PWD $objDirRel
-    Remove-Item -Recurse -Force $objDir -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Force $objDir | Out-Null
     $rtInc = Join-Path $PWD 'runtime\c'
     $cc = $ccAbs
     $failed = $units | ForEach-Object -ThrottleLimit $ccJobs -Parallel {
@@ -77,21 +75,24 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what) {
 }
 
 Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"
+$work0 = Join-Path $PWD 'build\work\stage0'
+Remove-Item -Recurse -Force $work0 -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $work0 | Out-Null
 $seedUnits = @($seedShared) + @($seedHost) + @((Join-Path $PWD $runtime))
-CcLinkParallel $stage0cflags 'build\obj\stage0' 'build\stage0.exe' $seedUnits 'stage0'
+CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0'
 
 Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
-$genDir = Join-Path $PWD 'build\gen\stage1'
-Remove-Item -Recurse -Force $genDir -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Force $genDir | Out-Null
-& .\build\stage0.exe vader\cli\main.vader (Join-Path $genDir 'stage1')
+$work1 = Join-Path $PWD 'build\work\stage1'
+Remove-Item -Recurse -Force $work1 -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $work1 | Out-Null
+& .\build\stage0.exe vader\cli\main.vader (Join-Path $work1 'stage1')
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1 units (exit $LASTEXITCODE)" }
-$stage1Units = @(Get-ChildItem -Path $genDir -Filter '*.c' | ForEach-Object { $_.FullName })
+$stage1Units = @(Get-ChildItem -Path $work1 -Filter '*.c' | ForEach-Object { $_.FullName })
 $stage1Units += (Join-Path $PWD $runtime)
-CcLinkParallel $stage0cflags 'build\obj\stage1' 'build\stage1.exe' $stage1Units 'stage1'
+CcLinkParallel $stage0cflags 'build\work\stage1' 'build\stage1.exe' $stage1Units 'stage1'
 
 Step "[3/3] Building vader = stage2 (via stage1, --release --split)"
-$stage2Dir = Join-Path $PWD 'build\gen\stage2'
+$stage2Dir = Join-Path $PWD 'build\work\stage2'
 Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage2Dir | Out-Null
 $stage2Out = Join-Path $stage2Dir 'vader'

@@ -64,8 +64,6 @@ cc_link_parallel() {
     unit_out="$3"
     shift 3
     export CC_ABS UNIT_CFLAGS UNIT_OBJDIR
-    rm -rf "$UNIT_OBJDIR"
-    mkdir -p "$UNIT_OBJDIR"
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
     "$CC_ABS" $UNIT_CFLAGS -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
@@ -102,19 +100,21 @@ if [ -z "$seed_shared" ]; then
 fi
 
 step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
-cc_link_parallel "$STAGE0_CFLAGS" build/obj/stage0 build/stage0 $seed_shared $seed_host "$runtime"
+rm -rf build/work/stage0
+mkdir -p build/work/stage0
+cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 $seed_shared $seed_host "$runtime"
 
 step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
-rm -rf build/gen/stage1
-mkdir -p build/gen/stage1
-./build/stage0 vader/cli/main.vader build/gen/stage1/stage1
-cc_link_parallel "$STAGE0_CFLAGS" build/obj/stage1 build/stage1 build/gen/stage1/*.c "$runtime"
+rm -rf build/work/stage1
+mkdir -p build/work/stage1
+./build/stage0 vader/cli/main.vader build/work/stage1/stage1
+cc_link_parallel "$STAGE0_CFLAGS" build/work/stage1 build/stage1 build/work/stage1/*.c "$runtime"
 
 step "[3/3] Building vader = stage2 (via stage1, --release --split)"
-rm -rf build/gen/stage2
-mkdir -p build/gen/stage2
-./build/stage1 build --release --split --emit=executable --out=build/gen/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
-mv build/gen/stage2/vader build/vader
+rm -rf build/work/stage2
+mkdir -p build/work/stage2
+./build/stage1 build --release --split --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+mv build/work/stage2/vader build/vader
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"
 ./build/vader --version
