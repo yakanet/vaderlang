@@ -7911,7 +7911,7 @@ static void vader_lower_close_over_field_shapes(void* l0, void* l1, void* l2, vo
     _a2_obj->f_value = t0;
     t0 = (void*) _a2_obj;
     l6 = vader_ref_box(t0);
-    vader_struct___lambda_env_1640_t* _a3_obj = (vader_struct___lambda_env_1640_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_1640_t));
+    vader_struct___lambda_env_1641_t* _a3_obj = (vader_struct___lambda_env_1641_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_1641_t));
     vader_obj_header_init(_a3_obj, 233u);
     _a3_obj->f_cap_0 = l6;
     _a3_obj->f_cap_1 = l5;
@@ -8987,7 +8987,7 @@ static vader_box_t vader_lower_comptime_value_to_lowered(vader_box_t l0, vader_b
     if (l0.tag == 687u) {
         l5 = l0.payload.obj;
         l6 = std_collections_keys__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue(((vader_struct_vader_comptime_StructValue_t*) l5)->f_fields);
-        vader_struct___lambda_env_4268_t* _a13_obj = (vader_struct___lambda_env_4268_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_4268_t));
+        vader_struct___lambda_env_4269_t* _a13_obj = (vader_struct___lambda_env_4269_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_4269_t));
         vader_obj_header_init(_a13_obj, 268u);
         t0 = (void*) _a13_obj;
         vader_fn_t* _a14_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
@@ -32799,19 +32799,25 @@ static void vader_lower_process_lambda(void* l0, void* l1, vader_box_t l2, vader
 }
 
 static bool vader_lower_project_has_main(void* l0) {
-    void* l1;
-    void* l2;
-    void* l3;
-    void* l7;
-    void* l8;
-    void* l12;
+    void* l1 = NULL;
+    void* l2 = NULL;
+    void* l3 = NULL;
+    void* l7 = NULL;
+    void* l8 = NULL;
+    void* l12 = NULL;
     size_t l4, l5, l9, l10, l14;
     vader_string_t l6;
-    vader_box_t l11;
+    vader_box_t l11 = vader_box_null();
     bool l13;
-    vader_box_t t0;
-    void* t1;
+    vader_box_t t0 = vader_box_null();
+    void* t1 = NULL;
     int64_t t2;
+    vader_box_t* gc_roots[2] = { &l11, &t0 };
+    void** gc_raw_roots[8] = { &l0, &l1, &l2, &l3, &l7, &l8, &l12, &t1 };
+    vader_struct___Tuple_1225_t _a2_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a2_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 8u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
+    vader_gc_top = &gc_frame;
     l1 = ((vader_struct_vader_lower_LoweredProject_t*) l0)->f_modules;
     l2 = ((vader_struct_std_collections_MutableMap__string__LoweredModule_t*) l1)->f_ekeys;
     l3 = ((vader_struct_std_collections_MutableMap__string__LoweredModule_t*) l1)->f_evals;
@@ -32830,7 +32836,6 @@ static bool vader_lower_project_has_main(void* l0) {
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                vader_struct___Tuple_1225_t _a2_storage;
                 vader_struct___Tuple_1225_t* _a3_obj = &_a2_storage;
                 vader_obj_header_init(_a3_obj, 216u);
                 _a3_obj->f__0 = l6;
@@ -32857,7 +32862,7 @@ static bool vader_lower_project_has_main(void* l0) {
                                     l13 = false;
                                 }
                                 if (l13) {
-                                    return true;
+                                    { vader_gc_top = gc_frame.prev; return true; }
                                 }
                                 l14 = (size_t) (int64_t) INT64_C(1);
                                 t2 = (l10 + l14);
@@ -32876,7 +32881,8 @@ static bool vader_lower_project_has_main(void* l0) {
             }
         }
     }
-    return false;
+    { vader_gc_top = gc_frame.prev; return false; }
+    vader_gc_top = gc_frame.prev;
 }
 
 static void* vader_lower_promote_captured_params(void* l0, void* l1, void* l2) {
