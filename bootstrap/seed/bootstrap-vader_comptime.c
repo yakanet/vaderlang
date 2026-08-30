@@ -5252,7 +5252,7 @@ static void* vader_comptime_sorted_instances(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct_vader_comptime_InstanceRegistry_t*) l0)->f_order;
     vader_struct___lambda_env_2235_t* _a0_obj = (vader_struct___lambda_env_2235_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2235_t));
-    vader_obj_header_init(_a0_obj, 242u);
+    vader_obj_header_init(_a0_obj, 243u);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 146u);

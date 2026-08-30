@@ -9842,7 +9842,7 @@ static void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, voi
         l9 = ((vader_struct_toolchain_ast_StructDecl_t*) l6)->f_type_params;
         l10 = ((vader_struct_vader_resolver_ResolvedModule_t*) l2)->f_path;
         vader_struct___lambda_env_2034_t* _a0_obj = (vader_struct___lambda_env_2034_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2034_t));
-        vader_obj_header_init(_a0_obj, 239u);
+        vader_obj_header_init(_a0_obj, 240u);
         t0 = (void*) _a0_obj;
         vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a1_closure, 151u);

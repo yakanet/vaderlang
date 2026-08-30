@@ -7494,7 +7494,7 @@ static vader_box_t vader_resolver_scan_folder(vader_string_t l0, void* l1) {
             { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         vader_struct___lambda_env_2934_t* _a0_obj = (vader_struct___lambda_env_2934_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2934_t));
-        vader_obj_header_init(_a0_obj, 253u);
+        vader_obj_header_init(_a0_obj, 254u);
         t1 = (void*) _a0_obj;
         vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a1_closure, 136u);
@@ -7698,7 +7698,7 @@ static vader_box_t vader_resolver_scan_folder(vader_string_t l0, void* l1) {
             { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         vader_struct___lambda_env_2934_t* _a8_obj = (vader_struct___lambda_env_2934_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2934_t));
-        vader_obj_header_init(_a8_obj, 253u);
+        vader_obj_header_init(_a8_obj, 254u);
         t1 = (void*) _a8_obj;
         vader_fn_t* _a9_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a9_closure, 136u);
@@ -8299,7 +8299,7 @@ static void* vader_resolver_sort_by_name(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___lambda_env_1984_t* _a0_obj = (vader_struct___lambda_env_1984_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_1984_t));
-    vader_obj_header_init(_a0_obj, 238u);
+    vader_obj_header_init(_a0_obj, 239u);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 152u);

@@ -33206,8 +33206,8 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
     _a42_obj->f_value = t0;
     t0 = (void*) _a42_obj;
     l24 = vader_ref_box(t0);
-    vader_struct___lambda_env_207_t* _a43_obj = (vader_struct___lambda_env_207_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_207_t));
-    vader_obj_header_init(_a43_obj, 240u);
+    vader_struct___lambda_env_210_t* _a43_obj = (vader_struct___lambda_env_210_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_210_t));
+    vader_obj_header_init(_a43_obj, 241u);
     _a43_obj->f_cap_0 = l6;
     _a43_obj->f_cap_1 = l8;
     _a43_obj->f_cap_2 = l9;
@@ -33219,8 +33219,8 @@ void* vader_lower_prune_unreachable_fns(void* l0, bool l1) {
     _a44_closure->code = (void*) &vader_fn_lift_1087;
     _a44_closure->env = t0;
     l3 = (void*) _a44_closure;
-    vader_struct___lambda_env_210_t* _a45_obj = (vader_struct___lambda_env_210_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_210_t));
-    vader_obj_header_init(_a45_obj, 241u);
+    vader_struct___lambda_env_213_t* _a45_obj = (vader_struct___lambda_env_213_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_213_t));
+    vader_obj_header_init(_a45_obj, 242u);
     _a45_obj->f_cap_0 = l24;
     _a45_obj->f_cap_1 = l22;
     t0 = (void*) _a45_obj;

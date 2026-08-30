@@ -11653,7 +11653,7 @@ static void* vader_c_emit_order_by_first(void* l0, size_t l1) {
         }
     }
     vader_struct___lambda_env_2675_t* _a3_obj = (vader_struct___lambda_env_2675_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2675_t));
-    vader_obj_header_init(_a3_obj, 243u);
+    vader_obj_header_init(_a3_obj, 244u);
     _a3_obj->f_cap_0 = l2;
     t0 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));

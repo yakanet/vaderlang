@@ -404,9 +404,10 @@ int32_t vader_bootstrap_main(void* l0) {
     if ((size_t) INT32_C(2) >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(2)];
     l2 = t1.payload.s;
-    t2 = std_path_to_path(l2);
-    t3 = std_path_filename(t2);
-    l3 = concat_2(t3, 414u);
+    t2 = std_path_to_posix(l2);
+    t3 = std_path_to_path(t2);
+    t2 = std_path_filename(t3);
+    l3 = concat_2(t2, 414u);
     l5 = vader_bootstrap_emit_c_program(l1, l3);
     if (l5.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
