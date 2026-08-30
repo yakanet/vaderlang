@@ -209,6 +209,11 @@ materialize_struct_instance :: fn(
         // closure pass materialise referenced stdlib structs
         // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
         mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
+        // Idempotent: the receiver closure asks for shapes the instance worklist
+        // may already have emitted. Fields are still rebuilt and returned — the
+        // shape closure walks them — only the push is skipped.
+        already :: project_ctx.materialized_struct_mangles.contains(mangled)
+        project_ctx.materialized_struct_mangles.add(mangled)
         // Layout subst (mixed flavor, P2) : the entry's `subst` keeps the concrete
         // args (for mangling + downstream consumers that need the source-level
         // type-args), but the FIELDS get a MIXED subst — primitive type-args land
@@ -242,11 +247,13 @@ materialize_struct_instance :: fn(
             .type_arguments = inst.args,
             .module         = owner_typed,
         }
-        push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
-            .mangled = mangled,
-            .fields  = fields,
-            .origin  = entry,
-        })
+        if !already {
+            push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
+                .mangled = mangled,
+                .fields  = fields,
+                .origin  = entry,
+            })
+        }
         return fields
     }
     return []
@@ -355,11 +362,45 @@ materialize_shape :: fn(
     return []
 }
 
+/// Emit the monomorphized struct decl for `inst` when nothing has yet.
+///
+/// A materialised impl member types its `self` with the receiver's struct, and
+/// the bytecode interner only ever upgrades a slot to `BcStruct` from a lowered
+/// struct DECL. Member without decl ⇒ `self` interns as a bare `ref` and the
+/// first field access panics in `midir/emit` — the whole bug class this closes.
+///
+/// `materialize_one_instance` already pairs the two, so this is a no-op there.
+/// The path that needed it is `pending_generic_impl_recv` (`lower_mono_fn.vader`):
+/// those receivers never reach `evaluated.instances`, so nothing emitted their
+/// struct. `close_over_field_shapes` used to catch them after the fact by
+/// sweeping every fn signature — a net, downstream of the hole. This closes the
+/// hole, and the net keeps catching what only a field type reaches.
+ensure_receiver_struct :: fn(
+    inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
+) -> void {
+    if inst.symbol.kind != SymbolKind.Struct { return }
+    if !all_concrete_args(inst.args) { return }
+    owner_module :: loaded.modules[inst.symbol.module] ?? return
+    owner_typed :: typed.modules[inst.symbol.module] ?? return
+    if owner_typed is TypedProgram as ot {
+        // Test the mangle before descending: this runs once per impl-member
+        // materialisation, and the materialiser linear-scans the owning
+        // module's decls to find the struct. Almost every call is a repeat.
+        mangled :: mangle_struct_instance(ot.resolved.display_path, inst.symbol.name, inst.args)
+        if project_ctx.materialized_struct_mangles.contains(mangled) { return }
+        if owner_module is LoadedModule as ol {
+            _ :: materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
+        }
+    }
+}
+
 materialize_impl_members_for :: fn(
     inst: GenericInstance, owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
+    ensure_receiver_struct(inst, loaded, typed, project_ctx, project)
     // Walk every module's impls (impls can be in foreign modules) and
     // emit a synth fn for each matching impl member.
     for [module_id, mt] in typed.modules {

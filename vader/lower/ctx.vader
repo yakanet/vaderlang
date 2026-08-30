@@ -215,6 +215,17 @@ export LowerProjectCtx :: struct {
     /// instance's concrete args.
     materialized_impl_keys: MutableSet<string>
 
+    /// Mangles of every monomorphized struct decl `materialize_struct_instance`
+    /// has pushed. Two jobs. It makes that function idempotent — the receiver
+    /// closure below asks for shapes the instance worklist may already have
+    /// emitted, and a second push would duplicate the decl. And it is what
+    /// `ensure_receiver_struct` tests, so an impl member never reaches emission
+    /// without a decl for the struct its `self` is typed with: that pairing is
+    /// the whole `ref`-orphan bug class (a fn whose receiver has no struct decl
+    /// interns as a bare `ref`, and its first field access panics in
+    /// `midir/emit`). See `.claude/plans/2026-08-30-orphan-ref-materialisation.md`.
+    materialized_struct_mangles: MutableSet<string>
+
     /// Mangles of impl-member calls actually resolved during lowering
     /// (recorded by `find_impl_member_for`). The post-lowering
     /// intrinsic-surfacing pass consults this so it surfaces ONLY the
@@ -325,6 +336,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .nongeneric_imported_const_order  = [],
         .nongeneric_imported_const_cursor = 0,
         .materialized_impl_keys = MutableSet<string> {},
+        .materialized_struct_mangles = MutableSet<string> {},
         .referenced_impl_mangles = MutableSet<string> {},
         .virtually_dispatched_traits = MutableSet<string> {},
         .constructed_struct_symbols = MutableSet<i32> {},

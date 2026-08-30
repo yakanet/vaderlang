@@ -200,6 +200,7 @@
           __self_3 :__asyncstate_4!
       value:
         int(-1) :i32
+  struct snippet$Box__i32 { v: i32 }
   fn snippet$Box$Async$resume__i32(self: Box<i32>!) -> i32 | Suspended!
     return
       .v :i32
@@ -210,4 +211,3 @@
       Box<i32>! {
         v: x :i32
       }
-  struct snippet$Box__i32 { v: i32 }

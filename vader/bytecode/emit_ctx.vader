@@ -7,6 +7,7 @@
 
 module "vader/bytecode"
 
+import "std/abort"
 import "std/collections"
 import "vader/types"
 
@@ -96,6 +97,17 @@ export EmitterCtx :: struct {
     /// Per-call arg/result pins live in `pinned_types_by_fn` instead.
     pinned_types: i32[]!
 
+    /// Set once `prune_unused_types` has run. Past that point the table is
+    /// FINAL: a slot minted afterwards is invisible to the prune, so it survives
+    /// as an orphan `ref` — dead, pinned, and permanent — and any field access
+    /// reaching it panics with `midir/emit: no field ... on ...`. That is not
+    /// hypothetical: `build_vtables_from_entries` did exactly this until
+    /// `aba0fcff4`, and its sibling had carried the rule as a comment for months.
+    /// A comment is not a guard, hence this flag: `intern_type` refuses to CREATE
+    /// while it is set. Lookups stay legal — the builders that run after the
+    /// prune are supposed to look types up, just never to mint them.
+    types_frozen: bool = false
+
     /// Per-function arg/result type pins, keyed by fn index. Each Call's
     /// arg + dst static types are pinned here under the emitting function,
     /// so `prune_unused_types` roots them only for SURVIVING functions —
@@ -110,7 +122,7 @@ export EmitterCtx :: struct {
 /// `null` primitive (runtime depends on the tag invariant).
 ///
 /// @return  a fresh emitter context ready for `emit_bytecode_from_cfg` to fill.
-export new_emitter_ctx :: fn() -> EmitterCtx {
+export new_emitter_ctx :: fn() -> EmitterCtx! {
     types: BcType[]! = []
     types.push(BcPrimitive { .val = ValType.Null })
     type_key :: MutableMap<string, i32> {}
@@ -150,6 +162,9 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     key :: type_intern_key(t)
     existing :: ctx.type_key[key]
     if existing is i32 { return existing }
+    if ctx.types_frozen {
+        panic("bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types — the table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
+    }
     // Reserve placeholder so recursive / self types don't loop.
     // Push a `BcRef { trait_name = null }` first, register the index,
     // then overwrite with the proper translation. The placeholder is

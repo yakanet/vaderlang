@@ -332,6 +332,10 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
+        // The table is final from here. Anything downstream that needs a type
+        // must LOOK IT UP; minting one now produces a slot the prune can no
+        // longer see. `intern_type` enforces it rather than trusting comments.
+        ctx.types_frozen = true
         // Fail loud on an unwired host in the FINAL import table : a bodyless
         // `@intrinsic` fn whose mangle reaches neither a dedicated op nor a
         // recognised `IntrinsicId` would emit an unbound `call.import` and trap
