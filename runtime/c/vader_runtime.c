@@ -248,6 +248,15 @@ static int g_gc_stress_major = 0;
  * The same switch also arms `vader_gc_check_object_alignment` below. */
 static int g_gc_check_box = 0;
 
+/* Skips `vader_gc_mark_cstack_conservative` — set via `VADER_GC_NO_CSTACK_SCAN=1`.
+ *
+ * That scan covers refs the precise shadow stack does not root: a live old ref
+ * can sit only in a C local or a register. Skipping it therefore DROPS LIVE
+ * OBJECTS. It is a diagnostic — with it on, a failure names a ref the precise
+ * rooting misses — and never a tuning knob.
+ * See .claude/plans/2026-08-30-gc-observable-conservative-scan.md */
+static int g_gc_no_cstack_scan = 0;
+
 /* Root-candidate alignment check — same `VADER_GC_CHECK_BOX=1` switch, because
  * it catches the same disease one step earlier. Every arena hands out slots
  * through `vader_gc_align` (VADER_GC_ALIGN == 8), so a live object's address is
@@ -1174,11 +1183,31 @@ static void vader_atom_mark_global_arrays(void) {
     }
 }
 
+/* Forward decl — the stack-object root walk below needs it, and its definition
+ * sits after this function so the heap walk reads top-down. */
+static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx);
+
 static void vader_atom_mark_roots(void) {
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
-        if (fr->ptrs == NULL) continue;
-        for (uint32_t i = 0; i < fr->nrefs; i++) {
-            vader_atom_mark_box(fr->ptrs[i]);
+        if (fr->ptrs != NULL) {
+            for (uint32_t i = 0; i < fr->nrefs; i++) {
+                vader_atom_mark_box(fr->ptrs[i]);
+            }
+        }
+        /* Stack objects are OFF-ARENA, so `vader_atom_mark_heap` — young
+         * from-space plus the live old slots — never reaches them. Redundant
+         * with `vader_atom_mark_cstack_conservative` today, since their fields do
+         * sit on the C stack; precise here so that scan can one day go.
+         *
+         * Guard each list on its own, NOT the frame: a frame carrying stack
+         * objects and no box roots must not be skipped whole. */
+        if (fr->stack_objs != NULL) {
+            for (uint32_t i = 0; i < fr->nstack; i++) {
+                char* o = (char*) fr->stack_objs[i];
+                if (o != NULL) {
+                    vader_atom_mark_object(o, ((vader_obj_header_t*) o)->type_index, NULL);
+                }
+            }
         }
     }
     for (size_t i = 0; i < g_defer_len; i++) {
@@ -1344,6 +1373,7 @@ void vader_gc_init(void) {
     g_gc_stress_major = vader_gc_env_bool("VADER_GC_STRESS_MAJOR");
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
     g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
+    g_gc_no_cstack_scan = vader_gc_env_bool("VADER_GC_NO_CSTACK_SCAN");
 
     /* VADER_GC_PROFILE : at exit, walk both arenas and dump the live set
      * bucketed by type_index — sorted by total bytes, top-20. Useful to
@@ -2238,8 +2268,12 @@ void vader_major_collect(void) {
         }
     }
     /* Conservatively mark old objects reachable only from C locals / registers
-     * (the shadow stack doesn't precisely root old refs — see the function). */
-    vader_gc_mark_cstack_conservative();
+     * (the shadow stack doesn't precisely root old refs — see the function).
+     * `VADER_GC_NO_CSTACK_SCAN=1` skips it so the gaps in the PRECISE rooting
+     * surface as failures instead of being papered over — see the flag. */
+    if (!g_gc_no_cstack_scan) {
+        vader_gc_mark_cstack_conservative();
+    }
     while (g_gray_len > 0) {
         char* obj = g_gray_stack[--g_gray_len];
         (void) vader_gc_scan_object(obj);
