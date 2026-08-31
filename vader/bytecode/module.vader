@@ -108,6 +108,9 @@ export BcImport :: struct {
     /// Header to `#include` instead of synthesising a prototype, or `""`.
     /// See `FnMetadata.c_header`.
     c_header: string = ""
+    /// Library to open before resolving the symbol, or `""` for the default
+    /// scope. See `FnMetadata.c_library` — the VM needs it, the linker does not.
+    c_library: string = ""
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

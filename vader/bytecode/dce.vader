@@ -389,6 +389,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             // Carried over — a dropped header resurrects the synthesised
             // prototype and its conflict.
             .c_header     = imp.c_header,
+            .c_library    = imp.c_library,
         })
     }
     ctx.imports = new_imports

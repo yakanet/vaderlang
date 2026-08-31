@@ -79,6 +79,8 @@ export CFGExternDecl :: struct {
     is_extern:   bool
     /// See `FnMetadata.c_header`.
     c_header:    string
+    /// See `FnMetadata.c_library`.
+    c_library:   string
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

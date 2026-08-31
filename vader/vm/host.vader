@@ -665,9 +665,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
-    lib :: ffi_open("")
+    // The declared library, or the default scope. `GetStdHandle` lives in
+    // `kernel32.dll`, which the running process exports nothing of.
+    lib :: ffi_open(info.c_library)
     if lib == 0 {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: cannot open the running process" }
+        where :: if info.c_library == "" { "the running process" } else { "`${info.c_library}`" }
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: cannot open ${where}" }
     }
     sym :: ffi_symbol(lib, info.extern_name)
     if sym == 0 {

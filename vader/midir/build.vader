@@ -234,6 +234,11 @@ FnMetadata :: struct {
     extern_name: string
     is_extern:   bool
     is_exported: bool
+    /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
+    /// or `""`. The linker does not need it — it resolves against what is on the
+    /// command line — but the VM does: it opens the library to find the symbol,
+    /// and `GetStdHandle` lives in `kernel32.dll`, not in the C runtime.
+    c_library:   string
     /// `@c_header("<windows.h>")`, or `""`. When set, the emitter INCLUDES that
     /// header and does not synthesise a prototype — the header already has the
     /// real one, and a synthesised one that differs is a conflicting
@@ -251,18 +256,44 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     is_extern := false
     is_exported := false
     c_header := ""
+    c_library := ""
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
         is_extern = decorators_have(fn_decl.decorators, "extern")
         is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
+        c_library = extern_library_name(fn_decl)
     }
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
         .is_exported = is_exported,
         .c_header    = c_header,
+        .c_library   = c_library,
     }
+}
+
+/// The library named by a 2-argument `@extern`, or `""`.
+///
+/// `@extern("kernel32", "WriteFile")` names WHERE the symbol comes from: a
+/// linker library natively, a WASM import module, and the shared object the VM
+/// opens. One argument means the default resolution scope.
+///
+/// @param d  the declaration.
+/// @return   the library's bare name, or `""`.
+extern_library_name :: fn(d: FnDecl) -> string {
+    for dec in d.decorators {
+        if dec.name == "extern" && dec.args.len() == 2 {
+            a :: dec.args[0]
+            if a is StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
 }
 
 /// The header named by `@c_header("<...>")`, or `""` when absent.
@@ -339,6 +370,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .is_exported = meta.is_exported,
         .is_extern   = meta.is_extern,
         .c_header    = meta.c_header,
+        .c_library   = meta.c_library,
     }
 }
 
