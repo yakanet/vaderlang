@@ -705,11 +705,17 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         } else if v is BoolVal as b {
             words.push(if b.value { 1 } else { 0 })
         } else {
-            // Integer-or-pointer only. A `null`, a float or a `char` argument
-            // is admitted by `validate_extern` and works natively, so name the
-            // gap rather than letting `read_i64`'s "expected i64" stand in for
-            // it — the two backends diverge here, and the message has to say so.
-            if v is NullVal || v is F64Val {
+            // `null` IS a pointer value — the null address — which is what the
+            // native shim passes for a `CPointer | null`. Nothing to refuse.
+            if v is NullVal {
+                words.push(0)
+                continue
+            }
+            // A float argument is admitted by `validate_extern` and works
+            // natively, so name the gap rather than letting `read_i64`'s
+            // "expected i64" stand in for it — the two backends diverge here,
+            // and the message has to say so.
+            if v is F64Val {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is ${describe_value_tag(v)}, which the VM cannot pass yet (it works natively)" }
             }
             w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
