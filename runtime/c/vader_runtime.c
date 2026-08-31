@@ -109,8 +109,6 @@ void vader_defer_pop_exec(uint32_t count) {
 
 /* ----------------------------------------------------------------- gc arena */
 
-#define VADER_GC_ALIGN 8u
-
 typedef struct {
     char* base;
     char* cur;
@@ -2409,6 +2407,31 @@ vader_gc_stats_t vader_gc_get_stats(void) {
  * table is the single source of truth and is mirrored by the PHASE_*
  * constants in vader/profile/profile.vader. Keep the two in lockstep. */
 
+/* The profiler's own clock. Internal on purpose: `std/time` reads the OS
+ * clocks itself through `@target` + `@extern`, so nothing outside this file
+ * needs it and it stays off the FFI surface. */
+static vader_i64_t prof_monotonic_ns(void) {
+#ifdef _WIN32
+    static LARGE_INTEGER freq = { .QuadPart = 0 };
+    if (freq.QuadPart == 0) {
+        QueryPerformanceFrequency(&freq);
+    }
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    /* Avoid `now * 1_000_000_000` overflow by splitting via the
+     * frequency divisor — preserves resolution to the granularity
+     * of the underlying counter (~100 ns on modern Intel/AMD). */
+    vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
+    vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
+    vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
+    return whole_sec_ns + sub_sec_ns;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (vader_i64_t) ts.tv_sec * 1000000000 + (vader_i64_t) ts.tv_nsec;
+#endif
+}
+
 #define VADER_PROF_MAX_PHASES 16
 
 /* Phase names — index = phase id. Mirror in vader/profile/profile.vader. */
@@ -2510,13 +2533,13 @@ void vader_prof_begin(int32_t phase_id) {
     g_prof_coll0        = (int64_t) s.total_collections;
     g_prof_alloc0       = (int64_t) s.total_alloc_bytes;
     g_prof_alloc_count0 = (int64_t) s.total_alloc_count;
-    g_prof_t0           = vader_clock_monotonic_ns();   /* start the clock last */
+    g_prof_t0           = prof_monotonic_ns();   /* start the clock last */
 }
 
 void vader_prof_end(int32_t phase_id) {
     if (!vader_prof_enabled()) return;
     if (phase_id < 0 || phase_id >= VADER_PROF_MAX_PHASES) return;
-    int64_t t1 = vader_clock_monotonic_ns();       /* stop the clock first */
+    int64_t t1 = prof_monotonic_ns();       /* stop the clock first */
     vader_gc_stats_t s = vader_gc_get_stats();
     g_prof_wall_ns[phase_id]    += t1 - g_prof_t0;
     g_prof_rss_growth[phase_id] += vader_prof_max_rss_bytes() - g_prof_rss0;
@@ -3987,42 +4010,6 @@ vader_string_t vader_terminal_read_keys(int32_t max) {
         if (got < 0 && errno == EINTR) continue;
         return vader_string_new("", 0);
     }
-#endif
-}
-
-vader_i64_t vader_clock_realtime_ms(void) {
-#ifdef _WIN32
-    FILETIME ft;
-    GetSystemTimePreciseAsFileTime(&ft);
-    /* 100-ns ticks since 1601 -> ms since 1970. */
-    vader_i64_t ticks = ((vader_i64_t) ft.dwHighDateTime << 32) | (vader_i64_t) ft.dwLowDateTime;
-    return ticks / 10000 - 11644473600000LL;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000 + (vader_i64_t) (ts.tv_nsec / 1000000);
-#endif
-}
-
-vader_i64_t vader_clock_monotonic_ns(void) {
-#ifdef _WIN32
-    static LARGE_INTEGER freq = { .QuadPart = 0 };
-    if (freq.QuadPart == 0) {
-        QueryPerformanceFrequency(&freq);
-    }
-    LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
-    /* Avoid `now * 1_000_000_000` overflow by splitting via the
-     * frequency divisor — preserves resolution to the granularity
-     * of the underlying counter (~100 ns on modern Intel/AMD). */
-    vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
-    vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
-    vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
-    return whole_sec_ns + sub_sec_ns;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000000000 + (vader_i64_t) ts.tv_nsec;
 #endif
 }
 

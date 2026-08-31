@@ -15,8 +15,8 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 struct __Tuple_34 { _0:1,_1:1 }
-type 17 struct __Tuple_35 { _0:7,_1:7,_2:2 }
+type 16 struct __Tuple_35 { _0:1,_1:1 }
+type 17 struct __Tuple_36 { _0:7,_1:7,_2:2 }
 type 18 array 8
 string 0 "dim "
 string 1 "x"
@@ -83,8 +83,8 @@ fn 0 snippet$main () -> i32
   local.set 3   ; $k_8
   local.get 2   ; $k_7
   local.get 3   ; $k_8
-  struct.new_stack 16   ; __Tuple_34
-  struct.get 16 0   ; __Tuple_34._0
+  struct.new_stack 16   ; __Tuple_35
+  struct.get 16 0   ; __Tuple_35._0
   ref.cast 1   ; -> i32
   i32.to_i64
   local.set 4   ; $cast_11
@@ -104,8 +104,8 @@ fn 0 snippet$main () -> i32
   local.set 3   ; $k_8
   local.get 2   ; $k_7
   local.get 3   ; $k_8
-  struct.new_stack 16   ; __Tuple_34
-  struct.get 16 1   ; __Tuple_34._1
+  struct.new_stack 16   ; __Tuple_35
+  struct.get 16 1   ; __Tuple_35._1
   ref.cast 1   ; -> i32
   i32.to_i64
   local.set 4   ; $cast_11
@@ -125,8 +125,8 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $k_7
   local.get 3   ; $k_8
   string.const 3   ; "origin"
-  struct.new_stack 17   ; __Tuple_35
-  struct.get 17 0   ; __Tuple_35._0
+  struct.new_stack 17   ; __Tuple_36
+  struct.get 17 0   ; __Tuple_36._0
   ref.cast 7   ; -> f64
   call 9   ; std_core$format_f64
   local.set 5   ; $call_28
@@ -137,8 +137,8 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $k_7
   local.get 3   ; $k_8
   string.const 3   ; "origin"
-  struct.new_stack 17   ; __Tuple_35
-  struct.get 17 1   ; __Tuple_35._1
+  struct.new_stack 17   ; __Tuple_36
+  struct.get 17 1   ; __Tuple_36._1
   ref.cast 7   ; -> f64
   call 9   ; std_core$format_f64
   local.set 6   ; $call_35
@@ -149,8 +149,8 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $k_7
   local.get 3   ; $k_8
   string.const 3   ; "origin"
-  struct.new_stack 17   ; __Tuple_35
-  struct.get 17 2   ; __Tuple_35._2
+  struct.new_stack 17   ; __Tuple_36
+  struct.get 17 2   ; __Tuple_36._2
   ref.cast 2   ; -> string
   local.set 7   ; $field_41
   string.const 2   ; "origin ("
@@ -167,8 +167,8 @@ fn 0 snippet$main () -> i32
   local.set 3   ; $k_8
   local.get 2   ; $k_7
   local.get 3   ; $k_8
-  struct.new_stack 16   ; __Tuple_34
-  struct.get 16 0   ; __Tuple_34._0
+  struct.new_stack 16   ; __Tuple_35
+  struct.get 16 0   ; __Tuple_35._0
   ref.cast 1   ; -> i32
   return
 end

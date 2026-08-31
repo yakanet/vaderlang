@@ -274,6 +274,11 @@ const C_PARITY = new Set<string>([
   // element width. A variant matched modulo mutability that read back at the
   // wrong representation would be a silent wrong value, not a trap.
   "union_variant_narrow_mutation",
+  // The emitted C IS the subject: `@c_struct` marshalling exists only there,
+  // and its `_Static_assert` layout lines have no other corpus. Oracle 2 links
+  // the snippet's `helper.c`, so it also pins that the synthesised prototype
+  // agrees with the address the shim actually passes.
+  "c_struct_layout",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

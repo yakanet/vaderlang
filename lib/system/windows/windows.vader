@@ -48,6 +48,22 @@ export get_std_handle :: fn(which: u32) -> Handle
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
                         @c_pointer written: u32, overlapped: CPointer | null) -> bool
 
-// Clocks are absent here for symmetry with `system/posix`: their POSIX half is
-// blocked by a prototype conflict with `<time.h>`, and a Windows-only clock
-// would leave `std/time` without a body on every other target.
+// ---- clocks ---------------------------------------------------------------
+//
+// Both cells cross as a one-element `i64[]`: a `FILETIME` is two contiguous
+// `DWORD`s, low half first, and a `LARGE_INTEGER`'s `QuadPart` is one i64.
+
+/// `GetSystemTimePreciseAsFileTime`. Fills `ft` with 100-ns ticks since 1601.
+@c_header("<windows.h>")
+@extern("kernel32", "GetSystemTimePreciseAsFileTime")
+export get_system_time_precise_as_file_time :: fn(ft: i64[]!) -> void
+
+/// `QueryPerformanceCounter`. Fills `counter`; false on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "QueryPerformanceCounter")
+export query_performance_counter :: fn(counter: i64[]!) -> bool
+
+/// `QueryPerformanceFrequency`. Fills `freq` with counts per second; false on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "QueryPerformanceFrequency")
+export query_performance_frequency :: fn(freq: i64[]!) -> bool

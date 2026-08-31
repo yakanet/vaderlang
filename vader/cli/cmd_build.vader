@@ -805,7 +805,6 @@ cc_link_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    argv.push_all(export_dynamic_flags())
     argv.push("-lm")
     return argv
 }

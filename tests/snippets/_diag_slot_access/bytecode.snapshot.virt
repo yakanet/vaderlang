@@ -15,8 +15,8 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 array 1
-type 17 array 6
+type 16 array 6
+type 17 array 1
 type 18 array 7
 type 19 array 8
 string 0 "xs="
@@ -76,7 +76,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 16 3   ; i32[][]
+  array.new 17 3   ; i32[][]
   local.tee 0   ; xs
   i32.const 0
   load_slot_i32
@@ -150,7 +150,7 @@ fn 0 snippet$main () -> i32
   i64.const 10
   i64.const 20
   i64.const 30
-  array.new 17 3   ; i64[][]
+  array.new 16 3   ; i64[][]
   local.tee 3   ; __buf_0
   i32.const 0
   load_slot_i64
@@ -221,7 +221,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; xs
   local.get 4   ; __off_1
   local.get 10   ; $cast_74
-  array.slice 16   ; i32[][]
+  array.slice 17   ; i32[][]
   local.set 0   ; xs
   i64.const 46
   call 4   ; std_core$new_byte_buffer

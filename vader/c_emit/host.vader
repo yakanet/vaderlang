@@ -59,9 +59,8 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Layout assertions for every `@c_struct` a shim marshals. They compare the
     // two `offsetof`s rather than hard-coded numbers, so `cc` — which has the
     // real header — refuses to compile a Vader struct whose layout drifts from
-    // the C one. That is what lets the VM serialise such a struct from the VADER
-    // layout alone: it is no longer an assumption, it is an invariant `cc`
-    // enforced at build time.
+    // the one the library actually declares. `cc` IS the consumer: the check is
+    // spent entirely at build time, and nothing reads it at run time.
     asserts :: c_struct_layout_asserts(ctx.module.types)
     if asserts.len() > 0 {
         out.append("// `@c_struct` layout — checked against the real headers.\n")
@@ -72,8 +71,8 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     out.append("\n")
 }
 
-/// `_Static_assert` lines pinning each mirrored struct's size and field offsets
-/// to the C type it mirrors.
+/// `_Static_assert` lines pinning each mirrored struct's alignment, size and
+/// field offsets to the C type it mirrors.
 ///
 /// @param types  the module type table.
 /// @return       one line per assertion, empty when no struct mirrors a C type.
@@ -95,8 +94,14 @@ c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
         vt :: struct_c_name(t.name)
         base :: "offsetof(${vt}, f_${t.fields[0].name})"
         cbase :: "offsetof(${t.c_name}, ${c_field_name(t.fields[0])})"
-        out.push("_Static_assert(sizeof(${t.c_name}) == sizeof(${vt}) - ${base}, \"${t.c_name} size\");")
-        for f in t.fields {
+        // An allocation is never aligned beyond `VADER_GC_ALIGN`, so a C type
+        // asking for more (`_Alignas(16)`, SIMD) cannot be mirrored at all.
+        out.push("_Static_assert(_Alignof(${t.c_name}) <= VADER_GC_ALIGN, \"${t.c_name} alignment\");")
+        // Containment, not equality: the header ends in a `void*`, so the field
+        // region is padded up to a multiple of 8 and is legitimately larger.
+        out.push("_Static_assert(sizeof(${t.c_name}) <= sizeof(${vt}) - ${base}, \"${t.c_name} size\");")
+        for i in 1..<t.fields.len() {
+            f :: t.fields[i]
             out.push(
                 "_Static_assert(offsetof(${t.c_name}, ${c_field_name(f)}) - ${cbase} == offsetof(${vt}, f_${f.name}) - ${base}, \"${t.c_name}.${c_field_name(f)}\");",
             )
@@ -118,6 +123,14 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
             // `!` decides `void*` vs `const void*`, through
             // `BcSignature.param_mutable`.
             parts.push(if param_is_mutable(imp.signature, j) { "void*" } else { "const void*" })
+        } else if mirrored_c_struct(types, imp.signature.param_types[j]) != "" {
+            // Classified BEFORE `@c_pointer`, as `user_extern_shim` does: the
+            // shim spills a real C struct and passes ITS address, so the erased
+            // slot type would declare `void**` against a `struct timespec*`.
+            // The two cascades must agree on the order or the prototype and the
+            // call site disagree.
+            mirror :: mirrored_c_struct(types, imp.signature.param_types[j])
+            parts.push(if param_is_mutable(imp.signature, j) { "${mirror}*" } else { "const ${mirror}*" })
         } else if is_param_by_address(imp.signature, j) {
             // `@c_pointer`: the callee takes `T*`. `const` unless the `!` says
             // it writes through it.

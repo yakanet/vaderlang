@@ -8,7 +8,7 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 struct __Tuple_29 { _0:1,_1:4 }
+type 9 struct __Tuple_30 { _0:1,_1:4 }
 type 10 array 9
 string 0 "one"
 string 1 "two"
@@ -33,20 +33,20 @@ fn 0 snippet$main () -> i32
   local $cast_29 i64
   i32.const 1
   string.const 0   ; "one"
-  struct.new_stack 9   ; __Tuple_29
+  struct.new_stack 9   ; __Tuple_30
   local.set 0   ; $struct_2
   i32.const 2
   string.const 1   ; "two"
-  struct.new_stack 9   ; __Tuple_29
+  struct.new_stack 9   ; __Tuple_30
   local.set 1   ; $struct_5
   i32.const 3
   string.const 2   ; "three"
-  struct.new_stack 9   ; __Tuple_29
+  struct.new_stack 9   ; __Tuple_30
   local.set 2   ; $struct_8
   local.get 0   ; $struct_2
   local.get 1   ; $struct_5
   local.get 2   ; $struct_8
-  array.new 10 3   ; __Tuple_29[][]
+  array.new 10 3   ; __Tuple_30[][]
   local.tee 0   ; $struct_2
   array.len
   local.set 3   ; __for_len_1
@@ -60,7 +60,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; $struct_2
         local.get 4   ; __for_i_2
-        array.get 10   ; __Tuple_29[][]
+        array.get 10   ; __Tuple_30[][]
         local.set 1   ; $struct_5
         local.field 1 9 1   ; $struct_5._1
         ref.cast 4   ; -> string

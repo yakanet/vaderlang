@@ -153,11 +153,3 @@ import "std/testing"
     assert_eq(i64(buf[0]), 7)
     assert_eq(i64(buf[2]), 9)
 }
-
-@test test_ffi_resolves_a_runtime_symbol :: fn() -> void {
-    // A non-static runtime symbol must be reachable from the running process:
-    // that is what lets an `@extern` naming a runtime helper work under the VM
-    // as well as natively, with no struct and no layout to marshal.
-    process :: ffi_open("")
-    assert(ffi_symbol(process, "vader_gc_collect") != 0, "vader_gc_collect must resolve")
-}

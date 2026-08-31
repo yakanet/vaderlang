@@ -39,7 +39,7 @@ type 36 union 5,16
 type 37 array 38
 type 38 struct regex$CharRange { lo:5,hi:5 }
 type 39 struct regex$WorkItem { pc:7,groups:23 }
-type 40 struct __Tuple_63 { _0:5,_1:7 }
+type 40 struct __Tuple_65 { _0:5,_1:7 }
 type 41 array 39
 type 42 union 29,30,24,32
 type 43 union 27,28,29,30,24,32,33
@@ -1942,7 +1942,7 @@ fn 21 regex$codepoint_byte_advance (ref,usize) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 47   ; std_string$utf8_decode_len
-  struct.get 40 1   ; __Tuple_63._1
+  struct.get 40 1   ; __Tuple_65._1
   ref.cast 7   ; -> usize
   return
 end
@@ -5897,7 +5897,7 @@ fn 47 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 40   ; __Tuple_63
+  struct.new 40   ; __Tuple_65
   return
 end
 

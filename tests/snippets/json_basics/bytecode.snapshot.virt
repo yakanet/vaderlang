@@ -48,12 +48,12 @@ type 45 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNu
 type 46 union 11,47
 type 47 struct std_string$ParseError { msg:1 }
 type 48 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
-type 49 struct __Tuple_72 { _0:4,_1:8 }
+type 49 struct __Tuple_74 { _0:4,_1:8 }
 type 50 struct std_collections$MutableMap__string__Any { ekeys:24,evals:52,index:51,mask:8,size:8,tombs:8 }
 type 51 array 3
 type 52 array 25
 type 53 array 16
-type 54 struct __Tuple_97 { _0:1,_1:25 }
+type 54 struct __Tuple_99 { _0:1,_1:25 }
 type 55 union 7,0
 type 56 array 4
 string 0 ": error: "
@@ -6001,7 +6001,7 @@ fn 64 json$write_object (ref,ref,i32,i32) -> void
         local.set 10   ; $idx_30
         local.get 9   ; $idx_29
         local.get 10   ; $idx_30
-        struct.new 54   ; __Tuple_97
+        struct.new 54   ; __Tuple_99
         local.set 11   ; __gen_elem_1
         local.field 11 54 0   ; __gen_elem_1._0
         ref.cast 1   ; -> string
@@ -7327,7 +7327,7 @@ fn 86 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 49   ; __Tuple_72
+  struct.new 49   ; __Tuple_74
   return
 end
 

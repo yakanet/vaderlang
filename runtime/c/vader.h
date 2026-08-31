@@ -22,8 +22,9 @@
 #ifndef VADER_H
 #define VADER_H
 
-/* glibc gates POSIX clocks (`CLOCK_REALTIME`, `CLOCK_MONOTONIC`) and GNU
- * pthread extensions (`pthread_getattr_np`) behind feature-test macros.
+/* glibc gates POSIX clocks (`clock_gettime`, which emitted code reaches through
+ * `@c_header("<time.h>")`) and GNU pthread extensions (`pthread_getattr_np`)
+ * behind feature-test macros.
  * Under `-std=c11` ISO mode neither is exposed by default. Define
  * `_GNU_SOURCE` before any system include so the runtime compiles cleanly
  * on Linux ; Darwin / BSD expose these APIs unconditionally so the macro
@@ -33,8 +34,9 @@
 #endif
 
 /* Windows: `GetCurrentThreadStackLimits` (the conservative old-gen stack scan,
- * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock) are
- * Windows 8 APIs, declared by `<windows.h>` only when `_WIN32_WINNT >= 0x0602`.
+ * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock, called
+ * by EMITTED code — `std/time` declares it through `@c_header("<windows.h>")`)
+ * are Windows 8 APIs, declared only when `_WIN32_WINNT >= 0x0602`.
  * Some mingw-w64 toolchains leave `_WIN32_WINNT` unset (or below 0x0602),
  * gating those declarations out — `-Wimplicit-function-declaration` errors.
  * Pin the minimum target before any system include ; only ever RAISE it, so a
@@ -351,6 +353,11 @@ typedef struct {
     uint16_t _reserved;
     void*    forward;
 } vader_obj_header_t;
+
+/* Every allocation is rounded up to this, so it is the strongest alignment a
+ * Vader object's fields can rely on. Emitted code asserts foreign struct
+ * alignment against it, hence its home here rather than in the runtime .c. */
+#define VADER_GC_ALIGN 8u
 
 static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     vader_obj_header_t* h = (vader_obj_header_t*) obj;
@@ -1346,22 +1353,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
-
-/* Wall-clock milliseconds since the Unix epoch. POSIX takes
- * `clock_gettime(CLOCK_REALTIME)` ; Windows reads
- * `GetSystemTimePreciseAsFileTime` which counts 100-ns ticks from
- * 1601-01-01 (subtract the 11_644_473_600 second offset to reach
- * the Unix epoch). */
-/* Declared here, DEFINED in vader_runtime.c: `std/time` reaches them through
- * `@extern`, so they must be real, exported symbols — the linker resolves them
- * natively, and `vader_ffi` resolves them by name under the VM. A `static
- * inline` would be invisible to both. */
-vader_i64_t vader_clock_realtime_ms(void);
-
-/* Monotonic nanoseconds since an arbitrary process-stable epoch. POSIX
- * routes through `CLOCK_MONOTONIC` ; Windows uses
- * `QueryPerformanceCounter` scaled by the cached tick frequency. */
-vader_i64_t vader_clock_monotonic_ns(void);
 
 /* ----------------------------------------------------------------- math */
 

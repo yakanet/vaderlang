@@ -12,7 +12,7 @@ type 9 primitive void
 type 10 array 4
 type 11 struct std_collections$MutableMap__string__i32 { ekeys:10,evals:12,index:12,mask:2,size:2,tombs:2 }
 type 12 array 1
-type 13 struct __Tuple_52 { _0:4,_1:1 }
+type 13 struct __Tuple_53 { _0:4,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -99,7 +99,7 @@ fn 0 snippet$main () -> i32
         local.set 7   ; $idx_27
         local.get 6   ; $idx_26
         local.get 7   ; $idx_27
-        struct.new_stack 13   ; __Tuple_52
+        struct.new_stack 13   ; __Tuple_53
         local.set 0   ; $arr_0
         local.field 0 13 0   ; $arr_0._0
         ref.cast 4   ; -> string
