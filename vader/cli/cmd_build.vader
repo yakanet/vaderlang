@@ -154,13 +154,48 @@ cmd_build :: fn(args: string[]) -> i32 {
         return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0)
     }
 
-    // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
-    // text (.virt) module. The bytecode already exists post
-    // `prepare_cfg_bytecode` ; this only needs the writer wired.
+    if emit == "bytecode-text" {
+        return build_bytecode_text(file, out_flag, include_path_flags, build_target)
+    }
+    // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
+    // above covers the textual form; this one waits on a binary writer.
     // A wasm module is not an emit kind: it is `--emit=executable
     // --target=wasm32-browser`, and it waits on the wasm backend, not on this.
     eprintln("vader build --emit=${emit}: not yet implemented")
     return 2
+}
+
+/// `--emit=bytecode-text` — write the COMPLETE `.virt` module beside the input.
+///
+/// Distinct from `dump --stage=bytecode`, which is a VIEW of one module: this is
+/// the whole linked image, every function it needs included, and it is what the
+/// VM executes. The separation is the point — a dump narrows to what you are
+/// reading, a build produces what actually runs.
+///
+/// @param file                entry source.
+/// @param out_flag            `-o` value, or "" to derive `<input>.virt`.
+/// @param include_path_flags  extra module search roots.
+/// @param target              the platform to select `@target` bodies for.
+/// @return                    0 on success, 1 on a write failure, 2 on a
+///                            front-end error (already reported).
+build_bytecode_text :: fn(
+    file: Path, out_flag: string, include_path_flags: string[], target: Target | null,
+) -> i32 {
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
+    // Same gate as every other emit path: errors abort, warnings still print.
+    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+        return 2
+    }
+    out :: if out_flag != "" {
+        out_flag.to_path()
+    } else {
+        "${strip_input_suffix(file)}.virt".to_path()
+    }
+    if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
+        return 1
+    }
+    eprintln("vader build: wrote ${out}")
+    return 0
 }
 
 // Lower `file` through the canonical CFG → bytecode → c_emit path (the same

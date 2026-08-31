@@ -324,9 +324,13 @@ run_bytecode_stage :: fn(
     }
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) so the output isn't
-    // double-newlined. `--annotate` routes through the disassembly
-    // variant — NOT round-trippable, so it never feeds `parse_virt` or
-    // the parity snapshots.
+    // double-newlined.
+    //
+    // `--annotate` appends `; <name>` after each index-bearing op. It IS
+    // round-trippable — `strip_comment` removes `;` comments before parsing —
+    // and the parity snapshots use it: an index is a rank of insertion, the name
+    // is what a reader needs. (This comment claimed the opposite; the corpus
+    // re-reads and executes every annotated dump, which settles it.)
     out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else {
         dump_bytecode(b.module, b.entry)
     }

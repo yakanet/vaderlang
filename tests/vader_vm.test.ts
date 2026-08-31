@@ -274,9 +274,12 @@ for (const s of scenarios) {
   // the committed TS `.virt`), and compare to the same `vm.snapshot` oracle.
   if (VADER_SELF_EMIT.has(s.name)) {
     test.concurrent(`vader-vm-self: ${s.name}`, async () => {
-      const dump = await runCli(["dump", "--stage=bytecode", s.mainPath]);
+      // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle
+      // needs the whole linked image, every function it calls included. The dump
+      // is a VIEW of one module and is free to narrow; the build is what runs.
       const tmp = join(tmpdir(), `vader-self-${s.name}.virt`);
-      writeFileSync(tmp, dump.stdout);
+      const built = await runCli(["build", "--emit=bytecode-text", "-o", tmp, s.mainPath]);
+      if (built.exit !== 0) throw new Error(`bytecode-text emit failed: ${built.stderr}`);
       const { stdout, stderr, exit } = await runCli(["run", tmp]);
       const actual = formatRun(stdout, stderr, exit);
       const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
