@@ -560,14 +560,12 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     } else {
         for i in 0..<targets.len() {
-            dir :: "${out.parent()}/${display_target(targets[i])}"
-            mk :: create_dir(dir)
-            if mk is IOError as e {
-                eprintln("vader build --seed-targets: cannot create `${dir}`: ${e.message()}")
+            target :: display_target(targets[i])
+            if ensure_target_dir(out, target) != 0 {
                 return 1
             }
             name :: imports_header_name("${canonicalise(out).filename()}.split.h")
-            if write_out("${dir}/${name}".to_path(), progs[i].imports) != 0 {
+            if write_out("${out.parent()}/${target}/${name}".to_path(), progs[i].imports) != 0 {
                 return 1
             }
         }
@@ -579,11 +577,14 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
     } else {
         for i in 0..<targets.len() {
             // Through `unit_path`, not a second spelling of the rule: the build
-            // scripts glob per-target files as `<stem>.<target>-*.c`, and the
-            // `.split.g.c` form this used to write matched neither that nor the
-            // shared-globals line. Masked today because every target's globals
-            // are identical, so this branch never runs — and it would have
-            // surfaced as a missing symbol at link time, far from the cause.
+            // scripts compile one target directory, and the `.split.g.c` form
+            // this used to write matched neither that nor the shared-globals
+            // line. Masked today because every target's globals are identical,
+            // so this branch never runs — and it would have surfaced as a
+            // missing symbol at link time, far from the cause.
+            if ensure_target_dir(out, display_target(targets[i])) != 0 {
+                return 1
+            }
             if write_out(unit_path(out, display_target(targets[i]), GLOBALS_UNIT), progs[i].globals) != 0 {
                 return 1
             }
@@ -601,6 +602,9 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             }
         } else {
             for i in 0..<targets.len() {
+                if ensure_target_dir(out, display_target(targets[i])) != 0 {
+                    return 1
+                }
                 if write_out(unit_path(out, display_target(targets[i]), name), progs[i].units[k]) != 0 {
                     return 1
                 }
@@ -742,12 +746,41 @@ split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
 // later unit the moment a module is added, which renames and rewrites files
 // whose contents did not change — the same renumbering the atom table used to
 // do, one level up.
+/// Where one split unit is written: `<out>-<unit>.c` when every target agreed on
+/// it, `<out-dir>/<target>/<stem>.<unit>.c` when they did not — the directory
+/// already says which target, so the name no longer repeats it.
+///
+/// A per-target unit sits in that target's directory, beside the imports header
+/// that is already there — so a build compiles the flat shared set plus ONE
+/// directory, and an obsolete unit stays visible instead of blending into the
+/// flat listing.
+///
+/// @param out     the `--out` stem.
+/// @param target  the target's display name, or `""` for a shared unit.
+/// @param unit    the module's unit name.
+/// @return        the path to write.
 unit_path :: fn(out: Path, target: string, unit: string) -> Path =
     if target == "" {
         "${out}-${unit}.c".to_path()
     } else {
-        "${out}.${target}-${unit}.c".to_path()
+        "${out.parent()}/${target}/${out.filename()}.${unit}.c".to_path()
     }
+
+/// Create the directory a per-target unit goes in. Idempotent — several units
+/// share it, and the imports header may have made it already.
+///
+/// @param out     the `--out` stem.
+/// @param target  the target's display name.
+/// @return        0, or 1 after reporting why the directory could not be made.
+ensure_target_dir :: fn(out: Path, target: string) -> i32 {
+    dir :: "${out.parent()}/${target}"
+    mk :: create_dir(dir)
+    if mk is IOError as e {
+        eprintln("vader build --seed-targets: cannot create `${dir}`: ${e.message()}")
+        return 1
+    }
+    return 0
+}
 
 // `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
 // flags as the monolithic `cc_argv`, plus `-I <runtime>` so `#include "vader.h"`

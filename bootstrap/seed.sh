@@ -266,7 +266,7 @@ generator:        $VADER
 META
 
     shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null | wc -l | tr -d ' ')
-    per_target=$(ls bootstrap/seed/ | grep -cE '\.(darwin|linux|windows|wasi|browser)-' || true)
+    per_target=$(find bootstrap/seed -mindepth 2 -name '*.c' 2>/dev/null | wc -l | tr -d ' ')
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
     echo "  git diff --stat bootstrap/seed"

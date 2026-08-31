@@ -48,9 +48,10 @@ New-Item -ItemType Directory -Force build | Out-Null
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
 $hostTarget = "windows-$hostArch"
 $seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g.c','bootstrap-*.c' -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
-$seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget-*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 $seedIncDir = Join-Path (Join-Path $PWD 'bootstrap\seed') $hostTarget
-$seedInc = if (Test-Path $seedIncDir) { $seedIncDir } else { $null }
+$seedHost = @(Get-ChildItem -Path $seedIncDir -Filter '*.c' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$seedRoot = Join-Path $PWD 'bootstrap\seed'
+$seedInc = if (Test-Path $seedIncDir) { @($seedIncDir, $seedRoot) } else { @($seedRoot) }
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }
@@ -94,8 +95,11 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags, $
         # preference makes it terminating -- the build died on a warning before
         # $LASTEXITCODE could be read. Folding it into the output stream keeps
         # the text and makes the exit code the only verdict.
+        # `$xi` is a LIST of include roots, most specific first: the seed's
+        # per-target directory owns `bootstrap.imports.h`, its root the shared
+        # `bootstrap.split.h`.
         $incArgs = @("-I$inc")
-        if ($xi) { $incArgs = @("-I$xi") + $incArgs }
+        if ($xi) { $incArgs = @($xi | ForEach-Object { "-I$_" }) + $incArgs }
         $out = & $c $f $incArgs -c $_ -o $obj 2>&1
         if ($out) { Write-Host (($out | Out-String).TrimEnd()) }
         if ($LASTEXITCODE -ne 0) { $_ }

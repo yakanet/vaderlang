@@ -145,14 +145,19 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-# `bootstrap-<module>.c` is shared; `bootstrap.<target>-<module>.c` belongs to
-# one target. The two patterns cannot overlap — a shared unit has no dot after
-# `bootstrap` — so the host's set is the union with the globals TU.
+# `bootstrap-<module>.c`, flat, is shared by every target; a unit the targets
+# disagreed on lives in `seed/<target>/` instead. So the host's set is the flat
+# shared list plus ONE directory — nothing else is compiled, and a stale unit
+# from another target cannot be picked up by a glob.
 seed_shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null || true)
-seed_host=$(ls bootstrap/seed/bootstrap."$HOST_TARGET"-*.c 2>/dev/null || true)
-seed_includes=""
+seed_host=$(ls bootstrap/seed/"$HOST_TARGET"/*.c 2>/dev/null || true)
+# Two include roots, target first: the per-target directory owns
+# `bootstrap.imports.h`, and the seed root owns the shared `bootstrap.split.h`
+# that every unit — including the ones now sitting in a target directory —
+# includes by bare name.
+seed_includes="-Ibootstrap/seed"
 if [ -d "bootstrap/seed/$HOST_TARGET" ]; then
-    seed_includes="-Ibootstrap/seed/$HOST_TARGET"
+    seed_includes="-Ibootstrap/seed/$HOST_TARGET -Ibootstrap/seed"
 fi
 if [ -z "$seed_shared" ]; then
     echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
