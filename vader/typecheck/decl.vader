@@ -214,7 +214,7 @@ declare_named_with_args :: fn(
     sym :: by_name[name] ?? return
     args: Type[]! = []
     for tp in type_params {
-        tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
+        tp_sym :: factory.make(.TypeParam, tp.name, module_path, module_path, .Private, tp.span)
         args.push(mk_type_param(tp_sym))
     }
     typed.decl_types[sym.id] = mk(sym, args)

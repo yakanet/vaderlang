@@ -105,6 +105,7 @@ import "std/testing"
 test_type_symbol_extracts_named_type :: fn() -> void {
     sym :: Symbol {
         .id = 1, .kind = .Struct, .name = "Box", .module = "t",
+        .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
     no_args: Type[] = []
@@ -124,6 +125,7 @@ test_type_symbol_unwraps_nullable :: fn() -> void {
     // `User | null` resolves to `User`'s symbol — the common nullable case.
     sym :: Symbol {
         .id = 2, .kind = .Struct, .name = "User", .module = "t",
+        .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
     no_args: Type[] = []
@@ -139,6 +141,7 @@ test_type_symbol_distinct_jumps_to_newtype :: fn() -> void {
     // decl, not the backing primitive (which has no declaration site).
     sym :: Symbol {
         .id = 3, .kind = .TypeAlias, .name = "Mass", .module = "t",
+        .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
     extracted :: type_symbol(mk_distinct(sym, mk_primitive("i64")))

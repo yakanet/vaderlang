@@ -186,12 +186,12 @@ collect_decl :: fn(
 ) -> void {
     match d {
         is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, paths, diags) }
-        is FnDecl        as x -> { self.add_fn(x, module_path, factory, diags) }
-        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is FnDecl        as x -> { self.add_fn(x, module_path, module_name, factory, diags) }
+        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
         is ImplDecl  -> {}   // contributes methods to a type, not new top-level names
         is AssertDecl -> {}  // @assert doesn't introduce a name
     }
@@ -205,7 +205,7 @@ collect_decl :: fn(
 /// @error R2004 when the fn's name collides with a same-named TYPE or CONST
 ///        (a fn can't overload a non-fn declaration). Order-independent with
 ///        `add_named`, which flags the reverse decl order.
-add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: SymbolFactory!, diags: Diagnostic[]!) -> void {
+add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name: string, factory: SymbolFactory!, diags: Diagnostic[]!) -> void {
     // `main` is the program entry point and is always public. Letting it
     // default to private locks the entry-point fn behind module visibility.
     visibility := d.visibility
@@ -224,7 +224,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: Sy
         }
     }
 
-    sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
+    sym :: factory.make(.Fn, d.name, module_path, module_name, visibility, d.name_span)
     bucket :: self.fn_overloads[d.name]
     match bucket {
         is null -> { self.fn_overloads[d.name] = [sym] }
@@ -250,7 +250,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: Sy
 
 add_named :: fn(
     self: CollectedModule!, kind: SymbolKind, name: string, name_span: Span,
-    visibility: Visibility, module_path: string, factory: SymbolFactory!,
+    visibility: Visibility, module_path: string, module_name: string, factory: SymbolFactory!,
     diags: Diagnostic[]!,
 ) -> void {
     // First-wins on duplicates ; later occurrences raise R2004.
@@ -263,7 +263,7 @@ add_named :: fn(
                 "`${name}` already declared in this module"))
         }
         is null   -> {
-            sym :: factory.make(kind, name, module_path, visibility, name_span)
+            sym :: factory.make(kind, name, module_path, module_name, visibility, name_span)
             self.symbols[name] = sym
         }
     }
@@ -359,7 +359,7 @@ bind_import :: fn(
                 // same-signature clash is caught at typecheck (T3053). Record the
                 // ImportInfo so wire + imported overloads see it, but leave the fn
                 // in the primary name slot.
-                sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+                sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
                 self.imports[sym.id] = ImportInfo {
                     .path = import_path,
                     .imported_name = imported_name,
@@ -373,7 +373,7 @@ bind_import :: fn(
             }
         }
         is null   -> {
-            sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+            sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
             self.symbols[local] = sym
             self.imports[sym.id] = ImportInfo {
                 .path = import_path,

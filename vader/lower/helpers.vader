@@ -105,6 +105,7 @@ export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx!, hint: string) -> Symbol {
         .kind       = SymbolKind.Synthetic,
         .name       = "__${hint}_${n}",
         .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
         .visibility = Visibility.Private,
         .defined_at = null,
     }

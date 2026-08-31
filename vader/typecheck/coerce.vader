@@ -117,6 +117,7 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
         .kind = SymbolKind.Trait,
         .name = "Iterator",
         .module = "std/core",
+        .module_name = "std/core",
         .visibility = Visibility.Public,
         .defined_at = null,
     }

@@ -219,6 +219,7 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
             .kind       = SymbolKind.Fn,
             .name       = mangled,
             .module     = ctx.typed.resolved.path,
+            .module_name = ctx.typed.resolved.path,
             .visibility = Visibility.Private,
             .defined_at = null,
         },
@@ -396,6 +397,7 @@ mk_into_call :: fn(
             .symbol = Symbol {
                 .id = 0, .kind = SymbolKind.Fn, .name = callee_name,
                 .module = callee_module,
+                .module_name = callee_module,
                 .visibility = Visibility.Private, .defined_at = null,
             },
         },

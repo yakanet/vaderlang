@@ -767,7 +767,7 @@ test_display_union :: fn() -> void {
 @test
 test_display_struct_with_args :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "MutableMap", "test", .Public, null)
+    sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
     a0: Type = mk_primitive("string")
     a1: Type = mk_primitive("i32")
     s :: mk_struct(sym, [a0, a1], false)
@@ -777,7 +777,7 @@ test_display_struct_with_args :: fn() -> void {
 @test
 test_display_struct_without_args :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "Point", "test", .Public, null)
+    sym :: factory.make(.Struct, "Point", "test", "test", .Public, null)
     s :: mk_struct(sym, [], false)
     assert_eq(display_type(s), "Point!")
 }
@@ -795,7 +795,7 @@ test_display_singletons :: fn() -> void {
 @test
 test_display_type_param :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.TypeParam, "T", "test", .Private, null)
+    sym :: factory.make(.TypeParam, "T", "test", "test", .Private, null)
     tp :: mk_type_param(sym)
     assert_eq(display_type(tp), "T")
 }

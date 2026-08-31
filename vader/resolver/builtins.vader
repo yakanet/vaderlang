@@ -51,7 +51,7 @@ export is_builtin_type_name :: fn(name: string) -> bool {
 export make_builtin_scope :: fn(factory: SymbolFactory!) -> MutableMap<string, Symbol> {
     out :: MutableMap<string, Symbol> {}
     for name in builtin_type_names() {
-        sym :: factory.make(.BuiltinType, name, BUILTIN_MODULE_ID, .Public, null)
+        sym :: factory.make(.BuiltinType, name, BUILTIN_MODULE_ID, BUILTIN_MODULE_ID, .Public, null)
         out[name] = sym
     }
     return out

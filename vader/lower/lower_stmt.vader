@@ -308,6 +308,7 @@ synth_unused_local :: fn(ctx: FnLowerCtx!, name: string) -> Symbol {
         .kind       = SymbolKind.Local,
         .name       = name,
         .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
         .visibility = Visibility.Private,
         .defined_at = null,
     }

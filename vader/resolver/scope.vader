@@ -97,7 +97,7 @@ import "toolchain/span"
 @test
 test_scope_lookup_finds_root_binding :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Local, "x", "test", .Private, null)
+    sym :: factory.make(.Local, "x", "test", "test", .Private, null)
     root :: MutableMap<string, Symbol> {}
     root["x"] = sym
     scope :: new_scope(root)
@@ -111,8 +111,8 @@ test_scope_lookup_finds_root_binding :: fn() -> void {
 @test
 test_scope_push_pop_restores_outer :: fn() -> void {
     factory :: SymbolFactory {}
-    outer :: factory.make(.Local, "x", "test", .Private, null)
-    inner :: factory.make(.Local, "x", "test", .Private, null)
+    outer :: factory.make(.Local, "x", "test", "test", .Private, null)
+    inner :: factory.make(.Local, "x", "test", "test", .Private, null)
     root :: MutableMap<string, Symbol> {}
     root["x"] = outer
     scope :: new_scope(root)

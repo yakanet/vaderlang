@@ -42,6 +42,7 @@ export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) ->
     .kind       = SymbolKind.Struct,
     .name       = gen_state_name(fn_name),
     .module     = module,
+    .module_name = module,
     .visibility = Visibility.Private,
     .defined_at = null,
 }
@@ -93,7 +94,7 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             tp.iter_element_types[gen_state_name(e.name)] = e.element
             tp.generator_symbols[e.name] = Symbol {
                 .id = e.id, .kind = SymbolKind.Fn, .name = e.name,
-                .module = e.module, .visibility = Visibility.Private, .defined_at = null,
+                .module = e.module, .module_name = e.module, .visibility = Visibility.Private, .defined_at = null,
             }
         }
     }

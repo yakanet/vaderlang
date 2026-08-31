@@ -32,7 +32,7 @@ collect_vtable_entries :: fn(
                 fn_sym :: if sym is Symbol { sym } else {
                     Symbol {
                         .id = 0, .kind = SymbolKind.Fn, .name = fd.mangled,
-                        .module = "", .visibility = Visibility.Private, .defined_at = null,
+                        .module = "", .module_name = "", .visibility = Visibility.Private, .defined_at = null,
                     }
                 }
                 out.push(LoweredVtableEntry {

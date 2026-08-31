@@ -178,7 +178,7 @@ export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_
         prefix = env_prefix
         kind = SymbolKind.Struct
     }
-    return Symbol { .id = id, .kind = kind, .name = "${prefix}${suffix}", .module = ctx.typed.resolved.path, .visibility = AST.Visibility.Private, .defined_at = null }
+    return Symbol { .id = id, .kind = kind, .name = "${prefix}${suffix}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.path, .visibility = AST.Visibility.Private, .defined_at = null }
 }
 
 /// Synthetic IDs walk negative ; render as an unsigned magnitude for

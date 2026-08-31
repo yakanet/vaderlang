@@ -223,6 +223,7 @@ dummy_struct_symbol :: fn(name: string) -> Symbol {
         .kind       = .Struct,
         .name       = name,
         .module     = "t",
+        .module_name = "t",
         .visibility = .Public,
         .defined_at = null,
     }

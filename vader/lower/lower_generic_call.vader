@@ -164,6 +164,7 @@ emit_generic_fn_call :: fn(
         .kind       = SymbolKind.Fn,
         .name       = mangled,
         .module     = fn_sym.module,
+        .module_name = fn_sym.module,
         .visibility = Visibility.Private,
         .defined_at = null,
     }
@@ -253,6 +254,7 @@ register_and_emit_generic_call :: fn(
         .kind       = SymbolKind.Fn,
         .name       = mangled,
         .module     = fn_sym.module,
+        .module_name = fn_sym.module,
         .visibility = Visibility.Private,
         .defined_at = null,
     }

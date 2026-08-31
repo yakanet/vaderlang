@@ -65,9 +65,18 @@ export type_intern_key :: fn(t: Type) -> string = match t {
 
 // Source-position identity for a symbol — file:offset when the decl has a
 // span, else a synthetic `id` fallback.
-symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
-    is null       -> "id${sym.id}"
-    is Span as at -> "${at.start.file}:${at.start.offset}"
+// The MODULE, not the file. A module resolves to exactly one folder, which the
+// compiler guarantees, so `module + name` identifies a declaration everywhere —
+// a checkout, a `dist/` bundle where `lib/` sits beside the binary, a staged
+// temp directory. The source PATH identified the same thing, but only within one
+// machine's layout: it leaked absolute paths into C struct names
+// (`$Cell_Struct__private_var_folders_…`), which made the emitted C differ
+// between two build directories and pushed single identifiers past 2 KB.
+symbol_key :: fn(sym: Symbol) -> string {
+    if sym.module_name == "" {
+        return "id${sym.id}"
+    }
+    return "${sym.module_name}.${sym.name}"
 }
 
 // Join each type's intern key with `sep`. Recurses through `type_intern_key`
@@ -268,7 +277,7 @@ import "std/testing"
 // one. Covers all three carriers.
 @test test_immutability_never_reaches_the_bytecode :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "Cfg", "test", .Public, null)
+    sym :: factory.make(.Struct, "Cfg", "test", "test", .Public, null)
     i32_ty: Type = mk_primitive("i32")
 
     mutable_struct   :: mk_struct(sym, [], false)

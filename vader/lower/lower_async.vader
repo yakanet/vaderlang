@@ -49,7 +49,7 @@ mk_async_method_decl :: fn(
     mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
     sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = mangled,
-        .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
+        .module = fn_ctx.typed.resolved.path, .module_name = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
     }
     return LoweredFnDecl {
         .mangled = mangled,
