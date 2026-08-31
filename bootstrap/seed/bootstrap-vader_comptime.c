@@ -595,7 +595,7 @@ static vader_string_t vader_comptime_build_display_key(void* l0, void* l1) {
     t0 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_id;
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l4, l3, l5);
-    l3 = std_core_write_string_at(l4, l3, 300u);
+    l3 = std_core_write_string_at(l4, l3, 299u);
     l3 = std_core_write_string_at(l4, l3, l2);
     l3 = std_core_write_string_at(l4, l3, 338u);
     t1 = std_core_finish_buffer(l4, l3);
@@ -728,7 +728,7 @@ static vader_string_t vader_comptime_canonical_type_key(vader_box_t l0) {
         t1 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_types_StructType_t*) l1)->f_symbol)->f_id;
         l5 = ((int64_t) (int32_t) t1);
         l3 = std_core_write_int(l4, l3, l5);
-        l3 = std_core_write_string_at(l4, l3, 300u);
+        l3 = std_core_write_string_at(l4, l3, 299u);
         l3 = std_core_write_string_at(l4, l3, l2);
         l3 = std_core_write_string_at(l4, l3, 338u);
         t0 = std_core_finish_buffer(l4, l3);
@@ -760,7 +760,7 @@ static vader_string_t vader_comptime_canonical_type_key(vader_box_t l0) {
         t1 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_types_TraitType_t*) l1)->f_symbol)->f_id;
         l5 = ((int64_t) (int32_t) t1);
         l3 = std_core_write_int(l4, l3, l5);
-        l3 = std_core_write_string_at(l4, l3, 300u);
+        l3 = std_core_write_string_at(l4, l3, 299u);
         l3 = std_core_write_string_at(l4, l3, l2);
         l3 = std_core_write_string_at(l4, l3, 338u);
         t0 = std_core_finish_buffer(l4, l3);
@@ -1941,7 +1941,7 @@ static vader_string_t vader_comptime_display_value(vader_box_t l0) {
         t2 = ((vader_struct_vader_comptime_CharValue_t*) l1)->f_value;
         t0 = std_numbers_to_hex((uint64_t) (int64_t) ((int64_t) (uint32_t) t2));
         l2 = std_string_pad_start(t0, (size_t) (int64_t) INT64_C(4), 48u);
-        t0 = concat_3(299u, l2, 284u);
+        t0 = concat_3(298u, l2, 283u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 687u) {

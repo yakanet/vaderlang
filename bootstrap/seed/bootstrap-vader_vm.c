@@ -1965,7 +1965,7 @@ static vader_box_t vader_vm_dispatch_call_into(void* l0, void* l1, void* l2, voi
         l8 = std_core_write_int(l11, l8, l12);
         l8 = std_core_write_string_at(l11, l8, 343u);
         l8 = std_core_write_string_at(l11, l8, l10);
-        l8 = std_core_write_string_at(l11, l8, 284u);
+        l8 = std_core_write_string_at(l11, l8, 283u);
         t2 = std_core_finish_buffer(l11, l8);
         vader_struct_vader_vm_Trap_t* _a1_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
         vader_obj_header_init(_a1_obj, 945u);
@@ -3912,7 +3912,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         l14 = (size_t) (int64_t) INT64_C(0);
         l14 = std_core_write_string_at(l16, l14, 2263u);
         l14 = std_core_write_string_at(l16, l14, l24);
-        l14 = std_core_write_string_at(l16, l14, 289u);
+        l14 = std_core_write_string_at(l16, l14, 288u);
         l26 = ((int64_t) (int32_t) l5);
         l14 = std_core_write_int(l16, l14, l26);
         t0 = std_core_finish_buffer(l16, l14);
@@ -5529,7 +5529,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l116 = 115u;
                             l111 = std_core_write_string_at(l110, l111, l116);
                             l111 = std_core_write_string_at(l110, l111, l107);
-                            l117 = 284u;
+                            l117 = 283u;
                             l111 = std_core_write_string_at(l110, l111, l117);
                             t1 = std_core_finish_buffer(l110, l111);
                             vader_struct_vader_vm_Trap_t* _a31_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -5610,7 +5610,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l145 = 115u;
                             l142 = std_core_write_string_at(l141, l142, l145);
                             l142 = std_core_write_string_at(l141, l142, l138);
-                            l146 = 284u;
+                            l146 = 283u;
                             l142 = std_core_write_string_at(l141, l142, l146);
                             t1 = std_core_finish_buffer(l141, l142);
                             vader_struct_vader_vm_Trap_t* _a38_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -5649,7 +5649,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l159 = 115u;
                             l154 = std_core_write_string_at(l153, l154, l159);
                             l154 = std_core_write_string_at(l153, l154, l150);
-                            l160 = 284u;
+                            l160 = 283u;
                             l154 = std_core_write_string_at(l153, l154, l160);
                             t1 = std_core_finish_buffer(l153, l154);
                             vader_struct_vader_vm_Trap_t* _a39_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -5752,7 +5752,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l202 = 115u;
                             l199 = std_core_write_string_at(l198, l199, l202);
                             l199 = std_core_write_string_at(l198, l199, l195);
-                            l203 = 284u;
+                            l203 = 283u;
                             l199 = std_core_write_string_at(l198, l199, l203);
                             t1 = std_core_finish_buffer(l198, l199);
                             vader_struct_vader_vm_Trap_t* _a46_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -5791,7 +5791,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l216 = 115u;
                             l211 = std_core_write_string_at(l210, l211, l216);
                             l211 = std_core_write_string_at(l210, l211, l207);
-                            l217 = 284u;
+                            l217 = 283u;
                             l211 = std_core_write_string_at(l210, l211, l217);
                             t1 = std_core_finish_buffer(l210, l211);
                             vader_struct_vader_vm_Trap_t* _a47_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -5991,7 +5991,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l291 = 1293u;
                             l290 = std_core_write_string_at(l289, l290, l291);
                             l290 = std_core_write_string_at(l289, l290, l286);
-                            l292 = 294u;
+                            l292 = 293u;
                             l290 = std_core_write_string_at(l289, l290, l292);
                             t0 = ((int64_t) (size_t) l285);
                             l293 = (uint64_t) (int64_t) t0;
@@ -6096,7 +6096,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l332 = 1291u;
                             l331 = std_core_write_string_at(l330, l331, l332);
                             l331 = std_core_write_string_at(l330, l331, l324);
-                            l333 = 294u;
+                            l333 = 293u;
                             l331 = std_core_write_string_at(l330, l331, l333);
                             t0 = ((int64_t) (size_t) l323);
                             l334 = (uint64_t) (int64_t) t0;
@@ -6115,7 +6115,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l339 = 115u;
                             l331 = std_core_write_string_at(l330, l331, l339);
                             l331 = std_core_write_string_at(l330, l331, l325);
-                            l340 = 284u;
+                            l340 = 283u;
                             l331 = std_core_write_string_at(l330, l331, l340);
                             t1 = std_core_finish_buffer(l330, l331);
                             vader_struct_vader_vm_Trap_t* _a62_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -6239,7 +6239,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l389 = 2392u;
                             l388 = std_core_write_string_at(l387, l388, l389);
                             l388 = std_core_write_string_at(l387, l388, l384);
-                            l390 = 294u;
+                            l390 = 293u;
                             l388 = std_core_write_string_at(l387, l388, l390);
                             t2 = l90.payload.obj;
                             t5 = ((vader_struct_vader_bytecode_VirtualCall_t*) t2)->f_parameter_count;
@@ -6291,7 +6291,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l413 = 2392u;
                             l412 = std_core_write_string_at(l411, l412, l413);
                             l412 = std_core_write_string_at(l411, l412, l405);
-                            l414 = 288u;
+                            l414 = 287u;
                             l412 = std_core_write_string_at(l411, l412, l414);
                             l412 = std_core_write_string_at(l411, l412, l406);
                             l415 = 113u;
@@ -6418,7 +6418,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                 l463 = 2392u;
                                 l462 = std_core_write_string_at(l461, l462, l463);
                                 l462 = std_core_write_string_at(l461, l462, l458);
-                                l464 = 287u;
+                                l464 = 286u;
                                 l462 = std_core_write_string_at(l461, l462, l464);
                                 l465 = ((int64_t) (int32_t) l403);
                                 l462 = std_core_write_int(l461, l462, l465);
@@ -6443,7 +6443,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l463 = 2392u;
                             l462 = std_core_write_string_at(l461, l462, l463);
                             l462 = std_core_write_string_at(l461, l462, l458);
-                            l464 = 287u;
+                            l464 = 286u;
                             l462 = std_core_write_string_at(l461, l462, l464);
                             l465 = ((int64_t) (int32_t) l403);
                             l462 = std_core_write_int(l461, l462, l465);
@@ -6464,7 +6464,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l470 = 2392u;
                         t2 = l90.payload.obj;
                         l471 = ((vader_struct_vader_bytecode_VirtualCall_t*) t2)->f_vtable_key;
-                        l472 = 284u;
+                        l472 = 283u;
                         l473 = concat_3(l470, l471, l472);
                         l474 = vader_vm_validate_fn_index(l419, l468, l469, l473);
                         if (l474.tag == 945u) {
@@ -6497,10 +6497,10 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l488 = 2392u;
                             l487 = std_core_write_string_at(l486, l487, l488);
                             l487 = std_core_write_string_at(l486, l487, l480);
-                            l489 = 286u;
+                            l489 = 285u;
                             l487 = std_core_write_string_at(l486, l487, l489);
                             l487 = std_core_write_string_at(l486, l487, l481);
-                            l490 = 292u;
+                            l490 = 291u;
                             l487 = std_core_write_string_at(l486, l487, l490);
                             t0 = ((int64_t) (size_t) l478);
                             l491 = (uint64_t) (int64_t) t0;
@@ -6644,7 +6644,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l537 = 115u;
                             l530 = std_core_write_string_at(l529, l530, l537);
                             l530 = std_core_write_string_at(l529, l530, l526);
-                            l538 = 284u;
+                            l538 = 283u;
                             l530 = std_core_write_string_at(l529, l530, l538);
                             t1 = std_core_finish_buffer(l529, l530);
                             vader_struct_vader_vm_Trap_t* _a83_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -6722,7 +6722,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l570 = 99u;
                             l565 = std_core_write_string_at(l564, l565, l570);
                             l565 = std_core_write_string_at(l564, l565, l559);
-                            l571 = 290u;
+                            l571 = 289u;
                             l565 = std_core_write_string_at(l564, l565, l571);
                             t0 = ((int64_t) (size_t) l557);
                             l572 = (uint64_t) (int64_t) t0;
@@ -6939,7 +6939,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l654 = 115u;
                             l649 = std_core_write_string_at(l648, l649, l654);
                             l649 = std_core_write_string_at(l648, l649, l645);
-                            l655 = 284u;
+                            l655 = 283u;
                             l649 = std_core_write_string_at(l648, l649, l655);
                             t1 = std_core_finish_buffer(l648, l649);
                             vader_struct_vader_vm_Trap_t* _a90_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -8272,7 +8272,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l1160 = 115u;
                             l1157 = std_core_write_string_at(l1156, l1157, l1160);
                             l1157 = std_core_write_string_at(l1156, l1157, l1153);
-                            l1161 = 284u;
+                            l1161 = 283u;
                             l1157 = std_core_write_string_at(l1156, l1157, l1161);
                             t1 = std_core_finish_buffer(l1156, l1157);
                             vader_struct_vader_vm_Trap_t* _a135_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -8299,7 +8299,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l1172 = vader_vm_describe_value_tag(l1165);
                             l1173 = 349u;
                             l1174 = ((vader_struct_vader_bytecode_BcFunction_t*) l18)->f_name;
-                            l1175 = 284u;
+                            l1175 = 283u;
                             t1 = concat_6(l1170, l1171, l1172, l1173, l1174, l1175);
                             vader_struct_vader_vm_Trap_t* _a136_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
                             vader_obj_header_init(_a136_obj, 945u);
@@ -14632,7 +14632,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l3912 = 115u;
                             l3909 = std_core_write_string_at(l3908, l3909, l3912);
                             l3909 = std_core_write_string_at(l3908, l3909, l3905);
-                            l3913 = 284u;
+                            l3913 = 283u;
                             l3909 = std_core_write_string_at(l3908, l3909, l3913);
                             t1 = std_core_finish_buffer(l3908, l3909);
                             vader_struct_vader_vm_Trap_t* _a536_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -14943,7 +14943,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                         l4036 = 1401u;
                                         l4035 = std_core_write_string_at(l4034, l4035, l4036);
                                         l4035 = std_core_write_string_at(l4034, l4035, l4031);
-                                        l4037 = 293u;
+                                        l4037 = 292u;
                                         l4035 = std_core_write_string_at(l4034, l4035, l4037);
                                         t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                         l4038 = ((int64_t) (int32_t) t5);
@@ -14983,7 +14983,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                         l4053 = 343u;
                                         l4050 = std_core_write_string_at(l4049, l4050, l4053);
                                         l4050 = std_core_write_string_at(l4049, l4050, l4046);
-                                        l4054 = 291u;
+                                        l4054 = 290u;
                                         l4050 = std_core_write_string_at(l4049, l4050, l4054);
                                         t1 = std_core_finish_buffer(l4049, l4050);
                                         vader_struct_vader_vm_Trap_t* _a549_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -15040,7 +15040,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l4074 = 115u;
                             l4071 = std_core_write_string_at(l4070, l4071, l4074);
                             l4071 = std_core_write_string_at(l4070, l4071, l4067);
-                            l4075 = 284u;
+                            l4075 = 283u;
                             l4071 = std_core_write_string_at(l4070, l4071, l4075);
                             t1 = std_core_finish_buffer(l4070, l4071);
                             vader_struct_vader_vm_Trap_t* _a550_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -15187,7 +15187,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l4128 = 115u;
                             l4125 = std_core_write_string_at(l4124, l4125, l4128);
                             l4125 = std_core_write_string_at(l4124, l4125, l4121);
-                            l4129 = 284u;
+                            l4129 = 283u;
                             l4125 = std_core_write_string_at(l4124, l4125, l4129);
                             t1 = std_core_finish_buffer(l4124, l4125);
                             vader_struct_vader_vm_Trap_t* _a558_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16523,7 +16523,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l116 = 115u;
                         l111 = std_core_write_string_at(l110, l111, l116);
                         l111 = std_core_write_string_at(l110, l111, l107);
-                        l117 = 284u;
+                        l117 = 283u;
                         l111 = std_core_write_string_at(l110, l111, l117);
                         t1 = std_core_finish_buffer(l110, l111);
                         vader_struct_vader_vm_Trap_t* _a612_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16604,7 +16604,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l145 = 115u;
                         l142 = std_core_write_string_at(l141, l142, l145);
                         l142 = std_core_write_string_at(l141, l142, l138);
-                        l146 = 284u;
+                        l146 = 283u;
                         l142 = std_core_write_string_at(l141, l142, l146);
                         t1 = std_core_finish_buffer(l141, l142);
                         vader_struct_vader_vm_Trap_t* _a619_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16643,7 +16643,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l159 = 115u;
                         l154 = std_core_write_string_at(l153, l154, l159);
                         l154 = std_core_write_string_at(l153, l154, l150);
-                        l160 = 284u;
+                        l160 = 283u;
                         l154 = std_core_write_string_at(l153, l154, l160);
                         t1 = std_core_finish_buffer(l153, l154);
                         vader_struct_vader_vm_Trap_t* _a620_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16746,7 +16746,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l202 = 115u;
                         l199 = std_core_write_string_at(l198, l199, l202);
                         l199 = std_core_write_string_at(l198, l199, l195);
-                        l203 = 284u;
+                        l203 = 283u;
                         l199 = std_core_write_string_at(l198, l199, l203);
                         t1 = std_core_finish_buffer(l198, l199);
                         vader_struct_vader_vm_Trap_t* _a627_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16785,7 +16785,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l216 = 115u;
                         l211 = std_core_write_string_at(l210, l211, l216);
                         l211 = std_core_write_string_at(l210, l211, l207);
-                        l217 = 284u;
+                        l217 = 283u;
                         l211 = std_core_write_string_at(l210, l211, l217);
                         t1 = std_core_finish_buffer(l210, l211);
                         vader_struct_vader_vm_Trap_t* _a628_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -16985,7 +16985,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l291 = 1293u;
                         l290 = std_core_write_string_at(l289, l290, l291);
                         l290 = std_core_write_string_at(l289, l290, l286);
-                        l292 = 294u;
+                        l292 = 293u;
                         l290 = std_core_write_string_at(l289, l290, l292);
                         t0 = ((int64_t) (size_t) l285);
                         l293 = (uint64_t) (int64_t) t0;
@@ -17090,7 +17090,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l332 = 1291u;
                         l331 = std_core_write_string_at(l330, l331, l332);
                         l331 = std_core_write_string_at(l330, l331, l324);
-                        l333 = 294u;
+                        l333 = 293u;
                         l331 = std_core_write_string_at(l330, l331, l333);
                         t0 = ((int64_t) (size_t) l323);
                         l334 = (uint64_t) (int64_t) t0;
@@ -17109,7 +17109,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l339 = 115u;
                         l331 = std_core_write_string_at(l330, l331, l339);
                         l331 = std_core_write_string_at(l330, l331, l325);
-                        l340 = 284u;
+                        l340 = 283u;
                         l331 = std_core_write_string_at(l330, l331, l340);
                         t1 = std_core_finish_buffer(l330, l331);
                         vader_struct_vader_vm_Trap_t* _a643_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -17233,7 +17233,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l389 = 2392u;
                         l388 = std_core_write_string_at(l387, l388, l389);
                         l388 = std_core_write_string_at(l387, l388, l384);
-                        l390 = 294u;
+                        l390 = 293u;
                         l388 = std_core_write_string_at(l387, l388, l390);
                         t2 = l90.payload.obj;
                         t5 = ((vader_struct_vader_bytecode_VirtualCall_t*) t2)->f_parameter_count;
@@ -17285,7 +17285,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l413 = 2392u;
                         l412 = std_core_write_string_at(l411, l412, l413);
                         l412 = std_core_write_string_at(l411, l412, l405);
-                        l414 = 288u;
+                        l414 = 287u;
                         l412 = std_core_write_string_at(l411, l412, l414);
                         l412 = std_core_write_string_at(l411, l412, l406);
                         l415 = 113u;
@@ -17412,7 +17412,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l463 = 2392u;
                             l462 = std_core_write_string_at(l461, l462, l463);
                             l462 = std_core_write_string_at(l461, l462, l458);
-                            l464 = 287u;
+                            l464 = 286u;
                             l462 = std_core_write_string_at(l461, l462, l464);
                             l465 = ((int64_t) (int32_t) l403);
                             l462 = std_core_write_int(l461, l462, l465);
@@ -17437,7 +17437,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l463 = 2392u;
                         l462 = std_core_write_string_at(l461, l462, l463);
                         l462 = std_core_write_string_at(l461, l462, l458);
-                        l464 = 287u;
+                        l464 = 286u;
                         l462 = std_core_write_string_at(l461, l462, l464);
                         l465 = ((int64_t) (int32_t) l403);
                         l462 = std_core_write_int(l461, l462, l465);
@@ -17458,7 +17458,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                     l470 = 2392u;
                     t2 = l90.payload.obj;
                     l471 = ((vader_struct_vader_bytecode_VirtualCall_t*) t2)->f_vtable_key;
-                    l472 = 284u;
+                    l472 = 283u;
                     l473 = concat_3(l470, l471, l472);
                     l474 = vader_vm_validate_fn_index(l419, l468, l469, l473);
                     if (l474.tag == 945u) {
@@ -17491,10 +17491,10 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l488 = 2392u;
                         l487 = std_core_write_string_at(l486, l487, l488);
                         l487 = std_core_write_string_at(l486, l487, l480);
-                        l489 = 286u;
+                        l489 = 285u;
                         l487 = std_core_write_string_at(l486, l487, l489);
                         l487 = std_core_write_string_at(l486, l487, l481);
-                        l490 = 292u;
+                        l490 = 291u;
                         l487 = std_core_write_string_at(l486, l487, l490);
                         t0 = ((int64_t) (size_t) l478);
                         l491 = (uint64_t) (int64_t) t0;
@@ -17638,7 +17638,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l537 = 115u;
                         l530 = std_core_write_string_at(l529, l530, l537);
                         l530 = std_core_write_string_at(l529, l530, l526);
-                        l538 = 284u;
+                        l538 = 283u;
                         l530 = std_core_write_string_at(l529, l530, l538);
                         t1 = std_core_finish_buffer(l529, l530);
                         vader_struct_vader_vm_Trap_t* _a664_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -17716,7 +17716,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l570 = 99u;
                         l565 = std_core_write_string_at(l564, l565, l570);
                         l565 = std_core_write_string_at(l564, l565, l559);
-                        l571 = 290u;
+                        l571 = 289u;
                         l565 = std_core_write_string_at(l564, l565, l571);
                         t0 = ((int64_t) (size_t) l557);
                         l572 = (uint64_t) (int64_t) t0;
@@ -17933,7 +17933,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l654 = 115u;
                         l649 = std_core_write_string_at(l648, l649, l654);
                         l649 = std_core_write_string_at(l648, l649, l645);
-                        l655 = 284u;
+                        l655 = 283u;
                         l649 = std_core_write_string_at(l648, l649, l655);
                         t1 = std_core_finish_buffer(l648, l649);
                         vader_struct_vader_vm_Trap_t* _a671_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -19266,7 +19266,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l1160 = 115u;
                         l1157 = std_core_write_string_at(l1156, l1157, l1160);
                         l1157 = std_core_write_string_at(l1156, l1157, l1153);
-                        l1161 = 284u;
+                        l1161 = 283u;
                         l1157 = std_core_write_string_at(l1156, l1157, l1161);
                         t1 = std_core_finish_buffer(l1156, l1157);
                         vader_struct_vader_vm_Trap_t* _a716_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -19293,7 +19293,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l1172 = vader_vm_describe_value_tag(l1165);
                         l1173 = 349u;
                         l1174 = ((vader_struct_vader_bytecode_BcFunction_t*) l18)->f_name;
-                        l1175 = 284u;
+                        l1175 = 283u;
                         t1 = concat_6(l1170, l1171, l1172, l1173, l1174, l1175);
                         vader_struct_vader_vm_Trap_t* _a717_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
                         vader_obj_header_init(_a717_obj, 945u);
@@ -25626,7 +25626,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l3912 = 115u;
                         l3909 = std_core_write_string_at(l3908, l3909, l3912);
                         l3909 = std_core_write_string_at(l3908, l3909, l3905);
-                        l3913 = 284u;
+                        l3913 = 283u;
                         l3909 = std_core_write_string_at(l3908, l3909, l3913);
                         t1 = std_core_finish_buffer(l3908, l3909);
                         vader_struct_vader_vm_Trap_t* _a1117_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -25937,7 +25937,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                     l4036 = 1401u;
                                     l4035 = std_core_write_string_at(l4034, l4035, l4036);
                                     l4035 = std_core_write_string_at(l4034, l4035, l4031);
-                                    l4037 = 293u;
+                                    l4037 = 292u;
                                     l4035 = std_core_write_string_at(l4034, l4035, l4037);
                                     t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                     l4038 = ((int64_t) (int32_t) t5);
@@ -25977,7 +25977,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                     l4053 = 343u;
                                     l4050 = std_core_write_string_at(l4049, l4050, l4053);
                                     l4050 = std_core_write_string_at(l4049, l4050, l4046);
-                                    l4054 = 291u;
+                                    l4054 = 290u;
                                     l4050 = std_core_write_string_at(l4049, l4050, l4054);
                                     t1 = std_core_finish_buffer(l4049, l4050);
                                     vader_struct_vader_vm_Trap_t* _a1130_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -26034,7 +26034,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l4074 = 115u;
                         l4071 = std_core_write_string_at(l4070, l4071, l4074);
                         l4071 = std_core_write_string_at(l4070, l4071, l4067);
-                        l4075 = 284u;
+                        l4075 = 283u;
                         l4071 = std_core_write_string_at(l4070, l4071, l4075);
                         t1 = std_core_finish_buffer(l4070, l4071);
                         vader_struct_vader_vm_Trap_t* _a1131_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -26181,7 +26181,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l4128 = 115u;
                         l4125 = std_core_write_string_at(l4124, l4125, l4128);
                         l4125 = std_core_write_string_at(l4124, l4125, l4121);
-                        l4129 = 284u;
+                        l4129 = 283u;
                         l4125 = std_core_write_string_at(l4124, l4125, l4129);
                         t1 = std_core_finish_buffer(l4124, l4125);
                         vader_struct_vader_vm_Trap_t* _a1139_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
@@ -27293,7 +27293,7 @@ vader_box_t vader_vm_exec_fn_value(void* l0, vader_string_t l1) {
         t1 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t2 = concat_3(1451u, l1, 284u);
+    t2 = concat_3(1451u, l1, 283u);
     vader_struct_vader_vm_Trap_t* _a4_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
     vader_obj_header_init(_a4_obj, 945u);
     _a4_obj->f_message = t2;

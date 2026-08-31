@@ -44494,7 +44494,7 @@ static vader_string_t vader_lower_type_surface_name(vader_box_t l0) {
         return 843u;
     }
     if (l0.tag == 920u) {
-        return 322u;
+        return 321u;
     }
     if (l0.tag == 910u) {
         return 0u;

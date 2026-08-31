@@ -8455,13 +8455,13 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
                         l6 = (size_t) (int64_t) INT64_C(0);
                         l6 = std_core_write_string_at(l5, l6, 1818u);
                         l6 = std_core_write_string_at(l5, l6, l16);
-                        l6 = std_core_write_string_at(l5, l6, 285u);
+                        l6 = std_core_write_string_at(l5, l6, 284u);
                         t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_id;
                         l18 = ((int64_t) (int32_t) t2);
                         l6 = std_core_write_int(l5, l6, l18);
                         l6 = std_core_write_string_at(l5, l6, 349u);
                         l6 = std_core_write_string_at(l5, l6, l17);
-                        l6 = std_core_write_string_at(l5, l6, 297u);
+                        l6 = std_core_write_string_at(l5, l6, 296u);
                         t3 = std_core_finish_buffer(l5, l6);
                         vader_host_std_abort_panic(t3);
                     }
@@ -8571,7 +8571,7 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
             l6 = (size_t) (int64_t) INT64_C(0);
             l6 = std_core_write_string_at(l5, l6, 1820u);
             l6 = std_core_write_string_at(l5, l6, l16);
-            l6 = std_core_write_string_at(l5, l6, 285u);
+            l6 = std_core_write_string_at(l5, l6, 284u);
             t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_fn_symbol)->f_id;
             l18 = ((int64_t) (int32_t) t2);
             l6 = std_core_write_int(l5, l6, l18);
@@ -8663,7 +8663,7 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
             l16 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_field;
             l17 = vader_types_display_type(l7);
             l21 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_7(1815u, l16, 992u, l17, 952u, l21, 295u);
+            t3 = concat_7(1815u, l16, 992u, l17, 952u, l21, 294u);
             vader_host_std_abort_panic(t3);
         } else {
         }
@@ -8727,7 +8727,7 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
             l16 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_field;
             l17 = vader_types_display_type(l7);
             l21 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_7(1815u, l16, 992u, l17, 952u, l21, 296u);
+            t3 = concat_7(1815u, l16, 992u, l17, 952u, l21, 295u);
             vader_host_std_abort_panic(t3);
         } else {
         }
@@ -9223,7 +9223,7 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
             l6 = (size_t) (int64_t) INT64_C(0);
             l6 = std_core_write_string_at(l5, l6, 1819u);
             l6 = std_core_write_string_at(l5, l6, l16);
-            l6 = std_core_write_string_at(l5, l6, 285u);
+            l6 = std_core_write_string_at(l5, l6, 284u);
             t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_fn_symbol)->f_id;
             l18 = ((int64_t) (int32_t) t2);
             l6 = std_core_write_int(l5, l6, l18);
@@ -9270,7 +9270,7 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
         if (l7.tag == 0u) {
             l16 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_name;
             l17 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_5(1817u, l16, 952u, l17, 298u);
+            t3 = concat_5(1817u, l16, 952u, l17, 297u);
             vader_host_std_abort_panic(t3);
         } else {
         }

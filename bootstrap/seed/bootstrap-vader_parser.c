@@ -7154,7 +7154,7 @@ static vader_box_t vader_parser_parse_prefix(void* l0) {
             } else {
             } end_471: ;
             l11 = ((vader_struct_vader_parser_IntrinsicSpec_t*) l10)->f_name;
-            l11 = concat_3(1031u, l11, 324u);
+            l11 = concat_3(1031u, l11, 323u);
             l18 = vader_parser_expect(l0, (uint8_t) (int32_t) INT32_C(73), l11);
             l8 = vader_parser_span_of(l0, l8, l18);
             l11 = ((vader_struct_vader_parser_IntrinsicSpec_t*) l10)->f_name;

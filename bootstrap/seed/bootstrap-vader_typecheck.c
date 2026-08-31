@@ -28186,7 +28186,7 @@ static bool vader_typecheck_report_namespace_alias_method(void* l0, vader_box_t 
                 l21 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l18)->f_name;
                 l22 = ((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_field;
                 l23 = vader_typecheck_path_name(((vader_struct_toolchain_ast_FieldExpr_t*) l0)->f_target, 2440u);
-                l24 = concat_7(2409u, l21, 417u, l22, 300u, l23, 365u);
+                l24 = concat_7(2409u, l21, 417u, l22, 299u, l23, 365u);
                 l25 = vader_diagnostics_typecheck_error((uint8_t) (int32_t) INT32_C(67), l20, l24);
                 vader_array_push((vader_array_t*) l3, vader_ref_box(l25));
                 { vader_gc_top = gc_frame.prev; return true; }

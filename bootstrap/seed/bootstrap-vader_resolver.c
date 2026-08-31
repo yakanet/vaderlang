@@ -6724,7 +6724,7 @@ static void vader_resolver_report_uncovered(void* l0, void* l1, void* l2, void* 
                                 l16 = ((vader_struct_toolchain_ast_FnDecl_t*) l12)->f_name;
                                 l17 = std_collections_get__string__string(l3, l16);
                                 if (l17.tag == 0u) {
-                                    l15 = 330u;
+                                    l15 = 329u;
                                 } else {
                                     l15 = l17.payload.s;
                                 }

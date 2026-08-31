@@ -3153,7 +3153,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l152;
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
             l153 = (uint8_t) (int32_t) INT32_C(72);
-            l154 = 300u;
+            l154 = 299u;
             vader_lexer_push_simple(l0, l153, l154, l148);
             { vader_gc_top = gc_frame.prev; return true; }
         }
@@ -3627,7 +3627,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l152;
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         l153 = (uint8_t) (int32_t) INT32_C(72);
-        l154 = 300u;
+        l154 = 299u;
         vader_lexer_push_simple(l0, l153, l154, l148);
         { vader_gc_top = gc_frame.prev; return true; }
     }
