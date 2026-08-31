@@ -2479,7 +2479,7 @@ size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 2165u);
+        t0 = std_core_write_string_at(l0, l1, 2166u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = std_core_write_string_at(l0, l1, 1518u);

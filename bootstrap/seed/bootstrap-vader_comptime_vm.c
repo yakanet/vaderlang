@@ -143,15 +143,15 @@ static vader_box_t vader_comptime_vm_int_scalar(int64_t l0, vader_string_t l1) {
     vader_box_t* gc_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if (l1 == 2251u) {
+    if (l1 == 2252u) {
         l3 = true;
     } else {
-        l3 = l1 == 2232u;
+        l3 = l1 == 2233u;
     }
     if (l3) {
         l3 = true;
     } else {
-        l3 = l1 == 2233u;
+        l3 = l1 == 2234u;
     }
     if (l3) {
         l2 = ((int64_t) (uint32_t) ((int32_t) (int64_t) l0));
@@ -428,7 +428,7 @@ static vader_box_t vader_comptime_vm_value_to_comptime(vader_box_t l0, vader_box
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 946u) {
-        t0 = vader_comptime_vm_unsupported(l2, 2177u);
+        t0 = vader_comptime_vm_unsupported(l2, 2178u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 929u) {
