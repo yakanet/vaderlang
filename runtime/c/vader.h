@@ -482,8 +482,8 @@ double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
  * call: no Vader allocation runs inside a foreign call, so nothing can move the
- * buffer, but the view must never outlive the call (see the FFI plan, "rien de
- * ce que Vader possede ne sort au-dela de l'appel").
+ * buffer, but the view must never outlive the call nothing Vader owns may
+ * outlive a foreign call.
  *
  * `len` is a BYTE count, not an element count. An empty array yields
  * `{ NULL, 0 }`. */
@@ -492,12 +492,17 @@ typedef struct {
     size_t      len;
 } vader_slice_t;
 
-/* Single home of the three-case array-lending logic: follow a pending GC
- * forward on the header, then branch on borrowed view (bytes live in the owner
- * atom) versus materialised buffer, honouring `offset` and the element width.
- * `vader_write_file_bytes` and `vader_string_as_string` open-coded this; the
- * `@extern` array shims call it. A BOXED-kind array traps — the typechecker
- * rejects one at the ABI boundary, so reaching here means a compiler bug. */
+/* The three-case array lend: follow a pending GC forward on the header, then
+ * branch on borrowed view (bytes live in the owner atom) versus materialised
+ * buffer, honouring `offset` and the element width. Used by the `@extern`
+ * shims and by the VM's `ffi_call_int_bytes`.
+ *
+ * `vader_write_file_bytes` and `vader_string_as_string` still open-code the
+ * same three cases; converting them is a separate cleanup, and until it lands
+ * this is one of three copies, not the only one.
+ *
+ * A BOXED- or REF-kind array traps: the typechecker rejects one at the ABI
+ * boundary, so reaching here means a compiler bug. */
 vader_slice_t vader_array_bytes(vader_array_t* a);
 
 /* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */

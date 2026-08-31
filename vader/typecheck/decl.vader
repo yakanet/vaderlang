@@ -596,9 +596,10 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             return is_nullable_pointer(t)
         }
         is ArrayType as a     -> {
-            // A borrowed array crosses as TWO C arguments, `(ptr, len)`. That
-            // shape only exists on the way in : C cannot fabricate a
-            // `vader_array_t`, so an array RETURN stays rejected.
+            // A borrowed array crosses as ONE bare pointer; a length, when the
+            // callee wants one, is a parameter of its own. That shape only
+            // exists on the way IN — C cannot fabricate a `vader_array_t`, so
+            // an array return stays rejected.
             if is_return {
                 return false
             }

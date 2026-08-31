@@ -61,13 +61,17 @@ export STDERR :: 2
 /// @param buf    the bytes to lend, for the duration of the call.
 /// @param count  how many of them to write.
 /// @return       the count written, or `-1` with the platform's error state set.
+///
+/// The result is `i32`, not `isize`, and that is deliberate. POSIX declares
+/// `ssize_t` but caps a single write at `0x7ffff000`, so 32 bits always hold
+/// it; the Windows CRT declares `int` outright. Reading it as 64 bits would be
+/// WRONG there — the callee leaves only the low half of the result register
+/// meaningful, so `-1` reads back as 4294967295 and the error test never fires.
 @extern("write")
-export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
+export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
 
 // Sole I/O write primitive — appends raw UTF-8 bytes to `out`. Written in
-// Vader over `sys/io::sys_write`, which is where the platform divergence stops:
-// POSIX `write(2)` and the Windows CRT `_write` have the same shape, so this
-// body is shared and only the SYMBOL is selected by `@target`.
+// Vader over `sys_write` above.
 //
 // `msg.bytes()` is a borrowed view over the interned bytes, so the loop lends
 // them straight to the callee — no copy, and nothing to free.

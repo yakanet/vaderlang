@@ -357,6 +357,10 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             .param_types = new_param_types,
             .result_type = remap_idx(remap, fn_.signature.result_type),
             .param_names = fn_.signature.param_names,
+            // Carried over explicitly, like the import branch below: the field
+            // defaults to `[]`, so a partial rebuild widens every parameter to
+            // mutable with nothing to say so.
+            .param_mutable = fn_.signature.param_mutable,
         }
         for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)

@@ -74,24 +74,20 @@ module "vader/vm"
 
 import "std/testing"
 
-@test test_ffi_resolves_and_calls_a_libc_symbol :: fn() -> void {
+// `strlen` is the probe throughout: every platform's C runtime exports it, it
+// takes one pointer, and it writes NOTHING — so the tests leave the runner's own
+// stdout alone. `write` and `getpid` would fail on Windows (the CRT spells the
+// latter `_getpid`) and the first would interleave bytes into the test output.
+
+@test test_ffi_resolves_a_libc_symbol :: fn() -> void {
     process :: ffi_open("")
-    assert(process != 0, "the running process must be openable")
-
-    // `getpid` takes nothing and returns a positive pid — the smallest shape
-    // that exercises open → symbol → trampoline end to end.
-    sym :: ffi_symbol(process, "getpid")
-    assert(sym != 0, "getpid must resolve in the current process")
-
-    no_args: i64[]! = []
-    pid :: ffi_call_int(sym, no_args, 0)
-    assert(pid > 0, "getpid must report a positive pid")
+    assert(process != 0, "the running process must expose its C runtime")
+    assert(ffi_symbol(process, "strlen") != 0, "strlen must resolve")
 }
 
 @test test_ffi_missing_symbol_reports_zero :: fn() -> void {
     process :: ffi_open("")
-    sym :: ffi_symbol(process, "vader_symbol_that_cannot_exist")
-    assert_eq(sym, usize(0))
+    assert_eq(ffi_symbol(process, "vader_symbol_that_cannot_exist"), usize(0))
 }
 
 @test test_ffi_missing_library_reports_zero :: fn() -> void {
@@ -99,13 +95,12 @@ import "std/testing"
 }
 
 @test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
-    process :: ffi_open("")
-    sym :: ffi_symbol(process, "write")
-    assert(sym != 0, "write must resolve in the current process")
+    sym :: ffi_symbol(ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
 
-    msg :: "ffi: bytes lent to write(2)\n".bytes()
-    // Slot 1 is where the address goes; its value in `args` is ignored.
-    args: i64[]! = [1, 0, i64(msg.len())]
-    n :: ffi_call_int_bytes(sym, args, 3, 1, msg)
-    assert_eq(n, i64(msg.len()))
+    // NUL-terminated, since that is what `strlen` measures.
+    bs: u8[]! = [104, 101, 108, 108, 111, 0]
+    // Slot 0 takes the address; the value sitting in `args` there is ignored.
+    args: i64[]! = [0]
+    assert_eq(ffi_call_int_bytes(sym, args, 1, 0, bs), 5)
 }

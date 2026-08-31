@@ -585,8 +585,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
 
-/// Whether `symbol` is the raw write syscall behind `std/io` — `write(2)` on
-/// POSIX, `_write` in the Windows CRT (`lib/sys/io/io.vader`).
+/// Whether `symbol` is the raw write syscall behind `std/io` — `write(2)` on POSIX,
+/// which the Windows CRT also exports (as an alias of `_write`).
 ///
 /// Two call sites need to recognise it: the comptime gate, which exempts
 /// program output, and the DAP routing below.
@@ -686,6 +686,15 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             for j in 0..<arr.length {
                 b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` byte")
                 if b is Trap { return b }
+                // Only a BYTE array is lent. `is_extern_abi_element` admits any
+                // primitive element, and the native shim widens correctly
+                // (`vader_array_bytes` scales by the element size) — the VM
+                // cannot, since an `ArrayVal` holds boxed values with no width.
+                // Refuse rather than truncate: a silent `u8(256) == 0` would
+                // corrupt the callee's buffer and diverge from native.
+                if b.value < 0 || b.value > 255 {
+                    return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: only a byte array can be lent on the VM, element ${j} is ${b.value}" }
+                }
                 lent.push(u8(b.value))
             }
             bytes_slot = i32(i)
@@ -693,6 +702,13 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         } else if v is BoolVal as b {
             words.push(if b.value { 1 } else { 0 })
         } else {
+            // Integer-or-pointer only. A `null`, a float or a `char` argument
+            // is admitted by `validate_extern` and works natively, so name the
+            // gap rather than letting `read_i64`'s "expected i64" stand in for
+            // it — the two backends diverge here, and the message has to say so.
+            if v is NullVal || v is F64Val {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is ${describe_value_tag(v)}, which the VM cannot pass yet (it works natively)" }
+            }
             w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
             if w is Trap { return w }
             words.push(w.value)
@@ -700,7 +716,13 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     }
 
     n :: params.len()
-    if info.signature.result == bc.ValType.F64 || info.signature.result == bc.ValType.F32 {
+    // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
+    // returning `float` leaves only the low half of the result register
+    // meaningful, so reading 64 bits of it would give an arbitrary value.
+    if info.signature.result == bc.ValType.F32 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
+    }
+    if info.signature.result == bc.ValType.F64 {
         if bytes_slot >= 0 {
             return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a lent array with a floating result is not covered" }
         }
@@ -721,6 +743,13 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
 /// @param raw     the trampoline's `i64`.
 /// @return        the wrapped value.
 extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
+    // A `string` result is a `const char*` the callee owns; turning it into a
+    // Vader string means measuring and interning it, which nothing here does.
+    // Reporting the raw address as an integer would hand the caller a bogus
+    // atom id, so refuse instead.
+    if result == bc.ValType.String {
+        return Trap { .message = "extern: a `string` result is not covered on the VM" }
+    }
     if result == bc.ValType.Void {
         return HostOk { .value = zero_value() }
     }

@@ -131,11 +131,13 @@ param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
 }
 
 /// True when the import slot at `type_index` is a primitive-element array —
-/// the shape `validate_extern` admits and that crosses as `(ptr, len)`.
+/// the shape `validate_extern` admits, and which crosses as ONE bare pointer.
+///
+/// A length, when the callee wants one, is a parameter of its own.
 ///
 /// @param types       the module's BcType table.
 /// @param type_index  the slot's BcType index, or `-1` when absent.
-/// @return            whether the slot must be marshalled as two C arguments.
+/// @return            whether the slot is lent as a pointer rather than a value.
 is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
     if type_index < 0 {
         return false

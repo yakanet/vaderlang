@@ -171,21 +171,16 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
     return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
 }
 
-/// Whether the slot was written with a `!`. Only the container types record it
-/// (`ArrayType` / `StructType.immutable`); everything else is a value and has no
-/// interior to grant, so it reads as immutable.
+/// Whether the slot was written with a `!`.
+///
+/// The complement of `types::type_is_immutable`, which is exhaustive over every
+/// `Type` variant — including `TupleType`, which a hand-rolled version here
+/// missed. Deriving it keeps the two in step as the immutability model grows
+/// (the `DistinctType` phase-1 gap is documented there, once).
 ///
 /// @param t  the parameter's declared type.
 /// @return   true when the callee may mutate through the slot.
-is_mutable_slot :: fn(t: Type) -> bool {
-    if t is ArrayType as a {
-        return !a.immutable
-    }
-    if t is StructType as st {
-        return !st.immutable
-    }
-    return false
-}
+is_mutable_slot :: fn(t: Type) -> bool = !type_is_immutable(t)
 
 // ============================================================================
 // Project-level entry point

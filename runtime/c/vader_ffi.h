@@ -77,10 +77,26 @@ double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 
 /* ---- implementation ---------------------------------------------------- */
 
+/* Handle onto the process's own C runtime. Memoised because `dispatch_extern`
+ * asks for it on EVERY foreign call — a `println` on the VM would otherwise pay
+ * a `dlopen` each time, and each one bumps a refcount that is never dropped. */
+static void* vader_ffi_self = NULL;
+
 void* vader_ffi_open(const char* name) {
+    if (name == NULL || name[0] == '\0') {
+        if (vader_ffi_self != NULL) { return vader_ffi_self; }
+    }
 #ifdef _WIN32
     if (name == NULL || name[0] == '\0') {
-        return (void*) GetModuleHandleW(NULL);
+        /* The C runtime, which is where a libc-shaped symbol lives. NOT the
+         * process handle: an EXE's export table is empty, so `GetProcAddress`
+         * on it finds nothing — POSIX only gets away with `dlopen(NULL)`
+         * because that exposes the whole global symbol scope. */
+        HMODULE h = GetModuleHandleA("ucrtbase.dll");
+        if (h == NULL) { h = GetModuleHandleA("msvcrt.dll"); }
+        if (h == NULL) { h = GetModuleHandleW(NULL); }
+        vader_ffi_self = (void*) h;
+        return vader_ffi_self;
     }
     {
         char buf[256];
@@ -91,7 +107,8 @@ void* vader_ffi_open(const char* name) {
 #else
     if (name == NULL || name[0] == '\0') {
         /* The running process: where a libc symbol lives. */
-        return dlopen(NULL, RTLD_LAZY);
+        vader_ffi_self = dlopen(NULL, RTLD_LAZY);
+        return vader_ffi_self;
     }
     {
         char buf[256];
@@ -110,7 +127,21 @@ void* vader_ffi_open(const char* name) {
 void* vader_ffi_symbol(void* lib, const char* symbol) {
     if (lib == NULL || symbol == NULL) { return NULL; }
 #ifdef _WIN32
-    return (void*) GetProcAddress((HMODULE) lib, symbol);
+    {
+        void* p = (void*) GetProcAddress((HMODULE) lib, symbol);
+        if (p == NULL && symbol[0] != '_') {
+            /* The CRT exports its POSIX-shaped entry points with a leading
+             * underscore — `write` is `_write`, `getpid` is `_getpid`. The
+             * unprefixed spelling that the LINKER accepts is a compile-time
+             * alias, absent from the export table. */
+            char buf[128];
+            int  n = snprintf(buf, sizeof buf, "_%s", symbol);
+            if (n > 0 && (size_t) n < sizeof buf) {
+                p = (void*) GetProcAddress((HMODULE) lib, buf);
+            }
+        }
+        return p;
+    }
 #else
     return dlsym(lib, symbol);
 #endif
