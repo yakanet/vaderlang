@@ -62,17 +62,24 @@ static void* vader_ffi_resolve(void* lib, const char* symbol);
  * calling with a truncated argument list. */
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
-/* As `vader_ffi_call_int`, but slot `buf_slot` receives the ADDRESS of `bytes`
- * instead of the value in `args`.
+/* As `vader_ffi_call_int`, but every slot named in `slots` receives an ADDRESS
+ * INTO `bytes` instead of the value in `args`. The value sitting in `args` at
+ * such a slot is read as the BYTE OFFSET the address starts at, which is what
+ * lets one flat buffer serve several lent parameters in a single call.
  *
- * The address is taken here, immediately before the call, and never reaches
+ * The addresses are taken here, immediately before the call, and never reach
  * Vader. That is the point, and it is what `std/core/buffer.vader` asks of the
  * frontend ("never a machine address"): the array is GC-managed and may move,
  * and no Vader code — hence no allocation, hence no collection — runs between
  * the two statements below. A caller that took the address itself would leave
- * a window open for as long as it took to build the argument list. */
-int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
-                                 size_t buf_slot, vader_array_t* bytes);
+ * a window open for as long as it took to build the argument list.
+ *
+ * The three arrays arrive UNRESOLVED, and the order below matters: each
+ * `vader_array_bytes` may materialise, which allocates, which may collect and
+ * MOVE every other array. So each is resolved and immediately copied out, and
+ * only the last resolution stays live as a pointer. */
+int64_t vader_ffi_call_int_lend(void* fn, vader_array_t* args, size_t nargs,
+                                vader_array_t* slots, vader_array_t* bytes);
 void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
 double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 
@@ -224,10 +231,53 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
     return 0;
 }
 
+int64_t vader_ffi_call_int_lend(void* fn, vader_array_t* args, size_t nargs,
+                                vader_array_t* slots, vader_array_t* bytes) {
+    int64_t       frame[VADER_FFI_MAX_ARGS];
+    int64_t       lent[VADER_FFI_MAX_ARGS];
+    size_t        nlent;
+    size_t        i;
+    vader_slice_t view;
+
+    if (nargs > VADER_FFI_MAX_ARGS) {
+        vader_trap("vader_ffi: more than 8 arguments in a foreign call");
+    }
+
+    /* `vader_array_bytes` owns the three cases — GC forward, borrowed view,
+     * materialised buffer — and is the same helper the native shims use. */
+    view  = vader_array_bytes(slots);
+    nlent = view.len / sizeof(int64_t);
+    if (nlent > VADER_FFI_MAX_ARGS) {
+        vader_trap("vader_ffi: more lent slots than arguments");
+    }
+    for (i = 0; i < nlent; i++) { lent[i] = ((const int64_t*) view.ptr)[i]; }
+
+    view = vader_array_bytes(args);
+    for (i = 0; i < nargs; i++) { frame[i] = ((const int64_t*) view.ptr)[i]; }
+
+    /* Last resolution — from here to the call, nothing allocates, so `view.ptr`
+     * stays the address the callee will read. */
+    view = vader_array_bytes(bytes);
+    for (i = 0; i < nlent; i++) {
+        size_t  slot = (size_t) lent[i];
+        int64_t off  = frame[slot];
+        if (slot >= nargs) {
+            vader_trap("vader_ffi: lent slot outside the argument list");
+        }
+        if (off < 0 || (size_t) off > view.len) {
+            vader_trap("vader_ffi: lent offset outside the buffer");
+        }
+        frame[slot] = (int64_t) (intptr_t) ((unsigned char*) view.ptr + off);
+    }
+
+    return vader_ffi_call_int(fn, frame, nargs);
+}
+
+/* RETIRED — see the note in `vader.h`. */
 int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
                                  size_t buf_slot, vader_array_t* bytes) {
-    int64_t      slots[VADER_FFI_MAX_ARGS];
-    size_t       i;
+    int64_t       frame[VADER_FFI_MAX_ARGS];
+    size_t        i;
     vader_slice_t view;
 
     if (nargs > VADER_FFI_MAX_ARGS) {
@@ -236,14 +286,10 @@ int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
     if (buf_slot >= nargs) {
         vader_trap("vader_ffi: lent-bytes slot outside the argument list");
     }
-    for (i = 0; i < nargs; i++) { slots[i] = args[i]; }
-
-    /* `vader_array_bytes` owns the three cases — GC forward, borrowed view,
-     * materialised buffer — and is the same helper the native shims use. */
+    for (i = 0; i < nargs; i++) { frame[i] = args[i]; }
     view = vader_array_bytes(bytes);
-    slots[buf_slot] = (int64_t) (intptr_t) view.ptr;
-
-    return vader_ffi_call_int(fn, slots, nargs);
+    frame[buf_slot] = (int64_t) (intptr_t) view.ptr;
+    return vader_ffi_call_int(fn, frame, nargs);
 }
 
 double vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs) {

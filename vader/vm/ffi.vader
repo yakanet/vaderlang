@@ -46,21 +46,35 @@ module "vader/vm"
 /// @return        the callee's result, widened to `i64`.
 @intrinsic export ffi_call_int :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> i64
 
-/// As `ffi_call_int`, but slot `buf_slot` receives the ADDRESS of `buf`'s bytes
-/// rather than the value in `args`.
+/// As `ffi_call_int`, but every slot named in `slots` receives an ADDRESS INTO
+/// `bytes` rather than the value in `args`.
 ///
-/// The address is taken by the host, immediately before the call, and never
-/// reaches Vader — which is what `std/core/buffer.vader` asks of the frontend
+/// The value sitting in `args` at a lent slot is read as the BYTE OFFSET its
+/// address starts at, so ONE flat buffer serves every lent parameter of a call
+/// — a foreign fn taking both a buffer and an out-param needs two addresses,
+/// and a second lent array would be a second thing the GC could move.
+///
+/// The addresses are taken by the host, immediately before the call, and never
+/// reach Vader — which is what `std/core/buffer.vader` asks of the frontend
 /// ("never a machine address") and what makes the call safe: the array is
-/// GC-managed and may move, and no Vader code runs between taking the address
+/// GC-managed and may move, and no Vader code runs between taking the addresses
 /// and the call.
 ///
-/// @param fn_ptr    the address from `ffi_symbol`.
-/// @param args      argument slots ; the one at `buf_slot` is ignored.
-/// @param nargs     how many of `args` to pass — at most 8.
-/// @param buf_slot  which slot the address replaces.
-/// @param bytes     the bytes to lend, for the duration of the call.
-/// @return          the callee's result, widened to `i64`.
+/// @param fn_ptr  the address from `ffi_symbol`.
+/// @param args    argument slots ; each lent one holds an offset, not a value.
+/// @param nargs   how many of `args` to pass — at most 8.
+/// @param slots   which slots take an address, in any order.
+/// @param bytes   the bytes to lend, for the duration of the call.
+/// @return        the callee's result, widened to `i64`.
+export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: usize[], bytes: u8[]) -> i64 {
+    if slots.len() == 0 {
+        return ffi_call_int(fn_ptr, args, nargs)
+    }
+    return ffi_call_int_bytes(fn_ptr, args, nargs, slots[0], bytes)
+}
+
+/// RETIRED — declared for one bootstrap cycle so the seed can learn
+/// `ffi_call_int_lend` before the sources make that one an `@intrinsic`.
 @intrinsic export ffi_call_int_bytes :: fn(fn_ptr: usize, args: i64[], nargs: usize, buf_slot: usize, bytes: u8[]) -> i64
 
 /// `ffi_call_int` for a callee returning nothing.
@@ -100,7 +114,8 @@ import "std/testing"
 
     // NUL-terminated, since that is what `strlen` measures.
     bs: u8[]! = [104, 101, 108, 108, 111, 0]
-    // Slot 0 takes the address; the value sitting in `args` there is ignored.
+    // Slot 0 takes the address; the `0` there is its offset into `bs`.
     args: i64[]! = [0]
-    assert_eq(ffi_call_int_bytes(sym, args, 1, 0, bs), 5)
+    slots: usize[]! = [0]
+    assert_eq(ffi_call_int_lend(sym, args, 1, slots, bs), 5)
 }

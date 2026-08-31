@@ -474,6 +474,10 @@ static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
 void*   vader_ffi_open(const char* name);
 void*   vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
+int64_t vader_ffi_call_int_lend(void* fn, vader_array_t* args, size_t nargs,
+                                vader_array_t* slots, vader_array_t* bytes);
+/* RETIRED — the committed seed still emits shims calling it. Drop after the
+ * next reseed, not before: the seed is frozen C linked against this runtime. */
 int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
                                  size_t buf_slot, vader_array_t* bytes);
 void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
@@ -495,7 +499,7 @@ typedef struct {
 /* The three-case array lend: follow a pending GC forward on the header, then
  * branch on borrowed view (bytes live in the owner atom) versus materialised
  * buffer, honouring `offset` and the element width. Used by the `@extern`
- * shims and by the VM's `ffi_call_int_bytes`.
+ * shims and by the VM's `ffi_call_int_lend`.
  *
  * `vader_write_file_bytes` and `vader_string_as_string` still open-code the
  * same three cases; converting them is a separate cleanup, and until it lands

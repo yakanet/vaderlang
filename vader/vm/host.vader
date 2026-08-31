@@ -526,10 +526,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if slot is Trap { return slot }
         lent :: read_array(stack[arg_base + 4], at_pc, "ffi_call_int_bytes bytes")
         if lent is Trap { return lent }
-        // A VM array holds boxed `Value`s, not contiguous words, so the bytes
-        // are materialised into a real `u8[]`. The host then takes ITS address
-        // immediately before the call — nothing runs in between, so nothing can
-        // move it.
         bs: u8[]! = []
         for i in 0..<lent.length {
             b :: read_i64(lent.elements[lent.offset + i], at_pc, "ffi_call_int_bytes byte")
@@ -541,6 +537,36 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = I64Val {
             .value = ffi_call_int_bytes(call.fn_ptr, call.args, call.nargs, usize(slot.value), bs),
+        } }
+    }
+    .FfiCallIntLend -> {
+        call :: host_ffi_call_args(stack, arg_base, at_pc)
+        if call is Trap { return call }
+        slot_arr :: read_array(stack[arg_base + 3], at_pc, "ffi_call_int_lend slots")
+        if slot_arr is Trap { return slot_arr }
+        lent :: read_array(stack[arg_base + 4], at_pc, "ffi_call_int_lend bytes")
+        if lent is Trap { return lent }
+        slots: usize[]! = []
+        for i in 0..<slot_arr.length {
+            sl :: read_i64(slot_arr.elements[slot_arr.offset + i], at_pc, "ffi_call_int_lend slot")
+            if sl is Trap { return sl }
+            if sl.value < 0 {
+                return Trap { .message = "ffi_call_int_lend at pc=${at_pc}: negative slot" }
+            }
+            slots.push(usize(sl.value))
+        }
+        // A VM array holds boxed `Value`s, not contiguous words, so the bytes
+        // are materialised into a real `u8[]`. The host then takes ITS address
+        // immediately before the call — nothing runs in between, so nothing can
+        // move it.
+        bs: u8[]! = []
+        for i in 0..<lent.length {
+            b :: read_i64(lent.elements[lent.offset + i], at_pc, "ffi_call_int_lend byte")
+            if b is Trap { return b }
+            bs.push(u8(b.value))
+        }
+        return HostOk { .value = I64Val {
+            .value = ffi_call_int_lend(call.fn_ptr, call.args, call.nargs, slots, bs),
         } }
     }
     .FfiCallVoid -> {
@@ -679,13 +705,30 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
 
     words: i64[]! = []
     lent: u8[]! = []
-    bytes_slot := -1
+    slots: usize[]! = []
+    borrowed: LentArray[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
-        if v is ArrayVal as arr {
-            if bytes_slot >= 0 {
-                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: only one array can be lent per call" }
+        if extern_by_address(info.signature, i) {
+            // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
+            // into the lent buffer and hand over that offset — the mirror of
+            // the stack temporary the native shim spills to. Like that
+            // temporary, the spill is DROPPED after the call: `@c_pointer` is
+            // the READ direction on both backends, and an out-param the caller
+            // means to read back crosses as a mutable array instead.
+            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            if w is Trap { return w }
+            width :: usize(size_of_val_type(params[i]))
+            if width == 0 || width > 8 {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
+            words.push(i64(lent.len()))
+            slots.push(i)
+            push_little_endian(lent, w.value, width)
+        } else if v is ArrayVal as arr {
+            words.push(i64(lent.len()))
+            slots.push(i)
+            borrowed.push(LentArray { .target = arr, .at = lent.len() })
             for j in 0..<arr.length {
                 b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` byte")
                 if b is Trap { return b }
@@ -700,8 +743,6 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
                 }
                 lent.push(u8(b.value))
             }
-            bytes_slot = i32(i)
-            words.push(0)
         } else if v is BoolVal as b {
             words.push(if b.value { 1 } else { 0 })
         } else {
@@ -732,17 +773,76 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
     if info.signature.result == bc.ValType.F64 {
-        if bytes_slot >= 0 {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a lent array with a floating result is not covered" }
+        if slots.len() > 0 {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a lent argument with a floating result is not covered" }
         }
         return HostOk { .value = F64Val { .value = ffi_call_f64(sym, words, n) } }
     }
-    raw :: if bytes_slot >= 0 {
-        ffi_call_int_bytes(sym, words, n, usize(bytes_slot), lent)
+    raw :: if slots.len() > 0 {
+        ffi_call_int_lend(sym, words, n, slots, lent)
     } else {
         ffi_call_int(sym, words, n)
     }
+    // What C wrote into a lent array has to travel back: the buffer handed over
+    // is a FLAT COPY of the boxed elements, so without this a mutable lend —
+    // `read_file_bytes` filling its buffer — would silently read back what it
+    // sent. The native path needs no equivalent: it lends the array's own
+    // storage, so the write lands in place.
+    for b in borrowed {
+        for j in 0..<b.target.length {
+            slot :: b.target.offset + j
+            b.target.elements[slot] = retyped_int(b.target.elements[slot], i64(lent[b.at + j]))
+        }
+    }
     return extern_result(info.signature.result, raw)
+}
+
+/// One array lent to a foreign call, and where its bytes sit in the flat buffer
+/// — everything the write-back needs once the callee has returned.
+LentArray :: struct {
+    target: ArrayVal
+    at:     usize
+}
+
+/// Whether parameter `i` carries `@c_pointer`. Absent (not per-index) on every
+/// signature that has no `@extern` behind it, hence the length guard.
+///
+/// @param sig  the import's signature.
+/// @param i    parameter index.
+/// @return     whether the callee receives the parameter's address.
+extern_by_address :: fn(sig: bc.BcSignature, i: usize) -> bool {
+    if i >= sig.param_by_address.len() {
+        return false
+    }
+    return sig.param_by_address[i]
+}
+
+/// Append the low `width` bytes of `value` to `buf`, least significant first.
+///
+/// Little-endian unconditionally: every target we emit for is little-endian, and
+/// the bytes are read back by the C callee on the SAME machine — this is a
+/// spill, not a wire format.
+///
+/// @param buf    the flat lend buffer, appended to.
+/// @param value  the scalar to spill.
+/// @param width  how many bytes the foreign parameter occupies.
+push_little_endian :: fn(buf: u8[]!, value: i64, width: usize) -> void {
+    for k in 0..<width {
+        buf.push(u8((value >> i64(k * 8)) & 0xFF))
+    }
+}
+
+/// Rebuild `old`'s variant around a new integer, so a write-back preserves the
+/// element class the array was built with.
+///
+/// @param old  the element being overwritten.
+/// @param n    the byte C wrote.
+/// @return     `n` wearing `old`'s variant.
+retyped_int :: fn(old: Value, n: i64) -> Value {
+    if old is I64Val {
+        return I64Val { .value = n }
+    }
+    return I32Val { .value = i32(n) }
 }
 
 /// Wrap a foreign call's raw machine result as the `Value` its declared return
@@ -815,7 +915,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.
     .FfiOpen | .FfiSymbol | .FfiCallInt | .FfiCallVoid | .FfiCallF64
-        | .FfiCallIntBytes -> true
+        | .FfiCallIntLend | .FfiCallIntBytes -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
