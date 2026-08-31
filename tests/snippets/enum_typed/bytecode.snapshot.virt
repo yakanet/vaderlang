@@ -3,7 +3,10 @@ type 0 primitive null
 type 1 primitive u8
 type 2 primitive string
 type 3 primitive i32
-type 4 primitive void
+type 4 primitive usize
+type 5 array 1
+type 6 primitive void
+type 7 primitive isize
 string 0 "N"
 string 1 "S"
 string 2 "E"
@@ -13,7 +16,8 @@ string 5 "push"
 string 6 "pop"
 string 7 "add"
 string 8 "\n"
-import 0 write std_io$write (i32,string) -> void
+import 0 bytes std_core$bytes (string) -> ref
+import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
 export main 1
 
 fn 0 snippet$describe (u8) -> string
@@ -48,17 +52,17 @@ fn 1 snippet$main () -> i32
   local op u16
   i32.const 1
   call 0
-  call 2
+  call 3
   i32.const 8
   call 0
-  call 2
+  call 3
   i32.const 101
   local.tee 0
   i32.const 0
   i32.eq
   if $L0 void
     string.const 4
-    call 2
+    call 3
     return.lit i32.const 0
   end $L0
   local.get 0
@@ -66,7 +70,7 @@ fn 1 snippet$main () -> i32
   i32.eq
   if $L1 void
     string.const 5
-    call 2
+    call 3
     return.lit i32.const 0
   end $L1
   local.get 0
@@ -74,7 +78,7 @@ fn 1 snippet$main () -> i32
   i32.eq
   if $L2 void
     string.const 6
-    call 2
+    call 3
     return.lit i32.const 0
   end $L2
   local.get 0
@@ -82,18 +86,87 @@ fn 1 snippet$main () -> i32
   i32.eq
   if $L3 void
     string.const 7
-    call 2
+    call 3
     return.lit i32.const 0
   end $L3
   return
 end
 
-fn 2 std_io$println__string (string) -> void
+fn 2 std_io$write (i32,string) -> void
+  local fd i32
+  local buf ref
+  local sent usize
+  local $len_11 usize
+  local $len_13 usize
+  local chunk ref
+  local $len_16 usize
+  local n isize
+  local $cast_21 usize
+  local.get 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 2
+  else
+    i32.const 2
+    local.set 2
+  end $L0
+  local.get 1
+  call.import 0
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L1 void
+    loop $L2 void
+      local.get 3
+      array.len
+      local.set 5
+      local.get 4
+      local.get 5
+      u64.ge
+      if $L3 void
+      else
+        local.get 3
+        array.len
+        local.set 6
+        local.get 3
+        local.get 4
+        local.get 6
+        array.slice 5
+        local.tee 7
+        array.len
+        local.set 8
+        local.get 2
+        local.get 7
+        local.get 8
+        call.import 1
+        local.tee 9
+        i64.const 0
+        i64.le
+        if $L4 void
+          return
+        end $L4
+        local.get 9
+        isize.to_i64
+        local.set 10
+        local.get 4
+        local.get 10
+        i64.add
+        local.set 4
+        br $L2
+      end $L3
+    end $L2
+  end $L1
+  return
+end
+
+fn 3 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 0
+  call 2
   i32.const 0
   string.const 8
-  call.import 0
+  call 2
   return
 end

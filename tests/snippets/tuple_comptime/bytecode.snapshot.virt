@@ -13,10 +13,12 @@ type 10 struct __Tuple_18 { _0:8,_1:8,_2:8 }
 type 11 array 2
 type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
-type 14 primitive void
-type 15 struct __Tuple_31 { _0:1,_1:1 }
-type 16 struct __Tuple_32 { _0:7,_1:7,_2:2 }
-type 17 array 8
+type 14 array 13
+type 15 primitive void
+type 16 primitive isize
+type 17 struct __Tuple_32 { _0:1,_1:1 }
+type 18 struct __Tuple_33 { _0:7,_1:7,_2:2 }
+type 19 array 8
 string 0 "dim "
 string 1 "x"
 string 2 "origin ("
@@ -52,7 +54,8 @@ data 2 u64 hex"00000000000000000000000000000000000000000000000000000000000000000
 data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f00000000000088130000000000006a18000000000080841e0000000000d01213000000000084d717000000000065cd1d00000000205fa01200000000e876481700000000a2941a1d00000040e59c3012000000901ec4bc160000003426f56b1c000080e03779c3110000a0d8855734160000c84e676dc11b00003d9160e4581100408cb5781daf150050efe2d6e41a1b0092d54d06cff01080f64ae1c7022d1520b49dd97943781a949002282c2a8b10b9340332b7f4ad14e70184fee471d9193081121f2fe727107c21d7e6fae03114dbe98ca039593e195224b00888ef8d1fb3166e05b5b5b813609cc94622e3a61878037cd8ea9bd01e2b824dc772614213b6e22079cff91218641b695743b8171e1eb1a1162ad3ce12661d4a9cf4878217bfa45cc3f129631df7e6191a37fa5d12b560a0e0c478f516e378c818f6d6b21c8d4b7dcf59c6ef11719e5c43f0b76b160dc63354eca5061cc85ba0b4b3278411ba72c8a1a031e515698f3aca087e5e1ba199647ec50e1b110ac0fddd76d261150d307d951447ba1a083e6edd6c6cb4108acdc9148887e114ec40fc196ae9191a93a83d50e2315010b8124de45a3e64146757609df14d7d19416db8046ea1dc1f4844f3c2e4e4e9135a15b0f31d5ee418b11a9c70a5751d1fae90616687697213daf4f93fe9034f181172f88fe3c4621e4a47fb390ebbfd121d197ac8d129bd17649f983a4674ac1d9f639fe4abc88b12863cc7ddd6ba2e17a80b39958c69fa1c49a743ddf7811c121b9194d475a2a31662b5b949138b4c1c5d11140eecd6af11b5159911a7cc1b16225bffd5d0bfa21bf598bf85e2b74511327f2f27db259715ff5efbf051effc1a5f1b9d369315de1037624404f89a1515c57a5505b6015b1abb6c55c311e17810eac72a3456199714e47935c1abdfbc192f6cc158cb0b16103ac7f12ebe8e1b140939aeba6d7222194bc75929090f6b1f8f1cd8b965e9a213b3234e28bfa38b18a0ac61f2ae8cae1ee40b7d57ed172d13dd4e5cade85df8179462b3d86275f61d9c1d70c75d09ba1203254c39b58b6817442e9f87a2ae421deb7cc39425ad4912255cf4f96e18dc162f7371b88a1e931cfde746b316f3db11fca11860dcef52167cca1e78d3abe71b8d3e132b64cb7011300ed8353dfecc15bd114e83cc3d401b16cb10d29f260811dbfd94c647304a15523d3ab859bc9c1a53662413b8f5a110e87fed172673ca14e2dfe89def0ffd19ed8bb1c2f5293e10e9ee5d3373b44d14a36a3500902161194cc54200f469b91f4fbb298038e2d313232a34a0c6dac818ac3441487811fb1eebc0282debea5c1326f172f8a525341870ad8f760f2f411e66cc19aa69bde8127f3fa014c4eca2175f4fc819f5a78b1d9b311d30f9487712027e247c371b1517839d2d5b0562da1c7282fc58437d08120ea33b2f949c8a16d28b0a3bb9432d1c6397e6c4534a9c113c3d20b6e85c03168b4ca8e32234841bd72f49ce95a03211cd7bdb41bb487f15c05a5212ea1adf1ab878734bd270cb10e65650de064dfe149f6ce49548e03d1ae3c3ae5d2dac6610dc741ab538578014141261e2066da0194cab7c4d244404101fd6db602d550514a7cb12b978aa0619917e57e71655481f1aaf96502e358d13e15abce4798270189a71eb5d18a38c1e0027b33aefe51713c0f05f096bdfdd17f0ecb7cb4557d51d16f4529f8b56a5121bb127872eac4e17629df1283a57221d5d02975984763512f5c2fc6f25d4c216b2f3fbcb2e89731c4f787d3fbd35c81163d65c8f2c433a16fc0b34b3f7d3c81b7d8700d07a845d115da9008499e5b415b4d300e5ff1e221b508420ef5f53f51065a5e8ea37a83215becea2e545527f1a36c185af6b938f108431679b4678b314e5fd40425856e019af9e6829f7352c105bc6c2f374433714f277b33052144519ef55e0bc6659961fb5350c36e0f7bd1322438f43d875ad18eb1373544ed3d81e73ecc7f4108447138fe7f931156519187361787e5abe1f1ee83c0b8ff8d6d312220cceb2b6cc88172b8f815fe4ff6a1d7bf9b0bbeedf6212d9379d6aea97fb16d0854405e57dba1ca2d34a23af8ef4118a881dec5ab27116adea24a7f11e0e1cac12770857d3881157d794ca2c08eb152d0d3afd37ca651b3c4844fe629e1f114b5ad5bdfb856715deb04aad7a67c11a8aae4eacace0b8102d5a62d7d718e714b8f03acd0ddf201a73d644a0688b5410100c56c842ae6914148f6b7ad3198419d97206594820e51fc807a4372d34ef13ba098d853801eb18284cf0a686c1251f992f5628f49877137fbb6b32317f55185faa067ffdde6a1e7b2a646f5ecb02131a353d0b367ec31761820c8ec35db41d7cd1c7389aba9012dcc5f9c640e934175337b8f89023021d9422739b3a56211239eb4f42c9aba91607e6e392bb16541cc46fce3b358eb411b50bc28ac2b12116a38e722d331eaa1b259967fcdf524a116f7f81fb97e79c154bdf61fa7d21041b8f2b7dbcee94e21072769c6b2a3a1b150f948306b508621a893c122471457d10accb166dcd969c14977e5cc880bcc3191ecf397dd0551a10e642889c44eb20149f53aac31526291987e894349b6f731f5411dd00c125a813a9551441312f9218146b5991fdbab61eece2d77ade343213a7db8d1916c2fe179152f19f9b72fe1d9bd3f643a107bf128188f49489c96e17a2aa31faeb7b4a1da50a5f7c738d4e124ecd765bd030e216a280547204bd9a1c65d074c722b6e0117f045279abe358169e85a657961cef1b8313c8f6dd71751164187a7455ced2157d9e98d1ea81471b0e63ffc232b10c11d13bbf737fdd4f15c60aaf50dfd4a31abb666d920b65a6106ac008774efecf1485f0ca14e2fd031a53d6fe4cad7e4210e88b3ea0581e5314e22e4ec8eee567199aba617a6adfc11fa0147d8ca22bd913c9599c2f8b76cf183b7083fb2d54031f252632bd9c146213aeaf7eecc3993a18995b9ee73440491e40f9c21021c8ed1290b7f354293aa91774a530aab388931d68675e4a70357c124201f65ccc421b17938133747f13e21cfc30a0a82f4c0d123b3dc8923b9f90168a4c7a770ac7341cd66fac8a66fca011cb8b572d803b0916be6ead38608a8b1b37656c237c363711857e472c1b048515265e59f72145e61ad8da973a35ebcf108ed13d8902e60315f1458d2b83df441ab64b38fbb10b6b10a45e067a9ece85144df687184642a719f0f954cf6b8908106c382ac3c6ab0a1488c6f473b8560d192af8f19066ac501f1a3b971ac06b9213e0093d21b0067718594c8c295cc8941eb7aff79939fd1c13a59b7500883ce4178f029300aa4bdd1d99e15b404a4faa12ffd972d01ce354177f908f04e41b2a1d4fbad9826e513a12e3289023cae5c8161c3374ac3c1f7b1cf19fc8eb85f3cc11eec7ba6667304016e9796940813cd01b32ec41c8d02562113e6752fa44afba150e01e738165b291ba96090e3edd8f910d378745c294f3815089791b3f362861a65fe3a50d8fd9310febd49644efdb8147d2d5cfda13ce7196e9c593ee58530108a03f08d5ea73c146d046c3136d14b198805c7bd83c59e1f75639c56723bc313527c43ec4e0ab418"
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
-import 1 write std_io$write (i32,string) -> void
+import 1 bytes std_core$bytes (string) -> ref
+import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -81,8 +84,8 @@ fn 0 snippet$main () -> i32
   local.set 3
   local.get 2
   local.get 3
-  struct.new_stack 15
-  struct.get 15 0
+  struct.new_stack 17
+  struct.get 17 0
   ref.cast 1
   i32.to_i64
   local.set 4
@@ -102,8 +105,8 @@ fn 0 snippet$main () -> i32
   local.set 3
   local.get 2
   local.get 3
-  struct.new_stack 15
-  struct.get 15 1
+  struct.new_stack 17
+  struct.get 17 1
   ref.cast 1
   i32.to_i64
   local.set 4
@@ -115,7 +118,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   call 6
-  call 28
+  call 29
   f64.const 0.0 0
   local.set 2
   f64.const 0.0 0
@@ -123,8 +126,8 @@ fn 0 snippet$main () -> i32
   local.get 2
   local.get 3
   string.const 3
-  struct.new_stack 16
-  struct.get 16 0
+  struct.new_stack 18
+  struct.get 18 0
   ref.cast 7
   call 9
   local.set 5
@@ -135,8 +138,8 @@ fn 0 snippet$main () -> i32
   local.get 2
   local.get 3
   string.const 3
-  struct.new_stack 16
-  struct.get 16 1
+  struct.new_stack 18
+  struct.get 18 1
   ref.cast 7
   call 9
   local.set 6
@@ -147,8 +150,8 @@ fn 0 snippet$main () -> i32
   local.get 2
   local.get 3
   string.const 3
-  struct.new_stack 16
-  struct.get 16 2
+  struct.new_stack 18
+  struct.get 18 2
   ref.cast 2
   local.set 7
   string.const 2
@@ -158,15 +161,15 @@ fn 0 snippet$main () -> i32
   string.const 5
   local.get 7
   call 1
-  call 28
+  call 29
   i32.const 10
   local.set 2
   i32.const 20
   local.set 3
   local.get 2
   local.get 3
-  struct.new_stack 15
-  struct.get 15 0
+  struct.new_stack 17
+  struct.get 17 0
   ref.cast 1
   return
 end
@@ -221,27 +224,27 @@ fn 1 concat_6 (string,string,string,string,string,string) -> string
   local.tee 12
   i64.const 0
   local.get 0
-  call 32
+  call 33
   local.get 12
   local.get 6
   local.get 1
-  call 32
+  call 33
   local.get 12
   local.get 7
   local.get 2
-  call 32
+  call 33
   local.get 12
   local.get 8
   local.get 3
-  call 32
+  call 33
   local.get 12
   local.get 9
   local.get 4
-  call 32
+  call 33
   local.get 12
   local.get 10
   local.get 5
-  call 32
+  call 33
   local.get 12
   local.get 11
   call 6
@@ -266,11 +269,11 @@ fn 2 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 32
+  call 33
   local.get 4
   local.get 2
   local.get 1
-  call 32
+  call 33
   local.get 4
   local.get 3
   call 6
@@ -303,15 +306,15 @@ fn 3 concat_3 (string,string,string) -> string
   local.tee 6
   i64.const 0
   local.get 0
-  call 32
+  call 33
   local.get 6
   local.get 3
   local.get 1
-  call 32
+  call 33
   local.get 6
   local.get 4
   local.get 2
-  call 32
+  call 33
   local.get 6
   local.get 5
   call 6
@@ -352,19 +355,19 @@ fn 4 concat_4 (string,string,string,string) -> string
   local.tee 8
   i64.const 0
   local.get 0
-  call 32
+  call 33
   local.get 8
   local.get 4
   local.get 1
-  call 32
+  call 33
   local.get 8
   local.get 5
   local.get 2
-  call 32
+  call 33
   local.get 8
   local.get 6
   local.get 3
-  call 32
+  call 33
   local.get 8
   local.get 7
   call 6
@@ -373,14 +376,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 29
+  call 30
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 31
+  call 32
   return
 end
 
@@ -389,7 +392,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 32
+  call 33
   local.get 2
   call.import 0
   local.set 3
@@ -413,7 +416,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 30
+    call 31
     local.get 1
     i64.const 1
     i64.add
@@ -492,7 +495,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 4
         local.get 8
-        call 30
+        call 31
         local.get 2
         i64.const 10
         i64.div
@@ -507,7 +510,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 30
+    call 31
   else
   end $L9
   local.get 1
@@ -525,7 +528,7 @@ fn 9 std_core$format_f64 (f64) -> string
   local d ref
   local $field_36 i32
   local.get 0
-  call 33
+  call 34
   local.tee 1
   i64.const 63
   u64.shr
@@ -718,7 +721,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.add
     local.set 14
-    data.const 0 17
+    data.const 0 19
     local.set 15
     local.get 13
     i32.to_i64
@@ -727,7 +730,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 8
-    data.const 1 17
+    data.const 1 19
     local.set 15
     local.get 13
     i32.to_i64
@@ -830,7 +833,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.sub
     local.set 14
-    data.const 2 17
+    data.const 2 19
     local.set 15
     local.get 2
     i32.to_i64
@@ -839,7 +842,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 17
-    data.const 3 17
+    data.const 3 19
     local.set 15
     local.get 2
     i32.to_i64
@@ -2071,7 +2074,7 @@ fn 27 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 1
-  call 29
+  call 30
   local.set 3
   local.get 1
   local.set 4
@@ -2097,7 +2100,7 @@ fn 27 std_core$format_unsigned (u64) -> string
         local.get 3
         local.get 4
         local.get 6
-        call 30
+        call 31
         local.get 0
         i64.const 10
         u64.div
@@ -2109,27 +2112,96 @@ fn 27 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 3
   local.get 1
-  call 31
+  call 32
   return
 end
 
-fn 28 std_io$println__string (string) -> void
+fn 28 std_io$write (i32,string) -> void
+  local fd i32
+  local buf ref
+  local sent usize
+  local $len_11 usize
+  local $len_13 usize
+  local chunk ref
+  local $len_16 usize
+  local n isize
+  local $cast_21 usize
+  local.get 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 2
+  else
+    i32.const 2
+    local.set 2
+  end $L0
+  local.get 1
+  call.import 1
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L1 void
+    loop $L2 void
+      local.get 3
+      array.len
+      local.set 5
+      local.get 4
+      local.get 5
+      u64.ge
+      if $L3 void
+      else
+        local.get 3
+        array.len
+        local.set 6
+        local.get 3
+        local.get 4
+        local.get 6
+        array.slice 14
+        local.tee 7
+        array.len
+        local.set 8
+        local.get 2
+        local.get 7
+        local.get 8
+        call.import 2
+        local.tee 9
+        i64.const 0
+        i64.le
+        if $L4 void
+          return
+        end $L4
+        local.get 9
+        isize.to_i64
+        local.set 10
+        local.get 4
+        local.get 10
+        i64.add
+        local.set 4
+        br $L2
+      end $L3
+    end $L2
+  end $L1
+  return
+end
+
+fn 29 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call 28
   i32.const 0
   string.const 19
-  call.import 1
+  call 28
   return
 end
 
-fn 29 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 30 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 30 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 31 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -2137,14 +2209,14 @@ fn 30 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 31 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 32 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 32 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 33 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -2152,7 +2224,7 @@ fn 32 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 33 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+fn 34 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
   local.get 0
   f64_to_bits
   return

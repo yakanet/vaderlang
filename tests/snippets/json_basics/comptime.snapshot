@@ -42,6 +42,7 @@
   MutableMap<T, bool>
   MutableMap<K, V>
   Add<Rhs, Out>
+  Sub<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -51,7 +52,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>

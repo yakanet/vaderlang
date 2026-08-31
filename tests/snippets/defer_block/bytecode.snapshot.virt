@@ -4,27 +4,32 @@ type 1 primitive i32
 type 2 struct __defer_env_2 {  }
 type 3 primitive void
 type 4 struct __defer_env_5 {  }
-type 5 primitive string
-type 6 fn () -> 3
+type 5 primitive usize
+type 6 primitive string
+type 7 primitive u8
+type 8 array 7
+type 9 primitive isize
+type 10 fn () -> 3
 string 0 "hi"
 string 1 "nested"
 string 2 "outer cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
-import 0 write std_io$write (i32,string) -> void
+import 0 bytes std_core$bytes (string) -> ref
+import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
   struct.new 2
-  make_closure 1 6
+  make_closure 1 10
   defer.push
   string.const 0
-  call 3
+  call 4
   struct.new 4
-  make_closure 2 6
+  make_closure 2 10
   defer.push
   string.const 1
-  call 3
+  call 4
   defer.pop_exec 1
   defer.pop_exec 1
   return.lit i32.const 0
@@ -32,22 +37,91 @@ end
 
 fn 1 __defer_1 (ref) -> void
   string.const 2
-  call 3
+  call 4
   return
 end
 
 fn 2 __defer_4 (ref) -> void
   string.const 3
-  call 3
+  call 4
   return
 end
 
-fn 3 std_io$println__string (string) -> void
+fn 3 std_io$write (i32,string) -> void
+  local fd i32
+  local buf ref
+  local sent usize
+  local $len_11 usize
+  local $len_13 usize
+  local chunk ref
+  local $len_16 usize
+  local n isize
+  local $cast_21 usize
+  local.get 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 2
+  else
+    i32.const 2
+    local.set 2
+  end $L0
+  local.get 1
+  call.import 0
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L1 void
+    loop $L2 void
+      local.get 3
+      array.len
+      local.set 5
+      local.get 4
+      local.get 5
+      u64.ge
+      if $L3 void
+      else
+        local.get 3
+        array.len
+        local.set 6
+        local.get 3
+        local.get 4
+        local.get 6
+        array.slice 8
+        local.tee 7
+        array.len
+        local.set 8
+        local.get 2
+        local.get 7
+        local.get 8
+        call.import 1
+        local.tee 9
+        i64.const 0
+        i64.le
+        if $L4 void
+          return
+        end $L4
+        local.get 9
+        isize.to_i64
+        local.set 10
+        local.get 4
+        local.get 10
+        i64.add
+        local.set 4
+        br $L2
+      end $L3
+    end $L2
+  end $L1
+  return
+end
+
+fn 4 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 0
+  call 3
   i32.const 0
   string.const 4
-  call.import 0
+  call 3
   return
 end

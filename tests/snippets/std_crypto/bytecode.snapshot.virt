@@ -8,12 +8,13 @@ type 5 struct std_core$Buffer {  }
 type 6 array 7
 type 7 primitive u8
 type 8 primitive void
-type 9 array 2
-type 10 union 2,6
-type 11 primitive u32
-type 12 struct std_string_builder$StringBuilder { parts:9 }
-type 13 array 11
-type 14 primitive u64
+type 9 primitive isize
+type 10 array 2
+type 11 union 2,6
+type 12 primitive u32
+type 13 struct std_string_builder$StringBuilder { parts:10 }
+type 14 array 12
+type 15 primitive u64
 string 0 "sha256-empty="
 string 1 ""
 string 2 "sha256-abc="
@@ -32,62 +33,62 @@ data 2 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab9
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 write std_io$write (i32,string) -> void
+import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
 impl 5 ByteAccess
-impl 12 Display
+impl 13 Display
 export main 0
 
 fn 0 snippet$main () -> i32
   local $call_2 string
   string.const 1
-  call 6
+  call 7
   local.set 0
   string.const 0
   local.get 0
   call 1
-  call 5
-  string.const 3
   call 6
+  string.const 3
+  call 7
   local.set 0
   string.const 2
   local.get 0
   call 1
-  call 5
-  string.const 5
   call 6
+  string.const 5
+  call 7
   local.set 0
   string.const 4
   local.get 0
   call 1
-  call 5
-  string.const 7
   call 6
+  string.const 7
+  call 7
   local.set 0
   string.const 6
   local.get 0
   call 1
-  call 5
+  call 6
   string.const 1
-  call 7
+  call 8
   local.set 0
   string.const 8
   local.get 0
   call 1
-  call 5
+  call 6
   string.const 3
-  call 7
+  call 8
   local.set 0
   string.const 9
   local.get 0
   call 1
-  call 5
+  call 6
   string.const 5
-  call 7
+  call 8
   local.set 0
   string.const 10
   local.get 0
   call 1
-  call 5
+  call 6
   return.lit i32.const 0
 end
 
@@ -109,11 +110,11 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 26
+  call 27
   local.get 4
   local.get 2
   local.get 1
-  call 26
+  call 27
   local.get 4
   local.get 3
   call 3
@@ -122,14 +123,14 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 24
+  call 25
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 25
+  call 26
   return
 end
 
@@ -285,24 +286,93 @@ fn 4 std_core$utf8_encode (char) -> ref
   return
 end
 
-fn 5 std_io$println__string (string) -> void
+fn 5 std_io$write (i32,string) -> void
+  local fd i32
+  local buf ref
+  local sent usize
+  local $len_11 usize
+  local $len_13 usize
+  local chunk ref
+  local $len_16 usize
+  local n isize
+  local $cast_21 usize
+  local.get 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 2
+  else
+    i32.const 2
+    local.set 2
+  end $L0
+  local.get 1
+  call.import 2
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L1 void
+    loop $L2 void
+      local.get 3
+      array.len
+      local.set 5
+      local.get 4
+      local.get 5
+      u64.ge
+      if $L3 void
+      else
+        local.get 3
+        array.len
+        local.set 6
+        local.get 3
+        local.get 4
+        local.get 6
+        array.slice 6
+        local.tee 7
+        array.len
+        local.set 8
+        local.get 2
+        local.get 7
+        local.get 8
+        call.import 3
+        local.tee 9
+        i64.const 0
+        i64.le
+        if $L4 void
+          return
+        end $L4
+        local.get 9
+        isize.to_i64
+        local.set 10
+        local.get 4
+        local.get 10
+        i64.add
+        local.set 4
+        br $L2
+      end $L3
+    end $L2
+  end $L1
+  return
+end
+
+fn 6 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 3
+  call 5
   i32.const 0
   string.const 11
-  call.import 3
+  call 5
   return
 end
 
-fn 6 crypto$sha256 (any) -> string
+fn 7 crypto$sha256 (any) -> string
   local.get 0
+  call 10
   call 9
-  call 8
   return
 end
 
-fn 7 crypto$md5 (string) -> string
+fn 8 crypto$md5 (string) -> string
   local a0 u32
   local b0 u32
   local c0 u32
@@ -360,7 +430,7 @@ fn 7 crypto$md5 (string) -> string
   i32.const 271733878
   local.set 4
   local.get 0
-  call 10
+  call 11
   local.tee 5
   array.len
   i64.const 64
@@ -378,7 +448,7 @@ fn 7 crypto$md5 (string) -> string
         i64.const 64
         i64.mul
         local.set 8
-        array.new 13 0
+        array.new 14 0
         local.set 9
         i64.const 0
         local.set 10
@@ -475,11 +545,11 @@ fn 7 crypto$md5 (string) -> string
               local.get 26
               local.get 27
               i32.bitor
-              call 11
+              call 12
               local.set 28
               local.get 9
               local.get 28
-              array.push 11
+              array.push 12
               local.get 10
               i64.const 1
               i64.add
@@ -515,7 +585,7 @@ fn 7 crypto$md5 (string) -> string
                 local.set 36
                 local.get 30
                 i32.bitnot
-                call 11
+                call 12
                 local.get 32
                 i32.bitand
                 local.set 37
@@ -536,7 +606,7 @@ fn 7 crypto$md5 (string) -> string
                   local.set 38
                   local.get 32
                   i32.bitnot
-                  call 11
+                  call 12
                   local.get 31
                   i32.bitand
                   local.set 39
@@ -574,7 +644,7 @@ fn 7 crypto$md5 (string) -> string
                   else
                     local.get 32
                     i32.bitnot
-                    call 11
+                    call 12
                     local.set 40
                     local.get 30
                     local.get 40
@@ -597,7 +667,7 @@ fn 7 crypto$md5 (string) -> string
               local.get 34
               i32.add
               local.set 42
-              data.const 0 13
+              data.const 0 14
               local.get 33
               load_slot_i32
               local.set 43
@@ -612,7 +682,7 @@ fn 7 crypto$md5 (string) -> string
               local.get 44
               local.get 45
               i32.add
-              call 11
+              call 12
               local.set 46
               local.get 32
               local.set 29
@@ -620,18 +690,18 @@ fn 7 crypto$md5 (string) -> string
               local.set 32
               local.get 30
               local.set 31
-              data.const 1 13
+              data.const 1 14
               local.get 33
               load_slot_i32
               local.set 47
               local.get 46
               local.get 47
-              call 12
+              call 13
               local.set 48
               local.get 30
               local.get 48
               i32.add
-              call 11
+              call 12
               local.set 30
               local.get 33
               i64.const 1
@@ -645,22 +715,22 @@ fn 7 crypto$md5 (string) -> string
         local.get 1
         local.get 29
         i32.add
-        call 11
+        call 12
         local.set 1
         local.get 2
         local.get 30
         i32.add
-        call 11
+        call 12
         local.set 2
         local.get 3
         local.get 31
         i32.add
-        call 11
+        call 12
         local.set 3
         local.get 4
         local.get 32
         i32.add
-        call 11
+        call 12
         local.set 4
         local.get 7
         i64.const 1
@@ -671,33 +741,33 @@ fn 7 crypto$md5 (string) -> string
       end $L2
     end $L1
   end $L0
-  array.new 9 0
-  struct.new 12
+  array.new 10 0
+  struct.new 13
   local.tee 5
   local.get 1
-  call 13
+  call 14
   local.get 5
   local.get 2
-  call 13
+  call 14
   local.get 5
   local.get 3
-  call 13
+  call 14
   local.get 5
   local.get 4
-  call 13
+  call 14
   local.get 5
-  call 22
+  call 23
   return
 end
 
-fn 8 crypto$hex_of_bytes (ref) -> string
+fn 9 crypto$hex_of_bytes (ref) -> string
   local sb ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
   local b u8
-  array.new 9 0
-  struct.new 12
+  array.new 10 0
+  struct.new 13
   local.set 1
   local.get 0
   local.tee 2
@@ -718,7 +788,7 @@ fn 8 crypto$hex_of_bytes (ref) -> string
         local.set 5
         local.get 1
         local.get 5
-        call 14
+        call 15
         local.get 4
         i64.const 1
         i64.add
@@ -729,11 +799,11 @@ fn 8 crypto$hex_of_bytes (ref) -> string
     end $L1
   end $L0
   local.get 1
-  call 22
+  call 23
   return
 end
 
-fn 9 crypto$sha256_bytes (any) -> ref
+fn 10 crypto$sha256_bytes (any) -> ref
   local data ref
   local h ref
   local blocks usize
@@ -827,7 +897,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
   local $idx_236 u32
   local $call_238 u32
   local.get 0
-  call 15
+  call 16
   local.set 1
   i32.const 1779033703
   i32.const -1150833019
@@ -837,10 +907,10 @@ fn 9 crypto$sha256_bytes (any) -> ref
   i32.const -1694144372
   i32.const 528734635
   i32.const 1541459225
-  array.new 13 8
+  array.new 14 8
   local.set 2
   local.get 1
-  call 16
+  call 17
   local.tee 1
   array.len
   i64.const 64
@@ -858,7 +928,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
         i64.const 64
         i64.mul
         local.set 5
-        array.new 13 0
+        array.new 14 0
         local.set 6
         i64.const 0
         local.set 7
@@ -953,11 +1023,11 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.bitor
               local.get 19
               i32.bitor
-              call 11
+              call 12
               local.set 24
               local.get 6
               local.get 24
-              array.push 11
+              array.push 12
               local.get 7
               i64.const 1
               i64.add
@@ -993,11 +1063,11 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 29
               local.get 27
               i32.const 7
-              call 17
+              call 18
               local.set 30
               local.get 27
               i32.const 18
-              call 17
+              call 18
               local.set 31
               local.get 30
               local.get 31
@@ -1013,11 +1083,11 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 34
               local.get 29
               i32.const 17
-              call 17
+              call 18
               local.set 35
               local.get 29
               i32.const 19
-              call 17
+              call 18
               local.set 36
               local.get 35
               local.get 36
@@ -1054,11 +1124,11 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.add
               local.get 39
               i32.add
-              call 11
+              call 12
               local.set 44
               local.get 6
               local.get 44
-              array.push 11
+              array.push 12
               local.get 25
               i64.const 1
               i64.add
@@ -1069,7 +1139,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
           end $L7
         end $L6
         local.get 2
-        call 19
+        call 20
         local.set 45
         i64.const 0
         local.set 46
@@ -1083,13 +1153,13 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.const 4
               load_slot_i32
               i32.const 6
-              call 17
+              call 18
               local.set 47
               local.get 45
               i32.const 4
               load_slot_i32
               i32.const 11
-              call 17
+              call 18
               local.set 48
               local.get 47
               local.get 48
@@ -1099,7 +1169,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.const 4
               load_slot_i32
               i32.const 25
-              call 17
+              call 18
               local.set 50
               local.get 49
               local.get 50
@@ -1121,7 +1191,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.const 4
               load_slot_i32
               i32.bitnot
-              call 11
+              call 12
               local.set 55
               local.get 45
               i32.const 6
@@ -1143,7 +1213,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 58
               i32.add
               local.set 59
-              data.const 2 13
+              data.const 2 14
               local.get 46
               load_slot_i32
               local.set 60
@@ -1158,19 +1228,19 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 61
               local.get 62
               i32.add
-              call 11
+              call 12
               local.set 63
               local.get 45
               i32.const 0
               load_slot_i32
               i32.const 2
-              call 17
+              call 18
               local.set 64
               local.get 45
               i32.const 0
               load_slot_i32
               i32.const 13
-              call 17
+              call 18
               local.set 65
               local.get 64
               local.get 65
@@ -1180,7 +1250,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               i32.const 0
               load_slot_i32
               i32.const 22
-              call 17
+              call 18
               local.set 67
               local.get 66
               local.get 67
@@ -1233,7 +1303,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 68
               local.get 79
               i32.add
-              call 11
+              call 12
               local.set 80
               local.get 45
               i32.const 6
@@ -1264,7 +1334,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               load_slot_i32
               local.get 63
               i32.add
-              call 11
+              call 12
               local.set 84
               local.get 45
               i32.const 4
@@ -1297,7 +1367,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 63
               local.get 80
               i32.add
-              call 11
+              call 12
               local.set 88
               local.get 45
               i32.const 0
@@ -1331,7 +1401,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 90
               local.get 91
               i32.add
-              call 11
+              call 12
               local.set 92
               local.get 2
               local.get 89
@@ -1371,7 +1441,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
         local.set 10
         local.get 1
         local.get 10
-        call 18
+        call 19
         local.get 3
         i64.const 1
         i64.add
@@ -1385,7 +1455,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
   return
 end
 
-fn 10 crypto$pad_md5 (string) -> ref
+fn 11 crypto$pad_md5 (string) -> ref
   local ib ref
   local bit_len u64
   local k i32
@@ -1400,7 +1470,7 @@ fn 10 crypto$pad_md5 (string) -> ref
   i64.mul
   local.set 2
   local.get 1
-  call 20
+  call 21
   local.tee 1
   i32.const 128
   array.push 7
@@ -1457,20 +1527,20 @@ fn 10 crypto$pad_md5 (string) -> ref
   return
 end
 
-fn 11 crypto$mask32 (u32) -> u32
+fn 12 crypto$mask32 (u32) -> u32
   local.get 0
   i32.const -1
   i32.bitand
   return
 end
 
-fn 12 crypto$rotl32 (u32,u32) -> u32
+fn 13 crypto$rotl32 (u32,u32) -> u32
   local $call_3 u32
   local $sub_5 u32
   local.get 0
   local.get 1
   i32.shl
-  call 11
+  call 12
   local.set 2
   i32.const 32
   local.get 1
@@ -1486,7 +1556,7 @@ fn 12 crypto$rotl32 (u32,u32) -> u32
   return
 end
 
-fn 13 crypto$append_hex_u32_le (ref,u32) -> void
+fn 14 crypto$append_hex_u32_le (ref,u32) -> void
   local i i32
   local $cast_8 u32
   local b u8
@@ -1512,7 +1582,7 @@ fn 13 crypto$append_hex_u32_le (ref,u32) -> void
         local.set 4
         local.get 0
         local.get 4
-        call 14
+        call 15
         local.get 2
         i32.const 1
         i32.add
@@ -1525,7 +1595,7 @@ fn 13 crypto$append_hex_u32_le (ref,u32) -> void
   return
 end
 
-fn 14 crypto$append_hex_u8 (ref,u8) -> void
+fn 15 crypto$append_hex_u8 (ref,u8) -> void
   local hi u64
   local lo u64
   local $call_10 char
@@ -1540,21 +1610,21 @@ fn 14 crypto$append_hex_u8 (ref,u8) -> void
   i64.bitand
   local.set 3
   local.get 2
-  call 23
+  call 24
   local.set 4
   local.get 0
   local.get 4
-  call 21
+  call 22
   local.get 3
-  call 23
+  call 24
   local.set 4
   local.get 0
   local.get 4
-  call 21
+  call 22
   return
 end
 
-fn 15 crypto$to_bytes (any) -> ref
+fn 16 crypto$to_bytes (any) -> ref
   local.get 0
   type_check 2
   if $L0 void
@@ -1568,7 +1638,7 @@ fn 15 crypto$to_bytes (any) -> ref
   return
 end
 
-fn 16 crypto$pad_sha256_bytes (ref) -> ref
+fn 17 crypto$pad_sha256_bytes (ref) -> ref
   local bit_len u64
   local out ref
   local k i32
@@ -1581,7 +1651,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
   i64.mul
   local.set 1
   local.get 0
-  call 20
+  call 21
   local.tee 2
   i32.const 128
   array.push 7
@@ -1638,7 +1708,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
   return
 end
 
-fn 17 crypto$rotr32 (u32,u32) -> u32
+fn 18 crypto$rotr32 (u32,u32) -> u32
   local $shr_2 u32
   local $sub_4 u32
   local.get 0
@@ -1652,7 +1722,7 @@ fn 17 crypto$rotr32 (u32,u32) -> u32
   local.get 0
   local.get 3
   i32.shl
-  call 11
+  call 12
   local.set 3
   local.get 2
   local.get 3
@@ -1660,7 +1730,7 @@ fn 17 crypto$rotr32 (u32,u32) -> u32
   return
 end
 
-fn 18 crypto$append_u32_be (ref,u32) -> void
+fn 19 crypto$append_u32_be (ref,u32) -> void
   local $cast_6 u8
   local.get 1
   i32.const 24
@@ -1703,10 +1773,10 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   return
 end
 
-fn 19 std_iter$clone__u32 (ref) -> ref
+fn 20 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 13 0
+  array.new 14 0
   local.set 1
   local.get 0
   array.len
@@ -1721,7 +1791,7 @@ fn 19 std_iter$clone__u32 (ref) -> ref
   return
 end
 
-fn 20 std_iter$clone__u8 (ref) -> ref
+fn 21 std_iter$clone__u8 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 6 0
@@ -1739,10 +1809,10 @@ fn 20 std_iter$clone__u8 (ref) -> ref
   return
 end
 
-fn 21 std_string_builder$append_char (ref,char) -> void
+fn 22 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 12 0
+  local.field 0 13 0
   local.set 2
   local.get 1
   call 4
@@ -1754,7 +1824,7 @@ fn 21 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -1763,7 +1833,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 12 0
+  local.field 0 13 0
   array.len
   local.tee 1
   i64.const 0
@@ -1775,15 +1845,15 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 12 0
+    local.field 0 13 0
     i32.const 0
-    array.get 9
+    array.get 10
     ref.cast 2
     return
   end $L1
   i64.const 0
   local.set 1
-  local.field 0 12 0
+  local.field 0 13 0
   local.tee 2
   array.len
   local.set 3
@@ -1797,7 +1867,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2
         local.get 4
-        array.get 9
+        array.get 10
         ref.cast 2
         call.import 0
         local.set 5
@@ -1815,11 +1885,11 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 24
+  call 25
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 12 0
+  local.field 0 13 0
   local.tee 6
   array.len
   local.set 4
@@ -1833,13 +1903,13 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6
         local.get 5
-        array.get 9
+        array.get 10
         ref.cast 2
         local.set 7
         local.get 2
         local.get 3
         local.get 7
-        call 26
+        call 27
         local.get 7
         call.import 0
         local.set 8
@@ -1858,11 +1928,11 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 2
   local.get 1
-  call 25
+  call 26
   return
 end
 
-fn 23 std_numbers$hex_digit (u64) -> char
+fn 24 std_numbers$hex_digit (u64) -> char
   local $cast_4 u32
   local.get 0
   i64.const 9
@@ -1889,20 +1959,20 @@ fn 23 std_numbers$hex_digit (u64) -> char
   return
 end
 
-fn 24 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 25 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 25 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 26 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 26 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 27 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
