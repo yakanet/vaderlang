@@ -519,26 +519,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if call is Trap { return call }
         return HostOk { .value = I64Val { .value = ffi_call_int(call.fn_ptr, call.args, call.nargs) } }
     }
-    .FfiCallIntBytes -> {
-        call :: host_ffi_call_args(stack, arg_base, at_pc)
-        if call is Trap { return call }
-        slot :: read_i64(stack[arg_base + 3], at_pc, "ffi_call_int_bytes slot")
-        if slot is Trap { return slot }
-        lent :: read_array(stack[arg_base + 4], at_pc, "ffi_call_int_bytes bytes")
-        if lent is Trap { return lent }
-        bs: u8[]! = []
-        for i in 0..<lent.length {
-            b :: read_i64(lent.elements[lent.offset + i], at_pc, "ffi_call_int_bytes byte")
-            if b is Trap { return b }
-            bs.push(u8(b.value))
-        }
-        if slot.value < 0 {
-            return Trap { .message = "ffi_call_int_bytes at pc=${at_pc}: negative slot" }
-        }
-        return HostOk { .value = I64Val {
-            .value = ffi_call_int_bytes(call.fn_ptr, call.args, call.nargs, usize(slot.value), bs),
-        } }
-    }
     .FfiCallIntLend -> {
         call :: host_ffi_call_args(stack, arg_base, at_pc)
         if call is Trap { return call }
@@ -915,7 +895,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.
     .FfiOpen | .FfiSymbol | .FfiCallInt | .FfiCallVoid | .FfiCallF64
-        | .FfiCallIntLend | .FfiCallIntBytes -> true
+        | .FfiCallIntLend -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true

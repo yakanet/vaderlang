@@ -66,16 +66,7 @@ module "vader/vm"
 /// @param slots   which slots take an address, in any order.
 /// @param bytes   the bytes to lend, for the duration of the call.
 /// @return        the callee's result, widened to `i64`.
-export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: i64[], bytes: u8[]) -> i64 {
-    if slots.len() == 0 {
-        return ffi_call_int(fn_ptr, args, nargs)
-    }
-    return ffi_call_int_bytes(fn_ptr, args, nargs, usize(slots[0]), bytes)
-}
-
-/// RETIRED — declared for one bootstrap cycle so the seed can learn
-/// `ffi_call_int_lend` before the sources make that one an `@intrinsic`.
-@intrinsic export ffi_call_int_bytes :: fn(fn_ptr: usize, args: i64[], nargs: usize, buf_slot: usize, bytes: u8[]) -> i64
+@intrinsic export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: i64[], bytes: u8[]!) -> i64
 
 /// `ffi_call_int` for a callee returning nothing.
 @intrinsic export ffi_call_void :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> void
@@ -118,4 +109,17 @@ import "std/testing"
     args: i64[]! = [0]
     slots: i64[]! = [0]
     assert_eq(ffi_call_int_lend(sym, args, 1, slots, bs), 5)
+}
+
+@test test_ffi_lends_at_an_offset :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
+
+    // The lent slot's value in `args` is an OFFSET into the buffer, not a
+    // value: `strlen` here measures from the fourth byte, so a wrong offset
+    // would read the leading zeros and report 0.
+    buf: u8[]! = [0, 0, 0, 104, 105, 0]
+    args: i64[]! = [3]
+    slots: i64[]! = [0]
+    assert_eq(ffi_call_int_lend(sym, args, 1, slots, buf), 2)
 }
