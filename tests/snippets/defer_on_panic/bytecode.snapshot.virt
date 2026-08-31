@@ -21,42 +21,42 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
-  struct.new 2
-  make_closure 1 10
+  struct.new 2   ; __defer_env_2
+  make_closure 1 10   ; __defer_1
   defer.push
-  struct.new 4
-  make_closure 2 10
+  struct.new 4   ; __defer_env_5
+  make_closure 2 10   ; __defer_4
   defer.push
-  struct.new 5
-  make_closure 3 10
+  struct.new 5   ; __defer_env_8
+  make_closure 3 10   ; __defer_7
   defer.push
-  string.const 0
-  call 6
+  string.const 0   ; "starting"
+  call 6   ; std_io$println__string
   i32.const 1
-  local.tee 0
+  local.tee 0   ; boom
   i32.const 0
   i32.div
-  local.set 0
+  local.set 0   ; boom
   defer.pop_exec 3
-  local.get 0
+  local.get 0   ; boom
   return
 end
 
 fn 1 __defer_1 (ref) -> void
-  string.const 1
-  call 6
+  string.const 1   ; "outer cleanup"
+  call 6   ; std_io$println__string
   return
 end
 
 fn 2 __defer_4 (ref) -> void
-  string.const 2
-  call 6
+  string.const 2   ; "middle cleanup"
+  call 6   ; std_io$println__string
   return
 end
 
 fn 3 __defer_7 (ref) -> void
-  string.const 3
-  call 6
+  string.const 3   ; "inner cleanup"
+  call 6   ; std_io$println__string
   return
 end
 
@@ -69,48 +69,48 @@ fn 4 std_io$write (i32,string) -> void
   local $len_11 usize
   local n i32
   local $cast_16 usize
-  local.get 1
-  call.import 0
-  local.set 2
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$bytes
+  local.set 2   ; buf
   i64.const 0
-  local.set 3
+  local.set 3   ; sent
   block $L0 void
     loop $L1 void
-      local.get 2
+      local.get 2   ; buf
       array.len
-      local.set 4
-      local.get 3
-      local.get 4
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
       u64.ge
       if $L2 void
       else
-        local.get 2
+        local.get 2   ; buf
         array.len
-        local.set 5
-        local.get 2
-        local.get 3
-        local.get 5
-        array.slice 9
-        local.tee 6
+        local.set 5   ; $len_8
+        local.get 2   ; buf
+        local.get 3   ; sent
+        local.get 5   ; $len_8
+        array.slice 9   ; u8[][]
+        local.tee 6   ; chunk
         array.len
-        local.set 7
-        local.get 0
-        local.get 6
-        local.get 7
-        call 5
-        local.tee 8
+        local.set 7   ; $len_11
+        local.get 0   ; arg 0
+        local.get 6   ; chunk
+        local.get 7   ; $len_11
+        call 5   ; std_io$write_bytes
+        local.tee 8   ; n
         i32.const 0
         i32.le
         if $L3 void
           return
         end $L3
-        local.get 8
+        local.get 8   ; n
         i32.to_i64
-        local.set 9
-        local.get 3
-        local.get 9
+        local.set 9   ; $cast_16
+        local.get 3   ; sent
+        local.get 9   ; $cast_16
         i64.add
-        local.set 3
+        local.set 3   ; sent
         br $L1
       end $L2
     end $L1
@@ -120,29 +120,29 @@ end
 
 fn 5 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3
+    local.set 3   ; fd
   else
     i32.const 2
-    local.set 3
+    local.set 3   ; fd
   end $L0
-  local.get 3
-  local.get 1
-  local.get 2
-  call.import 1
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 1   ; system_posix$sys_write
   return
 end
 
 fn 6 std_io$println__string (string) -> void
   i32.const 0
-  local.get 0
-  call 4
+  local.get 0   ; arg 0
+  call 4   ; std_io$write
   i32.const 0
-  string.const 4
-  call 4
+  string.const 4   ; "\n"
+  call 4   ; std_io$write
   return
 end

@@ -69,10 +69,10 @@ fn 0 snippet$main () -> i32
   local i usize
   local $idx_81 u8
   local $idx_82 u8
-  call.import 4
-  string.const 0
-  call 1
-  local.set 0
+  call.import 4   ; std_io$temp_dir
+  string.const 0   ; "/vader_ppm_roundtrip.ppm"
+  call 1   ; concat_2
+  local.set 0   ; path
   i32.const 0
   i32.const 128
   i32.const 255
@@ -85,149 +85,149 @@ fn 0 snippet$main () -> i32
   i32.const 127
   i32.const 1
   i32.const 254
-  array.new 8 12
-  local.set 1
+  array.new 8 12   ; u8[][]
+  local.set 1   ; px
   i32.const 2
   i32.const 2
   i32.const 255
-  local.get 1
-  struct.new 13
-  call 9
-  local.tee 2
-  type_check 15
+  local.get 1   ; px
+  struct.new 13   ; images_ppm$Ppm
+  call 9   ; images_ppm$encode
+  local.tee 2   ; enc
+  type_check 15   ; images_ppm$PpmError
   if $L0 void
-    string.const 1
-    call 8
+    string.const 1   ; "encode failed"
+    call 8   ; std_io$println__string
     return.lit i32.const 1
   end $L0
-  local.get 2
-  ref.cast 8
-  local.set 3
-  local.get 0
-  local.get 3
-  call.import 3
-  type_check 19
+  local.get 2   ; enc
+  ref.cast 8   ; -> u8[]
+  local.set 3   ; $cast_28
+  local.get 0   ; path
+  local.get 3   ; $cast_28
+  call.import 3   ; std_io$write_file_bytes
+  type_check 19   ; ref Error
   if $L1 void
-    string.const 2
-    call 8
+    string.const 2   ; "write failed"
+    call 8   ; std_io$println__string
     return.lit i32.const 1
   end $L1
-  local.get 0
-  call.import 2
-  local.tee 2
-  type_check 19
+  local.get 0   ; path
+  call.import 2   ; std_io$read_file_bytes
+  local.tee 2   ; enc
+  type_check 19   ; ref Error
   if $L2 void
-    string.const 3
-    call 8
+    string.const 3   ; "read failed"
+    call 8   ; std_io$println__string
     return.lit i32.const 1
   end $L2
-  local.get 2
-  ref.cast 8
-  call 10
-  local.tee 2
-  type_check 15
+  local.get 2   ; enc
+  ref.cast 8   ; -> u8[]
+  call 10   ; images_ppm$decode
+  local.tee 2   ; enc
+  type_check 15   ; images_ppm$PpmError
   if $L3 void
-    string.const 4
-    call 8
+    string.const 4   ; "decode failed"
+    call 8   ; std_io$println__string
     return.lit i32.const 1
   end $L3
-  local.get 2
-  ref.cast 13
-  struct.get 13 0
-  ref.cast 17
+  local.get 2   ; enc
+  ref.cast 13   ; -> images_ppm$Ppm
+  struct.get 13 0   ; images_ppm$Ppm.width
+  ref.cast 17   ; -> u32
   i32.const 2
   i32.eq
   if $L4 void
-    local.get 2
-    ref.cast 13
-    struct.get 13 1
-    ref.cast 17
+    local.get 2   ; enc
+    ref.cast 13   ; -> images_ppm$Ppm
+    struct.get 13 1   ; images_ppm$Ppm.height
+    ref.cast 17   ; -> u32
     i32.const 2
     i32.eq
-    local.set 4
+    local.set 4   ; ok
   else
     bool.const false
-    local.set 4
+    local.set 4   ; ok
   end $L4
-  local.get 4
+  local.get 4   ; ok
   if $L5 void
-    local.get 2
-    ref.cast 13
-    struct.get 13 2
-    ref.cast 17
+    local.get 2   ; enc
+    ref.cast 13   ; -> images_ppm$Ppm
+    struct.get 13 2   ; images_ppm$Ppm.maxval
+    ref.cast 17   ; -> u32
     i32.const 255
     i32.eq
-    local.set 5
+    local.set 5   ; and_res
   else
     bool.const false
-    local.set 5
+    local.set 5   ; and_res
   end $L5
-  local.get 5
+  local.get 5   ; and_res
   if $L6 void
-    local.get 2
-    ref.cast 13
-    struct.get 13 3
+    local.get 2   ; enc
+    ref.cast 13   ; -> images_ppm$Ppm
+    struct.get 13 3   ; images_ppm$Ppm.pixels
     array.len
     i64.const 12
     i64.eq
-    local.set 4
+    local.set 4   ; ok
   else
     bool.const false
-    local.set 4
+    local.set 4   ; ok
   end $L6
-  local.get 2
-  ref.cast 13
-  struct.get 13 3
+  local.get 2   ; enc
+  ref.cast 13   ; -> images_ppm$Ppm
+  struct.get 13 3   ; images_ppm$Ppm.pixels
   array.len
-  local.set 6
+  local.set 6   ; __for_hi_0
   i64.const 0
-  local.set 7
+  local.set 7   ; i
   block $L7 void
     loop $L8 void
-      local.get 7
-      local.get 6
+      local.get 7   ; i
+      local.get 6   ; __for_hi_0
       u64.lt
       if $L9 void
-        local.get 2
-        ref.cast 13
-        struct.get 13 3
-        local.get 7
-        array.get 8
-        ref.cast 7
-        local.set 8
-        local.get 1
-        local.get 7
-        array.get 8
-        ref.cast 7
-        local.set 9
-        local.get 8
-        local.get 9
+        local.get 2   ; enc
+        ref.cast 13   ; -> images_ppm$Ppm
+        struct.get 13 3   ; images_ppm$Ppm.pixels
+        local.get 7   ; i
+        array.get 8   ; u8[][]
+        ref.cast 7   ; -> u8
+        local.set 8   ; $idx_81
+        local.get 1   ; px
+        local.get 7   ; i
+        array.get 8   ; u8[][]
+        ref.cast 7   ; -> u8
+        local.set 9   ; $idx_82
+        local.get 8   ; $idx_81
+        local.get 9   ; $idx_82
         i32.ne
         if $L10 void
           bool.const false
-          local.set 4
+          local.set 4   ; ok
         else
         end $L10
-        local.get 7
+        local.get 7   ; i
         i64.const 1
         i64.add
-        local.set 7
+        local.set 7   ; i
         br $L8
       else
       end $L9
     end $L8
   end $L7
-  local.get 2
-  ref.cast 13
-  call 16
-  call 8
-  local.get 4
+  local.get 2   ; enc
+  ref.cast 13   ; -> images_ppm$Ppm
+  call 16   ; images_ppm$Ppm$Display$to_string
+  call 8   ; std_io$println__string
+  local.get 4   ; ok
   if $L11 void
-    string.const 5
-    call 8
+    string.const 5   ; "OK"
+    call 8   ; std_io$println__string
   else
-    string.const 6
-    call 8
+    string.const 6   ; "MISMATCH"
+    call 8   ; std_io$println__string
   end $L11
   return.lit i32.const 0
 end
@@ -236,55 +236,55 @@ fn 1 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local.get 0
-  call.import 0
-  local.set 2
-  local.get 1
-  call.import 0
-  local.set 3
-  local.get 2
-  local.get 3
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
   i64.add
-  local.tee 3
-  call 2
-  local.tee 4
+  local.tee 3   ; $call_4
+  call 2   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
   i64.const 0
-  local.get 0
-  call 20
-  local.get 4
-  local.get 2
-  local.get 1
-  call 20
-  local.get 4
-  local.get 3
-  call 3
+  local.get 0   ; arg 0
+  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 3   ; std_core$finish_buffer
   return
 end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
-  local.get 0
-  call 17
+  local.get 0   ; arg 0
+  call 17   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 19
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 19   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
 fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
-  local.get 0
-  local.get 1
-  local.get 2
-  call 20
-  local.get 2
-  call.import 0
-  local.set 3
-  local.get 1
-  local.get 3
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
   i64.add
   return
 end
@@ -295,80 +295,80 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   local i usize
   local $cast_26 u8
   local $add_27 u8
-  local.get 2
+  local.get 2   ; arg 2
   i64.const 0
   i64.eq
   if $L0 void
-    local.get 0
-    local.get 1
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
     i32.const 48
-    call 18
-    local.get 1
+    call 18   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
     i64.const 1
     i64.add
     return
   end $L0
   i64.const 0
-  local.set 3
-  local.get 2
-  local.set 4
+  local.set 3   ; ndigits
+  local.get 2   ; arg 2
+  local.set 4   ; m
   block $L1 void
     loop $L2 void
-      local.get 4
+      local.get 4   ; m
       i64.const 0
       i64.ne
       if $L3 void
-        local.get 3
+        local.get 3   ; ndigits
         i64.const 1
         i64.add
-        local.set 3
-        local.get 4
+        local.set 3   ; ndigits
+        local.get 4   ; m
         i64.const 10
         u64.div
-        local.set 4
+        local.set 4   ; m
         br $L2
       else
       end $L3
     end $L2
   end $L1
-  local.get 1
-  local.get 3
+  local.get 1   ; arg 1
+  local.get 3   ; ndigits
   i64.add
-  local.set 5
+  local.set 5   ; i
   block $L4 void
     loop $L5 void
-      local.get 2
+      local.get 2   ; arg 2
       i64.const 0
       i64.ne
       if $L6 void
-        local.get 5
+        local.get 5   ; i
         i64.const 1
         i64.sub
-        local.set 5
-        local.get 2
+        local.set 5   ; i
+        local.get 2   ; arg 2
         i64.const 10
         u64.rem
         u64.to_i32
-        local.set 6
+        local.set 6   ; $cast_26
         i32.const 48
-        local.get 6
+        local.get 6   ; $cast_26
         i32.add
-        local.set 7
-        local.get 0
-        local.get 5
-        local.get 7
-        call 18
-        local.get 2
+        local.set 7   ; $add_27
+        local.get 0   ; arg 0
+        local.get 5   ; i
+        local.get 7   ; $add_27
+        call 18   ; std_core$Buffer$ByteAccess$store_u8_vt
+        local.get 2   ; arg 2
         i64.const 10
         u64.div
-        local.set 2
+        local.set 2   ; arg 2
         br $L5
       else
       end $L6
     end $L5
   end $L4
-  local.get 1
-  local.get 3
+  local.get 1   ; arg 1
+  local.get 3   ; ndigits
   i64.add
   return
 end
@@ -382,48 +382,48 @@ fn 6 std_io$write (i32,string) -> void
   local $len_11 usize
   local n i32
   local $cast_16 usize
-  local.get 1
-  call.import 1
-  local.set 2
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
   i64.const 0
-  local.set 3
+  local.set 3   ; sent
   block $L0 void
     loop $L1 void
-      local.get 2
+      local.get 2   ; buf
       array.len
-      local.set 4
-      local.get 3
-      local.get 4
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
       u64.ge
       if $L2 void
       else
-        local.get 2
+        local.get 2   ; buf
         array.len
-        local.set 5
-        local.get 2
-        local.get 3
-        local.get 5
-        array.slice 8
-        local.tee 6
+        local.set 5   ; $len_8
+        local.get 2   ; buf
+        local.get 3   ; sent
+        local.get 5   ; $len_8
+        array.slice 8   ; u8[][]
+        local.tee 6   ; chunk
         array.len
-        local.set 7
-        local.get 0
-        local.get 6
-        local.get 7
-        call 7
-        local.tee 8
+        local.set 7   ; $len_11
+        local.get 0   ; arg 0
+        local.get 6   ; chunk
+        local.get 7   ; $len_11
+        call 7   ; std_io$write_bytes
+        local.tee 8   ; n
         i32.const 0
         i32.le
         if $L3 void
           return
         end $L3
-        local.get 8
+        local.get 8   ; n
         i32.to_i64
-        local.set 9
-        local.get 3
-        local.get 9
+        local.set 9   ; $cast_16
+        local.get 3   ; sent
+        local.get 9   ; $cast_16
         i64.add
-        local.set 3
+        local.set 3   ; sent
         br $L1
       end $L2
     end $L1
@@ -433,30 +433,30 @@ end
 
 fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3
+    local.set 3   ; fd
   else
     i32.const 2
-    local.set 3
+    local.set 3   ; fd
   end $L0
-  local.get 3
-  local.get 1
-  local.get 2
-  call.import 5
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 5   ; system_posix$sys_write
   return
 end
 
 fn 8 std_io$println__string (string) -> void
   i32.const 0
-  local.get 0
-  call 6
+  local.get 0   ; arg 0
+  call 6   ; std_io$write
   i32.const 0
-  string.const 7
-  call 6
+  string.const 7   ; "\n"
+  call 6   ; std_io$write
   return
 end
 
@@ -468,191 +468,191 @@ fn 9 images_ppm$encode (ref) -> any
   local $cast_26 usize
   local $cast_28 usize
   local $arr_80 ref
-  local.field 0 13 2
-  ref.cast 17
+  local.field 0 13 2   ; arg 0.maxval
+  ref.cast 17   ; -> u32
   i32.const 0
   i32.eq
   if $L0 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.field 0 13 2
-    ref.cast 17
+    local.field 0 13 2   ; arg 0.maxval
+    ref.cast 17   ; -> u32
     i32.const 65535
     u32.gt
-    local.set 1
+    local.set 1   ; or_res
   end $L0
-  local.get 1
+  local.get 1   ; or_res
   if $L1 void
     i64.const 58
-    call 2
-    local.set 2
+    call 2   ; std_core$new_byte_buffer
+    local.set 2   ; __buf_0
     i64.const 0
-    local.set 3
-    local.get 2
-    local.get 3
-    string.const 8
-    call 4
-    local.set 3
-    local.field 0 13 2
-    ref.cast 17
+    local.set 3   ; __off_1
+    local.get 2   ; __buf_0
+    local.get 3   ; __off_1
+    string.const 8   ; "ppm: maxval must be in 1..=65535, got "
+    call 4   ; std_core$write_string_at
+    local.set 3   ; __off_1
+    local.field 0 13 2   ; arg 0.maxval
+    ref.cast 17   ; -> u32
     u32.to_i64
-    local.set 4
-    local.get 2
-    local.get 3
-    local.get 4
-    call 5
-    local.set 3
-    local.get 2
-    local.get 3
-    call 3
-    struct.new 15
+    local.set 4   ; $cast_18
+    local.get 2   ; __buf_0
+    local.get 3   ; __off_1
+    local.get 4   ; $cast_18
+    call 5   ; std_core$write_unsigned
+    local.set 3   ; __off_1
+    local.get 2   ; __buf_0
+    local.get 3   ; __off_1
+    call 3   ; std_core$finish_buffer
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L1
-  local.field 0 13 2
-  ref.cast 17
-  call 11
-  local.set 3
-  local.field 0 13 0
-  ref.cast 17
+  local.field 0 13 2   ; arg 0.maxval
+  ref.cast 17   ; -> u32
+  call 11   ; images_ppm$bytes_per_sample
+  local.set 3   ; __off_1
+  local.field 0 13 0   ; arg 0.width
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 5
-  local.field 0 13 1
-  ref.cast 17
+  local.set 5   ; $cast_26
+  local.field 0 13 1   ; arg 0.height
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 6
-  local.get 5
-  local.get 6
+  local.set 6   ; $cast_28
+  local.get 5   ; $cast_26
+  local.get 6   ; $cast_28
   i64.mul
   i64.const 3
   i64.mul
-  local.get 3
+  local.get 3   ; __off_1
   i64.mul
-  local.set 3
-  local.field 0 13 3
+  local.set 3   ; __off_1
+  local.field 0 13 3   ; arg 0.pixels
   array.len
-  local.get 3
+  local.get 3   ; __off_1
   i64.ne
   if $L2 void
     i64.const 72
-    call 2
-    local.set 2
+    call 2   ; std_core$new_byte_buffer
+    local.set 2   ; __buf_0
     i64.const 0
-    local.set 5
-    local.get 2
-    local.get 5
-    string.const 9
-    call 4
-    local.set 5
-    local.field 0 13 3
+    local.set 5   ; $cast_26
+    local.get 2   ; __buf_0
+    local.get 5   ; $cast_26
+    string.const 9   ; "ppm: pixels is "
+    call 4   ; std_core$write_string_at
+    local.set 5   ; $cast_26
+    local.field 0 13 3   ; arg 0.pixels
     array.len
     usize.to_i64
-    local.set 4
-    local.get 2
-    local.get 5
-    local.get 4
-    call 5
-    local.set 5
-    local.get 2
-    local.get 5
-    string.const 10
-    call 4
-    local.set 5
-    local.get 3
+    local.set 4   ; $cast_18
+    local.get 2   ; __buf_0
+    local.get 5   ; $cast_26
+    local.get 4   ; $cast_18
+    call 5   ; std_core$write_unsigned
+    local.set 5   ; $cast_26
+    local.get 2   ; __buf_0
+    local.get 5   ; $cast_26
+    string.const 10   ; " bytes, expected "
+    call 4   ; std_core$write_string_at
+    local.set 5   ; $cast_26
+    local.get 3   ; __off_1
     usize.to_i64
-    local.set 4
-    local.get 2
-    local.get 5
-    local.get 4
-    call 5
-    local.set 5
-    local.get 2
-    local.get 5
-    call 3
-    struct.new 15
+    local.set 4   ; $cast_18
+    local.get 2   ; __buf_0
+    local.get 5   ; $cast_26
+    local.get 4   ; $cast_18
+    call 5   ; std_core$write_unsigned
+    local.set 5   ; $cast_26
+    local.get 2   ; __buf_0
+    local.get 5   ; $cast_26
+    call 3   ; std_core$finish_buffer
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L2
   i64.const 66
-  call 2
-  local.set 2
+  call 2   ; std_core$new_byte_buffer
+  local.set 2   ; __buf_0
   i64.const 0
-  local.set 3
-  local.get 2
-  local.get 3
-  string.const 11
-  call 4
-  local.set 3
-  local.field 0 13 0
-  ref.cast 17
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 11   ; "P6\n"
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.field 0 13 0   ; arg 0.width
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 2
-  local.get 3
-  local.get 4
-  call 5
-  local.set 3
-  local.get 2
-  local.get 3
-  string.const 12
-  call 4
-  local.set 3
-  local.field 0 13 1
-  ref.cast 17
+  local.set 4   ; $cast_18
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 4   ; $cast_18
+  call 5   ; std_core$write_unsigned
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 12   ; " "
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.field 0 13 1   ; arg 0.height
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 2
-  local.get 3
-  local.get 4
-  call 5
-  local.set 3
-  local.get 2
-  local.get 3
-  string.const 7
-  call 4
-  local.set 3
-  local.field 0 13 2
-  ref.cast 17
+  local.set 4   ; $cast_18
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 4   ; $cast_18
+  call 5   ; std_core$write_unsigned
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 7   ; "\n"
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.field 0 13 2   ; arg 0.maxval
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 2
-  local.get 3
-  local.get 4
-  call 5
-  local.set 3
-  local.get 2
-  local.get 3
-  string.const 7
-  call 4
-  local.set 3
-  local.get 2
-  local.get 3
-  call 3
-  call.import 1
-  local.set 2
-  array.new 8 0
-  local.set 7
-  local.get 2
+  local.set 4   ; $cast_18
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 4   ; $cast_18
+  call 5   ; std_core$write_unsigned
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 7   ; "\n"
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 3   ; std_core$finish_buffer
+  call.import 1   ; std_core$bytes
+  local.set 2   ; __buf_0
+  array.new 8 0   ; u8[][]
+  local.set 7   ; $arr_80
+  local.get 2   ; __buf_0
   array.len
-  local.set 3
-  local.field 0 13 3
+  local.set 3   ; __off_1
+  local.field 0 13 3   ; arg 0.pixels
   array.len
-  local.set 5
-  local.get 3
-  local.get 5
+  local.set 5   ; $cast_26
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_26
   i64.add
-  local.set 3
-  local.get 7
-  local.get 3
+  local.set 3   ; __off_1
+  local.get 7   ; $arr_80
+  local.get 3   ; __off_1
   array.repeat
-  local.tee 7
-  local.get 2
+  local.tee 7   ; $arr_80
+  local.get 2   ; __buf_0
   array.push_all
-  local.field 0 13 3
-  local.set 2
-  local.get 7
-  local.get 2
+  local.field 0 13 3   ; arg 0.pixels
+  local.set 2   ; __buf_0
+  local.get 7   ; $arr_80
+  local.get 2   ; __buf_0
   array.push_all
-  local.get 7
+  local.get 7   ; $arr_80
   return
 end
 
@@ -671,281 +671,281 @@ fn 10 images_ppm$decode (ref) -> any
   local $field_117 u32
   local $field_118 u32
   local $field_119 u32
-  local.get 0
+  local.get 0   ; arg 0
   array.len
   i64.const 2
   u64.lt
   if $L0 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 0
-    array.get 8
-    ref.cast 7
+    array.get 8   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 80
     i32.ne
-    local.set 1
+    local.set 1   ; or_res
   end $L0
-  local.get 1
+  local.get 1   ; or_res
   if $L1 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 1
-    array.get 8
-    ref.cast 7
+    array.get 8   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 54
     i32.ne
-    local.set 1
+    local.set 1   ; or_res
   end $L1
-  local.get 1
+  local.get 1   ; or_res
   if $L2 void
-    string.const 13
-    struct.new 15
+    string.const 13   ; "ppm: not a P6 stream (bad magic)"
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L2
-  local.get 0
+  local.get 0   ; arg 0
   i64.const 2
-  call 12
-  local.set 2
-  local.get 0
-  local.get 2
-  call 13
-  local.set 3
-  local.field 3 18 2
-  ref.cast 3
+  call 12   ; images_ppm$skip_ws
+  local.set 2   ; p0
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  call 13   ; images_ppm$scan_uint
+  local.set 3   ; w
+  local.field 3 18 2   ; w.found
+  ref.cast 3   ; -> bool
   bool.not
   if $L3 void
-    string.const 14
-    struct.new 15
+    string.const 14   ; "ppm: missing or invalid width"
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L3
-  local.field 3 18 1
-  ref.cast 4
-  local.set 2
-  local.get 0
-  local.get 2
-  call 12
-  local.set 2
-  local.get 0
-  local.get 2
-  call 13
-  local.set 4
-  local.field 4 18 2
-  ref.cast 3
+  local.field 3 18 1   ; w.pos
+  ref.cast 4   ; -> usize
+  local.set 2   ; p0
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  call 12   ; images_ppm$skip_ws
+  local.set 2   ; p0
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  call 13   ; images_ppm$scan_uint
+  local.set 4   ; h
+  local.field 4 18 2   ; h.found
+  ref.cast 3   ; -> bool
   bool.not
   if $L4 void
-    string.const 15
-    struct.new 15
+    string.const 15   ; "ppm: missing or invalid height"
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L4
-  local.field 4 18 1
-  ref.cast 4
-  local.set 2
-  local.get 0
-  local.get 2
-  call 12
-  local.set 2
-  local.get 0
-  local.get 2
-  call 13
-  local.set 5
-  local.field 5 18 2
-  ref.cast 3
+  local.field 4 18 1   ; h.pos
+  ref.cast 4   ; -> usize
+  local.set 2   ; p0
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  call 12   ; images_ppm$skip_ws
+  local.set 2   ; p0
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  call 13   ; images_ppm$scan_uint
+  local.set 5   ; mv
+  local.field 5 18 2   ; mv.found
+  ref.cast 3   ; -> bool
   bool.not
   if $L5 void
-    string.const 16
-    struct.new 15
+    string.const 16   ; "ppm: missing or invalid maxval"
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L5
-  local.field 5 18 0
-  ref.cast 17
+  local.field 5 18 0   ; mv.value
+  ref.cast 17   ; -> u32
   i32.const 0
   i32.eq
   if $L6 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.field 5 18 0
-    ref.cast 17
+    local.field 5 18 0   ; mv.value
+    ref.cast 17   ; -> u32
     i32.const 65535
     u32.gt
-    local.set 1
+    local.set 1   ; or_res
   end $L6
-  local.get 1
+  local.get 1   ; or_res
   if $L7 void
     i64.const 58
-    call 2
-    local.set 6
+    call 2   ; std_core$new_byte_buffer
+    local.set 6   ; __buf_0
     i64.const 0
-    local.set 2
-    local.get 6
-    local.get 2
-    string.const 8
-    call 4
-    local.set 2
-    local.field 5 18 0
-    ref.cast 17
+    local.set 2   ; p0
+    local.get 6   ; __buf_0
+    local.get 2   ; p0
+    string.const 8   ; "ppm: maxval must be in 1..=65535, got "
+    call 4   ; std_core$write_string_at
+    local.set 2   ; p0
+    local.field 5 18 0   ; mv.value
+    ref.cast 17   ; -> u32
     u32.to_i64
-    local.set 7
-    local.get 6
-    local.get 2
-    local.get 7
-    call 5
-    local.set 2
-    local.get 6
-    local.get 2
-    call 3
-    struct.new 15
+    local.set 7   ; $cast_62
+    local.get 6   ; __buf_0
+    local.get 2   ; p0
+    local.get 7   ; $cast_62
+    call 5   ; std_core$write_unsigned
+    local.set 2   ; p0
+    local.get 6   ; __buf_0
+    local.get 2   ; p0
+    call 3   ; std_core$finish_buffer
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L7
-  local.field 5 18 1
-  ref.cast 4
-  local.set 2
-  local.get 0
+  local.field 5 18 1   ; mv.pos
+  ref.cast 4   ; -> usize
+  local.set 2   ; p0
+  local.get 0   ; arg 0
   array.len
-  local.set 8
-  local.get 2
-  local.get 8
+  local.set 8   ; $len_67
+  local.get 2   ; p0
+  local.get 8   ; $len_67
   u64.ge
   if $L8 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.field 5 18 1
-    ref.cast 4
-    local.set 2
-    local.get 0
-    local.get 2
-    array.get 8
-    ref.cast 7
-    call 14
+    local.field 5 18 1   ; mv.pos
+    ref.cast 4   ; -> usize
+    local.set 2   ; p0
+    local.get 0   ; arg 0
+    local.get 2   ; p0
+    array.get 8   ; u8[][]
+    ref.cast 7   ; -> u8
+    call 14   ; images_ppm$is_ws_byte
     bool.not
-    local.set 1
+    local.set 1   ; or_res
   end $L8
-  local.get 1
+  local.get 1   ; or_res
   if $L9 void
-    string.const 17
-    struct.new 15
+    string.const 17   ; "ppm: missing whitespace after maxval"
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L9
-  local.field 5 18 1
-  ref.cast 4
+  local.field 5 18 1   ; mv.pos
+  ref.cast 4   ; -> usize
   i64.const 1
   i64.add
-  local.set 2
-  local.field 5 18 0
-  ref.cast 17
-  call 11
-  local.set 8
-  local.field 3 18 0
-  ref.cast 17
+  local.set 2   ; p0
+  local.field 5 18 0   ; mv.value
+  ref.cast 17   ; -> u32
+  call 11   ; images_ppm$bytes_per_sample
+  local.set 8   ; $len_67
+  local.field 3 18 0   ; w.value
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 9
-  local.field 4 18 0
-  ref.cast 17
+  local.set 9   ; $cast_85
+  local.field 4 18 0   ; h.value
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 10
-  local.get 9
-  local.get 10
+  local.set 10   ; $cast_87
+  local.get 9   ; $cast_85
+  local.get 10   ; $cast_87
   i64.mul
   i64.const 3
   i64.mul
-  local.get 8
+  local.get 8   ; $len_67
   i64.mul
-  local.set 8
-  local.get 0
+  local.set 8   ; $len_67
+  local.get 0   ; arg 0
   array.len
-  local.get 2
+  local.get 2   ; p0
   i64.sub
-  local.tee 9
-  local.get 8
+  local.tee 9   ; $cast_85
+  local.get 8   ; $len_67
   i64.ne
   if $L10 void
     i64.const 72
-    call 2
-    local.set 6
+    call 2   ; std_core$new_byte_buffer
+    local.set 6   ; __buf_0
     i64.const 0
-    local.set 10
-    local.get 6
-    local.get 10
-    string.const 18
-    call 4
-    local.set 10
-    local.get 9
+    local.set 10   ; $cast_87
+    local.get 6   ; __buf_0
+    local.get 10   ; $cast_87
+    string.const 18   ; "ppm: raster is "
+    call 4   ; std_core$write_string_at
+    local.set 10   ; $cast_87
+    local.get 9   ; $cast_85
     usize.to_i64
-    local.set 7
-    local.get 6
-    local.get 10
-    local.get 7
-    call 5
-    local.set 10
-    local.get 6
-    local.get 10
-    string.const 10
-    call 4
-    local.set 10
-    local.get 8
+    local.set 7   ; $cast_62
+    local.get 6   ; __buf_0
+    local.get 10   ; $cast_87
+    local.get 7   ; $cast_62
+    call 5   ; std_core$write_unsigned
+    local.set 10   ; $cast_87
+    local.get 6   ; __buf_0
+    local.get 10   ; $cast_87
+    string.const 10   ; " bytes, expected "
+    call 4   ; std_core$write_string_at
+    local.set 10   ; $cast_87
+    local.get 8   ; $len_67
     usize.to_i64
-    local.set 7
-    local.get 6
-    local.get 10
-    local.get 7
-    call 5
-    local.set 10
-    local.get 6
-    local.get 10
-    call 3
-    struct.new 15
+    local.set 7   ; $cast_62
+    local.get 6   ; __buf_0
+    local.get 10   ; $cast_87
+    local.get 7   ; $cast_62
+    call 5   ; std_core$write_unsigned
+    local.set 10   ; $cast_87
+    local.get 6   ; __buf_0
+    local.get 10   ; $cast_87
+    call 3   ; std_core$finish_buffer
+    struct.new 15   ; images_ppm$PpmError
     return
   end $L10
-  array.new 8 0
-  local.get 9
+  array.new 8 0   ; u8[][]
+  local.get 9   ; $cast_85
   array.repeat
-  local.set 6
-  local.get 0
+  local.set 6   ; __buf_0
+  local.get 0   ; arg 0
   array.len
-  local.set 8
-  local.get 0
-  local.get 2
-  local.get 8
-  array.slice 8
-  local.set 11
-  local.get 6
-  local.get 11
+  local.set 8   ; $len_67
+  local.get 0   ; arg 0
+  local.get 2   ; p0
+  local.get 8   ; $len_67
+  array.slice 8   ; u8[][]
+  local.set 11   ; $slice_116
+  local.get 6   ; __buf_0
+  local.get 11   ; $slice_116
   array.push_all
-  local.field 3 18 0
-  ref.cast 17
-  local.set 12
-  local.field 4 18 0
-  ref.cast 17
-  local.set 13
-  local.field 5 18 0
-  ref.cast 17
-  local.set 14
-  local.get 12
-  local.get 13
-  local.get 14
-  local.get 6
-  struct.new 13
+  local.field 3 18 0   ; w.value
+  ref.cast 17   ; -> u32
+  local.set 12   ; $field_117
+  local.field 4 18 0   ; h.value
+  ref.cast 17   ; -> u32
+  local.set 13   ; $field_118
+  local.field 5 18 0   ; mv.value
+  ref.cast 17   ; -> u32
+  local.set 14   ; $field_119
+  local.get 12   ; $field_117
+  local.get 13   ; $field_118
+  local.get 14   ; $field_119
+  local.get 6   ; __buf_0
+  struct.new 13   ; images_ppm$Ppm
   return
 end
 
 fn 11 images_ppm$bytes_per_sample (u32) -> usize
   local if_res usize
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 256
   u32.lt
   if $L0 void
     i64.const 1
-    local.set 1
+    local.set 1   ; if_res
   else
     i64.const 2
-    local.set 1
+    local.set 1   ; if_res
   end $L0
-  local.get 1
+  local.get 1   ; if_res
   return
 end
 
@@ -954,48 +954,48 @@ fn 12 images_ppm$skip_ws (ref,usize) -> usize
   local p usize
   local b u8
   local and_res bool
-  local.get 0
+  local.get 0   ; arg 0
   array.len
-  local.set 2
-  local.get 1
-  local.set 3
+  local.set 2   ; n
+  local.get 1   ; arg 1
+  local.set 3   ; p
   block $L0 void
     loop $L1 void
-      local.get 3
-      local.get 2
+      local.get 3   ; p
+      local.get 2   ; n
       u64.lt
       if $L2 void
-        local.get 0
-        local.get 3
-        array.get 8
-        ref.cast 7
-        local.tee 4
+        local.get 0   ; arg 0
+        local.get 3   ; p
+        array.get 8   ; u8[][]
+        ref.cast 7   ; -> u8
+        local.tee 4   ; b
         i32.const 35
         i32.eq
         if $L3 void
           block $L4 void
             loop $L5 void
-              local.get 3
-              local.get 2
+              local.get 3   ; p
+              local.get 2   ; n
               u64.lt
               if $L6 void
-                local.get 0
-                local.get 3
-                array.get 8
-                ref.cast 7
+                local.get 0   ; arg 0
+                local.get 3   ; p
+                array.get 8   ; u8[][]
+                ref.cast 7   ; -> u8
                 i32.const 10
                 i32.ne
-                local.set 5
+                local.set 5   ; and_res
               else
                 bool.const false
-                local.set 5
+                local.set 5   ; and_res
               end $L6
-              local.get 5
+              local.get 5   ; and_res
               if $L7 void
-                local.get 3
+                local.get 3   ; p
                 i64.const 1
                 i64.add
-                local.set 3
+                local.set 3   ; p
                 br $L5
               else
               end $L7
@@ -1003,22 +1003,22 @@ fn 12 images_ppm$skip_ws (ref,usize) -> usize
           end $L4
           br $L1
         end $L3
-        local.get 4
-        call 14
+        local.get 4   ; b
+        call 14   ; images_ppm$is_ws_byte
         if $L8 void
-          local.get 3
+          local.get 3   ; p
           i64.const 1
           i64.add
-          local.set 3
+          local.set 3   ; p
           br $L1
         end $L8
-        local.get 3
+        local.get 3   ; p
         return
       else
       end $L2
     end $L1
   end $L0
-  local.get 3
+  local.get 3   ; p
   return
 end
 
@@ -1030,155 +1030,155 @@ fn 13 images_ppm$scan_uint (ref,usize) -> ref
   local d u32
   local $div_22 u32
   local $gt_32 bool
-  local.get 0
+  local.get 0   ; arg 0
   array.len
-  local.set 2
-  local.get 1
-  local.set 3
+  local.set 2   ; n
+  local.get 1   ; arg 1
+  local.set 3   ; p
   i32.const 0
-  local.set 4
+  local.set 4   ; v
   block $L0 void
     loop $L1 void
-      local.get 3
-      local.get 2
+      local.get 3   ; p
+      local.get 2   ; n
       u64.lt
       if $L2 void
-        local.get 0
-        local.get 3
-        array.get 8
-        ref.cast 7
-        call 15
-        local.set 5
+        local.get 0   ; arg 0
+        local.get 3   ; p
+        array.get 8   ; u8[][]
+        ref.cast 7   ; -> u8
+        call 15   ; images_ppm$is_digit_byte
+        local.set 5   ; and_res
       else
         bool.const false
-        local.set 5
+        local.set 5   ; and_res
       end $L2
-      local.get 5
+      local.get 5   ; and_res
       if $L3 void
-        local.get 0
-        local.get 3
-        array.get 8
-        ref.cast 7
+        local.get 0   ; arg 0
+        local.get 3   ; p
+        array.get 8   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 48
         i32.sub
         u8.to_i32
-        local.set 6
+        local.set 6   ; d
         i32.const -1
-        local.get 6
+        local.get 6   ; d
         i32.sub
         i32.const 10
         u32.div
-        local.set 7
-        local.get 4
-        local.get 7
+        local.set 7   ; $div_22
+        local.get 4   ; v
+        local.get 7   ; $div_22
         u32.gt
         if $L4 void
         else
-          local.get 4
+          local.get 4   ; v
           i32.const 10
           i32.mul
-          local.get 6
+          local.get 6   ; d
           i32.add
-          local.set 4
-          local.get 3
+          local.set 4   ; v
+          local.get 3   ; p
           i64.const 1
           i64.add
-          local.set 3
+          local.set 3   ; p
           br $L1
         end $L4
       else
-        local.get 3
-        local.get 1
+        local.get 3   ; p
+        local.get 1   ; arg 1
         u64.gt
-        local.set 8
-        local.get 4
-        local.get 3
-        local.get 8
-        struct.new 18
+        local.set 8   ; $gt_32
+        local.get 4   ; v
+        local.get 3   ; p
+        local.get 8   ; $gt_32
+        struct.new 18   ; images_ppm$ScanInt
         return
       end $L3
     end $L1
   end $L0
-  local.get 4
-  local.get 3
+  local.get 4   ; v
+  local.get 3   ; p
   bool.const false
-  struct.new 18
+  struct.new 18   ; images_ppm$ScanInt
   return
 end
 
 fn 14 images_ppm$is_ws_byte (u8) -> bool
   local or_res bool
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 32
   i32.eq
   if $L0 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 9
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L0
-  local.get 1
+  local.get 1   ; or_res
   if $L1 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 10
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L1
-  local.get 1
+  local.get 1   ; or_res
   if $L2 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 11
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L2
-  local.get 1
+  local.get 1   ; or_res
   if $L3 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 12
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L3
-  local.get 1
+  local.get 1   ; or_res
   if $L4 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 13
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L4
-  local.get 1
+  local.get 1   ; or_res
   return
 end
 
 fn 15 images_ppm$is_digit_byte (u8) -> bool
   local and_res bool
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 48
   u32.ge
   if $L0 void
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 57
     u32.le
-    local.set 1
+    local.set 1   ; and_res
   else
     bool.const false
-    local.set 1
+    local.set 1   ; and_res
   end $L0
-  local.get 1
+  local.get 1   ; and_res
   return
 end
 
@@ -1187,130 +1187,130 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local $call_10 usize
   local __buf_1 ref
   local $cast_19 u64
-  local.field 0 13 2
-  ref.cast 17
-  call 11
+  local.field 0 13 2   ; arg 0.maxval
+  ref.cast 17   ; -> u32
+  call 11   ; images_ppm$bytes_per_sample
   i64.const 1
   i64.eq
   if $L0 void
-    string.const 19
-    local.set 1
+    string.const 19   ; "8-bit"
+    local.set 1   ; depth
   else
-    string.const 20
-    local.set 1
+    string.const 20   ; "16-bit"
+    local.set 1   ; depth
   end $L0
-  local.get 1
-  call.import 0
-  local.set 2
+  local.get 1   ; depth
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_10
   i64.const 104
-  local.get 2
+  local.get 2   ; $call_10
   i64.add
-  call 2
-  local.set 3
+  call 2   ; std_core$new_byte_buffer
+  local.set 3   ; __buf_1
   i64.const 0
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 21
-  call 4
-  local.set 2
-  local.field 0 13 0
-  ref.cast 17
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 21   ; "Ppm "
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.field 0 13 0   ; arg 0.width
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 3
-  local.get 2
-  local.get 4
-  call 5
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 22
-  call 4
-  local.set 2
-  local.field 0 13 1
-  ref.cast 17
+  local.set 4   ; $cast_19
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_19
+  call 5   ; std_core$write_unsigned
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 22   ; "x"
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.field 0 13 1   ; arg 0.height
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 3
-  local.get 2
-  local.get 4
-  call 5
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 23
-  call 4
-  local.set 2
-  local.field 0 13 2
-  ref.cast 17
+  local.set 4   ; $cast_19
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_19
+  call 5   ; std_core$write_unsigned
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 23   ; " maxval="
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.field 0 13 2   ; arg 0.maxval
+  ref.cast 17   ; -> u32
   u32.to_i64
-  local.set 4
-  local.get 3
-  local.get 2
-  local.get 4
-  call 5
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 24
-  call 4
-  local.set 2
-  local.field 0 13 3
+  local.set 4   ; $cast_19
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_19
+  call 5   ; std_core$write_unsigned
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 24   ; " ("
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.field 0 13 3   ; arg 0.pixels
   array.len
   usize.to_i64
-  local.set 4
-  local.get 3
-  local.get 2
-  local.get 4
-  call 5
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 25
-  call 4
-  local.set 2
-  local.get 3
-  local.get 2
-  local.get 1
-  call 4
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 26
-  call 4
-  local.set 2
-  local.get 3
-  local.get 2
-  call 3
+  local.set 4   ; $cast_19
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_19
+  call 5   ; std_core$write_unsigned
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 25   ; " bytes, "
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 1   ; depth
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 26   ; ")"
+  call 4   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  call 3   ; std_core$finish_buffer
   return
 end
 
 fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0
+  local.get 0   ; arg 0
   buffer.new
   return
 end
 
 fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
-  local.get 0
-  local.get 1
-  local.get 2
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
   store_u8
   return
 end
 
 fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
 fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
   buffer_write_string
   return
 end

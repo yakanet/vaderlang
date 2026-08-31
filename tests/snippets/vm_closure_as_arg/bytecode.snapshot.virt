@@ -8,29 +8,29 @@ type 5 struct $Cell_i32 { value:2 }
 export main 1
 
 fn 0 snippet$apply (ref,i32) -> i32
-  local.get 1
-  local.get 0
-  call.indirect 1
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  call.indirect 1   ; fn
   return
 end
 
 fn 1 snippet$main () -> i32
   i32.const 5
-  struct.new 5
-  struct.new 3
-  make_closure 2 1
+  struct.new 5   ; $Cell_i32
+  struct.new 3   ; __lambda_env_2
+  make_closure 2 1   ; __lambda_1
   i32.const 7
-  call 0
+  call 0   ; snippet$apply
   return
 end
 
 fn 2 __lambda_1 (ref,i32) -> i32
   local $cell_get_3 i32
-  local.field 0 3 0
-  struct.get 5 0
-  local.set 2
-  local.get 1
-  local.get 2
+  local.field 0 3 0   ; arg 0.cap_0
+  struct.get 5 0   ; $Cell_i32.value
+  local.set 2   ; $cell_get_3
+  local.get 1   ; arg 1
+  local.get 2   ; $cell_get_3
   i32.add
   return
 end

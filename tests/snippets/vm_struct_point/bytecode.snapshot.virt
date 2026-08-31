@@ -10,16 +10,16 @@ fn 0 snippet$main () -> i32
   local $field_5 i32
   i32.const 3
   i32.const 4
-  struct.new_stack 2
-  local.set 0
-  local.field 0 2 0
-  ref.cast 1
-  local.set 1
-  local.field 0 2 1
-  ref.cast 1
-  local.set 2
-  local.get 1
-  local.get 2
+  struct.new_stack 2   ; snippet$Point
+  local.set 0   ; p
+  local.field 0 2 0   ; p.x
+  ref.cast 1   ; -> i32
+  local.set 1   ; $field_4
+  local.field 0 2 1   ; p.y
+  ref.cast 1   ; -> i32
+  local.set 2   ; $field_5
+  local.get 1   ; $field_4
+  local.get 2   ; $field_5
   i32.add
   return
 end

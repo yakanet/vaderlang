@@ -11,22 +11,22 @@ export main 0
 fn 0 snippet$main () -> i32
   local $field_7 ref
   i32.const 50
-  struct.new 6
-  struct.new 2
-  make_closure 1 4
-  struct.new 3
-  struct.get 3 0
-  local.set 0
+  struct.new 6   ; $Cell_i32
+  struct.new 2   ; __lambda_env_2
+  make_closure 1 4   ; __lambda_1
+  struct.new 3   ; snippet$Adder
+  struct.get 3 0   ; snippet$Adder.f
+  local.set 0   ; $field_7
   i32.const 3
-  local.get 0
-  call.indirect 4
+  local.get 0   ; $field_7
+  call.indirect 4   ; fn
   return
 end
 
 fn 1 __lambda_1 (ref,i32) -> i32
-  local.field 0 2 0
-  struct.get 6 0
-  local.get 1
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 6 0   ; $Cell_i32.value
+  local.get 1   ; arg 1
   i32.add
   return
 end

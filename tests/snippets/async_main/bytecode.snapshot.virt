@@ -30,29 +30,29 @@ vtable Async.resume 6 3
 export main 1
 
 fn 0 snippet$greeting () -> any
-  string.const 0
-  struct.new 6
+  string.const 0   ; "world"
+  struct.new 6   ; snippet$Ready__string
   return
 end
 
 fn 1 snippet$main () -> i32
   local $k_2 any
   null.const
-  local.set 0
-  string.const 1
-  string.const 1
-  local.get 0
+  local.set 0   ; $k_2
+  string.const 1   ; ""
+  string.const 1   ; ""
+  local.get 0   ; $k_2
   i32.const 4
-  struct.new 3
-  ref.cast 15
+  struct.new 3   ; __asyncstate_8
+  ref.cast 15   ; -> ref Async
   virtual.call 1 Async.resume
-  local.tee 0
-  type_check 5
+  local.tee 0   ; $k_2
+  type_check 5   ; std_core$Suspended
   if $L0 void
     unreachable
   else
-    local.get 0
-    ref.cast 2
+    local.get 0   ; $k_2
+    ref.cast 2   ; -> i32
     return
   end $L0
 end
@@ -65,102 +65,102 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
   local $cast_32 any
   block $L0 void
     loop $L1 void
-      local.field 0 3 3
-      ref.cast 2
+      local.field 0 3 3   ; arg 0.state
+      ref.cast 2   ; -> i32
       i32.const 0
       i32.eq
       if $L2 void
-        local.get 0
+        local.get 0   ; arg 0
         i32.const -1
-        struct.set 3 3
+        struct.set 3 3   ; __asyncstate_8.state
         br $L1
       else
       end $L2
-      local.field 0 3 3
-      ref.cast 2
+      local.field 0 3 3   ; arg 0.state
+      ref.cast 2   ; -> i32
       i32.const 1
       i32.eq
       if $L3 void
       else
-        local.field 0 3 3
-        ref.cast 2
+        local.field 0 3 3   ; arg 0.state
+        ref.cast 2   ; -> i32
         i32.const 2
         i32.eq
         if $L4 void
-          local.field 0 3 0
-          ref.cast 8
-          local.set 1
-          local.get 0
-          local.get 1
-          struct.set 3 1
-          local.field 0 3 1
-          ref.cast 8
-          local.set 2
-          string.const 2
-          local.get 2
-          call 4
-          call 9
-          local.get 0
+          local.field 0 3 0   ; arg 0.s0
+          ref.cast 8   ; -> string
+          local.set 1   ; $field_13
+          local.get 0   ; arg 0
+          local.get 1   ; $field_13
+          struct.set 3 1   ; __asyncstate_8.s1
+          local.field 0 3 1   ; arg 0.s1
+          ref.cast 8   ; -> string
+          local.set 2   ; $field_15
+          string.const 2   ; "hello, "
+          local.get 2   ; $field_15
+          call 4   ; concat_2
+          call 9   ; std_io$println__string
+          local.get 0   ; arg 0
           i32.const 1
-          struct.set 3 3
+          struct.set 3 3   ; __asyncstate_8.state
           br $L1
         end $L4
-        local.field 0 3 3
-        ref.cast 2
+        local.field 0 3 3   ; arg 0.state
+        ref.cast 2   ; -> i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 3 2
+          local.field 0 3 2   ; arg 0.awaited
           virtual.call 1 Async.resume
-          local.tee 3
-          type_check 5
+          local.tee 3   ; __resumed_2
+          type_check 5   ; std_core$Suspended
           if $L6 void
-            struct.new 5
+            struct.new 5   ; std_core$Suspended
             return
           end $L6
-          local.get 3
-          ref.cast 8
-          local.set 4
-          local.get 0
-          local.get 4
-          struct.set 3 0
-          local.get 0
+          local.get 3   ; __resumed_2
+          ref.cast 8   ; -> string
+          local.set 4   ; $cast_26
+          local.get 0   ; arg 0
+          local.get 4   ; $cast_26
+          struct.set 3 0   ; __asyncstate_8.s0
+          local.get 0   ; arg 0
           i32.const 2
-          struct.set 3 3
+          struct.set 3 3   ; __asyncstate_8.state
           br $L1
         end $L5
-        local.field 0 3 3
-        ref.cast 2
+        local.field 0 3 3   ; arg 0.state
+        ref.cast 2   ; -> i32
         i32.const 4
         i32.eq
         if $L7 void
-          call 0
-          local.set 5
-          local.get 0
-          local.get 5
-          struct.set 3 2
-          local.get 0
+          call 0   ; snippet$greeting
+          local.set 5   ; $cast_32
+          local.get 0   ; arg 0
+          local.get 5   ; $cast_32
+          struct.set 3 2   ; __asyncstate_8.awaited
+          local.get 0   ; arg 0
           i32.const 3
-          struct.set 3 3
+          struct.set 3 3   ; __asyncstate_8.state
           br $L1
         end $L7
-        struct.new 5
+        struct.new 5   ; std_core$Suspended
         return
       end $L3
     end $L1
   end $L0
-  local.get 0
+  local.get 0   ; arg 0
   i32.const -1
-  struct.set 3 3
+  struct.set 3 3   ; __asyncstate_8.state
   i32.const 0
-  box 2
+  box 2   ; -> i32
   return
 end
 
 fn 3 snippet$Ready$Async$resume__string (ref) -> any
-  local.field 0 6 0
-  ref.cast 8
-  box 8
+  local.field 0 6 0   ; arg 0.v
+  ref.cast 8   ; -> string
+  box 8   ; -> string
   return
 end
 
@@ -168,41 +168,41 @@ fn 4 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local.get 0
-  call.import 0
-  local.set 2
-  local.get 1
-  call.import 0
-  local.set 3
-  local.get 2
-  local.get 3
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
   i64.add
-  local.tee 3
-  call 5
-  local.tee 4
+  local.tee 3   ; $call_4
+  call 5   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
   i64.const 0
-  local.get 0
-  call 12
-  local.get 4
-  local.get 2
-  local.get 1
-  call 12
-  local.get 4
-  local.get 3
-  call 6
+  local.get 0   ; arg 0
+  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 6   ; std_core$finish_buffer
   return
 end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
-  local.get 0
-  call 10
+  local.get 0   ; arg 0
+  call 10   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 11
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 11   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -215,48 +215,48 @@ fn 7 std_io$write (i32,string) -> void
   local $len_11 usize
   local n i32
   local $cast_16 usize
-  local.get 1
-  call.import 1
-  local.set 2
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
   i64.const 0
-  local.set 3
+  local.set 3   ; sent
   block $L0 void
     loop $L1 void
-      local.get 2
+      local.get 2   ; buf
       array.len
-      local.set 4
-      local.get 3
-      local.get 4
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
       u64.ge
       if $L2 void
       else
-        local.get 2
+        local.get 2   ; buf
         array.len
-        local.set 5
-        local.get 2
-        local.get 3
-        local.get 5
-        array.slice 14
-        local.tee 6
+        local.set 5   ; $len_8
+        local.get 2   ; buf
+        local.get 3   ; sent
+        local.get 5   ; $len_8
+        array.slice 14   ; u8[][]
+        local.tee 6   ; chunk
         array.len
-        local.set 7
-        local.get 0
-        local.get 6
-        local.get 7
-        call 8
-        local.tee 8
+        local.set 7   ; $len_11
+        local.get 0   ; arg 0
+        local.get 6   ; chunk
+        local.get 7   ; $len_11
+        call 8   ; std_io$write_bytes
+        local.tee 8   ; n
         i32.const 0
         i32.le
         if $L3 void
           return
         end $L3
-        local.get 8
+        local.get 8   ; n
         i32.to_i64
-        local.set 9
-        local.get 3
-        local.get 9
+        local.set 9   ; $cast_16
+        local.get 3   ; sent
+        local.get 9   ; $cast_16
         i64.add
-        local.set 3
+        local.set 3   ; sent
         br $L1
       end $L2
     end $L1
@@ -266,50 +266,50 @@ end
 
 fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3
+    local.set 3   ; fd
   else
     i32.const 2
-    local.set 3
+    local.set 3   ; fd
   end $L0
-  local.get 3
-  local.get 1
-  local.get 2
-  call.import 2
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
   return
 end
 
 fn 9 std_io$println__string (string) -> void
   i32.const 0
-  local.get 0
-  call 7
+  local.get 0   ; arg 0
+  call 7   ; std_io$write
   i32.const 0
-  string.const 3
-  call 7
+  string.const 3   ; "\n"
+  call 7   ; std_io$write
   return
 end
 
 fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0
+  local.get 0   ; arg 0
   buffer.new
   return
 end
 
 fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
 fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
   buffer_write_string
   return
 end

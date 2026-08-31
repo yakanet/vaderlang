@@ -13,38 +13,38 @@ fn 0 snippet$main () -> i32
   local inc ref
   local get ref
   i32.const 0
-  struct.new 6
-  local.tee 0
-  struct.new 2
-  local.set 1
-  local.get 0
-  struct.new_stack 5
-  local.set 2
-  local.get 1
-  call 1
-  local.get 1
-  call 1
-  local.get 1
-  call 1
-  local.get 1
-  call 1
-  local.field 2 5 0
-  struct.get 6 0
+  struct.new 6   ; $Cell_i32
+  local.tee 0   ; n
+  struct.new 2   ; __lambda_env_2
+  local.set 1   ; inc
+  local.get 0   ; n
+  struct.new_stack 5   ; __lambda_env_5
+  local.set 2   ; get
+  local.get 1   ; inc
+  call 1   ; __lambda_1
+  local.get 1   ; inc
+  call 1   ; __lambda_1
+  local.get 1   ; inc
+  call 1   ; __lambda_1
+  local.get 1   ; inc
+  call 1   ; __lambda_1
+  local.field 2 5 0   ; get.cap_0
+  struct.get 6 0   ; $Cell_i32.value
   return
 end
 
 fn 1 __lambda_1 (ref) -> void
   local $field_1 any
   local $add_5 i32
-  local.field 0 2 0
-  local.set 1
-  local.field 0 2 0
-  struct.get 6 0
+  local.field 0 2 0   ; arg 0.cap_0
+  local.set 1   ; $field_1
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 6 0   ; $Cell_i32.value
   i32.const 1
   i32.add
-  local.set 2
-  local.get 1
-  local.get 2
-  struct.set 6 0
+  local.set 2   ; $add_5
+  local.get 1   ; $field_1
+  local.get 2   ; $add_5
+  struct.set 6 0   ; $Cell_i32.value
   return
 end

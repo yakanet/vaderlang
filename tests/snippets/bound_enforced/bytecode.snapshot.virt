@@ -9,8 +9,8 @@ import 0 hash std_core$string$Hash$hash (string) -> u64
 export main 0
 
 fn 0 snippet$main () -> i32
-  string.const 0
-  call 1
+  string.const 0   ; "foo"
+  call 1   ; snippet$needs_hash__string
   if $L0 void
     return.lit i32.const 0
   end $L0
@@ -18,15 +18,15 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$needs_hash__string (string) -> bool
-  local.get 0
-  call 2
+  local.get 0   ; arg 0
+  call 2   ; std_core$string$Hash$hash_vt
   i64.const 0
   u64.gt
   return
 end
 
 fn 2 std_core$string$Hash$hash_vt (string) -> u64
-  local.get 0
-  call.import 0
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$string$Hash$hash
   return
 end

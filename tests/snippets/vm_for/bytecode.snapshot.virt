@@ -7,28 +7,28 @@ fn 0 snippet$main () -> i32
   local sum i32
   local i i32
   i32.const 0
-  local.set 0
+  local.set 0   ; sum
   i32.const 1
-  local.set 1
+  local.set 1   ; i
   block $L0 void
     loop $L1 void
-      local.get 1
+      local.get 1   ; i
       i32.const 10
       i32.le
       if $L2 void
-        local.get 0
-        local.get 1
+        local.get 0   ; sum
+        local.get 1   ; i
         i32.add
-        local.set 0
-        local.get 1
+        local.set 0   ; sum
+        local.get 1   ; i
         i32.const 1
         i32.add
-        local.set 1
+        local.set 1   ; i
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 0
+  local.get 0   ; sum
   return
 end

@@ -13,26 +13,26 @@ fn 0 snippet$main () -> i32
   local c i32
   local d i32
   i32.const 0
-  struct.new 4
-  struct.new 2
-  local.tee 0
-  call 1
-  local.set 1
-  local.get 0
-  call 1
-  local.set 2
-  local.get 0
-  call 1
-  local.set 3
-  local.get 0
-  call 1
-  local.set 4
-  local.get 1
-  local.get 2
+  struct.new 4   ; $Cell_i32
+  struct.new 2   ; __lambda_env_2
+  local.tee 0   ; inc
+  call 1   ; __lambda_1
+  local.set 1   ; a
+  local.get 0   ; inc
+  call 1   ; __lambda_1
+  local.set 2   ; b
+  local.get 0   ; inc
+  call 1   ; __lambda_1
+  local.set 3   ; c
+  local.get 0   ; inc
+  call 1   ; __lambda_1
+  local.set 4   ; d
+  local.get 1   ; a
+  local.get 2   ; b
   i32.add
-  local.get 3
+  local.get 3   ; c
   i32.add
-  local.get 4
+  local.get 4   ; d
   i32.add
   return
 end
@@ -40,17 +40,17 @@ end
 fn 1 __lambda_1 (ref) -> i32
   local $field_1 any
   local $add_5 i32
-  local.field 0 2 0
-  local.set 1
-  local.field 0 2 0
-  struct.get 4 0
+  local.field 0 2 0   ; arg 0.cap_0
+  local.set 1   ; $field_1
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 4 0   ; $Cell_i32.value
   i32.const 1
   i32.add
-  local.set 2
-  local.get 1
-  local.get 2
-  struct.set 4 0
-  local.field 0 2 0
-  struct.get 4 0
+  local.set 2   ; $add_5
+  local.get 1   ; $field_1
+  local.get 2   ; $add_5
+  struct.set 4 0   ; $Cell_i32.value
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 4 0   ; $Cell_i32.value
   return
 end

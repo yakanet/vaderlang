@@ -7,11 +7,11 @@ export main 0
 fn 0 snippet$main () -> i32
   local c ref
   i32.const 0
-  struct.new_stack 2
-  local.tee 0
+  struct.new_stack 2   ; snippet$Counter
+  local.tee 0   ; c
   i32.const 100
-  struct.set_stack 2 0
-  local.field 0 2 0
-  ref.cast 1
+  struct.set_stack 2 0   ; snippet$Counter.value
+  local.field 0 2 0   ; c.value
+  ref.cast 1   ; -> i32
   return
 end

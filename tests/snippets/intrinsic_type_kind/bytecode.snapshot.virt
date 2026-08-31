@@ -9,39 +9,39 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local and_res bool
-  string.const 0
-  string.const 0
+  string.const 0   ; "primitive"
+  string.const 0   ; "primitive"
   string.eq
   if $L0 void
-    string.const 1
-    string.const 1
+    string.const 1   ; "struct"
+    string.const 1   ; "struct"
     string.eq
-    local.set 0
+    local.set 0   ; and_res
   else
     bool.const false
-    local.set 0
+    local.set 0   ; and_res
   end $L0
-  local.get 0
+  local.get 0   ; and_res
   if $L1 void
-    string.const 2
-    string.const 2
+    string.const 2   ; "array"
+    string.const 2   ; "array"
     string.eq
-    local.set 0
+    local.set 0   ; and_res
   else
     bool.const false
-    local.set 0
+    local.set 0   ; and_res
   end $L1
-  local.get 0
+  local.get 0   ; and_res
   if $L2 void
-    string.const 3
-    string.const 3
+    string.const 3   ; "tuple"
+    string.const 3   ; "tuple"
     string.eq
-    local.set 0
+    local.set 0   ; and_res
   else
     bool.const false
-    local.set 0
+    local.set 0   ; and_res
   end $L2
-  local.get 0
+  local.get 0   ; and_res
   if $L3 void
     return.lit i32.const 0
   end $L3

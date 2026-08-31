@@ -8,10 +8,10 @@ export main 0
 
 fn 0 snippet$main () -> i32
   i32.const 10
-  struct.new 4
-  struct.new_stack 2
-  struct.get 2 0
-  struct.get 4 0
+  struct.new 4   ; $Cell_i32
+  struct.new_stack 2   ; __lambda_env_2
+  struct.get 2 0   ; __lambda_env_2.cap_0
+  struct.get 4 0   ; $Cell_i32.value
   i32.const 5
   i32.add
   return
