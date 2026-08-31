@@ -120,7 +120,6 @@ export IntrinsicId :: enum(u8) {
     // std/runtime — cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
     // std/time
-    TimeNowUnixMs, TimeMonotonicNs,
     // std/math — libm transcendentals + rounding. min/max/abs/clamp are pure
     // Vader (bodied → real fns, never host imports), so they are NOT here.
     MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathPow,
@@ -191,8 +190,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$sched_arm"               { return .SchedArm }
     if mangled == r"std_runtime$sched_park"              { return .SchedPark }
 
-    if mangled == r"std_time$now_unix_ms"                { return .TimeNowUnixMs }
-    if mangled == r"std_time$monotonic_ns"               { return .TimeMonotonicNs }
 
     if mangled == r"std_math$sqrt"                       { return .MathSqrt }
     if mangled == r"std_math$sin"                        { return .MathSin }

@@ -89,6 +89,14 @@ lto_compile_flags() {
     esac
 }
 
+export_dynamic_flags() {
+    case "$(uname -s)" in
+      Darwin)     echo "-Wl,-export_dynamic" ;;
+      MINGW*|MSYS*|CYGWIN*) echo "" ;;
+      *)          echo "-rdynamic" ;;
+    esac
+}
+
 lto_link_flags() {
     case "$(cc_flavour)" in
       clang) echo "-flto=thin -O3 -Wl,-mllvm,-import-instr-limit=300" ;;
@@ -122,7 +130,7 @@ cc_link_parallel() {
     export CC_ABS UNIT_CFLAGS UNIT_OBJDIR UNIT_INCLUDES
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
-    "$CC_ABS" $unit_ldflags -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
+    "$CC_ABS" $unit_ldflags $(export_dynamic_flags) -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
 }
 
 host_target() {

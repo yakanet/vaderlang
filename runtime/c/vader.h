@@ -1352,44 +1352,16 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
  * `GetSystemTimePreciseAsFileTime` which counts 100-ns ticks from
  * 1601-01-01 (subtract the 11_644_473_600 second offset to reach
  * the Unix epoch). */
-static inline vader_i64_t vader_clock_realtime_ms(void) {
-#ifdef _WIN32
-    FILETIME ft;
-    GetSystemTimePreciseAsFileTime(&ft);
-    /* 100-ns ticks since 1601 -> ms since 1970. */
-    vader_i64_t ticks = ((vader_i64_t) ft.dwHighDateTime << 32) | (vader_i64_t) ft.dwLowDateTime;
-    return ticks / 10000 - 11644473600000LL;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000 + (vader_i64_t) (ts.tv_nsec / 1000000);
-#endif
-}
+/* Declared here, DEFINED in vader_runtime.c: `std/time` reaches them through
+ * `@extern`, so they must be real, exported symbols — the linker resolves them
+ * natively, and `vader_ffi` resolves them by name under the VM. A `static
+ * inline` would be invisible to both. */
+vader_i64_t vader_clock_realtime_ms(void);
 
 /* Monotonic nanoseconds since an arbitrary process-stable epoch. POSIX
  * routes through `CLOCK_MONOTONIC` ; Windows uses
  * `QueryPerformanceCounter` scaled by the cached tick frequency. */
-static inline vader_i64_t vader_clock_monotonic_ns(void) {
-#ifdef _WIN32
-    static LARGE_INTEGER freq = { .QuadPart = 0 };
-    if (freq.QuadPart == 0) {
-        QueryPerformanceFrequency(&freq);
-    }
-    LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
-    /* Avoid `now * 1_000_000_000` overflow by splitting via the
-     * frequency divisor — preserves resolution to the granularity
-     * of the underlying counter (~100 ns on modern Intel/AMD). */
-    vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
-    vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
-    vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
-    return whole_sec_ns + sub_sec_ns;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000000000 + (vader_i64_t) ts.tv_nsec;
-#endif
-}
+vader_i64_t vader_clock_monotonic_ns(void);
 
 /* ----------------------------------------------------------------- math */
 

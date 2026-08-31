@@ -56,8 +56,53 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         for d in extern_decls { out.append("${d}\n") }
         out.append("\n")
     }
+    // Layout assertions for every `@c_struct` a shim marshals. They compare the
+    // two `offsetof`s rather than hard-coded numbers, so `cc` — which has the
+    // real header — refuses to compile a Vader struct whose layout drifts from
+    // the C one. That is what lets the VM serialise such a struct from the VADER
+    // layout alone: it is no longer an assumption, it is an invariant `cc`
+    // enforced at build time.
+    asserts :: c_struct_layout_asserts(ctx.module.types)
+    if asserts.len() > 0 {
+        out.append("// `@c_struct` layout — checked against the real headers.\n")
+        for a in asserts { out.append("${a}\n") }
+        out.append("\n")
+    }
     for s in shims { out.append("${s}\n") }
     out.append("\n")
+}
+
+/// `_Static_assert` lines pinning each mirrored struct's size and field offsets
+/// to the C type it mirrors.
+///
+/// @param types  the module type table.
+/// @return       one line per assertion, empty when no struct mirrors a C type.
+c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
+    out: string[]! = []
+    for t in types {
+        if t !is BcStruct {
+            continue
+        }
+        if t.c_name == "" {
+            continue
+        }
+        if t.fields.len() == 0 {
+            continue
+        }
+        // Offsets are compared RELATIVE TO THE FIRST FIELD: a Vader struct is a
+        // GC object, so its fields always sit behind a `vader_obj_header_t`. The
+        // absolute offsets can never match; the field-to-field distances must.
+        vt :: struct_c_name(t.name)
+        base :: "offsetof(${vt}, f_${t.fields[0].name})"
+        cbase :: "offsetof(${t.c_name}, ${c_field_name(t.fields[0])})"
+        out.push("_Static_assert(sizeof(${t.c_name}) == sizeof(${vt}) - ${base}, \"${t.c_name} size\");")
+        for f in t.fields {
+            out.push(
+                "_Static_assert(offsetof(${t.c_name}, ${c_field_name(f)}) - ${cbase} == offsetof(${vt}, f_${f.name}) - ${base}, \"${t.c_name}.${c_field_name(f)}\");",
+            )
+        }
+    }
+    return out
 }
 
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
@@ -293,8 +338,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .SchedPark -> { return "${head} { return vader_sched_park(); }" }
 
     // std/time.
-    .TimeNowUnixMs   -> { return "${head} { return vader_clock_realtime_ms(); }" }
-    .TimeMonotonicNs -> { return "${head} { return vader_clock_monotonic_ns(); }" }
 
     // std/math.
     .MathSqrt  -> { return "${head} { return vader_math_sqrt(a0); }" }

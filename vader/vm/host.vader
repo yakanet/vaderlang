@@ -346,8 +346,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
     // the native clock through the public `now()` / `monotonic()` (this host is
     // native, so these are native calls — no VM re-dispatch, no recursion).
-    .TimeNowUnixMs   -> { return HostOk { .value = I64Val { .value = i64(now()) / 1_000_000 } } }
-    .TimeMonotonicNs -> { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
     // ---- std/math --------------------------------------------------------
     .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
     .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
@@ -939,7 +937,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
         | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
         | .IoCurrentWorkingDirectory | .IoCreateDir | .IoRemoveFile -> true
-    .TimeNowUnixMs | .TimeMonotonicNs -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.

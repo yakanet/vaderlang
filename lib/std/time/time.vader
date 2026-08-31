@@ -35,13 +35,18 @@ export Duration :: i64
 // Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC).
 // Millisecond resolution everywhere — the wall clock is intentionally
 // coarser than `monotonic_ns` so different host backends agree.
-@intrinsic
+// `@extern`, not `@intrinsic`: the runtime already owns the platform split
+// (`clock_gettime` on POSIX, `GetSystemTimePreciseAsFileTime` on Windows) and
+// answers a plain `i64`. Naming it as a foreign symbol means the linker resolves
+// it natively and `vader_ffi` resolves it by name under the VM — no struct
+// crosses, so nothing has to marshal `struct timespec`.
+@extern("vader_clock_realtime_ms")
 now_unix_ms :: fn() -> i64
 
 // Monotonic nanoseconds since an arbitrary, process-stable epoch.
 // Resolution on the TS VM is ~5 µs (`performance.now()` is browser-
 // throttled when run outside Bun/Node) ; ~10 ns on native.
-@intrinsic
+@extern("vader_clock_monotonic_ns")
 monotonic_ns :: fn() -> i64
 
 // ---- Duration constructors -----------------------------------------------

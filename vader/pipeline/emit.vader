@@ -20,6 +20,7 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "std/process"
+import "std/target"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/bytecode"
@@ -139,6 +140,25 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 ///                      to probe beside the running executable. A build DRIVER
 ///                      must pass it: the driver binary lives under the
 ///                      project's `build/`, so the probe would look there.
+/// Linker flags that EXPORT the runtime's symbols from the produced executable.
+///
+/// Without them a symbol like `vader_clock_realtime_ms` is present but invisible
+/// to `dlsym` / `GetProcAddress`, so an `@extern` naming a runtime helper links
+/// natively and fails under the VM ("symbol not found"). Exporting costs a
+/// larger symbol table and nothing else.
+///
+/// @return  the flags for this platform.
+export export_dynamic_flags :: fn() -> string[] = if current_os() == .Windows {
+    // A PE image exports through a .def / dllexport; `GetProcAddress` on the EXE
+    // finds nothing either way, which is why `vader_ffi_open("")` falls back to
+    // the C runtime there. Nothing to add.
+    []
+} else if current_os() == .Darwin {
+    ["-Wl,-export_dynamic"]
+} else {
+    ["-rdynamic"]
+}
+
 export cc_argv :: fn(
     cc: string, c_file: string, out: Path, release: bool, ldflags: string, runtime_root: string,
 ) -> string[] {
@@ -150,6 +170,7 @@ export cc_argv :: fn(
     argv.push(c_file)
     argv.push("${rt}/vader_runtime.c")
     push_ldflags(argv, ldflags)
+    argv.push_all(export_dynamic_flags())
     argv.push("-o")
     argv.push(out.as_string())
     argv.push("-lm")
