@@ -26,10 +26,70 @@ export Stream :: enum {
     Stderr,
 }
 
-// Sole host-provided I/O write primitive — appends raw UTF-8 bytes to `out`.
-// The Display-ergonomic surface lives in the four wrappers below ; `write`
-// itself stays string-typed so the runtime / VM dispatch stays tiny.
-@intrinsic write :: fn(out: Stream, msg: string) -> void
+// ---- the write syscall ----------------------------------------------------
+//
+// One symbol serves every platform: POSIX exports `write(2)`, and the Windows
+// CRT exports it too (as a deprecated alias of `_write`, which mingw and MSVC
+// both provide). Descriptors 1 and 2 mean stdout and stderr on both.
+//
+// ⚠️ It is NOT declared `@target`, though `_write` would be the tidier Windows
+// spelling. The committed seed emits every target against ONE SHARED HEADER,
+// and an `@extern` present on one target and absent on another makes those
+// headers diverge — `--seed-targets` then refuses. Supporting a per-target
+// header is a seed change of its own (see the target-model plan §10.3, which
+// scoped per-target UNITS but assumed a shared header).
+//
+// These declarations live in `std/io` rather than a `sys/io` of their own for a
+// related reason: on a native target `sys_write` is `@extern`, so it
+// contributes no function, and a module holding nothing else vanishes from the
+// emitted set — which the same check rejects.
+//
+// Not `WriteFile` either: that needs an out parameter (`LPDWORD`), which
+// `@c_pointer` is meant to express and which is not implemented yet.
+
+/// Standard output's file descriptor — 1 on POSIX and in the Windows CRT.
+export STDOUT :: 1
+
+/// Standard error's file descriptor — 2 on POSIX and in the Windows CRT.
+export STDERR :: 2
+
+/// Write up to `count` bytes of `buf` to `fd`.
+///
+/// May write FEWER than asked — a caller that wants everything out has to loop.
+///
+/// @param fd     the descriptor to write to.
+/// @param buf    the bytes to lend, for the duration of the call.
+/// @param count  how many of them to write.
+/// @return       the count written, or `-1` with the platform's error state set.
+@extern("write")
+export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
+
+// Sole I/O write primitive — appends raw UTF-8 bytes to `out`. Written in
+// Vader over `sys/io::sys_write`, which is where the platform divergence stops:
+// POSIX `write(2)` and the Windows CRT `_write` have the same shape, so this
+// body is shared and only the SYMBOL is selected by `@target`.
+//
+// `msg.bytes()` is a borrowed view over the interned bytes, so the loop lends
+// them straight to the callee — no copy, and nothing to free.
+//
+// A short write is retried; a failure is silent, which is the contract the
+// `fwrite` + `fflush` host it replaces already had.
+write :: fn(out: Stream, msg: string) -> void {
+    fd  :: if out == .Stdout { STDOUT } else { STDERR }
+    buf :: msg.bytes()
+    sent: usize = 0
+    for {
+        if sent >= buf.len() {
+            return
+        }
+        chunk :: buf[sent..<buf.len()]
+        n :: sys_write(fd, chunk, chunk.len())
+        if n <= 0 {
+            return
+        }
+        sent += usize(n)
+    }
+}
 
 // The four print wrappers are `Display`-generic. Monomorphisation keeps each
 // concrete instance separate — a `string` / primitive `msg` stays concrete

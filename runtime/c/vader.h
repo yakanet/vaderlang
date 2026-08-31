@@ -1145,7 +1145,6 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-void           vader_write(int32_t stream_tag, vader_string_t s);
 /* Byte-oriented file I/O — lossless for arbitrary binary (unlike the string
  * variants, which are codepoint/UTF-8 based). `read_file_bytes` materialises a
  * fresh owned `u8[]` (arr_type / elem_tag are its BcType indices) ; the success

@@ -106,7 +106,7 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/io
-    IoWrite, IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
+    IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
     IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
     IoCurrentWorkingDirectory, IoCreateDir, IoRemoveFile,
     // std/core string + bytes
@@ -157,7 +157,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"vader_vm$ffi_call_int_bytes"         { return .FfiCallIntBytes }
     if mangled == r"vader_vm$ffi_call_void"              { return .FfiCallVoid }
     if mangled == r"vader_vm$ffi_call_f64"               { return .FfiCallF64 }
-    if mangled == r"std_io$write"                        { return .IoWrite }
     if mangled == r"std_io$exists"                       { return .IoExists }
     if mangled == r"std_io$is_dir"                       { return .IoIsDir }
     if mangled == r"std_io$temp_dir"                     { return .IoTempDir }
@@ -283,7 +282,9 @@ import "vader/lower"
 }
 
 @test test_intrinsic_id_for :: fn() -> void {
-    assert(intrinsic_id_for(r"std_io$write") == .IoWrite, "io write")
+    // `std_io$write` is deliberately absent: it is ordinary Vader now, written
+    // over `sys/io::sys_write`.
+    assert(intrinsic_id_for(r"std_io$write") == .NotIntrinsic, "io write is no longer a host")
     assert(intrinsic_id_for(r"std_math$sqrt") == .MathSqrt, "math sqrt")
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")

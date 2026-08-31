@@ -181,35 +181,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
     match id {
-    .IoWrite -> {
-        // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
-        STDOUT :: i32(0)
-        STDERR :: i32(1)
-        tag :: read_i32(stack[arg_base], at_pc, "write stream")
-        if tag is Trap {
-            return tag
-        }
-        msg :: read_string(stack[arg_base + 1], at_pc, "write msg")
-        if msg is Trap {
-            return msg
-        }
-        stream :: tag.value
-        text :: msg.value
-        if stream != STDOUT && stream != STDERR {
-            return Trap { .message = "write at pc=${at_pc}: invalid Stream tag ${stream}" }
-        }
-        // Under the DAP debugger, program output must NOT reach fd 1/2 directly
-        // — in stdio transport that would corrupt the protocol stream. Route
-        // every write through the debug sink, which emits DAP `output` events.
-        if debug != null {
-            debug.output_sink(stream, text)
-        } else if stream == STDOUT {
-            print(text)
-        } else {
-            eprint(text)
-        }
-        return HostOk { .value = zero_value() }
-    }
     // ---- std/string family ----------------------------------------------
     .ByteLen -> {
         // Internal fold target — `s.bytes().len()` lowers to a std_core$byte_len
@@ -606,7 +577,165 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // grouped so a new IntrinsicId variant still trips T3013 here.
     .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered | .NotIntrinsic -> {}
     }
+    // A user `@extern` reaches no arm above — it names a linker symbol, not a
+    // known host. Resolve and call it dynamically rather than giving up.
+    if info.is_extern {
+        return dispatch_extern(info, stack, arg_base, at_pc, is_comptime, debug)
+    }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
+}
+
+/// Whether `symbol` is the raw write syscall behind `std/io` — `write(2)` on
+/// POSIX, `_write` in the Windows CRT (`lib/sys/io/io.vader`).
+///
+/// Two call sites need to recognise it: the comptime gate, which exempts
+/// program output, and the DAP routing below.
+///
+/// @param symbol  the import's foreign symbol name.
+/// @return        whether it is the write syscall.
+is_write_symbol :: fn(symbol: string) -> bool = symbol == "write" || symbol == "_write"
+
+/// Route a `sys_write` through the debugger's output sink instead of the real
+/// descriptor, and report the full count as written.
+///
+/// The argument shape is `sys_write(fd, buf, count)`; the sink takes a Stream
+/// ordinal, which is `fd - 1` (descriptor 1 is `Stdout`, 2 is `Stderr`).
+///
+/// @param info      the import, for its name in trap messages.
+/// @param stack     the operand stack.
+/// @param arg_base  index of the first argument.
+/// @param at_pc     program counter, for trap messages.
+/// @param debug     the attached controller.
+/// @return          the byte count, as the syscall would report it.
+debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
+    fd :: read_i64(stack[arg_base], at_pc, "sys_write fd")
+    if fd is Trap { return fd }
+    arr :: read_array(stack[arg_base + 1], at_pc, "sys_write buf")
+    if arr is Trap { return arr }
+    count :: read_i64(stack[arg_base + 2], at_pc, "sys_write count")
+    if count is Trap { return count }
+    if count.value < 0 || usize(count.value) > arr.length {
+        return Trap { .message = "sys_write at pc=${at_pc}: count ${count.value} exceeds the buffer" }
+    }
+    bs: u8[]! = []
+    for i in 0..<usize(count.value) {
+        b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
+        if b is Trap { return b }
+        bs.push(u8(b.value))
+    }
+    debug.output_sink(i32(fd.value) - 1, bytes_to_string(bs))
+    return HostOk { .value = I64Val { .value = count.value } }
+}
+
+/// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
+/// and calling through a trampoline.
+///
+/// What is covered: integer, `bool` and pointer-width parameters, plus AT MOST
+/// ONE lent byte array. Everything else — a floating parameter, a `string`, a
+/// second array — traps naming the reason, because calling with a
+/// mis-marshalled frame would corrupt the stack instead of failing.
+///
+/// The library is the running process: `BcImport` carries no library name yet,
+/// so only symbols already linked into the binary resolve. That covers libc.
+///
+/// @param info         the import, for its `extern_name` and signature.
+/// @param stack        the operand stack.
+/// @param arg_base     index of the first argument.
+/// @param at_pc        program counter, for trap messages.
+/// @param is_comptime  true while a `@comptime` block is being evaluated.
+/// @param debug        the DAP controller when one is attached, else null.
+/// @return             the callee's result, or a `Trap` naming what stopped it.
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, is_comptime: bool, debug: DebugController | null) -> HostCallResult {
+    // Program OUTPUT is the one foreign call a `@comptime` block may make: it
+    // does not change the baked value, which is the exemption `IoWrite` used to
+    // carry before `write` became ordinary Vader. Everything else runs arbitrary
+    // native code and cannot bake reproducibly.
+    if is_comptime && !is_write_symbol(info.extern_name) {
+        return impure_comptime_trap(info.mangled_name)
+    }
+    params :: info.signature.params
+    if params.len() > 8 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: more than 8 arguments" }
+    }
+    // Under the DAP debugger, program output must NOT reach fd 1/2 directly —
+    // in stdio transport that would corrupt the protocol stream. This is the
+    // routing the `IoWrite` arm carried before `write` became ordinary Vader;
+    // it has to live here now, because the VM no longer sees `write` at all,
+    // only the `sys_write` beneath it.
+    if debug != null && is_write_symbol(info.extern_name) {
+        return debug_write(info, stack, arg_base, at_pc, debug)
+    }
+    lib :: ffi_open("")
+    if lib == 0 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: cannot open the running process" }
+    }
+    sym :: ffi_symbol(lib, info.extern_name)
+    if sym == 0 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
+    }
+
+    words: i64[]! = []
+    lent: u8[]! = []
+    bytes_slot := -1
+    for i in 0..<params.len() {
+        v :: stack[arg_base + i]
+        if v is ArrayVal as arr {
+            if bytes_slot >= 0 {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: only one array can be lent per call" }
+            }
+            for j in 0..<arr.length {
+                b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` byte")
+                if b is Trap { return b }
+                lent.push(u8(b.value))
+            }
+            bytes_slot = i32(i)
+            words.push(0)
+        } else if v is BoolVal as b {
+            words.push(if b.value { 1 } else { 0 })
+        } else {
+            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            if w is Trap { return w }
+            words.push(w.value)
+        }
+    }
+
+    n :: params.len()
+    if info.signature.result == bc.ValType.F64 || info.signature.result == bc.ValType.F32 {
+        if bytes_slot >= 0 {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a lent array with a floating result is not covered" }
+        }
+        return HostOk { .value = F64Val { .value = ffi_call_f64(sym, words, n) } }
+    }
+    raw :: if bytes_slot >= 0 {
+        ffi_call_int_bytes(sym, words, n, usize(bytes_slot), lent)
+    } else {
+        ffi_call_int(sym, words, n)
+    }
+    return extern_result(info.signature.result, raw)
+}
+
+/// Wrap a foreign call's raw machine result as the `Value` its declared return
+/// type calls for.
+///
+/// @param result  the import's declared result class.
+/// @param raw     the trampoline's `i64`.
+/// @return        the wrapped value.
+extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
+    if result == bc.ValType.Void {
+        return HostOk { .value = zero_value() }
+    }
+    if result == bc.ValType.Bool {
+        return HostOk { .value = BoolVal { .value = raw != 0 } }
+    }
+    // A narrow integer keeps the carrier the VM uses for its width : `i32` and
+    // below ride `I32Val`, everything wider rides `I64Val`.
+    if result == bc.ValType.I32 || result == bc.ValType.U32
+        || result == bc.ValType.I16 || result == bc.ValType.U16
+        || result == bc.ValType.I8 || result == bc.ValType.U8
+        || result == bc.ValType.Char {
+        return HostOk { .value = I32Val { .value = i32(raw) } }
+    }
+    return HostOk { .value = I64Val { .value = raw } }
 }
 
 // ---- comptime impurity gate -----------------------------------------------
@@ -631,10 +760,13 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 
 // Classify a host by comptime purity. Impure hosts read or mutate the outside
 // world (clock, environment, filesystem, stdin, subprocess, terminal) and so
-// bake non-reproducibly. `IoWrite` is deliberately PURE : writing debug output
-// to stdout doesn't change the baked value, so `println` in a `@comptime` block
-// stays legal. Exhaustive over `IntrinsicId` so a newly added host must be
-// classified here (T3013) rather than silently defaulting to servable.
+// bake non-reproducibly. Exhaustive over `IntrinsicId` so a newly added host
+// must be classified here (T3013) rather than silently defaulting to servable.
+//
+// `println` inside a `@comptime` block stays legal: writing to stdout does not
+// change the baked value, and `write` is ordinary Vader now — it reaches
+// `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
+// reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
@@ -662,7 +794,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
-    .IoWrite -> false
     .ByteLen | .ByteAt -> false
     .Bytes | .BytesToString | .StringIndexAt | .StringHash
         | .StringEquals | .StringNotEquals -> false

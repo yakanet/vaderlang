@@ -185,7 +185,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // @extern / trap tail. Exhaustive, so a new IntrinsicId trips T3013 here.
     match intrinsic_id_for(m) {
     // std/io — implemented by the runtime.
-    .IoWrite -> { return "${head} { vader_write(a0, a1); }" }
     .AbortPanic -> { return "${head} { vader_panic(a0); }" }
     .IoExists -> { return "${head} { return vader_exists(a0); }" }
     .IoIsDir -> { return "${head} { return vader_is_dir(a0); }" }

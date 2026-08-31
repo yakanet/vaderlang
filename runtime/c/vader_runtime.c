@@ -3273,21 +3273,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 /* ----------------------------------------------------------------- I/O */
 
-/* `stream_tag` mirrors `std/io::Stream` ; anything outside {Stdout, Stderr}
- * traps. The `println` / `eprintln` newline emission lives in the Vader-side
- * wrappers, not here. */
-#define VADER_STREAM_STDOUT ((int32_t) 0)
-#define VADER_STREAM_STDERR ((int32_t) 1)
-
-void vader_write(int32_t stream_tag, vader_string_t s) {
-    FILE* f;
-    if      (stream_tag == VADER_STREAM_STDOUT) f = stdout;
-    else if (stream_tag == VADER_STREAM_STDERR) f = stderr;
-    else    vader_trap("vader_write: invalid stream tag");
-    fwrite(vader_atom_data(s), 1, vader_atom_len(s), f);
-    fflush(f);
-}
-
 /* Byte-oriented file I/O. `read_file_bytes` reads the whole file into a fresh
  * owned `u8[]` (no intern, no UTF-8 reinterpretation) — `fread` lands directly
  * in the array's slots. No Vader allocation runs between `vader_array_new` and

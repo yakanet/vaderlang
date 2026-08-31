@@ -47,12 +47,12 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 # give.
 SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 
-# Every target the seed carries. All of them, including the two that have no
-# backend yet: a target costs only the units that actually differ for it (25 KB
-# with one `@target` in the closure, nothing at all today), and a seed that
-# covers a platform before the platform ships is what keeps `seed.sh check`
-# reproducible from any machine.
-SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,windows-arm64,wasi-wasm32,browser-wasm32"
+# Every target that has a backend. `wasi-wasm32` and `browser-wasm32` are out:
+# emitting for a platform nothing can compile does not make the seed more
+# portable, and it makes every `@target` group answer for a case that cannot be
+# written yet — a write syscall needs `fd_write` and an iovec array on WASI, and
+# has no meaning at all in a browser. They come back with the WASM emitter.
+SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,windows-arm64"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
