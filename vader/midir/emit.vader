@@ -32,6 +32,7 @@ import "vader/bytecode" {
 }
 import "vader/resolver/symbol"
 import "toolchain/span"
+AST :: import "toolchain/ast"
 
 // ============================================================================
 // CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG
@@ -95,7 +96,11 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
-    signature :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    base :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    // `@c_pointer` is read straight off the origin AST rather than threaded
+    // through `CFGParam`: it exists only on an `@extern`, which has no body to
+    // lower, so there is nothing for the intervening passes to carry it on.
+    signature :: with_by_address(base, ext.origin)
     import_index :: i32(ctx.imports.len())
     ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern })
     if ext.origin.symbol is Symbol as sym {
@@ -157,6 +162,41 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     ctx.type_key[s.mangled] = new_index
 }
 
+/// Copy `sig`, filling `param_by_address` from the origin declaration's
+/// `@c_pointer` decorators.
+///
+/// @param sig     the signature built from the CFG params.
+/// @param origin  the mono entry, for its source `FnDecl`.
+/// @return        the signature with the by-address vector filled.
+with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
+    d :: origin.decl
+    if d !is AST.FnDecl {
+        return sig
+    }
+    flags: bool[]! = []
+    any := false
+    for pm in d.params {
+        by_addr := false
+        for dec in pm.decorators {
+            if dec.name == "c_pointer" {
+                by_addr = true
+            }
+        }
+        if by_addr {
+            any = true
+        }
+        flags.push(by_addr)
+    }
+    if !any {
+        return sig
+    }
+    return BcSignature {
+        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
+        .result_type = sig.result_type, .param_names = sig.param_names,
+        .param_mutable = sig.param_mutable, .param_by_address = flags,
+    }
+}
+
 build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx!) -> BcSignature {
     params_val: ValType[]! = []
     param_types: i32[]! = []
@@ -171,16 +211,26 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
     return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
 }
 
-/// Whether the slot was written with a `!`.
+/// Whether the callee may write THROUGH the slot.
 ///
-/// The complement of `types::type_is_immutable`, which is exhaustive over every
-/// `Type` variant — including `TupleType`, which a hand-rolled version here
-/// missed. Deriving it keeps the two in step as the immutability model grows
-/// (the `DistinctType` phase-1 gap is documented there, once).
+/// NOT the complement of `types::type_is_immutable`: that predicate answers
+/// false for a value type because the question has no meaning there, and
+/// negating it would report a bare `i64` as mutable. Only the three reference
+/// shapes carry the bit, and only they can be written through.
+///
+/// The distinction stayed invisible while a scalar always crossed by value;
+/// `@c_pointer` makes one cross as `T*`, where the answer decides `const`.
 ///
 /// @param t  the parameter's declared type.
 /// @return   true when the callee may mutate through the slot.
-is_mutable_slot :: fn(t: Type) -> bool = !type_is_immutable(t)
+is_mutable_slot :: fn(t: Type) -> bool = match t {
+    is ArrayType  as a -> !a.immutable
+    is StructType as s -> !s.immutable
+    is TupleType  as p -> !p.immutable
+    is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
+     | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
+     | FreeCharType | NeverType | AnyType | DistinctType -> false
+}
 
 // ============================================================================
 // Project-level entry point

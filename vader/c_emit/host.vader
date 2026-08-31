@@ -57,6 +57,11 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
             // `!` decides `void*` vs `const void*`, through
             // `BcSignature.param_mutable`.
             parts.push(if param_is_mutable(imp.signature, j) { "void*" } else { "const void*" })
+        } else if is_param_by_address(imp.signature, j) {
+            // `@c_pointer`: the callee takes `T*`. `const` unless the `!` says
+            // it writes through it.
+            cty :: c_type_for_val_bare(imp.signature.params[j])
+            parts.push(if param_is_mutable(imp.signature, j) { "${cty}*" } else { "const ${cty}*" })
         } else if is_abi_nullable_pointer(types, imp.signature.param_types[j]) {
             parts.push("void*")
         } else {
@@ -128,6 +133,19 @@ param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
         return true
     }
     return sig.param_mutable[j]
+}
+
+/// Whether parameter `j` of `sig` carries `@c_pointer` — the foreign callee
+/// receives its ADDRESS rather than its value.
+///
+/// @param sig  the import's signature.
+/// @param j    the parameter index.
+/// @return     whether the shim must spill it and pass a pointer.
+is_param_by_address :: fn(sig: BcSignature, j: usize) -> bool {
+    if j >= sig.param_by_address.len() {
+        return false
+    }
+    return sig.param_by_address[j]
 }
 
 /// True when the import slot at `type_index` is a primitive-element array —
@@ -346,6 +364,12 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // `.len` is deliberately unused : the callee's length, if any, is a
             // parameter of its own (see the note on revision A in the plan).
             call_args.push(if param_is_mutable(sig, j) { "(void*) s${j}.ptr" } else { "s${j}.ptr" })
+        } else if is_param_by_address(sig, j) {
+            // Spill to a stack temporary and hand over its address. The
+            // temporary lives for the call and no longer — which is the whole
+            // contract, and why no pointer type appears in Vader.
+            lines.push("${c_type_for_val_bare(sig.params[j])} p${j} = a${j};")
+            call_args.push("&p${j}")
         } else if is_abi_nullable_pointer(types, sig.param_types[j]) {
             // The union rides as a box inside Vader; C wants a bare `void*`.
             lines.push("void* p${j} = (a${j}.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a${j}.payload.i;")

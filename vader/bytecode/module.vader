@@ -68,6 +68,13 @@ export BcSignature :: struct {
     /// this boundary on purpose (the layout is the same either way) — this
     /// vector is the deliberate exception, not a widening of the notion.
     param_mutable: bool[] = []
+    /// Per-parameter `@c_pointer`, parallel to `params`. Empty when none.
+    ///
+    /// Set only for an `@extern` import: it says the foreign callee receives the
+    /// parameter's ADDRESS rather than its value, so the shim spills it to a
+    /// stack temporary and passes `&tmp`. `param_mutable` then says whether C
+    /// writes through it.
+    param_by_address: bool[] = []
 }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit

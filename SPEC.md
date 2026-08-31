@@ -2511,6 +2511,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
+| `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit — see §12 |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2559,6 +2560,30 @@ The v1 `@load` is **replaced by `import`**.
 The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). The **first** of two arguments is the WASM module hint (`"env"` by convention) — ignored by the C-emit, consumed by future WASM-emit. Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
 
 `@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
+
+### `@c_pointer` — a parameter crossing as an address
+
+A C function often takes a pointer where the value would do: `localtime(const
+time_t *)` reads through it, `WriteFile(…, LPDWORD, …)` writes through it.
+Nothing in a Vader signature can say which — `write(fd: i32)` passes by value
+and `localtime(t: TimeT)` does not — so the fact is annotated, on the parameter:
+
+```vader
+@extern("localtime")
+localtime :: fn(@c_pointer t: TimeT) -> CPointer
+```
+
+The shim spills the argument to a stack temporary and hands over its address;
+**no pointer type ever enters Vader**. The temporary lives for the call and no
+longer.
+
+`@c_pointer` takes **no argument**: the direction is already carried by the `!`
+on the type. Without one the callee only reads through the pointer and the
+declaration emits `const T*`; with one it writes through it and emits `T*`.
+
+It is accepted **only on an `@extern` declaration** — on a fn Vader compiles a
+body for, an address has no meaning. Any other decorator on a parameter, an
+argument to `@c_pointer`, or `@c_pointer` outside an `@extern`, is `T3079`.
 
 ### Allowed signature types
 

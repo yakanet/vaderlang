@@ -361,6 +361,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             // defaults to `[]`, so a partial rebuild widens every parameter to
             // mutable with nothing to say so.
             .param_mutable = fn_.signature.param_mutable,
+            .param_by_address = fn_.signature.param_by_address,
         }
         for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
@@ -382,6 +383,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
                 .param_names = imp.signature.param_names,
                 // Carried over explicitly — see `remap_signature` in retype.vader.
                 .param_mutable = imp.signature.param_mutable,
+                .param_by_address = imp.signature.param_by_address,
             },
             .is_extern    = imp.is_extern,
         })

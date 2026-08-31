@@ -175,6 +175,7 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
         // rebuild drops it in silence — the failure mode `types.vader` records
         // for `FnParam.mutable`.
         .param_mutable = sig.param_mutable,
+        .param_by_address = sig.param_by_address,
     }
 }
 
