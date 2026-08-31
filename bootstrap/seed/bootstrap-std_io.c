@@ -33,11 +33,10 @@ vader_box_t std_io_read_file_string(vader_string_t l0) {
 }
 
 static void std_io_write(int32_t l0, vader_string_t l1) {
-    int32_t l2;
+    int32_t l2, l9;
     void* l3 = NULL;
     void* l7 = NULL;
     size_t l4, l5, l6, l8, l10;
-    ptrdiff_t l9;
     int64_t t0;
     void** gc_raw_roots[2] = { &l3, &l7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -59,10 +58,10 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
                 l7 = (void*) _a0_arr;
                 l8 = ((vader_array_t*) l7)->length;
                 l9 = vader_import_5(l2, l7, l8);
-                if ((l9 <= INT64_C(0))) {
+                if ((l9 <= INT32_C(0))) {
                     { vader_gc_top = gc_frame.prev; return; }
                 }
-                t0 = ((int64_t) (ptrdiff_t) l9);
+                t0 = ((int64_t) (int32_t) l9);
                 l10 = (size_t) (int64_t) t0;
                 t0 = (l4 + l10);
                 l4 = (size_t) (int64_t) t0;
