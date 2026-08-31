@@ -303,7 +303,13 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
     for i in 0..<imports.len() {
         imp :: imports[i]
         prefix :: if imp.is_extern { "extern " } else { "" }
-        sb.append("import ${i} ${prefix}${imp.extern_name} ${imp.mangled_name} ")
+        // The library, when the symbol does not come from the default scope.
+        // Written as `<lib>:<symbol>` because the round-trip has to preserve it:
+        // dropping it made the VM look up `GetStdHandle` in the C runtime
+        // instead of `kernel32`, so every `.virt` re-read failed on Windows
+        // while the direct run worked.
+        lib :: if imp.c_library == "" { "" } else { "${imp.c_library}:" }
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }

@@ -481,7 +481,20 @@ parse_import_decl_bc :: fn(
             .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)",
         }
     }
-    extern_name :: parts[name_i]
+    // `<lib>:<symbol>` when the symbol comes from a named library — see
+    // `write_imports`. A bare name means the default resolution scope.
+    raw_name :: parts[name_i]
+    colon :: raw_name.index_of(':', 0)
+    c_library :: if colon < 0 {
+        ""
+    } else {
+        raw_name.bytes()[0..<usize(colon)].bytes_to_string()
+    }
+    extern_name :: if colon < 0 {
+        raw_name
+    } else {
+        raw_name.bytes()[usize(colon) + 1..<raw_name.bytes().len()].bytes_to_string()
+    }
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature = if open < 0 {
         bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
@@ -493,6 +506,7 @@ parse_import_decl_bc :: fn(
         .mangled_name = mangled,
         .signature    = sig,
         .is_extern    = is_extern,
+        .c_library    = c_library,
     })
     return null
 }

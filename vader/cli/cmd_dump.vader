@@ -80,7 +80,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return run_lower_stage(file, module_filter, include_path_flags)
     }
     if stage == "bytecode" {
-        return run_bytecode_stage(file, annotate, include_path_flags)
+        return run_bytecode_stage(file, annotate, include_path_flags, parsed.string_flag("target", ""))
     }
     if stage == "cfg" {
         return run_cfg_stage(file, module_filter, include_path_flags)
@@ -288,9 +288,30 @@ run_bytecode_cfg_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
 /// side-table maps that dominate the live set — returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
 
-run_bytecode_stage :: fn(file: Path, annotate: bool, include_path_flags: string[]) -> i32 {
+/// Parse a `--target=<os-arch>` flag for a dump stage. Empty means "this
+/// machine", which the pipeline spells `null`.
+///
+/// @param flag  the raw flag value.
+/// @return      the target, `null` for the host, or why it could not be parsed.
+parse_dump_target :: fn(flag: string) -> Target | null | TargetParseError {
+    if flag == "" {
+        return null
+    }
+    return parse_target(flag)
+}
+
+run_bytecode_stage :: fn(
+    file: Path, annotate: bool, include_path_flags: string[], target_flag: string,
+) -> i32 {
+    // `--target` selects the `@target` bodies, as it does for `--stage=c` and
+    // `--stage=targets`. Without it the dump always emitted for THIS machine.
+    target :: parse_dump_target(target_flag)
+    if target is TargetParseError as e {
+        eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
+        return 2
+    }
     // The bytecode dump never renders `debug`, so skip populating it.
-    b :: prepare_cfg_bytecode(file, false)
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
     // skips lowering on a front-end error) — print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
@@ -320,14 +341,10 @@ run_c_stage :: fn(file: Path, include_path_flags: string[], target_flag: string)
     // a `@target` group in the closure (`std/io::write_bytes`) made the C — and
     // the committed snapshot — differ per platform while `--target` silently
     // changed nothing.
-    target: Target | null = null
-    if target_flag != "" {
-        parsed_target :: parse_target(target_flag)
-        if parsed_target is TargetParseError as e {
-            eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
-            return 2
-        }
-        target = parsed_target
+    target :: parse_dump_target(target_flag)
+    if target is TargetParseError as e {
+        eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
+        return 2
     }
     // `dump --stage=c` is a non-release C view : populate `debug` so the
     // emitted C carries `#line` (matches a debug `build --target=c`).
