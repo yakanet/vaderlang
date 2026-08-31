@@ -374,19 +374,23 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // roots (`void**`, for `.Ref` concrete-ref slots — scanned via scan_raw).
     root_addrs: string[]! = []
     raw_root_addrs: string[]! = []
+    atom_root_addrs: string[]! = []
     if !no_frame {
         params :: function.signature.params
         for i in 0..<params.len() {
             if params[i] == ValType.Ref {
                 raw_root_addrs.push("&l${i}")
             }
+            else if params[i] == ValType.String {
+                atom_root_addrs.push("&l${i}")
+            }
             else if is_ref_val(params[i]) {
                 root_addrs.push("&l${i}")
             }
         }
     }
-    emit_local_decls(function, out, root_addrs, raw_root_addrs, no_frame)
-    emit_tmp_decls(s, out, root_addrs, raw_root_addrs, no_frame)
+    emit_local_decls(function, out, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
+    emit_tmp_decls(s, out, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
     if !no_frame {
         if root_addrs.len() > 0 {
             out.append(
@@ -418,8 +422,21 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
                 "    void* gc_stack_objs[${nstack}] = { ${stack_addrs.join(", ")} };\n",
             )
         }
+        // Atom roots : `string` slots. Emitted last so the frame initializer stays
+        // positional, and so a fn with no string slot is byte-identical to before.
+        natoms :: atom_root_addrs.len()
+        atom_expr :: if natoms > 0 { "gc_atom_roots" } else { "NULL" }
+        if natoms > 0 {
+            out.append(
+                "    vader_string_t* gc_atom_roots[${natoms}] = { ${atom_root_addrs.join(", ")} };\n",
+            )
+        }
+        // The two atom fields are OMITTED when there is none: C partial
+        // initialisation reads them as `0` / `NULL`, so a fn holding no string
+        // emits exactly the frame it emitted before.
+        atom_tail :: if natoms > 0 { ", ${natoms}u, ${atom_expr}" } else { "" }
         out.append(
-            "    vader_gc_frame_t gc_frame = { vader_gc_top, ${root_addrs.len()}u, ${raw_root_addrs.len()}u, ${box_expr}, ${raw_expr}, ${nstack}u, ${stack_expr} };\n",
+            "    vader_gc_frame_t gc_frame = { vader_gc_top, ${root_addrs.len()}u, ${raw_root_addrs.len()}u, ${box_expr}, ${raw_expr}, ${nstack}u, ${stack_expr}${atom_tail} };\n",
         )
         out.append("    vader_gc_top = &gc_frame;\n")
     }
@@ -443,6 +460,7 @@ emit_local_decls :: fn(
     out: StringBuilder!,
     root_addrs: string[]!,
     raw_root_addrs: string[]!,
+    atom_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
     locals :: function.locals
@@ -456,7 +474,7 @@ emit_local_decls :: fn(
         vals.push(locals[i].val)
         names.push("l${param_count + i}")
     }
-    emit_slot_decls(out, vals, names, root_addrs, raw_root_addrs, no_frame)
+    emit_slot_decls(out, vals, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
 }
 
 /// Declare the materialised temps `tN`, bucketed like the locals. Reads
@@ -466,13 +484,14 @@ emit_tmp_decls :: fn(
     out: StringBuilder!,
     root_addrs: string[]!,
     raw_root_addrs: string[]!,
+    atom_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
     names: string[]! = []
     for i in 0..<s.tmp_types.len() {
         names.push("t${i}")
     }
-    emit_slot_decls(out, s.tmp_types, names, root_addrs, raw_root_addrs, no_frame)
+    emit_slot_decls(out, s.tmp_types, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
 }
 
 /// Declare a group of same-kind C slots (`vals[i]` is the ValType of
@@ -486,6 +505,7 @@ emit_slot_decls :: fn(
     names: string[],
     root_addrs: string[]!,
     raw_root_addrs: string[]!,
+    atom_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
     emitted: ValType[]! = []
@@ -502,6 +522,20 @@ emit_slot_decls :: fn(
         // No-frame fns (and primitives) get a bare decl (write-before-read).
         is_raw_ref :: val == ValType.Ref
         rooted :: is_ref_val(val) && !no_frame
+        // A `string` slot holds an ATOM ID, not a pointer, so it belongs to
+        // neither root list above — `ptrs` and `raw` are pointer arrays. It gets
+        // its own list; without it an atom's only root is the conservative stack
+        // scan, which finds the id only when `cc` spills it instead of keeping
+        // it in a register.
+        if val == ValType.String && !no_frame {
+            for j in 0..<vals.len() {
+                if vals[j] == val {
+                    out.append("    vader_string_t ${names[j]} = 0;\n")
+                    atom_root_addrs.push("&${names[j]}")
+                }
+            }
+            continue
+        }
         if is_raw_ref {
             // `void*` can't be group-declared — `void* a, b` makes `b` a bare
             // `void` (the `*` binds only to `a`). Emit one per line.

@@ -179,7 +179,8 @@ static vader_box_t snippet_step(vader_string_t l0) {
     void* t0 = NULL;
     vader_box_t* gc_roots[2] = { &l1, &l3 };
     void** gc_raw_roots[2] = { &l2, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/async_defer/_main.vader"
     vader_struct__Cell_string_t* _a0_obj = (vader_struct__Cell_string_t*) vader_gc_alloc(sizeof(vader_struct__Cell_string_t));
@@ -227,10 +228,11 @@ static int32_t snippet_main(void) {
 }
 
 static void __defer_1(void* l0) {
-    vader_string_t l1;
-    vader_string_t t0;
+    vader_string_t l1 = 0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 12 "tests/snippets/async_defer/_main.vader"
     l1 = ((vader_struct__Cell_string_t*) ((vader_struct___defer_env_2_t*) l0)->f_cap_0.payload.obj)->f_value;
@@ -241,10 +243,11 @@ static void __defer_1(void* l0) {
 }
 
 static void __defer_11(void* l0) {
-    vader_string_t l1;
-    vader_string_t t0;
+    vader_string_t l1 = 0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/async_defer/_main.vader"
     l1 = ((vader_struct__Cell_string_t*) ((vader_struct___defer_env_12_t*) l0)->f_cap_0.payload.obj)->f_value;
@@ -264,18 +267,19 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
     void* l14 = NULL;
     void* l15 = NULL;
     size_t l2, l4, l6;
-    vader_string_t l10;
+    vader_string_t l10 = 0;
     vader_box_t l11 = vader_box_null(), l13 = vader_box_null();
     vader_box_t l12;
     int32_t t0;
     size_t t1;
     int64_t t2;
     void* t3 = NULL;
-    vader_string_t t4;
+    vader_string_t t4 = 0;
     vader_box_t t5 = vader_box_null();
     vader_box_t* gc_roots[3] = { &l11, &l13, &t5 };
     void** gc_raw_roots[10] = { &l0, &l1, &l3, &l5, &l7, &l8, &l9, &l14, &l15, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 10u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l10, &t4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 10u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/async_defer/_main.vader"
     {
@@ -508,9 +512,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3;
     void* l4 = NULL;
     int64_t t0;
-    vader_string_t t1;
+    vader_string_t t1 = 0;
     void** gc_raw_roots[1] = { &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
@@ -536,9 +541,10 @@ static void* std_core_new_byte_buffer(size_t l0) {
 }
 
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
-    vader_string_t t0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 115 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
@@ -553,7 +559,8 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
     int32_t l8;
     int64_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 80 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
@@ -615,7 +622,8 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 }
 
 static void std_io_println__string(vader_string_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 111 "lib/std/io/io.vader"
     std_io_write(INT32_C(0), l0);
@@ -742,9 +750,10 @@ static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
 }
 
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) {
-    vader_string_t t0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

@@ -1200,8 +1200,8 @@ static void vader_atom_mark_roots(void) {
         }
         /* Stack objects are OFF-ARENA, so `vader_atom_mark_heap` — young
          * from-space plus the live old slots — never reaches them. Redundant
-         * with `vader_atom_mark_cstack_conservative` today, since their fields do
-         * sit on the C stack; precise here so that scan can one day go.
+         * with `vader_atom_mark_cstack_conservative`, since their fields do sit
+         * on the C stack.
          *
          * Guard each list on its own, NOT the frame: a frame carrying stack
          * objects and no box roots must not be skipped whole. */
@@ -1210,6 +1210,16 @@ static void vader_atom_mark_roots(void) {
                 char* o = (char*) fr->stack_objs[i];
                 if (o != NULL) {
                     vader_atom_mark_object(o, ((vader_obj_header_t*) o)->type_index, NULL);
+                }
+            }
+        }
+        /* String locals. A `vader_string_t` is an atom ID, not a pointer, so it
+         * cannot appear in `ptrs` or `raw` — this list is the only PRECISE root
+         * an atom has. */
+        if (fr->atoms != NULL) {
+            for (uint32_t i = 0; i < fr->natoms; i++) {
+                if (fr->atoms[i] != NULL) {
+                    vader_atom_mark(*fr->atoms[i]);
                 }
             }
         }

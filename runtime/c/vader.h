@@ -1107,6 +1107,21 @@ typedef struct vader_gc_frame {
      * initialised. Appended last so existing positional frame initializers
      * `{ prev, nrefs, nraw, ptrs, raw }` read nstack=0 / stack_objs=NULL. */
     void**                 stack_objs;
+    /* Count of atom roots — `string` locals and parameters. */
+    uint32_t               natoms;
+    /* Atom roots : `atoms[i]` addresses a `vader_string_t` local. A string is an
+     * atom ID (`uint32_t`), not a pointer, so it CANNOT live in `ptrs` or `raw`
+     * — both are pointer arrays. Without this list the only thing keeping a
+     * live atom alive was the conservative C-stack scan, which finds an ID only
+     * if the C compiler happened to spill it rather than keep it in a register.
+     * That made atom lifetime depend on register allocation: `concat_N` reads
+     * its parameters' LENGTHS, allocates the output buffer (a collection point),
+     * then reads their BYTES — and a swept parameter yielded a zeroed prefix of
+     * exactly the right length. See `.claude/plans/2026-08-31-atom-rooting.md`.
+     *
+     * Appended last so existing positional initializers read natoms=0 /
+     * atoms=NULL. */
+    vader_string_t**       atoms;
 } vader_gc_frame_t;
 
 extern vader_gc_frame_t* vader_gc_top;
