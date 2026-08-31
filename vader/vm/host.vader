@@ -546,14 +546,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if slot_arr is Trap { return slot_arr }
         lent :: read_array(stack[arg_base + 4], at_pc, "ffi_call_int_lend bytes")
         if lent is Trap { return lent }
-        slots: usize[]! = []
+        slots: i64[]! = []
         for i in 0..<slot_arr.length {
             sl :: read_i64(slot_arr.elements[slot_arr.offset + i], at_pc, "ffi_call_int_lend slot")
             if sl is Trap { return sl }
             if sl.value < 0 {
                 return Trap { .message = "ffi_call_int_lend at pc=${at_pc}: negative slot" }
             }
-            slots.push(usize(sl.value))
+            slots.push(sl.value)
         }
         // A VM array holds boxed `Value`s, not contiguous words, so the bytes
         // are materialised into a real `u8[]`. The host then takes ITS address
@@ -705,7 +705,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
 
     words: i64[]! = []
     lent: u8[]! = []
-    slots: usize[]! = []
+    slots: i64[]! = []
     borrowed: LentArray[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
@@ -723,11 +723,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
             words.push(i64(lent.len()))
-            slots.push(i)
+            slots.push(i64(i))
             push_little_endian(lent, w.value, width)
         } else if v is ArrayVal as arr {
             words.push(i64(lent.len()))
-            slots.push(i)
+            slots.push(i64(i))
             borrowed.push(LentArray { .target = arr, .at = lent.len() })
             for j in 0..<arr.length {
                 b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` byte")

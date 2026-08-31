@@ -66,11 +66,11 @@ module "vader/vm"
 /// @param slots   which slots take an address, in any order.
 /// @param bytes   the bytes to lend, for the duration of the call.
 /// @return        the callee's result, widened to `i64`.
-export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: usize[], bytes: u8[]) -> i64 {
+export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: i64[], bytes: u8[]) -> i64 {
     if slots.len() == 0 {
         return ffi_call_int(fn_ptr, args, nargs)
     }
-    return ffi_call_int_bytes(fn_ptr, args, nargs, slots[0], bytes)
+    return ffi_call_int_bytes(fn_ptr, args, nargs, usize(slots[0]), bytes)
 }
 
 /// RETIRED — declared for one bootstrap cycle so the seed can learn
@@ -116,6 +116,6 @@ import "std/testing"
     bs: u8[]! = [104, 101, 108, 108, 111, 0]
     // Slot 0 takes the address; the `0` there is its offset into `bs`.
     args: i64[]! = [0]
-    slots: usize[]! = [0]
+    slots: i64[]! = [0]
     assert_eq(ffi_call_int_lend(sym, args, 1, slots, bs), 5)
 }
