@@ -607,7 +607,27 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
 ///
 /// @param symbol  the import's foreign symbol name.
 /// @return        whether it is the write syscall.
-is_write_symbol :: fn(symbol: string) -> bool = symbol == "write" || symbol == "_write"
+is_write_symbol :: fn(symbol: string) -> bool =
+    symbol == "write" || symbol == "_write" || symbol == "WriteFile"
+
+/// Whether `symbol` is Win32's `GetStdHandle`.
+///
+/// Under the debugger it is intercepted so the handle it returns is a POSIX
+/// DESCRIPTOR (1 / 2) rather than a real Win32 handle. `debug_write` then reads
+/// the same first argument on both platforms — `WriteFile`'s first three
+/// parameters have the same shape as `write`'s — and nothing else has to know
+/// which OS produced the call.
+///
+/// @param symbol  the import's foreign symbol name.
+/// @return        whether it is `GetStdHandle`.
+is_std_handle_symbol :: fn(symbol: string) -> bool = symbol == "GetStdHandle"
+
+/// The POSIX descriptor a `GetStdHandle` argument stands for, under the
+/// debugger. `STD_OUTPUT_HANDLE` is `(DWORD) -11`, `STD_ERROR_HANDLE` `(DWORD) -12`.
+///
+/// @param which  the `nStdHandle` argument.
+/// @return       1 for stdout, 2 for stderr.
+debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } else { 1 }
 
 /// Route a `sys_write` through the debugger's output sink instead of the real
 /// descriptor, and report the full count as written.
@@ -638,6 +658,10 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
         bs.push(u8(b.value))
     }
     debug.output_sink(i32(fd.value) - 1, bytes_to_string(bs))
+    // `WriteFile` answers a bool, `write` a byte count.
+    if info.signature.result == bc.ValType.Bool {
+        return HostOk { .value = BoolVal { .value = true } }
+    }
     return HostOk { .value = I64Val { .value = count.value } }
 }
 
@@ -676,6 +700,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // routing the `IoWrite` arm carried before `write` became ordinary Vader;
     // it has to live here now, because the VM no longer sees `write` at all,
     // only the `sys_write` beneath it.
+    if debug != null && is_std_handle_symbol(info.extern_name) {
+        which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which")
+        if which is Trap { return which }
+        return HostOk { .value = I64Val { .value = debug_std_descriptor(which.value) } }
+    }
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
