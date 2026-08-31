@@ -23,7 +23,7 @@ type 20 array 1
 type 21 primitive isize
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
-type 24 struct __Tuple_69 { _0:10,_1:4 }
+type 24 struct __Tuple_68 { _0:10,_1:4 }
 type 25 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "verbose"
 string 1 "Say more"

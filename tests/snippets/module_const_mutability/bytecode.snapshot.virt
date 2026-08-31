@@ -26,7 +26,7 @@ type 23 struct __Tuple_31 { _0:9,_1:9,_2:9 }
 type 24 struct __Tuple_32 { _0:9,_1:9 }
 type 25 array 3
 type 26 array 5
-type 27 struct __Tuple_45 { _0:3,_1:4 }
+type 27 struct __Tuple_44 { _0:3,_1:4 }
 type 28 array 6
 type 29 array 9
 string 0 "hello"

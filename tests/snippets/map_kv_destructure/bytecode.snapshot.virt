@@ -12,7 +12,7 @@ type 9 primitive void
 type 10 array 4
 type 11 struct std_collections$MutableMap__string__i32 { ekeys:10,evals:12,index:12,mask:2,size:2,tombs:2 }
 type 12 array 1
-type 13 struct __Tuple_53 { _0:4,_1:1 }
+type 13 struct __Tuple_52 { _0:4,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"

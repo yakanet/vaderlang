@@ -16,7 +16,7 @@ type 13 struct std_collections$MutableMap__string__i32 { ekeys:11,evals:15,index
 type 14 struct std_collections$MutableSet__i32 { inner:12 }
 type 15 array 1
 type 16 array 2
-type 17 struct __Tuple_53 { _0:5,_1:1 }
+type 17 struct __Tuple_52 { _0:5,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"

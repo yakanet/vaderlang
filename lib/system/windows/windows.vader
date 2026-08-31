@@ -27,22 +27,26 @@ export get_std_handle :: fn(which: u32) -> Handle
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
 /// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
-/// NOT pass as null. It is a ONE-ELEMENT array rather than a `@c_pointer`
-/// scalar: an array is already a memory cell, it already carries the `!` that
-/// makes the emitted parameter `DWORD*` instead of `const DWORD*`, and the
-/// caller can READ THE COUNT BACK from it. A `@c_pointer` scalar could do none
-/// of the three without a marker `!` that T3075 rejects on a value type.
+/// NOT pass as null. It is a `@c_pointer` scalar and not a one-element array,
+/// for a reason that only holds because of `@c_header`: the prototype comes
+/// from `<windows.h>`, so nothing here has to spell `DWORD*` and the missing
+/// `const` cannot mislead. An array would be the tidier cell — it reads back —
+/// but the VM lends at most ONE per call, and `buf` has already taken it.
+///
+/// The count is therefore not read back. A synchronous `WriteFile` to a console
+/// or a file writes everything or fails; short writes belong to the overlapped
+/// path, which this does not use.
 ///
 /// @param h           the device handle.
 /// @param buf         the bytes to write.
 /// @param count       how many of them.
-/// @param written     one-element cell the callee fills with the byte count.
+/// @param written     scratch the callee fills with the byte count; unread.
 /// @param overlapped  always null here — this is the synchronous form.
 /// @return            whether the write succeeded.
 @c_header("<windows.h>")
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
-                        written: u32[]!, overlapped: CPointer | null) -> bool
+                        @c_pointer written: u32, overlapped: CPointer | null) -> bool
 
 // Clocks are absent here for symmetry with `system/posix`: their POSIX half is
 // blocked by a prototype conflict with `<time.h>`, and a Windows-only clock

@@ -12,7 +12,7 @@ type 9 primitive void
 type 10 ref _
 type 11 array 5
 type 12 array 2
-type 13 struct __Tuple_32 { _0:5,_1:10 }
+type 13 struct __Tuple_31 { _0:5,_1:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"

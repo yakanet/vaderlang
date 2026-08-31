@@ -15,8 +15,8 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 struct __Tuple_35 { _0:1,_1:1 }
-type 17 struct __Tuple_36 { _0:7,_1:7,_2:2 }
+type 16 struct __Tuple_34 { _0:1,_1:1 }
+type 17 struct __Tuple_35 { _0:7,_1:7,_2:2 }
 type 18 array 8
 string 0 "dim "
 string 1 "x"

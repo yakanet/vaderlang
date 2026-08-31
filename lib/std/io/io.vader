@@ -59,11 +59,11 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
 @target(.Windows)
 write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
     which :: if out == .Stdout { STD_OUTPUT_HANDLE } else { STD_ERROR_HANDLE }
-    // One-element cell for the callee's byte count — and it is read back, so a
-    // short write is reported rather than assumed away.
-    written: u32[]! = [0]
+    // Scratch for the callee's byte count; see `write_file` for why it is not
+    // read back.
+    written: u32 = 0
     if write_file(get_std_handle(which), buf, u32(count), written, null) {
-        return i32(written[0])
+        return i32(count)
     }
     return -1
 }
