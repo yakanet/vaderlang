@@ -12,14 +12,13 @@ type 9 array 10
 type 10 primitive u8
 type 11 primitive void
 type 12 struct std_core$Yield__char { value:6 }
-type 13 primitive isize
-type 14 array 1
-type 15 fn (6) -> 3
-type 16 struct std_string$StringChars { bytes:9,cursor:7,length:7 }
-type 17 union 0,12
-type 18 struct __Tuple_34 { _0:6,_1:7 }
-type 19 struct std_string_builder$StringBuilder { parts:14 }
-type 20 union 12,0
+type 13 array 1
+type 14 fn (6) -> 3
+type 15 struct std_string$StringChars { bytes:9,cursor:7,length:7 }
+type 16 union 0,12
+type 17 struct __Tuple_33 { _0:6,_1:7 }
+type 18 struct std_string_builder$StringBuilder { parts:13 }
+type 19 union 12,0
 string 0 "A"
 string 1 "true"
 string 2 "false"
@@ -41,10 +40,10 @@ string 17 ""
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 8 ByteAccess
-impl 16 Iterator
-impl 19 Display
+impl 15 Iterator
+impl 18 Display
 export main 7
 
 fn 0 snippet$inline_trim (string) -> string
@@ -59,7 +58,7 @@ fn 1 snippet$shout (string) -> string
   local.get 0
   local.set 1
   struct.new 5
-  make_closure 8 15
+  make_closure 8 14
   local.set 2
   local.get 1
   local.get 2
@@ -482,7 +481,7 @@ fn 14 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -524,13 +523,13 @@ fn 14 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -637,8 +636,8 @@ fn 17 std_string$replace_chars_where (string,ref,string) -> string
   local __iter_0 ref
   local __step_1 any
   local c char
-  array.new 14 0
-  struct.new 19
+  array.new 13 0
+  struct.new 18
   local.set 3
   local.get 0
   call 19
@@ -657,7 +656,7 @@ fn 17 std_string$replace_chars_where (string,ref,string) -> string
         ref.cast 6
         local.tee 6
         local.get 1
-        call.indirect 15
+        call.indirect 14
         if $L3 void
           local.get 3
           local.get 2
@@ -725,7 +724,7 @@ fn 19 std_string$chars (string) -> ref
   local.get 1
   i64.const 0
   local.get 2
-  struct.new 16
+  struct.new 15
   return
 end
 
@@ -734,10 +733,10 @@ fn 20 std_string$StringChars$Iterator$next (ref) -> any
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 7
   local.set 1
-  local.field 0 16 2
+  local.field 0 15 2
   ref.cast 7
   local.set 2
   local.get 1
@@ -748,29 +747,29 @@ fn 20 std_string$StringChars$Iterator$next (ref) -> any
     box 0
     return
   end $L0
-  local.field 0 16 0
+  local.field 0 15 0
   local.set 3
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 7
   local.set 1
   local.get 3
   local.get 1
   call 21
   local.set 3
-  local.field 3 18 0
+  local.field 3 17 0
   ref.cast 6
   local.set 4
-  local.field 3 18 1
+  local.field 3 17 1
   ref.cast 7
   local.set 1
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 7
   local.get 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 16 1
+  struct.set 15 1
   local.get 4
   struct.new 12
   return
@@ -787,7 +786,7 @@ fn 21 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 18
+  struct.new 17
   return
 end
 
@@ -1044,7 +1043,7 @@ fn 24 std_string$is_utf8_continuation (u8) -> bool
 end
 
 fn 25 std_string_builder$append (ref,string) -> void
-  local.field 0 19 0
+  local.field 0 18 0
   local.get 1
   array.push 1
   return
@@ -1053,7 +1052,7 @@ end
 fn 26 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 19 0
+  local.field 0 18 0
   local.set 2
   local.get 1
   call 12
@@ -1074,7 +1073,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 19 0
+  local.field 0 18 0
   array.len
   local.tee 1
   i64.const 0
@@ -1086,15 +1085,15 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 19 0
+    local.field 0 18 0
     i32.const 0
-    array.get 14
+    array.get 13
     ref.cast 1
     return
   end $L1
   i64.const 0
   local.set 1
-  local.field 0 19 0
+  local.field 0 18 0
   local.tee 2
   array.len
   local.set 3
@@ -1108,7 +1107,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2
         local.get 4
-        array.get 14
+        array.get 13
         ref.cast 1
         call.import 0
         local.set 5
@@ -1130,7 +1129,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 19 0
+  local.field 0 18 0
   local.tee 6
   array.len
   local.set 4
@@ -1144,7 +1143,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6
         local.get 5
-        array.get 14
+        array.get 13
         ref.cast 1
         local.set 7
         local.get 2

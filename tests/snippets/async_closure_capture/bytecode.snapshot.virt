@@ -18,16 +18,15 @@ type 15 primitive string
 type 16 primitive i64
 type 17 primitive u8
 type 18 array 17
-type 19 primitive isize
-type 20 ref Async
-type 21 struct std_async$Sleep { ms:16,deadline:16,armed:12 }
-type 22 union 0,7
-type 23 struct $Cell_i32 { value:1 }
-type 24 ref _
+type 19 ref Async
+type 20 struct std_async$Sleep { ms:16,deadline:16,armed:12 }
+type 21 union 0,7
+type 22 struct $Cell_i32 { value:1 }
+type 23 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
 import 4 sched_park std_runtime$sched_park () -> i32
@@ -35,10 +34,10 @@ import 5 panic std_abort$panic (string) -> void
 impl 5 Async
 impl 8 Async
 impl 14 ByteAccess
-impl 21 Async
+impl 20 Async
 vtable Async.resume 5 3
 vtable Async.resume 8 4
-vtable Async.resume 21 12
+vtable Async.resume 20 12
 export main 1
 
 fn 0 snippet$compute (i32) -> any
@@ -47,7 +46,7 @@ fn 0 snippet$compute (i32) -> any
   local $k_3 ref
   local $k_6 any
   local.get 0
-  struct.new 23
+  struct.new 22
   local.set 1
   null.const
   local.set 2
@@ -87,10 +86,10 @@ fn 2 __lambda_1 (ref,i32) -> void
   local.field 0 3 0
   local.set 2
   local.field 0 3 0
-  struct.get 23 0
+  struct.get 22 0
   local.set 3
   local.field 0 3 1
-  struct.get 23 0
+  struct.get 22 0
   local.set 4
   local.get 3
   local.get 4
@@ -100,7 +99,7 @@ fn 2 __lambda_1 (ref,i32) -> void
   local.set 3
   local.get 2
   local.get 3
-  struct.set 23 0
+  struct.set 22 0
   return
 end
 
@@ -253,7 +252,7 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> any
         i32.eq
         if $L12 void
           i32.const 0
-          struct.new 23
+          struct.new 22
           local.set 9
           local.get 0
           local.get 9
@@ -289,7 +288,7 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> any
   i32.const -1
   struct.set 5 6
   local.field 0 5 1
-  struct.get 23 0
+  struct.get 22 0
   box 1
   return
 end
@@ -546,7 +545,7 @@ fn 8 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -588,13 +587,13 @@ fn 8 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -621,7 +620,7 @@ fn 10 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
-  struct.new 21
+  struct.new 20
   return
 end
 
@@ -634,16 +633,16 @@ end
 fn 12 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
-  local.field 0 21 2
+  local.field 0 20 2
   ref.cast 12
   bool.not
   if $L0 void
     local.get 0
     bool.const true
-    struct.set 21 2
+    struct.set 20 2
     call.import 2
     local.set 1
-    local.field 0 21 0
+    local.field 0 20 0
     ref.cast 16
     local.set 2
     local.get 1
@@ -652,15 +651,15 @@ fn 12 std_async$Sleep$Async$resume (ref) -> any
     local.set 1
     local.get 0
     local.get 1
-    struct.set 21 1
-    local.field 0 21 1
+    struct.set 20 1
+    local.field 0 20 1
     ref.cast 16
     call.import 3
   else
   end $L0
   call.import 2
   local.set 1
-  local.field 0 21 1
+  local.field 0 20 1
   ref.cast 16
   local.set 2
   local.get 1

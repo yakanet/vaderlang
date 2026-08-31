@@ -11,9 +11,8 @@ type 8 primitive void
 type 9 union 10,0
 type 10 struct std_io$IOError { msg:2 }
 type 11 union 10,2
-type 12 primitive isize
-type 13 union 10,7
-type 14 ref Error
+type 12 union 10,7
+type 13 ref Error
 string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
@@ -25,7 +24,7 @@ string 7 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 import 4 read_file_bytes std_io$read_file_bytes (string) -> any
 import 5 write_file_bytes std_io$write_file_bytes (string,ref) -> any
 import 6 exists std_io$exists (string) -> bool
@@ -84,7 +83,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 0
   end $L0
   local.get 4
-  type_check 14
+  type_check 13
   if $L1 void
     string.const 4
     call 9
@@ -203,7 +202,7 @@ fn 8 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -245,13 +244,13 @@ fn 8 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

@@ -12,11 +12,10 @@ type 9 array 10
 type 10 primitive u8
 type 11 primitive void
 type 12 struct std_core$Yield__char { value:8 }
-type 13 primitive isize
-type 14 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
-type 15 union 0,12
-type 16 struct __Tuple_33 { _0:8,_1:3 }
-type 17 union 12,0
+type 13 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
+type 14 union 0,12
+type 15 struct __Tuple_32 { _0:8,_1:3 }
+type 16 union 12,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -32,9 +31,9 @@ string 11 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 4 ByteAccess
-impl 14 Iterator
+impl 13 Iterator
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -560,7 +559,7 @@ fn 7 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -602,13 +601,13 @@ fn 7 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -642,7 +641,7 @@ fn 9 std_string$chars (string) -> ref
   local.get 1
   i64.const 0
   local.get 2
-  struct.new 14
+  struct.new 13
   return
 end
 
@@ -651,10 +650,10 @@ fn 10 std_string$StringChars$Iterator$next (ref) -> any
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 14 1
+  local.field 0 13 1
   ref.cast 3
   local.set 1
-  local.field 0 14 2
+  local.field 0 13 2
   ref.cast 3
   local.set 2
   local.get 1
@@ -665,29 +664,29 @@ fn 10 std_string$StringChars$Iterator$next (ref) -> any
     box 0
     return
   end $L0
-  local.field 0 14 0
+  local.field 0 13 0
   local.set 3
-  local.field 0 14 1
+  local.field 0 13 1
   ref.cast 3
   local.set 1
   local.get 3
   local.get 1
   call 11
   local.set 3
-  local.field 3 16 0
+  local.field 3 15 0
   ref.cast 8
   local.set 4
-  local.field 3 16 1
+  local.field 3 15 1
   ref.cast 3
   local.set 1
-  local.field 0 14 1
+  local.field 0 13 1
   ref.cast 3
   local.get 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 14 1
+  struct.set 13 1
   local.get 4
   struct.new 12
   return
@@ -704,7 +703,7 @@ fn 11 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 16
+  struct.new 15
   return
 end
 

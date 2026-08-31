@@ -84,7 +84,7 @@ data 6 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 6 ByteAccess
 vtable Display.to_string 8 14
 vtable Display.to_string 9 15
@@ -3381,7 +3381,7 @@ fn 59 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -3423,13 +3423,13 @@ fn 59 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

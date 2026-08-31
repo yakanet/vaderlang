@@ -18,11 +18,10 @@ type 15 primitive u32
 type 16 struct __Tuple_24 { _0:14,_1:15 }
 type 17 array 11
 type 18 primitive void
-type 19 primitive isize
-type 20 union 1,21
-type 21 struct std_string$ParseError { msg:2 }
-type 22 union 6,21
-type 23 array 10
+type 19 union 1,20
+type 20 struct std_string$ParseError { msg:2 }
+type 21 union 6,20
+type 22 array 10
 string 0 "42"
 string 1 "int ok"
 string 2 "int err"
@@ -41,9 +40,9 @@ data 0 u64 hex"5ad63b92d653f4ee3f3ba10629aa3f11f865651b66b4589507c524a459cac74a7
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 7 ByteAccess
-impl 21 Error
+impl 20 Error
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -82,7 +81,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L3
         local.get 3
-        type_check 21
+        type_check 20
         if $L4 void
           string.const 6
           call 24
@@ -91,7 +90,7 @@ fn 0 snippet$main () -> i32
         return
       end $L2
       local.get 2
-      type_check 21
+      type_check 20
       if $L5 void
         string.const 6
         call 24
@@ -105,7 +104,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L6
         local.get 3
-        type_check 21
+        type_check 20
         if $L7 void
           string.const 6
           call 24
@@ -116,7 +115,7 @@ fn 0 snippet$main () -> i32
       return
     end $L1
     local.get 1
-    type_check 21
+    type_check 20
     if $L8 void
       string.const 2
       call 24
@@ -137,7 +136,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L10
         local.get 3
-        type_check 21
+        type_check 20
         if $L11 void
           string.const 6
           call 24
@@ -146,7 +145,7 @@ fn 0 snippet$main () -> i32
         return
       end $L9
       local.get 2
-      type_check 21
+      type_check 20
       if $L12 void
         string.const 6
         call 24
@@ -160,7 +159,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L13
         local.get 3
-        type_check 21
+        type_check 20
         if $L14 void
           string.const 6
           call 24
@@ -173,7 +172,7 @@ fn 0 snippet$main () -> i32
     return
   end $L0
   local.get 0
-  type_check 21
+  type_check 20
   if $L15 void
     string.const 2
     call 24
@@ -201,7 +200,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L18
         local.get 3
-        type_check 21
+        type_check 20
         if $L19 void
           string.const 6
           call 24
@@ -210,7 +209,7 @@ fn 0 snippet$main () -> i32
         return
       end $L17
       local.get 2
-      type_check 21
+      type_check 20
       if $L20 void
         string.const 6
         call 24
@@ -224,7 +223,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L21
         local.get 3
-        type_check 21
+        type_check 20
         if $L22 void
           string.const 6
           call 24
@@ -235,7 +234,7 @@ fn 0 snippet$main () -> i32
       return
     end $L16
     local.get 1
-    type_check 21
+    type_check 20
     if $L23 void
       string.const 2
       call 24
@@ -256,7 +255,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L25
         local.get 3
-        type_check 21
+        type_check 20
         if $L26 void
           string.const 6
           call 24
@@ -265,7 +264,7 @@ fn 0 snippet$main () -> i32
         return
       end $L24
       local.get 2
-      type_check 21
+      type_check 20
       if $L27 void
         string.const 6
         call 24
@@ -279,7 +278,7 @@ fn 0 snippet$main () -> i32
           return.lit i32.const 0
         end $L28
         local.get 3
-        type_check 21
+        type_check 20
         if $L29 void
           string.const 6
           call 24
@@ -1508,7 +1507,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
   i32.mul
   i32.to_i64
   local.set 3
-  data.const 0 23
+  data.const 0 22
   local.get 3
   load_slot_i64
   local.set 4
@@ -1528,7 +1527,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 23
+    data.const 0 22
     local.set 5
     local.get 3
     i64.const 1
@@ -2758,7 +2757,7 @@ fn 23 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -2800,13 +2799,13 @@ fn 23 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -2847,7 +2846,7 @@ fn 25 std_string$parse_int (string) -> any
   i64.eq
   if $L0 void
     string.const 8
-    struct.new 21
+    struct.new 20
     return
   end $L0
   i64.const 0
@@ -2871,7 +2870,7 @@ fn 25 std_string$parse_int (string) -> any
   u64.ge
   if $L2 void
     string.const 9
-    struct.new 21
+    struct.new 20
     return
   end $L2
   i64.const 0
@@ -2900,7 +2899,7 @@ fn 25 std_string$parse_int (string) -> any
         local.get 6
         if $L7 void
           string.const 10
-          struct.new 21
+          struct.new 20
           return
         end $L7
         local.get 4
@@ -2925,7 +2924,7 @@ fn 25 std_string$parse_int (string) -> any
           i64.gt
           if $L9 void
             string.const 11
-            struct.new 21
+            struct.new 20
             return
           end $L9
           i64.const 1
@@ -2941,7 +2940,7 @@ fn 25 std_string$parse_int (string) -> any
         i64.gt
         if $L10 void
           string.const 11
-          struct.new 21
+          struct.new 20
           return
         end $L10
         i64.const 1
@@ -2980,7 +2979,7 @@ fn 26 std_string$parse_float (string) -> any
     local.get 0
     string.const 13
     call 1
-    struct.new 21
+    struct.new 20
     return
   end $L0
   local.get 1

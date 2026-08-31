@@ -9,27 +9,26 @@ type 6 primitive usize
 type 7 primitive string
 type 8 primitive u8
 type 9 array 8
-type 10 primitive isize
-type 11 fn () -> 3
+type 10 fn () -> 3
 string 0 "starting"
 string 1 "outer cleanup"
 string 2 "middle cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
   struct.new 2
-  make_closure 1 11
+  make_closure 1 10
   defer.push
   struct.new 4
-  make_closure 2 11
+  make_closure 2 10
   defer.push
   struct.new 5
-  make_closure 3 11
+  make_closure 3 10
   defer.push
   string.const 0
   call 5
@@ -69,7 +68,7 @@ fn 4 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -111,13 +110,13 @@ fn 4 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

@@ -15,11 +15,10 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 primitive isize
-type 17 array 1
-type 18 array 6
-type 19 array 7
-type 20 array 8
+type 16 array 1
+type 17 array 6
+type 18 array 7
+type 19 array 8
 string 0 "xs="
 string 1 ","
 string 2 "ls2="
@@ -58,7 +57,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 5 ByteAccess
 export main 0
 
@@ -77,7 +76,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 17 3
+  array.new 16 3
   local.tee 0
   i32.const 0
   load_slot_i32
@@ -151,7 +150,7 @@ fn 0 snippet$main () -> i32
   i64.const 10
   i64.const 20
   i64.const 30
-  array.new 18 3
+  array.new 17 3
   local.tee 3
   i32.const 0
   load_slot_i64
@@ -193,7 +192,7 @@ fn 0 snippet$main () -> i32
   call 28
   f64.const 1.5 4609434218613702656
   f64.const 2.5 4612811918334230528
-  array.new 19 2
+  array.new 18 2
   local.tee 3
   i32.const 1
   load_slot_f64
@@ -222,7 +221,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 4
   local.get 10
-  array.slice 17
+  array.slice 16
   local.set 0
   i64.const 46
   call 4
@@ -757,7 +756,7 @@ fn 9 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.add
     local.set 14
-    data.const 0 20
+    data.const 0 19
     local.set 15
     local.get 13
     i32.to_i64
@@ -766,7 +765,7 @@ fn 9 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 8
-    data.const 1 20
+    data.const 1 19
     local.set 15
     local.get 13
     i32.to_i64
@@ -869,7 +868,7 @@ fn 9 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.sub
     local.set 14
-    data.const 2 20
+    data.const 2 19
     local.set 15
     local.get 2
     i32.to_i64
@@ -878,7 +877,7 @@ fn 9 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 17
-    data.const 3 20
+    data.const 3 19
     local.set 15
     local.get 2
     i32.to_i64
@@ -2160,7 +2159,7 @@ fn 27 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -2202,13 +2201,13 @@ fn 27 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

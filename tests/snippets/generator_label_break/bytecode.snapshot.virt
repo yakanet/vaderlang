@@ -18,11 +18,10 @@ type 15 primitive i64
 type 16 primitive u8
 type 17 array 16
 type 18 primitive void
-type 19 primitive isize
-type 20 ref __genstate_gen
+type 19 ref __genstate_gen
 string 0 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 3 Iterator
 impl 6 Contains
 impl 6 Iterator
@@ -632,7 +631,7 @@ fn 11 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -674,13 +673,13 @@ fn 11 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

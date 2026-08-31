@@ -8,8 +8,7 @@ type 5 primitive u64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 primitive isize
-type 10 array 4
+type 9 array 4
 string 0 "\n"
 string 1 "alpha"
 string 2 "beta"
@@ -19,7 +18,7 @@ string 5 "x"
 data 0 str "alpha" "beta" "gamma"
 data 1 str "a\\b" "x"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 3 ByteAccess
 export main 0
 
@@ -27,14 +26,14 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_13 u64
-  data.const 0 10
+  data.const 0 9
   i32.const 1
-  array.get 10
+  array.get 9
   ref.cast 4
   call 5
-  data.const 1 10
+  data.const 1 9
   i32.const 0
-  array.get 10
+  array.get 9
   ref.cast 4
   call 5
   i64.const 20
@@ -42,7 +41,7 @@ fn 0 snippet$main () -> i32
   local.set 0
   i64.const 0
   local.set 1
-  data.const 0 10
+  data.const 0 9
   array.len
   usize.to_i64
   local.set 2
@@ -163,7 +162,7 @@ fn 4 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -205,13 +204,13 @@ fn 4 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

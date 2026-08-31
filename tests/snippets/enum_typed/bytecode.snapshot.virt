@@ -6,7 +6,6 @@ type 3 primitive i32
 type 4 primitive usize
 type 5 array 1
 type 6 primitive void
-type 7 primitive isize
 string 0 "N"
 string 1 "S"
 string 2 "E"
@@ -17,7 +16,7 @@ string 6 "pop"
 string 7 "add"
 string 8 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 export main 1
 
 fn 0 snippet$describe (u8) -> string
@@ -100,7 +99,7 @@ fn 2 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -142,13 +141,13 @@ fn 2 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

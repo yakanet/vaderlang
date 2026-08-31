@@ -8,9 +8,8 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 primitive isize
-type 10 array 1
-type 11 struct __Tuple_28 { _0:1,_1:2 }
+type 9 array 1
+type 10 struct __Tuple_27 { _0:1,_1:2 }
 string 0 "score="
 string 1 "answer"
 string 2 "id="
@@ -18,7 +17,7 @@ string 3 "label="
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 4 ByteAccess
 export main 0
 
@@ -34,7 +33,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 10 3
+  array.new 9 3
   local.tee 0
   array.len
   local.set 1
@@ -83,7 +82,7 @@ fn 0 snippet$main () -> i32
   end $L0
   i32.const 42
   string.const 1
-  struct.new_stack 11
+  struct.new_stack 10
   local.set 0
   i64.const 23
   call 2
@@ -95,7 +94,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 4
   local.set 1
-  local.field 0 11 0
+  local.field 0 10 0
   ref.cast 1
   i32.to_i64
   local.set 6
@@ -108,7 +107,7 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 3
   call 7
-  local.field 0 11 1
+  local.field 0 10 1
   ref.cast 2
   local.set 7
   string.const 3
@@ -300,7 +299,7 @@ fn 6 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -342,13 +341,13 @@ fn 6 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

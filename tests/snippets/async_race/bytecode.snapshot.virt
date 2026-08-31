@@ -20,15 +20,14 @@ type 17 primitive usize
 type 18 struct std_core$Buffer {  }
 type 19 primitive u8
 type 20 array 19
-type 21 primitive isize
-type 22 struct std_async$Race__string { children:27 }
+type 21 struct std_async$Race__string { children:26 }
+type 22 ref Async
 type 23 ref Async
-type 24 ref Async
-type 25 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
-type 26 union 0,9
-type 27 array 3
-type 28 struct $Cell_string { value:1 }
-type 29 ref _
+type 24 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
+type 25 union 0,9
+type 26 array 3
+type 27 struct $Cell_string { value:1 }
+type 28 ref _
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
@@ -38,7 +37,7 @@ string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 import 3 sched_now std_runtime$sched_now () -> i64
 import 4 sched_arm std_runtime$sched_arm (i64) -> void
 import 5 sched_park std_runtime$sched_park () -> i32
@@ -46,16 +45,16 @@ import 6 panic std_abort$panic (string) -> void
 impl 7 Async
 impl 10 Async
 impl 18 ByteAccess
-impl 22 Async
-impl 25 Async
+impl 21 Async
+impl 24 Async
 vtable Async.resume 7 3
 vtable Async.resume 10 5
-vtable Async.resume 22 12
-vtable Async.resume 25 16
+vtable Async.resume 21 12
+vtable Async.resume 24 16
 vtable Async.cancel 7 4
 vtable Async.cancel 10 6
-vtable Async.cancel 22 13
-vtable Async.cancel 25 17
+vtable Async.cancel 21 13
+vtable Async.cancel 24 17
 export main 1
 
 fn 0 snippet$leg (string,i64) -> any
@@ -63,7 +62,7 @@ fn 0 snippet$leg (string,i64) -> any
   local $arr_4 ref
   local $k_5 any
   local.get 0
-  struct.new 28
+  struct.new 27
   local.set 2
   array.new 13 0
   local.set 3
@@ -88,7 +87,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 10
-  ref.cast 24
+  ref.cast 23
   call 15
   return
 end
@@ -96,7 +95,7 @@ end
 fn 2 __defer_1 (ref) -> void
   local $cell_get_3 string
   local.field 0 5 0
-  struct.get 28 0
+  struct.get 27 0
   local.set 1
   string.const 1
   local.get 1
@@ -262,7 +261,7 @@ fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
   i32.const -1
   struct.set 7 5
   local.field 0 7 0
-  struct.get 28 0
+  struct.get 27 0
   box 1
   return
 end
@@ -413,8 +412,8 @@ fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
           local.set 6
           local.get 5
           local.get 6
-          array.new 27 2
-          struct.new 22
+          array.new 26 2
+          struct.new 21
           ref.cast 15
           local.set 7
           local.get 0
@@ -502,7 +501,7 @@ fn 10 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -544,13 +543,13 @@ fn 10 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -578,7 +577,7 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
   local i usize
   local r any
   local j usize
-  local.field 0 22 0
+  local.field 0 21 0
   array.len
   local.set 1
   i64.const 0
@@ -589,9 +588,9 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
       local.get 1
       u64.lt
       if $L2 void
-        local.field 0 22 0
+        local.field 0 21 0
         local.get 2
-        array.get 27
+        array.get 26
         virtual.call 1 Async.resume
         local.tee 3
         type_check 9
@@ -614,9 +613,9 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
               local.get 2
               i64.ne
               if $L7 void
-                local.field 0 22 0
+                local.field 0 21 0
                 local.get 4
-                array.get 27
+                array.get 26
                 virtual.call 1 Async.cancel
               else
               end $L7
@@ -645,7 +644,7 @@ fn 13 std_async$Race$Async$cancel__string (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local.field 0 22 0
+  local.field 0 21 0
   local.tee 1
   array.len
   local.set 2
@@ -659,7 +658,7 @@ fn 13 std_async$Race$Async$cancel__string (ref) -> void
       if $L2 void
         local.get 1
         local.get 3
-        array.get 27
+        array.get 26
         virtual.call 1 Async.cancel
         local.get 3
         i64.const 1
@@ -677,7 +676,7 @@ fn 14 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
-  struct.new 25
+  struct.new 24
   return
 end
 
@@ -690,16 +689,16 @@ end
 fn 16 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
-  local.field 0 25 2
+  local.field 0 24 2
   ref.cast 16
   bool.not
   if $L0 void
     local.get 0
     bool.const true
-    struct.set 25 2
+    struct.set 24 2
     call.import 3
     local.set 1
-    local.field 0 25 0
+    local.field 0 24 0
     ref.cast 2
     local.set 2
     local.get 1
@@ -708,15 +707,15 @@ fn 16 std_async$Sleep$Async$resume (ref) -> any
     local.set 1
     local.get 0
     local.get 1
-    struct.set 25 1
-    local.field 0 25 1
+    struct.set 24 1
+    local.field 0 24 1
     ref.cast 2
     call.import 4
   else
   end $L0
   call.import 3
   local.set 1
-  local.field 0 25 1
+  local.field 0 24 1
   ref.cast 2
   local.set 2
   local.get 1

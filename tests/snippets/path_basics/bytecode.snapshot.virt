@@ -9,10 +9,10 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive u8
 type 8 array 7
 type 9 primitive char
-type 10 primitive isize
-type 11 array 1
+type 10 array 1
+type 11 primitive isize
 type 12 struct __Tuple_29 { _0:9,_1:5 }
-type 13 struct std_string_builder$StringBuilder { parts:11 }
+type 13 struct std_string_builder$StringBuilder { parts:10 }
 string 0 "="
 string 1 "src/parser/expr.ts"
 string 2 "path"
@@ -67,7 +67,7 @@ import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
 import 4 at std_core$string$Index$at (string,usize) -> char
-import 5 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 5 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 6 ByteAccess
 impl 13 Display
 export main 1
@@ -536,7 +536,7 @@ fn 8 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -578,13 +578,13 @@ fn 8 std_io$write (i32,string) -> void
         local.get 8
         call.import 5
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -965,7 +965,7 @@ fn 21 std_path$normalize (string) -> string
   local.get 0
   call 16
   local.set 2
-  array.new 11 0
+  array.new 10 0
   local.set 3
   i64.const 0
   local.set 4
@@ -1049,7 +1049,7 @@ fn 21 std_path$normalize (string) -> string
                 local.set 15
                 local.get 3
                 local.get 15
-                array.get 11
+                array.get 10
                 ref.cast 1
                 string.const 38
                 string.ne
@@ -1078,7 +1078,7 @@ fn 21 std_path$normalize (string) -> string
                     local.get 3
                     local.get 4
                     local.get 12
-                    array.set 11
+                    array.set 10
                   else
                     local.get 3
                     local.get 12
@@ -1102,7 +1102,7 @@ fn 21 std_path$normalize (string) -> string
                 local.get 3
                 local.get 4
                 local.get 12
-                array.set 11
+                array.set 10
               else
                 local.get 3
                 local.get 12
@@ -1129,7 +1129,7 @@ fn 21 std_path$normalize (string) -> string
       end $L4
     end $L3
   end $L2
-  array.new 11 0
+  array.new 10 0
   struct.new 13
   local.set 5
   local.get 2
@@ -1158,7 +1158,7 @@ fn 21 std_path$normalize (string) -> string
         end $L20
         local.get 3
         local.get 6
-        array.get 11
+        array.get 10
         ref.cast 1
         local.set 1
         local.get 5
@@ -1686,7 +1686,7 @@ fn 32 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   if $L1 void
     local.field 0 13 0
     i32.const 0
-    array.get 11
+    array.get 10
     ref.cast 1
     return
   end $L1
@@ -1706,7 +1706,7 @@ fn 32 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2
         local.get 4
-        array.get 11
+        array.get 10
         ref.cast 1
         call.import 0
         local.set 5
@@ -1742,7 +1742,7 @@ fn 32 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6
         local.get 5
-        array.get 11
+        array.get 10
         ref.cast 1
         local.set 7
         local.get 2

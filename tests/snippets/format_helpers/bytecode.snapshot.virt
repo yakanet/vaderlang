@@ -9,11 +9,10 @@ type 6 struct std_core$Buffer {  }
 type 7 array 8
 type 8 primitive u8
 type 9 primitive void
-type 10 primitive isize
-type 11 array 2
-type 12 primitive u64
-type 13 struct std_string_builder$StringBuilder { parts:11 }
-type 14 array 3
+type 10 array 2
+type 11 primitive u64
+type 12 struct std_string_builder$StringBuilder { parts:10 }
+type 13 array 3
 string 0 "["
 string 1 "42"
 string 2 "]"
@@ -33,9 +32,9 @@ string 15 ""
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 6 ByteAccess
-impl 13 Display
+impl 12 Display
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -449,7 +448,7 @@ fn 8 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -491,13 +490,13 @@ fn 8 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -532,8 +531,8 @@ fn 10 std_string$pad_start (string,usize,char) -> string
     local.get 0
     return
   end $L0
-  array.new 11 0
-  struct.new 13
+  array.new 10 0
+  struct.new 12
   local.set 4
   block $L1 void
     loop $L2 void
@@ -573,8 +572,8 @@ fn 11 std_string$pad_end (string,usize,char) -> string
     local.get 0
     return
   end $L0
-  array.new 11 0
-  struct.new 13
+  array.new 10 0
+  struct.new 12
   local.tee 4
   local.get 0
   call 17
@@ -654,7 +653,7 @@ fn 13 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 14
   end $L0
-  array.new 14 0
+  array.new 13 0
   local.set 1
   i64.const 16
   local.set 2
@@ -683,8 +682,8 @@ fn 13 std_numbers$to_hex (u64) -> string
       end $L3
     end $L2
   end $L1
-  array.new 11 0
-  struct.new 13
+  array.new 10 0
+  struct.new 12
   local.set 5
   local.get 1
   array.len
@@ -739,7 +738,7 @@ fn 14 std_numbers$to_bin (u64) -> string
   if $L0 void
     return.lit string.const 14
   end $L0
-  array.new 14 0
+  array.new 13 0
   local.set 1
   i64.const 2
   local.set 2
@@ -774,8 +773,8 @@ fn 14 std_numbers$to_bin (u64) -> string
       end $L3
     end $L2
   end $L1
-  array.new 11 0
-  struct.new 13
+  array.new 10 0
+  struct.new 12
   local.set 4
   local.get 1
   array.len
@@ -845,7 +844,7 @@ end
 fn 16 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 13 0
+  local.field 0 12 0
   local.set 2
   local.get 1
   call 7
@@ -858,7 +857,7 @@ fn 16 std_string_builder$append_char (ref,char) -> void
 end
 
 fn 17 std_string_builder$append (ref,string) -> void
-  local.field 0 13 0
+  local.field 0 12 0
   local.get 1
   array.push 2
   return
@@ -873,7 +872,7 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 13 0
+  local.field 0 12 0
   array.len
   local.tee 1
   i64.const 0
@@ -885,15 +884,15 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 13 0
+    local.field 0 12 0
     i32.const 0
-    array.get 11
+    array.get 10
     ref.cast 2
     return
   end $L1
   i64.const 0
   local.set 1
-  local.field 0 13 0
+  local.field 0 12 0
   local.tee 2
   array.len
   local.set 3
@@ -907,7 +906,7 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2
         local.get 4
-        array.get 11
+        array.get 10
         ref.cast 2
         call.import 0
         local.set 5
@@ -929,7 +928,7 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 13 0
+  local.field 0 12 0
   local.tee 6
   array.len
   local.set 4
@@ -943,7 +942,7 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6
         local.get 5
-        array.get 11
+        array.get 10
         ref.cast 2
         local.set 7
         local.get 2

@@ -14,9 +14,8 @@ type 11 struct __Tuple_19 { _0:7,_1:7 }
 type 12 primitive u8
 type 13 array 12
 type 14 primitive void
-type 15 primitive isize
-type 16 array 6
-type 17 array 7
+type 15 array 6
+type 16 array 7
 string 0 " "
 string 1 "nan"
 string 2 "-inf"
@@ -48,7 +47,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 5 ByteAccess
 export main 0
 
@@ -61,7 +60,7 @@ fn 0 snippet$main () -> i32
   local $call_19 string
   f64.const inf
   f64.const -inf
-  array.new 16 2
+  array.new 15 2
   local.set 0
   f64.const inf
   call 7
@@ -547,7 +546,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.add
     local.set 14
-    data.const 0 17
+    data.const 0 16
     local.set 15
     local.get 13
     i32.to_i64
@@ -556,7 +555,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 8
-    data.const 1 17
+    data.const 1 16
     local.set 15
     local.get 13
     i32.to_i64
@@ -659,7 +658,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.sub
     local.set 14
-    data.const 2 17
+    data.const 2 16
     local.set 15
     local.get 2
     i32.to_i64
@@ -668,7 +667,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 17
-    data.const 3 17
+    data.const 3 16
     local.set 15
     local.get 2
     i32.to_i64
@@ -1950,7 +1949,7 @@ fn 26 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -1992,13 +1991,13 @@ fn 26 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

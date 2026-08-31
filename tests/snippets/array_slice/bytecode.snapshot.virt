@@ -11,8 +11,7 @@ type 8 primitive u64
 type 9 primitive u8
 type 10 array 9
 type 11 primitive void
-type 12 primitive isize
-type 13 array 1
+type 12 array 1
 string 0 "s1.len = "
 string 1 "  "
 string 2 "s2.len = "
@@ -22,7 +21,7 @@ string 5 "s5.len = "
 string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 2 Contains
 impl 2 Iterator
 impl 5 ByteAccess
@@ -43,7 +42,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 13 5
+  array.new 12 5
   local.set 0
   i32.const 1
   i32.to_i64
@@ -54,7 +53,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 13
+  array.slice 12
   local.set 3
   i64.const 29
   call 1
@@ -136,7 +135,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 13
+  array.slice 12
   local.set 3
   i64.const 29
   call 1
@@ -237,7 +236,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 13
+  array.slice 12
   local.set 3
   i64.const 29
   call 1
@@ -311,7 +310,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   i64.const 0
   i64.const 3
-  array.slice 13
+  array.slice 12
   local.set 3
   i64.const 29
   call 1
@@ -391,7 +390,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 13
+  array.slice 12
   local.set 0
   i64.const 29
   call 1
@@ -656,7 +655,7 @@ fn 6 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -698,13 +697,13 @@ fn 6 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

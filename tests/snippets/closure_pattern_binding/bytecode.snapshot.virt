@@ -13,9 +13,8 @@ type 10 struct std_core$Buffer {  }
 type 11 primitive i64
 type 12 primitive u8
 type 13 array 12
-type 14 primitive isize
-type 15 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:35<>" { value:3 }
-type 16 struct $Cell_i32 { value:2 }
+type 14 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:35<>" { value:3 }
+type 15 struct $Cell_i32 { value:2 }
 string 0 "HELLO "
 string 1 "again "
 string 2 "twice = "
@@ -23,7 +22,7 @@ string 3 "world"
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 10 ByteAccess
 export main 1
 
@@ -40,11 +39,11 @@ fn 0 snippet$greet (any) -> void
   if $L0 void
     local.get 0
     ref.cast 3
-    struct.new 15
+    struct.new 14
     struct.new_stack 8
     local.set 1
     local.field 1 8 0
-    struct.get 15 0
+    struct.get 14 0
     struct.get 3 0
     ref.cast 5
     local.set 2
@@ -53,7 +52,7 @@ fn 0 snippet$greet (any) -> void
     call 2
     call 8
     local.field 1 8 0
-    struct.get 15 0
+    struct.get 14 0
     struct.get 3 0
     ref.cast 5
     local.set 2
@@ -72,7 +71,7 @@ fn 0 snippet$greet (any) -> void
   if $L1 void
     local.get 0
     ref.cast 2
-    struct.new 16
+    struct.new 15
     struct.new_stack 6
     local.set 1
     i64.const 28
@@ -86,10 +85,10 @@ fn 0 snippet$greet (any) -> void
     call 5
     local.set 4
     local.field 1 6 0
-    struct.get 16 0
+    struct.get 15 0
     local.set 5
     local.field 1 6 0
-    struct.get 16 0
+    struct.get 15 0
     local.set 6
     local.get 5
     local.get 6
@@ -301,7 +300,7 @@ fn 7 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -343,13 +342,13 @@ fn 7 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

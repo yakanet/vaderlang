@@ -15,10 +15,9 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 primitive isize
-type 17 struct __Tuple_32 { _0:1,_1:2,_2:3 }
-type 18 struct __Tuple_33 { _0:1,_1:2,_2:3,_3:7 }
-type 19 array 8
+type 16 struct __Tuple_31 { _0:1,_1:2,_2:3 }
+type 17 struct __Tuple_32 { _0:1,_1:2,_2:3,_3:7 }
+type 18 array 8
 string 0 "x"
 string 1 " "
 string 2 "q"
@@ -54,7 +53,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 5 ByteAccess
 export main 0
 
@@ -70,14 +69,80 @@ fn 0 snippet$main () -> i32
   i32.const 1
   string.const 0
   bool.const true
-  struct.new_stack 17
+  struct.new_stack 16
   local.set 0
-  local.field 0 17 1
+  local.field 0 16 1
   ref.cast 2
   local.tee 1
   call.import 0
   local.set 2
   i64.const 27
+  local.get 2
+  i64.add
+  call 4
+  local.set 3
+  i64.const 0
+  local.set 2
+  local.field 0 16 0
+  ref.cast 1
+  i32.to_i64
+  local.set 4
+  local.get 3
+  local.get 2
+  local.get 4
+  call 7
+  local.set 2
+  local.get 3
+  local.get 2
+  string.const 1
+  call 6
+  local.set 2
+  local.get 3
+  local.get 2
+  local.get 1
+  call 6
+  local.set 2
+  local.get 3
+  local.get 2
+  string.const 1
+  call 6
+  local.set 2
+  local.field 0 16 2
+  ref.cast 3
+  local.set 5
+  local.get 3
+  local.get 2
+  local.get 5
+  call 8
+  local.set 2
+  local.get 3
+  local.get 2
+  call 5
+  call 29
+  i32.const 9
+  string.const 2
+  bool.const false
+  f64.const 3.14 4614253070214989087
+  struct.new_stack 17
+  local.set 0
+  local.field 0 17 1
+  ref.cast 2
+  local.set 1
+  local.field 0 17 3
+  ref.cast 7
+  call 9
+  local.set 6
+  local.get 1
+  call.import 0
+  local.set 2
+  local.get 6
+  call.import 0
+  local.set 7
+  local.get 2
+  local.get 7
+  i64.add
+  local.set 2
+  i64.const 28
   local.get 2
   i64.add
   call 4
@@ -109,72 +174,6 @@ fn 0 snippet$main () -> i32
   call 6
   local.set 2
   local.field 0 17 2
-  ref.cast 3
-  local.set 5
-  local.get 3
-  local.get 2
-  local.get 5
-  call 8
-  local.set 2
-  local.get 3
-  local.get 2
-  call 5
-  call 29
-  i32.const 9
-  string.const 2
-  bool.const false
-  f64.const 3.14 4614253070214989087
-  struct.new_stack 18
-  local.set 0
-  local.field 0 18 1
-  ref.cast 2
-  local.set 1
-  local.field 0 18 3
-  ref.cast 7
-  call 9
-  local.set 6
-  local.get 1
-  call.import 0
-  local.set 2
-  local.get 6
-  call.import 0
-  local.set 7
-  local.get 2
-  local.get 7
-  i64.add
-  local.set 2
-  i64.const 28
-  local.get 2
-  i64.add
-  call 4
-  local.set 3
-  i64.const 0
-  local.set 2
-  local.field 0 18 0
-  ref.cast 1
-  i32.to_i64
-  local.set 4
-  local.get 3
-  local.get 2
-  local.get 4
-  call 7
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 1
-  call 6
-  local.set 2
-  local.get 3
-  local.get 2
-  local.get 1
-  call 6
-  local.set 2
-  local.get 3
-  local.get 2
-  string.const 1
-  call 6
-  local.set 2
-  local.field 0 18 2
   ref.cast 3
   local.set 5
   local.get 3
@@ -685,7 +684,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.add
     local.set 14
-    data.const 0 19
+    data.const 0 18
     local.set 15
     local.get 13
     i32.to_i64
@@ -694,7 +693,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 8
-    data.const 1 19
+    data.const 1 18
     local.set 15
     local.get 13
     i32.to_i64
@@ -797,7 +796,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.sub
     local.set 14
-    data.const 2 19
+    data.const 2 18
     local.set 15
     local.get 2
     i32.to_i64
@@ -806,7 +805,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 17
-    data.const 3 19
+    data.const 3 18
     local.set 15
     local.get 2
     i32.to_i64
@@ -2088,7 +2087,7 @@ fn 28 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -2130,13 +2129,13 @@ fn 28 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

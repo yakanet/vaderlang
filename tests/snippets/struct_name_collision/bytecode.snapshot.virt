@@ -8,16 +8,15 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 primitive isize
-type 10 struct snippet_mod_a$Box { id:1 }
-type 11 struct snippet_mod_b$Box { label:2 }
+type 9 struct snippet_mod_a$Box { id:1 }
+type 10 struct snippet_mod_b$Box { label:2 }
 string 0 "a.id = "
 string 1 "b.label = "
 string 2 "\n"
 string 3 "hello"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 4 ByteAccess
 export main 0
 
@@ -42,7 +41,7 @@ fn 0 snippet$main () -> i32
   string.const 0
   call 4
   local.set 3
-  local.field 0 10 0
+  local.field 0 9 0
   ref.cast 1
   i32.to_i64
   local.set 4
@@ -55,7 +54,7 @@ fn 0 snippet$main () -> i32
   local.get 3
   call 3
   call 7
-  local.field 1 11 0
+  local.field 1 10 0
   ref.cast 2
   local.set 5
   string.const 1
@@ -247,7 +246,7 @@ fn 6 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -289,13 +288,13 @@ fn 6 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -320,13 +319,13 @@ end
 
 fn 8 snippet_mod_a$make_a () -> ref
   i32.const 42
-  struct.new 10
+  struct.new 9
   return
 end
 
 fn 9 snippet_mod_b$make_b () -> ref
   string.const 3
-  struct.new 11
+  struct.new 10
   return
 end
 

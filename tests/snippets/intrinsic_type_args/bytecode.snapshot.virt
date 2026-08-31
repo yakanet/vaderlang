@@ -9,15 +9,14 @@ type 6 primitive u64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 primitive isize
-type 11 array 12
-type 12 ref _
+type 10 array 11
+type 11 ref _
 string 0 "pair-arg size="
 string 1 "wrapper-arg count="
 string 2 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 5 ByteAccess
 export main 0
 
@@ -36,7 +35,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  array.new 11 2
+  array.new 10 2
   local.tee 2
   array.len
   local.set 3
@@ -50,7 +49,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 2
         local.get 4
-        array.get 11
+        array.get 10
         local.set 0
         i64.const 34
         call 1
@@ -84,7 +83,7 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  array.new 11 0
+  array.new 10 0
   local.set 2
   i64.const 38
   call 1
@@ -232,7 +231,7 @@ fn 5 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -274,13 +273,13 @@ fn 5 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

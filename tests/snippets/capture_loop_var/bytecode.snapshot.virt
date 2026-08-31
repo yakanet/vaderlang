@@ -16,13 +16,12 @@ type 13 primitive usize
 type 14 struct std_core$Buffer {  }
 type 15 primitive u8
 type 16 array 15
-type 17 primitive isize
-type 18 array 11
-type 19 array 20
-type 20 fn () -> 4
-type 21 struct $Cell_string { value:11 }
-type 22 struct $Cell_i32 { value:1 }
-type 23 struct $Cell_i64 { value:10 }
+type 17 array 11
+type 18 array 19
+type 19 fn () -> 4
+type 20 struct $Cell_string { value:11 }
+type 21 struct $Cell_i32 { value:1 }
+type 22 struct $Cell_i64 { value:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -35,7 +34,7 @@ string 8 "nested n="
 string 9 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 14 ByteAccess
 export main 2
 
@@ -67,9 +66,9 @@ fn 2 snippet$main () -> i32
   string.const 0
   string.const 1
   string.const 2
-  array.new 18 3
+  array.new 17 3
   local.set 1
-  array.new 19 0
+  array.new 18 0
   local.set 0
   local.get 1
   array.len
@@ -84,15 +83,15 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 3
-        array.get 18
+        array.get 17
         ref.cast 11
-        struct.new 21
+        struct.new 20
         struct.new 3
-        make_closure 3 20
+        make_closure 3 19
         local.set 4
         local.get 0
         local.get 4
-        array.push 20
+        array.push 19
         local.get 3
         i64.const 1
         i64.add
@@ -115,8 +114,8 @@ fn 2 snippet$main () -> i32
       if $L5 void
         local.get 0
         local.get 3
-        array.get 19
-        call.indirect 20
+        array.get 18
+        call.indirect 19
         local.get 3
         i64.const 1
         i64.add
@@ -135,10 +134,10 @@ fn 2 snippet$main () -> i32
       i32.lt
       if $L8 void
         local.get 5
-        struct.new 22
+        struct.new 21
         local.tee 6
         struct.new 5
-        make_closure 4 20
+        make_closure 4 19
         defer.push
         i64.const 33
         call 10
@@ -150,7 +149,7 @@ fn 2 snippet$main () -> i32
         string.const 3
         call 12
         local.set 2
-        local.field 6 22 0
+        local.field 6 21 0
         i32.to_i64
         local.set 7
         local.get 0
@@ -172,7 +171,7 @@ fn 2 snippet$main () -> i32
       end $L8
     end $L7
   end $L6
-  array.new 19 0
+  array.new 18 0
   local.set 0
   i32.const 0
   local.set 5
@@ -184,13 +183,13 @@ fn 2 snippet$main () -> i32
       if $L11 void
         local.get 5
         call 0
-        struct.new 22
+        struct.new 21
         struct.new 6
-        make_closure 5 20
+        make_closure 5 19
         local.set 1
         local.get 0
         local.get 1
-        array.push 20
+        array.push 19
         local.get 5
         i32.const 1
         i32.add
@@ -213,8 +212,8 @@ fn 2 snippet$main () -> i32
       if $L14 void
         local.get 0
         local.get 3
-        array.get 19
-        call.indirect 20
+        array.get 18
+        call.indirect 19
         local.get 3
         i64.const 1
         i64.add
@@ -236,9 +235,9 @@ fn 2 snippet$main () -> i32
         call 1
         if $L18 void
           local.get 5
-          struct.new 22
+          struct.new 21
           struct.new 7
-          make_closure 6 20
+          make_closure 6 19
           defer.push
           defer.pop_exec 1
         else
@@ -265,7 +264,7 @@ end
 fn 3 __lambda_4 (ref) -> void
   local $cell_get_3 string
   local.field 0 3 0
-  struct.get 21 0
+  struct.get 20 0
   local.set 1
   string.const 4
   local.get 1
@@ -289,7 +288,7 @@ fn 4 __defer_17 (ref) -> void
   call 12
   local.set 2
   local.field 0 5 0
-  struct.get 22 0
+  struct.get 21 0
   i32.to_i64
   local.set 3
   local.get 1
@@ -319,7 +318,7 @@ fn 5 __lambda_25 (ref) -> void
   call 12
   local.set 2
   local.field 0 6 0
-  struct.get 22 0
+  struct.get 21 0
   i32.to_i64
   local.set 3
   local.get 1
@@ -349,7 +348,7 @@ fn 6 __defer_33 (ref) -> void
   call 12
   local.set 2
   local.field 0 7 0
-  struct.get 22 0
+  struct.get 21 0
   i32.to_i64
   local.set 3
   local.get 1
@@ -379,7 +378,7 @@ fn 7 __lambda_41 (ref) -> void
   call 12
   local.set 2
   local.field 0 8 0
-  struct.get 23 0
+  struct.get 22 0
   local.set 3
   local.get 1
   local.get 2
@@ -395,7 +394,7 @@ end
 
 fn 8 __lambda_38 (ref,i64) -> void
   local.get 1
-  struct.new 23
+  struct.new 22
   struct.new 8
   call 7
   return
@@ -583,7 +582,7 @@ fn 14 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -625,13 +624,13 @@ fn 14 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

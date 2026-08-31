@@ -12,10 +12,9 @@ type 9 struct std_core$Buffer {  }
 type 10 primitive i64
 type 11 primitive u8
 type 12 array 11
-type 13 primitive isize
-type 14 struct $Cell_string { value:6 }
-type 15 struct $Cell_i32 { value:1 }
-type 16 fn () -> 3
+type 13 struct $Cell_string { value:6 }
+type 14 struct $Cell_i32 { value:1 }
+type 15 fn () -> 3
 string 0 "captured-x"
 string 1 "--- now panic case ---"
 string 2 "result="
@@ -25,7 +24,7 @@ string 5 "panic defer in lambda saw "
 string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 9 ByteAccess
 export main 0
 
@@ -37,14 +36,14 @@ fn 0 snippet$main () -> i32
   local __off_3 usize
   local $cast_19 i64
   string.const 0
-  struct.new 14
+  struct.new 13
   local.tee 0
   struct.new 4
   call 2
   string.const 1
   call 9
   i32.const 5
-  struct.new 15
+  struct.new 14
   local.set 1
   local.get 0
   local.get 1
@@ -84,7 +83,7 @@ end
 
 fn 2 __lambda_1 (ref) -> void
   struct.new 2
-  make_closure 1 16
+  make_closure 1 15
   defer.push
   return
 end
@@ -246,7 +245,7 @@ fn 8 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -288,13 +287,13 @@ fn 8 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

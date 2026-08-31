@@ -10,8 +10,7 @@ type 7 struct std_core$Buffer {  }
 type 8 primitive i64
 type 9 primitive u64
 type 10 primitive void
-type 11 primitive isize
-type 12 array 2
+type 11 array 2
 string 0 "\n"
 string 1 "size_of"
 string 2 "usize"
@@ -19,7 +18,7 @@ string 3 "cast"
 string 4 "T"
 data 0 structs 2 3 2 strref 1 array Kind 1 u8 01 strref 2 strref 3 array Kind 2 u8 00 u8 01 strref 4
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 1 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 7 ByteAccess
 export main 0
 
@@ -28,9 +27,9 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_14 u64
   local $cast_29 i64
-  data.const 0 12
+  data.const 0 11
   i32.const 1
-  array.get 12
+  array.get 11
   struct.get 2 0
   ref.cast 3
   call 6
@@ -39,9 +38,9 @@ fn 0 snippet$main () -> i32
   local.set 0
   i64.const 0
   local.set 1
-  data.const 0 12
+  data.const 0 11
   i32.const 1
-  array.get 12
+  array.get 11
   struct.get 2 1
   array.len
   usize.to_i64
@@ -60,9 +59,9 @@ fn 0 snippet$main () -> i32
   local.set 0
   i64.const 0
   local.set 1
-  data.const 0 12
+  data.const 0 11
   i32.const 1
-  array.get 12
+  array.get 11
   struct.get 2 1
   i32.const 1
   array.get 4
@@ -303,7 +302,7 @@ fn 5 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -345,13 +344,13 @@ fn 5 std_io$write (i32,string) -> void
         local.get 8
         call.import 1
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

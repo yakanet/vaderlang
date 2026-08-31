@@ -9,7 +9,6 @@ type 6 primitive u64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 primitive isize
 string 0 "hello, world"
 string 1 "add="
 string 2 " strlen="
@@ -18,7 +17,7 @@ import 0 extern add_i32 snippet$add_i32 (i32,i32) -> i32
 import 1 extern strlen snippet$c_strlen (string) -> usize
 import 2 byte_len std_core$byte_len (string) -> usize
 import 3 bytes std_core$bytes (string) -> ref
-import 4 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 4 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 4 ByteAccess
 export main 0
 
@@ -311,7 +310,7 @@ fn 6 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -353,13 +352,13 @@ fn 6 std_io$write (i32,string) -> void
         local.get 8
         call.import 4
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

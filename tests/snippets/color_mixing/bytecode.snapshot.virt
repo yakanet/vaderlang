@@ -9,15 +9,14 @@ type 6 primitive i64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 primitive isize
-type 11 struct __Tuple_28 { _0:2,_1:2 }
-type 12 struct __Tuple_29 { _0:1,_1:2 }
+type 10 struct __Tuple_27 { _0:2,_1:2 }
+type 11 struct __Tuple_28 { _0:1,_1:2 }
 string 0 " "
 string 1 " x"
 string 2 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 1 Add
 impl 4 ByteAccess
 export main 0
@@ -131,14 +130,14 @@ fn 0 snippet$main () -> i32
   call 6
   i32.const 3
   i32.const 4
-  struct.new_stack 11
+  struct.new_stack 10
   local.set 1
   i64.const 41
   call 1
   local.set 6
   i64.const 0
   local.set 7
-  local.field 1 11 0
+  local.field 1 10 0
   ref.cast 2
   i32.to_i64
   local.set 8
@@ -152,7 +151,7 @@ fn 0 snippet$main () -> i32
   string.const 0
   call 3
   local.set 7
-  local.field 1 11 1
+  local.field 1 10 1
   ref.cast 2
   i32.to_i64
   local.set 8
@@ -165,10 +164,10 @@ fn 0 snippet$main () -> i32
   local.get 7
   call 2
   call 6
-  local.field 1 11 0
+  local.field 1 10 0
   ref.cast 2
   local.set 2
-  local.field 1 11 1
+  local.field 1 10 1
   ref.cast 2
   local.set 3
   i64.const 20
@@ -192,14 +191,14 @@ fn 0 snippet$main () -> i32
   call 6
   local.get 0
   i32.const 5
-  struct.new_stack 12
+  struct.new_stack 11
   local.set 0
   i64.const 42
   call 1
   local.set 1
   i64.const 0
   local.set 7
-  local.field 0 12 0
+  local.field 0 11 0
   struct.get 1 0
   ref.cast 2
   i32.to_i64
@@ -214,7 +213,7 @@ fn 0 snippet$main () -> i32
   string.const 1
   call 3
   local.set 7
-  local.field 0 12 1
+  local.field 0 11 1
   ref.cast 2
   i32.to_i64
   local.set 8
@@ -383,7 +382,7 @@ fn 5 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -425,13 +424,13 @@ fn 5 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

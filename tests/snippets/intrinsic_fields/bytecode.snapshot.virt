@@ -11,8 +11,7 @@ type 8 array 7
 type 9 primitive void
 type 10 struct std_core$Field { name:2,type:11 }
 type 11 ref _
-type 12 primitive isize
-type 13 array 10
+type 12 array 10
 string 0 "x"
 string 1 "y"
 string 2 "label"
@@ -23,7 +22,7 @@ string 6 "pair."
 string 7 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 5 ByteAccess
 export main 0
 
@@ -59,7 +58,7 @@ fn 0 snippet$main () -> i32
   local.get 1
   local.get 2
   local.get 3
-  array.new 13 3
+  array.new 12 3
   local.tee 1
   array.len
   local.set 4
@@ -73,7 +72,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 5
-        array.get 13
+        array.get 12
         local.set 2
         local.field 2 10 0
         ref.cast 2
@@ -133,7 +132,7 @@ fn 0 snippet$main () -> i32
   local.set 2
   local.get 1
   local.get 2
-  array.new 13 2
+  array.new 12 2
   local.tee 1
   array.len
   local.set 4
@@ -147,7 +146,7 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 1
         local.get 5
-        array.get 13
+        array.get 12
         local.set 2
         local.field 2 10 0
         ref.cast 2
@@ -321,7 +320,7 @@ fn 5 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -363,13 +362,13 @@ fn 5 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

@@ -17,8 +17,7 @@ type 14 struct __Tuple_22 { _0:10,_1:10 }
 type 15 primitive u8
 type 16 array 15
 type 17 primitive void
-type 18 primitive isize
-type 19 array 10
+type 18 array 10
 string 0 "box "
 string 1 "bag "
 string 2 "hi"
@@ -59,7 +58,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 7 ByteAccess
 export main 1
 
@@ -733,7 +732,7 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.add
     local.set 14
-    data.const 0 19
+    data.const 0 18
     local.set 15
     local.get 13
     i32.to_i64
@@ -742,7 +741,7 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 8
-    data.const 1 19
+    data.const 1 18
     local.set 15
     local.get 13
     i32.to_i64
@@ -845,7 +844,7 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.sub
     local.set 14
-    data.const 2 19
+    data.const 2 18
     local.set 15
     local.get 2
     i32.to_i64
@@ -854,7 +853,7 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 16
     load_slot_i64
     local.set 17
-    data.const 3 19
+    data.const 3 18
     local.set 15
     local.get 2
     i32.to_i64
@@ -2136,7 +2135,7 @@ fn 29 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -2178,13 +2177,13 @@ fn 29 std_io$write (i32,string) -> void
         local.get 8
         call.import 2
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10

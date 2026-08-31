@@ -11,9 +11,8 @@ type 8 struct std_core$Buffer {  }
 type 9 primitive i64
 type 10 primitive u8
 type 11 array 10
-type 12 primitive isize
-type 13 fn (1,1) -> 2
-type 14 fn (6,6) -> 2
+type 12 fn (1,1) -> 2
+type 13 fn (6,6) -> 2
 string 0 ""
 string 1 ", "
 string 2 "banana"
@@ -24,7 +23,7 @@ string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write std_io$sys_write (i32,ref,usize) -> isize
+import 3 extern write std_io$sys_write (i32,ref,usize) -> i32
 impl 8 ByteAccess
 export main 4
 
@@ -196,7 +195,7 @@ fn 4 snippet$main () -> i32
   i32.const 42
   array.new 3 1
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -209,7 +208,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -222,7 +221,7 @@ fn 4 snippet$main () -> i32
   i32.const 1
   array.new 3 5
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -241,7 +240,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 11
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -254,7 +253,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 1 13
+  fn.ref 1 12
   local.set 1
   local.get 0
   local.get 1
@@ -292,7 +291,7 @@ fn 4 snippet$main () -> i32
   i32.const 29
   array.new 3 30
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -304,7 +303,7 @@ fn 4 snippet$main () -> i32
   string.const 5
   array.new 5 4
   local.set 0
-  fn.ref 18 14
+  fn.ref 18 13
   local.set 1
   local.get 0
   local.get 1
@@ -315,7 +314,7 @@ fn 4 snippet$main () -> i32
   i32.const 2
   array.new 3 3
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 12
   local.set 1
   local.get 0
   local.get 1
@@ -510,7 +509,7 @@ fn 10 std_io$write (i32,string) -> void
   local $len_13 usize
   local chunk ref
   local $len_16 usize
-  local n isize
+  local n i32
   local $cast_21 usize
   local.get 0
   i32.const 0
@@ -552,13 +551,13 @@ fn 10 std_io$write (i32,string) -> void
         local.get 8
         call.import 3
         local.tee 9
-        i64.const 0
-        i64.le
+        i32.const 0
+        i32.le
         if $L4 void
           return
         end $L4
         local.get 9
-        isize.to_i64
+        i32.to_i64
         local.set 10
         local.get 4
         local.get 10
@@ -774,7 +773,7 @@ fn 14 std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
             local.get 11
             local.get 12
             local.get 4
-            call.indirect 13
+            call.indirect 12
             if $L10 void
               local.get 1
               local.get 8
@@ -954,7 +953,7 @@ fn 15 std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> void
             local.get 11
             local.get 12
             local.get 4
-            call.indirect 14
+            call.indirect 13
             if $L10 void
               local.get 1
               local.get 8
@@ -1040,7 +1039,7 @@ fn 16 std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
               local.get 5
               local.get 9
               local.get 3
-              call.indirect 13
+              call.indirect 12
               local.set 7
             else
               bool.const false
@@ -1129,7 +1128,7 @@ fn 17 std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
               local.get 5
               local.get 9
               local.get 3
-              call.indirect 14
+              call.indirect 13
               local.set 7
             else
               bool.const false
