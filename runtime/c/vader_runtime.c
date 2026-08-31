@@ -50,6 +50,10 @@
 extern char** environ;
 #endif
 
+/* Dynamic foreign calls for the VM — trampolines plus library loading. Included
+ * here, after the platform block, because the runtime builds as a single TU. */
+#include "vader_ffi.h"
+
 /* ----------------------------------------------------------------- defer
  *
  * Global LIFO of pending `defer` closures. The C-emit appends to it via

@@ -133,6 +133,9 @@ export IntrinsicId :: enum(u8) {
     TargetCurrentOs, TargetCurrentArch,
     // std/tty raw mode — what `cli/prompt` reads keys through
     TtyRawModeBegin, TtyRawModeEnd, TtyColumns, TtyReadKeys,
+    // vader/vm — dynamic foreign calls, the VM's answer to `@extern`. NOT in
+    // `std/`: they amount to running arbitrary native code.
+    FfiOpen, FfiSymbol, FfiCallInt, FfiCallVoid, FfiCallF64,
 }
 
 /// Classify a host import's mangled name into its `IntrinsicId`, or
@@ -148,6 +151,11 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if eq == "not_equals" { return .PrimIntNotEquals }
     if is_display_to_string(mangled) { return .PrimDisplayToString }
 
+    if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
+    if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
+    if mangled == r"vader_vm$ffi_call_int"               { return .FfiCallInt }
+    if mangled == r"vader_vm$ffi_call_void"              { return .FfiCallVoid }
+    if mangled == r"vader_vm$ffi_call_f64"               { return .FfiCallF64 }
     if mangled == r"std_io$write"                        { return .IoWrite }
     if mangled == r"std_io$exists"                       { return .IoExists }
     if mangled == r"std_io$is_dir"                       { return .IoIsDir }

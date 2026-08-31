@@ -468,6 +468,15 @@ static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
 static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
     return (uint32_t) (a->capacity >> 32);
 }
+/* Dynamic foreign calls, for the VM only — see runtime/c/vader_ffi.h for the
+ * contract and the ABI restrictions. Declared here because the emitted C calls
+ * them through the `vader/vm/ffi.vader` intrinsics. */
+void*   vader_ffi_open(const char* name);
+void*   vader_ffi_symbol(void* lib, const char* symbol);
+int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
+void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
+double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
+
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
  * call: no Vader allocation runs inside a foreign call, so nothing can move the

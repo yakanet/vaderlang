@@ -272,6 +272,17 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // An `Os` is an ordinal in an i32 slot, so the runtime's return needs no
     // boxing — the coupling to the enum's declaration order is stated in
     // `vader.h` and in `std/target`.
+    // Dynamic foreign calls (vader/vm/ffi.vader). `ffi_open` / `ffi_symbol`
+    // return `CPointer | null`, so they hand back a box; the call shims take
+    // the argument slots through `vader_array_bytes`, which already owns the
+    // three-case array lend.
+    // Addresses ride `size_t` (see the note in `vader/vm/ffi.vader`), so each
+    // shim casts back to `void*` at the boundary.
+    .FfiOpen -> { return "${head} { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }" }
+    .FfiSymbol -> { return "${head} { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }" }
+    .FfiCallInt -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return vader_ffi_call_int((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
+    .FfiCallVoid -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); vader_ffi_call_void((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
+    .FfiCallF64 -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return vader_ffi_call_f64((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
     .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }
     .TargetCurrentArch -> { return "${head} { return vader_current_arch(); }" }
 

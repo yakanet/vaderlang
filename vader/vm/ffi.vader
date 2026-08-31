@@ -1,0 +1,82 @@
+// vader/vm/ffi — the VM's window onto `runtime/c/vader_ffi.h`.
+//
+// The native backend resolves an `@extern` through the linker and `c_emit`
+// writes the call itself. The VM cannot: it learns a signature by reading
+// bytecode, and C wants one at compile time. So it loads the library, resolves
+// the symbol, and calls through a trampoline chosen by arity.
+//
+// Declared here rather than in `std/` on purpose. These five hosts amount to
+// "run arbitrary native code", and putting them in the standard library would
+// hand that to every program — a surface decision of its own. The compiler is
+// the only caller today.
+//
+// Addresses ride `usize`, not the FFI pointer type: the committed seed predates
+// that type, so the compiler's own sources cannot name it until the next
+// reseed. `0` is the null address. Nothing here dereferences or offsets one —
+// the value only travels from `ffi_symbol` to a call.
+
+module "vader/vm"
+
+/// Open a shared library by BARE name (`"sqlite3"`, not `"libsqlite3.so"`) —
+/// the host decorates it per platform. An empty name yields the running
+/// process, which is where a libc symbol lives.
+///
+/// @param name  the library's bare name, or `""` for the current process.
+/// @return      an opaque handle, or `0` when the library is not found.
+@intrinsic export ffi_open :: fn(name: string) -> usize
+
+/// Resolve `symbol` in `lib`.
+///
+/// @param lib     a handle from `ffi_open`.
+/// @param symbol  the exact linker name.
+/// @return        the function's address, or `0` when absent.
+@intrinsic export ffi_symbol :: fn(lib: usize, symbol: string) -> usize
+
+/// Call `fn_ptr` with `nargs` integer-or-pointer arguments, reading the result
+/// as an integer.
+///
+/// Every argument rides an `i64` slot: on every ABI we target, integers and
+/// pointers of any width share the general registers, so one slot carries an
+/// `int`, a `size_t` or a `void*` alike. Floating ARGUMENTS are not covered and
+/// must be rejected before the call.
+///
+/// @param fn_ptr  the address from `ffi_symbol`.
+/// @param args    argument slots, in order.
+/// @param nargs   how many of `args` to pass — at most 8.
+/// @return        the callee's result, widened to `i64`.
+@intrinsic export ffi_call_int :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> i64
+
+/// `ffi_call_int` for a callee returning nothing.
+@intrinsic export ffi_call_void :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> void
+
+/// `ffi_call_int` for a callee returning a `float` or a `double`. The ARGUMENTS
+/// stay integer-or-pointer; only the result is floating.
+@intrinsic export ffi_call_f64 :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> f64
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_ffi_resolves_and_calls_a_libc_symbol :: fn() -> void {
+    process :: ffi_open("")
+    assert(process != 0, "the running process must be openable")
+
+    // `getpid` takes nothing and returns a positive pid — the smallest shape
+    // that exercises open → symbol → trampoline end to end.
+    sym :: ffi_symbol(process, "getpid")
+    assert(sym != 0, "getpid must resolve in the current process")
+
+    no_args: i64[]! = []
+    pid :: ffi_call_int(sym, no_args, 0)
+    assert(pid > 0, "getpid must report a positive pid")
+}
+
+@test test_ffi_missing_symbol_reports_zero :: fn() -> void {
+    process :: ffi_open("")
+    sym :: ffi_symbol(process, "vader_symbol_that_cannot_exist")
+    assert_eq(sym, usize(0))
+}
+
+@test test_ffi_missing_library_reports_zero :: fn() -> void {
+    assert_eq(ffi_open("vader_library_that_cannot_exist"), usize(0))
+}
