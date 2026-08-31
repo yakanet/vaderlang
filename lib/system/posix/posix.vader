@@ -2,6 +2,8 @@
 
 module "system/posix"
 
+import "std/target"
+
 /// Standard output's file descriptor.
 export STDOUT :: 1
 
@@ -11,3 +13,24 @@ export STDERR :: 2
 /// `write(2)`. Byte count written, or -1 with `errno` set.
 @extern("write")
 export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
+
+// ---- clocks: BLOCKED, and not by what I first said -------------------------
+//
+// `clock_gettime` cannot be declared here. `<time.h>` is one of the seven
+// headers already visible in an emitted unit (via `vader.h`), and it declares
+//
+//     int clock_gettime(clockid_t, struct timespec *);
+//
+// against which our synthesised `int32_t clock_gettime(int32_t, void*)` is a
+// conflicting declaration — the C compiler refuses outright. Nothing about the
+// LAYOUT is the obstacle: a two-element `i64[]` does stand in for `struct
+// timespec` on every 64-bit target we build for (verified: sizeof 16, tv_sec@0,
+// tv_nsec@8).
+//
+// The alternatives do not help. `gettimeofday` lives in `<sys/time.h>`, which
+// is NOT visible, so it would link — but `struct timeval` holds a 32-bit
+// `suseconds_t` on Darwin and a 64-bit one on Linux, so one cell shape cannot
+// serve both. `time(NULL)` is in `<time.h>` too, and gives seconds.
+//
+// This is the `@include` case, not the `@c_layout` case: the fix is to stop
+// synthesising a prototype the header already provides.

@@ -41,3 +41,7 @@ export get_std_handle :: fn(which: u32) -> Handle
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
                         written: u32[]!, overlapped: CPointer | null) -> bool
+
+// Clocks are absent here for symmetry with `system/posix`: their POSIX half is
+// blocked by a prototype conflict with `<time.h>`, and a Windows-only clock
+// would leave `std/time` without a body on every other target.
