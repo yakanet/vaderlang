@@ -41,7 +41,10 @@ export async function withStagedLibraryRoot<T>(
     mkdirSync(join(dir, "lib"), { recursive: true });
     // `std/` is symlinked rather than copied: every probe needs `std/io` to write
     // a runnable entry, and copying it per test would cost more than the test.
+    // `system/` comes with it — `std/io` imports it for the write syscall, and a
+    // root missing it fails to resolve before any probe runs.
     symlinkSync(join(REPO, "lib", "std"), join(dir, "lib", "std"));
+    symlinkSync(join(REPO, "lib", "system"), join(dir, "lib", "system"));
     for (const [ns, files] of Object.entries(namespaces)) {
       for (const [rel, content] of Object.entries(files)) {
         const p = join(dir, "lib", ns, rel);

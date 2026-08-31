@@ -24,8 +24,8 @@ type 21 array 14
 type 22 fn (1) -> 3
 type 23 struct __gen_state_44 { s0:17,s1:22,s2:17,s3:24,s4:1,s5:3,s6:8,s7:8,s8:1,state:1 }
 type 24 union 7,0
-type 25 struct __Tuple_34 { _0:14,_1:1 }
-type 26 struct __Tuple_35 { _0:8,_1:14 }
+type 25 struct __Tuple_38 { _0:14,_1:1 }
+type 26 struct __Tuple_39 { _0:8,_1:14 }
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"
@@ -42,7 +42,7 @@ string 12 "b="
 string 13 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write std_io$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
 impl 4 Contains
 impl 4 Iterator
 impl 9 Contains
@@ -53,7 +53,7 @@ impl 23 Iterator
 vtable Iterator.next 4 2
 vtable Iterator.next 9 3
 vtable Iterator.next 12 4
-vtable Iterator.next 23 16
+vtable Iterator.next 23 17
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -102,9 +102,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   local.get 2
   call 6
-  call 14
-  local.get 0
   call 15
+  local.get 0
+  call 16
   local.set 0
   i64.const 29
   call 5
@@ -129,7 +129,7 @@ fn 0 snippet$main () -> i32
   local.get 1
   local.get 2
   call 6
-  call 14
+  call 15
   string.const 2
   string.const 3
   string.const 4
@@ -217,7 +217,7 @@ fn 0 snippet$main () -> i32
         local.get 12
         local.get 13
         call 6
-        call 14
+        call 15
         local.get 5
         i64.const 1
         i64.add
@@ -272,7 +272,7 @@ fn 0 snippet$main () -> i32
         local.get 9
         local.get 6
         call 6
-        call 14
+        call 15
         local.get 5
         i64.const 1
         i64.add
@@ -318,7 +318,7 @@ fn 0 snippet$main () -> i32
         local.get 1
         local.get 6
         call 6
-        call 14
+        call 15
         local.get 5
         i64.const 1
         i64.add
@@ -391,7 +391,7 @@ fn 0 snippet$main () -> i32
         local.get 9
         local.get 15
         call 6
-        call 14
+        call 15
         local.get 2
         i64.const 1
         i64.add
@@ -467,7 +467,7 @@ fn 0 snippet$main () -> i32
         local.get 0
         local.get 2
         call 6
-        call 14
+        call 15
         br $L14
       end $L15
     end $L14
@@ -640,14 +640,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 17
+  call 18
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 19
+  call 20
   return
 end
 
@@ -656,7 +656,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 20
+  call 21
   local.get 2
   call.import 0
   local.set 3
@@ -680,7 +680,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 18
+    call 19
     local.get 1
     i64.const 1
     i64.add
@@ -759,7 +759,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 4
         local.get 8
-        call 18
+        call 19
         local.get 2
         i64.const 10
         i64.div
@@ -774,7 +774,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 18
+    call 19
   else
   end $L9
   local.get 1
@@ -796,7 +796,7 @@ fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 18
+    call 19
     local.get 1
     i64.const 1
     i64.add
@@ -851,7 +851,7 @@ fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0
         local.get 5
         local.get 7
-        call 18
+        call 19
         local.get 2
         i64.const 10
         u64.div
@@ -947,75 +947,83 @@ fn 12 std_core$usize$Comparable$compare (usize,usize) -> i32
 end
 
 fn 13 std_io$write (i32,string) -> void
-  local fd i32
   local buf ref
   local sent usize
-  local $len_11 usize
-  local $len_13 usize
+  local $len_6 usize
+  local $len_8 usize
   local chunk ref
-  local $len_16 usize
+  local $len_11 usize
   local n i32
-  local $cast_21 usize
+  local $cast_16 usize
+  local.get 1
+  call.import 1
+  local.set 2
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      array.len
+      local.set 4
+      local.get 3
+      local.get 4
+      u64.ge
+      if $L2 void
+      else
+        local.get 2
+        array.len
+        local.set 5
+        local.get 2
+        local.get 3
+        local.get 5
+        array.slice 19
+        local.tee 6
+        array.len
+        local.set 7
+        local.get 0
+        local.get 6
+        local.get 7
+        call 14
+        local.tee 8
+        i32.const 0
+        i32.le
+        if $L3 void
+          return
+        end $L3
+        local.get 8
+        i32.to_i64
+        local.set 9
+        local.get 3
+        local.get 9
+        i64.add
+        local.set 3
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  return
+end
+
+fn 14 std_io$write_bytes (i32,ref,usize) -> i32
+  local fd i32
   local.get 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 2
+    local.set 3
   else
     i32.const 2
-    local.set 2
+    local.set 3
   end $L0
+  local.get 3
   local.get 1
-  call.import 1
-  local.set 3
-  i64.const 0
-  local.set 4
-  block $L1 void
-    loop $L2 void
-      local.get 3
-      array.len
-      local.set 5
-      local.get 4
-      local.get 5
-      u64.ge
-      if $L3 void
-      else
-        local.get 3
-        array.len
-        local.set 6
-        local.get 3
-        local.get 4
-        local.get 6
-        array.slice 19
-        local.tee 7
-        array.len
-        local.set 8
-        local.get 2
-        local.get 7
-        local.get 8
-        call.import 2
-        local.tee 9
-        i32.const 0
-        i32.le
-        if $L4 void
-          return
-        end $L4
-        local.get 9
-        i32.to_i64
-        local.set 10
-        local.get 4
-        local.get 10
-        i64.add
-        local.set 4
-        br $L2
-      end $L3
-    end $L2
-  end $L1
+  local.get 2
+  call.import 2
   return
 end
 
-fn 14 std_io$println__string (string) -> void
+fn 15 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call 13
@@ -1025,7 +1033,7 @@ fn 14 std_io$println__string (string) -> void
   return
 end
 
-fn 15 std_iter$clone__i32 (ref) -> ref
+fn 16 std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 3 0
@@ -1043,7 +1051,7 @@ fn 15 std_iter$clone__i32 (ref) -> ref
   return
 end
 
-fn 16 std_iter$__gen_state_44$Iterator$next (ref) -> any
+fn 17 std_iter$__gen_state_44$Iterator$next (ref) -> any
   local $field_36 usize
   local $field_37 usize
   local $add_46 usize
@@ -1330,13 +1338,13 @@ fn 16 std_iter$__gen_state_44$Iterator$next (ref) -> any
   return
 end
 
-fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 18 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 19 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1344,14 +1352,14 @@ fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 20 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 21 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

@@ -5,6 +5,9 @@
 
 module "std/io"
 
+import "system/posix"
+import "system/windows"
+
 /// Raised by every fallible operation in this module — the concrete
 /// error member of each `T | IOError` return (`read_file_bytes`,
 /// `write_file_bytes`, `read_line`, `read_stdin`, `read_dir` and the
@@ -26,55 +29,47 @@ export Stream :: enum {
     Stderr,
 }
 
-// ---- the write syscall ----------------------------------------------------
+// ---- the write primitive --------------------------------------------------
 //
-// Only the SYMBOL differs: POSIX exports `write(2)`, the Windows CRT exports
-// `_write` with the same shape, and descriptors 1 and 2 mean stdout and stderr
-// on both. So one body serves every target and `@target` carries the whole
-// divergence — the first group of its kind in the bootstrap closure.
-//
-// These declarations live in `std/io` rather than a `sys/io` of their own: on a
-// native target `sys_write` is `@extern`, so it contributes no function, and a
-// module holding nothing else vanishes from the emitted set — which
-// `--seed-targets` rejects, requiring every target to agree on which modules
-// exist. `std/io` exists on all of them.
-//
-// Not `WriteFile`: that needs an out parameter (`LPDWORD`), which `@c_pointer`
-// is meant to express and which is not implemented yet.
+// POSIX writes to a descriptor, Win32 to a HANDLE, and the two shapes differ
+// enough that `@target` selects a BODY rather than just a symbol. Descriptors
+// and handles never meet: each body reaches its own platform's module.
 
-/// Standard output's file descriptor — 1 on POSIX and in the Windows CRT.
-export STDOUT :: 1
-
-/// Standard error's file descriptor — 2 on POSIX and in the Windows CRT.
-export STDERR :: 2
-
-/// Write up to `count` bytes of `buf` to `fd`.
+/// Write `count` bytes of `buf` to `out`.
 ///
-/// May write FEWER than asked — a caller that wants everything out has to loop.
-///
-/// @param fd     the descriptor to write to.
+/// @param out    the stream to write to.
 /// @param buf    the bytes to lend, for the duration of the call.
-/// @param count  how many of them to write.
-/// @return       the count written, or `-1` with the platform's error state set.
-///
-/// The result is `i32`, not `isize`, and that is deliberate. POSIX declares
-/// `ssize_t` but caps a single write at `0x7ffff000`, so 32 bits always hold
-/// it; the Windows CRT declares `int` outright. Reading it as 64 bits would be
-/// WRONG there — the callee leaves only the low half of the result register
-/// meaningful, so `-1` reads back as 4294967295 and the error test never fires.
+/// @param count  how many of them.
+/// @return       the count written, or `-1` on failure.
+/// The general body covers the WASM targets, which have no descriptor-based
+/// write: WASI would go through `fd_write` and its iovec array, a browser has no
+/// descriptors at all, and neither has a backend that could run this yet.
+/// Reporting failure is what the caller already handles.
 @target
-export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
+write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+    return -1
+}
 
 @target(.Linux, .Darwin)
-@extern("write")
-sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
+write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+    fd :: if out == .Stdout { STDOUT } else { STDERR }
+    return sys_write(fd, buf, count)
+}
 
 @target(.Windows)
-@extern("_write")
-sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
+write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+    which :: if out == .Stdout { STD_OUTPUT_HANDLE } else { STD_ERROR_HANDLE }
+    // One-element cell for the callee's byte count — and it is read back, so a
+    // short write is reported rather than assumed away.
+    written: u32[]! = [0]
+    if write_file(get_std_handle(which), buf, u32(count), written, null) {
+        return i32(written[0])
+    }
+    return -1
+}
 
-// Sole I/O write primitive — appends raw UTF-8 bytes to `out`. Written in
-// Vader over `sys_write` above.
+// Sole I/O write primitive — appends raw UTF-8 bytes to `out`, over
+// `write_bytes` above.
 //
 // `msg.bytes()` is a borrowed view over the interned bytes, so the loop lends
 // them straight to the callee — no copy, and nothing to free.
@@ -82,7 +77,6 @@ sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
 // A short write is retried; a failure is silent, which is the contract the
 // `fwrite` + `fflush` host it replaces already had.
 write :: fn(out: Stream, msg: string) -> void {
-    fd  :: if out == .Stdout { STDOUT } else { STDERR }
     buf :: msg.bytes()
     sent: usize = 0
     for {
@@ -90,7 +84,7 @@ write :: fn(out: Stream, msg: string) -> void {
             return
         }
         chunk :: buf[sent..<buf.len()]
-        n :: sys_write(fd, chunk, chunk.len())
+        n :: write_bytes(out, chunk, chunk.len())
         if n <= 0 {
             return
         }

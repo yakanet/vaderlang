@@ -7,4 +7,4 @@ VADER_ARCH = Arch.X86_64
 
 # Selected body
 main$platform_tag <- main-windows.vader:4
-std_io$sys_write <- (no body)
+std_io$write_bytes <- /Users/mbroutin/Developments/default/vaderlang2/lib/std/io/io.vader:60

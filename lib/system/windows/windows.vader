@@ -1,0 +1,43 @@
+// system/windows — the Win32 calls the standard library needs.
+//
+// Not the CRT: `_write` would be the shorter road, but it is an emulation layer
+// over these, and going through it means inheriting its buffering and its
+// descriptor table for no gain.
+
+module "system/windows"
+
+/// A Win32 `HANDLE` — an opaque kernel object, never dereferenced.
+export Handle :: CPointer
+
+/// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
+/// written in their two's-complement form.
+export STD_OUTPUT_HANDLE: u32 : 0xFFFF_FFF5
+
+/// See `STD_OUTPUT_HANDLE`.
+export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
+
+/// `GetStdHandle`. Returns `INVALID_HANDLE_VALUE` on failure.
+///
+/// @param which  one of the `STD_*_HANDLE` selectors.
+/// @return       the standard device's handle.
+@extern("kernel32", "GetStdHandle")
+export get_std_handle :: fn(which: u32) -> Handle
+
+/// `WriteFile`. False on failure — the caller reads `GetLastError`.
+///
+/// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
+/// NOT pass as null. It is a ONE-ELEMENT array rather than a `@c_pointer`
+/// scalar: an array is already a memory cell, it already carries the `!` that
+/// makes the emitted parameter `DWORD*` instead of `const DWORD*`, and the
+/// caller can READ THE COUNT BACK from it. A `@c_pointer` scalar could do none
+/// of the three without a marker `!` that T3075 rejects on a value type.
+///
+/// @param h           the device handle.
+/// @param buf         the bytes to write.
+/// @param count       how many of them.
+/// @param written     one-element cell the callee fills with the byte count.
+/// @param overlapped  always null here — this is the synchronous form.
+/// @return            whether the write succeeded.
+@extern("kernel32", "WriteFile")
+export write_file :: fn(h: Handle, buf: u8[], count: u32,
+                        written: u32[]!, overlapped: CPointer | null) -> bool

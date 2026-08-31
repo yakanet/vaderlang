@@ -1,0 +1,13 @@
+// system/posix — raw POSIX syscalls.
+
+module "system/posix"
+
+/// Standard output's file descriptor.
+export STDOUT :: 1
+
+/// Standard error's file descriptor.
+export STDERR :: 2
+
+/// `write(2)`. Byte count written, or -1 with `errno` set.
+@extern("write")
+export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
