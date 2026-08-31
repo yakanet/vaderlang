@@ -3309,6 +3309,14 @@ vader_box_t vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
  * in the owner atom) and a materialised buffer — mirrors `vader_string_as_string`. */
 vader_box_t vader_write_file_bytes(vader_string_t path, vader_array_t* content,
                                    uint32_t err_tag) {
+    /* A C path ends at the first NUL, so a NUL INSIDE a Vader path silently
+     * truncates it — the file lands somewhere the caller never named, and every
+     * later step (a linker, a reader) blames the wrong thing. Never an
+     * intention: refuse it here, where the truncation would happen. */
+    if (memchr(vader_atom_data(path), 0, vader_atom_len(path)) != NULL) {
+        return vader_box_string(err_tag,
+            vader_string_new("path contains a NUL byte", 24));
+    }
     const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "wb");
     vader_atom_cstr_free(p);
