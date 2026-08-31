@@ -281,6 +281,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .FfiOpen -> { return "${head} { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }" }
     .FfiSymbol -> { return "${head} { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }" }
     .FfiCallInt -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return vader_ffi_call_int((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
+    .FfiCallIntBytes -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return vader_ffi_call_int_bytes((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2, a3, a4); }" }
     .FfiCallVoid -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); vader_ffi_call_void((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
     .FfiCallF64 -> { return "${head} { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return vader_ffi_call_f64((void*) (uintptr_t) a0, (const int64_t*) s1.ptr, a2); }" }
     .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }

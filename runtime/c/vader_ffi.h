@@ -60,6 +60,18 @@ void* vader_ffi_symbol(void* lib, const char* symbol);
  * as a double. All three TRAP when `nargs > VADER_FFI_MAX_ARGS` rather than
  * calling with a truncated argument list. */
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
+
+/* As `vader_ffi_call_int`, but slot `buf_slot` receives the ADDRESS of `bytes`
+ * instead of the value in `args`.
+ *
+ * The address is taken here, immediately before the call, and never reaches
+ * Vader. That is the point, and it is what `std/core/buffer.vader` asks of the
+ * frontend ("never a machine address"): the array is GC-managed and may move,
+ * and no Vader code — hence no allocation, hence no collection — runs between
+ * the two statements below. A caller that took the address itself would leave
+ * a window open for as long as it took to build the argument list. */
+int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
+                                 size_t buf_slot, vader_array_t* bytes);
 void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
 double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 
@@ -140,6 +152,28 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
     VADER_FFI_DISPATCH(int64_t)
     vader_trap("vader_ffi: more than 8 arguments in a foreign call");
     return 0;
+}
+
+int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
+                                 size_t buf_slot, vader_array_t* bytes) {
+    int64_t      slots[VADER_FFI_MAX_ARGS];
+    size_t       i;
+    vader_slice_t view;
+
+    if (nargs > VADER_FFI_MAX_ARGS) {
+        vader_trap("vader_ffi: more than 8 arguments in a foreign call");
+    }
+    if (buf_slot >= nargs) {
+        vader_trap("vader_ffi: lent-bytes slot outside the argument list");
+    }
+    for (i = 0; i < nargs; i++) { slots[i] = args[i]; }
+
+    /* `vader_array_bytes` owns the three cases — GC forward, borrowed view,
+     * materialised buffer — and is the same helper the native shims use. */
+    view = vader_array_bytes(bytes);
+    slots[buf_slot] = (int64_t) (intptr_t) view.ptr;
+
+    return vader_ffi_call_int(fn, slots, nargs);
 }
 
 double vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs) {

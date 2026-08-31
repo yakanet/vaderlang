@@ -46,6 +46,23 @@ module "vader/vm"
 /// @return        the callee's result, widened to `i64`.
 @intrinsic export ffi_call_int :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> i64
 
+/// As `ffi_call_int`, but slot `buf_slot` receives the ADDRESS of `buf`'s bytes
+/// rather than the value in `args`.
+///
+/// The address is taken by the host, immediately before the call, and never
+/// reaches Vader — which is what `std/core/buffer.vader` asks of the frontend
+/// ("never a machine address") and what makes the call safe: the array is
+/// GC-managed and may move, and no Vader code runs between taking the address
+/// and the call.
+///
+/// @param fn_ptr    the address from `ffi_symbol`.
+/// @param args      argument slots ; the one at `buf_slot` is ignored.
+/// @param nargs     how many of `args` to pass — at most 8.
+/// @param buf_slot  which slot the address replaces.
+/// @param bytes     the bytes to lend, for the duration of the call.
+/// @return          the callee's result, widened to `i64`.
+@intrinsic export ffi_call_int_bytes :: fn(fn_ptr: usize, args: i64[], nargs: usize, buf_slot: usize, bytes: u8[]) -> i64
+
 /// `ffi_call_int` for a callee returning nothing.
 @intrinsic export ffi_call_void :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> void
 
@@ -79,4 +96,16 @@ import "std/testing"
 
 @test test_ffi_missing_library_reports_zero :: fn() -> void {
     assert_eq(ffi_open("vader_library_that_cannot_exist"), usize(0))
+}
+
+@test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
+    process :: ffi_open("")
+    sym :: ffi_symbol(process, "write")
+    assert(sym != 0, "write must resolve in the current process")
+
+    msg :: "ffi: bytes lent to write(2)\n".bytes()
+    // Slot 1 is where the address goes; its value in `args` is ignored.
+    args: i64[]! = [1, 0, i64(msg.len())]
+    n :: ffi_call_int_bytes(sym, args, 3, 1, msg)
+    assert_eq(n, i64(msg.len()))
 }

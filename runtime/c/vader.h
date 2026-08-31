@@ -474,6 +474,8 @@ static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
 void*   vader_ffi_open(const char* name);
 void*   vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
+int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
+                                 size_t buf_slot, vader_array_t* bytes);
 void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
 double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 
