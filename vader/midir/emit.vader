@@ -144,7 +144,9 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
             type_index :: intern_type(f.type, ctx)
             fields.push(BcField { .name = f.name, .type_index = type_index })
         }
-        ctx.types[usize(idx)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
+        ctx.types[usize(idx)] = BcStruct {
+            .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
+        }
         return
     }
     // Origin sans symbol (synth env structs, lifted closures) keys on
@@ -158,8 +160,38 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
         type_index :: intern_type(f.type, ctx)
         fields.push(BcField { .name = f.name, .type_index = type_index })
     }
-    ctx.types[usize(new_index)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
+    ctx.types[usize(new_index)] = BcStruct {
+        .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
+    }
     ctx.type_key[s.mangled] = new_index
+}
+
+/// The C type named by `@c_struct("struct timespec")` on the origin struct
+/// declaration, or `""`.
+///
+/// Read from the AST decl rather than a symbol table: `MonoEntry` already
+/// carries the declaration a lowered struct came from, which is the same route
+/// `fn_metadata` takes for `@c_header`.
+///
+/// @param origin  the lowered struct's monomorphisation entry.
+/// @return        the C type spelling, or `""` for an ordinary Vader struct.
+c_struct_of :: fn(origin: MonoEntry) -> string {
+    d :: origin.decl
+    if d !is StructDecl {
+        return ""
+    }
+    for dec in d.decorators {
+        if dec.name == "c_struct" && dec.args.len() == 1 {
+            a :: dec.args[0]
+            if a is StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
 }
 
 /// Copy `sig`, filling `param_by_address` from the origin declaration's

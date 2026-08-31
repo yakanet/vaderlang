@@ -531,6 +531,11 @@ export struct_type_index :: fn(types: BcType[], name: string) -> i32 {
 export BcStruct :: struct {
     name: string
     fields: BcField[]
+    /// C type this struct mirrors, from `@c_struct("struct timespec")` — `""`
+    /// for an ordinary Vader struct. The `@extern` shim declares a real one of
+    /// these and marshals FIELD BY FIELD, which is why no offset is recorded
+    /// here: the C compiler computes them, per platform, from the real header.
+    c_name: string
     symbol_id: i32          // -1 = unknown
 }
 

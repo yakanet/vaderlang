@@ -221,7 +221,12 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcPrimitive as p -> "primitive ${val_type_name(p.val)}"
-    is BcStruct as s    -> "struct ${quote_ident(s.name)} { ${format_fields(s.fields)} }"
+    is BcStruct as s    -> {
+        // `as "<c type>"` only when the struct mirrors one — an ordinary struct
+        // writes exactly what it did before, so no committed snapshot moves.
+        mirror :: if s.c_name == "" { "" } else { " as \"${s.c_name}\"" }
+        "struct ${quote_ident(s.name)}${mirror} { ${format_fields(s.fields)} }"
+    }
     is BcArray as a     -> "array ${a.element}"
     is BcUnion as u     -> "union ${format_variants(u.variants)}"
     is BcRef as r       -> if r.trait_name == "" { "ref _" } else { "ref ${quote_ident(r.trait_name)}" }

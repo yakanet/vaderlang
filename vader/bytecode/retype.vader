@@ -193,7 +193,7 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
         for f in s.fields {
             fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
         }
-        BcStruct { .name = s.name, .fields = fields, .symbol_id = s.symbol_id }
+        BcStruct { .name = s.name, .fields = fields, .c_name = s.c_name, .symbol_id = s.symbol_id }
     }
     is BcArray as a -> BcArray { .element = remap_idx(remap, a.element) }
     is BcUnion as u -> {

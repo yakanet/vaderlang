@@ -322,7 +322,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             for f in s.fields {
                 new_fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
             }
-            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .symbol_id = s.symbol_id })
+            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .c_name = s.c_name, .symbol_id = s.symbol_id })
         } else if t is BcUnion as u {
             new_vars: i32[]! = []
             for v in u.variants { new_vars.push(remap_idx(remap, v)) }
