@@ -89,7 +89,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return run_bytecode_cfg_stage(file, include_path_flags)
     }
     if stage == "c" {
-        return run_c_stage(file, include_path_flags)
+        return run_c_stage(file, include_path_flags, parsed.string_flag("target", ""))
     }
     if stage == "dced-ast" {
         return run_dced_stage(file, module_filter, include_path_flags)
@@ -314,10 +314,24 @@ run_bytecode_stage :: fn(file: Path, annotate: bool, include_path_flags: string[
     return 0
 }
 
-run_c_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
+run_c_stage :: fn(file: Path, include_path_flags: string[], target_flag: string) -> i32 {
+    // `--target` selects the `@target` bodies, exactly as it does for
+    // `--stage=targets`. Without it the dump always emitted for THIS machine, so
+    // a `@target` group in the closure (`std/io::write_bytes`) made the C — and
+    // the committed snapshot — differ per platform while `--target` silently
+    // changed nothing.
+    target: Target | null = null
+    if target_flag != "" {
+        parsed_target :: parse_target(target_flag)
+        if parsed_target is TargetParseError as e {
+            eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
+            return 2
+        }
+        target = parsed_target
+    }
     // `dump --stage=c` is a non-release C view : populate `debug` so the
     // emitted C carries `#line` (matches a debug `build --target=c`).
-    b :: prepare_cfg_bytecode(file, true)
+    b :: prepare_cfg_bytecode_with(file, true, include_path_flags, target)
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {

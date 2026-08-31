@@ -282,10 +282,21 @@ test("c-emit: allowlist resolves to real snippets", () => {
   expect(scenarios.length).toBe(C_PARITY.size);
 });
 
+// The canonical target every `c.snapshot` is generated for. Neutral on purpose:
+// not the machine any particular contributor uses.
+const SNAPSHOT_TARGET = "linux-x86_64";
+
 for (const s of scenarios) {
   // Oracle 1 — regression vs the Vader-generated golden.
+  //
+  // Pinned to ONE target. A `@target` group in the closure (`std/io::write_bytes`
+  // since println went through the FFI) makes the emitted C differ per platform,
+  // so a snapshot taken on the contributor's machine could never match another's
+  // — CI saw a 12-entry type table where macOS wrote 11. The target is the
+  // snapshot's identity, not the machine's. Oracle 2 below deliberately does NOT
+  // pin: it compiles and runs the C, which only works for the host.
   test.concurrent(`c-emit-snapshot: ${s.name}`, async () => {
-    const dump = await runCli(["dump", "--stage=c", s.mainPath]);
+    const dump = await runCli(["dump", "--stage=c", `--target=${SNAPSHOT_TARGET}`, s.mainPath]);
     const cmp = snapshotEquals(s.dir, "c.snapshot", dump.stdout);
     if (!cmp.ok) {
       throw new Error(
