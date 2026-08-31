@@ -26,14 +26,30 @@ import "vader/bytecode"
 emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     extern_decls: string[]! = []
     seen_extern: string[]! = []
+    headers: string[]! = []
     shims: string[]! = []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
             seen_extern.push(imp.extern_name)
-            extern_decls.push(extern_decl(imp, ctx.module.types))
+            if imp.c_header != "" {
+                // The header carries the real prototype. Synthesising one beside
+                // it is a CONFLICTING DECLARATION the C compiler refuses — which
+                // is what blocked `WriteFile` against `<windows.h>` and
+                // `clock_gettime` against `<time.h>`.
+                if !(imp.c_header in headers) {
+                    headers.push(imp.c_header)
+                }
+            } else {
+                extern_decls.push(extern_decl(imp, ctx.module.types))
+            }
         }
         shims.push(import_shim(ctx, imp, i32(i)))
+    }
+    if headers.len() > 0 {
+        out.append("// Headers named by `@c_header` — they own the prototypes below.\n")
+        for h in headers { out.append("#include ${h}\n") }
+        out.append("\n")
     }
     if extern_decls.len() > 0 {
         out.append("// User @extern foreign symbols — resolved by the linker.\n")

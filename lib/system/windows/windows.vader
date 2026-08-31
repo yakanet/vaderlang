@@ -20,6 +20,7 @@ export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 ///
 /// @param which  one of the `STD_*_HANDLE` selectors.
 /// @return       the standard device's handle.
+@c_header("<windows.h>")
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
@@ -38,6 +39,7 @@ export get_std_handle :: fn(which: u32) -> Handle
 /// @param written     one-element cell the callee fills with the byte count.
 /// @param overlapped  always null here — this is the synchronous form.
 /// @return            whether the write succeeded.
+@c_header("<windows.h>")
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
                         written: u32[]!, overlapped: CPointer | null) -> bool

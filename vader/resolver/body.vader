@@ -346,6 +346,8 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "no_return"
         || name == "allow_unused"
         || name == "target"
+        || name == "c_header"
+        || name == "c_pointer"
 }
 
 walk_opt_expr :: fn(self: ResolveState!, e: AST.Expr | null) -> void {

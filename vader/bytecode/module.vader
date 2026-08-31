@@ -105,6 +105,9 @@ export BcImport :: struct {
     mangled_name: string
     signature: BcSignature
     is_extern: bool
+    /// Header to `#include` instead of synthesising a prototype, or `""`.
+    /// See `FnMetadata.c_header`.
+    c_header: string = ""
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

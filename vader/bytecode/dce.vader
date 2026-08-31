@@ -386,6 +386,9 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
                 .param_by_address = imp.signature.param_by_address,
             },
             .is_extern    = imp.is_extern,
+            // Carried over — a dropped header resurrects the synthesised
+            // prototype and its conflict.
+            .c_header     = imp.c_header,
         })
     }
     ctx.imports = new_imports

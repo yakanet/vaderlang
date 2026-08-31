@@ -77,6 +77,8 @@ export CFGExternDecl :: struct {
     /// that the linker resolves). False for @intrinsic-style bodyless
     /// fns (stdlib host bindings handled by the c-emit shim switch).
     is_extern:   bool
+    /// See `FnMetadata.c_header`.
+    c_header:    string
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs
