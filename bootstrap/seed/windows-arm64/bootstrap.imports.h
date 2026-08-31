@@ -49,6 +49,4 @@ static inline int32_t vader_host_std_process_spawn_poll(int64_t a0) { return vad
 static inline void vader_host_std_process_spawn_kill(int64_t a0) { vader_spawn_kill(a0); }
 static inline vader_string_t vader_host_std_process_spawn_take_stdout(int64_t a0) { return vader_spawn_take_stdout(a0); }
 static inline vader_string_t vader_host_std_process_spawn_take_stderr(int64_t a0) { return vader_spawn_take_stderr(a0); }
-static inline int64_t vader_host_std_time_now_unix_ms(void) { return vader_clock_realtime_ms(); }
-static inline int64_t vader_host_std_time_monotonic_ns(void) { return vader_clock_monotonic_ns(); }
 
