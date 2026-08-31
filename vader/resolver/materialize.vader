@@ -144,6 +144,9 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out
@@ -176,6 +179,9 @@ substitute_params_disambiguated :: fn(
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out
@@ -304,6 +310,9 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[]! {
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out
