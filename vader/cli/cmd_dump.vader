@@ -411,6 +411,7 @@ run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
     }
     println("")
     println("# Selected body")
+    cwd :: current_working_directory()
     lines: string[]! = []
     for [_, lm] in project.modules {
         for f in lm.module.files {
@@ -420,8 +421,12 @@ run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
                         continue
                     }
                     body :: fd.body
+                    // Relative to the cwd, like every diagnostic. A stdlib body
+                    // resolves through an absolute path, so printing it verbatim
+                    // put the DEVELOPER'S home directory in a committed snapshot
+                    // — green locally, red on any other machine.
                     origin :: if body is BlockExpr as b {
-                        "${b.span.start.file}:${b.span.start.line}"
+                        "${relative_to(b.span.start.file, cwd)}:${b.span.start.line}"
                     } else {
                         "(no body)"
                     }

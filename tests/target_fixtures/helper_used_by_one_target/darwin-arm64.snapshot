@@ -7,4 +7,4 @@ VADER_ARCH = Arch.Arm64
 
 # Selected body
 main$normalize <- main.vader:20
-std_io$write_bytes <- /Users/mbroutin/Developments/default/vaderlang2/lib/std/io/io.vader:54
+std_io$write_bytes <- lib/std/io/io.vader:54
