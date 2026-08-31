@@ -17,7 +17,6 @@ import "std/env"
 import "std/tty"
 import "std/process"
 import "std/math"
-import "std/time"
 import "std/string"
 import "std/target"
 
@@ -344,10 +343,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if deadline > sched_state[0] { sched_state[0] = deadline }
         return HostOk { .value = I32Val { .value = 0 } }
     }
-    // ---- std/time --------------------------------------------------------
-    // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
-    // the native clock through the public `now()` / `monotonic()` (this host is
-    // native, so these are native calls — no VM re-dispatch, no recursion).
     // ---- std/math --------------------------------------------------------
     .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
     .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
