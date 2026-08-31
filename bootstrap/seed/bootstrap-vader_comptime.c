@@ -5058,7 +5058,7 @@ static vader_string_t vader_comptime_render_struct(void* l0) {
     std_string_builder_append(l1, l2);
     std_string_builder_append(l1, 167u);
     l3 = std_collections_keys__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue(((vader_struct_vader_comptime_StructValue_t*) l0)->f_fields);
-    vader_struct___lambda_env_5422_t* _a2_obj = (vader_struct___lambda_env_5422_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5422_t));
+    vader_struct___lambda_env_5418_t* _a2_obj = (vader_struct___lambda_env_5418_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_5418_t));
     vader_obj_header_init(_a2_obj, 272u);
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
@@ -5251,7 +5251,7 @@ static void* vader_comptime_sorted_instances(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct_vader_comptime_InstanceRegistry_t*) l0)->f_order;
-    vader_struct___lambda_env_2251_t* _a0_obj = (vader_struct___lambda_env_2251_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2251_t));
+    vader_struct___lambda_env_2247_t* _a0_obj = (vader_struct___lambda_env_2247_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2247_t));
     vader_obj_header_init(_a0_obj, 245u);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));

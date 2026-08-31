@@ -12081,7 +12081,7 @@ static void* vader_c_emit_order_by_first(void* l0, size_t l1) {
             }
         }
     }
-    vader_struct___lambda_env_2736_t* _a3_obj = (vader_struct___lambda_env_2736_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2736_t));
+    vader_struct___lambda_env_2732_t* _a3_obj = (vader_struct___lambda_env_2732_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2732_t));
     vader_obj_header_init(_a3_obj, 246u);
     _a3_obj->f_cap_0 = l2;
     t0 = (void*) _a3_obj;
@@ -13801,14 +13801,14 @@ static void* vader_c_emit_sorted_fn_indices(void* l0) {
     void** gc_raw_roots[4] = { &l0, &l2, &l6, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct__Cell_Array_Struct_vader_bytecode_module_vader_1754____t* _a0_obj = (vader_struct__Cell_Array_Struct_vader_bytecode_module_vader_1754____t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_Struct_vader_bytecode_module_vader_1754____t));
+    vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t* _a0_obj = (vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t));
     vader_obj_header_init(_a0_obj, 174u);
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
     vader_array_t* _a1_arr = vader_array_new(9u, 0u, 7u, 166u);
     l2 = (void*) _a1_arr;
-    l3 = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_bytecode_module_vader_1754____t*) l1.payload.obj)->f_value)->length;
+    l3 = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) l1.payload.obj)->f_value)->length;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
         loop_11: {

@@ -49,25 +49,26 @@ vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
 }
 
-void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_string_t l3, uint8_t l4, vader_box_t l5) {
-    int32_t l6, l7;
+void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6) {
+    int32_t l7, l8;
     void* t0 = NULL;
-    vader_box_t* gc_roots[1] = { &l5 };
+    vader_box_t* gc_roots[1] = { &l6 };
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l6 = ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next;
-    l7 = (l6 + INT32_C(1));
-    ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next = l7;
+    l7 = ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next;
+    l8 = (l7 + INT32_C(1));
+    ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next = l8;
     VADER_WRITE_BARRIER((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0);
     vader_struct_vader_resolver_symbol_Symbol_t* _a0_obj = (vader_struct_vader_resolver_symbol_Symbol_t*) vader_gc_alloc(sizeof(vader_struct_vader_resolver_symbol_Symbol_t));
     vader_obj_header_init(_a0_obj, 882u);
-    _a0_obj->f_id = l6;
+    _a0_obj->f_id = l7;
     _a0_obj->f_kind = l1;
     _a0_obj->f_name = l2;
     _a0_obj->f_module = l3;
-    _a0_obj->f_visibility = l4;
-    _a0_obj->f_defined_at = l5;
+    _a0_obj->f_module_name = l4;
+    _a0_obj->f_visibility = l5;
+    _a0_obj->f_defined_at = l6;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;

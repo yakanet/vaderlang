@@ -8791,48 +8791,30 @@ int32_t vader_bytecode_struct_type_index(void* l0, vader_string_t l1) {
 }
 
 static vader_string_t vader_bytecode_symbol_key(void* l0) {
-    vader_box_t l1 = vader_box_null();
-    void* l2 = NULL;
-    void* l6 = NULL;
-    size_t l3;
-    int64_t l4;
-    vader_string_t l5;
-    uint64_t l7;
-    int32_t t0;
-    vader_string_t t1;
-    size_t t2;
-    int64_t t3;
-    vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[3] = { &l0, &l2, &l6 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    void* l1 = NULL;
+    size_t l2;
+    int64_t l3;
+    vader_string_t l4, l5;
+    vader_string_t t0;
+    int32_t t1;
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_defined_at;
-    if (l1.tag == 0u) {
-        l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-        l3 = (size_t) (int64_t) INT64_C(0);
-        l3 = std_core_write_string_at(l2, l3, 1659u);
-        t0 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_id;
-        l4 = ((int64_t) (int32_t) t0);
-        l3 = std_core_write_int(l2, l3, l4);
-        t1 = std_core_finish_buffer(l2, l3);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_module_name;
+    if (t0 == 0u) {
+        l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
+        l2 = (size_t) (int64_t) INT64_C(0);
+        l2 = std_core_write_string_at(l1, l2, 1659u);
+        t1 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_id;
+        l3 = ((int64_t) (int32_t) t1);
+        l2 = std_core_write_int(l1, l2, l3);
+        t0 = std_core_finish_buffer(l1, l2);
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l1.tag == 478u) {
-        l2 = l1.payload.obj;
-        l5 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l2)->f_start)->f_file;
-        l3 = vader_host_std_core_byte_len(l5);
-        l6 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l3));
-        l3 = (size_t) (int64_t) INT64_C(0);
-        l3 = std_core_write_string_at(l6, l3, l5);
-        l3 = std_core_write_string_at(l6, l3, 473u);
-        t2 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l2)->f_start)->f_offset;
-        t3 = ((int64_t) (size_t) t2);
-        l7 = (uint64_t) (int64_t) t3;
-        l3 = std_core_write_unsigned(l6, l3, l7);
-        t1 = std_core_finish_buffer(l6, l3);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    vader_unreachable("unreachable return in vader_bytecode$symbol_key");
+    l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_module_name;
+    l5 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l0)->f_name;
+    t0 = concat_3(l4, 422u, l5);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
