@@ -44,10 +44,11 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
     uint8_t t1;
     int64_t t2;
     void* t3 = NULL;
-    vader_string_t t4;
+    vader_string_t t4 = 0;
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[2] = { &l1, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = vader_host_std_core_bytes(l0);
     l2 = ((vader_array_t*) l1)->length;

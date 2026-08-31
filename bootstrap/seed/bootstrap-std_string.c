@@ -44,7 +44,8 @@ vader_box_t std_string_StringChars_Iterator_next(void* l0) {
 
 bool std_string_byte_contains(vader_string_t l0, vader_string_t l1) {
     ptrdiff_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = std_string_byte_find(l0, l1, (size_t) (int64_t) INT64_C(0));
     { bool __vret = (t0 >= INT64_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
@@ -58,7 +59,8 @@ static ptrdiff_t std_string_byte_find(vader_string_t l0, vader_string_t l1, size
     int64_t t0;
     bool t1;
     void** gc_raw_roots[2] = { &l3, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_host_std_core_bytes(l0);
     l4 = vader_host_std_core_bytes(l1);
@@ -130,7 +132,8 @@ void* std_string_chars(vader_string_t l0) {
     size_t l2;
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l1, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = vader_host_std_core_bytes(l0);
     l2 = ((vader_array_t*) l1)->length;
@@ -177,7 +180,8 @@ bool std_string_compare_ascending(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3, l4, l5;
     uint8_t l6, l7;
     int64_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
@@ -210,7 +214,8 @@ bool std_string_compare_ascending_ci(vader_string_t l0, vader_string_t l1) {
     uint8_t l6, l7;
     uint8_t t0;
     int64_t t1;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
@@ -266,7 +271,8 @@ bool std_string_ends_with(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3, l4, l5;
     uint8_t l6, l7;
     int64_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l1);
     l3 = vader_host_std_core_byte_len(l0);
@@ -304,7 +310,8 @@ ptrdiff_t std_string_index_of(vader_string_t l0, uint32_t l1, size_t l2) {
     uint32_t l7;
     int64_t t0;
     void** gc_raw_roots[2] = { &l3, &l6 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_host_std_core_bytes(l0);
     l4 = ((vader_array_t*) l3)->length;
@@ -331,7 +338,8 @@ ptrdiff_t std_string_index_of(vader_string_t l0, uint32_t l1, size_t l2) {
 
 bool std_string_is_empty(vader_string_t l0) {
     size_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_host_std_core_byte_len(l0);
     { bool __vret = t0 == INT64_C(0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -393,14 +401,15 @@ static bool std_string_is_utf8_continuation(uint8_t l0) {
 vader_string_t std_string_join(void* l0, vader_string_t l1) {
     void* l2 = NULL;
     size_t l3, l4;
-    vader_string_t l5;
+    vader_string_t l5 = 0;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     int64_t t2;
-    vader_string_t t3;
+    vader_string_t t3 = 0;
     vader_box_t* gc_roots[1] = { &t1 };
     void** gc_raw_roots[3] = { &l0, &l2, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l1, &l5, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 163u);
     t0 = (void*) _a0_arr;
@@ -444,7 +453,8 @@ ptrdiff_t std_string_last_index_of(vader_string_t l0, uint32_t l1, ptrdiff_t l2)
     bool l10;
     int64_t t0;
     void** gc_raw_roots[2] = { &l3, &l7 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_host_std_core_bytes(l0);
     l4 = ((vader_array_t*) l3)->length;
@@ -483,9 +493,10 @@ vader_string_t std_string_pad_start(vader_string_t l0, size_t l1, uint32_t l2) {
     void* l4 = NULL;
     void* t0 = NULL;
     int64_t t1;
-    vader_string_t t2;
+    vader_string_t t2 = 0;
     void** gc_raw_roots[2] = { &l4, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_host_std_core_byte_len(l0);
     if ((l3 >= l1)) {
@@ -516,17 +527,18 @@ vader_string_t std_string_pad_start(vader_string_t l0, size_t l1, uint32_t l2) {
 
 vader_box_t std_string_parse_float(vader_string_t l0) {
     vader_box_t l1 = vader_box_null();
-    vader_string_t t0;
+    vader_string_t t0 = 0;
     void* t1 = NULL;
     double t2;
     vader_box_t t3 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l1, &t3 };
     void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = std_core_parse_f64(l0);
     if (l1.tag == 0u) {
-        t0 = concat_3(1899u, l0, 922u);
+        t0 = concat_3(1903u, l0, 925u);
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 385u);
         _a0_obj->f_msg = t0;
@@ -547,10 +559,11 @@ vader_string_t std_string_replace_chars_where(vader_string_t l0, void* l1, vader
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     bool t2;
-    vader_string_t t3;
+    vader_string_t t3 = 0;
     vader_box_t* gc_roots[2] = { &l5, &t1 };
     void** gc_raw_roots[4] = { &l1, &l3, &l4, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l2, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 163u);
     t0 = (void*) _a0_arr;
@@ -587,12 +600,13 @@ void* std_string_split(vader_string_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     size_t l4, l5, l6, l7;
-    vader_string_t l8;
+    vader_string_t l8 = 0;
     ptrdiff_t l9;
     int64_t t0;
     void* t1 = NULL;
     void** gc_raw_roots[3] = { &l2, &l3, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &l8 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 163u);
     l2 = (void*) _a0_arr;
@@ -650,7 +664,8 @@ bool std_string_starts_with(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3;
     uint8_t l4, l5;
     int64_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l1);
     l3 = vader_host_std_core_byte_len(l0);
@@ -686,9 +701,10 @@ vader_string_t std_string_to_lower(vader_string_t l0) {
     void* t0 = NULL;
     uint32_t t1;
     int64_t t2;
-    vader_string_t t3;
+    vader_string_t t3 = 0;
     void** gc_raw_roots[4] = { &l1, &l2, &l5, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 163u);
     t0 = (void*) _a0_arr;
@@ -782,9 +798,10 @@ vader_string_t std_string_trim_prefix(vader_string_t l0, vader_string_t l1) {
     size_t l3, l4;
     bool t0;
     void* t1 = NULL;
-    vader_string_t t2;
+    vader_string_t t2 = 0;
     void** gc_raw_roots[2] = { &l2, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = std_string_starts_with(l0, l1);
     if (t0) {
@@ -806,9 +823,10 @@ vader_string_t std_string_trim_suffix(vader_string_t l0, vader_string_t l1) {
     bool t0;
     int64_t t1;
     void* t2 = NULL;
-    vader_string_t t3;
+    vader_string_t t3 = 0;
     void** gc_raw_roots[2] = { &l2, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = std_string_ends_with(l0, l1);
     if (t0) {

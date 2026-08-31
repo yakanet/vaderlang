@@ -145,13 +145,16 @@ static void std_sort_insertion_sort_range__i32(void* l0, size_t l1, size_t l2, v
 
 static void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2, void* l3) {
     size_t l4, l6, l8, l10;
-    vader_string_t l5, l9, l11;
+    vader_string_t l5 = 0;
+    vader_string_t l9 = 0;
+    vader_string_t l11 = 0;
     bool l7;
     int64_t t0;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t1 };
     void** gc_raw_roots[2] = { &l0, &l3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[3] = { &l5, &l9, &l11 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = (l1 + INT64_C(1));
     l4 = (size_t) (int64_t) t0;
@@ -529,14 +532,20 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, size_t l2, size_t
 
 static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, size_t l3, void* l4) {
     size_t l5, l6, l8, l9;
-    vader_string_t l7, l10, l11, l12, l13, l14;
+    vader_string_t l7 = 0;
+    vader_string_t l10 = 0;
+    vader_string_t l11 = 0;
+    vader_string_t l12 = 0;
+    vader_string_t l13 = 0;
+    vader_string_t l14 = 0;
     int64_t t0;
     uint64_t t1;
     vader_box_t t2 = vader_box_null();
     bool t3;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[3] = { &l0, &l1, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[6] = { &l7, &l10, &l11, &l12, &l13, &l14 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = (l3 - l2);
     l5 = (size_t) (int64_t) t0;
