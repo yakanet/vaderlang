@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { writeFileSync } from "node:fs";
 
 import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
-import { VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { SNAPSHOT_TARGET, VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
@@ -281,10 +281,6 @@ const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.na
 test("c-emit: allowlist resolves to real snippets", () => {
   expect(scenarios.length).toBe(C_PARITY.size);
 });
-
-// The canonical target every `c.snapshot` is generated for. Neutral on purpose:
-// not the machine any particular contributor uses.
-const SNAPSHOT_TARGET = "linux-x86_64";
 
 for (const s of scenarios) {
   // Oracle 1 — regression vs the Vader-generated golden.

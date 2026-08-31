@@ -163,6 +163,10 @@ export async function dumpLowerViaVader(_source: string, entryPath: string, modu
   return runVaderDump("lowered-ast", entryPath, modules);
 }
 
+// The canonical target every committed snapshot is generated for. Neutral on
+// purpose: not the machine any particular contributor uses.
+export const SNAPSHOT_TARGET = "linux-x86_64";
+
 export async function dumpBytecodeViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   return runVaderDump("bytecode", entryPath);
 }
@@ -173,7 +177,12 @@ export async function dumpBytecodeViaVader(_source: string, entryPath: string, _
 // see `cli-bin.ts`). A non-zero exit is surfaced inline so snapshot diffs are
 // debuggable rather than mysteriously empty.
 async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[]): Promise<string> {
-  const args = ["dump", `--stage=${stage}`, entryPath];
+  // PINNED to one target. A `@target` group in the closure (`std/io::write_bytes`
+  // since println went through the FFI) makes every stage after target selection
+  // differ per platform: Windows picks the Win32 body and the bytecode carries
+  // `kernel32:GetStdHandle` where POSIX carries `write`. A snapshot's identity is
+  // its target, not the machine that regenerated it.
+  const args = ["dump", `--stage=${stage}`, `--target=${SNAPSHOT_TARGET}`, entryPath];
   if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
   const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
   if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
