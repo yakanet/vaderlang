@@ -405,7 +405,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 < INT64_C(3))) {
-        std_io_eprintln__string(2307u);
+        std_io_eprintln__string(2310u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
@@ -580,7 +580,7 @@ static int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
     if (l2.tag == 384u) {
         t0 = l2.payload.obj;
         l3 = ((vader_struct_std_io_IOError_t*) t0)->f_msg;
-        t1 = concat_4(1251u, l0, 1055u, l3);
+        t1 = concat_4(1254u, l0, 1058u, l3);
         std_io_eprintln__string(t1);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
