@@ -697,6 +697,18 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     borrowed: LentArray[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
+        // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
+        // carries that decorator too, and that branch reads a SCALAR.
+        //
+        // Such a parameter crosses natively because the shim is SPECIALISED C —
+        // it declares a real `struct timespec` and marshals by field name. The
+        // VM calls through one generic trampoline and cannot build a C struct at
+        // run time; that needs libffi, which we do not link. Say so rather than
+        // let `read_i64` report "expected i64", which reads like a type error in
+        // the user's own code.
+        if v is StructVal {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a `@c_struct`, which only the native backend can marshal (the VM has no libffi)" }
+        }
         if extern_by_address(info.signature, i) {
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
             // into the lent buffer and hand over that offset — the mirror of

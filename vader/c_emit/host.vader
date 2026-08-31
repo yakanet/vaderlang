@@ -369,6 +369,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     call_args: string[]! = []
     lines: string[]! = []
     free_lines: string[]! = []
+    after_lines: string[]! = []
     for j in 0..<sig.params.len() {
         if is_abi_array(types, sig.param_types[j]) {
             // Lent for the duration of the call only : no Vader allocation runs
@@ -380,6 +381,31 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // `.len` is deliberately unused : the callee's length, if any, is a
             // parameter of its own (see the note on revision A in the plan).
             call_args.push(if param_is_mutable(sig, j) { "(void*) s${j}.ptr" } else { "s${j}.ptr" })
+        } else if mirrored_c_struct(types, sig.param_types[j]) != "" {
+            // A struct crossing as an address. The shim declares a REAL one of
+            // the C type and marshals field by field, so `cc` computes every
+            // offset from the actual header — nothing here assumes a layout,
+            // which is why no `offsetof` and no `_Static_assert` appear.
+            //
+            // Field names are taken as-is: `@c_struct` says the Vader field
+            // names ARE the C ones. `c_field_name` is the single place that
+            // decides, so an optional per-field `@c_name` slots in there alone.
+            mirror :: mirrored_c_struct(types, sig.param_types[j])
+            vader_ty :: struct_c_name(bc_struct_name(types, sig.param_types[j]))
+            lines.push("${mirror} p${j};")
+            if !param_is_mutable(sig, j) {
+                // Read direction: C reads what Vader holds, so fill first.
+                for f in bc_struct_fields(types, sig.param_types[j]) {
+                    lines.push("p${j}.${c_field_name(f)} = ((${vader_ty}*) a${j})->f_${f.name};")
+                }
+            } else {
+                // Write direction: the callee fills `p`, and it travels back
+                // after the call (see `after_lines` below).
+                for f in bc_struct_fields(types, sig.param_types[j]) {
+                    after_lines.push("((${vader_ty}*) a${j})->f_${f.name} = p${j}.${c_field_name(f)};")
+                }
+            }
+            call_args.push("&p${j}")
         } else if is_param_by_address(sig, j) {
             // Spill to a stack temporary and hand over its address. The
             // temporary lives for the call and no longer — which is the whole
@@ -405,6 +431,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
     if sig.result == ValType.Void {
         lines.push("${call_expr};")
+        for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return;")
     } else if is_abi_nullable_pointer(types, sig.result_type) {
@@ -412,17 +439,76 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         // `NULL` becomes the union's null variant rather than a tagged pointer.
         ptr_tag :: tag_u(prim_tag(types, ValType.Pointer), "CPointer")
         lines.push("void* r = ${call_expr};")
+        for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
-    } else if free_lines.len() == 0 {
+    } else if free_lines.len() == 0 && after_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {
         lines.push("${c_type_for_val_bare(sig.result)} r = ${call_expr};")
+        for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r;")
     }
     return "${head} { ${lines.join(" ")} }"
 }
+
+/// The C type the struct at `type_index` mirrors, or `""` when the slot is not
+/// a `@c_struct` struct.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot ; `-1` is absent.
+/// @return            e.g. `"struct timespec"`, or `""`.
+mirrored_c_struct :: fn(types: BcType[], type_index: i32) -> string {
+    if type_index < 0 || usize(type_index) >= types.len() {
+        return ""
+    }
+    t :: types[usize(type_index)]
+    if t is BcStruct {
+        return t.c_name
+    }
+    return ""
+}
+
+/// The Vader struct name at `type_index`, or `""`.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot.
+/// @return            the mangled Vader name.
+bc_struct_name :: fn(types: BcType[], type_index: i32) -> string {
+    if type_index < 0 || usize(type_index) >= types.len() {
+        return ""
+    }
+    t :: types[usize(type_index)]
+    if t is BcStruct {
+        return t.name
+    }
+    return ""
+}
+
+/// The fields of the struct at `type_index`, or empty.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot.
+/// @return            the field list, in declaration order.
+bc_struct_fields :: fn(types: BcType[], type_index: i32) -> BcField[] {
+    if type_index < 0 || usize(type_index) >= types.len() {
+        return []
+    }
+    t :: types[usize(type_index)]
+    if t is BcStruct {
+        return t.fields
+    }
+    return []
+}
+
+/// The C name of a mirrored field. Today the Vader name IS the C name, which is
+/// what `@c_struct` declares; this is the ONE place that decides, so an optional
+/// per-field `@c_name` becomes a change here and nowhere else.
+///
+/// @param f  the field.
+/// @return   the C member name.
+c_field_name :: fn(f: BcField) -> string = f.name
 
 /// Foreign C-ABI type for an `@extern` slot — identical to
 /// `c_type_for_val_bare` except `string`, which the foreign side consumes

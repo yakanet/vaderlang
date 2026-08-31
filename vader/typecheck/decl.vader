@@ -444,6 +444,50 @@ is_user_type_kind :: fn(k: SymbolKind) -> bool {
 /// @param decl       the fn whose parameters to check.
 /// @param is_extern  whether the declaration carries `@extern`.
 /// @param diags      accumulator for T3078.
+/// Whether `t` is a struct declaring the C type it mirrors (`@c_struct`).
+///
+/// @param t      the candidate parameter type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       whether the struct carries a C spelling.
+mirrors_a_c_struct :: fn(t: Type, typed: TypedProgram) -> bool = c_struct_spelling_of(t, typed) != ""
+
+/// The C type spelling a struct mirrors, or `""`.
+///
+/// @param t      the candidate type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       e.g. `"struct timespec"`, or `""` for anything else.
+c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
+    if t !is StructType {
+        return ""
+    }
+    sd :: typed.struct_decls[t.symbol.id] ?? return ""
+    for d in sd.decorators {
+        if d.name == "c_struct" && d.args.len() == 1 {
+            a :: d.args[0]
+            if a is AST.StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is AST.StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
+}
+
+/// Whether the parameter carries `@c_pointer`.
+///
+/// @param pm  the parameter.
+/// @return    whether it crosses as an address.
+param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
+    for d in pm.decorators {
+        if d.name == "c_pointer" {
+            return true
+        }
+    }
+    return false
+}
+
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]!) -> void {
     for pm in decl.params {
         for d in pm.decorators {
@@ -505,6 +549,24 @@ validate_extern :: fn(
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
+        // A struct crosses ONLY as `@c_pointer` on a type that declares which C
+        // type it mirrors. The shim then declares a real one and marshals field
+        // by field, so the C compiler computes the offsets from the real header
+        // — an undeclared struct has no C spelling to declare and would have to
+        // guess a layout instead.
+        if mirrors_a_c_struct(pt, typed) {
+            if param_has_c_pointer(decl.params[i]) {
+                continue
+            }
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.params[i].span,
+                    "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
+                ),
+            )
+            continue
+        }
         if !is_extern_abi_type(pt, false) {
             diags.push(
                 typecheck_error(
