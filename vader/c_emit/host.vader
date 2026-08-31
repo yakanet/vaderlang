@@ -385,7 +385,11 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // temporary lives for the call and no longer — which is the whole
             // contract, and why no pointer type appears in Vader.
             lines.push("${c_type_for_val_bare(sig.params[j])} p${j} = a${j};")
-            call_args.push("&p${j}")
+            // `(void*)` and not a bare `&p`: with `@c_header` the real prototype
+            // is visible, and a Vader `u32` is `uint32_t` while Win32 spells the
+            // same 32 bits `unsigned long` — distinct pointer types to C, which
+            // rejects the mismatch. `void*` converts to either.
+            call_args.push("(void*) &p${j}")
         } else if is_abi_nullable_pointer(types, sig.param_types[j]) {
             // The union rides as a box inside Vader; C wants a bare `void*`.
             lines.push("void* p${j} = (a${j}.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a${j}.payload.i;")
