@@ -49,7 +49,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
     void** gc_raw_roots[2] = { &l1, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = vader_import_3(l0);
+    l1 = vader_host_std_core_bytes(l0);
     l2 = ((vader_array_t*) l1)->length;
     if ((l2 < INT64_C(2))) {
         { vader_gc_top = gc_frame.prev; return 0u; }
@@ -104,7 +104,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                 if (l5) {
                     vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l1, (size_t) INT64_C(0), (size_t) l4);
                     t3 = (void*) _a3_arr;
-                    t4 = vader_import_2(t3);
+                    t4 = vader_host_std_core_bytes_to_string(t3);
                     { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
                 }
                 t2 = (l4 + INT64_C(1));

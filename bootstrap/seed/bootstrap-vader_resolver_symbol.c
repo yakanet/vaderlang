@@ -2,49 +2,49 @@
 
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     if (l0 == INT32_C(0)) {
-        return 1543u;
+        return 1545u;
     }
     if (l0 == INT32_C(1)) {
-        return 2095u;
+        return 2097u;
     }
     if (l0 == INT32_C(2)) {
-        return 1425u;
+        return 1427u;
     }
     if (l0 == INT32_C(3)) {
-        return 2145u;
+        return 2147u;
     }
     if (l0 == INT32_C(4)) {
-        return 1648u;
+        return 1650u;
     }
     if (l0 == INT32_C(5)) {
-        return 2164u;
+        return 2166u;
     }
     if (l0 == INT32_C(6)) {
-        return 1347u;
+        return 1349u;
     }
     if (l0 == INT32_C(7)) {
-        return 1656u;
+        return 1658u;
     }
     if (l0 == INT32_C(8)) {
-        return 1873u;
+        return 1875u;
     }
     if (l0 == INT32_C(9)) {
-        return 2165u;
+        return 2167u;
     }
     if (l0 == INT32_C(10)) {
-        return 1762u;
+        return 1764u;
     }
     if (l0 == INT32_C(11)) {
-        return 1211u;
+        return 1213u;
     }
     if (l0 == INT32_C(12)) {
-        return 1260u;
+        return 1262u;
     }
     if (l0 == INT32_C(13)) {
-        return 1259u;
+        return 1261u;
     }
     if (l0 == INT32_C(14)) {
-        return 2114u;
+        return 2116u;
     }
     vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
 }

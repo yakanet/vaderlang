@@ -1,5 +1,5 @@
 # Diagnostics
-(none)
+[lib/std/io/io.vader:66:8] error[R2041] no `@target` body covers the target being built: `sys_write` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 
 # Baked
 VADER_OS = Os.Wasi
@@ -7,3 +7,4 @@ VADER_ARCH = Arch.Wasm32
 
 # Selected body
 main$platform_tag <- main.vader:14
+std_io$sys_write <- (no body)

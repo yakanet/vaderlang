@@ -8,3 +8,4 @@ VADER_ARCH = Arch.Arm64
 # Selected body
 main$platform_kind <- main.vader:14
 main$platform_tag <- main.vader:11
+std_io$sys_write <- (no body)

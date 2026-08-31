@@ -7,3 +7,4 @@ VADER_ARCH = Arch.Arm64
 
 # Selected body
 main$normalize <- main.vader:20
+std_io$sys_write <- (no body)

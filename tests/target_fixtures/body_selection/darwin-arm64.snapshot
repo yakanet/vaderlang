@@ -7,3 +7,4 @@ VADER_ARCH = Arch.Arm64
 
 # Selected body
 main$platform_tag <- main-posix.vader:7
+std_io$sys_write <- (no body)
