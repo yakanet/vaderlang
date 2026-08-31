@@ -545,9 +545,17 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             if b is Trap { return b }
             bs.push(u8(b.value))
         }
-        return HostOk { .value = I64Val {
-            .value = ffi_call_int_lend(call.fn_ptr, call.args, call.nargs, slots, bs),
-        } }
+        raw :: ffi_call_int_lend(call.fn_ptr, call.args, call.nargs, slots, bs)
+        // `bs` is a COPY — a VM array holds boxed values, so the flat buffer had
+        // to be built. What the callee wrote lives in that copy and nowhere
+        // else, so hand it back element by element. Without this the VM reads
+        // back exactly what it sent, which is how a lend that cannot be read
+        // back looks from Vader.
+        for i in 0..<lent.length {
+            at :: lent.offset + i
+            lent.elements[at] = retyped_int(lent.elements[at], i64(bs[i]))
+        }
+        return HostOk { .value = I64Val { .value = raw } }
     }
     .FfiCallVoid -> {
         call :: host_ffi_call_args(stack, arg_base, at_pc)
