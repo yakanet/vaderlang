@@ -104,7 +104,7 @@ void* __lambda_1861(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 165u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -115,7 +115,7 @@ void* __lambda_1879(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 165u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -293,14 +293,14 @@ void* __lambda_2864(void* l0) {
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 165u);
     l1 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 160u);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 165u);
     l3 = (void*) _a2_arr;
     vader_struct_std_collections_MutableMap__i32__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__bool_t));
-    vader_obj_header_init(_a3_obj, 307u);
+    vader_obj_header_init(_a3_obj, 308u);
     _a3_obj->f_ekeys = l1;
     _a3_obj->f_evals = l2;
     _a3_obj->f_index = l3;
@@ -309,7 +309,7 @@ void* __lambda_2864(void* l0) {
     _a3_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
     t0 = (void*) _a3_obj;
     vader_struct_std_collections_MutableSet__i32_t* _a4_obj = (vader_struct_std_collections_MutableSet__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__i32_t));
-    vader_obj_header_init(_a4_obj, 374u);
+    vader_obj_header_init(_a4_obj, 375u);
     _a4_obj->f_inner = t0;
     t0 = (void*) _a4_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -324,14 +324,14 @@ void* __lambda_2867(void* l0) {
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 165u);
     l1 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 160u);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 164u);
+    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 165u);
     l3 = (void*) _a2_arr;
     vader_struct_std_collections_MutableMap__i32__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__bool_t));
-    vader_obj_header_init(_a3_obj, 307u);
+    vader_obj_header_init(_a3_obj, 308u);
     _a3_obj->f_ekeys = l1;
     _a3_obj->f_evals = l2;
     _a3_obj->f_index = l3;
@@ -340,7 +340,7 @@ void* __lambda_2867(void* l0) {
     _a3_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
     t0 = (void*) _a3_obj;
     vader_struct_std_collections_MutableSet__i32_t* _a4_obj = (vader_struct_std_collections_MutableSet__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__i32_t));
-    vader_obj_header_init(_a4_obj, 374u);
+    vader_obj_header_init(_a4_obj, 375u);
     _a4_obj->f_inner = t0;
     t0 = (void*) _a4_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -380,7 +380,7 @@ void __lambda_2896(void* l0, int32_t l1) {
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct__Cell_Fn_i32___void_t*) ((vader_struct___lambda_env_2897_t*) l0)->f_cap_0.payload.obj)->f_value;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l2;
-    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(164u, l1));
+    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(165u, l1));
     l2 = ((vader_struct__Cell_Array_bool__t*) ((vader_struct___lambda_env_2897_t*) l0)->f_cap_1.payload.obj)->f_value;
     t0 = ((int64_t) (int32_t) l1);
     l3 = (size_t) (int64_t) t0;
@@ -401,7 +401,7 @@ void __lambda_2899(void* l0, int32_t l1) {
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct__Cell_Fn_i32___void_t*) ((vader_struct___lambda_env_2900_t*) l0)->f_cap_0.payload.obj)->f_value;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l2;
-    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(164u, l1));
+    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(165u, l1));
     l2 = ((vader_struct__Cell_Array_bool__t*) ((vader_struct___lambda_env_2900_t*) l0)->f_cap_1.payload.obj)->f_value;
     t0 = ((int64_t) (int32_t) l1);
     l3 = (size_t) (int64_t) t0;

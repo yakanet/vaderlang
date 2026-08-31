@@ -107,7 +107,7 @@ static void std_sort_insertion_sort_range__i32(void* l0, size_t l1, size_t l2, v
                             if ((size_t) l8 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                             l9 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
                             vader_fn_t* _a2_fnobj = (vader_fn_t*) l3;
-                            t1 = ((vader_fn_erased_sig_2_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i32(164u, l5), vader_box_i32(164u, l9));
+                            t1 = ((vader_fn_erased_sig_2_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i32(165u, l5), vader_box_i32(165u, l9));
                             l7 = t1.payload.b;
                         } else {
                             l7 = false;
@@ -245,7 +245,7 @@ static void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2,
                             t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
                             l9 = (size_t) (int64_t) t0;
                             vader_fn_t* _a2_fnobj = (vader_fn_t*) l3;
-                            t1 = ((vader_fn_erased_sig_2_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i64(170u, (int64_t)(uint64_t) l5), vader_box_i64(170u, (int64_t)(uint64_t) l9));
+                            t1 = ((vader_fn_erased_sig_2_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i64(171u, (int64_t)(uint64_t) l5), vader_box_i64(171u, (int64_t)(uint64_t) l9));
                             l7 = t1.payload.b;
                         } else {
                             l7 = false;
@@ -489,7 +489,7 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, size_t l2, size_t
                         if ((size_t) l6 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
                         l12 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l6];
                         vader_fn_t* _a7_fnobj = (vader_fn_t*) l4;
-                        t2 = ((vader_fn_erased_sig_2_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(164u, l11), vader_box_i32(164u, l12));
+                        t2 = ((vader_fn_erased_sig_2_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(165u, l11), vader_box_i32(165u, l12));
                         t3 = t2.payload.b;
                         if (t3) {
                             vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
@@ -745,7 +745,7 @@ static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size
                         t0 = ((int64_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l6];
                         l12 = (size_t) (int64_t) t0;
                         vader_fn_t* _a7_fnobj = (vader_fn_t*) l4;
-                        t2 = ((vader_fn_erased_sig_2_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i64(170u, (int64_t)(uint64_t) l11), vader_box_i64(170u, (int64_t)(uint64_t) l12));
+                        t2 = ((vader_fn_erased_sig_2_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i64(171u, (int64_t)(uint64_t) l11), vader_box_i64(171u, (int64_t)(uint64_t) l12));
                         t3 = t2.payload.b;
                         if (t3) {
                             vader_array_t* _a8_slotarr = ((vader_array_t*) l1);

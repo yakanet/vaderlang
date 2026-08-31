@@ -1,6 +1,7 @@
 #include "bootstrap.split.h"
 
 static void std_io_write(int32_t l0, vader_string_t l1);
+static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
 
 void std_io_eprintln__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
@@ -21,7 +22,7 @@ vader_box_t std_io_read_file_string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = vader_host_std_io_read_file_bytes(l0);
-    if (l1.tag == 382u) {
+    if (l1.tag == 383u) {
         t0 = l1.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -33,43 +34,54 @@ vader_box_t std_io_read_file_string(vader_string_t l0) {
 }
 
 static void std_io_write(int32_t l0, vader_string_t l1) {
-    int32_t l2, l9;
-    void* l3 = NULL;
-    void* l7 = NULL;
-    size_t l4, l5, l6, l8, l10;
+    void* l2 = NULL;
+    void* l6 = NULL;
+    size_t l3, l4, l5, l7, l9;
+    int32_t l8;
     int64_t t0;
-    void** gc_raw_roots[2] = { &l3, &l7 };
+    void** gc_raw_roots[2] = { &l2, &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        l2 = INT32_C(1);
-    } else {
-        l2 = INT32_C(2);
-    }
-    l3 = vader_host_std_core_bytes(l1);
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l2 = vader_host_std_core_bytes(l1);
+    l3 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_16: {
-            l5 = ((vader_array_t*) l3)->length;
-            if ((l4 >= l5)) {
+        loop_6: {
+            l4 = ((vader_array_t*) l2)->length;
+            if ((l3 >= l4)) {
             } else {
-                l6 = ((vader_array_t*) l3)->length;
-                vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l3, (size_t) l4, (size_t) l6);
-                l7 = (void*) _a0_arr;
-                l8 = ((vader_array_t*) l7)->length;
-                l9 = vader_host_std_io_sys_write(l2, l7, l8);
-                if ((l9 <= INT32_C(0))) {
+                l5 = ((vader_array_t*) l2)->length;
+                vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+                l6 = (void*) _a0_arr;
+                l7 = ((vader_array_t*) l6)->length;
+                l8 = std_io_write_bytes(l0, l6, l7);
+                if ((l8 <= INT32_C(0))) {
                     { vader_gc_top = gc_frame.prev; return; }
                 }
-                t0 = ((int64_t) (int32_t) l9);
-                l10 = (size_t) (int64_t) t0;
-                t0 = (l4 + l10);
-                l4 = (size_t) (int64_t) t0;
-                goto loop_16;
+                t0 = ((int64_t) (int32_t) l8);
+                l9 = (size_t) (int64_t) t0;
+                t0 = (l3 + l9);
+                l3 = (size_t) (int64_t) t0;
+                goto loop_6;
             }
         }
     }
     { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
+    int32_t l3;
+    int32_t t0;
+    void** gc_raw_roots[1] = { &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    if (l0 == INT32_C(0)) {
+        l3 = INT32_C(1);
+    } else {
+        l3 = INT32_C(2);
+    }
+    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
