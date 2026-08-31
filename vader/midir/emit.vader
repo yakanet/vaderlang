@@ -161,12 +161,30 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
     params_val: ValType[]! = []
     param_types: i32[]! = []
     param_names: string[]! = []
+    param_mutable: bool[]! = []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
         param_names.push(p.name)
+        param_mutable.push(is_mutable_slot(p.type))
     }
-    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names }
+    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
+}
+
+/// Whether the slot was written with a `!`. Only the container types record it
+/// (`ArrayType` / `StructType.immutable`); everything else is a value and has no
+/// interior to grant, so it reads as immutable.
+///
+/// @param t  the parameter's declared type.
+/// @return   true when the callee may mutate through the slot.
+is_mutable_slot :: fn(t: Type) -> bool {
+    if t is ArrayType as a {
+        return !a.immutable
+    }
+    if t is StructType as st {
+        return !st.immutable
+    }
+    return false
 }
 
 // ============================================================================
@@ -1302,6 +1320,7 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }

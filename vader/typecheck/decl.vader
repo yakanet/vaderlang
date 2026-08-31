@@ -471,7 +471,7 @@ validate_extern :: fn(
                 typecheck_error(
                     .InvalidExternDecl,
                     decl.params[i].span,
-                    "`@extern` parameter type must be a primitive or `string`, got `${display_type(pt)}`",
+                    "`@extern` parameter type must be a primitive, `string`, or a primitive-element array, got `${display_type(pt)}`",
                 ),
             )
         }
@@ -485,7 +485,7 @@ validate_extern :: fn(
             typecheck_error(
                 .InvalidExternDecl,
                 ret_span,
-                "`@extern` return type must be a primitive, `string`, or `void`, got `${display_type(return_type)}`",
+                "`@extern` return type must be a primitive, `string`, `CPointer | null`, or `void`, got `${display_type(return_type)}`",
             ),
         )
     }
@@ -573,15 +573,90 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
 /// C-ABI type whitelist : primitives + `string`. `void` allowed only in
 /// return position (the caller passes `allow_void = true` for return types).
 /// `null` is rejected everywhere — it's not a marshallable value.
-is_extern_abi_type :: fn(t: Type, allow_void: bool) -> bool {
-    // @partial: only primitives (and `string`, itself a PrimitiveType) cross the
-    // C ABI; every aggregate / ref / synthetic variant is rejected.
+is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
+    // @partial: primitives (`string` included, itself a PrimitiveType) and
+    // primitive-element arrays cross the C ABI; every other aggregate / ref /
+    // synthetic variant is rejected.
     @partial match t {
         is UnresolvedType     -> { return true }
         is PrimitiveType as p -> {
-            if p.name == "void" { return allow_void }
+            if p.name == "void" { return is_return }
             if p.name == "null" { return false }
             return true
+        }
+        is DistinctType as d  -> {
+            // A newtype is zero-cost and stripped at lowering, so its ABI is
+            // its backing's. `Handle :: CPointer` is the recommended idiom for
+            // a foreign handle — it must cross.
+            return is_extern_abi_type(d.backing, is_return)
+        }
+        is UnionType          -> {
+            // The ONE union shape that crosses : a nullable foreign pointer.
+            // C has no other nullable scalar, so no other union has an ABI.
+            return is_nullable_pointer(t)
+        }
+        is ArrayType as a     -> {
+            // A borrowed array crosses as TWO C arguments, `(ptr, len)`. That
+            // shape only exists on the way in : C cannot fabricate a
+            // `vader_array_t`, so an array RETURN stays rejected.
+            if is_return {
+                return false
+            }
+            return is_extern_abi_element(a.element)
+        }
+        _                     -> { return false }
+    }
+}
+
+/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
+/// foreign pointer, and the only union that crosses the C boundary.
+///
+/// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
+/// shim converts it at the boundary, exactly as it already converts a
+/// `vader_string_t` atom id to a `const char*`. Nothing about how Vader
+/// represents unions changes.
+///
+/// @param t  the candidate slot type.
+/// @return   whether it is the nullable-pointer shape.
+is_nullable_pointer :: fn(t: Type) -> bool {
+    if t is UnionType as u {
+        if u.variants.len() != 2 {
+            return false
+        }
+        has_null := false
+        has_ptr := false
+        for v in u.variants {
+            // `Handle | null` with `Handle :: CPointer` is the same ABI shape as
+            // `CPointer | null` — see through the newtype.
+            bare :: strip_distinct(v)
+            if bare is PrimitiveType as p {
+                if p.name == "null" {
+                    has_null = true
+                }
+                if p.name == "CPointer" {
+                    has_ptr = true
+                }
+            }
+        }
+        return has_null && has_ptr
+    }
+    return false
+}
+
+/// True when `t` may be the element of an `@extern` array parameter — a
+/// numeric / `bool` / `char` primitive, i.e. one whose array storage is dense
+/// and whose slots the GC never scans.
+///
+/// `string` is excluded: its dense storage is a table of atom ids, which is
+/// meaningless to a C callee. `void` / `null` have no storage at all.
+///
+/// @param t  the array's element type.
+/// @return   whether a `T[]` of it can be lent across the C ABI.
+is_extern_abi_element :: fn(t: Type) -> bool {
+    @partial match t {
+        is UnresolvedType     -> { return true }
+        is PrimitiveType as p -> {
+            return p.name != "void" && p.name != "null" && p.name != "string"
         }
         _                     -> { return false }
     }

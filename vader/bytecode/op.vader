@@ -384,6 +384,7 @@ export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
     .String -> null
     .Null  -> null
     .Void  -> null
+    .Pointer -> null
     .Ref   -> null
     .Any   -> null
 }

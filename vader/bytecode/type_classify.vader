@@ -210,6 +210,12 @@ import "toolchain/span"
 /// @param name  the primitive name (`"i32"`, `"string"`, …).
 /// @return      the matching `ValType` ; `Any` for unrecognised names.
 export val_type_of_primitive_name :: fn(name: string) -> ValType {
+    // The FFI pointer's SOURCE spelling is `CPointer` while its `.virt`
+    // spelling is `pointer` — two namespaces, mapped here rather than by
+    // teaching `parse_val_type` a name the text format never writes.
+    if name == "CPointer" {
+        return ValType.Pointer
+    }
     parsed :: parse_val_type(name) ?? return ValType.Any
     return parsed
 }

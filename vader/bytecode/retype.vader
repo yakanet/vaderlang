@@ -171,6 +171,10 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
     return BcSignature {
         .params = sig.params, .result = sig.result, .param_types = pts,
         .result_type = remap_idx(remap, sig.result_type), .param_names = sig.param_names,
+        // Carried over explicitly : the field defaults to `[]`, so a partial
+        // rebuild drops it in silence — the failure mode `types.vader` records
+        // for `FnParam.mutable`.
+        .param_mutable = sig.param_mutable,
     }
 }
 

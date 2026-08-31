@@ -31,7 +31,7 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
             seen_extern.push(imp.extern_name)
-            extern_decls.push(extern_decl(imp))
+            extern_decls.push(extern_decl(imp, ctx.module.types))
         }
         shims.push(import_shim(ctx, imp, i32(i)))
     }
@@ -46,11 +46,104 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
-extern_decl :: fn(imp: BcImport) -> string {
+extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
     parts: string[]! = []
-    for j in 0..<imp.signature.params.len() { parts.push(extern_c_type(imp.signature.params[j])) }
+    for j in 0..<imp.signature.params.len() {
+        if is_abi_array(types, imp.signature.param_types[j]) {
+            // One Vader array = ONE C argument, a bare pointer. A length, when
+            // the callee wants one, is an ordinary declared parameter — so the
+            // declaration transcribes the C prototype one-to-one, and a callee
+            // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
+            // `!` decides `void*` vs `const void*`, through
+            // `BcSignature.param_mutable`.
+            parts.push(if param_is_mutable(imp.signature, j) { "void*" } else { "const void*" })
+        } else if is_abi_nullable_pointer(types, imp.signature.param_types[j]) {
+            parts.push("void*")
+        } else {
+            parts.push(extern_c_type(imp.signature.params[j]))
+        }
+    }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    return "extern ${extern_c_type(imp.signature.result)} ${imp.extern_name}(${params});"
+    ret :: if is_abi_nullable_pointer(types, imp.signature.result_type) {
+        "void*"
+    } else {
+        extern_c_type(imp.signature.result)
+    }
+    return "extern ${ret} ${imp.extern_name}(${params});"
+}
+
+/// True when the slot at `type_index` is `CPointer | null` — the nullable
+/// foreign pointer. Inside Vader it stays an ordinary boxed union; the shim
+/// converts it to a bare `void*` at the boundary, the same way it already
+/// converts a `vader_string_t` atom id to a `const char*`.
+///
+/// @param types       the module's BcType table.
+/// @param type_index  the slot's BcType index, or `-1` when absent.
+/// @return            whether the slot needs the null/pointer conversion.
+is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
+    if type_index < 0 {
+        return false
+    }
+    if type_index >= i32(types.len()) {
+        return false
+    }
+    u :: types[type_index]
+    if u is BcUnion as un {
+        if un.variants.len() != 2 {
+            return false
+        }
+        has_null := false
+        has_ptr := false
+        for vi in un.variants {
+            if vi < 0 || vi >= i32(types.len()) {
+                continue
+            }
+            v :: types[vi]
+            if v is BcPrimitive as bp {
+                if bp.val == ValType.Null {
+                    has_null = true
+                }
+                if bp.val == ValType.Pointer {
+                    has_ptr = true
+                }
+            }
+        }
+        return has_null && has_ptr
+    }
+    return false
+}
+
+/// Whether parameter `j` of `sig` was written with a `!`.
+///
+/// Absent vector → reported mutable, which is the SAFE direction : passing a
+/// `void*` where the callee declares `const void*` is legal C, the converse is
+/// not. Paths that build a signature without the vector (`.virt` reload, synth
+/// wrappers) therefore keep today's behaviour.
+///
+/// @param sig  the import's signature.
+/// @param j    the parameter index.
+/// @return     whether C may write through the slot.
+param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
+    if j >= sig.param_mutable.len() {
+        return true
+    }
+    return sig.param_mutable[j]
+}
+
+/// True when the import slot at `type_index` is a primitive-element array —
+/// the shape `validate_extern` admits and that crosses as `(ptr, len)`.
+///
+/// @param types       the module's BcType table.
+/// @param type_index  the slot's BcType index, or `-1` when absent.
+/// @return            whether the slot must be marshalled as two C arguments.
+is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
+    if type_index < 0 {
+        return false
+    }
+    if type_index >= i32(types.len()) {
+        return false
+    }
+    return types[type_index] is BcArray
 }
 
 // ---- per-import shim ------------------------------------------------------
@@ -192,7 +285,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.
-    if imp.is_extern { return user_extern_shim(imp, head) }
+    if imp.is_extern { return user_extern_shim(imp, head, types) }
     return "${head} { vader_trap(\"unbound import: ${m}\"); }"
 }
 
@@ -207,13 +300,27 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 /// `vader_cstr_free` has to scan the atom table, hot at one call per
 /// string arg per FFI call). The result is captured before freeing so a
 /// returned pointer into a dup can't be used after free.
-user_extern_shim :: fn(imp: BcImport, head: string) -> string {
+user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     sig :: imp.signature
     call_args: string[]! = []
     lines: string[]! = []
     free_lines: string[]! = []
     for j in 0..<sig.params.len() {
-        if sig.params[j] == ValType.String {
+        if is_abi_array(types, sig.param_types[j]) {
+            // Lent for the duration of the call only : no Vader allocation runs
+            // inside a foreign call, so the GC cannot move the buffer under it.
+            // `vader_array_bytes` owns the three cases (GC forward, borrowed
+            // view, materialised buf) — see its contract in `vader.h`.
+            lines.push("vader_slice_t s${j} = vader_array_bytes((vader_array_t*) a${j});")
+            // `ptr` is `const void*` ; only a mutable slot needs the cast away.
+            // `.len` is deliberately unused : the callee's length, if any, is a
+            // parameter of its own (see the note on revision A in the plan).
+            call_args.push(if param_is_mutable(sig, j) { "(void*) s${j}.ptr" } else { "s${j}.ptr" })
+        } else if is_abi_nullable_pointer(types, sig.param_types[j]) {
+            // The union rides as a box inside Vader; C wants a bare `void*`.
+            lines.push("void* p${j} = (a${j}.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a${j}.payload.i;")
+            call_args.push("p${j}")
+        } else if sig.params[j] == ValType.String {
             lines.push("const char* c${j} = vader_string_to_cstr(a${j});")
             free_lines.push("vader_cstr_free_for(a${j}, c${j});")
             call_args.push("c${j}")
@@ -226,6 +333,13 @@ user_extern_shim :: fn(imp: BcImport, head: string) -> string {
         lines.push("${call_expr};")
         for fl in free_lines { lines.push(fl) }
         lines.push("return;")
+    } else if is_abi_nullable_pointer(types, sig.result_type) {
+        // Symmetric with the parameter side : a bare `void*` comes back, and
+        // `NULL` becomes the union's null variant rather than a tagged pointer.
+        ptr_tag :: tag_u(prim_tag(types, ValType.Pointer), "CPointer")
+        lines.push("void* r = ${call_expr};")
+        for fl in free_lines { lines.push(fl) }
+        lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
     } else if free_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {

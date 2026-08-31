@@ -376,6 +376,8 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
                 .param_types = new_param_types,
                 .result_type = remap_idx(remap, imp.signature.result_type),
                 .param_names = imp.signature.param_names,
+                // Carried over explicitly — see `remap_signature` in retype.vader.
+                .param_mutable = imp.signature.param_mutable,
             },
             .is_extern    = imp.is_extern,
         })

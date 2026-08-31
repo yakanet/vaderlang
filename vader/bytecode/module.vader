@@ -59,6 +59,15 @@ export BcSignature :: struct {
     /// paths that don't carry names (imports, synth wrappers, `.virt` reload) ;
     /// consumers fall back to `arg<i>`.
     param_names: string[]
+    /// Per-parameter `!` marker, parallel to `params`. Empty (not per-index) on
+    /// every path that has no reason to carry it.
+    ///
+    /// The bit exists for ONE consumer: the `@extern` shim, which must know
+    /// whether C receives `const void*` or `void*`, and whether a scalar is
+    /// passed by value or by address. `ArrayType.immutable` otherwise stops at
+    /// this boundary on purpose (the layout is the same either way) — this
+    /// vector is the deliberate exception, not a widening of the notion.
+    param_mutable: bool[] = []
 }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit

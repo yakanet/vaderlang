@@ -2729,6 +2729,34 @@ static void vader_array_resolve_buf(vader_array_t* a) {
     }
 }
 
+/* Lend an array's raw bytes to a foreign callee — see the contract in vader.h. */
+vader_slice_t vader_array_bytes(vader_array_t* a) {
+    vader_slice_t s = { NULL, 0 };
+    if (a == NULL) return s;
+    a = vader_array_resolve(a);
+    if (a->length == 0) return s;
+
+    if (vader_array_is_borrowed(a)) {
+        /* A borrowed view is always a BYTE view over an interned atom, so
+         * `offset` and `length` are already byte quantities. */
+        const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a));
+        s.ptr = src + a->offset;
+        s.len = a->length;
+        return s;
+    }
+
+    vader_array_resolve_buf(a);
+    if (a->buf == NULL) return s;
+    if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED
+        || a->buf->element_kind == VADER_ARRAY_KIND_REF) {
+        vader_trap("vader_array_bytes: array of refs cannot cross the C ABI");
+    }
+    size_t esz = vader_array_element_size(a->buf->element_kind);
+    s.ptr = (const uint8_t*) a->buf->slots + a->offset * esz;
+    s.len = a->length * esz;
+    return s;
+}
+
 /* Out-of-line half of the emitter's per-access buf resolve — see the contract
  * on the declaration in `vader.h`. The caller has already established that
  * `buf` is non-NULL and carries a live forward, so the first iteration always

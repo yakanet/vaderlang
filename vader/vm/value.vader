@@ -559,6 +559,7 @@ export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
     .String -> false
     .Null  -> false
     .Void  -> false
+    .Pointer -> false
     .Ref   -> false
     .Any   -> false
 }

@@ -258,6 +258,7 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
     .String -> .Boxed
     .Null   -> .Boxed
     .Void   -> .Boxed
+    .Pointer -> .I64
     .Ref    -> .Boxed
     .Any    -> .Boxed
 }
