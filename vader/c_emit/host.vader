@@ -1,6 +1,6 @@
 // vader/c_emit/host — `call.import` host-fn shims.
 //
-// Every `call.import N` op resolves to a `vader_import_N(...)` C function
+// Every `call.import N` op resolves to a `vader_host_<mangled>(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :
 //   - `@intrinsic` stdlib ops (`is_extern = false`) — routed to the
 //     runtime's `vader_*` helpers by mangled name (`import_shim`).
@@ -150,12 +150,29 @@ is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
 
 // ---- per-import shim ------------------------------------------------------
 
-/// The `vader_import_N` body for one import. Intrinsic stdlib ops route to
+/// The `vader_host_*` body for one import. Intrinsic stdlib ops route to
 /// their `vader_*` runtime helper by their `IntrinsicId` (classified from the
 /// mangled name by `bytecode/intrinsic_manifest::intrinsic_id_for`, shared with
 /// the VM's `dispatch_import`) ; `@extern` falls through to `user_extern_shim` ;
 /// anything else traps loudly (compiler/runtime version skew).
-// C signature of the `vader_import_N` shim (no storage class) : return type,
+/// C name of the shim that serves `imp` — `vader_host_` plus its mangled name,
+/// sanitised.
+///
+/// Named rather than indexed, for two reasons. It says WHICH host the emitted C
+/// reaches, where `vader_import_5` said nothing; and it is stable, where an
+/// index renumbers every later shim the moment an import is added — which
+/// rewrote unrelated lines in every snapshot.
+///
+/// `host` rather than `import` or `intrinsic`: these shims serve BOTH the
+/// stdlib's `@intrinsic` hosts and a user's `@extern` symbols, so neither of the
+/// narrower words covers them — and `import` already means a module import in
+/// Vader source. It is the word the SPEC, the VM and the diagnostics use.
+///
+/// @param imp  the import to name.
+/// @return     a valid C identifier, unique per import.
+export host_shim_name :: fn(imp: BcImport) -> string = "vader_host_${sanitise(imp.mangled_name)}"
+
+// C signature of the `vader_host_*` shim (no storage class) : return type,
 // name, erased param list (`void` when empty). Shared by the definition here
 // and the split-build prototype (`split.vader::emit_import_shim_protos`) so the
 // two can't drift on the ABI.
@@ -171,7 +188,7 @@ import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     parts: string[]! = []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    return "${c_type_for_val_bare(sig.result)} vader_import_${idx}(${params})"
+    return "${c_type_for_val_bare(sig.result)} ${host_shim_name(imp)}(${params})"
 }
 
 import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {

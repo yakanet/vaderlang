@@ -1305,12 +1305,12 @@ emit_call :: fn(s: FnState!, op: vm.Call) -> void {
     emit_call_to(s, sanitise(callee.name), callee.signature)
 }
 
-/// `call.import` — call a host fn through its generated `vader_import_N`
+/// `call.import` — call a host fn through its generated `vader_host_*`
 /// shim (see `host.vader`). Reuses the shared `emit_call_to` with
 /// the import's signature.
 emit_call_import :: fn(s: FnState!, op: vm.CallImport) -> void {
     imp :: s.ctx.module.imports[usize(op.index)]
-    emit_call_to(s, "vader_import_${op.index}", imp.signature)
+    emit_call_to(s, host_shim_name(imp), imp.signature)
 }
 
 /// Shared direct-call path — own fns (`emit_call`) and host imports

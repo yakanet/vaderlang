@@ -501,19 +501,41 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             return 1
         }
     }
-    // The units all `#include` ONE header, so a per-target header has nowhere to
-    // go — unlike the globals and the units below, which fall back to per-target
-    // files. The header carries per-target material (the forward decls driven by
-    // `internal_fn_flags`, the trampoline / lift / import prototypes), so taking
-    // target 0's on faith would compile the others against declarations that are
-    // not theirs, and surface as a link error far from here.
+    // The shared header must be identical across targets, and now can be: the
+    // `@extern` declarations and their shims — measured as the ONLY part a
+    // target changes — live in their own header, written below. Anything else
+    // diverging is a genuine surprise and has to stop the build, since taking
+    // target 0's on faith would compile the others against declarations that
+    // are not theirs and surface as a link error far from here.
     if !all_equal(headers_of(progs)) {
-        eprintln("vader build --seed-targets: the targets emitted different headers, "
-            + "which the seed's one shared header cannot carry")
+        eprintln("vader build --seed-targets: the targets emitted different SHARED headers, "
+            + "which only the imports header is expected to carry")
         return 1
     }
     if write_out("${out}.split.h".to_path(), first.header) != 0 {
         return 1
+    }
+    // The imports header keeps a fixed NAME, so the units never mention a
+    // target. When the targets agree it sits beside the shared header; when
+    // they do not, each goes in a directory of its own and the build puts the
+    // right one first on the include path.
+    if all_equal(imports_of(progs)) {
+        if write_out(imports_header_path(out), first.imports) != 0 {
+            return 1
+        }
+    } else {
+        for i in 0..<targets.len() {
+            dir :: "${out.parent()}/${display_target(targets[i])}"
+            mk :: create_dir(dir)
+            if mk is IOError as e {
+                eprintln("vader build --seed-targets: cannot create `${dir}`: ${e.message()}")
+                return 1
+            }
+            name :: imports_header_name("${canonicalise(out).filename()}.split.h")
+            if write_out("${dir}/${name}".to_path(), progs[i].imports) != 0 {
+                return 1
+            }
+        }
     }
     if all_equal(globals_of(progs)) {
         if write_out("${out}.split.g.c".to_path(), first.globals) != 0 {
@@ -557,6 +579,14 @@ headers_of :: fn(progs: CProgram[]) -> string[] {
     out: string[]! = []
     for pr in progs {
         out.push(pr.header)
+    }
+    return out
+}
+
+imports_of :: fn(progs: CProgram[]) -> string[] {
+    out: string[]! = []
+    for pr in progs {
+        out.push(pr.imports)
     }
     return out
 }
@@ -638,11 +668,23 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
     return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
+// Path of the imports header beside `out`, under the FIXED name the shared
+// header includes. A per-target build writes it into its own directory instead
+// (see `write_deduplicated`), and the compile adds that directory ahead of the
+// shared one on the include path.
+//
+// Built from `out` the same way `${out}.split.h` is, NOT from `out.parent()`:
+// a bare `out` with no directory part yielded an empty parent and an absolute
+// `/p.imports.h`, which only showed up on Windows — every test here had run
+// with a directory in the path.
+imports_header_path :: fn(out: Path) -> Path = "${out}${IMPORTS_HEADER_SUFFIX}".to_path()
+
 // Write the split program : `<out>.split.h`, `<out>.split.g.c`, and
 // `<out>.split.<k>.c` for each function unit. All co-located so each TU's
 // `#include "<base>.split.h"` resolves relative to its own directory.
 write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
     if write_out("${out}.split.h".to_path(), prog.header) != 0 { return 1 }
+    if write_out(imports_header_path(out), prog.imports) != 0 { return 1 }
     if write_out("${out}.split.g.c".to_path(), prog.globals) != 0 { return 1 }
     for k in 0..<prog.units.len() {
         if write_out(unit_path(out, "", prog.unit_names[k]), prog.units[k]) != 0 { return 1 }

@@ -53,6 +53,7 @@ void* vader_ffi_open(const char* name);
 
 /* Resolve `symbol` in `lib`. NULL when absent. */
 void* vader_ffi_symbol(void* lib, const char* symbol);
+static void* vader_ffi_resolve(void* lib, const char* symbol);
 
 /* Call `fn` with `nargs` integer-or-pointer arguments.
  *
@@ -124,8 +125,46 @@ void* vader_ffi_open(const char* name) {
 #endif
 }
 
+/* Resolved-symbol memo. `dispatch_extern` resolves on EVERY foreign call, so a
+ * VM-executed `println` paid a full `dlsym` symbol-table search each time — the
+ * test suite went from 41 s to 153 s before this existed.
+ *
+ * Linear and small on purpose: a program reaches a handful of distinct foreign
+ * symbols, and a scan of a few entries costs less than any hashing would. Names
+ * are strdup'd because the caller's `const char*` is a marshalling temporary.
+ * A full table simply stops memoising rather than evicting — correctness never
+ * depends on the cache. */
+#define VADER_FFI_MEMO_SIZE 64
+static struct { void* lib; char* name; void* addr; } vader_ffi_memo[VADER_FFI_MEMO_SIZE];
+static size_t vader_ffi_memo_len = 0;
+
 void* vader_ffi_symbol(void* lib, const char* symbol) {
+    size_t i;
     if (lib == NULL || symbol == NULL) { return NULL; }
+    for (i = 0; i < vader_ffi_memo_len; i++) {
+        if (vader_ffi_memo[i].lib == lib && strcmp(vader_ffi_memo[i].name, symbol) == 0) {
+            return vader_ffi_memo[i].addr;
+        }
+    }
+    {
+        void* found = vader_ffi_resolve(lib, symbol);
+        if (vader_ffi_memo_len < VADER_FFI_MEMO_SIZE) {
+            size_t n = strlen(symbol) + 1;
+            char*  copy = (char*) malloc(n);
+            if (copy != NULL) {
+                memcpy(copy, symbol, n);
+                vader_ffi_memo[vader_ffi_memo_len].lib  = lib;
+                vader_ffi_memo[vader_ffi_memo_len].name = copy;
+                vader_ffi_memo[vader_ffi_memo_len].addr = found;
+                vader_ffi_memo_len++;
+            }
+        }
+        return found;
+    }
+}
+
+/* The uncached lookup — the memo above is the only caller. */
+static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #ifdef _WIN32
     {
         void* p = (void*) GetProcAddress((HMODULE) lib, symbol);

@@ -84,6 +84,12 @@ write_split_files :: fn(out: string, prog: CProgram) -> i32 {
     if write_out("${out}.split.h", prog.header) != 0 {
         return 1
     }
+    // Beside the shared header, under the fixed name it includes — built from
+    // `out` exactly like `.split.h` above, so a path with no directory part
+    // still lands beside its header.
+    if write_out("${out}${IMPORTS_HEADER_SUFFIX}", prog.imports) != 0 {
+        return 1
+    }
     if write_out("${out}.split.g.c", prog.globals) != 0 {
         return 1
     }

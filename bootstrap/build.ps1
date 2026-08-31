@@ -49,6 +49,8 @@ $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86
 $hostTarget = "windows-$hostArch"
 $seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g.c','bootstrap-*.c' -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 $seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget-*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$seedIncDir = Join-Path (Join-Path $PWD 'bootstrap\seed') $hostTarget
+$seedInc = if (Test-Path $seedIncDir) { $seedIncDir } else { $null }
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }
@@ -76,21 +78,25 @@ function LtoLinkFlags {
     }
 }
 
-function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags) {
+function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags, $extraInc) {
     $objDir = Join-Path $PWD $objDirRel
     $rtInc = Join-Path $PWD 'runtime\c'
     $cc = $ccAbs
+    $xInc = $extraInc
     $failed = $units | ForEach-Object -ThrottleLimit $ccJobs -Parallel {
         $c = $using:cc
         $f = $using:flags
         $inc = $using:rtInc
+        $xi = $using:xInc
         $obj = Join-Path $using:objDir ([IO.Path]::GetFileNameWithoutExtension($_) + '.o')
         # `2>&1` is load bearing: a cc WARNING left on the runspace's error
         # stream reaches the parent pipeline, where the script's 'Stop'
         # preference makes it terminating -- the build died on a warning before
         # $LASTEXITCODE could be read. Folding it into the output stream keeps
         # the text and makes the exit code the only verdict.
-        $out = & $c $f "-I$inc" -c $_ -o $obj 2>&1
+        $incArgs = @("-I$inc")
+        if ($xi) { $incArgs = @("-I$xi") + $incArgs }
+        $out = & $c $f $incArgs -c $_ -o $obj 2>&1
         if ($out) { Write-Host (($out | Out-String).TrimEnd()) }
         if ($LASTEXITCODE -ne 0) { $_ }
     }
@@ -130,7 +136,7 @@ $work0 = Join-Path $PWD 'build\work\stage0'
 Remove-Item -Recurse -Force $work0 -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $work0 | Out-Null
 $seedUnits = @($seedShared) + @($seedHost) + @((Join-Path $PWD $runtime))
-CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0' $null
+CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0' $null $seedInc
 
 Step "[2/$stages] Building stage1 (full compiler, via stage0)  -- self-compiles"
 $work1 = Join-Path $PWD 'build\work\stage1'
