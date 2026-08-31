@@ -381,6 +381,19 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     out: string[]! = [GLUE_UNIT]
     for k in 1..<buckets.len() {
         stem :: module_stem_of(fns[usize(buckets[k][0])].name)
+        // A stem names a MODULE, so every byte of it is an identifier byte. An
+        // EMPTY stem is ordinary — a bare name like `main` has no `$` — and
+        // becomes `_root` below. A stem that is non-empty but not an identifier
+        // cannot come from source: it means the mangled name was corrupted
+        // upstream, and letting it through writes `<out>-<garbage>.c`, which
+        // `open()` truncates at the first NUL. The file then reaches the linker
+        // with no `.c`, and the failure is reported three steps away as
+        // `ld: unknown file type`. Fail HERE, where the name is still readable.
+        for b in stem.bytes() {
+            if !is_ident_byte(b) {
+                todo("split: unit name for `${fns[usize(buckets[k][0])].name}` is not an identifier — the mangled name is corrupt")
+            }
+        }
         out.push(if stem == "" { "_root" } else { stem })
     }
     seen :: MutableSet<string> {}
