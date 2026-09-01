@@ -1354,20 +1354,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 #  include <windows.h>
 #endif
 
-/* ----------------------------------------------------------------- math */
-
-#include <math.h>
-
-/* Wrappers that match the exact signature the emitter expects (single arg). */
-static inline vader_f64_t vader_math_sqrt(vader_f64_t x)  { return sqrt(x);  }
-static inline vader_f64_t vader_math_pow(vader_f64_t x, vader_f64_t n) { return pow(x, n); }
-static inline vader_f64_t vader_math_floor(vader_f64_t x) { return floor(x); }
-static inline vader_f64_t vader_math_ceil(vader_f64_t x)  { return ceil(x);  }
-static inline vader_f64_t vader_math_round(vader_f64_t x) { return round(x); }
-static inline vader_f64_t vader_math_sin(vader_f64_t x)   { return sin(x);   }
-static inline vader_f64_t vader_math_cos(vader_f64_t x)   { return cos(x);   }
-static inline vader_f64_t vader_math_tan(vader_f64_t x)   { return tan(x);   }
-
 /* ----------------------------------------------------------------- traps */
 
 #ifdef __GNUC__
