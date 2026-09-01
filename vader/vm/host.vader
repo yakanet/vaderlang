@@ -27,39 +27,6 @@ export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
 
 /// The `(fn_ptr, args, nargs)` triple the three `ffi_call_*` arms share.
-/// `args` is materialised as a real Vader `i64[]` because the intrinsic takes
-/// one — a VM `ArrayVal` holds boxed `Value`s, not contiguous words.
-FfiCallArgs :: struct {
-    fn_ptr: usize
-    args:   i64[]
-    nargs:  usize
-}
-
-/// Read and validate the three operands of an `ffi_call_*` host.
-///
-/// @param stack     the operand stack.
-/// @param arg_base  index of the first argument.
-/// @param at_pc     program counter, for the trap message.
-/// @return          the triple, or a `Trap` naming the offending operand.
-host_ffi_call_args :: fn(stack: Value[], arg_base: usize, at_pc: i32) -> FfiCallArgs | Trap {
-    fn_ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn")
-    if fn_ptr is Trap { return fn_ptr }
-    arr :: read_array(stack[arg_base + 1], at_pc, "ffi_call args")
-    if arr is Trap { return arr }
-    n :: read_i64(stack[arg_base + 2], at_pc, "ffi_call nargs")
-    if n is Trap { return n }
-    if n.value < 0 || usize(n.value) > arr.length {
-        return Trap { .message = "ffi_call at pc=${at_pc}: nargs ${n.value} exceeds the argument array" }
-    }
-    words: i64[]! = []
-    for i in 0..<usize(n.value) {
-        w :: read_i64(arr.elements[arr.offset + i], at_pc, "ffi_call arg ${i}")
-        if w is Trap { return w }
-        words.push(w.value)
-    }
-    return FfiCallArgs { .fn_ptr = usize(fn_ptr.value), .args = words, .nargs = usize(n.value) }
-}
-
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
 host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(string, string) -> bool) -> HostCallResult {
@@ -491,65 +458,36 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if sym is Trap { return sym }
         return HostOk { .value = I64Val { .value = i64(ffi_symbol(usize(lib.value), sym.value)) } }
     }
-    .FfiCallInt -> {
-        call :: host_ffi_call_args(stack, arg_base, at_pc)
-        if call is Trap { return call }
-        return HostOk { .value = I64Val { .value = ffi_call_int(call.fn_ptr, call.args, call.nargs) } }
-    }
-    // Served by the native shim only: `dispatch_extern` calls `ffi_call` from
-    // compiled Vader, never from bytecode. Reaching this arm would mean a
-    // program declared the intrinsic itself.
     .FfiCall -> {
-        return Trap { .message = "ffi_call at pc=${at_pc}: reserved for the VM's own foreign calls" }
-    }
-    .FfiCallIntLend -> {
-        call :: host_ffi_call_args(stack, arg_base, at_pc)
-        if call is Trap { return call }
-        slot_arr :: read_array(stack[arg_base + 3], at_pc, "ffi_call_int_lend slots")
-        if slot_arr is Trap { return slot_arr }
-        lent :: read_array(stack[arg_base + 4], at_pc, "ffi_call_int_lend bytes")
-        if lent is Trap { return lent }
-        slots: i64[]! = []
-        for i in 0..<slot_arr.length {
-            sl :: read_i64(slot_arr.elements[slot_arr.offset + i], at_pc, "ffi_call_int_lend slot")
-            if sl is Trap { return sl }
-            if sl.value < 0 {
-                return Trap { .message = "ffi_call_int_lend at pc=${at_pc}: negative slot" }
-            }
-            slots.push(sl.value)
-        }
-        // A VM array holds boxed `Value`s, not contiguous words, so the bytes
-        // are materialised into a real `u8[]`. The host then takes ITS address
-        // immediately before the call — nothing runs in between, so nothing can
-        // move it.
-        bs: u8[]! = []
-        for i in 0..<lent.length {
-            b :: read_i64(lent.elements[lent.offset + i], at_pc, "ffi_call_int_lend byte")
+        ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn_ptr")
+        if ptr is Trap { return ptr }
+        desc_arr :: read_array(stack[arg_base + 1], at_pc, "ffi_call desc")
+        if desc_arr is Trap { return desc_arr }
+        frame_arr :: read_array(stack[arg_base + 2], at_pc, "ffi_call frame")
+        if frame_arr is Trap { return frame_arr }
+        // A VM array holds boxed `Value`s, not contiguous bytes, so both are
+        // materialised into real `u8[]`. The host takes their address right
+        // before the call, and nothing runs in between.
+        desc: u8[]! = []
+        for i in 0..<desc_arr.length {
+            b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
             if b is Trap { return b }
-            bs.push(u8(b.value))
+            desc.push(u8(b.value))
         }
-        raw :: ffi_call_int_lend(call.fn_ptr, call.args, call.nargs, slots, bs)
-        // `bs` is a COPY — a VM array holds boxed values, so the flat buffer had
-        // to be built. What the callee wrote lives in that copy and nowhere
-        // else, so hand it back element by element. Without this the VM reads
-        // back exactly what it sent, which is how a lend that cannot be read
-        // back looks from Vader.
-        for i in 0..<lent.length {
-            at :: lent.offset + i
-            lent.elements[at] = retyped_int(lent.elements[at], i64(bs[i]))
+        frame: u8[]! = []
+        for i in 0..<frame_arr.length {
+            b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
+            if b is Trap { return b }
+            frame.push(u8(b.value))
         }
-        return HostOk { .value = I64Val { .value = raw } }
-    }
-    .FfiCallVoid -> {
-        call :: host_ffi_call_args(stack, arg_base, at_pc)
-        if call is Trap { return call }
-        ffi_call_void(call.fn_ptr, call.args, call.nargs)
+        ffi_call(usize(ptr.value), desc, frame)
+        // `frame` is a COPY, and it carries BOTH what the callee wrote into a
+        // lent area and the result itself — so it has to travel back whole.
+        for i in 0..<frame_arr.length {
+            at :: frame_arr.offset + i
+            frame_arr.elements[at] = retyped_int(frame_arr.elements[at], i64(frame[i]))
+        }
         return HostOk { .value = zero_value() }
-    }
-    .FfiCallF64 -> {
-        call :: host_ffi_call_args(stack, arg_base, at_pc)
-        if call is Trap { return call }
-        return HostOk { .value = F64Val { .value = ffi_call_f64(call.fn_ptr, call.args, call.nargs) } }
     }
     .TargetCurrentOs -> {
         return HostOk { .value = I32Val { .value = i32(current_os()) } }
@@ -1008,8 +946,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.
-    .FfiOpen | .FfiSymbol | .FfiCallInt | .FfiCallVoid | .FfiCallF64
-        | .FfiCallIntLend | .FfiCall -> true
+    .FfiOpen | .FfiSymbol | .FfiCall -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true

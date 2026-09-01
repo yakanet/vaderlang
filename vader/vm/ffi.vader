@@ -44,37 +44,6 @@ module "vader/vm"
 /// @param args    argument slots, in order.
 /// @param nargs   how many of `args` to pass — at most 8.
 /// @return        the callee's result, widened to `i64`.
-@intrinsic export ffi_call_int :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> i64
-
-/// As `ffi_call_int`, but every slot named in `slots` receives an ADDRESS INTO
-/// `bytes` rather than the value in `args`.
-///
-/// The value sitting in `args` at a lent slot is read as the BYTE OFFSET its
-/// address starts at, so ONE flat buffer serves every lent parameter of a call
-/// — a foreign fn taking both a buffer and an out-param needs two addresses,
-/// and a second lent array would be a second thing the GC could move.
-///
-/// The addresses are taken by the host, immediately before the call, and never
-/// reach Vader — which is what `std/core/buffer.vader` asks of the frontend
-/// ("never a machine address") and what makes the call safe: the array is
-/// GC-managed and may move, and no Vader code runs between taking the addresses
-/// and the call.
-///
-/// @param fn_ptr  the address from `ffi_symbol`.
-/// @param args    argument slots ; each lent one holds an offset, not a value.
-/// @param nargs   how many of `args` to pass — at most 8.
-/// @param slots   which slots take an address, in any order.
-/// @param bytes   the bytes to lend, for the duration of the call.
-/// @return        the callee's result, widened to `i64`.
-@intrinsic export ffi_call_int_lend :: fn(fn_ptr: usize, args: i64[], nargs: usize, slots: i64[], bytes: u8[]!) -> i64
-
-/// `ffi_call_int` for a callee returning nothing.
-@intrinsic export ffi_call_void :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> void
-
-/// `ffi_call_int` for a callee returning a `float` or a `double`. The ARGUMENTS
-/// stay integer-or-pointer; only the result is floating.
-@intrinsic export ffi_call_f64 :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> f64
-
 /// One foreign call, described by DATA rather than by its shape.
 ///
 /// `desc` is one byte per slot — `desc[0]` classifies the result, `desc[1+i]`
@@ -114,57 +83,79 @@ import "std/testing"
     assert_eq(ffi_open("vader_library_that_cannot_exist"), usize(0))
 }
 
+// The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each
+// argument — 1 word, 3 an offset into the frame. The slot area is `nargs * 8`
+// bytes, so the data an offset points at starts there.
+
 @test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
     sym :: ffi_symbol(ffi_open(""), "strlen")
     assert(sym != 0, "strlen must resolve")
 
-    // NUL-terminated, since that is what `strlen` measures.
-    bs: u8[]! = [104, 101, 108, 108, 111, 0]
-    // Slot 0 takes the address; the `0` there is its offset into `bs`.
-    args: i64[]! = [0]
-    slots: i64[]! = [0]
-    assert_eq(ffi_call_int_lend(sym, args, 1, slots, bs), 5)
+    // One address argument; the slot area is 8 bytes, so the string starts at 8.
+    desc: u8[] = [1, 3]
+    frame: u8[]! = []
+    push_little_endian(frame, 8, 8)
+    frame.push_all([104, 101, 108, 108, 111, 0])
+    ffi_call(sym, desc, frame)
+    assert_eq(read_little_endian(frame, 0, 8, false), 5)
 }
 
 @test test_ffi_lends_at_an_offset :: fn() -> void {
     sym :: ffi_symbol(ffi_open(""), "strlen")
     assert(sym != 0, "strlen must resolve")
 
-    // The lent slot's value in `args` is an OFFSET into the buffer, not a
-    // value: `strlen` here measures from the fourth byte, so a wrong offset
-    // would read the leading zeros and report 0.
-    buf: u8[]! = [0, 0, 0, 104, 105, 0]
-    args: i64[]! = [3]
-    slots: i64[]! = [0]
-    assert_eq(ffi_call_int_lend(sym, args, 1, slots, buf), 2)
+    // The slot carries an OFFSET, not a value: measuring from the fourth byte
+    // of the data. A wrong offset would read the leading zeros and report 0.
+    desc: u8[] = [1, 3]
+    frame: u8[]! = []
+    push_little_endian(frame, 8 + 3, 8)
+    frame.push_all([0, 0, 0, 104, 105, 0])
+    ffi_call(sym, desc, frame)
+    assert_eq(read_little_endian(frame, 0, 8, false), 2)
 }
 
 @test test_ffi_reads_back_what_c_wrote :: fn() -> void {
     sym :: ffi_symbol(ffi_open(""), "memset")
     assert(sym != 0, "memset must resolve")
 
-    // The lend has to travel BOTH ways. On the VM the flat buffer is a copy of
-    // the boxed elements, so without a write-back this reads `1, 2, 3, 4` — the
-    // bytes it sent — and a mutable lend would be silently useless.
-    buf: u8[]! = [1, 2, 3, 4]
-    args: i64[]! = [0, 65, 4]
-    slots: i64[]! = [0]
-    ffi_call_int_lend(sym, args, 3, slots, buf)
-    assert_eq(i64(buf[0]), 65)
-    assert_eq(i64(buf[3]), 65)
+    // `memset(buf, 65, 4)` — the lend has to travel BOTH ways. The frame is a
+    // copy of the caller's bytes, so without the write-back this would read
+    // back what it sent.
+    desc: u8[] = [1, 3, 1, 1]
+    frame: u8[]! = []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 65, 8)
+    push_little_endian(frame, 4, 8)
+    frame.push_all([1, 2, 3, 4])
+    ffi_call(sym, desc, frame)
+    assert_eq(i64(frame[24]), 65)
+    assert_eq(i64(frame[27]), 65)
 }
 
 @test test_ffi_lends_two_buffers_at_once :: fn() -> void {
     sym :: ffi_symbol(ffi_open(""), "memcpy")
     assert(sym != 0, "memcpy must resolve")
 
-    // ONE flat buffer serving two lent parameters: destination at offset 0,
-    // source at offset 3. The old trampoline lent a single array and could not
-    // express this at all.
-    buf: u8[]! = [0, 0, 0, 7, 8, 9]
-    args: i64[]! = [0, 3, 3]
-    slots: i64[]! = [0, 1]
-    ffi_call_int_lend(sym, args, 3, slots, buf)
-    assert_eq(i64(buf[0]), 7)
-    assert_eq(i64(buf[2]), 9)
+    // ONE frame serving two address slots: destination at 24, source at 27.
+    desc: u8[] = [1, 3, 3, 1]
+    frame: u8[]! = []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 27, 8)
+    push_little_endian(frame, 3, 8)
+    frame.push_all([0, 0, 0, 7, 8, 9])
+    ffi_call(sym, desc, frame)
+    assert_eq(i64(frame[24]), 7)
+    assert_eq(i64(frame[26]), 9)
+}
+
+@test test_ffi_passes_a_floating_argument :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "sqrt")
+    assert(sym != 0, "sqrt must resolve")
+
+    // The shape the old per-shape trampolines could not express at all.
+    desc: u8[] = [2, 2]
+    frame: u8[]! = []
+    push_little_endian(frame, i64(4.0.to_bits()), 8)
+    ffi_call(sym, desc, frame)
+    assert_eq(u64(read_little_endian(frame, 0, 8, false)).from_bits(), 2.0)
 }
