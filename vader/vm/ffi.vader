@@ -75,6 +75,21 @@ module "vader/vm"
 /// stay integer-or-pointer; only the result is floating.
 @intrinsic export ffi_call_f64 :: fn(fn_ptr: usize, args: i64[], nargs: usize) -> f64
 
+/// One foreign call, described by DATA rather than by its shape.
+///
+/// `desc` is one byte per slot — `desc[0]` classifies the result, `desc[1+i]`
+/// each argument: word, double, or an offset into `frame`. `frame` holds the
+/// argument slots, eight bytes each, followed by whatever an offset slot points
+/// into; the result is written back over its first eight bytes.
+///
+/// This is what lets ONE primitive serve every signature: covering a new ABI
+/// shape widens a switch in `runtime/c/vader_ffi.h` and touches no Vader.
+///
+/// @param fn_ptr  the address from `ffi_symbol`.
+/// @param desc    the class of the result, then of each argument.
+/// @param frame   the argument slots plus their data; receives the result.
+@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!) -> void
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

@@ -70,24 +70,6 @@ host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
-/// One f64 arg → one f64 result. Used by `std/math` unary intrinsics
-/// (`sqrt` / `floor` / `ceil` / `round` / `abs`).
-host_f64_unary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(f64) -> f64) -> HostCallResult {
-    a :: read_f64(stack[arg_base], at_pc, label)
-    if a is Trap { return a }
-    return HostOk { .value = F64Val { .value = apply(a.value) } }
-}
-
-/// Two f64 args → one f64 result. Used by `std/math` binary intrinsics
-/// (`pow` / `min` / `max`).
-host_f64_binary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(f64, f64) -> f64) -> HostCallResult {
-    a :: read_f64(stack[arg_base    ], at_pc, "${label} arg 0")
-    b :: read_f64(stack[arg_base + 1], at_pc, "${label} arg 1")
-    if a is Trap { return a }
-    if b is Trap { return b }
-    return HostOk { .value = F64Val { .value = apply(a.value, b.value) } }
-}
-
 /// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
 /// it covers every integer width ; equality on the i64 bit pattern is correct
 /// for signed and unsigned alike.
@@ -514,6 +496,12 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if call is Trap { return call }
         return HostOk { .value = I64Val { .value = ffi_call_int(call.fn_ptr, call.args, call.nargs) } }
     }
+    // Served by the native shim only: `dispatch_extern` calls `ffi_call` from
+    // compiled Vader, never from bytecode. Reaching this arm would mean a
+    // program declared the intrinsic itself.
+    .FfiCall -> {
+        return Trap { .message = "ffi_call at pc=${at_pc}: reserved for the VM's own foreign calls" }
+    }
     .FfiCallIntLend -> {
         call :: host_ffi_call_args(stack, arg_base, at_pc)
         if call is Trap { return call }
@@ -557,11 +545,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if call is Trap { return call }
         ffi_call_void(call.fn_ptr, call.args, call.nargs)
         return HostOk { .value = zero_value() }
-    }
-    // Declared in the next step: the seed's compiler must learn the manifest
-    // entry before the intrinsic itself can exist (bootstrap ordering).
-    .FfiCall -> {
-        return Trap { .message = "ffi_call at pc=${at_pc}: not wired yet" }
     }
     .FfiCallF64 -> {
         call :: host_ffi_call_args(stack, arg_base, at_pc)
@@ -667,8 +650,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// ONE lent array of integer elements, of any width the target spells. Everything
 /// else — a floating parameter, a `string`, a second array — traps naming the
 /// reason, because calling with a mis-marshalled frame would corrupt the stack
-/// instead of failing. The exception is `libm_direct`, whose symbols the VM
-/// answers itself and which therefore take floating arguments.
+/// instead of failing.
 ///
 /// The library is `BcImport.c_library` when the declaration names one, else the
 /// running process — which covers libc and anything linked into the binary.
@@ -681,15 +663,6 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// @param debug        the DAP controller when one is attached, else null.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
 dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
-    // Symbols the VM answers ITSELF, without resolving them — see `libm_direct`.
-    // Only for the default scope: `@extern("mylib", "sqrt")` names someone
-    // else's `sqrt` and must go through the resolver.
-    if info.c_library == "" {
-        direct :: libm_direct(info.extern_name, info.signature, stack, arg_base, at_pc)
-        if direct != null {
-            return direct
-        }
-    }
     // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
@@ -727,98 +700,95 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
     }
 
-    words: i64[]! = []
-    lent: u8[]! = []
-    slots: i64[]! = []
+    // The call is described by DATA, not by its shape: one class per slot, then
+    // a flat frame of eight-byte slots followed by whatever an ADDR slot points
+    // into. `vader_ffi.h` owns the classes and the dispatch.
+    desc: u8[]! = [u8(FFI_VOID)]
+    slot_words: i64[]! = []
+    addr_slots: i64[]! = []
+    data: u8[]! = []
     borrowed: LentArray[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
         // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
-        // carries that decorator too, and that branch reads a SCALAR.
-        //
-        // Such a parameter crosses natively because the shim is SPECIALISED C —
-        // it declares a real `struct timespec` and marshals by field name. The
-        // VM calls through one generic trampoline and cannot build a C struct at
-        // run time; that needs libffi, which we do not link. Say so rather than
-        // let `read_i64` report "expected i64", which reads like a type error in
-        // the user's own code.
+        // carries that decorator too, and that branch reads a SCALAR. The shim
+        // declares a real C struct and marshals by field name; nothing here can
+        // build one at run time.
         if v is StructVal {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a `@c_struct`, which only the native backend can marshal (the VM has no libffi)" }
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a `@c_struct`, which only the native backend can marshal" }
         }
         if extern_by_address(info.signature, i) {
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
-            // into the lent buffer and hand over that offset — the mirror of
-            // the stack temporary the native shim spills to. Like that
-            // temporary, the spill is DROPPED after the call: `@c_pointer` is
-            // the READ direction on both backends, and an out-param the caller
-            // means to read back crosses as a mutable array instead.
+            // into the frame's data area and hand over that offset — the mirror
+            // of the stack temporary the native shim spills to.
             w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
             if w is Trap { return w }
             width :: usize(size_of_val_type(params[i]))
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
-            words.push(i64(lent.len()))
-            slots.push(i64(i))
-            push_little_endian(lent, w.value, width)
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            push_little_endian(data, w.value, width)
         } else if v is ArrayVal as arr {
-            // One flat buffer, elements spilled at their DECLARED width — the
-            // same scaling `vader_array_bytes` gives the native shim.
             elem :: lent_element_val_type(types, arr.type_id)
             if elem == null {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only integer elements are covered)" }
             }
             width :: usize(bc.size_of_val_type(elem))
-            words.push(i64(lent.len()))
-            slots.push(i64(i))
-            borrowed.push(LentArray { .target = arr, .at = lent.len(), .element = elem })
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            borrowed.push(LentArray { .target = arr, .at = data.len(), .element = elem })
             for j in 0..<arr.length {
                 b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` element")
                 if b is Trap { return b }
-                push_little_endian(lent, b.value, width)
+                push_little_endian(data, b.value, width)
             }
+        } else if v is F64Val as f {
+            desc.push(u8(FFI_F64))
+            slot_words.push(i64(f.value.to_bits()))
         } else if v is BoolVal as b {
-            words.push(if b.value { 1 } else { 0 })
-        } else {
+            desc.push(u8(FFI_WORD))
+            slot_words.push(if b.value { 1 } else { 0 })
+        } else if v is NullVal {
             // `null` IS a pointer value — the null address — which is what the
-            // native shim passes for a `CPointer | null`. Nothing to refuse.
-            if v is NullVal {
-                words.push(0)
-                continue
-            }
-            // A float argument is admitted by `validate_extern` and works
-            // natively, so name the gap rather than letting `read_i64`'s
-            // "expected i64" stand in for it — the two backends diverge here,
-            // and the message has to say so.
-            if v is F64Val {
-                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is ${describe_value_tag(v)}, which the VM cannot pass yet (it works natively)" }
-            }
+            // native shim passes for a `CPointer | null`.
+            desc.push(u8(FFI_WORD))
+            slot_words.push(0)
+        } else {
             w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
             if w is Trap { return w }
-            words.push(w.value)
+            desc.push(u8(FFI_WORD))
+            slot_words.push(w.value)
         }
     }
 
-    n :: params.len()
     // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
     // returning `float` leaves only the low half of the result register
     // meaningful, so reading 64 bits of it would give an arbitrary value.
     if info.signature.result == bc.ValType.F32 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
-    if info.signature.result == bc.ValType.F64 {
-        if slots.len() > 0 {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a lent argument with a floating result is not covered" }
-        }
-        return HostOk { .value = F64Val { .value = ffi_call_f64(sym, words, n) } }
+    desc[0] = u8(ffi_result_class(info.signature.result))
+
+    // An ADDR slot carries an offset into the WHOLE frame, so it only becomes
+    // final once the slot area's width is known.
+    base :: slot_words.len() * 8
+    for si in addr_slots {
+        slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
     }
-    raw :: if slots.len() > 0 {
-        ffi_call_int_lend(sym, words, n, slots, lent)
-    } else {
-        ffi_call_int(sym, words, n)
+    frame: u8[]! = []
+    for w in slot_words {
+        push_little_endian(frame, w, 8)
     }
-    // What C wrote into a lent array has to travel back: the buffer handed over
-    // is a FLAT COPY of the boxed elements, so without this a mutable lend —
+    frame.push_all(data)
+
+    ffi_call(sym, desc, frame)
+
+    // What C wrote into a lent array has to travel back: the frame is a FLAT
+    // COPY of the boxed elements, so without this a mutable lend —
     // `read_file_bytes` filling its buffer — would silently read back what it
     // sent. The native path needs no equivalent: it lends the array's own
     // storage, so the write lands in place.
@@ -829,54 +799,38 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         signed :: !bc.is_unsigned_val(b.element)
         for j in 0..<b.target.length {
             slot :: b.target.offset + j
-            written :: read_little_endian(lent, b.at + j * width, width, signed)
+            written :: read_little_endian(frame, base + b.at + j * width, width, signed)
             b.target.elements[slot] = retyped_int(b.target.elements[slot], written)
         }
     }
-    return extern_result(info.signature.result, raw)
+    if info.signature.result == bc.ValType.Void {
+        return HostOk { .value = zero_value() }
+    }
+    if info.signature.result == bc.ValType.F64 {
+        return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
+    }
+    return extern_result(info.signature.result, read_little_endian(frame, 0, 8, true))
 }
 
-/// The libm calls the VM makes itself, or `null` when `symbol` is not one.
+/// Argument / result classes for `ffi_call` — mirrors `VADER_FFI_*` in
+/// `runtime/c/vader_ffi.h`. The two must agree.
+FFI_VOID :: 0
+FFI_WORD :: 1
+FFI_F64  :: 2
+FFI_ADDR :: 3
+
+/// The class a result `ValType` is read back as.
 ///
-/// These are ordinary Vader calls here — `std/math` declares them `@extern`, and
-/// the compiler this VM lives in is linked against libm. Resolving them through
-/// `ffi_symbol` would work for nothing and hit the floating-argument gap, since
-/// the trampoline passes every slot as an `int64_t`.
-///
-/// The signature is checked, not just the name: a user `@extern("sin")` with a
-/// different shape must NOT be answered from here.
-///
-/// @param symbol    the foreign symbol name.
-/// @param sig       the import's signature, to confirm the shape.
-/// @param stack     the operand stack.
-/// @param arg_base  index of the first argument.
-/// @param at_pc     program counter, for trap messages.
-/// @return          the result, or `null` when the VM does not know the symbol.
-libm_direct :: fn(
-    symbol: string, sig: bc.BcSignature, stack: Value[], arg_base: usize, at_pc: i32,
-) -> HostCallResult | null {
-    if sig.result != bc.ValType.F64 {
-        return null
+/// @param result  the import's declared result.
+/// @return        `FFI_VOID`, `FFI_F64`, or `FFI_WORD`.
+ffi_result_class :: fn(result: bc.ValType) -> i32 {
+    if result == bc.ValType.Void {
+        return FFI_VOID
     }
-    for p in sig.params {
-        if p != bc.ValType.F64 {
-            return null
-        }
+    if result == bc.ValType.F64 {
+        return FFI_F64
     }
-    if sig.params.len() == 2 && symbol == "pow" {
-        return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b))
-    }
-    if sig.params.len() != 1 {
-        return null
-    }
-    if symbol == "sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a))  }
-    if symbol == "sin"   { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a))   }
-    if symbol == "cos"   { return host_f64_unary(stack, arg_base, at_pc, "cos",   (a) -> cos(a))   }
-    if symbol == "tan"   { return host_f64_unary(stack, arg_base, at_pc, "tan",   (a) -> tan(a))   }
-    if symbol == "floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
-    if symbol == "ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a))  }
-    if symbol == "round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    return null
+    return FFI_WORD
 }
 
 /// One array lent to a foreign call, and where its bytes sit in the flat buffer
