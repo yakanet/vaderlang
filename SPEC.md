@@ -2512,6 +2512,8 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
 | `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
+| `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
+| `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit — see §12 |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2585,18 +2587,87 @@ It is accepted **only on an `@extern` declaration** — on a fn Vader compiles a
 body for, an address has no meaning. Any other decorator on a parameter, an
 argument to `@c_pointer`, or `@c_pointer` outside an `@extern`, is `T3079`.
 
+### `@c_header` — letting the header own the prototype
+
+By default an `@extern` synthesises its own C prototype. When the symbol already
+has one in a system header, that synthesis is a *conflicting declaration* the C
+compiler refuses — `clock_gettime` against `<time.h>`, `WriteFile` against
+`<windows.h>`. `@c_header` includes the header instead:
+
+```vader
+@c_header("<time.h>")
+@extern("clock_gettime")
+sys_clock_gettime :: fn(clock_id: i32, ts: i64[]!) -> i32
+```
+
+The two are exclusive **per symbol**: with `@c_header`, no prototype is emitted,
+and `cc` checks every argument against the real declaration. That is what caught
+a `uint32_t*` passed where Win32 wants `LPDWORD`.
+
+Only **system** headers work today: the driver puts the runtime directory on the
+include path and nothing else, so `@c_header("\"my_header.h\"")` does not resolve.
+
+### `@c_struct` — mirroring a C struct
+
+A Vader struct may mirror a C one, and then cross as an ADDRESS:
+
+```vader
+@c_struct("div_t")
+Div :: struct { quot: i32, rem: i32 }
+
+@extern fill_div :: fn(@c_pointer d: Div!, quot: i32, rem: i32) -> void
+```
+
+The parameter must carry `@c_pointer`; a `@c_struct` type without it is
+`T3050` ("crosses as an address — mark the parameter `@c_pointer`"). The shim
+declares a REAL C struct and marshals **field by field, by name**, so `cc`
+computes every offset from the actual header and checks every field's type —
+nothing here assumes a layout. `!` picks the direction: without it C reads what
+Vader holds, with it the shim copies back what C wrote.
+
+The emitted C also carries `_Static_assert` lines pinning the mirror to the C
+type: its alignment fits `VADER_GC_ALIGN`, its size FITS the Vader field region
+(containment, not equality — the region is padded to 8), and every field-to-field
+distance matches. A drifting declaration then fails the build.
+
+**The VM refuses a `@c_struct` argument** — it calls through one generic
+trampoline and cannot build a C struct at run time. Such a declaration is native
+only; an array of scalars crosses on both backends instead.
+
 ### Allowed signature types
 
-The MVP C ABI marshals **primitives + `string` only**:
+The C ABI marshals these scalars (`void` as a return only, `null` never):
 
 ```
 i8 i16 i32 i64    u8 u16 u32 u64    isize usize
 f32 f64    bool   char    void    string
 ```
 
-Anything else (struct / array / union / fn-typed param / trait / type-param) is `T3050`. Future iterations may add:
+`string` is the exception to "either direction", and the typechecker does NOT
+catch it:
+
+- as an **argument** it crosses natively as a `const char*`, but the **VM traps**
+  ("expected i64, got string") — it passes scalars through one integer
+  trampoline and has nowhere to put the bytes;
+- as a **RETURN** it is accepted by the typechecker and then fails to compile —
+  the shim assigns a `char*` to a `vader_string_t` (a `u32` atom id), and turning
+  a C string back into a Vader one has no primitive yet.
+
+So a foreign function that hands back a string cannot be declared usefully today.
+
+Plus, on top of the scalars:
+
+| shape | direction | notes |
+|---|---|---|
+| a **distinct type** | both | zero-cost, so its ABI is its backing's — `Handle :: CPointer` is the idiom for a foreign handle |
+| a **nullable foreign pointer** (`CPointer \| null`) | both | the one union shape with an ABI; C has no other nullable scalar |
+| an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
+| a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; native backend only |
+
+Anything else (a plain struct, a fn-typed param, a trait, a type-param) is
+`T3050`. Future iterations may add:
 - opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix B)
-- struct passing for `@repr(C)` Vader structs
+- struct passing BY VALUE
 - callbacks (C → Vader function pointers)
 
 ### Native target — code generation
