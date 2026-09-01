@@ -489,6 +489,8 @@ int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
                                  size_t buf_slot, vader_array_t* bytes);
 void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
 double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
+/* One call, described by data — see vader_ffi.h. */
+void    vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
 
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the

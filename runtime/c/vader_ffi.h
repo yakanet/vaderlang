@@ -203,6 +203,13 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
+/* Argument / result classes for `vader_ffi_call`. Mirrored by
+ * `vader/vm/host.vader::ffi_class_*` — the two must agree. */
+#define VADER_FFI_VOID 0u
+#define VADER_FFI_WORD 1u
+#define VADER_FFI_F64  2u
+#define VADER_FFI_ADDR 3u
+
 #define VADER_FFI_DISPATCH(RET)                                                       \
     switch (nargs) {                                                                  \
     case 0: return ((RET (*)(void)) fn)();                                            \
@@ -296,6 +303,88 @@ double vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs) {
     VADER_FFI_DISPATCH(double)
     vader_trap("vader_ffi: more than 8 arguments in a foreign call");
     return 0.0;
+}
+
+/* One foreign call, described by DATA rather than by its shape.
+ *
+ * `desc` is one byte per slot: `desc[0]` classifies the RESULT, `desc[1+i]` the
+ * i-th argument. `frame` holds the argument slots — eight bytes each, in order —
+ * followed by whatever bytes a `VADER_FFI_ADDR` slot points into; the result is
+ * written back over its first eight bytes.
+ *
+ * This is what lets ONE intrinsic serve every signature: adding a shape widens
+ * the switch below and touches no Vader. What is not covered traps by name
+ * rather than mis-marshalling a frame. */
+void vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
+    vader_slice_t        dview = vader_array_bytes(desc);
+    vader_slice_t        fview;
+    const unsigned char* cls;
+    int64_t              words[VADER_FFI_MAX_ARGS];
+    double               reals[VADER_FFI_MAX_ARGS];
+    size_t               nargs, i, nreal = 0, nword = 0;
+
+    if (dview.len == 0) {
+        vader_trap("vader_ffi: empty call descriptor");
+    }
+    cls   = (const unsigned char*) dview.ptr;
+    nargs = dview.len - 1;
+    if (nargs > VADER_FFI_MAX_ARGS) {
+        vader_trap("vader_ffi: more than 8 arguments in a foreign call");
+    }
+
+    /* Last resolution before the call: nothing below allocates, so this address
+     * is the one the callee reads. */
+    fview = vader_array_bytes(frame);
+    if (fview.len < nargs * sizeof(int64_t)) {
+        vader_trap("vader_ffi: frame smaller than its argument list");
+    }
+
+    for (i = 0; i < nargs; i++) {
+        int64_t raw = ((const int64_t*) fview.ptr)[i];
+        switch (cls[i + 1]) {
+        case VADER_FFI_WORD: words[nword++] = raw; break;
+        case VADER_FFI_F64:  { double d; memcpy(&d, &raw, sizeof d); reals[nreal++] = d; break; }
+        case VADER_FFI_ADDR:
+            if (raw < 0 || (size_t) raw > fview.len) {
+                vader_trap("vader_ffi: lent offset outside the frame");
+            }
+            words[nword++] = (int64_t) (intptr_t) ((unsigned char*) fview.ptr + raw);
+            break;
+        default: vader_trap("vader_ffi: unknown argument class");
+        }
+    }
+
+    /* Shapes covered so far: all-word, and all-double with one or two arguments.
+     * A MIX needs one form per combination of classes — the point at which
+     * fabricating the call (libffi, or a thunk) starts to pay. */
+    if (nreal == 0) {
+        int64_t r = vader_ffi_call_int(fn, words, nargs);
+        if (cls[0] == VADER_FFI_F64) {
+            vader_trap("vader_ffi: floating result from an integer call shape");
+        }
+        if (cls[0] != VADER_FFI_VOID) {
+            memcpy((void*) fview.ptr, &r, sizeof r);
+        }
+        return;
+    }
+    if (nword != 0) {
+        vader_trap("vader_ffi: mixing floating and integer arguments is not covered");
+    }
+    if (cls[0] != VADER_FFI_F64) {
+        vader_trap("vader_ffi: a floating call shape must return a double");
+    }
+    {
+        double r;
+        if (nreal == 1) {
+            r = ((double (*)(double)) fn)(reals[0]);
+        } else if (nreal == 2) {
+            r = ((double (*)(double, double)) fn)(reals[0], reals[1]);
+        } else {
+            vader_trap("vader_ffi: more than two floating arguments is not covered");
+            return;
+        }
+        memcpy((void*) fview.ptr, &r, sizeof r);
+    }
 }
 
 void vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs) {

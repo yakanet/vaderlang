@@ -558,6 +558,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         ffi_call_void(call.fn_ptr, call.args, call.nargs)
         return HostOk { .value = zero_value() }
     }
+    // Declared in the next step: the seed's compiler must learn the manifest
+    // entry before the intrinsic itself can exist (bootstrap ordering).
+    .FfiCall -> {
+        return Trap { .message = "ffi_call at pc=${at_pc}: not wired yet" }
+    }
     .FfiCallF64 -> {
         call :: host_ffi_call_args(stack, arg_base, at_pc)
         if call is Trap { return call }
@@ -1050,7 +1055,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.
     .FfiOpen | .FfiSymbol | .FfiCallInt | .FfiCallVoid | .FfiCallF64
-        | .FfiCallIntLend -> true
+        | .FfiCallIntLend | .FfiCall -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
