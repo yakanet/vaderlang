@@ -481,14 +481,6 @@ static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
 void*   vader_ffi_open(const char* name);
 void*   vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
-int64_t vader_ffi_call_int_lend(void* fn, vader_array_t* args, size_t nargs,
-                                vader_array_t* slots, vader_array_t* bytes);
-/* RETIRED — the committed seed still emits shims calling it. Drop after the
- * next reseed, not before: the seed is frozen C linked against this runtime. */
-int64_t vader_ffi_call_int_bytes(void* fn, const int64_t* args, size_t nargs,
-                                 size_t buf_slot, vader_array_t* bytes);
-void    vader_ffi_call_void(void* fn, const int64_t* args, size_t nargs);
-double  vader_ffi_call_f64(void* fn, const int64_t* args, size_t nargs);
 /* One call, described by data — see vader_ffi.h. */
 void    vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
 
