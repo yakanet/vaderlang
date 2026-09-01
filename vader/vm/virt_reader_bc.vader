@@ -501,12 +501,19 @@ parse_import_decl_bc :: fn(
     } else {
         parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
+    // `header=<...>`, written between the mangled name and the signature.
+    c_header :: if parts.len() > name_i + 2 && parts[name_i + 2].starts_with("header=") {
+        parts[name_i + 2].trim_prefix("header=")
+    } else {
+        ""
+    }
     imports.push(bc.BcImport {
         .extern_name  = extern_name,
         .mangled_name = mangled,
         .signature    = sig,
         .is_extern    = is_extern,
         .c_library    = c_library,
+        .c_header     = c_header,
     })
     return null
 }

@@ -590,6 +590,17 @@ validate_extern :: fn(
             ),
         )
     }
+    // Keyed on the SYMBOL alone, because that is what the C side can tell apart:
+    // `emit_import_shims` dedupes on `extern_name` and emits ONE prototype per
+    // symbol, and the declared library reaches no `-l` — it is read by the VM's
+    // `ffi_open` and nowhere else. Keying on library + symbol would let two
+    // declarations through that the native backend then collapses into one
+    // prototype, the second shim calling the first's.
+    //
+    // The cost is that a stdlib `@extern` reserves its C name project-wide:
+    // since `std/math` names `pow`, a program importing it cannot declare its
+    // own. Lifting that needs the shapes compared rather than the names, which
+    // needs the resolved signature of the earlier declaration kept somewhere.
     sym_name :: extern_symbol_name_for(decl)
     prior :: typed.extern_symbols[sym_name]
     if prior is AST.FnDecl as p {

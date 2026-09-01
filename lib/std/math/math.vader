@@ -1,42 +1,61 @@
 // std/math — basic numeric operations and constants.
 
-/// π (3.141592653589793).
 module "std/math"
 
+/// π (3.141592653589793).
 export pi :: 3.141592653589793
 /// Euler's number, e (2.718281828459045).
 export e :: 2.718281828459045
 
 // ---- Float operations -----------------------------------------------------
+//
+// libm, named as what it is. `@c_header` hands `cc` the real prototype from
+// `<math.h>` — synthesising one beside it would be a conflicting declaration —
+// and the same symbol resolves on every platform we target.
 
-/// Square root. Host-provided ; routes to `sqrt` in libm on native, native
-/// JS `Math.sqrt` in the VM.
+/// Square root.
 /// @param x  non-negative finite input.
 /// @return   `sqrt(x)`. `NaN` when `x < 0`.
-@intrinsic export sqrt :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("sqrt")
+export sqrt :: fn(x: f64) -> f64
 
 /// Power — `x^n`. Both base and exponent are floats ; for integer exponents
 /// the caller is expected to cast.
 /// @param x  base.
 /// @param n  exponent.
 /// @return   `x` raised to the `n`-th power.
-@intrinsic export pow :: fn(x: f64, n: f64) -> f64
+@c_header("<math.h>")
+@extern("pow")
+export pow :: fn(x: f64, n: f64) -> f64
 
 /// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
-@intrinsic export floor :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("floor")
+export floor :: fn(x: f64) -> f64
 /// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
-@intrinsic export ceil :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("ceil")
+export ceil :: fn(x: f64) -> f64
 /// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
-@intrinsic export round :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("round")
+export round :: fn(x: f64) -> f64
 
 // ---- Trigonometry ---------------------------------------------------------
 
 /// Sine of `x` in radians.
-@intrinsic export sin :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("sin")
+export sin :: fn(x: f64) -> f64
 /// Cosine of `x` in radians.
-@intrinsic export cos :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("cos")
+export cos :: fn(x: f64) -> f64
 /// Tangent of `x` in radians.
-@intrinsic export tan :: fn(x: f64) -> f64
+@c_header("<math.h>")
+@extern("tan")
+export tan :: fn(x: f64) -> f64
 
 // ---- Comparison + helpers -------------------------------------------------
 //
@@ -104,6 +123,20 @@ import "std/testing"
 @test test_pow :: fn() -> void {
     assert_close(pow(2.0, 10.0), 1024.0, 0.000001)
     assert_close(pow(3.0, 0.0), 1.0, 0.000001)
+}
+
+// sin / cos / tan had no test on either backend. They are `@extern`, so the
+// wiring check that used to force every bodyless declaration to be served no
+// longer covers them: a typo in the symbol would fail at link time natively and
+// trap on the VM, with nothing pointing at the cause. Exact values only — these
+// are the points where libm is required to be exact, so the test cannot drift
+// between platforms.
+@test test_trigonometry :: fn() -> void {
+    assert_close(sin(0.0), 0.0, 0.000001)
+    assert_close(cos(0.0), 1.0, 0.000001)
+    assert_close(tan(0.0), 0.0, 0.000001)
+    assert_close(sin(pi), 0.0, 0.000001)
+    assert_close(cos(pi), -1.0, 0.000001)
 }
 
 @test test_floor_ceil_round :: fn() -> void {

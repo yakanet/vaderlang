@@ -151,17 +151,6 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
 export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null) -> HostCallResult {
-    id :: bc.intrinsic_id_for(info.mangled_name)
-    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
-    // / terminal) read or mutate state outside the program. Running one during a
-    // `@comptime` evaluation would bake a non-reproducible result and silently
-    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
-    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
-    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
-    // for debug) keep running.
-    if is_comptime && is_impure_host(id) {
-        return impure_comptime_trap(info.mangled_name)
-    }
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -181,6 +170,25 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_begin" { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
+    // A user `@extern` names a linker symbol, never a manifest entry, so
+    // classifying it first was pure waste — and `intrinsic_id_for` is not cheap:
+    // it rebuilds and INTERNS mangled names. Measured at 29% of a VM run whose
+    // hot path is `@extern` (20M `sqrt`: 7.51s -> 4.99s). Placed after the
+    // `vader_profile$*` arms above, which ARE `@extern` and must still be served.
+    if info.is_extern {
+        return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
+    }
+    id :: bc.intrinsic_id_for(info.mangled_name)
+    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
+    // / terminal) read or mutate state outside the program. Running one during a
+    // `@comptime` evaluation would bake a non-reproducible result and silently
+    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
+    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
+    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
+    // for debug) keep running.
+    if is_comptime && is_impure_host(id) {
+        return impure_comptime_trap(info.mangled_name)
+    }
     match id {
     // ---- std/string family ----------------------------------------------
     .ByteLen -> {
@@ -344,14 +352,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = I32Val { .value = 0 } }
     }
     // ---- std/math --------------------------------------------------------
-    .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
-    .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
-    .MathCos   -> { return host_f64_unary(stack, arg_base, at_pc, "cos",   (a) -> cos(a)) }
-    .MathTan   -> { return host_f64_unary(stack, arg_base, at_pc, "tan",   (a) -> tan(a)) }
-    .MathFloor -> { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
-    .MathCeil  -> { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
-    .MathRound -> { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    .MathPow   -> { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
     // ---- std/io fallible file ops ---------------------------------------
     // `read_file` / `write_file` are gone — `read_file_string` /
     // `write_file_string` are now pure-Vader wrappers over the byte
@@ -586,11 +586,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // grouped so a new IntrinsicId variant still trips T3013 here.
     .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered | .NotIntrinsic -> {}
     }
-    // A user `@extern` reaches no arm above — it names a linker symbol, not a
-    // known host. Resolve and call it dynamically rather than giving up.
-    if info.is_extern {
-        return dispatch_extern(info, stack, arg_base, at_pc, types, is_comptime, debug)
-    }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
 
@@ -667,27 +662,32 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// ONE lent array of integer elements, of any width the target spells. Everything
 /// else — a floating parameter, a `string`, a second array — traps naming the
 /// reason, because calling with a mis-marshalled frame would corrupt the stack
-/// instead of failing.
+/// instead of failing. The exception is `libm_direct`, whose symbols the VM
+/// answers itself and which therefore take floating arguments.
 ///
-/// The library is the running process: `BcImport` carries no library name yet,
-/// so only symbols already linked into the binary resolve. That covers libc.
+/// The library is `BcImport.c_library` when the declaration names one, else the
+/// running process — which covers libc and anything linked into the binary.
 ///
 /// @param info         the import, for its `extern_name` and signature.
 /// @param stack        the operand stack.
 /// @param arg_base     index of the first argument.
 /// @param at_pc        program counter, for trap messages.
 /// @param types        the module type table, for a lent array's element width.
-/// @param is_comptime  true while a `@comptime` block is being evaluated.
 /// @param debug        the DAP controller when one is attached, else null.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
-dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null) -> HostCallResult {
-    // Program OUTPUT is the one foreign call a `@comptime` block may make: it
-    // does not change the baked value, which is the exemption `IoWrite` used to
-    // carry before `write` became ordinary Vader. Everything else runs arbitrary
-    // native code and cannot bake reproducibly.
-    if is_comptime && !is_write_symbol(info.extern_name) {
-        return impure_comptime_trap(info.mangled_name)
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+    // Symbols the VM answers ITSELF, without resolving them — see `libm_direct`.
+    // Only for the default scope: `@extern("mylib", "sqrt")` names someone
+    // else's `sqrt` and must go through the resolver.
+    if info.c_library == "" {
+        direct :: libm_direct(info.extern_name, info.signature, stack, arg_base, at_pc)
+        if direct != null {
+            return direct
+        }
     }
+    // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
+    // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
+    // here.
     params :: info.signature.params
     if params.len() > 8 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: more than 8 arguments" }
@@ -705,6 +705,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
+    // Symbols the VM answers ITSELF, without resolving them. `std/math` names
+    // libm through `@extern`, so the native shim calls it directly; the VM is
+    // itself a compiled Vader program that already links libm, so it just calls
+    // the same function rather than going through `ffi_symbol` — which would
+    // need a floating-argument trampoline for no gain.
     // The declared library, or the default scope. `GetStdHandle` lives in
     // `kernel32.dll`, which the running process exports nothing of.
     lib :: ffi_open(info.c_library)
@@ -824,6 +829,49 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         }
     }
     return extern_result(info.signature.result, raw)
+}
+
+/// The libm calls the VM makes itself, or `null` when `symbol` is not one.
+///
+/// These are ordinary Vader calls here — `std/math` declares them `@extern`, and
+/// the compiler this VM lives in is linked against libm. Resolving them through
+/// `ffi_symbol` would work for nothing and hit the floating-argument gap, since
+/// the trampoline passes every slot as an `int64_t`.
+///
+/// The signature is checked, not just the name: a user `@extern("sin")` with a
+/// different shape must NOT be answered from here.
+///
+/// @param symbol    the foreign symbol name.
+/// @param sig       the import's signature, to confirm the shape.
+/// @param stack     the operand stack.
+/// @param arg_base  index of the first argument.
+/// @param at_pc     program counter, for trap messages.
+/// @return          the result, or `null` when the VM does not know the symbol.
+libm_direct :: fn(
+    symbol: string, sig: bc.BcSignature, stack: Value[], arg_base: usize, at_pc: i32,
+) -> HostCallResult | null {
+    if sig.result != bc.ValType.F64 {
+        return null
+    }
+    for p in sig.params {
+        if p != bc.ValType.F64 {
+            return null
+        }
+    }
+    if sig.params.len() == 2 && symbol == "pow" {
+        return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b))
+    }
+    if sig.params.len() != 1 {
+        return null
+    }
+    if symbol == "sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a))  }
+    if symbol == "sin"   { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a))   }
+    if symbol == "cos"   { return host_f64_unary(stack, arg_base, at_pc, "cos",   (a) -> cos(a))   }
+    if symbol == "tan"   { return host_f64_unary(stack, arg_base, at_pc, "tan",   (a) -> tan(a))   }
+    if symbol == "floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
+    if symbol == "ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a))  }
+    if symbol == "round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
+    return null
 }
 
 /// One array lent to a foreign call, and where its bytes sit in the flat buffer
@@ -1024,7 +1072,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
         | .StringEquals | .StringNotEquals -> false
     .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
-    .MathSqrt | .MathSin | .MathCos | .MathTan | .MathFloor | .MathCeil | .MathRound | .MathPow -> false
     .AbortPanic -> false
     .NotIntrinsic -> false
 }

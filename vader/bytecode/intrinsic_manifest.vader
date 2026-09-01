@@ -119,10 +119,6 @@ export IntrinsicId :: enum(u8) {
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     // std/runtime — cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
-    // std/time
-    // std/math — libm transcendentals + rounding. min/max/abs/clamp are pure
-    // Vader (bodied → real fns, never host imports), so they are NOT here.
-    MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathPow,
     // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
     ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
@@ -189,16 +185,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$sched_now"               { return .SchedNow }
     if mangled == r"std_runtime$sched_arm"               { return .SchedArm }
     if mangled == r"std_runtime$sched_park"              { return .SchedPark }
-
-
-    if mangled == r"std_math$sqrt"                       { return .MathSqrt }
-    if mangled == r"std_math$sin"                        { return .MathSin }
-    if mangled == r"std_math$cos"                        { return .MathCos }
-    if mangled == r"std_math$tan"                        { return .MathTan }
-    if mangled == r"std_math$floor"                      { return .MathFloor }
-    if mangled == r"std_math$ceil"                       { return .MathCeil }
-    if mangled == r"std_math$round"                      { return .MathRound }
-    if mangled == r"std_math$pow"                        { return .MathPow }
 
     if mangled == r"std_process$spawn_start"             { return .ProcessSpawnStart }
     if mangled == r"std_process$spawn_kill"                { return .ProcessSpawnKill }
@@ -282,7 +268,10 @@ import "vader/lower"
     // `std_io$write` is deliberately absent: it is ordinary Vader now, written
     // over `sys/io::sys_write`.
     assert(intrinsic_id_for(r"std_io$write") == .NotIntrinsic, "io write is no longer a host")
-    assert(intrinsic_id_for(r"std_math$sqrt") == .MathSqrt, "math sqrt")
+    // Same shape: `std/math` became `@extern`, so re-adding a Math variant would
+    // silently route it back through `dispatch_import` while the declaration says
+    // otherwise — an import neither backend serves.
+    assert(intrinsic_id_for(r"std_math$sqrt") == .NotIntrinsic, "math sqrt is no longer a host")
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
     assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")

@@ -152,9 +152,16 @@ Code in `@comptime` context can:
 - ✅ write debug output to `stdout` (`println`) — a side effect that never enters
   the baked value, so it cannot affect reproducibility
 - ❌ read `ENV` / `args`, the clock, the filesystem (beyond `@file`), stdin, or
-  spawn a subprocess — any host that observes state outside the program is
-  **forbidden** (`C4016`), to preserve build reproducibility. The comptime VM
-  refuses such a call rather than baking a non-reproducible value.
+  spawn a subprocess **through an `@intrinsic` host** — those are known to the
+  compiler by identity, so it refuses them (`C4016`) rather than baking a
+  non-reproducible value.
+- ⚠️ An **`@extern`** call is NOT refused. The compiler knows a foreign symbol
+  only by its name, so it cannot tell `sqrt` from `rand` — and refusing the class
+  refused the pure ones too. Baking `now()` into a build stamp is a legitimate
+  thing for a program to do; what it costs is reproducibility, which the caller
+  owns. The compiler holds itself to a stricter rule than the language:
+  `bootstrap/verify.sh` checks `stage1 == stage2` on every PR, so an impure call
+  reaching a `@comptime` block in the compiler's own tree fails CI.
 
 ---
 
@@ -3055,7 +3062,8 @@ clamp :: fn(x: usize, lo: usize, hi: usize) -> usize
 clamp :: fn(x: f64, lo: f64, hi: f64) -> f64
 lerp  :: fn(a: f64, b: f64, t: f64) -> f64        // a + (b - a) * clamp(t, 0.0, 1.0)
 
-// Float intrinsics — wired to libm on native, JS Math on the VM.
+// libm, declared `@extern` with `@c_header("<math.h>")` — the emitted C calls
+// it directly, and the VM answers these symbols itself rather than resolving them.
 sqrt  :: fn(x: f64) -> f64
 pow   :: fn(x: f64, n: f64) -> f64
 floor :: fn(x: f64) -> f64

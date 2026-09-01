@@ -13,7 +13,7 @@ string 0 "quot="
 string 1 " abs="
 string 2 " rem="
 string 3 "\n"
-import 0 extern abs snippet$c_abs (i32) -> i32
+import 0 extern abs snippet$c_abs header=<stdlib.h> (i32) -> i32
 import 1 extern fill_div snippet$fill_div (ref,i32,i32) -> void
 import 2 byte_len std_core$byte_len (string) -> usize
 import 3 bytes std_core$bytes (string) -> ref
