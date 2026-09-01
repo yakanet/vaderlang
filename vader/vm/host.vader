@@ -495,13 +495,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .TargetCurrentArch -> {
         return HostOk { .value = I32Val { .value = i32(current_arch()) } }
     }
-    .EnvGetEnv -> {
-        name :: read_string(stack[arg_base], at_pc, "get_env name")
-        if name is Trap { return name }
-        value :: get_env(name.value)
-        if value == null { return HostOk { .value = NullVal {} } }
-        return HostOk { .value = StringVal { .value = value } }
-    }
     // ---- std/abort -------------------------------------------------------
     .AbortPanic -> {
         message :: read_string(stack[arg_base], at_pc, "panic")
@@ -1010,7 +1003,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .FfiOpen | .FfiSymbol | .FfiCall -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
-    .TtyIsTty | .EnvGetEnv -> true
+    .TtyIsTty -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
     // emit of the same source would differ. That is exactly what `seed.sh check`

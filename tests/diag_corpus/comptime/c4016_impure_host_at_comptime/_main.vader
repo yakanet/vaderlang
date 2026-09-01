@@ -1,21 +1,25 @@
-// A `@comptime` const that reaches an impure host (here `get_env`, via the
-// VM-backed comptime pass) is refused with C4016 : running it at build time
+// A `@comptime` const that reaches an impure INTRINSIC host (here `is_tty`, via
+// the VM-backed comptime pass) is refused with C4016 : running it at build time
 // would bake a non-reproducible value and break the byte-identical bootstrap.
+//
+// The gate judges an intrinsic by IDENTITY, which is why it can tell a pure host
+// from an impure one. An `@extern` is known only by its symbol name and is NOT
+// refused — reproducibility is then the caller's business, and this tree's own
+// is checked by `bootstrap/verify.sh`.
 module "snippet"
 
-import "std/env"
+import "std/tty"
 
 @comptime
-export HOME_AT_BUILD :: read_home()
+export INTERACTIVE_AT_BUILD :: read_tty()
 
-read_home :: fn() -> string {
-    v :: get_env("HOME")
-    if v == null { return "unset" }
-    return v
+read_tty :: fn() -> string {
+    if is_tty() { return "tty" }
+    return "pipe"
 }
 
 main :: fn() -> i32 {
     // Reference the const so its RHS is inlined and the VM-backed comptime pass
-    // actually evaluates `read_home` (an unused const is skipped silently).
-    return i32(HOME_AT_BUILD.byte_len())
+    // actually evaluates `read_tty` (an unused const is skipped silently).
+    return i32(INTERACTIVE_AT_BUILD.byte_len())
 }
