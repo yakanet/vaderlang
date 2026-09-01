@@ -3876,15 +3876,6 @@ vader_bool_t vader_is_tty(int32_t stream) {
     return cache[i] != 0;
 }
 
-vader_box_t vader_get_env(vader_string_t name, uint32_t str_tag) {
-    const char* key = vader_string_to_cstr(name);
-    const char* val = getenv(key);
-    vader_box_t out = (val == NULL)
-        ? vader_box_null()
-        : vader_box_string(str_tag, vader_string_new(val, strlen(val)));
-    vader_cstr_free(key);
-    return out;
-}
 
 /* ----------------------------------------------------------------- raw terminal
  *

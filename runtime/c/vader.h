@@ -1248,7 +1248,6 @@ int32_t        vader_current_os(void);
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
 vader_bool_t   vader_is_tty(int32_t stream);
-vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
 
 /* ----------------------------------------------------------------- raw terminal
  * Interactive-prompt primitives backing `std/tty`'s raw mode — what a selectable
