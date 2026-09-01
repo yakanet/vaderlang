@@ -23,8 +23,9 @@ type 20 primitive i64
 type 21 ref Async
 type 22 struct std_async$Sleep { ms:20,deadline:20,armed:15 }
 type 23 union 0,9
-type 24 struct $Cell_string { value:1 }
-type 25 ref _
+type 24 primitive isize
+type 25 struct $Cell_string { value:1 }
+type 26 ref _
 string 0 "defer 1 "
 string 1 "defer 2 "
 string 2 "body "
@@ -33,7 +34,7 @@ string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now () -> i64
 import 4 sched_arm std_runtime$sched_arm (i64) -> void
 import 5 sched_park std_runtime$sched_park () -> i32
@@ -52,7 +53,7 @@ fn 0 snippet$step (string) -> any
   local $arr_3 ref
   local $k_4 any
   local.get 0   ; arg 0
-  struct.new 24   ; $Cell_string
+  struct.new 25   ; $Cell_string
   local.set 1   ; $cell_1
   array.new 12 0   ; fn[][]
   local.set 2   ; $arr_3
@@ -84,7 +85,7 @@ end
 fn 2 __defer_1 (ref) -> void
   local $cell_get_3 string
   local.field 0 4 0   ; arg 0.cap_0
-  struct.get 24 0   ; $Cell_string.value
+  struct.get 25 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 0   ; "defer 1 "
   local.get 1   ; $cell_get_3
@@ -96,7 +97,7 @@ end
 fn 3 __defer_11 (ref) -> void
   local $cell_get_3 string
   local.field 0 6 0   ; arg 0.cap_0
-  struct.get 24 0   ; $Cell_string.value
+  struct.get 25 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 1   ; "defer 2 "
   local.get 1   ; $cell_get_3
@@ -214,7 +215,7 @@ fn 4 snippet$__asyncstate_14$Async$resume (ref) -> any
           local.get 9   ; $cast_45
           array.push 13   ; fn[]
           local.field 0 7 0   ; arg 0.s0
-          struct.get 24 0   ; $Cell_string.value
+          struct.get 25 0   ; $Cell_string.value
           local.set 10   ; $cell_get_48
           string.const 2   ; "body "
           local.get 10   ; $cell_get_48
@@ -507,6 +508,7 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

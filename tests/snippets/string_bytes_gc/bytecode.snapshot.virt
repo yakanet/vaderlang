@@ -9,6 +9,7 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive string
 type 8 primitive i64
 type 9 primitive void
+type 10 primitive isize
 string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
 string 2 "ok: 4 byte views survived 2 major GCs; sum="
@@ -16,7 +17,7 @@ string 3 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
 import 2 collect std_runtime$collect () -> void
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 2
 
@@ -504,6 +505,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

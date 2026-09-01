@@ -15,6 +15,7 @@ type 12 struct __Tuple_29 { _0:7,_1:3 }
 type 13 primitive u32
 type 14 primitive isize
 type 15 struct std_string_builder$StringBuilder { parts:11 }
+type 16 primitive f64
 string 0 "  Hello, World!  "
 string 1 "hello"
 string 2 "VADER"
@@ -35,7 +36,15 @@ import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
 import 4 at std_core$string$Index$at (string,usize) -> char
-import 5 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 6 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 7 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 8 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 9 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 10 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 11 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 12 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 13 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 4 ByteAccess
 impl 15 Display
 export main 0
@@ -544,6 +553,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

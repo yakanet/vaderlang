@@ -244,6 +244,10 @@ FnMetadata :: struct {
     /// real one, and a synthesised one that differs is a conflicting
     /// declaration the C compiler refuses outright.
     c_header:    string
+    /// `@vm_callable` — the VM must be able to call this symbol, so its address
+    /// is baked into the binary's static symbol table rather than left to
+    /// `dlsym`. See `SPEC.md` §12.
+    vm_callable: bool
 }
 
 import "toolchain/ast"
@@ -257,12 +261,14 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     is_exported := false
     c_header := ""
     c_library := ""
+    vm_callable := false
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
         is_extern = decorators_have(fn_decl.decorators, "extern")
         is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
         c_library = extern_library_name(fn_decl)
+        vm_callable = decorators_have(fn_decl.decorators, "vm_callable")
     }
     return FnMetadata {
         .extern_name = extern_name,
@@ -270,6 +276,7 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
         .is_exported = is_exported,
         .c_header    = c_header,
         .c_library   = c_library,
+        .vm_callable = vm_callable,
     }
 }
 
@@ -371,6 +378,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .is_extern   = meta.is_extern,
         .c_header    = meta.c_header,
         .c_library   = meta.c_library,
+        .vm_callable = meta.vm_callable,
     }
 }
 

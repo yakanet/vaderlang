@@ -8,24 +8,25 @@ type 5 primitive usize
 type 6 primitive string
 type 7 primitive u8
 type 8 array 7
-type 9 fn () -> 3
+type 9 primitive isize
+type 10 fn () -> 3
 string 0 "hi"
 string 1 "nested"
 string 2 "outer cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
   struct.new 2   ; __defer_env_2
-  make_closure 1 9   ; __defer_1
+  make_closure 1 10   ; __defer_1
   defer.push
   string.const 0   ; "hi"
   call 5   ; std_io$println__string
   struct.new 4   ; __defer_env_5
-  make_closure 2 9   ; __defer_4
+  make_closure 2 10   ; __defer_4
   defer.push
   string.const 1   ; "nested"
   call 5   ; std_io$println__string
@@ -120,6 +121,7 @@ fn 4 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

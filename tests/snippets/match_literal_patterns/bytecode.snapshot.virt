@@ -8,6 +8,7 @@ type 5 primitive usize
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
+type 9 primitive isize
 string 0 "right"
 string 1 "left"
 string 2 "plus"
@@ -29,7 +30,7 @@ string 17 "unknown"
 string 18 "nope"
 string 19 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 4
 
 fn 0 snippet$describe_char (char) -> string
@@ -263,6 +264,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

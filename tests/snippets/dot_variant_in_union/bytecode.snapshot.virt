@@ -9,6 +9,8 @@ type 6 primitive usize
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
+type 10 primitive isize
+type 11 primitive f64
 string 0 "unknown"
 string 1 "N"
 string 2 "E"
@@ -17,7 +19,15 @@ string 4 "W"
 string 5 "err"
 string 6 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 2 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 3 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 4 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 5 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 6 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 7 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 8 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 9 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 4 Error
 export main 2
 
@@ -221,6 +231,7 @@ fn 4 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -21,7 +21,8 @@ type 18 primitive void
 type 19 union 1,20
 type 20 struct std_string$ParseError { msg:2 }
 type 21 union 6,20
-type 22 array 10
+type 22 primitive isize
+type 23 array 10
 string 0 "42"
 string 1 "int ok"
 string 2 "int err"
@@ -40,7 +41,15 @@ data 0 u64 hex"5ad63b92d653f4ee3f3ba10629aa3f11f865651b66b4589507c524a459cac74a7
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 7 ByteAccess
 impl 20 Error
 export main 0
@@ -1507,7 +1516,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
   i32.mul
   i32.to_i64
   local.set 3   ; idx
-  data.const 0 22   ; pool[0] : u64[]
+  data.const 0 23   ; pool[0] : u64[]
   local.get 3   ; idx
   load_slot_i64
   local.set 4   ; $idx_9
@@ -1527,7 +1536,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 22   ; pool[0] : u64[]
+    data.const 0 23   ; pool[0] : u64[]
     local.set 5   ; __tup_0
     local.get 3   ; idx
     i64.const 1
@@ -2823,6 +2832,7 @@ fn 24 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

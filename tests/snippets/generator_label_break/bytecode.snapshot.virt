@@ -18,10 +18,11 @@ type 15 primitive i64
 type 16 primitive u8
 type 17 array 16
 type 18 primitive void
-type 19 ref __genstate_gen
+type 19 primitive isize
+type 20 ref __genstate_gen
 string 0 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 Iterator
 impl 6 Contains
 impl 6 Iterator
@@ -697,6 +698,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

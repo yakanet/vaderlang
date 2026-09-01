@@ -20,6 +20,7 @@ type 17 array 16
 type 18 primitive void
 type 19 struct __gen_state_58 { s0:15,s1:15,s2:15,s3:20,s4:1,s5:15,s6:20,s7:1,state:1 }
 type 20 union 5,0
+type 21 primitive isize
 string 0 "break in 1st source="
 string 1 " want=1"
 string 2 "break in 2nd source="
@@ -36,7 +37,7 @@ string 12 " want=6"
 string 13 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 2 Contains
 impl 2 Iterator
 impl 7 Contains
@@ -5348,6 +5349,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

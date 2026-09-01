@@ -14,6 +14,7 @@ type 11 primitive void
 type 12 array 6
 type 13 struct std_collections$MutableMap__string__i32 { ekeys:12,evals:14,index:14,mask:3,size:3,tombs:3 }
 type 14 array 1
+type 15 primitive isize
 string 0 "hello"
 string 1 "world"
 string 2 "vader"
@@ -34,7 +35,7 @@ string 16 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
 import 2 hash std_core$string$Hash$hash (string) -> u64
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Index
 impl 13 IndexSet
@@ -1571,6 +1572,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

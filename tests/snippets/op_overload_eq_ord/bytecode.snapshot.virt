@@ -9,6 +9,7 @@ type 6 primitive string
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
+type 10 primitive isize
 string 0 "a==b "
 string 1 "  a!=c "
 string 2 "a<c "
@@ -20,7 +21,7 @@ string 7 "false"
 string 8 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 1 Equals
 impl 1 Comparable
 impl 5 ByteAccess
@@ -320,6 +321,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

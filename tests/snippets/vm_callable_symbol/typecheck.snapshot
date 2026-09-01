@@ -1,0 +1,10 @@
+# Typecheck
+
+## tests/snippets/vm_callable_symbol
+  FnDecl         hypot                :: fn(f64, f64) -> f64
+  FnDecl         main                 :: fn() -> i32
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    CallExpr       :: f64
+  expr 14:16    IdentExpr      :: fn(f64, f64) -> f64
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void

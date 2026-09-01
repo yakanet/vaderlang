@@ -12,7 +12,8 @@ type 9 union 10,0
 type 10 struct std_io$IOError { msg:2 }
 type 11 union 10,2
 type 12 union 10,7
-type 13 ref Error
+type 13 primitive isize
+type 14 ref Error
 string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
@@ -28,7 +29,7 @@ import 3 read_file_bytes std_io$read_file_bytes (string) -> any
 import 4 write_file_bytes std_io$write_file_bytes (string,ref) -> any
 import 5 exists std_io$exists (string) -> bool
 import 6 temp_dir std_io$temp_dir () -> string
-import 7 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 7 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 10 Error
 export main 0
@@ -83,7 +84,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 0
   end $L0
   local.get 4   ; contents
-  type_check 13   ; ref Error
+  type_check 14   ; ref Error
   if $L1 void
     string.const 4   ; "read failed"
     call 10   ; std_io$println__string
@@ -268,6 +269,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 7   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

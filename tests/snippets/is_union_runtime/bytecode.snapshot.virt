@@ -12,7 +12,8 @@ type 9 struct std_core$Buffer {  }
 type 10 primitive u8
 type 11 array 10
 type 12 primitive void
-type 13 union 2,3
+type 13 primitive isize
+type 14 union 2,3
 string 0 "felix"
 string 1 "woof"
 string 2 "true"
@@ -20,13 +21,13 @@ string 3 "false"
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 9 ByteAccess
 export main 1
 
 fn 0 snippet$is_pet (any) -> bool
   local.get 0   ; arg 0
-  type_check 13   ; union
+  type_check 14   ; union
   return
 end
 
@@ -209,6 +210,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

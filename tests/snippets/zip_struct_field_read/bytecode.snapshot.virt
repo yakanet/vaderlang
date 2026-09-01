@@ -11,8 +11,9 @@ type 8 array 7
 type 9 primitive void
 type 10 ref _
 type 11 array 5
-type 12 array 2
-type 13 struct __Tuple_32 { _0:5,_1:10 }
+type 12 primitive isize
+type 13 array 2
+type 14 struct __Tuple_33 { _0:5,_1:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -21,7 +22,7 @@ string 4 ","
 string 5 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 4 ByteAccess
 export main 0
 
@@ -60,7 +61,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $struct_7
   local.get 1   ; $struct_10
   local.get 2   ; $struct_13
-  array.new 12 3   ; snippet$Point[][]
+  array.new 13 3   ; snippet$Point[][]
   local.set 0   ; $struct_7
   local.get 3   ; self
   array.len
@@ -95,16 +96,16 @@ fn 0 snippet$main () -> i32
         local.set 6   ; $idx_27
         local.get 0   ; $struct_7
         local.get 5   ; $len_20
-        array.get 12   ; snippet$Point[][]
+        array.get 13   ; snippet$Point[][]
         local.set 7   ; $idx_28
         local.get 6   ; $idx_27
         local.get 7   ; $idx_28
-        struct.new_stack 13   ; __Tuple_32
+        struct.new_stack 14   ; __Tuple_33
         local.set 1   ; $struct_10
-        local.field 1 13 0   ; $struct_10._0
+        local.field 1 14 0   ; $struct_10._0
         ref.cast 5   ; -> string
         local.set 8   ; __p_1
-        local.field 1 13 1   ; $struct_10._1
+        local.field 1 14 1   ; $struct_10._1
         local.set 2   ; $struct_13
         local.get 8   ; __p_1
         call.import 0   ; std_core$byte_len
@@ -384,6 +385,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -21,8 +21,10 @@ type 18 array 2
 type 19 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
 type 20 union 0,11
 type 21 struct __Tuple_54 { _0:12,_1:3 }
-type 22 struct __Tuple_60 { _0:5,_1:1 }
-type 23 union 11,0
+type 22 primitive isize
+type 23 primitive f64
+type 24 struct __Tuple_61 { _0:5,_1:1 }
+type 25 union 11,0
 string 0 "arr="
 string 1 "a"
 string 2 "b"
@@ -34,7 +36,15 @@ string 7 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
 import 2 hash std_core$string$Hash$hash (string) -> u64
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 4 ByteAccess
 impl 14 Index
 impl 14 IndexSet
@@ -168,8 +178,8 @@ fn 0 snippet$main () -> i32
         local.set 4   ; x
         local.get 8   ; $idx_53
         local.get 4   ; x
-        struct.new_stack 22   ; __Tuple_60
-        struct.get 22 1   ; __Tuple_60._1
+        struct.new_stack 24   ; __Tuple_61
+        struct.get 24 1   ; __Tuple_61._1
         ref.cast 1   ; -> i32
         local.set 9   ; value
         local.get 3   ; __for_i_2
@@ -548,6 +558,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

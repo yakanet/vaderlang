@@ -15,6 +15,7 @@ type 12 struct std_collections$MutableMap__i32__i64 { ekeys:14,evals:15,index:14
 type 13 struct std_collections$MutableMap__i64__i32 { ekeys:15,evals:14,index:14,mask:5,size:5,tombs:5 }
 type 14 array 2
 type 15 array 4
+type 16 primitive isize
 string 0 "face1 read-key:  "
 string 1 "face2 set-value: "
 string 2 "face2 set-key:   "
@@ -22,7 +23,7 @@ string 3 "face3 explicit:  "
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 6 ByteAccess
 impl 12 Index
 impl 12 IndexSet
@@ -432,6 +433,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

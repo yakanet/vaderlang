@@ -9,26 +9,27 @@ type 6 primitive usize
 type 7 primitive string
 type 8 primitive u8
 type 9 array 8
-type 10 fn () -> 3
+type 10 primitive isize
+type 11 fn () -> 3
 string 0 "starting"
 string 1 "outer cleanup"
 string 2 "middle cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
   struct.new 2   ; __defer_env_2
-  make_closure 1 10   ; __defer_1
+  make_closure 1 11   ; __defer_1
   defer.push
   struct.new 4   ; __defer_env_5
-  make_closure 2 10   ; __defer_4
+  make_closure 2 11   ; __defer_4
   defer.push
   struct.new 5   ; __defer_env_8
-  make_closure 3 10   ; __defer_7
+  make_closure 3 11   ; __defer_7
   defer.push
   string.const 0   ; "starting"
   call 6   ; std_io$println__string
@@ -134,6 +135,7 @@ fn 5 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -8,8 +8,9 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 array 1
-type 10 struct __Tuple_31 { _0:1,_1:2 }
+type 9 primitive isize
+type 10 array 1
+type 11 struct __Tuple_32 { _0:1,_1:2 }
 string 0 "score="
 string 1 "answer"
 string 2 "id="
@@ -17,7 +18,7 @@ string 3 "label="
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 4 ByteAccess
 export main 0
 
@@ -33,7 +34,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 9 3   ; i32[][]
+  array.new 10 3   ; i32[][]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -82,7 +83,7 @@ fn 0 snippet$main () -> i32
   end $L0
   i32.const 42
   string.const 1   ; "answer"
-  struct.new_stack 10   ; __Tuple_31
+  struct.new_stack 11   ; __Tuple_32
   local.set 0   ; __for_arr_0
   i64.const 23
   call 2   ; std_core$new_byte_buffer
@@ -94,7 +95,7 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "id="
   call 4   ; std_core$write_string_at
   local.set 1   ; __for_len_1
-  local.field 0 10 0   ; __for_arr_0._0
+  local.field 0 11 0   ; __for_arr_0._0
   ref.cast 1   ; -> i32
   i32.to_i64
   local.set 6   ; $cast_20
@@ -107,7 +108,7 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __for_len_1
   call 3   ; std_core$finish_buffer
   call 8   ; std_io$println__string
-  local.field 0 10 1   ; __for_arr_0._1
+  local.field 0 11 1   ; __for_arr_0._1
   ref.cast 2   ; -> string
   local.set 7   ; $field_41
   string.const 3   ; "label="
@@ -365,6 +366,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

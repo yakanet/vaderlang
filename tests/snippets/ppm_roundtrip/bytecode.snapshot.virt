@@ -18,7 +18,8 @@ type 15 struct images_ppm$PpmError { msg:2 }
 type 16 union 13,15
 type 17 primitive u32
 type 18 struct images_ppm$ScanInt { value:17,pos:4,found:3 }
-type 19 ref Error
+type 19 primitive isize
+type 20 ref Error
 string 0 "/vader_ppm_roundtrip.ppm"
 string 1 "encode failed"
 string 2 "write failed"
@@ -51,7 +52,7 @@ import 1 bytes std_core$bytes (string) -> ref
 import 2 read_file_bytes std_io$read_file_bytes (string) -> any
 import 3 write_file_bytes std_io$write_file_bytes (string,ref) -> any
 import 4 temp_dir std_io$temp_dir () -> string
-import 5 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Display
 impl 10 Error
@@ -106,7 +107,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   local.get 3   ; $cast_28
   call.import 3   ; std_io$write_file_bytes
-  type_check 19   ; ref Error
+  type_check 20   ; ref Error
   if $L1 void
     string.const 2   ; "write failed"
     call 8   ; std_io$println__string
@@ -115,7 +116,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   call.import 2   ; std_io$read_file_bytes
   local.tee 2   ; enc
-  type_check 19   ; ref Error
+  type_check 20   ; ref Error
   if $L2 void
     string.const 3   ; "read failed"
     call 8   ; std_io$println__string
@@ -447,6 +448,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

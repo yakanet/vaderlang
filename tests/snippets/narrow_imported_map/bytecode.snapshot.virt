@@ -18,10 +18,11 @@ type 15 array 10
 type 16 union 0,17
 type 17 struct snippet_lib$Out { first:1 }
 type 18 struct snippet_lib$Wrap { items:14 }
+type 19 primitive isize
 string 0 "null"
 string 1 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 ByteAccess
 impl 11 Index
 impl 11 IndexSet
@@ -300,6 +301,7 @@ fn 5 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

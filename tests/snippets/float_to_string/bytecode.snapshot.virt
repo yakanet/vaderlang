@@ -14,9 +14,10 @@ type 11 struct __Tuple_19 { _0:7,_1:7 }
 type 12 primitive u8
 type 13 array 12
 type 14 primitive void
-type 15 array 6
-type 16 ref _
-type 17 array 7
+type 15 primitive isize
+type 16 array 6
+type 17 ref _
+type 18 array 7
 string 0 "pi = "
 string 1 ", sci = "
 string 2 " "
@@ -50,7 +51,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -90,7 +91,7 @@ fn 0 snippet$main () -> i32
   f64.const 1.7976931348623157e+308 9218868437227405311
   local.get 0   ; $unop_20
   local.get 1   ; $unop_22
-  array.new 15 21   ; f64[][]
+  array.new 16 21   ; f64[][]
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -558,7 +559,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.add
     local.set 14   ; $call_64
-    data.const 0 17   ; pool[0] : u64[]
+    data.const 0 18   ; pool[0] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -567,7 +568,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 8   ; vr
-    data.const 1 17   ; pool[1] : u64[]
+    data.const 1 18   ; pool[1] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -670,7 +671,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.sub
     local.set 14   ; $call_64
-    data.const 2 17   ; pool[2] : u64[]
+    data.const 2 18   ; pool[2] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -679,7 +680,7 @@ fn 8 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 17   ; $mul_92
-    data.const 3 17   ; pool[3] : u64[]
+    data.const 3 18   ; pool[3] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -2027,6 +2028,7 @@ fn 27 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

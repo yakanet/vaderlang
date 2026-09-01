@@ -39,10 +39,12 @@ type 36 union 5,16
 type 37 array 38
 type 38 struct regex$CharRange { lo:5,hi:5 }
 type 39 struct regex$WorkItem { pc:7,groups:23 }
-type 40 struct __Tuple_65 { _0:5,_1:7 }
-type 41 array 39
-type 42 union 29,30,24,32
-type 43 union 27,28,29,30,24,32,33
+type 40 primitive isize
+type 41 struct __Tuple_66 { _0:5,_1:7 }
+type 42 primitive f64
+type 43 array 39
+type 44 union 29,30,24,32
+type 45 union 27,28,29,30,24,32,33
 string 0 "="
 string 1 ".."
 string 2 ":"
@@ -126,7 +128,15 @@ string 79 "trailing backslash inside class"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 8 ByteAccess
 impl 20 Display
 impl 16 Error
@@ -1066,6 +1076,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -1559,10 +1570,10 @@ fn 19 regex$run_vm (ref,ref,usize,bool) -> any
           local.get 4   ; $add_7
           call 47   ; std_string$utf8_decode_len
           local.set 9   ; seed_groups
-          local.field 9 40 0   ; seed_groups._0
+          local.field 9 41 0   ; seed_groups._0
           ref.cast 5   ; -> char
           local.set 12   ; c_at_pos
-          local.field 9 40 1   ; seed_groups._1
+          local.field 9 41 1   ; seed_groups._1
           ref.cast 7   ; -> usize
           local.set 13   ; bytes_consumed
         else
@@ -1942,7 +1953,7 @@ fn 21 regex$codepoint_byte_advance (ref,usize) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 47   ; std_string$utf8_decode_len
-  struct.get 40 1   ; __Tuple_65._1
+  struct.get 41 1   ; __Tuple_66._1
   ref.cast 7   ; -> usize
   return
 end
@@ -2402,10 +2413,10 @@ fn 23 regex$expand_replacement (ref,ref,ref) -> void
           local.get 4   ; i
           call 47   ; std_string$utf8_decode_len
           local.set 12   ; __tup_0
-          local.field 12 40 0   ; __tup_0._0
+          local.field 12 41 0   ; __tup_0._0
           ref.cast 5   ; -> char
           local.set 13   ; c
-          local.field 12 40 1   ; __tup_0._1
+          local.field 12 41 1   ; __tup_0._1
           ref.cast 7   ; -> usize
           local.set 14   ; w
           local.get 0   ; arg 0
@@ -2421,10 +2432,10 @@ fn 23 regex$expand_replacement (ref,ref,ref) -> void
         local.get 4   ; i
         call 47   ; std_string$utf8_decode_len
         local.set 12   ; __tup_0
-        local.field 12 40 0   ; __tup_0._0
+        local.field 12 41 0   ; __tup_0._0
         ref.cast 5   ; -> char
         local.set 13   ; c
-        local.field 12 40 1   ; __tup_0._1
+        local.field 12 41 1   ; __tup_0._1
         ref.cast 7   ; -> usize
         local.set 14   ; w
         local.get 0   ; arg 0
@@ -2462,7 +2473,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 39   ; regex$WorkItem
-  array.new 41 1   ; regex$WorkItem[][]
+  array.new 43 1   ; regex$WorkItem[][]
   local.set 8   ; stack
   block $L0 void
     loop $L1 void
@@ -2478,7 +2489,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
         local.set 9   ; $sub_16
         local.get 8   ; stack
         local.get 9   ; $sub_16
-        array.get 41   ; regex$WorkItem[][]
+        array.get 43   ; regex$WorkItem[][]
         local.set 10   ; item
         local.get 8   ; stack
         array.remove_last
@@ -2614,7 +2625,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
           br $L1
         end $L9
         local.get 13   ; inst
-        type_check 42   ; union
+        type_check 44   ; union
         if $L11 void
           local.get 11   ; pc
           local.get 12   ; groups
@@ -2994,7 +3005,7 @@ fn 32 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
             local.set 12   ; $cast_25
             local.get 0   ; arg 0
             local.get 12   ; $cast_25
-            array.push 43   ; union[]
+            array.push 45   ; union[]
           end $L4
         end $L3
         local.get 6   ; i
@@ -3413,10 +3424,10 @@ fn 34 regex$parse_atom (ref) -> any
   local.get 1   ; $field_1
   call 47   ; std_string$utf8_decode_len
   local.set 3   ; $field_8
-  local.field 3 40 0   ; $field_8._0
+  local.field 3 41 0   ; $field_8._0
   ref.cast 5   ; -> char
   local.set 11   ; c
-  local.field 3 40 1   ; $field_8._1
+  local.field 3 41 1   ; $field_8._1
   ref.cast 7   ; -> usize
   local.set 1   ; $field_1
   local.field 0 18 1   ; arg 0.cursor
@@ -5600,10 +5611,10 @@ fn 43 regex$read_class_char (ref) -> any
   local.get 1   ; $field_1
   call 47   ; std_string$utf8_decode_len
   local.set 3   ; $field_8
-  local.field 3 40 0   ; $field_8._0
+  local.field 3 41 0   ; $field_8._0
   ref.cast 5   ; -> char
   local.set 5   ; c
-  local.field 3 40 1   ; $field_8._1
+  local.field 3 41 1   ; $field_8._1
   ref.cast 7   ; -> usize
   local.set 1   ; $field_1
   local.field 0 18 1   ; arg 0.cursor
@@ -5897,7 +5908,7 @@ fn 47 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 40   ; __Tuple_65
+  struct.new 41   ; __Tuple_66
   return
 end
 

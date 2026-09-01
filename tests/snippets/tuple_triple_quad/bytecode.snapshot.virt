@@ -15,9 +15,10 @@ type 12 struct __Tuple_20 { _0:8,_1:8 }
 type 13 primitive u8
 type 14 array 13
 type 15 primitive void
-type 16 struct __Tuple_35 { _0:1,_1:2,_2:3 }
-type 17 struct __Tuple_36 { _0:1,_1:2,_2:3,_3:7 }
-type 18 array 8
+type 16 primitive isize
+type 17 struct __Tuple_36 { _0:1,_1:2,_2:3 }
+type 18 struct __Tuple_37 { _0:1,_1:2,_2:3,_3:7 }
+type 19 array 8
 string 0 "x"
 string 1 " "
 string 2 "q"
@@ -53,7 +54,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -69,80 +70,14 @@ fn 0 snippet$main () -> i32
   i32.const 1
   string.const 0   ; "x"
   bool.const true
-  struct.new_stack 16   ; __Tuple_35
+  struct.new_stack 17   ; __Tuple_36
   local.set 0   ; triple
-  local.field 0 16 1   ; triple._1
+  local.field 0 17 1   ; triple._1
   ref.cast 2   ; -> string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_8
   i64.const 27
-  local.get 2   ; $call_8
-  i64.add
-  call 4   ; std_core$new_byte_buffer
-  local.set 3   ; __buf_1
-  i64.const 0
-  local.set 2   ; $call_8
-  local.field 0 16 0   ; triple._0
-  ref.cast 1   ; -> i32
-  i32.to_i64
-  local.set 4   ; $cast_15
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  local.get 4   ; $cast_15
-  call 7   ; std_core$write_int
-  local.set 2   ; $call_8
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  string.const 1   ; " "
-  call 6   ; std_core$write_string_at
-  local.set 2   ; $call_8
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  local.get 1   ; __p_0
-  call 6   ; std_core$write_string_at
-  local.set 2   ; $call_8
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  string.const 1   ; " "
-  call 6   ; std_core$write_string_at
-  local.set 2   ; $call_8
-  local.field 0 16 2   ; triple._2
-  ref.cast 3   ; -> bool
-  local.set 5   ; $field_22
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  local.get 5   ; $field_22
-  call 8   ; std_core$write_bool
-  local.set 2   ; $call_8
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_8
-  call 5   ; std_core$finish_buffer
-  call 30   ; std_io$println__string
-  i32.const 9
-  string.const 2   ; "q"
-  bool.const false
-  f64.const 3.14 4614253070214989087
-  struct.new_stack 17   ; __Tuple_36
-  local.set 0   ; triple
-  local.field 0 17 1   ; triple._1
-  ref.cast 2   ; -> string
-  local.set 1   ; __p_0
-  local.field 0 17 3   ; triple._3
-  ref.cast 7   ; -> f64
-  call 9   ; std_core$format_f64
-  local.set 6   ; __p_4
-  local.get 1   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_8
-  local.get 6   ; __p_4
-  call.import 0   ; std_core$byte_len
-  local.set 7   ; $call_38
-  local.get 2   ; $call_8
-  local.get 7   ; $call_38
-  i64.add
-  local.set 2   ; $call_8
-  i64.const 28
   local.get 2   ; $call_8
   i64.add
   call 4   ; std_core$new_byte_buffer
@@ -174,6 +109,72 @@ fn 0 snippet$main () -> i32
   call 6   ; std_core$write_string_at
   local.set 2   ; $call_8
   local.field 0 17 2   ; triple._2
+  ref.cast 3   ; -> bool
+  local.set 5   ; $field_22
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  local.get 5   ; $field_22
+  call 8   ; std_core$write_bool
+  local.set 2   ; $call_8
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  call 5   ; std_core$finish_buffer
+  call 30   ; std_io$println__string
+  i32.const 9
+  string.const 2   ; "q"
+  bool.const false
+  f64.const 3.14 4614253070214989087
+  struct.new_stack 18   ; __Tuple_37
+  local.set 0   ; triple
+  local.field 0 18 1   ; triple._1
+  ref.cast 2   ; -> string
+  local.set 1   ; __p_0
+  local.field 0 18 3   ; triple._3
+  ref.cast 7   ; -> f64
+  call 9   ; std_core$format_f64
+  local.set 6   ; __p_4
+  local.get 1   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_8
+  local.get 6   ; __p_4
+  call.import 0   ; std_core$byte_len
+  local.set 7   ; $call_38
+  local.get 2   ; $call_8
+  local.get 7   ; $call_38
+  i64.add
+  local.set 2   ; $call_8
+  i64.const 28
+  local.get 2   ; $call_8
+  i64.add
+  call 4   ; std_core$new_byte_buffer
+  local.set 3   ; __buf_1
+  i64.const 0
+  local.set 2   ; $call_8
+  local.field 0 18 0   ; triple._0
+  ref.cast 1   ; -> i32
+  i32.to_i64
+  local.set 4   ; $cast_15
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  local.get 4   ; $cast_15
+  call 7   ; std_core$write_int
+  local.set 2   ; $call_8
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  string.const 1   ; " "
+  call 6   ; std_core$write_string_at
+  local.set 2   ; $call_8
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  local.get 1   ; __p_0
+  call 6   ; std_core$write_string_at
+  local.set 2   ; $call_8
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_8
+  string.const 1   ; " "
+  call 6   ; std_core$write_string_at
+  local.set 2   ; $call_8
+  local.field 0 18 2   ; triple._2
   ref.cast 3   ; -> bool
   local.set 5   ; $field_22
   local.get 3   ; __buf_1
@@ -684,7 +685,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.add
     local.set 14   ; $call_64
-    data.const 0 18   ; pool[0] : u64[]
+    data.const 0 19   ; pool[0] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -693,7 +694,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 8   ; vr
-    data.const 1 18   ; pool[1] : u64[]
+    data.const 1 19   ; pool[1] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -796,7 +797,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.sub
     local.set 14   ; $call_64
-    data.const 2 18   ; pool[2] : u64[]
+    data.const 2 19   ; pool[2] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -805,7 +806,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 17   ; $mul_92
-    data.const 3 18   ; pool[3] : u64[]
+    data.const 3 19   ; pool[3] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -2153,6 +2154,7 @@ fn 29 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

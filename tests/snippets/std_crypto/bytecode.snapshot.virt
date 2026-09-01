@@ -12,8 +12,10 @@ type 9 array 2
 type 10 union 2,6
 type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:9 }
-type 13 array 11
-type 14 primitive u64
+type 13 primitive isize
+type 14 array 11
+type 15 primitive f64
+type 16 primitive u64
 string 0 "sha256-empty="
 string 1 ""
 string 2 "sha256-abc="
@@ -32,7 +34,15 @@ data 2 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab9
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 5 ByteAccess
 impl 12 Display
 export main 0
@@ -359,6 +369,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -455,7 +466,7 @@ fn 9 crypto$md5 (string) -> string
         i64.const 64
         i64.mul
         local.set 8   ; block_offset
-        array.new 13 0   ; u32[][]
+        array.new 14 0   ; u32[][]
         local.set 9   ; m
         i64.const 0
         local.set 10   ; i
@@ -674,7 +685,7 @@ fn 9 crypto$md5 (string) -> string
               local.get 34   ; f
               i32.add
               local.set 42   ; $add_123
-              data.const 0 13   ; pool[0] : u32[]
+              data.const 0 14   ; pool[0] : u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 43   ; $idx_125
@@ -697,7 +708,7 @@ fn 9 crypto$md5 (string) -> string
               local.set 32   ; d
               local.get 30   ; b
               local.set 31   ; c
-              data.const 1 13   ; pool[1] : u32[]
+              data.const 1 14   ; pool[1] : u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 47   ; $idx_132
@@ -914,7 +925,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
   i32.const -1694144372
   i32.const 528734635
   i32.const 1541459225
-  array.new 13 8   ; u32[][]
+  array.new 14 8   ; u32[][]
   local.set 2   ; h
   local.get 1   ; data
   call 18   ; crypto$pad_sha256_bytes
@@ -935,7 +946,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
         i64.const 64
         i64.mul
         local.set 5   ; block_offset
-        array.new 13 0   ; u32[][]
+        array.new 14 0   ; u32[][]
         local.set 6   ; w
         i64.const 0
         local.set 7   ; i
@@ -1220,7 +1231,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
               local.get 58   ; ch_efg
               i32.add
               local.set 59   ; $add_158
-              data.const 2 13   ; pool[2] : u32[]
+              data.const 2 14   ; pool[2] : u32[]
               local.get 46   ; t
               load_slot_i32
               local.set 60   ; $idx_160
@@ -1783,7 +1794,7 @@ end
 fn 21 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 13 0   ; u32[][]
+  array.new 14 0   ; u32[][]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len

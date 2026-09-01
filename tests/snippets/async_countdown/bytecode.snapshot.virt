@@ -14,6 +14,7 @@ type 11 struct std_core$Buffer {  }
 type 12 primitive i64
 type 13 primitive u8
 type 14 array 13
+type 15 primitive isize
 string 0 "parked"
 string 1 "done("
 string 2 ")"
@@ -23,7 +24,7 @@ string 5 "3: "
 string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 11 ByteAccess
@@ -498,6 +499,7 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

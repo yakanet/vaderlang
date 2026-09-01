@@ -12,9 +12,10 @@ type 9 struct std_core$Buffer {  }
 type 10 primitive i64
 type 11 primitive u8
 type 12 array 11
-type 13 struct $Cell_string { value:6 }
-type 14 struct $Cell_i32 { value:1 }
-type 15 fn () -> 3
+type 13 primitive isize
+type 14 struct $Cell_string { value:6 }
+type 15 struct $Cell_i32 { value:1 }
+type 16 fn () -> 3
 string 0 "captured-x"
 string 1 "--- now panic case ---"
 string 2 "result="
@@ -24,7 +25,7 @@ string 5 "panic defer in lambda saw "
 string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 9 ByteAccess
 export main 0
 
@@ -36,14 +37,14 @@ fn 0 snippet$main () -> i32
   local __off_3 usize
   local $cast_19 i64
   string.const 0   ; "captured-x"
-  struct.new 13   ; $Cell_string
+  struct.new 14   ; $Cell_string
   local.tee 0   ; x
   struct.new 4   ; __lambda_env_2
   call 2   ; __lambda_1
   string.const 1   ; "--- now panic case ---"
   call 10   ; std_io$println__string
   i32.const 5
-  struct.new 14   ; $Cell_i32
+  struct.new 15   ; $Cell_i32
   local.set 1   ; n
   local.get 0   ; x
   local.get 1   ; n
@@ -83,7 +84,7 @@ end
 
 fn 2 __lambda_1 (ref) -> void
   struct.new 2   ; __defer_env_5
-  make_closure 1 15   ; __defer_4
+  make_closure 1 16   ; __defer_4
   defer.push
   return
 end
@@ -311,6 +312,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

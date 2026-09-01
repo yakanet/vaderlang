@@ -12,10 +12,15 @@ export e :: 2.718281828459045
 // libm, named as what it is. `@c_header` hands `cc` the real prototype from
 // `<math.h>` — synthesising one beside it would be a conflicting declaration —
 // and the same symbol resolves on every platform we target.
+//
+// `@vm_callable` because `@comptime` code calls these: on Linux libm is a
+// separate object that nothing else references, so the linker drops it and a
+// run-time lookup finds nothing. See SPEC §13.
 
 /// Square root.
 /// @param x  non-negative finite input.
 /// @return   `sqrt(x)`. `NaN` when `x < 0`.
+@vm_callable
 @c_header("<math.h>")
 @extern("sqrt")
 export sqrt :: fn(x: f64) -> f64
@@ -25,19 +30,23 @@ export sqrt :: fn(x: f64) -> f64
 /// @param x  base.
 /// @param n  exponent.
 /// @return   `x` raised to the `n`-th power.
+@vm_callable
 @c_header("<math.h>")
 @extern("pow")
 export pow :: fn(x: f64, n: f64) -> f64
 
 /// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
+@vm_callable
 @c_header("<math.h>")
 @extern("floor")
 export floor :: fn(x: f64) -> f64
 /// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
+@vm_callable
 @c_header("<math.h>")
 @extern("ceil")
 export ceil :: fn(x: f64) -> f64
 /// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
+@vm_callable
 @c_header("<math.h>")
 @extern("round")
 export round :: fn(x: f64) -> f64
@@ -45,14 +54,17 @@ export round :: fn(x: f64) -> f64
 // ---- Trigonometry ---------------------------------------------------------
 
 /// Sine of `x` in radians.
+@vm_callable
 @c_header("<math.h>")
 @extern("sin")
 export sin :: fn(x: f64) -> f64
 /// Cosine of `x` in radians.
+@vm_callable
 @c_header("<math.h>")
 @extern("cos")
 export cos :: fn(x: f64) -> f64
 /// Tangent of `x` in radians.
+@vm_callable
 @c_header("<math.h>")
 @extern("tan")
 export tan :: fn(x: f64) -> f64

@@ -24,7 +24,9 @@ type 21 struct std_core$Yield__char { value:3 }
 type 22 struct std_string$StringChars { bytes:19,cursor:6,length:6 }
 type 23 union 0,21
 type 24 struct __Tuple_35 { _0:3,_1:6 }
-type 25 union 21,0
+type 25 primitive isize
+type 26 primitive f64
+type 27 union 21,0
 string 0 "range sum  = "
 string 1 "array sum  = "
 string 2 "hello, world!"
@@ -32,7 +34,15 @@ string 3 "l count    = "
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 3 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 4 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 5 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 6 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 7 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 8 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 9 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 10 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 7 Contains
 impl 7 Iterator
 impl 10 Contains
@@ -752,6 +762,7 @@ fn 16 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

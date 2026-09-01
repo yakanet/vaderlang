@@ -9,11 +9,12 @@ type 6 primitive i64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 array 11
-type 11 ref Shape
+type 10 primitive isize
+type 11 array 12
+type 12 ref Shape
 string 0 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 2 Shape
 impl 4 ByteAccess
 vtable Shape.area 1 0
@@ -60,7 +61,7 @@ fn 2 snippet$main () -> i32
   local s any
   local __off_4 usize
   local $cast_26 i64
-  array.new 10 0   ; ref Shape[][]
+  array.new 11 0   ; ref Shape[][]
   local.tee 0   ; shapes
   i32.const 2
   array.push 1   ; i32[]
@@ -73,14 +74,14 @@ fn 2 snippet$main () -> i32
   local.get 0   ; shapes
   i32.const 0
   i32.const 5
-  array.set 10   ; ref Shape[][]
+  array.set 11   ; ref Shape[][]
   i32.const 4
   struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_5
   local.get 0   ; shapes
   i32.const 1
   local.get 1   ; $struct_5
-  array.set 10   ; ref Shape[][]
+  array.set 11   ; ref Shape[][]
   local.get 0   ; shapes
   array.len
   local.set 2   ; __for_len_1
@@ -94,7 +95,7 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 0   ; shapes
         local.get 3   ; __for_i_2
-        array.get 10   ; ref Shape[][]
+        array.get 11   ; ref Shape[][]
         local.set 4   ; s
         i64.const 20
         call 3   ; std_core$new_byte_buffer
@@ -330,6 +331,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

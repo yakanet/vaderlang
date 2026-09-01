@@ -14,14 +14,15 @@ type 11 primitive usize
 type 12 struct std_core$Buffer {  }
 type 13 primitive u8
 type 14 array 13
-type 15 ref Async
+type 15 primitive isize
+type 16 ref Async
 string 0 "world"
 string 1 ""
 string 2 "hello, "
 string 3 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 Async
 impl 6 Async
 impl 12 ByteAccess
@@ -44,7 +45,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $k_2
   i32.const 4
   struct.new 3   ; __asyncstate_8
-  ref.cast 15   ; -> ref Async
+  ref.cast 16   ; -> ref Async
   virtual.call 1 Async.resume
   local.tee 0   ; $k_2
   type_check 5   ; std_core$Suspended
@@ -280,6 +281,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

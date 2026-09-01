@@ -102,7 +102,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
     // lower, so there is nothing for the intervening passes to carry it on.
     signature :: with_by_address(base, ext.origin)
     import_index :: i32(ctx.imports.len())
-    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern, .c_header = ext.c_header, .c_library = ext.c_library })
+    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern, .c_header = ext.c_header, .c_library = ext.c_library, .vm_callable = ext.vm_callable })
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }

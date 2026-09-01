@@ -16,8 +16,10 @@ type 13 array 8
 type 14 fn (1) -> 2
 type 15 struct std_string$StringChars { bytes:10,cursor:6,length:6 }
 type 16 struct __Tuple_34 { _0:1,_1:6 }
-type 17 struct std_string_builder$StringBuilder { parts:13 }
-type 18 union 5,0
+type 17 primitive isize
+type 18 struct std_string_builder$StringBuilder { parts:13 }
+type 19 primitive f64
+type 20 union 5,0
 string 0 "foo.vader"
 string 1 ".vader"
 string 2 "foo.bar"
@@ -34,10 +36,18 @@ import 0 byte_len std_core$byte_len (string) -> usize
 import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
-import 4 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 4 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 5 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 6 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 7 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 8 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 9 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 10 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 11 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 12 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 7 ByteAccess
 impl 15 Iterator
-impl 17 Display
+impl 18 Display
 export main 1
 
 fn 0 snippet$is_non_id (char) -> bool
@@ -523,6 +533,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -601,7 +612,7 @@ fn 12 std_string$replace_chars_where (string,ref,string) -> string
   local __step_1 any
   local c char
   array.new 13 0   ; string[][]
-  struct.new 17   ; std_string_builder$StringBuilder
+  struct.new 18   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   local.get 0   ; arg 0
   call 16   ; std_string$chars
@@ -650,7 +661,7 @@ fn 13 std_string$split_where (string,ref) -> ref
   array.new 13 0   ; string[][]
   local.set 2   ; out
   array.new 13 0   ; string[][]
-  struct.new 17   ; std_string_builder$StringBuilder
+  struct.new 18   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   bool.const false
   local.set 4   ; has_pending
@@ -682,7 +693,7 @@ fn 13 std_string$split_where (string,ref) -> ref
             local.get 8   ; $call_18
             array.push 8   ; string[]
             array.new 13 0   ; string[][]
-            struct.new 17   ; std_string_builder$StringBuilder
+            struct.new 18   ; std_string_builder$StringBuilder
             local.set 3   ; sb
             bool.const false
             local.set 4   ; has_pending
@@ -1193,7 +1204,7 @@ fn 22 std_char$is_white_char (char) -> bool
 end
 
 fn 23 std_string_builder$append (ref,string) -> void
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 18 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 8   ; string[]
   return
@@ -1202,7 +1213,7 @@ end
 fn 24 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 18 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 6   ; std_core$utf8_encode
@@ -1223,7 +1234,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 18 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1235,7 +1246,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 17 0   ; arg 0.parts
+    local.field 0 18 0   ; arg 0.parts
     i32.const 0
     array.get 13   ; string[][]
     ref.cast 8   ; -> string
@@ -1243,7 +1254,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 18 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1279,7 +1290,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 18 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

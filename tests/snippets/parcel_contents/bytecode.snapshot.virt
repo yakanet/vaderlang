@@ -10,14 +10,15 @@ type 7 primitive i64
 type 8 primitive u8
 type 9 array 8
 type 10 primitive void
-type 11 array 1
+type 11 primitive isize
+type 12 array 1
 string 0 "unwrapped: "
 string 1 " scratch: "
 string 2 " batch: "
 string 3 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 2
 
@@ -32,9 +33,9 @@ end
 fn 1 snippet$first_of_batch () -> ref
   i32.const 77
   struct.new 1   ; snippet$Gift
-  array.new 11 1   ; snippet$Gift[][]
+  array.new 12 1   ; snippet$Gift[][]
   i32.const 0
-  array.get 11   ; snippet$Gift[][]
+  array.get 12   ; snippet$Gift[][]
   return
 end
 
@@ -325,6 +326,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

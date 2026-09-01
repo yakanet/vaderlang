@@ -9,6 +9,7 @@ type 6 primitive string
 type 7 primitive i64
 type 8 primitive u8
 type 9 array 8
+type 10 primitive isize
 string 0 "quot="
 string 1 " abs="
 string 2 " rem="
@@ -17,7 +18,7 @@ import 0 extern abs snippet$c_abs header=<stdlib.h> (i32) -> i32
 import 1 extern fill_div snippet$fill_div (ref,i32,i32) -> void
 import 2 byte_len std_core$byte_len (string) -> usize
 import 3 bytes std_core$bytes (string) -> ref
-import 4 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 4 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -312,6 +313,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -53,7 +53,9 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
 @target(.Linux, .Darwin)
 write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
     fd :: if out == .Stdout { STDOUT } else { STDERR }
-    return sys_write(fd, buf, count)
+    // `ssize_t` down to the `i32` this reports. A single write never approaches
+    // 2 GB, and the -1 failure value survives the narrowing.
+    return i32(sys_write(fd, buf, count))
 }
 
 @target(.Windows)

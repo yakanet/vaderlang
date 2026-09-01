@@ -17,6 +17,7 @@ type 14 primitive usize
 type 15 primitive string
 type 16 primitive u8
 type 17 array 16
+type 18 primitive isize
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -25,7 +26,7 @@ string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 10 Async
@@ -639,6 +640,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

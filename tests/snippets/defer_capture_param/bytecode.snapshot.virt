@@ -13,10 +13,11 @@ type 10 primitive usize
 type 11 struct std_core$Buffer {  }
 type 12 primitive u8
 type 13 array 12
-type 14 struct $Cell_string { value:1 }
-type 15 struct $Cell_i64 { value:2 }
-type 16 fn () -> 3
-type 17 struct "$Cell_Struct#snippet.Counter<>" { value:4 }
+type 14 primitive isize
+type 15 struct $Cell_string { value:1 }
+type 16 struct $Cell_i64 { value:2 }
+type 17 fn () -> 3
+type 18 struct "$Cell_Struct#snippet.Counter<>" { value:4 }
 string 0 "running "
 string 1 "bumping by "
 string 2 "hello "
@@ -28,7 +29,7 @@ string 7 " with code="
 string 8 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 11 ByteAccess
 export main 3
 
@@ -38,17 +39,17 @@ fn 0 snippet$log_at_exit (string,i64) -> void
   local $cell_get_9 string
   local __block_1 void
   local.get 0   ; arg 0
-  struct.new 14   ; $Cell_string
+  struct.new 15   ; $Cell_string
   local.set 2   ; label
   local.get 1   ; arg 1
-  struct.new 15   ; $Cell_i64
+  struct.new 16   ; $Cell_i64
   local.set 3   ; code
   local.get 2   ; label
   local.get 3   ; code
   struct.new 6   ; __defer_env_2
-  make_closure 4 16   ; __defer_1
+  make_closure 4 17   ; __defer_1
   defer.push
-  local.field 2 14 0   ; label.value
+  local.field 2 15 0   ; label.value
   local.set 4   ; $cell_get_9
   string.const 0   ; "running "
   local.get 4   ; $cell_get_9
@@ -67,15 +68,15 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local $cell_get_15 i64
   local __block_3 void
   local.get 0   ; arg 0
-  struct.new 17   ; $Cell_Struct#snippet.Counter<>
+  struct.new 18   ; $Cell_Struct#snippet.Counter<>
   local.set 2   ; counter
   local.get 1   ; arg 1
-  struct.new 15   ; $Cell_i64
+  struct.new 16   ; $Cell_i64
   local.set 3   ; by
   local.get 2   ; counter
   local.get 3   ; by
   struct.new 7   ; __defer_env_15
-  make_closure 5 16   ; __defer_14
+  make_closure 5 17   ; __defer_14
   defer.push
   i64.const 31
   call 7   ; std_core$new_byte_buffer
@@ -87,7 +88,7 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   string.const 1   ; "bumping by "
   call 9   ; std_core$write_string_at
   local.set 5   ; __off_2
-  local.field 3 15 0   ; by.value
+  local.field 3 16 0   ; by.value
   local.set 6   ; $cell_get_15
   local.get 4   ; __buf_1
   local.get 5   ; __off_2
@@ -107,11 +108,11 @@ fn 2 snippet$make_greeter (string) -> void
   local greet ref
   local $cell_get_7 string
   local.get 0   ; arg 0
-  struct.new 14   ; $Cell_string
+  struct.new 15   ; $Cell_string
   struct.new_stack 9   ; __lambda_env_21
   local.set 1   ; greet
   local.field 1 9 0   ; greet.cap_0
-  struct.get 14 0   ; $Cell_string.value
+  struct.get 15 0   ; $Cell_string.value
   local.set 2   ; $cell_get_7
   string.const 2   ; "hello "
   local.get 2   ; $cell_get_7
@@ -169,7 +170,7 @@ fn 4 __defer_1 (ref) -> void
   local __buf_1 ref
   local $cell_get_17 i64
   local.field 0 6 0   ; arg 0.cap_0
-  struct.get 14 0   ; $Cell_string.value
+  struct.get 15 0   ; $Cell_string.value
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_5
@@ -196,7 +197,7 @@ fn 4 __defer_1 (ref) -> void
   call 9   ; std_core$write_string_at
   local.set 2   ; $call_5
   local.field 0 6 1   ; arg 0.cap_1
-  struct.get 15 0   ; $Cell_i64.value
+  struct.get 16 0   ; $Cell_i64.value
   local.set 4   ; $cell_get_17
   local.get 3   ; __buf_1
   local.get 2   ; $call_5
@@ -215,15 +216,15 @@ fn 5 __defer_14 (ref) -> void
   local $field_5 i64
   local $cell_get_7 i64
   local.field 0 7 0   ; arg 0.cap_0
-  struct.get 17 0   ; $Cell_Struct#snippet.Counter<>.value
+  struct.get 18 0   ; $Cell_Struct#snippet.Counter<>.value
   local.set 1   ; $cell_get_2
   local.field 0 7 0   ; arg 0.cap_0
-  struct.get 17 0   ; $Cell_Struct#snippet.Counter<>.value
+  struct.get 18 0   ; $Cell_Struct#snippet.Counter<>.value
   struct.get 4 0   ; snippet$Counter.hits
   ref.cast 2   ; -> i64
   local.set 2   ; $field_5
   local.field 0 7 1   ; arg 0.cap_1
-  struct.get 15 0   ; $Cell_i64.value
+  struct.get 16 0   ; $Cell_i64.value
   local.set 3   ; $cell_get_7
   local.get 2   ; $field_5
   local.get 3   ; $cell_get_7
@@ -483,6 +484,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

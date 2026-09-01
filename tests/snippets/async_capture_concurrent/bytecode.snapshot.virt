@@ -27,14 +27,15 @@ type 24 ref Async
 type 25 struct std_async$Sleep { ms:18,deadline:18,armed:14 }
 type 26 union 0,7
 type 27 array 2
-type 28 struct std_collections$MutableMap__usize__i32 { ekeys:29,evals:12,index:12,mask:13,size:13,tombs:13 }
-type 29 array 13
-type 30 struct $Cell_i32 { value:1 }
-type 31 ref _
+type 28 struct std_collections$MutableMap__usize__i32 { ekeys:30,evals:12,index:12,mask:13,size:13,tombs:13 }
+type 29 primitive isize
+type 30 array 13
+type 31 struct $Cell_i32 { value:1 }
+type 32 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
 import 4 sched_park std_runtime$sched_park () -> i32
@@ -64,7 +65,7 @@ fn 0 snippet$worker (i32,i32) -> any
   local $k_4 ref
   local $k_7 any
   local.get 0   ; arg 0
-  struct.new 30   ; $Cell_i32
+  struct.new 31   ; $Cell_i32
   local.set 2   ; $cell_2
   null.const
   local.set 3   ; $k_3
@@ -118,10 +119,10 @@ fn 2 __lambda_1 (ref) -> void
   local.field 0 3 0   ; arg 0.cap_0
   local.set 1   ; $field_1
   local.field 0 3 0   ; arg 0.cap_0
-  struct.get 30 0   ; $Cell_i32.value
+  struct.get 31 0   ; $Cell_i32.value
   local.set 2   ; $cell_get_3
   local.field 0 3 1   ; arg 0.cap_1
-  struct.get 30 0   ; $Cell_i32.value
+  struct.get 31 0   ; $Cell_i32.value
   local.set 3   ; $cell_get_5
   local.get 2   ; $cell_get_3
   local.get 3   ; $cell_get_5
@@ -129,7 +130,7 @@ fn 2 __lambda_1 (ref) -> void
   local.set 2   ; $cell_get_3
   local.get 1   ; $field_1
   local.get 2   ; $cell_get_3
-  struct.set 30 0   ; $Cell_i32.value
+  struct.set 31 0   ; $Cell_i32.value
   return
 end
 
@@ -287,7 +288,7 @@ fn 3 snippet$__asyncstate_5$Async$resume (ref) -> any
         i32.eq
         if $L13 void
           i32.const 0
-          struct.new 30   ; $Cell_i32
+          struct.new 31   ; $Cell_i32
           local.set 7   ; $cell_62
           local.get 0   ; arg 0
           local.get 7   ; $cell_62
@@ -318,7 +319,7 @@ fn 3 snippet$__asyncstate_5$Async$resume (ref) -> any
   i32.const -1
   struct.set 5 7   ; __asyncstate_5.state
   local.field 0 5 2   ; arg 0.s2
-  struct.get 30 0   ; $Cell_i32.value
+  struct.get 31 0   ; $Cell_i32.value
   box 1   ; -> i32
   return
 end
@@ -542,7 +543,7 @@ fn 5 snippet$__asyncstate_16$Async$resume (ref) -> any
           local.get 16   ; $call_72
           array.new 27 2   ; ref Async[][]
           local.set 17   ; $arr_73
-          array.new 29 0   ; usize[][]
+          array.new 30 0   ; usize[][]
           local.set 18   ; $arr_74
           array.new 12 0   ; i32[][]
           local.set 19   ; $arr_75
@@ -800,6 +801,7 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

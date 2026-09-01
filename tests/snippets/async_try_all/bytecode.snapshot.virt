@@ -36,13 +36,14 @@ type 33 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
 type 34 union 0,9
 type 35 struct std_async$All__Any___i32 { children:36,results:37 }
 type 36 array 13
-type 37 struct std_collections$MutableMap__usize__Any { ekeys:40,evals:26,index:39,mask:18,size:18,tombs:18 }
-type 38 union 23,0
-type 39 array 6
-type 40 array 18
-type 41 array 5
-type 42 union 29,9
-type 43 ref _
+type 37 struct std_collections$MutableMap__usize__Any { ekeys:41,evals:26,index:40,mask:18,size:18,tombs:18 }
+type 38 primitive isize
+type 39 union 23,0
+type 40 array 6
+type 41 array 18
+type 42 array 5
+type 43 union 29,9
+type 44 ref _
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -55,7 +56,7 @@ string 8 "\n"
 string 9 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now () -> i64
 import 4 sched_arm std_runtime$sched_arm (i64) -> void
 import 5 sched_park std_runtime$sched_park () -> i32
@@ -629,13 +630,13 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           local.set 18   ; $call_119
           local.get 17   ; $call_115
           local.get 18   ; $call_119
-          array.new 41 2   ; ref Async[][]
+          array.new 42 2   ; ref Async[][]
           local.set 19   ; $arr_120
-          array.new 40 0   ; usize[][]
+          array.new 41 0   ; usize[][]
           local.set 20   ; $arr_121
           array.new 26 0   ; ref[][]
           local.set 21   ; $arr_122
-          array.new 39 0   ; i32[][]
+          array.new 40 0   ; i32[][]
           local.set 22   ; $arr_123
           local.get 20   ; $arr_121
           local.get 21   ; $arr_122
@@ -760,13 +761,13 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
           local.get 30   ; $call_170
           local.get 31   ; $call_174
           local.get 32   ; $call_178
-          array.new 41 3   ; ref Async[][]
+          array.new 42 3   ; ref Async[][]
           local.set 33   ; $arr_179
-          array.new 40 0   ; usize[][]
+          array.new 41 0   ; usize[][]
           local.set 34   ; $arr_180
           array.new 26 0   ; ref[][]
           local.set 35   ; $arr_181
-          array.new 39 0   ; i32[][]
+          array.new 40 0   ; i32[][]
           local.set 36   ; $arr_182
           local.get 34   ; $arr_180
           local.get 35   ; $arr_181
@@ -1065,6 +1066,7 @@ fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -1375,7 +1377,7 @@ fn 25 std_collections$ensure_index__usize__Any (ref) -> void
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 39 0   ; i32[][]
+    array.new 40 0   ; i32[][]
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1417,7 +1419,7 @@ fn 26 std_collections$rehash__usize__Any (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 39 0   ; i32[][]
+  array.new 40 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0

@@ -11,6 +11,7 @@ type 8 primitive u64
 type 9 primitive u8
 type 10 array 9
 type 11 primitive void
+type 12 primitive isize
 string 0 "hi"
 string 1 "i32    "
 string 2 " "
@@ -18,7 +19,7 @@ string 3 "string "
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 0
 
@@ -452,6 +453,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

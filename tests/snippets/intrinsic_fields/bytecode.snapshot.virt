@@ -11,7 +11,8 @@ type 8 array 7
 type 9 primitive void
 type 10 struct std_core$Field { name:2,type:11 }
 type 11 ref _
-type 12 array 10
+type 12 primitive isize
+type 13 array 10
 string 0 "x"
 string 1 "y"
 string 2 "label"
@@ -22,7 +23,7 @@ string 6 "pair."
 string 7 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -58,7 +59,7 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $struct_2
   local.get 2   ; $struct_5
   local.get 3   ; $struct_8
-  array.new 12 3   ; std_core$Field[][]
+  array.new 13 3   ; std_core$Field[][]
   local.tee 1   ; $struct_2
   array.len
   local.set 4   ; __for_len_1
@@ -72,7 +73,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1   ; $struct_2
         local.get 5   ; __for_i_2
-        array.get 12   ; std_core$Field[][]
+        array.get 13   ; std_core$Field[][]
         local.set 2   ; $struct_5
         local.field 2 10 0   ; $struct_5.name
         ref.cast 2   ; -> string
@@ -132,7 +133,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $struct_5
   local.get 1   ; $struct_2
   local.get 2   ; $struct_5
-  array.new 12 2   ; std_core$Field[][]
+  array.new 13 2   ; std_core$Field[][]
   local.tee 1   ; $struct_2
   array.len
   local.set 4   ; __for_len_1
@@ -146,7 +147,7 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 1   ; $struct_2
         local.get 5   ; __for_i_2
-        array.get 12   ; std_core$Field[][]
+        array.get 13   ; std_core$Field[][]
         local.set 2   ; $struct_5
         local.field 2 10 0   ; $struct_5.name
         ref.cast 2   ; -> string
@@ -386,6 +387,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

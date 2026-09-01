@@ -97,7 +97,7 @@ import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 import 3 collect std_runtime$collect () -> void
 import 4 collections std_runtime$collections () -> i32
-import 5 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 7 ByteAccess
 vtable Display.to_string 10 11
 vtable Display.to_string 11 12
@@ -4229,6 +4229,7 @@ fn 57 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

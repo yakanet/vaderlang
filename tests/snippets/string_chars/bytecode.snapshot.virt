@@ -15,7 +15,9 @@ type 12 struct std_core$Yield__char { value:8 }
 type 13 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
 type 14 union 0,12
 type 15 struct __Tuple_32 { _0:8,_1:3 }
-type 16 union 12,0
+type 16 primitive isize
+type 17 primitive f64
+type 18 union 12,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -31,7 +33,15 @@ string 11 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 4 ByteAccess
 impl 13 Iterator
 export main 0
@@ -625,6 +635,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

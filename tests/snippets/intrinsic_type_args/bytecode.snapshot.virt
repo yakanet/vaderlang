@@ -9,14 +9,15 @@ type 6 primitive u64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 array 11
-type 11 ref _
+type 10 primitive isize
+type 11 array 12
+type 12 ref _
 string 0 "pair-arg size="
 string 1 "wrapper-arg count="
 string 2 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 
@@ -35,7 +36,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $type_const_1
   local.get 0   ; $type_const_0
   local.get 1   ; $type_const_1
-  array.new 10 2   ; ref[][]
+  array.new 11 2   ; ref[][]
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -49,7 +50,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 10   ; ref[][]
+        array.get 11   ; ref[][]
         local.set 0   ; $type_const_0
         i64.const 34
         call 1   ; std_core$new_byte_buffer
@@ -83,7 +84,7 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  array.new 10 0   ; ref[][]
+  array.new 11 0   ; ref[][]
   local.set 2   ; __for_arr_0
   i64.const 38
   call 1   ; std_core$new_byte_buffer
@@ -297,6 +298,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

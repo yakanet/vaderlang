@@ -15,16 +15,17 @@ type 12 array 13
 type 13 struct cli$FlagSpec { name:2,help:2,alias:2,value_name:2,default_text:2,kind:7,values:17 }
 type 14 struct cli$ParsedArgs { flags:16,positionals:11,errors:11 }
 type 15 union 13,0
-type 16 struct std_collections$MutableMap__string__string { ekeys:11,evals:11,index:20,mask:4,size:4,tombs:4 }
+type 16 struct std_collections$MutableMap__string__string { ekeys:11,evals:11,index:21,mask:4,size:4,tombs:4 }
 type 17 array 18
 type 18 struct cli$ValueSpec { name:2,help:2 }
-type 19 union 0,2
-type 20 array 1
-type 21 primitive isize
+type 19 primitive isize
+type 20 union 0,2
+type 21 array 1
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
 type 24 struct __Tuple_70 { _0:10,_1:4 }
 type 25 struct std_string_builder$StringBuilder { parts:11 }
+type 26 primitive f64
 string 0 "verbose"
 string 1 "Say more"
 string 2 "V"
@@ -93,7 +94,15 @@ import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
 import 4 hash std_core$string$Hash$hash (string) -> u64
-import 5 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 6 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 7 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 8 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 9 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 10 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 11 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 12 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 13 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 5 ByteAccess
 impl 16 Index
 impl 16 IndexSet
@@ -1070,6 +1079,7 @@ fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -1122,7 +1132,7 @@ fn 15 cli$parse (ref,ref) -> ref
   local.set 2   ; $arr_2
   array.new 11 0   ; string[][]
   local.set 3   ; $arr_3
-  array.new 20 0   ; i32[][]
+  array.new 21 0   ; i32[][]
   local.set 4   ; $arr_4
   local.get 2   ; $arr_2
   local.get 3   ; $arr_3
@@ -1808,7 +1818,7 @@ fn 24 std_collections$ensure_index__string__string (ref) -> void
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 20 0   ; i32[][]
+    array.new 21 0   ; i32[][]
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1850,7 +1860,7 @@ fn 25 std_collections$rehash__string__string (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 20 0   ; i32[][]
+  array.new 21 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0

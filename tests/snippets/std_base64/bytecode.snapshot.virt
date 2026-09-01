@@ -13,7 +13,8 @@ type 10 primitive u8
 type 11 array 1
 type 12 union 13,9
 type 13 struct base64$Base64Error { msg:1 }
-type 14 struct std_string_builder$StringBuilder { parts:11 }
+type 14 primitive isize
+type 15 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "=ERR:"
 string 1 "="
 string 2 "enc-f="
@@ -65,10 +66,10 @@ import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
 import 4 at std_core$string$Index$at (string,usize) -> char
-import 5 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 6 ByteAccess
 impl 13 Error
-impl 14 Display
+impl 15 Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
@@ -698,6 +699,7 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -1813,7 +1815,7 @@ fn 14 base64$encode (ref) -> string
   array.len
   local.set 2   ; n
   array.new 11 0   ; string[][]
-  struct.new 14   ; std_string_builder$StringBuilder
+  struct.new 15   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   i64.const 0
   local.set 4   ; i
@@ -2156,7 +2158,7 @@ end
 fn 16 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 14 0   ; arg 0.parts
+  local.field 0 15 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -2177,7 +2179,7 @@ fn 17 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 14 0   ; arg 0.parts
+  local.field 0 15 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -2189,7 +2191,7 @@ fn 17 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 14 0   ; arg 0.parts
+    local.field 0 15 0   ; arg 0.parts
     i32.const 0
     array.get 11   ; string[][]
     ref.cast 1   ; -> string
@@ -2197,7 +2199,7 @@ fn 17 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 14 0   ; arg 0.parts
+  local.field 0 15 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -2233,7 +2235,7 @@ fn 17 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 14 0   ; arg 0.parts
+  local.field 0 15 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

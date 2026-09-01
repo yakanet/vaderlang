@@ -149,8 +149,27 @@ void* vader_ffi_symbol(void* lib, const char* symbol) {
     }
 }
 
+/* The `@vm_callable` table the emitted C handed over, or NULL when it emitted
+ * none — see `vader_ffi_register_statics` in vader.h. */
+static const vader_ffi_static_sym_t* vader_ffi_statics = NULL;
+
+void vader_ffi_register_statics(const vader_ffi_static_sym_t* table) {
+    vader_ffi_statics = table;
+}
+
 /* The uncached lookup — the memo above is the only caller. */
 static void* vader_ffi_resolve(void* lib, const char* symbol) {
+    /* Baked addresses first: a `@vm_callable` symbol is reachable whether or not
+     * its library was loaded, which `dlsym` cannot promise. `lib` is not
+     * consulted — see the keying note in vader.h. */
+    if (vader_ffi_statics != NULL) {
+        size_t k;
+        for (k = 0; vader_ffi_statics[k].name != NULL; k++) {
+            if (strcmp(vader_ffi_statics[k].name, symbol) == 0) {
+                return vader_ffi_statics[k].addr;
+            }
+        }
+    }
 #ifdef _WIN32
     {
         void* p = (void*) GetProcAddress((HMODULE) lib, symbol);

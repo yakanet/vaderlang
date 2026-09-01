@@ -7,11 +7,21 @@ type 4 primitive string
 type 5 primitive u8
 type 6 array 5
 type 7 primitive void
+type 8 primitive f64
+type 9 primitive isize
 string 0 "  hi  "
 string 1 "\n"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 3 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 4 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 5 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 6 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 7 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 8 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 9 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 10 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -211,7 +221,8 @@ fn 4 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 2   ; system_posix$sys_write
+  call.import 10   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

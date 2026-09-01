@@ -12,7 +12,8 @@ type 9 primitive void
 type 10 array 4
 type 11 struct std_collections$MutableMap__string__i32 { ekeys:10,evals:12,index:12,mask:2,size:2,tombs:2 }
 type 12 array 1
-type 13 struct __Tuple_53 { _0:4,_1:1 }
+type 13 primitive isize
+type 14 struct __Tuple_54 { _0:4,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -22,7 +23,7 @@ string 5 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
 import 2 hash std_core$string$Hash$hash (string) -> u64
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 ByteAccess
 impl 11 Index
 impl 11 IndexSet
@@ -99,12 +100,12 @@ fn 0 snippet$main () -> i32
         local.set 7   ; $idx_27
         local.get 6   ; $idx_26
         local.get 7   ; $idx_27
-        struct.new_stack 13   ; __Tuple_53
+        struct.new_stack 14   ; __Tuple_54
         local.set 0   ; $arr_0
-        local.field 0 13 0   ; $arr_0._0
+        local.field 0 14 0   ; $arr_0._0
         ref.cast 4   ; -> string
         local.set 9   ; __p_7
-        local.field 0 13 1   ; $arr_0._1
+        local.field 0 14 1   ; $arr_0._1
         ref.cast 1   ; -> i32
         local.set 8   ; v
         local.get 5   ; __iter_pos_4
@@ -395,6 +396,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

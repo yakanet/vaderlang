@@ -17,8 +17,10 @@ type 14 fn (6) -> 3
 type 15 struct std_string$StringChars { bytes:9,cursor:7,length:7 }
 type 16 union 0,12
 type 17 struct __Tuple_33 { _0:6,_1:7 }
-type 18 struct std_string_builder$StringBuilder { parts:13 }
-type 19 union 12,0
+type 18 primitive isize
+type 19 struct std_string_builder$StringBuilder { parts:13 }
+type 20 primitive f64
+type 21 union 12,0
 string 0 "A"
 string 1 "true"
 string 2 "false"
@@ -40,10 +42,18 @@ string 17 ""
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 8 ByteAccess
 impl 15 Iterator
-impl 18 Display
+impl 19 Display
 export main 7
 
 fn 0 snippet$inline_trim (string) -> string
@@ -547,6 +557,7 @@ fn 15 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
@@ -645,7 +656,7 @@ fn 18 std_string$replace_chars_where (string,ref,string) -> string
   local __step_1 any
   local c char
   array.new 13 0   ; string[][]
-  struct.new 18   ; std_string_builder$StringBuilder
+  struct.new 19   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   local.get 0   ; arg 0
   call 20   ; std_string$chars
@@ -1051,7 +1062,7 @@ fn 25 std_string$is_utf8_continuation (u8) -> bool
 end
 
 fn 26 std_string_builder$append (ref,string) -> void
-  local.field 0 18 0   ; arg 0.parts
+  local.field 0 19 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 1   ; string[]
   return
@@ -1060,7 +1071,7 @@ end
 fn 27 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 18 0   ; arg 0.parts
+  local.field 0 19 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 12   ; std_core$utf8_encode
@@ -1081,7 +1092,7 @@ fn 28 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 18 0   ; arg 0.parts
+  local.field 0 19 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1093,7 +1104,7 @@ fn 28 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 18 0   ; arg 0.parts
+    local.field 0 19 0   ; arg 0.parts
     i32.const 0
     array.get 13   ; string[][]
     ref.cast 1   ; -> string
@@ -1101,7 +1112,7 @@ fn 28 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 18 0   ; arg 0.parts
+  local.field 0 19 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1137,7 +1148,7 @@ fn 28 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 18 0   ; arg 0.parts
+  local.field 0 19 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

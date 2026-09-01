@@ -15,13 +15,14 @@ type 12 primitive u8
 type 13 array 12
 type 14 struct std_core$Buffer {  }
 type 15 primitive void
+type 16 primitive isize
 string 0 "none"
 string 1 "true"
 string 2 "false"
 string 3 "0"
 string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 1 Iterator
 impl 8 Contains
 impl 8 Iterator
@@ -652,6 +653,7 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

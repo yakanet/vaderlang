@@ -1,0 +1,157 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "hypot",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "f64"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "y",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "f64"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "f64"
+      },
+      "body": null,
+      "decorators": [
+        {
+          "name": "vm_callable",
+          "args": []
+        },
+        {
+          "name": "c_header",
+          "args": [
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "<math.h>"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "extern",
+          "args": [
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "hypot"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "hypot"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "FloatLitExpr",
+                                "value": 3
+                              },
+                              "spread": false
+                            },
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "FloatLitExpr",
+                                "value": 4
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

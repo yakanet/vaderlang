@@ -25,6 +25,7 @@ type 22 array 5
 type 23 array 7
 type 24 array 9
 type 25 array 13
+type 26 primitive isize
 string 0 "u8 size="
 string 1 " k7="
 string 2 " k19="
@@ -45,7 +46,7 @@ string 16 " k39="
 string 17 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 15 ByteAccess
 impl 2 Index
 impl 2 IndexSet
@@ -1110,6 +1111,7 @@ fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

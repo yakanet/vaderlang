@@ -28,10 +28,14 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     seen_extern: string[]! = []
     headers: string[]! = []
     shims: string[]! = []
+    baked: string[]! = []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
             seen_extern.push(imp.extern_name)
+            if imp.vm_callable {
+                baked.push(imp.extern_name)
+            }
             if imp.c_header != "" {
                 // The header carries the real prototype. Synthesising one beside
                 // it is a CONFLICTING DECLARATION the C compiler refuses — which
@@ -69,6 +73,28 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
     for s in shims { out.append("${s}\n") }
     out.append("\n")
+    emit_vm_callable_table(baked, out)
+}
+
+/// Emit the `@vm_callable` address table the runtime resolves against.
+///
+/// Always emitted, even empty: `main` installs it unconditionally, and an empty
+/// table simply leaves every lookup to `dlsym`. The `{0, 0}` row ends the scan.
+///
+/// `static` because under `--split` this lands in the shared imports HEADER,
+/// which every unit includes — a non-static definition would be a duplicate
+/// symbol at link time. Each unit gets its own identical copy; the one `main`
+/// installs is the only one read.
+///
+/// @param names  the `@extern` C symbols marked `@vm_callable`, deduplicated.
+/// @param out    the emitted-C accumulator.
+emit_vm_callable_table :: fn(names: string[], out: StringBuilder!) -> void {
+    out.append("// `@vm_callable` — addresses the VM reaches without `dlsym`.\n")
+    out.append("static const vader_ffi_static_sym_t vader_ffi_static_syms[] = {\n")
+    for n in names {
+        out.append("    { \"${n}\", (void*) ${n} },\n")
+    }
+    out.append("    { 0, 0 },\n};\n\n")
 }
 
 /// `_Static_assert` lines pinning each mirrored struct's alignment, size and

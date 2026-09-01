@@ -1079,6 +1079,7 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder!, entry_mangled: string) -> voi
     // Atom table init must precede any string interning. `atexit`
     // handlers fire LIFO, so atom shutdown runs after gc shutdown.
     out.append("    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);\n")
+    out.append("    vader_ffi_register_statics(vader_ffi_static_syms);\n")
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.

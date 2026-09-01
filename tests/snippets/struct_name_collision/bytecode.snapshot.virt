@@ -10,13 +10,14 @@ type 7 array 6
 type 8 primitive void
 type 9 struct snippet_mod_a$Box { id:1 }
 type 10 struct snippet_mod_b$Box { label:2 }
+type 11 primitive isize
 string 0 "a.id = "
 string 1 "b.label = "
 string 2 "\n"
 string 3 "hello"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 4 ByteAccess
 export main 0
 
@@ -312,6 +313,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

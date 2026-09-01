@@ -484,6 +484,24 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 /* One call, described by data — see vader_ffi.h. */
 vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
 
+/* Addresses the VM must reach without `dlsym`, baked in by the emitter from the
+ * `@vm_callable` declarations in the program's closure. The array is DEFINED by
+ * the emitted C (`emit_import_shims`) and terminated by a `{NULL, NULL}` entry,
+ * so it exists even when nothing is marked.
+ *
+ * Why it has to exist: `dlsym` only sees libraries the process actually loaded,
+ * and a linker that drops an unreferenced `-l` (`--as-needed`, the default on
+ * Linux) leaves the symbol unreachable. Taking the address here is a real
+ * reference, so the library is linked and the lookup never runs.
+ *
+ * Keyed by symbol name alone, not by library: two libraries exporting the same
+ * name would collide, which no target does today.
+ *
+ * Handed over by a call rather than read through an `extern`, so a binary that
+ * never emitted one still links — which is what the bootstrap seed is. */
+typedef struct { const char* name; void* addr; } vader_ffi_static_sym_t;
+void vader_ffi_register_statics(const vader_ffi_static_sym_t* table);
+
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
  * call: no Vader allocation runs inside a foreign call, so nothing can move the

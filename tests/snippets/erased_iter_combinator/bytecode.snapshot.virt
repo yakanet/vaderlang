@@ -24,6 +24,7 @@ type 21 struct __gen_state_18 { s0:3,s1:20,s2:3,s3:22,s4:1,state:1 }
 type 22 union 7,0
 type 23 fn (1) -> 1
 type 24 struct __gen_state_13 { s0:3,s1:23,s2:3,s3:22,s4:1,state:1 }
+type 25 primitive isize
 string 0 "sum="
 string 1 " drain="
 string 2 " d0="
@@ -31,7 +32,7 @@ string 3 " d1="
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 5 Contains
 impl 5 Iterator
 impl 9 Contains
@@ -769,6 +770,7 @@ fn 17 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

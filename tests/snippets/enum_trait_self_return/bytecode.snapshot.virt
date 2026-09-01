@@ -6,13 +6,14 @@ type 3 primitive usize
 type 4 primitive u8
 type 5 array 4
 type 6 primitive void
+type 7 primitive isize
 string 0 "N"
 string 1 "E"
 string 2 "S"
 string 3 "W"
 string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 1
 
 fn 0 snippet$Direction$Display$to_string (i32) -> string
@@ -1043,6 +1044,7 @@ fn 3 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

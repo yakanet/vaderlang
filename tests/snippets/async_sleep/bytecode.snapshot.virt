@@ -17,7 +17,8 @@ type 14 primitive void
 type 15 ref Async
 type 16 struct std_async$Sleep { ms:11,deadline:11,armed:7 }
 type 17 union 0,5
-type 18 ref _
+type 18 primitive isize
+type 19 ref _
 string 0 "exit code = "
 string 1 "woke at 5"
 string 2 "woke at 2"
@@ -26,7 +27,7 @@ string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now () -> i64
 import 4 sched_arm std_runtime$sched_arm (i64) -> void
 import 5 sched_park std_runtime$sched_park () -> i32
@@ -457,6 +458,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

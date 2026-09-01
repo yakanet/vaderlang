@@ -7,20 +7,21 @@ type 4 primitive usize
 type 5 primitive string
 type 6 primitive u8
 type 7 array 6
-type 8 primitive i64
-type 9 ref _
+type 8 primitive isize
+type 9 primitive i64
+type 10 ref _
 string 0 "ok"
 string 1 "\n"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
   type.const 1   ; i32
   call 1   ; snippet$accept_type
-  type.const 8   ; i64
+  type.const 9   ; i64
   call 1   ; snippet$accept_type
-  type.const 9   ; ref
+  type.const 10   ; ref
   call 1   ; snippet$accept_type
   type.const 5   ; string
   call 1   ; snippet$accept_type
@@ -107,6 +108,7 @@ fn 3 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

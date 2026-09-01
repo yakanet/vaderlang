@@ -11,6 +11,8 @@ type 8 array 9
 type 9 primitive u8
 type 10 primitive void
 type 11 struct __Tuple_29 { _0:7,_1:3 }
+type 12 primitive isize
+type 13 primitive f64
 string 0 "ascii  cp="
 string 1 "vader"
 string 2 " bytes="
@@ -36,7 +38,15 @@ import 0 byte_len std_core$byte_len (string) -> usize
 import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 3 bytes std_core$bytes (string) -> ref
-import 4 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 4 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 5 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 6 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 7 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 8 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 9 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 10 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 11 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 12 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 5 ByteAccess
 export main 0
 
@@ -804,6 +814,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -9,7 +9,8 @@ type 6 primitive u64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 array 1
+type 10 primitive isize
+type 11 array 1
 string 0 "first="
 string 1 " rest.len="
 string 2 "  "
@@ -24,7 +25,7 @@ string 10 " empty.len="
 string 11 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 
@@ -45,13 +46,13 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 10 5   ; i32[][]
+  array.new 11 5   ; i32[][]
   local.tee 0   ; arr
   local.tee 1   ; __tup_0
   i64.const 0
   load_slot_i32
   local.set 2   ; first
-  array.new 10 0   ; i32[][]
+  array.new 11 0   ; i32[][]
   local.set 3   ; rest
   i64.const 1
   local.set 4   ; __i_1
@@ -172,7 +173,7 @@ fn 0 snippet$main () -> i32
   i64.const 1
   load_slot_i32
   local.set 6   ; $idx_17
-  array.new 10 0   ; i32[][]
+  array.new 11 0   ; i32[][]
   local.set 3   ; rest
   i64.const 2
   local.set 4   ; __i_1
@@ -252,7 +253,7 @@ fn 0 snippet$main () -> i32
   call 8   ; std_io$println__string
   local.get 0   ; arr
   local.set 1   ; __tup_0
-  array.new 10 0   ; i32[][]
+  array.new 11 0   ; i32[][]
   local.set 3   ; rest
   i64.const 3
   local.set 4   ; __i_1
@@ -355,7 +356,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   load_slot_i32
   local.set 2   ; first
-  array.new 10 0   ; i32[][]
+  array.new 11 0   ; i32[][]
   local.set 1   ; __tup_0
   i64.const 1
   local.set 4   ; __i_1
@@ -421,12 +422,12 @@ fn 0 snippet$main () -> i32
   call 2   ; std_core$finish_buffer
   call 8   ; std_io$println__string
   i32.const 99
-  array.new 10 1   ; i32[][]
+  array.new 11 1   ; i32[][]
   local.tee 0   ; arr
   i64.const 0
   load_slot_i32
   local.set 2   ; first
-  array.new 10 0   ; i32[][]
+  array.new 11 0   ; i32[][]
   local.set 1   ; __tup_0
   i64.const 1
   local.set 4   ; __i_1
@@ -797,6 +798,7 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

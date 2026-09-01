@@ -14,7 +14,8 @@ type 11 struct __Tuple_19 { _0:6,_1:6 }
 type 12 primitive u8
 type 13 array 12
 type 14 primitive void
-type 15 array 6
+type 15 primitive isize
+type 16 array 6
 string 0 "nan"
 string 1 "-inf"
 string 2 "inf"
@@ -45,12 +46,15 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern sqrt std_math$sqrt header=<math.h> (f64) -> f64
-import 3 extern pow std_math$pow header=<math.h> (f64,f64) -> f64
-import 4 extern floor std_math$floor header=<math.h> (f64) -> f64
-import 5 extern ceil std_math$ceil header=<math.h> (f64) -> f64
-import 6 extern round std_math$round header=<math.h> (f64) -> f64
-import 7 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 3 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 4 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 5 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 6 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 7 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 8 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 9 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 10 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 10 ByteAccess
 export main 0
 
@@ -404,7 +408,7 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.add
     local.set 14   ; $call_64
-    data.const 0 15   ; pool[0] : u64[]
+    data.const 0 16   ; pool[0] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -413,7 +417,7 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 8   ; vr
-    data.const 1 15   ; pool[1] : u64[]
+    data.const 1 16   ; pool[1] : u64[]
     local.set 15   ; $data_const_73
     local.get 13   ; $call_60
     i32.to_i64
@@ -516,7 +520,7 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 14   ; $call_64
     i32.sub
     local.set 14   ; $call_64
-    data.const 2 15   ; pool[2] : u64[]
+    data.const 2 16   ; pool[2] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -525,7 +529,7 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 16   ; $cast_74
     load_slot_i64
     local.set 17   ; $mul_92
-    data.const 3 15   ; pool[3] : u64[]
+    data.const 3 16   ; pool[3] : u64[]
     local.set 15   ; $data_const_73
     local.get 2   ; e2
     i32.to_i64
@@ -1885,7 +1889,8 @@ fn 26 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 7   ; system_posix$sys_write
+  call.import 10   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

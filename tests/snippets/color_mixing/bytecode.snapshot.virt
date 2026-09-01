@@ -9,14 +9,15 @@ type 6 primitive i64
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 struct __Tuple_31 { _0:2,_1:2 }
-type 11 struct __Tuple_32 { _0:1,_1:2 }
+type 10 primitive isize
+type 11 struct __Tuple_32 { _0:2,_1:2 }
+type 12 struct __Tuple_33 { _0:1,_1:2 }
 string 0 " "
 string 1 " x"
 string 2 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 1 Add
 impl 4 ByteAccess
 export main 0
@@ -130,14 +131,14 @@ fn 0 snippet$main () -> i32
   call 7   ; std_io$println__string
   i32.const 3
   i32.const 4
-  struct.new_stack 10   ; __Tuple_31
+  struct.new_stack 11   ; __Tuple_32
   local.set 1   ; blue
   i64.const 41
   call 1   ; std_core$new_byte_buffer
   local.set 6   ; __buf_0
   i64.const 0
   local.set 7   ; __off_1
-  local.field 1 10 0   ; blue._0
+  local.field 1 11 0   ; blue._0
   ref.cast 2   ; -> i32
   i32.to_i64
   local.set 8   ; $cast_33
@@ -151,7 +152,7 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 3   ; std_core$write_string_at
   local.set 7   ; __off_1
-  local.field 1 10 1   ; blue._1
+  local.field 1 11 1   ; blue._1
   ref.cast 2   ; -> i32
   i32.to_i64
   local.set 8   ; $cast_33
@@ -164,10 +165,10 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __off_1
   call 2   ; std_core$finish_buffer
   call 7   ; std_io$println__string
-  local.field 1 10 0   ; blue._0
+  local.field 1 11 0   ; blue._0
   ref.cast 2   ; -> i32
   local.set 2   ; $field_10
-  local.field 1 10 1   ; blue._1
+  local.field 1 11 1   ; blue._1
   ref.cast 2   ; -> i32
   local.set 3   ; $field_11
   i64.const 20
@@ -191,14 +192,14 @@ fn 0 snippet$main () -> i32
   call 7   ; std_io$println__string
   local.get 0   ; red
   i32.const 5
-  struct.new_stack 11   ; __Tuple_32
+  struct.new_stack 12   ; __Tuple_33
   local.set 0   ; red
   i64.const 42
   call 1   ; std_core$new_byte_buffer
   local.set 1   ; blue
   i64.const 0
   local.set 7   ; __off_1
-  local.field 0 11 0   ; red._0
+  local.field 0 12 0   ; red._0
   struct.get 1 0   ; snippet$Rgb.r
   ref.cast 2   ; -> i32
   i32.to_i64
@@ -213,7 +214,7 @@ fn 0 snippet$main () -> i32
   string.const 1   ; " x"
   call 3   ; std_core$write_string_at
   local.set 7   ; __off_1
-  local.field 0 11 1   ; red._1
+  local.field 0 12 1   ; red._1
   ref.cast 2   ; -> i32
   i32.to_i64
   local.set 8   ; $cast_33
@@ -448,6 +449,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

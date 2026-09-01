@@ -111,6 +111,9 @@ export BcImport :: struct {
     /// Library to open before resolving the symbol, or `""` for the default
     /// scope. See `FnMetadata.c_library` — the VM needs it, the linker does not.
     c_library: string = ""
+    /// `@vm_callable` — bake this symbol's address into the binary's static
+    /// table so the VM reaches it without `dlsym`. See `FnMetadata.vm_callable`.
+    vm_callable: bool = false
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

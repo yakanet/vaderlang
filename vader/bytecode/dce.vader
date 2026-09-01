@@ -36,6 +36,13 @@ export prune_unused_imports :: fn(ctx: EmitterCtx!) -> void {
             if op is CallImport as ci { used[ci.index] = true }
         }
     }
+    // A `@vm_callable` symbol has no `call.import` in THIS program — the VM
+    // reaches it at comptime, from a table baked at build time. Dropping it here
+    // would leave that table empty and send the VM back to `dlsym`, which is
+    // exactly what the decorator exists to avoid.
+    for i in 0..<ctx.imports.len() {
+        if ctx.imports[i].vm_callable { used[i32(i)] = true }
+    }
     if used.len() == ctx.imports.len() { return }
 
     remap: i32[]! = []
@@ -390,6 +397,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             // prototype and its conflict.
             .c_header     = imp.c_header,
             .c_library    = imp.c_library,
+            .vm_callable  = imp.vm_callable,
         })
     }
     ctx.imports = new_imports

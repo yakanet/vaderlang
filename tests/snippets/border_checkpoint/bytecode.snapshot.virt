@@ -9,6 +9,7 @@ type 6 primitive usize
 type 7 struct std_core$Buffer {  }
 type 8 array 5
 type 9 primitive void
+type 10 primitive isize
 string 0 "heavy"
 string 1 "light"
 string 2 "waved"
@@ -22,7 +23,7 @@ string 9 "sealed"
 string 10 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 7 ByteAccess
 export main 3
 
@@ -377,6 +378,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

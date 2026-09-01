@@ -21,12 +21,13 @@ type 18 array 17
 type 19 ref Async
 type 20 struct std_async$Sleep { ms:16,deadline:16,armed:12 }
 type 21 union 0,7
-type 22 struct $Cell_i32 { value:1 }
-type 23 ref _
+type 22 primitive isize
+type 23 struct $Cell_i32 { value:1 }
+type 24 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
 import 4 sched_park std_runtime$sched_park () -> i32
@@ -46,7 +47,7 @@ fn 0 snippet$compute (i32) -> any
   local $k_3 ref
   local $k_6 any
   local.get 0   ; arg 0
-  struct.new 22   ; $Cell_i32
+  struct.new 23   ; $Cell_i32
   local.set 1   ; $cell_1
   null.const
   local.set 2   ; $k_2
@@ -86,10 +87,10 @@ fn 2 __lambda_1 (ref,i32) -> void
   local.field 0 3 0   ; arg 0.cap_0
   local.set 2   ; $field_2
   local.field 0 3 0   ; arg 0.cap_0
-  struct.get 22 0   ; $Cell_i32.value
+  struct.get 23 0   ; $Cell_i32.value
   local.set 3   ; $cell_get_4
   local.field 0 3 1   ; arg 0.cap_1
-  struct.get 22 0   ; $Cell_i32.value
+  struct.get 23 0   ; $Cell_i32.value
   local.set 4   ; $cell_get_6
   local.get 3   ; $cell_get_4
   local.get 4   ; $cell_get_6
@@ -99,7 +100,7 @@ fn 2 __lambda_1 (ref,i32) -> void
   local.set 3   ; $cell_get_4
   local.get 2   ; $field_2
   local.get 3   ; $cell_get_4
-  struct.set 22 0   ; $Cell_i32.value
+  struct.set 23 0   ; $Cell_i32.value
   return
 end
 
@@ -252,7 +253,7 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> any
         i32.eq
         if $L12 void
           i32.const 0
-          struct.new 22   ; $Cell_i32
+          struct.new 23   ; $Cell_i32
           local.set 9   ; $cell_63
           local.get 0   ; arg 0
           local.get 9   ; $cell_63
@@ -288,7 +289,7 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> any
   i32.const -1
   struct.set 5 6   ; __asyncstate_6.state
   local.field 0 5 1   ; arg 0.s1
-  struct.get 22 0   ; $Cell_i32.value
+  struct.get 23 0   ; $Cell_i32.value
   box 1   ; -> i32
   return
 end
@@ -611,6 +612,7 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -8,7 +8,8 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 array 1
+type 9 primitive isize
+type 10 array 1
 string 0 "after view[1]=99"
 string 1 "arr[0]="
 string 2 "arr[1]="
@@ -26,7 +27,7 @@ string 13 "indep[3]="
 string 14 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 
@@ -44,7 +45,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 9 5   ; i32[][]
+  array.new 10 5   ; i32[][]
   local.set 0   ; arr
   i32.const 1
   i32.to_i64
@@ -55,7 +56,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   local.get 1   ; $cast_8
   local.get 2   ; $cast_10
-  array.slice 9   ; i32[][]
+  array.slice 10   ; i32[][]
   local.tee 3   ; view
   i32.const 1
   i32.const 99
@@ -637,6 +638,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

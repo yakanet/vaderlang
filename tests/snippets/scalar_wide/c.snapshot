@@ -116,6 +116,11 @@ const size_t vader_type_size[17] = {
 };
 
 
+// `@vm_callable` — addresses the VM reaches without `dlsym`.
+static const vader_ffi_static_sym_t vader_ffi_static_syms[] = {
+    { 0, 0 },
+};
+
 static int64_t snippet_l_add(int64_t l0, int64_t l1) {
 #line 9 "tests/snippets/scalar_wide/_main.vader"
     return (l0 + l1);

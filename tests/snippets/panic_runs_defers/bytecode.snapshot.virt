@@ -11,9 +11,10 @@ type 8 primitive string
 type 9 primitive i64
 type 10 primitive u8
 type 11 array 10
-type 12 struct $Cell_i32 { value:1 }
-type 13 fn () -> 2
-type 14 ref _
+type 12 primitive isize
+type 13 struct $Cell_i32 { value:1 }
+type 14 fn () -> 2
+type 15 ref _
 string 0 "charging "
 string 1 "card declined"
 string 2 "reserve inventory"
@@ -23,7 +24,7 @@ string 5 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
 import 2 panic std_abort$panic (string) -> void
-import 3 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 7 ByteAccess
 export main 2
 
@@ -34,10 +35,10 @@ fn 0 snippet$charge (i32) -> void
   local $cast_13 i64
   local __block_3 void
   local.get 0   ; arg 0
-  struct.new 12   ; $Cell_i32
+  struct.new 13   ; $Cell_i32
   local.tee 1   ; amount
   struct.new 3   ; __defer_env_2
-  make_closure 3 13   ; __defer_1
+  make_closure 3 14   ; __defer_1
   defer.push
   i64.const 29
   call 5   ; std_core$new_byte_buffer
@@ -49,7 +50,7 @@ fn 0 snippet$charge (i32) -> void
   string.const 0   ; "charging "
   call 7   ; std_core$write_string_at
   local.set 3   ; __off_2
-  local.field 1 12 0   ; amount.value
+  local.field 1 13 0   ; amount.value
   i32.to_i64
   local.set 4   ; $cast_13
   local.get 2   ; __buf_1
@@ -72,7 +73,7 @@ end
 fn 1 snippet$reserve () -> void
   local __block_1 void
   struct.new 4   ; __defer_env_10
-  make_closure 4 13   ; __defer_9
+  make_closure 4 14   ; __defer_9
   defer.push
   string.const 2   ; "reserve inventory"
   call 11   ; std_io$println__string
@@ -103,7 +104,7 @@ fn 3 __defer_1 (ref) -> void
   call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 3 0   ; arg 0.cap_0
-  struct.get 12 0   ; $Cell_i32.value
+  struct.get 13 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -343,6 +344,7 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

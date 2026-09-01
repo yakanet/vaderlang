@@ -11,8 +11,13 @@ export STDOUT :: 1
 export STDERR :: 2
 
 /// `write(2)`. Byte count written, or -1 with `errno` set.
+///
+/// `isize`, not `i32`: POSIX returns `ssize_t`, which is 64-bit on every target
+/// here. The synthesised prototype used to say `int32_t` and nobody could tell —
+/// `@c_header` hands `cc` the real one, so a mismatch stops the build.
+@c_header("<unistd.h>")
 @extern("write")
-export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> i32
+export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
 
 /// `CLOCK_REALTIME` — the wall clock.
 export CLOCK_REALTIME :: 0

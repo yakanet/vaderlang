@@ -315,7 +315,10 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // the signature — `parse_signature_bc` reads the return type to the end
         // of the line, so a trailing field lands inside it.
         header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
-        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${header}")
+        // Same round-trip reason: a `.virt` re-read that loses the marker sends
+        // the VM back to `dlsym` for a symbol the binary already holds.
+        vm :: if imp.vm_callable { "vm_callable " } else { "" }
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${vm}${header}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }

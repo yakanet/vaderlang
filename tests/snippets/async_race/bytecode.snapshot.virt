@@ -26,8 +26,9 @@ type 23 ref Async
 type 24 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
 type 25 union 0,9
 type 26 array 3
-type 27 struct $Cell_string { value:1 }
-type 28 ref _
+type 27 primitive isize
+type 28 struct $Cell_string { value:1 }
+type 29 ref _
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
@@ -37,7 +38,7 @@ string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now () -> i64
 import 4 sched_arm std_runtime$sched_arm (i64) -> void
 import 5 sched_park std_runtime$sched_park () -> i32
@@ -62,7 +63,7 @@ fn 0 snippet$leg (string,i64) -> any
   local $arr_4 ref
   local $k_5 any
   local.get 0   ; arg 0
-  struct.new 27   ; $Cell_string
+  struct.new 28   ; $Cell_string
   local.set 2   ; $cell_2
   array.new 13 0   ; fn[][]
   local.set 3   ; $arr_4
@@ -95,7 +96,7 @@ end
 fn 2 __defer_1 (ref) -> void
   local $cell_get_3 string
   local.field 0 5 0   ; arg 0.cap_0
-  struct.get 27 0   ; $Cell_string.value
+  struct.get 28 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 1   ; "cleanup "
   local.get 1   ; $cell_get_3
@@ -261,7 +262,7 @@ fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
   i32.const -1
   struct.set 7 5   ; __asyncstate_11.state
   local.field 0 7 0   ; arg 0.s0
-  struct.get 27 0   ; $Cell_string.value
+  struct.get 28 0   ; $Cell_string.value
   box 1   ; -> string
   return
 end
@@ -567,6 +568,7 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -14,6 +14,7 @@ type 11 struct random$Rng { s0:7,s1:7 }
 type 12 primitive f64
 type 13 primitive u32
 type 14 array 1
+type 15 primitive isize
 string 0 "deterministic="
 string 1 "zero_seed_nonzero="
 string 2 "range_i32_in_bounds="
@@ -26,7 +27,15 @@ string 8 "false"
 string 9 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 3 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
+import 4 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
+import 5 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
+import 6 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
+import 7 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
+import 8 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
+import 9 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
+import 10 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
 impl 4 ByteAccess
 export main 0
 
@@ -752,6 +761,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

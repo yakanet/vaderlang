@@ -8,14 +8,15 @@ type 5 primitive i64
 type 6 primitive u8
 type 7 array 6
 type 8 primitive void
-type 9 array 1
+type 9 primitive isize
+type 10 array 1
 string 0 "t "
 string 1 "s "
 string 2 "st "
 string 3 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 
@@ -40,7 +41,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 9 5   ; i32[][]
+  array.new 10 5   ; i32[][]
   local.tee 1   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
@@ -106,7 +107,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 9 5   ; i32[][]
+  array.new 10 5   ; i32[][]
   local.tee 1   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
@@ -174,7 +175,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 9 5   ; i32[][]
+  array.new 10 5   ; i32[][]
   local.tee 1   ; __fuse_arr_2
   array.len
   local.set 3   ; __fuse_i_4
@@ -484,6 +485,7 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

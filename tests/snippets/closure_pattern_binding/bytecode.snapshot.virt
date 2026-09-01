@@ -13,8 +13,9 @@ type 10 struct std_core$Buffer {  }
 type 11 primitive i64
 type 12 primitive u8
 type 13 array 12
-type 14 struct "$Cell_Struct#snippet.P<>" { value:3 }
-type 15 struct $Cell_i32 { value:2 }
+type 14 primitive isize
+type 15 struct "$Cell_Struct#snippet.P<>" { value:3 }
+type 16 struct $Cell_i32 { value:2 }
 string 0 "HELLO "
 string 1 "again "
 string 2 "twice = "
@@ -22,7 +23,7 @@ string 3 "world"
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 10 ByteAccess
 export main 1
 
@@ -39,11 +40,11 @@ fn 0 snippet$greet (any) -> void
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 3   ; -> snippet$P
-    struct.new 14   ; $Cell_Struct#snippet.P<>
+    struct.new 15   ; $Cell_Struct#snippet.P<>
     struct.new_stack 8   ; __lambda_env_7
     local.set 1   ; shout
     local.field 1 8 0   ; shout.cap_0
-    struct.get 14 0   ; $Cell_Struct#snippet.P<>.value
+    struct.get 15 0   ; $Cell_Struct#snippet.P<>.value
     struct.get 3 0   ; snippet$P.name
     ref.cast 5   ; -> string
     local.set 2   ; $field_10
@@ -52,7 +53,7 @@ fn 0 snippet$greet (any) -> void
     call 2   ; concat_2
     call 9   ; std_io$println__string
     local.field 1 8 0   ; shout.cap_0
-    struct.get 14 0   ; $Cell_Struct#snippet.P<>.value
+    struct.get 15 0   ; $Cell_Struct#snippet.P<>.value
     struct.get 3 0   ; snippet$P.name
     ref.cast 5   ; -> string
     local.set 2   ; $field_10
@@ -71,7 +72,7 @@ fn 0 snippet$greet (any) -> void
   if $L1 void
     local.get 0   ; arg 0
     ref.cast 2   ; -> i32
-    struct.new 15   ; $Cell_i32
+    struct.new 16   ; $Cell_i32
     struct.new_stack 6   ; __lambda_env_2
     local.set 1   ; shout
     i64.const 28
@@ -85,10 +86,10 @@ fn 0 snippet$greet (any) -> void
     call 5   ; std_core$write_string_at
     local.set 4   ; __off_2
     local.field 1 6 0   ; shout.cap_0
-    struct.get 15 0   ; $Cell_i32.value
+    struct.get 16 0   ; $Cell_i32.value
     local.set 5   ; $cell_get_33
     local.field 1 6 0   ; shout.cap_0
-    struct.get 15 0   ; $Cell_i32.value
+    struct.get 16 0   ; $Cell_i32.value
     local.set 6   ; $cell_get_35
     local.get 5   ; $cell_get_33
     local.get 6   ; $cell_get_35
@@ -366,6 +367,7 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -24,13 +24,14 @@ type 21 ref Async
 type 22 struct std_async$Sleep { ms:15,deadline:15,armed:11 }
 type 23 union 0,5
 type 24 array 2
-type 25 struct std_collections$MutableMap__usize__i32 { ekeys:26,evals:9,index:9,mask:10,size:10,tombs:10 }
-type 26 array 10
-type 27 ref _
+type 25 struct std_collections$MutableMap__usize__i32 { ekeys:27,evals:9,index:9,mask:10,size:10,tombs:10 }
+type 26 primitive isize
+type 27 array 10
+type 28 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
 import 4 sched_park std_runtime$sched_park () -> i32
@@ -406,7 +407,7 @@ fn 4 snippet$__asyncstate_13$Async$resume (ref) -> any
           local.get 17   ; $call_72
           array.new 24 3   ; ref Async[][]
           local.set 18   ; $arr_73
-          array.new 26 0   ; usize[][]
+          array.new 27 0   ; usize[][]
           local.set 19   ; $arr_74
           array.new 9 0   ; i32[][]
           local.set 20   ; $arr_75
@@ -664,6 +665,7 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 1   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 

@@ -103,6 +103,11 @@ const size_t vader_type_size[12] = {
 };
 
 
+// `@vm_callable` — addresses the VM reaches without `dlsym`.
+static const vader_ffi_static_sym_t vader_ffi_static_syms[] = {
+    { 0, 0 },
+};
+
 static int32_t snippet_i_add(int32_t l0, int32_t l1) {
 #line 8 "tests/snippets/scalar_arith/_main.vader"
     return (l0 + l1);

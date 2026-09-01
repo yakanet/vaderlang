@@ -17,6 +17,7 @@ type 14 primitive string
 type 15 primitive i64
 type 16 primitive u8
 type 17 array 16
+type 18 primitive isize
 string 0 "parked?!"
 string 1 "complete"
 string 2 "logged "
@@ -24,7 +25,7 @@ string 3 "wrapped"
 string 4 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
 import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write (i32,ref,usize) -> i32
+import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
 impl 4 Async
 impl 7 Async
 impl 8 Async
@@ -486,6 +487,7 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
