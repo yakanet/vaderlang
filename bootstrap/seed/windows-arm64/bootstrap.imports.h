@@ -3,6 +3,7 @@
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <windows.h>
+#include <math.h>
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
@@ -21,14 +22,14 @@ static inline vader_string_t vader_host_std_io_current_working_directory(void) {
 static inline vader_string_t vader_host_std_io_temp_dir(void) { return vader_temp_dir(); }
 static inline void* vader_host_system_windows_get_std_handle(uint32_t a0) { return GetStdHandle(a0); }
 static inline bool vader_host_system_windows_write_file(void* a0, void* a1, uint32_t a2, uint32_t a3, vader_box_t a4) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); uint32_t p3 = a3; void* p4 = (a4.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a4.payload.i; return WriteFile(a0, s1.ptr, a2, (void*) &p3, p4); }
-static inline double vader_host_std_math_sqrt(double a0) { return vader_math_sqrt(a0); }
-static inline double vader_host_std_math_pow(double a0, double a1) { return vader_math_pow(a0, a1); }
-static inline double vader_host_std_math_floor(double a0) { return vader_math_floor(a0); }
-static inline double vader_host_std_math_ceil(double a0) { return vader_math_ceil(a0); }
-static inline double vader_host_std_math_round(double a0) { return vader_math_round(a0); }
-static inline double vader_host_std_math_sin(double a0) { return vader_math_sin(a0); }
-static inline double vader_host_std_math_cos(double a0) { return vader_math_cos(a0); }
-static inline double vader_host_std_math_tan(double a0) { return vader_math_tan(a0); }
+static inline double vader_host_std_math_sqrt(double a0) { return sqrt(a0); }
+static inline double vader_host_std_math_pow(double a0, double a1) { return pow(a0, a1); }
+static inline double vader_host_std_math_floor(double a0) { return floor(a0); }
+static inline double vader_host_std_math_ceil(double a0) { return ceil(a0); }
+static inline double vader_host_std_math_round(double a0) { return round(a0); }
+static inline double vader_host_std_math_sin(double a0) { return sin(a0); }
+static inline double vader_host_std_math_cos(double a0) { return cos(a0); }
+static inline double vader_host_std_math_tan(double a0) { return tan(a0); }
 static inline bool vader_host_std_tty_raw_mode_begin(void) { return vader_terminal_raw_begin(); }
 static inline void vader_host_std_tty_raw_mode_end(void) { vader_terminal_raw_end(); }
 static inline int32_t vader_host_std_tty_columns(void) { return vader_terminal_columns(); }
