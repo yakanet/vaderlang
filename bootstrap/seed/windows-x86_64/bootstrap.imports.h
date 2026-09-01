@@ -3,6 +3,7 @@
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <windows.h>
+#include <stdlib.h>
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
@@ -26,7 +27,7 @@ static inline void vader_host_std_tty_raw_mode_end(void) { vader_terminal_raw_en
 static inline int32_t vader_host_std_tty_columns(void) { return vader_terminal_columns(); }
 static inline vader_string_t vader_host_std_tty_read_keys(int32_t a0) { return vader_terminal_read_keys(a0); }
 static inline bool vader_host_std_tty_is_tty(int32_t a0) { return vader_is_tty(a0); }
-static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { return vader_get_env(a0, 161u); }
+static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_cstr_free_for(a0, c0); return r == NULL ? vader_box_null() : vader_box_i64(161u, (int64_t) vader_atom_intern(r, strlen(r))); }
 static inline uint8_t vader_host_std_target_current_os(void) { return vader_current_os(); }
 static inline uint8_t vader_host_std_target_current_arch(void) { return vader_current_arch(); }
 static inline size_t vader_host_vader_vm_ffi_open(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }
