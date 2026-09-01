@@ -2,10 +2,9 @@
 #include "vader.h"
 
 // Headers named by `@c_header` — they own the prototypes below.
+#include <unistd.h>
+#include <math.h>
 #include <stdlib.h>
-
-// User @extern foreign symbols — resolved by the linker.
-extern int32_t write(int32_t, const void*, size_t);
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
@@ -22,7 +21,15 @@ static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_
 static inline vader_string_t vader_host_std_io_current_executable_location(void) { return vader_current_executable_location(); }
 static inline vader_string_t vader_host_std_io_current_working_directory(void) { return vader_current_working_directory(); }
 static inline vader_string_t vader_host_std_io_temp_dir(void) { return vader_temp_dir(); }
-static inline int32_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
+static inline ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
+static inline double vader_host_std_math_sqrt(double a0) { return sqrt(a0); }
+static inline double vader_host_std_math_pow(double a0, double a1) { return pow(a0, a1); }
+static inline double vader_host_std_math_floor(double a0) { return floor(a0); }
+static inline double vader_host_std_math_ceil(double a0) { return ceil(a0); }
+static inline double vader_host_std_math_round(double a0) { return round(a0); }
+static inline double vader_host_std_math_sin(double a0) { return sin(a0); }
+static inline double vader_host_std_math_cos(double a0) { return cos(a0); }
+static inline double vader_host_std_math_tan(double a0) { return tan(a0); }
 static inline bool vader_host_std_tty_raw_mode_begin(void) { return vader_terminal_raw_begin(); }
 static inline void vader_host_std_tty_raw_mode_end(void) { vader_terminal_raw_end(); }
 static inline int32_t vader_host_std_tty_columns(void) { return vader_terminal_columns(); }
@@ -40,4 +47,17 @@ static inline int32_t vader_host_std_process_spawn_poll(int64_t a0) { return vad
 static inline void vader_host_std_process_spawn_kill(int64_t a0) { vader_spawn_kill(a0); }
 static inline vader_string_t vader_host_std_process_spawn_take_stdout(int64_t a0) { return vader_spawn_take_stdout(a0); }
 static inline vader_string_t vader_host_std_process_spawn_take_stderr(int64_t a0) { return vader_spawn_take_stderr(a0); }
+
+// `@vm_callable` — addresses the VM reaches without `dlsym`.
+static const vader_ffi_static_sym_t vader_ffi_static_syms[] = {
+    { "sqrt", (void*) sqrt },
+    { "pow", (void*) pow },
+    { "floor", (void*) floor },
+    { "ceil", (void*) ceil },
+    { "round", (void*) round },
+    { "sin", (void*) sin },
+    { "cos", (void*) cos },
+    { "tan", (void*) tan },
+    { 0, 0 },
+};
 
