@@ -188,6 +188,7 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #define VADER_FFI_WORD 1u
 #define VADER_FFI_F64  2u
 #define VADER_FFI_ADDR 3u
+#define VADER_FFI_STR  4u
 
 #define VADER_FFI_DISPATCH(RET)                                                       \
     switch (nargs) {                                                                  \
@@ -226,8 +227,13 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
  *
  * This is what lets ONE intrinsic serve every signature: adding a shape widens
  * the switch below and touches no Vader. What is not covered traps by name
- * rather than mis-marshalling a frame. */
-void vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
+ * rather than mis-marshalling a frame.
+ *
+ * The RESULT of a `VADER_FFI_STR` call is returned rather than written into the
+ * frame: it is an atom id, and the VM has no way to build a `string` from one —
+ * whereas a returned `vader_string_t` IS a Vader string. Every other shape
+ * returns `VADER_ATOM_EMPTY`, which callers ignore. */
+vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
     vader_slice_t        dview = vader_array_bytes(desc);
     vader_slice_t        fview;
     const unsigned char* cls;
@@ -274,10 +280,18 @@ void vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
         if (cls[0] == VADER_FFI_F64) {
             vader_trap("vader_ffi: floating result from an integer call shape");
         }
+        if (cls[0] == VADER_FFI_STR) {
+            /* Borrowed: interned, never freed. The worst case of that default is
+             * a leak on the C side, never a corruption — and it is right for the
+             * library-owned pointers (`getenv`, `strerror`) it serves. NULL
+             * becomes the empty string, `string` having no null variant. */
+            const char* p = (const char*) (intptr_t) r;
+            return p == NULL ? VADER_ATOM_EMPTY : vader_atom_intern(p, strlen(p));
+        }
         if (cls[0] != VADER_FFI_VOID) {
             memcpy((void*) fview.ptr, &r, sizeof r);
         }
-        return;
+        return VADER_ATOM_EMPTY;
     }
     if (nword != 0) {
         vader_trap("vader_ffi: mixing floating and integer arguments is not covered");
@@ -293,10 +307,11 @@ void vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
             r = ((double (*)(double, double)) fn)(reals[0], reals[1]);
         } else {
             vader_trap("vader_ffi: more than two floating arguments is not covered");
-            return;
+            return VADER_ATOM_EMPTY;
         }
         memcpy((void*) fview.ptr, &r, sizeof r);
     }
+    return VADER_ATOM_EMPTY;
 }
 
 #undef VADER_FFI_DISPATCH

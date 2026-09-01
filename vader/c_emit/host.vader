@@ -376,7 +376,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // shim casts back to `void*` at the boundary.
     .FfiOpen -> { return "${head} { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }" }
     .FfiSymbol -> { return "${head} { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }" }
-    .FfiCall -> { return "${head} { vader_ffi_call((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2); }" }
+    .FfiCall -> { return "${head} { return vader_ffi_call((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2); }" }
     .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }
     .TargetCurrentArch -> { return "${head} { return vader_current_arch(); }" }
 
@@ -483,6 +483,19 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
+    } else if sig.result == ValType.String {
+        // A C string comes back BORROWED: interned into the atom table, never
+        // freed. That is the default the FFI plan settles on — its worst case is
+        // a leak on the C side, never a corruption — and it is right for the
+        // library-owned pointers (`getenv`, `strerror`) this unblocks. An
+        // `@owned` form, zero-copy through `vader_atom_intern_take`, comes next.
+        //
+        // NULL interns as the empty string: `string` carries no null variant,
+        // and `string | null` is not an admitted extern return type yet.
+        lines.push("const char* r = ${call_expr};")
+        for al in after_lines { lines.push(al) }
+        for fl in free_lines { lines.push(fl) }
+        lines.push("return r == NULL ? vader_atom_intern(\"\", 0) : vader_atom_intern(r, strlen(r));")
     } else if free_lines.len() == 0 && after_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {

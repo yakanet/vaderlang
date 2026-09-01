@@ -57,7 +57,11 @@ module "vader/vm"
 /// @param fn_ptr  the address from `ffi_symbol`.
 /// @param desc    the class of the result, then of each argument.
 /// @param frame   the argument slots plus their data; receives the result.
-@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!) -> void
+/// @return        the interned string for a `string`-returning callee, the empty
+///                string otherwise — an atom id cannot travel through the frame,
+///                since nothing on the Vader side can turn one back into a
+///                `string`.
+@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!) -> string
 
 // ---- tests ----------------------------------------------------------------
 

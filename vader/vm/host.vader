@@ -684,6 +684,15 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
                 if b is Trap { return b }
                 push_little_endian(data, b.value, width)
             }
+        } else if v is StringVal as sv {
+            // A `string` crosses as a NUL-terminated buffer in the frame's data
+            // area — the same ADDR mechanism a lent array uses. The native shim
+            // reaches the same place through `vader_string_to_cstr`.
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            data.push_all(sv.value.bytes())
+            data.push(0)
         } else if v is F64Val as f {
             desc.push(u8(FFI_F64))
             slot_words.push(i64(f.value.to_bits()))
@@ -723,7 +732,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     }
     frame.push_all(data)
 
-    ffi_call(sym, desc, frame)
+    returned :: ffi_call(sym, desc, frame)
 
     // What C wrote into a lent array has to travel back: the frame is a FLAT
     // COPY of the boxed elements, so without this a mutable lend —
@@ -747,6 +756,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if info.signature.result == bc.ValType.F64 {
         return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
     }
+    // A `string` result comes back as the call's RETURN value, not through the
+    // frame: it is an atom, and only C can turn the callee's pointer into one.
+    if info.signature.result == bc.ValType.String {
+        return HostOk { .value = StringVal { .value = returned } }
+    }
     return extern_result(info.signature.result, read_little_endian(frame, 0, 8, true))
 }
 
@@ -756,6 +770,7 @@ FFI_VOID :: 0
 FFI_WORD :: 1
 FFI_F64  :: 2
 FFI_ADDR :: 3
+FFI_STR  :: 4
 
 /// The class a result `ValType` is read back as.
 ///
@@ -767,6 +782,9 @@ ffi_result_class :: fn(result: bc.ValType) -> i32 {
     }
     if result == bc.ValType.F64 {
         return FFI_F64
+    }
+    if result == bc.ValType.String {
+        return FFI_STR
     }
     return FFI_WORD
 }
