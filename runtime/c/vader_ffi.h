@@ -189,6 +189,7 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #define VADER_FFI_F64  2u
 #define VADER_FFI_ADDR 3u
 #define VADER_FFI_STR  4u
+#define VADER_FFI_STR_OPT 5u
 
 #define VADER_FFI_DISPATCH(RET)                                                       \
     switch (nargs) {                                                                  \
@@ -279,6 +280,15 @@ vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* fram
         int64_t r = vader_ffi_call_int(fn, words, nargs);
         if (cls[0] == VADER_FFI_F64) {
             vader_trap("vader_ffi: floating result from an integer call shape");
+        }
+        if (cls[0] == VADER_FFI_STR_OPT) {
+            /* `char*` says "absent" with NULL, which `string` alone cannot carry.
+             * The frame's first slot takes the presence flag; the atom is
+             * returned like any other string. */
+            const char* p = (const char*) (intptr_t) r;
+            int64_t     present = p == NULL ? 0 : 1;
+            memcpy((void*) fview.ptr, &present, sizeof present);
+            return p == NULL ? VADER_ATOM_EMPTY : vader_atom_intern(p, strlen(p));
         }
         if (cls[0] == VADER_FFI_STR) {
             /* Borrowed: interned, never freed. The worst case of that default is

@@ -703,9 +703,11 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             return is_extern_abi_type(d.backing, is_return)
         }
         is UnionType          -> {
-            // The ONE union shape that crosses : a nullable foreign pointer.
-            // C has no other nullable scalar, so no other union has an ABI.
-            return is_nullable_pointer(t)
+            // Two union shapes cross. A nullable foreign pointer, because C has
+            // no other nullable scalar. And `string | null` as a RESULT: a C
+            // function returning a `char*` says "absent" with NULL, and folding
+            // that onto `""` would lose the distinction `getenv` rests on.
+            return is_nullable_pointer(t) || (is_return && is_nullable_string(t))
         }
         is ArrayType as a     -> {
             // A borrowed array crosses as ONE bare pointer; a length, when the
@@ -731,6 +733,30 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
 ///
 /// @param t  the candidate slot type.
 /// @return   whether it is the nullable-pointer shape.
+/// True when `t` is `string | null` — the shape a C function returning a
+/// `char*` needs to say "absent" rather than "empty".
+///
+/// @param t  the candidate type.
+/// @return   whether it is exactly `string | null`.
+is_nullable_string :: fn(t: Type) -> bool {
+    if t !is UnionType {
+        return false
+    }
+    if t.variants.len() != 2 {
+        return false
+    }
+    has_null := false
+    has_str := false
+    for v in t.variants {
+        bare :: strip_distinct(v)
+        if bare is PrimitiveType as p {
+            if p.name == "null"   { has_null = true }
+            if p.name == "string" { has_str = true }
+        }
+    }
+    return has_null && has_str
+}
+
 is_nullable_pointer :: fn(t: Type) -> bool {
     if t is UnionType as u {
         if u.variants.len() != 2 {

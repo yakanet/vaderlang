@@ -192,6 +192,38 @@ is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
     return false
 }
 
+/// Whether the slot at `type_index` is `string | null` — the shape a C function
+/// returning a `char*` uses to say "absent" rather than "empty".
+///
+/// @param types       the module's BcType table.
+/// @param type_index  the slot's BcType index, or `-1` when absent.
+/// @return            whether the slot is exactly `string | null`.
+is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
+    if type_index < 0 || type_index >= i32(types.len()) {
+        return false
+    }
+    u :: types[type_index]
+    if u !is BcUnion {
+        return false
+    }
+    if u.variants.len() != 2 {
+        return false
+    }
+    has_null := false
+    has_str := false
+    for vi in u.variants {
+        if vi < 0 || vi >= i32(types.len()) {
+            continue
+        }
+        v :: types[vi]
+        if v is BcPrimitive as bp {
+            if bp.val == ValType.Null   { has_null = true }
+            if bp.val == ValType.String { has_str = true }
+        }
+    }
+    return has_null && has_str
+}
+
 /// Whether parameter `j` of `sig` was written with a `!`.
 ///
 /// Absent vector → reported mutable, which is the SAFE direction : passing a
@@ -483,6 +515,14 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
+    } else if is_abi_nullable_string(types, sig.result_type) {
+        // `char*` says "absent" with NULL; folding that onto `""` would lose the
+        // distinction `getenv` rests on. Borrowed, like every returned string.
+        str_tag :: tag_u(prim_tag(types, ValType.String), "string")
+        lines.push("const char* r = ${call_expr};")
+        for al in after_lines { lines.push(al) }
+        for fl in free_lines { lines.push(fl) }
+        lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${str_tag}, (int64_t) vader_atom_intern(r, strlen(r)));")
     } else if sig.result == ValType.String {
         // A C string comes back BORROWED: interned into the atom table, never
         // freed. That is the default the FFI plan settles on — its worst case is
