@@ -499,9 +499,9 @@ current_executable_location :: fn() -> string {
 @target(.Windows)
 current_executable_location :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u8[]! = [0] * 8192
-    n :: get_module_file_name(null, buf, u32(buf.len() / 2))
-    if n == 0 || usize(n) * 2 >= buf.len() {
+    buf: u16[]! = [0] * 4096
+    n :: get_module_file_name(null, buf, u32(buf.len()))
+    if n == 0 || usize(n) >= buf.len() {
         return "."
     }
     return to_slash(from_wide(buf, i32(n)))
@@ -528,9 +528,9 @@ current_working_directory :: fn() -> string {
 @target(.Windows)
 current_working_directory :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u8[]! = [0] * 8192
-    n :: get_current_directory(u32(buf.len() / 2), buf)
-    if n == 0 || usize(n) * 2 >= buf.len() {
+    buf: u16[]! = [0] * 4096
+    n :: get_current_directory(u32(buf.len()), buf)
+    if n == 0 || usize(n) >= buf.len() {
         return "."
     }
     return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
@@ -569,9 +569,9 @@ temp_dir :: fn() -> string {
     // POSIX path Windows has no reason to hold, so it turned a failed call into
     // an `open failed` several layers away instead of a usable location.
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u8[]! = [0] * 8192
-    n :: get_temp_path(u32(buf.len() / 2), buf)
-    if n == 0 || usize(n) * 2 >= buf.len() {
+    buf: u16[]! = [0] * 4096
+    n :: get_temp_path(u32(buf.len()), buf)
+    if n == 0 || usize(n) >= buf.len() {
         return "."
     }
     return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
@@ -584,8 +584,8 @@ temp_dir :: fn() -> string {
 // strings are UTF-8, so every path crosses through these two.
 
 /// UTF-8 to a NUL-terminated UTF-16 buffer, held as BYTES; empty on failure.
-to_wide :: fn(s: string) -> u8[] {
-    empty: u8[]! = []
+to_wide :: fn(s: string) -> u16[] {
+    empty: u16[]! = []
     // `-1` measures the NUL-terminated input AND counts the terminator, so the
     // result is directly usable as an `LPCWSTR`. The count is in UNITS; the
     // buffer that holds them is twice that in bytes.
@@ -593,7 +593,7 @@ to_wide :: fn(s: string) -> u8[] {
     if units <= 0 {
         return []
     }
-    out: u8[]! = [0] * (usize(units) * 2)
+    out: u16[]! = [0] * usize(units)
     if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, units) <= 0 {
         return []
     }
@@ -604,7 +604,7 @@ to_wide :: fn(s: string) -> u8[] {
 ///
 /// @param units  how many units to read, EXCLUDING any NUL — which is what
 ///               every Win32 length already reports.
-from_wide :: fn(w: u8[], units: i32) -> string {
+from_wide :: fn(w: u16[], units: i32) -> string {
     empty: u8[]! = []
     n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
     if n <= 0 {

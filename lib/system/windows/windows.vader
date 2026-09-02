@@ -30,7 +30,7 @@ export get_std_handle :: fn(which: u32) -> Handle
 /// @param module  `null` for the running executable.
 @c_header("<windows.h>")
 @extern("kernel32", "GetModuleFileNameW")
-export get_module_file_name :: fn(module: CPointer | null, buf: u8[]!, size: u32) -> u32
+export get_module_file_name :: fn(module: CPointer | null, buf: u16[]!, size: u32) -> u32
 
 /// `GetCurrentDirectoryW`. Writes the working directory into `buf` and returns
 /// its length; 0 on failure, or a length >= `size` when `buf` is too small.
@@ -39,7 +39,7 @@ export get_module_file_name :: fn(module: CPointer | null, buf: u8[]!, size: u32
 /// @param buf   receives the path, NUL-terminated.
 @c_header("<windows.h>")
 @extern("kernel32", "GetCurrentDirectoryW")
-export get_current_directory :: fn(size: u32, buf: u8[]!) -> u32
+export get_current_directory :: fn(size: u32, buf: u16[]!) -> u32
 
 /// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
 /// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
@@ -50,7 +50,7 @@ export get_current_directory :: fn(size: u32, buf: u8[]!) -> u32
 /// @return      UTF-16 units written, excluding the NUL.
 @c_header("<windows.h>")
 @extern("kernel32", "GetTempPathW")
-export get_temp_path :: fn(size: u32, buf: u8[]!) -> u32
+export get_temp_path :: fn(size: u32, buf: u16[]!) -> u32
 
 /// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
 /// caller re-tests the path rather than reading `GetLastError`.
@@ -59,7 +59,7 @@ export get_temp_path :: fn(size: u32, buf: u8[]!) -> u32
 /// @param security  `lpSecurityAttributes`; `null` for the default descriptor.
 @c_header("<windows.h>")
 @extern("kernel32", "CreateDirectoryW")
-export create_directory :: fn(path: u8[], security: CPointer | null) -> bool
+export create_directory :: fn(path: u16[], security: CPointer | null) -> bool
 
 /// `FILE_ATTRIBUTE_DIRECTORY` — set when the entry is a directory.
 export FILE_ATTRIBUTE_DIRECTORY: u32 : 0x10
@@ -74,7 +74,7 @@ export INVALID_FILE_ATTRIBUTES: u32 : 0xFFFF_FFFF
 /// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
 @c_header("<windows.h>")
 @extern("kernel32", "GetFileAttributesW")
-export get_file_attributes :: fn(path: u8[]) -> u32
+export get_file_attributes :: fn(path: u16[]) -> u32
 
 /// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
 /// behaviour `std/io::remove_file` promises.
@@ -83,7 +83,7 @@ export get_file_attributes :: fn(path: u8[]) -> u32
 /// @return      non-zero on success.
 @c_header("<windows.h>")
 @extern("kernel32", "DeleteFileW")
-export delete_file :: fn(path: u8[]) -> i32
+export delete_file :: fn(path: u16[]) -> i32
 
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
@@ -111,23 +111,14 @@ export write_file :: fn(h: Handle, buf: u8[], count: u32,
 
 
 // ---- UTF-8 <-> UTF-16 -----------------------------------------------------
-// UTF-16 buffers cross as `u8[]`, never `u16[]`. The callee only ever receives
-// an address -- `MultiByteToWideChar` writes `WCHAR`s whatever Vader calls the
-// storage -- and no Vader code here inspects a unit: a path is produced by one
-// call and handed to the next. Declaring `u16[]` would add a `u16` PRIMITIVE to
-// the type table, and a primitive is interned early, so every index behind it
-// shifts and the seed's shared header stops matching across targets. A struct
-// that only one target has (`LinuxStat`) lands at the END of the table and
-// shifts nothing, which is why that asymmetry is already tolerated.
+// UTF-16 buffers cross as `u16[]`, which is what they hold. Declaring them
+// `u8[]` would work -- the callee only receives an address, and no Vader code
+// here reads a unit -- and it keeps the `u16` PRIMITIVE out of the type table,
+// whose early interning shifts every index behind it. Measured, that buys 72 KB
+// of seed out of 31 MB: the header diverges anyway, on the `__lambda_env_N`
+// renumbering. Not a trade worth a type that lies about its contents.
 //
-// The corollary: every LENGTH below is in UTF-16 UNITS, while every buffer is
-// sized in BYTES -- twice the units.
-
-//
-// Every Win32 entry point comes in two flavours. The `A` one takes the system's
-// ANSI code page, so a path holding anything outside it -- `C:\Users\Zoé` --
-// arrives mangled or not at all, while Vader strings are UTF-8. The `W` one
-// takes UTF-16 and is exact, at the cost of converting on the way in and out.
+// Every LENGTH below is in UTF-16 units, which is also the buffer's length.
 
 /// `CP_UTF8` — the code page identifier for UTF-8.
 export CP_UTF8: u32 : 65001
@@ -141,7 +132,7 @@ export CP_UTF8: u32 : 65001
 @c_header("<windows.h>")
 @extern("kernel32", "MultiByteToWideChar")
 export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, src_len: i32,
-                                     dst: u8[]!, dst_len: i32) -> i32
+                                     dst: u16[]!, dst_len: i32) -> i32
 
 /// `WideCharToMultiByte`. The two trailing `lpDefaultChar` / `lpUsedDefaultChar`
 /// arguments must be null for `CP_UTF8`; Windows fails the call otherwise.
@@ -151,7 +142,7 @@ export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, sr
 /// @return         bytes written (or required, when measuring); 0 on failure.
 @c_header("<windows.h>")
 @extern("kernel32", "WideCharToMultiByte")
-export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u8[], src_len: i32,
+export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src_len: i32,
                                      dst: u8[]!, dst_len: i32,
                                      default_char: CPointer | null,
                                      used_default: CPointer | null) -> i32
@@ -191,7 +182,7 @@ export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
 /// @param template     `hTemplateFile`; always null here.
 @c_header("<windows.h>")
 @extern("kernel32", "CreateFileW")
-export create_file_w :: fn(path: u8[], access: u32, share: u32,
+export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
 

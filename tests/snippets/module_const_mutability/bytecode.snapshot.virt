@@ -26,7 +26,7 @@ type 23 struct __Tuple_31 { _0:9,_1:9,_2:9 }
 type 24 struct __Tuple_32 { _0:9,_1:9 }
 type 25 array 3
 type 26 array 5
-type 27 struct __Tuple_47 { _0:3,_1:4 }
+type 27 struct __Tuple_48 { _0:3,_1:4 }
 type 28 array 6
 type 29 array 9
 string 0 "hello"
@@ -287,8 +287,8 @@ fn 1 snippet$main () -> i32
   local.set 8   ; $k_62
   local.get 8   ; $k_62
   string.const 3   ; "seven"
-  struct.new_stack 27   ; __Tuple_47
-  struct.get 27 1   ; __Tuple_47._1
+  struct.new_stack 27   ; __Tuple_48
+  struct.get 27 1   ; __Tuple_48._1
   ref.cast 4   ; -> string
   local.tee 0   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -304,8 +304,8 @@ fn 1 snippet$main () -> i32
   local.set 8   ; $k_62
   local.get 8   ; $k_62
   string.const 3   ; "seven"
-  struct.new_stack 27   ; __Tuple_47
-  struct.get 27 0   ; __Tuple_47._0
+  struct.new_stack 27   ; __Tuple_48
+  struct.get 27 0   ; __Tuple_48._0
   ref.cast 3   ; -> i32
   i32.to_i64
   local.set 3   ; $cast_10
