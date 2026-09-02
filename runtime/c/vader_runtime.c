@@ -3307,7 +3307,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 /* ----------------------------------------------------------------- I/O */
 
 
-
 /* Switch stdin/stdout/stderr to binary mode on Windows. The CRT default is
  * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
  * length-prefixed binary transport (LSP, MCP, custom RPC) AND every `dump` /
@@ -3330,11 +3329,6 @@ static void vader_ensure_stdio_binary(void) {
 #endif
 }
 
-/* Read EXACTLY `n` bytes from stdin into a fresh string. Loops over
- * `fread` until `n` bytes have been accumulated or EOF is reached. EOF
- * before `n` bytes is an error — the LSP transport relies on this
- * "exactly N bytes" contract for Content-Length framing. Forces binary
- * mode on first call so `\r\n` survives the read on Windows. */
 /* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
  * Used by the LSP event loop to detect a quiescent edit window: drain the burst
  * of `didChange` notifications, then run the typecheck once. Vader reads stdin through
@@ -3491,13 +3485,6 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 }
 
 #endif  /* _WIN32 / POSIX */
-
-
-
-
-
-
-
 
 
 /* ----------------------------------------------------------------- terminal / env

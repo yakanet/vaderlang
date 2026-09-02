@@ -1174,12 +1174,6 @@ vader_bool_t   vader_is_dir(vader_string_t path);
 /* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
  * Idempotent; a finished or unknown handle is a no-op. */
 void vader_spawn_kill(vader_i64_t handle);
-/* Read EXACTLY `n` bytes from stdin into a fresh string. Boxes the result
- * (success or `Error`). EOF before `n` bytes is reported as an error —
- * the LSP transport's Content-Length framing relies on this contract. */
-/* Make stdin unbuffered so `poll(STDIN_FILENO)` stays consistent with what
- * the next stdin read will consume. Intended
- * for length-prefixed RPC servers (e.g. the LSP). */
 /* True iff stdin has data ready within `timeout_ms` (0 = non-blocking poll).
  * Backs the LSP debounce; Vader reads stdin through `read(2)`, not stdio, so
  * the raw fd already reflects the pending bytes. */
