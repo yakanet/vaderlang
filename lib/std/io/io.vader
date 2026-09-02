@@ -166,7 +166,11 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      the file's raw bytes.
 /// @error       `IOError` if the file can't be opened or read.
-export read_file_bytes :: fn(path: string) -> u8[] | IOError {
+@target
+export read_file_bytes :: fn(path: string) -> u8[] | IOError
+
+@target(.Linux, .Darwin)
+read_file_bytes :: fn(path: string) -> u8[] | IOError {
     f :: sys_fopen(path, "rb")
     if f == null {
         return IOError { .msg = "file not found" }
@@ -190,6 +194,40 @@ export read_file_bytes :: fn(path: string) -> u8[] | IOError {
     return IOError { .msg = "file too large" }
 }
 
+/// Windows reads through `CreateFileW`, not the CRT: only the `W` entry points
+/// take a real UTF-16 path, and `ReadFile` reports a failure the CRT would have
+/// folded into a short read.
+@target(.Windows)
+read_file_bytes :: fn(path: string) -> u8[] | IOError {
+    h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ, null,
+                       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
+    // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
+    if isize(h) == INVALID_HANDLE {
+        return IOError { .msg = "file not found" }
+    }
+    out: u8[]! = []
+    chunk: u8[]! = [0] * READ_CHUNK
+    got: u32[]! = [0]
+    for _ in 0..<MAX_CHUNKS {
+        if !read_file(h, chunk, u32(chunk.len()), got, null) {
+            close_handle(h)
+            return IOError { .msg = "read failed" }
+        }
+        n :: usize(got[0])
+        if n > 0 {
+            out.push_all(chunk[0..<n])
+        }
+        // A synchronous read short of the request has reached end of file --
+        // and unlike the CRT path, a genuine ERROR took the branch above.
+        if n < chunk.len() {
+            close_handle(h)
+            return out
+        }
+    }
+    close_handle(h)
+    return IOError { .msg = "file too large" }
+}
+
 // 64 KiB per `fread`, and a ceiling on the number of rounds so a stream that
 // never ends cannot spin forever. Together they cap a read at 4 GiB.
 READ_CHUNK: usize : 64 * 1024
@@ -200,7 +238,11 @@ MAX_CHUNKS: usize : 65536
 /// @param path     filesystem path.
 /// @param content  the raw bytes to write.
 /// @error          `IOError` if the file can't be opened or written.
-export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+@target
+export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
+
+@target(.Linux, .Darwin)
+write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     // A NUL byte truncates the path at the C boundary, so the file would land
     // somewhere the caller never named and every later step would blame the
     // wrong thing. Refused here, where the truncation would happen.
@@ -226,6 +268,39 @@ export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     return null
 }
 
+/// Windows writes through `CreateFileW` for the same reason it reads through
+/// it: the `A` entry points cannot name a path outside the ANSI code page.
+@target(.Windows)
+write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+    // A NUL byte truncates the path at the C boundary, so the file would land
+    // somewhere the caller never named and every later step would blame the
+    // wrong thing. Refused here, where the truncation would happen.
+    for b in path.bytes() {
+        if b == 0 {
+            return IOError { .msg = "path contains a NUL byte" }
+        }
+    }
+    // No share mode: an exclusive write is what replacing a file means.
+    h :: create_file_w(to_wide(path), GENERIC_WRITE, 0, null,
+                       CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
+    if isize(h) == INVALID_HANDLE {
+        return IOError { .msg = "open failed" }
+    }
+    if content.len() > 0 {
+        // A synchronous `WriteFile` writes everything or fails, so the count it
+        // reports has nothing left to say -- short writes belong to the
+        // overlapped path, which this does not use.
+        if !write_file(h, content, u32(content.len()), 0, null) {
+            close_handle(h)
+            return IOError { .msg = "short write" }
+        }
+    }
+    if !close_handle(h) {
+        return IOError { .msg = "close failed" }
+    }
+    return null
+}
+
 /// Create `path` and every missing parent, the way `mkdir -p` does.
 ///
 /// An existing directory is success, not an error: the caller asked for it to
@@ -246,7 +321,7 @@ mkdir_one :: fn(path: string) -> bool
 mkdir_one :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0 || is_dir(path)
 
 @target(.Windows)
-mkdir_one :: fn(path: string) -> bool = create_directory(path, null) || is_dir(path)
+mkdir_one :: fn(path: string) -> bool = create_directory(to_wide(path), null) || is_dir(path)
 
 export create_dir :: fn(path: string) -> null | IOError {
     b :: path.bytes()
@@ -308,7 +383,7 @@ remove_file :: fn(path: string) -> null | IOError {
 
 @target(.Windows)
 remove_file :: fn(path: string) -> null | IOError {
-    if delete_file(path) == 0 {
+    if delete_file(to_wide(path)) == 0 {
         return IOError { .msg = "cannot remove file" }
     }
     return null
@@ -345,7 +420,7 @@ export exists :: fn(path: string) -> bool
 exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
 
 @target(.Windows)
-exists :: fn(path: string) -> bool = get_file_attributes(path) != INVALID_FILE_ATTRIBUTES
+exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVALID_FILE_ATTRIBUTES
 
 /// True iff `path` exists AND is a directory. Errors collapse to `false`.
 /// @param path  filesystem path to probe.
@@ -373,7 +448,7 @@ is_dir :: fn(path: string) -> bool {
 
 @target(.Windows)
 is_dir :: fn(path: string) -> bool {
-    attrs :: get_file_attributes(path)
+    attrs :: get_file_attributes(to_wide(path))
     if attrs == INVALID_FILE_ATTRIBUTES {
         return false
     }
@@ -423,12 +498,12 @@ current_executable_location :: fn() -> string {
 
 @target(.Windows)
 current_executable_location :: fn() -> string {
-    buf: u8[]! = [0] * 4096
+    buf: u16[]! = [0] * 4096
     n :: get_module_file_name(null, buf, u32(buf.len()))
     if n == 0 || usize(n) >= buf.len() {
         return "."
     }
-    return to_slash(up_to_nul(buf))
+    return to_slash(from_wide(buf, i32(n)))
 }
 
 /// Directory the process was invoked from, `/`-separated and WITHOUT a trailing
@@ -451,12 +526,12 @@ current_working_directory :: fn() -> string {
 
 @target(.Windows)
 current_working_directory :: fn() -> string {
-    buf: u8[]! = [0] * 4096
+    buf: u16[]! = [0] * 4096
     n :: get_current_directory(u32(buf.len()), buf)
     if n == 0 || usize(n) >= buf.len() {
         return "."
     }
-    return without_trailing_sep(to_slash(up_to_nul(buf)))
+    return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
 }
 
 // The bytes before the first NUL. A C call that fills a buffer reports its
@@ -486,14 +561,56 @@ temp_dir :: fn() -> string = without_trailing_sep(get_env("TMPDIR") ?? "/tmp")
 
 @target(.Windows)
 temp_dir :: fn() -> string {
-    // `GetTempPathA` reports 0 on failure and a length >= the capacity when the
+    // `GetTempPathW` reports 0 on failure and a length >= the capacity when the
     // buffer is too small; neither wrote anything usable, so both fall back.
-    buf: u8[]! = [0] * 4096
+    // The fallback is the WORKING directory, which always exists: `"/tmp"` is a
+    // POSIX path Windows has no reason to hold, so it turned a failed call into
+    // an `open failed` several layers away instead of a usable location.
+    buf: u16[]! = [0] * 4096
     n :: get_temp_path(u32(buf.len()), buf)
     if n == 0 || usize(n) >= buf.len() {
-        return "/tmp"
+        return "."
     }
-    return without_trailing_sep(to_slash(up_to_nul(buf)))
+    return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
+}
+
+// ---- UTF-8 <-> UTF-16 -----------------------------------------------------
+//
+// Win32's `W` entry points are the exact ones: the `A` ones speak the system
+// ANSI code page, which cannot represent a path like `C:\Users\Zoé`. Vader
+// strings are UTF-8, so every path crosses through these two.
+
+/// UTF-8 to a NUL-terminated UTF-16 buffer; empty when the conversion fails.
+to_wide :: fn(s: string) -> u16[] {
+    empty: u16[]! = []
+    // `-1` measures the NUL-terminated input AND counts the terminator, so the
+    // result is directly usable as an `LPCWSTR`.
+    n :: multi_byte_to_wide_char(CP_UTF8, 0, s, -1, empty, 0)
+    if n <= 0 {
+        return []
+    }
+    out: u16[]! = [0] * usize(n)
+    if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, n) <= 0 {
+        return []
+    }
+    return out
+}
+
+/// `units` UTF-16 units back to UTF-8; empty when the conversion fails.
+///
+/// @param units  how many units to read, EXCLUDING any NUL — which is what
+///               every Win32 length already reports.
+from_wide :: fn(w: u16[], units: i32) -> string {
+    empty: u8[]! = []
+    n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
+    if n <= 0 {
+        return ""
+    }
+    out: u8[]! = [0] * usize(n)
+    if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
+        return ""
+    }
+    return out.bytes_to_string()
 }
 
 // `\\` to `/`. Local rather than `std/path::to_posix` on purpose: importing

@@ -10,7 +10,7 @@ typedef struct vader_struct_std_core_FloatDec32_t vader_struct_std_core_FloatDec
 typedef struct vader_struct_std_core_Dec64_t vader_struct_std_core_Dec64_t;
 typedef struct vader_struct___Tuple_31_t vader_struct___Tuple_31_t;
 typedef struct vader_struct___Tuple_32_t vader_struct___Tuple_32_t;
-typedef struct vader_struct___Tuple_46_t vader_struct___Tuple_46_t;
+typedef struct vader_struct___Tuple_48_t vader_struct___Tuple_48_t;
 
 struct vader_struct_snippet_Spec_t {
     vader_obj_header_t header;
@@ -41,7 +41,7 @@ struct vader_struct___Tuple_32_t {
     uint64_t f__0;
     uint64_t f__1;
 };
-struct vader_struct___Tuple_46_t {
+struct vader_struct___Tuple_48_t {
     vader_obj_header_t header;
     int32_t f__0;
     vader_string_t f__1;
@@ -305,7 +305,7 @@ static const uint16_t vader_type_19_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_22_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_25_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_26_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_27_strs[] = { offsetof(vader_struct___Tuple_46_t, f__1) };
+static const uint16_t vader_type_27_strs[] = { offsetof(vader_struct___Tuple_48_t, f__1) };
 static const uint16_t vader_type_28_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_29_ptrs[] = { offsetof(vader_array_t, buf) };
 
@@ -320,7 +320,7 @@ const vader_type_info_t vader_type_info_table[30] = {
     [24] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_32_t), NULL, 0, 0, NULL, 0, NULL },
     [25] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_25_ptrs, 1, 0, NULL, 0, NULL },
     [26] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_26_ptrs, 1, 0, NULL, 0, NULL },
-    [27] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_46_t), NULL, 0, 1, vader_type_27_strs, 0, NULL },
+    [27] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_48_t), NULL, 0, 1, vader_type_27_strs, 0, NULL },
     [28] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_28_ptrs, 1, 0, NULL, 0, NULL },
     [29] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_29_ptrs, 1, 0, NULL, 0, NULL },
 };
@@ -416,8 +416,8 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[2] = { &l8, &t2 };
     void** gc_raw_roots[4] = { &l2, &l10, &l15, &t1 };
     vader_struct_snippet_Spec_t _a2_storage = {0};
-    vader_struct___Tuple_46_t _a5_storage = {0};
-    vader_struct___Tuple_46_t _a7_storage = {0};
+    vader_struct___Tuple_48_t _a5_storage = {0};
+    vader_struct___Tuple_48_t _a7_storage = {0};
     void* gc_stack_objs[3] = { (void*) &_a2_storage, (void*) &_a5_storage, (void*) &_a7_storage };
     vader_string_t* gc_atom_roots[4] = { &l0, &l5, &l6, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 3u, gc_stack_objs, 4u, gc_atom_roots };
@@ -488,22 +488,22 @@ static int32_t snippet_main(void) {
     std_io_println__string(t0);
 #line 95 "tests/snippets/module_const_mutability/_main.vader"
     l8 = vader_box_i32(3u, INT32_C(7));
-    vader_struct___Tuple_46_t* _a6_obj = &_a5_storage;
+    vader_struct___Tuple_48_t* _a6_obj = &_a5_storage;
     vader_obj_header_init(_a6_obj, 27u);
     _a6_obj->f__0 = ((int32_t) l8.payload.i);
     _a6_obj->f__1 = 4u;
     t1 = (void*) _a6_obj;
-    l0 = ((vader_struct___Tuple_46_t*) t1)->f__1;
+    l0 = ((vader_struct___Tuple_48_t*) t1)->f__1;
     l1 = vader_host_std_core_byte_len(l0);
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(20) + l1));
     l1 = (size_t) (int64_t) INT64_C(0);
     l8 = vader_box_i32(3u, INT32_C(7));
-    vader_struct___Tuple_46_t* _a8_obj = &_a7_storage;
+    vader_struct___Tuple_48_t* _a8_obj = &_a7_storage;
     vader_obj_header_init(_a8_obj, 27u);
     _a8_obj->f__0 = ((int32_t) l8.payload.i);
     _a8_obj->f__1 = 4u;
     t1 = (void*) _a8_obj;
-    t4 = ((vader_struct___Tuple_46_t*) t1)->f__0;
+    t4 = ((vader_struct___Tuple_48_t*) t1)->f__0;
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, l0);
