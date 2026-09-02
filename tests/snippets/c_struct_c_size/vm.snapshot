@@ -1,0 +1,4 @@
+# stderr
+vader vm: extern `stat` at pc=5: argument 1 is a `@c_struct`, which only the native backend can marshal
+# exit
+1

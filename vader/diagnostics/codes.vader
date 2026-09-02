@@ -119,6 +119,7 @@ export TypecheckCode :: enum(u8) {
     ImmutableValueIntoMutableSlot,      // T3077
     MethodOnlyBehindNamespaceAlias,     // T3078
     InvalidParameterDecorator,          // T3079
+    CSizeMissesTarget,                  // T3080
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -503,6 +504,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
     .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
+    .CSizeMissesTarget                  -> CodeInfo { .id = "T3080", .message = "`@c_size` describes no width for this target" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

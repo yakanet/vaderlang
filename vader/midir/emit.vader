@@ -142,7 +142,11 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
         fields: BcField[]! = []
         for f in s.fields {
             type_index :: intern_type(f.type, ctx)
-            fields.push(BcField { .name = f.name, .type_index = type_index })
+            [width, missing] :: c_size_of(s.origin, f.name)
+            fields.push(BcField {
+                .name = f.name, .type_index = type_index,
+                .c_size = width, .c_size_missing = missing,
+            })
         }
         ctx.types[usize(idx)] = BcStruct {
             .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
@@ -158,7 +162,11 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     fields: BcField[]! = []
     for f in s.fields {
         type_index :: intern_type(f.type, ctx)
-        fields.push(BcField { .name = f.name, .type_index = type_index })
+        [width, missing] :: c_size_of(s.origin, f.name)
+        fields.push(BcField {
+            .name = f.name, .type_index = type_index,
+            .c_size = width, .c_size_missing = missing,
+        })
     }
     ctx.types[usize(new_index)] = BcStruct {
         .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
@@ -175,6 +183,31 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
 ///
 /// @param origin  the lowered struct's monomorphisation entry.
 /// @return        the C type spelling, or `""` for an ordinary Vader struct.
+/// The `@c_size` a field resolved to, and whether its target was left out.
+///
+/// Read off the origin AST for the same reason `c_struct_of` is: the widths only
+/// exist there, and no intervening pass has a place to carry them.
+///
+/// @param origin  the monomorphisation's originating declaration.
+/// @param name    the field's name.
+/// @return        `[width, missing]` — width `-1` when unannotated.
+c_size_of :: fn(origin: MonoEntry, name: string) -> [i64, bool] {
+    d :: origin.decl
+    if d !is StructDecl {
+        return [-1, false]
+    }
+    for f in d.fields {
+        if f.name != name {
+            continue
+        }
+        if f.c_sizes.len() > 0 {
+            return [i64(f.c_sizes[0].bytes), false]
+        }
+        return [-1, f.c_size_missing]
+    }
+    return [-1, false]
+}
+
 c_struct_of :: fn(origin: MonoEntry) -> string {
     d :: origin.decl
     if d !is StructDecl {

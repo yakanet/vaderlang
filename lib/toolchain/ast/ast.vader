@@ -313,6 +313,26 @@ export StructField :: struct {
     visibility: Visibility
     // Optional default value used when a struct literal omits this field.
     default:    Expr | null
+    /// `@c_size(N, .Os)` occurrences, as written. `target_select` keeps the one
+    /// matching the build target ; the rest describe other systems.
+    c_sizes:    CSizeSelector[] = []
+    /// Set when the field declared `@c_size` for other systems but none for the
+    /// one being built. Distinct from an empty `c_sizes`, which means the field
+    /// was never annotated and is checked exactly — a system nobody thought
+    /// about must not read as a system that was checked.
+    c_size_missing: bool = false
+}
+
+/// One `@c_size(N, .Os)` on a mirrored struct's field: the width the C field has
+/// on that system.
+///
+/// `bytes = 0` means the field does NOT exist there — it is then skipped by the
+/// marshalling rather than checked.
+export CSizeSelector :: struct {
+    span:  Span
+    bytes: u64
+    /// Variant name as written (`"Darwin"`), resolved by `target_select`.
+    os:    string
 }
 
 // ---- Enum -----------------------------------------------------------------

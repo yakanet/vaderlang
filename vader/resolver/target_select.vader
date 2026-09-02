@@ -411,12 +411,43 @@ is_host_bound :: fn(fd: AST.FnDecl) -> bool {
 span_origin :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}"
 
 // What a declaration becomes for this target: itself, a merge, or nothing.
+/// Drop every `@c_size` a field declares for another system, keeping the one
+/// written for the build target.
+///
+/// A field with none is left alone: downstream then checks its width against the
+/// C field exactly. A field that declares some but none for THIS target keeps an
+/// empty list, which is what the typechecker reports — a system nobody thought
+/// about must not read as a system that was checked.
+///
+/// @param sd      the struct declaration, mutated in place.
+/// @param target  the system being built for.
+keep_target_c_sizes :: fn(sd: AST.StructDecl, target: Target) -> void {
+    for f in sd.fields {
+        if f.c_sizes.len() == 0 {
+            continue
+        }
+        kept: AST.CSizeSelector[]! = []
+        for sel in f.c_sizes {
+            os :: parse_os(sel.os.to_lower())
+            if os != null && os == target.os {
+                kept.push(sel)
+            }
+        }
+        f.c_sizes = kept
+        f.c_size_missing = kept.len() == 0
+    }
+}
+
 resolve_decl :: fn(
     d: AST.Decl,
     target: Target,
     winners: MutableMap<string, AST.FnDecl>,
     bare: MutableMap<string, bool>,
 ) -> AST.Decl | null {
+    if d is AST.StructDecl as sd {
+        keep_target_c_sizes(sd, target)
+        return d
+    }
     if d is AST.FnDecl as fd {
         sel :: target_selectors(fd.decorators)
         if sel == null {

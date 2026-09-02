@@ -1,0 +1,35 @@
+module "snippet"
+
+import "std/io"
+
+// One mirror for both systems. `mode_t` is 2 bytes on Darwin and 4 on Linux, so
+// the Vader field is the wider of the two and `@c_size` states what C actually
+// has — which `cc` then checks. The mirror is PARTIAL: `struct stat` is 144
+// bytes of which nothing else is declared, and nothing else is copied.
+@c_struct("struct stat")
+Stat :: struct {
+    @c_size(2, .Darwin)
+    @c_size(4, .Linux)
+    st_mode: u32,
+}
+
+@c_header("<sys/stat.h>")
+@extern("stat")
+sys_stat :: fn(path: string, @c_pointer st: Stat!) -> i32
+
+S_IFMT:  u32 : 0xF000
+S_IFDIR: u32 : 0x4000
+
+is_dir_probe :: fn(path: string) -> bool {
+    st :: Stat { .st_mode = 0 }
+    if sys_stat(path, st) != 0 {
+        return false
+    }
+    return (st.st_mode & S_IFMT) == S_IFDIR
+}
+
+main :: fn() -> i32 {
+    println("dir=${is_dir_probe("/tmp")}")
+    println("missing=${is_dir_probe("/nope-xyz")}")
+    return 0
+}

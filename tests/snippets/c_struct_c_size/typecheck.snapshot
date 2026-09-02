@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/c_struct_c_size
+  FnDecl         is_dir_probe         :: fn(string) -> bool
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      S_IFDIR              :: u32
+  ConstDecl      S_IFMT               :: u32
+  StructDecl     Stat                 :: Stat!
+  FnDecl         sys_stat             :: fn(string, Stat!) -> i32
+  expr 24:11    StructLitExpr  :: Stat!
+  expr 25:17    IdentExpr      :: string
+  expr 25:23    IdentExpr      :: Stat!
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     CallExpr       :: i32
+  expr 25:8     IdentExpr      :: fn(string, Stat!) -> i32
+  expr 28:13    BinaryExpr     :: bool
+  expr 28:13    BinaryExpr     :: u32
+  expr 28:13    FieldExpr      :: u32
+  expr 28:13    IdentExpr      :: Stat!
+  expr 28:26    IdentExpr      :: u32
+  expr 28:37    IdentExpr      :: u32
+  expr 32:13    StringLitExpr  :: string
+  expr 32:20    CallExpr       :: bool
+  expr 32:20    IdentExpr      :: fn(string) -> bool
+  expr 32:33    StringLitExpr  :: string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:24    CallExpr       :: bool
+  expr 33:24    IdentExpr      :: fn(string) -> bool
+  expr 33:37    StringLitExpr  :: string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void

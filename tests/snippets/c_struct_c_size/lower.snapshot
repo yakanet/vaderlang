@@ -1,0 +1,143 @@
+# Lower
+
+## snippet
+  struct snippet$Stat { st_mode: u32 }
+  fn snippet$sys_stat(path: string, st: Stat!) -> i32
+    <extern / signature only>
+  const snippet$S_IFMT: u32 =
+    int(61440) :u32
+  const snippet$S_IFDIR: u32 =
+    int(16384) :u32
+  fn snippet$is_dir_probe(path: string) -> bool
+    let st: Stat! =
+      Stat! {
+        st_mode: int(0) :u32
+      }
+    if :void
+      cond:
+        neq :bool
+          l:
+            call :i32
+              callee:
+                sys_stat :fn(string, Stat!) -> i32
+              arg0:
+                path :string
+              arg1:
+                st :Stat!
+          r:
+            int(0) :i32
+      then:
+        return false
+    return
+      eq :bool
+        l:
+          bitand :u32
+            l:
+              .st_mode :u32
+                st :Stat!
+            r:
+              int(61440) :u32
+        r:
+          int(16384) :u32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(9) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "dir=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      is_dir_probe :fn(string) -> bool
+                    arg0:
+                      "/tmp" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(13) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "missing=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      is_dir_probe :fn(string) -> bool
+                    arg0:
+                      "/nope-xyz" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    return int(0) :i32
