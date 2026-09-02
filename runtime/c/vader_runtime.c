@@ -701,7 +701,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
      * On Windows the CRT defaults stdout to TEXT mode, which translates every
      * `\n` to `\r\n` — that corrupts `dump` / `build` / `fmt` output (LF on
      * disk, CRLF on the wire) and every snapshot comparison. Force binary here,
-     * not just lazily in `vader_read_stdin` (which only `lsp` reaches). */
+     * not just lazily on the first stdin read. */
     vader_ensure_stdio_binary();
     if (g_atoms_initialized) return;
     g_atoms_initialized = 1;
@@ -3308,16 +3308,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 
 
-vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
-    char buf[4096];
-    if (fgets(buf, sizeof(buf), stdin) == NULL) {
-        return vader_box_string(err_tag, vader_string_new("EOF", 3));
-    }
-    size_t n = strlen(buf);
-    if (n > 0 && buf[n - 1] == '\n') n--;
-    return vader_box_string(ok_tag, vader_string_new(buf, n));
-}
-
 /* Switch stdin/stdout/stderr to binary mode on Windows. The CRT default is
  * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
  * length-prefixed binary transport (LSP, MCP, custom RPC) AND every `dump` /
@@ -3325,7 +3315,7 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
  * the VM's runtime-error / panic messages are diffed byte-for-byte by the
  * snapshot suite, and text-mode `\n`→`\r\n` on stderr makes every such line
  * mismatch by an invisible trailing `\r` on Windows. Called at program startup
- * (`vader_atom_init_with_comptime`) and at the first `vader_read_stdin` ;
+ * (`vader_atom_init_with_comptime`) and at the first stdin read ;
  * idempotent via the static flag. POSIX has no such concept — the helper is a
  * no-op there. */
 static int g_stdio_binary_ready = 0;
@@ -3345,49 +3335,11 @@ static void vader_ensure_stdio_binary(void) {
  * before `n` bytes is an error — the LSP transport relies on this
  * "exactly N bytes" contract for Content-Length framing. Forces binary
  * mode on first call so `\r\n` survives the read on Windows. */
-vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
-    vader_ensure_stdio_binary();
-    if (n == 0) {
-        return vader_box_string(ok_tag, vader_string_new("", 0));
-    }
-    char* buf = (char*) malloc(n + 1u);
-    if (buf == NULL) vader_trap("read_stdin: malloc failed");
-    size_t got = 0;
-    while (got < n) {
-        size_t r = fread(buf + got, 1, n - got, stdin);
-        if (r == 0) {
-            if (feof(stdin)) {
-                free(buf);
-                return vader_box_string(err_tag, vader_string_new("EOF", 3));
-            }
-            if (ferror(stdin)) {
-                free(buf);
-                return vader_box_string(err_tag, vader_string_new("stdin read error", 16));
-            }
-            /* No data, no EOF, no error — interrupted read. Retry. */
-            continue;
-        }
-        got += r;
-    }
-    return vader_box_string(ok_tag, vader_atom_intern_take(buf, n));
-}
-
-/* Switch stdin to unbuffered so `fread` (used by `vader_read_stdin`) issues an
- * exact `read()` with no readahead — keeping `poll(STDIN_FILENO)` consistent
- * with what the next `read_stdin` will consume. Without this, fread's userspace
- * buffer can swallow a queued frame and hide it from `poll()`, breaking the LSP
- * debounce (poll reports "idle" while a full frame already sits in the buffer).
- * A length-prefixed RPC server calls this once at startup, BEFORE any stdin
- * read — the streaming `vader run prog.virt` stdin path keeps its buffering. */
-void vader_set_stdin_unbuffered(void) {
-    setvbuf(stdin, NULL, _IONBF, 0);
-}
-
 /* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
  * Used by the LSP event loop to detect a quiescent edit window: drain the burst
- * of `didChange` notifications, then run the typecheck once. Relies on stdin
- * being unbuffered (`vader_set_stdin_unbuffered`) so the raw fd reflects the real
- * pending bytes. A hangup (peer closed the pipe) reports ready so the caller's
+ * of `didChange` notifications, then run the typecheck once. Vader reads stdin through
+ * `read(2)` rather than stdio, so the raw fd already reflects the real pending
+ * bytes. A hangup (peer closed the pipe) reports ready so the caller's
  * next read observes EOF rather than spinning. */
 vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
 #if defined(_WIN32)
@@ -3396,7 +3348,7 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
      * despite the name. It's instantaneous, so emulate the timeout by polling in
      * small Sleep slices; this loop only runs during the debounce settle window
      * (once per burst), never per byte. With unbuffered stdin
-     * (`vader_set_stdin_unbuffered`) the kernel pipe PeekNamedPipe inspects matches
+     * the kernel pipe PeekNamedPipe inspects matches
      * what the next `fread` will consume. */
     HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
     if (h == INVALID_HANDLE_VALUE || h == NULL) return 1; /* let the read attempt observe the state */
@@ -3726,7 +3678,7 @@ int32_t vader_terminal_columns(void) {
 
 /* Blocks for the FIRST byte, then returns whatever else is already queued, up to
  * `max`. Reads the raw descriptor rather than `fread` — stdio buffering and raw
- * mode fight, and `vader_read_stdin`'s "exactly n bytes" contract is the wrong
+ * mode fight, and the "exactly n bytes" contract of a framed read is the wrong
  * shape for keys. Returns "" on EOF or error, which the caller reads as "no more
  * input" and unwinds. */
 vader_string_t vader_terminal_read_keys(int32_t max) {

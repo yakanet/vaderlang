@@ -1170,7 +1170,6 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
 vader_bool_t   vader_is_dir(vader_string_t path);
 /* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
  * Idempotent; a finished or unknown handle is a no-op. */
@@ -1178,13 +1177,12 @@ void vader_spawn_kill(vader_i64_t handle);
 /* Read EXACTLY `n` bytes from stdin into a fresh string. Boxes the result
  * (success or `Error`). EOF before `n` bytes is reported as an error —
  * the LSP transport's Content-Length framing relies on this contract. */
-vader_box_t    vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag);
 /* Make stdin unbuffered so `poll(STDIN_FILENO)` stays consistent with what
- * `vader_read_stdin` will consume. Call once before any stdin read; intended
+ * the next stdin read will consume. Intended
  * for length-prefixed RPC servers (e.g. the LSP). */
-void           vader_set_stdin_unbuffered(void);
 /* True iff stdin has data ready within `timeout_ms` (0 = non-blocking poll).
- * Backs the LSP debounce; requires `vader_set_stdin_unbuffered` first. */
+ * Backs the LSP debounce; Vader reads stdin through `read(2)`, not stdio, so
+ * the raw fd already reflects the pending bytes. */
 vader_bool_t   vader_poll_stdin(int32_t timeout_ms);
 /* `read_dir` lists the immediate entries of `path` as a `[string]`. Entries
  * are returned in OS-provided order (POSIX `readdir`, Windows `FindNextFileA`)
@@ -1235,7 +1233,7 @@ vader_bool_t   vader_is_tty(int32_t stream);
  * `terminal_read_keys` blocks for the first byte then returns everything already
  * queued, up to `max`. That is what makes a lone ESC distinguishable from the
  * start of an arrow sequence without any timing. It reads the raw descriptor,
- * NOT `fread` — do not mix it with `vader_read_stdin` on one stream.
+ * NOT `fread` — do not mix it with a stdio read on one stream.
  *
  * `terminal_columns` reports the terminal width, or 0 when it cannot be
  * determined (not a terminal, or the query failed). */
