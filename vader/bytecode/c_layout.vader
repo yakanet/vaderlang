@@ -1,0 +1,86 @@
+// vader/bytecode/c_layout — where a mirrored struct's fields sit in the C type.
+//
+// The native backend never needs this: its shim declares a real C struct and
+// lets `cc` lay it out. The VM cannot — it has no compiler at hand — so it
+// builds the block itself, and needs to know where each field goes.
+//
+// The layout is COMPUTED from the declared field widths using the C rules
+// (natural alignment, trailing padding to the widest member) and then PINNED by
+// `_Static_assert` in the emitted C. So the arithmetic here is never trusted on
+// its own: if it diverges from what `cc` computes, the native build fails and
+// says which field. That is what makes it safe for the VM to rely on.
+//
+// It follows that a mirror must be EXHAUSTIVE for the VM path: a field left out
+// is padding this file cannot account for, and the size assertion catches it.
+
+module "vader/bytecode"
+
+// ---- layout ---------------------------------------------------------------
+
+/// Byte offsets of a mirrored struct's fields, and the total size.
+export CLayout :: struct {
+    /// One entry per field, in declaration order.
+    offsets: i64[]
+    /// `sizeof` the C type, trailing padding included.
+    size:    i64
+}
+
+/// The width a mirrored field occupies in the C struct.
+///
+/// `@c_size` wins when present — the C field may be narrower than the Vader one
+/// that receives it (`mode_t` is 2 bytes on Darwin against a `u32` mirror). With
+/// no annotation the two are the same width, which is what the emitter asserts.
+///
+/// @param f      the field.
+/// @param types  the module type table, to size the field's own type.
+/// @return       the width in bytes, `0` for a field absent on this system.
+export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 {
+    if f.c_size >= 0 {
+        return f.c_size
+    }
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+        return 0
+    }
+    t :: types[usize(f.type_index)]
+    if t is BcPrimitive as p {
+        return i64(size_of_val_type(p.val))
+    }
+    return 0
+}
+
+/// Lay a mirrored struct out the way a C compiler would.
+///
+/// Each field starts at the next multiple of its own width — the natural
+/// alignment every ABI we target uses for scalars — and the total is rounded up
+/// to the widest member, which is what produces the trailing padding.
+///
+/// A field of width `0` (`@c_size(0, …)`, absent on this system) takes no room
+/// and keeps the offset it would have had, so callers can index by position.
+///
+/// @param fields  the mirror's fields, in declaration order.
+/// @param types   the module type table.
+/// @return        the offsets and the total size.
+export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout {
+    offsets: i64[]! = []
+    at: i64 = 0
+    widest: i64 = 1
+    for f in fields {
+        w :: c_field_width(f, types)
+        if w == 0 {
+            offsets.push(at)
+            continue
+        }
+        if w > widest {
+            widest = w
+        }
+        rem :: at % w
+        if rem != 0 {
+            at += w - rem
+        }
+        offsets.push(at)
+        at += w
+    }
+    tail :: at % widest
+    total :: if tail == 0 { at } else { at + widest - tail }
+    return CLayout { .offsets = offsets, .size = total }
+}

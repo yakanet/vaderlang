@@ -16,15 +16,24 @@
     },
     {
       "kind": "StructDecl",
-      "name": "Stat",
+      "name": "TimeVal",
       "visibility": "private",
       "typeParams": [],
       "fields": [
         {
-          "name": "st_mode",
+          "name": "tv_sec",
           "type": {
             "kind": "IdentExpr",
-            "name": "u32"
+            "name": "i64"
+          },
+          "visibility": "public",
+          "default": null
+        },
+        {
+          "name": "tv_usec",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i64"
           },
           "visibility": "public",
           "default": null
@@ -39,7 +48,7 @@
               "parts": [
                 {
                   "kind": "text",
-                  "value": "struct stat"
+                  "value": "struct timeval"
                 }
               ]
             }
@@ -49,26 +58,34 @@
     },
     {
       "kind": "FnDecl",
-      "name": "sys_stat",
+      "name": "sys_gettimeofday",
       "visibility": "private",
       "typeParams": [],
       "params": [
         {
-          "name": "path",
+          "name": "tv",
           "type": {
-            "kind": "IdentExpr",
-            "name": "string"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "TimeVal"
+            }
           },
           "defaultValue": null,
           "variadic": false
         },
         {
-          "name": "st",
+          "name": "tz",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
               "kind": "IdentExpr",
-              "name": "Stat"
+              "name": "CPointer"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
             }
           },
           "defaultValue": null,
@@ -89,7 +106,7 @@
               "parts": [
                 {
                   "kind": "text",
-                  "value": "<sys/stat.h>"
+                  "value": "<sys/time.h>"
                 }
               ]
             }
@@ -103,175 +120,13 @@
               "parts": [
                 {
                   "kind": "text",
-                  "value": "stat"
+                  "value": "gettimeofday"
                 }
               ]
             }
           ]
         }
       ]
-    },
-    {
-      "kind": "ConstDecl",
-      "name": "S_IFMT",
-      "visibility": "private",
-      "type": {
-        "kind": "IdentExpr",
-        "name": "u32"
-      },
-      "value": {
-        "kind": "IntLitExpr",
-        "value": "61440n"
-      },
-      "decorators": []
-    },
-    {
-      "kind": "ConstDecl",
-      "name": "S_IFDIR",
-      "visibility": "private",
-      "type": {
-        "kind": "IdentExpr",
-        "name": "u32"
-      },
-      "value": {
-        "kind": "IntLitExpr",
-        "value": "16384n"
-      },
-      "decorators": []
-    },
-    {
-      "kind": "FnDecl",
-      "name": "is_dir_probe",
-      "visibility": "private",
-      "typeParams": [],
-      "params": [
-        {
-          "name": "path",
-          "type": {
-            "kind": "IdentExpr",
-            "name": "string"
-          },
-          "defaultValue": null,
-          "variadic": false
-        }
-      ],
-      "returnType": {
-        "kind": "IdentExpr",
-        "name": "bool"
-      },
-      "body": {
-        "kind": "BlockExpr",
-        "stmts": [
-          {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "st"
-            },
-            "type": null,
-            "value": {
-              "kind": "StructLitExpr",
-              "typeName": {
-                "kind": "IdentExpr",
-                "name": "Stat"
-              },
-              "items": [
-                {
-                  "kind": "field",
-                  "name": "st_mode",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "IfExpr",
-              "cond": {
-                "kind": "BinaryExpr",
-                "op": "neq",
-                "left": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "sys_stat"
-                  },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "IdentExpr",
-                        "name": "path"
-                      },
-                      "spread": false
-                    },
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "IdentExpr",
-                        "name": "st"
-                      },
-                      "spread": false
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "0n"
-                }
-              },
-              "then": {
-                "kind": "BlockExpr",
-                "stmts": [
-                  {
-                    "kind": "ReturnStmt",
-                    "value": {
-                      "kind": "BoolLitExpr",
-                      "value": false
-                    }
-                  }
-                ],
-                "trailing": null
-              },
-              "else": null
-            }
-          },
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "BinaryExpr",
-              "op": "eq",
-              "left": {
-                "kind": "BinaryExpr",
-                "op": "bitand",
-                "left": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "st"
-                  },
-                  "field": "st_mode"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "S_IFMT"
-                }
-              },
-              "right": {
-                "kind": "IdentExpr",
-                "name": "S_IFDIR"
-              }
-            }
-          }
-        ],
-        "trailing": null
-      },
-      "decorators": []
     },
     {
       "kind": "FnDecl",
@@ -286,6 +141,73 @@
       "body": {
         "kind": "BlockExpr",
         "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "tv"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "TimeVal"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "tv_sec",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "0n"
+                  }
+                },
+                {
+                  "kind": "field",
+                  "name": "tv_usec",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "0n"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "rc"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "sys_gettimeofday"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "tv"
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "NullLitExpr"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
           {
             "kind": "ExprStmt",
             "expr": {
@@ -302,31 +224,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "dir="
+                        "value": "rc="
                       },
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "IdentExpr",
-                            "name": "is_dir_probe"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "/tmp"
-                                  }
-                                ]
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "kind": "IdentExpr",
+                          "name": "rc"
                         }
                       }
                     ]
@@ -352,31 +256,89 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "missing="
+                        "value": "epoch="
                       },
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "IdentExpr",
-                            "name": "is_dir_probe"
+                          "kind": "BinaryExpr",
+                          "op": "gt",
+                          "left": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "tv"
+                            },
+                            "field": "tv_sec"
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "/nope-xyz"
-                                  }
-                                ]
+                          "right": {
+                            "kind": "IntLitExpr",
+                            "value": "1600000000n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "usec_in_range="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "BinaryExpr",
+                          "op": "and",
+                          "left": {
+                            "kind": "BinaryExpr",
+                            "op": "gte",
+                            "left": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "tv"
                               },
-                              "spread": false
+                              "field": "tv_usec"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
                             }
-                          ]
+                          },
+                          "right": {
+                            "kind": "BinaryExpr",
+                            "op": "lt",
+                            "left": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "tv"
+                              },
+                              "field": "tv_usec"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "1000000n"
+                            }
+                          }
                         }
                       }
                     ]

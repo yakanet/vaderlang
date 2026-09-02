@@ -61,7 +61,7 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // real header — refuses to compile a Vader struct whose layout drifts from
     // the one the library actually declares. `cc` IS the consumer: the check is
     // spent entirely at build time, and nothing reads it at run time.
-    asserts :: c_struct_layout_asserts(ctx.module.types)
+    asserts :: c_struct_layout_asserts(ctx.module.types, mirror_directions(ctx.module))
     if asserts.len() > 0 {
         out.append("// `@c_struct` layout — checked against the real headers.\n")
         for a in asserts { out.append("${a}\n") }
@@ -69,6 +69,59 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
     for s in shims { out.append("${s}\n") }
     out.append("\n")
+}
+
+/// Which way a mirrored struct's fields are copied, across a module's imports.
+MirrorDirection :: enum(u8) {
+    /// `@c_pointer st: T!` — the callee fills the C struct and the shim copies
+    /// OUT of it, so a wider Vader field only ever receives an extension.
+    CWrites,
+    /// `@c_pointer req: T` — the shim copies INTO the C struct before the call,
+    /// so a wider Vader field would be truncated on the way.
+    CReads,
+    /// Both, which leaves only exactness.
+    Both,
+}
+
+/// The direction each mirrored struct crosses in, keyed by type index.
+///
+/// Only `@c_size`-annotated fields consult this: an unannotated field is checked
+/// exactly whichever way it travels. A struct absent from the result never
+/// crosses at all.
+///
+/// @param module  the bytecode module whose imports are scanned.
+mirror_directions :: fn(module: BytecodeModule) -> MutableMap<i32, MirrorDirection> {
+    out :: MutableMap<i32, MirrorDirection> {}
+    for imp in module.imports {
+        if !imp.is_extern {
+            continue
+        }
+        for j in 0..<imp.signature.params.len() {
+            // A `.virt` re-read carries no `param_types`; nothing is detected and
+            // nothing is asserted, which degrades to unchecked rather than wrong.
+            if j >= imp.signature.param_types.len() {
+                continue
+            }
+            ti :: imp.signature.param_types[j]
+            if mirrored_c_struct(module.types, ti) == "" {
+                continue
+            }
+            here :: if param_is_mutable(imp.signature, j) {
+                MirrorDirection.CWrites
+            } else {
+                MirrorDirection.CReads
+            }
+            seen :: out[ti]
+            if seen is MirrorDirection as prev {
+                if prev != here {
+                    out[ti] = .Both
+                }
+            } else {
+                out[ti] = here
+            }
+        }
+    }
+    return out
 }
 
 /// `_Static_assert` lines pinning each mirrored field's width to the C field it
@@ -86,10 +139,10 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 ///
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.
-c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
+c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirection>) -> string[] {
     out: string[]! = []
-    for i in 0..<types.len() {
-        t :: types[i]
+    for type_index in 0..<types.len() {
+        t :: types[type_index]
         if t !is BcStruct {
             continue
         }
@@ -100,8 +153,21 @@ c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
             continue
         }
         vt :: struct_c_name(t.name)
-        for f in t.fields {
+        // The layout the VM will compute for itself, pinned here. `cc` owns the
+        // real one, so a divergence fails the native build and names the field
+        // rather than letting the interpreter write at a wrong offset.
+        layout :: c_struct_layout(t.fields, types)
+        out.push(
+            "_Static_assert(sizeof(${t.c_name}) == ${layout.size}, \"${t.c_name} size\");",
+        )
+        for field_index in 0..<t.fields.len() {
+            f :: t.fields[field_index]
             cf :: c_field_name(f)
+            if f.c_size != 0 {
+                out.push(
+                    "_Static_assert(offsetof(${t.c_name}, ${cf}) == ${layout.offsets[field_index]}, \"${t.c_name}.${cf} offset\");",
+                )
+            }
             if f.c_size == 0 {
                 // `@c_size(0, …)`: the field does not exist on this system, so
                 // there is nothing to compare and nothing to copy.
@@ -115,8 +181,17 @@ c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
                 out.push(
                     "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) == ${f.c_size}, \"${t.c_name}.${cf} width\");",
                 )
+                // `<=` only where C WRITES: the shim then copies out of the C
+                // field, and a wider Vader field receives an extension. Where C
+                // READS, the copy runs the other way and a wider Vader field
+                // would be truncated — so exactness is the only safe reading.
+                fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
+                    .CWrites -> "<="
+                    .CReads  -> "=="
+                    .Both    -> "=="
+                }
                 out.push(
-                    "_Static_assert(${f.c_size} <= sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf} fits\");",
+                    "_Static_assert(${f.c_size} ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf} fits\");",
                 )
                 continue
             }

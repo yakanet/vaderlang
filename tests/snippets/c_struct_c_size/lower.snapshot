@@ -1,45 +1,23 @@
 # Lower
 
 ## snippet
-  struct snippet$Stat { st_mode: u32 }
-  fn snippet$sys_stat(path: string, st: Stat!) -> i32
+  struct snippet$TimeVal { tv_sec: i64, tv_usec: i64 }
+  fn snippet$sys_gettimeofday(tv: TimeVal!, tz: CPointer | null) -> i32
     <extern / signature only>
-  const snippet$S_IFMT: u32 =
-    int(61440) :u32
-  const snippet$S_IFDIR: u32 =
-    int(16384) :u32
-  fn snippet$is_dir_probe(path: string) -> bool
-    let st: Stat! =
-      Stat! {
-        st_mode: int(0) :u32
-      }
-    if :void
-      cond:
-        neq :bool
-          l:
-            call :i32
-              callee:
-                sys_stat :fn(string, Stat!) -> i32
-              arg0:
-                path :string
-              arg1:
-                st :Stat!
-          r:
-            int(0) :i32
-      then:
-        return false
-    return
-      eq :bool
-        l:
-          bitand :u32
-            l:
-              .st_mode :u32
-                st :Stat!
-            r:
-              int(61440) :u32
-        r:
-          int(16384) :u32
   fn snippet$main() -> i32
+    let tv: TimeVal! =
+      TimeVal! {
+        tv_sec: int(0) :i64
+        tv_usec: int(0) :i64
+      }
+    let rc: i32 =
+      call :i32
+        callee:
+          sys_gettimeofday :fn(TimeVal!, CPointer | null) -> i32
+        arg0:
+          tv :TimeVal!
+        arg1:
+          null
     call :void
       callee:
         std_io$println__string :void
@@ -50,7 +28,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(9) :usize
+                int(23) :usize
           let __off_1: usize = int(0) :usize
           assign
             target:
@@ -64,24 +42,21 @@
                 arg1:
                   __off_1 :usize
                 arg2:
-                  "dir=" :string
+                  "rc=" :string
           assign
             target:
               __off_1 :usize
             value:
               call :usize
                 callee:
-                  write_bool :usize
+                  write_int :usize
                 arg0:
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
                 arg2:
-                  call :bool
-                    callee:
-                      is_dir_probe :fn(string) -> bool
-                    arg0:
-                      "/tmp" :string
+                  cast → i64
+                    rc :i32
           ~>
             call :string
               callee:
@@ -100,7 +75,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(13) :usize
+                int(11) :usize
           let __off_3: usize = int(0) :usize
           assign
             target:
@@ -114,7 +89,7 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  "missing=" :string
+                  "epoch=" :string
           assign
             target:
               __off_3 :usize
@@ -127,11 +102,12 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  call :bool
-                    callee:
-                      is_dir_probe :fn(string) -> bool
-                    arg0:
-                      "/nope-xyz" :string
+                  gt :bool
+                    l:
+                      .tv_sec :i64
+                        tv :TimeVal!
+                    r:
+                      int(1600000000) :i64
           ~>
             call :string
               callee:
@@ -140,4 +116,64 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(19) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "usec_in_range=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  and :bool
+                    l:
+                      gte :bool
+                        l:
+                          .tv_usec :i64
+                            tv :TimeVal!
+                        r:
+                          int(0) :i64
+                    r:
+                      lt :bool
+                        l:
+                          .tv_usec :i64
+                            tv :TimeVal!
+                        r:
+                          int(1000000) :i64
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     return int(0) :i32

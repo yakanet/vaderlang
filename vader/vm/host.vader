@@ -578,14 +578,54 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     addr_slots: i64[]! = []
     data: u8[]! = []
     borrowed: LentArray[]! = []
+    lent_structs: LentStruct[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
         // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
         // carries that decorator too, and that branch reads a SCALAR. The shim
         // declares a real C struct and marshals by field name; nothing here can
         // build one at run time.
-        if v is StructVal {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a `@c_struct`, which only the native backend can marshal" }
+        if v is StructVal as sv {
+            fields :: mirrored_struct_fields(types, info.signature.param_types, i)
+            if fields == null {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a struct the type table does not describe" }
+            }
+            layout :: bc.c_struct_layout(fields, types)
+            // The block is what the native shim's `struct stat p1;` is: storage
+            // the callee writes through. Zero-filled, because padding the mirror
+            // does not describe still travels.
+            at :: data.len()
+            // Rounded up to a floor, deliberately. The block's size is COMPUTED
+            // from the declared fields, and only `cc` can confirm it matches the
+            // real type — which it does, through the `_Static_assert` the native
+            // build emits. A mirror that left a field out therefore fails to
+            // compile, but nothing stops `vader run` on its own, and the callee
+            // would then write past a block sized for a partial mirror. The
+            // floor turns that into wrong values instead of a buffer overrun.
+            room :: if usize(layout.size) > MIRROR_BLOCK_FLOOR {
+                usize(layout.size)
+            } else {
+                MIRROR_BLOCK_FLOOR
+            }
+            for _pad in 0..<room {
+                data.push(0)
+            }
+            for j in 0..<fields.len() {
+                w :: usize(bc.c_field_width(fields[j], types))
+                if w == 0 {
+                    continue
+                }
+                cell :: read_i64(sv.fields[j], at_pc, "extern `${info.extern_name}` field `${fields[j].name}`")
+                if cell is Trap { return cell }
+                write_little_endian(data, at + usize(layout.offsets[j]), cell.value, w)
+            }
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(at))
+            if param_mirror_is_mutable(info.signature, i) {
+                lent_structs.push(LentStruct { .target = sv, .at = at, .fields = fields })
+            }
+            continue
         }
         if extern_by_address(info.signature, i) {
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
@@ -686,6 +726,20 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             b.target.elements[slot] = retyped_int(b.target.elements[slot], written)
         }
     }
+    // Same reason as the arrays above: the block is a copy, so a callee that
+    // filled it has written somewhere the Vader struct cannot see.
+    for ls in lent_structs {
+        layout :: bc.c_struct_layout(ls.fields, types)
+        for j in 0..<ls.fields.len() {
+            w :: usize(bc.c_field_width(ls.fields[j], types))
+            if w == 0 {
+                continue
+            }
+            signed :: !bc.is_unsigned_val(field_val_type(types, ls.fields[j]))
+            written :: read_little_endian(frame, base + ls.at + usize(layout.offsets[j]), w, signed)
+            ls.target.fields[j] = retyped_int(ls.target.fields[j], written)
+        }
+    }
     if info.signature.result == bc.ValType.Void {
         return HostOk { .value = zero_value() }
     }
@@ -766,6 +820,71 @@ ffi_result_is_opt_string :: fn(types: bc.BcType[], result_type: i32) -> bool {
 
 /// One array lent to a foreign call, and where its bytes sit in the flat buffer
 /// — everything the write-back needs once the callee has returned.
+/// Smallest block a mirrored struct travels in. Sized past every system struct
+/// the standard library reaches (`struct stat` is 144 bytes, `termios` 72), so a
+/// mirror that under-describes its type cannot make the callee write out of
+/// bounds. The frame is per-call scratch, so the slack costs nothing that lasts.
+MIRROR_BLOCK_FLOOR: usize : 4096
+
+/// A `@c_struct` argument the callee writes through, to read back after the call.
+LentStruct :: struct {
+    target: StructVal
+    /// Offset of the block inside the frame's data area.
+    at:     usize
+    fields: bc.BcField[]
+}
+
+/// The mirrored struct's fields for parameter `i`, or `null` when the type table
+/// says nothing about it.
+///
+/// `param_types` is absent from a `.virt` re-read, which is why this returns an
+/// option rather than trapping on an index.
+mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -> bc.BcField[] | null {
+    if i >= param_types.len() {
+        return null
+    }
+    idx :: param_types[i]
+    if idx < 0 || usize(idx) >= types.len() {
+        return null
+    }
+    t :: types[usize(idx)]
+    if t !is bc.BcStruct {
+        return null
+    }
+    if t.c_name == "" {
+        return null
+    }
+    return t.fields
+}
+
+/// A mirrored field's own value class, for the sign of the read-back.
+field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+        return bc.ValType.I64
+    }
+    t :: types[usize(f.type_index)]
+    if t is bc.BcPrimitive as p {
+        return p.val
+    }
+    return bc.ValType.I64
+}
+
+/// Whether the callee writes through the mirrored struct at parameter `i`.
+param_mirror_is_mutable :: fn(sig: bc.BcSignature, i: usize) -> bool {
+    if i >= sig.param_mutable.len() {
+        return false
+    }
+    return sig.param_mutable[i]
+}
+
+/// Write `value` into `buf` at `at`, little-endian, over `width` bytes.
+write_little_endian :: fn(buf: u8[]!, at: usize, value: i64, width: usize) -> void {
+    v :: u64(value)
+    for k in 0..<width {
+        buf[at + k] = u8((v >> u64(k * 8)) & 0xFF)
+    }
+}
+
 LentArray :: struct {
     target: ArrayVal
     at:     usize
