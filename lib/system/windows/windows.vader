@@ -24,66 +24,66 @@ export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
-/// `GetModuleFileNameA`. Writes the running module's path into `buf` and
+/// `GetModuleFileNameW`. Writes the running module's path into `buf` and
 /// returns its length; 0 on failure, or `size` exactly when it was truncated.
 ///
 /// @param module  `null` for the running executable.
 @c_header("<windows.h>")
-@extern("kernel32", "GetModuleFileNameA")
+@extern("kernel32", "GetModuleFileNameW")
 export get_module_file_name :: fn(module: CPointer | null, buf: u8[]!, size: u32) -> u32
 
-/// `GetCurrentDirectoryA`. Writes the working directory into `buf` and returns
+/// `GetCurrentDirectoryW`. Writes the working directory into `buf` and returns
 /// its length; 0 on failure, or a length >= `size` when `buf` is too small.
 ///
-/// @param size  `buf`'s capacity in bytes.
+/// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
 /// @param buf   receives the path, NUL-terminated.
 @c_header("<windows.h>")
-@extern("kernel32", "GetCurrentDirectoryA")
+@extern("kernel32", "GetCurrentDirectoryW")
 export get_current_directory :: fn(size: u32, buf: u8[]!) -> u32
 
-/// `GetTempPathA`. Writes the temp directory, trailing backslash included, into
+/// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
 /// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
 /// too small — in both of which cases nothing usable was written.
 ///
-/// @param size  `buf`'s capacity in bytes.
+/// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
 /// @param buf   receives the path, NUL-terminated.
-/// @return      bytes written, excluding the NUL.
+/// @return      UTF-16 units written, excluding the NUL.
 @c_header("<windows.h>")
-@extern("kernel32", "GetTempPathA")
+@extern("kernel32", "GetTempPathW")
 export get_temp_path :: fn(size: u32, buf: u8[]!) -> u32
 
-/// `CreateDirectoryA`. False on failure, `ERROR_ALREADY_EXISTS` included — the
+/// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
 /// caller re-tests the path rather than reading `GetLastError`.
 ///
 /// @param path      directory to create.
 /// @param security  `lpSecurityAttributes`; `null` for the default descriptor.
 @c_header("<windows.h>")
-@extern("kernel32", "CreateDirectoryA")
-export create_directory :: fn(path: string, security: CPointer | null) -> bool
+@extern("kernel32", "CreateDirectoryW")
+export create_directory :: fn(path: u8[], security: CPointer | null) -> bool
 
 /// `FILE_ATTRIBUTE_DIRECTORY` — set when the entry is a directory.
 export FILE_ATTRIBUTE_DIRECTORY: u32 : 0x10
 
-/// What `GetFileAttributesA` returns for a path it cannot query.
+/// What `GetFileAttributesW` returns for a path it cannot query.
 export INVALID_FILE_ATTRIBUTES: u32 : 0xFFFF_FFFF
 
-/// `GetFileAttributesA`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
+/// `GetFileAttributesW`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
 /// queried — which is how existence is tested, there being no `access` here.
 ///
 /// @param path  the path to query.
 /// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
 @c_header("<windows.h>")
-@extern("kernel32", "GetFileAttributesA")
-export get_file_attributes :: fn(path: string) -> u32
+@extern("kernel32", "GetFileAttributesW")
+export get_file_attributes :: fn(path: u8[]) -> u32
 
-/// `DeleteFileA`. Zero on failure. Refuses a directory outright, which is the
+/// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
 /// behaviour `std/io::remove_file` promises.
 ///
 /// @param path  the file to delete.
 /// @return      non-zero on success.
 @c_header("<windows.h>")
-@extern("kernel32", "DeleteFileA")
-export delete_file :: fn(path: string) -> i32
+@extern("kernel32", "DeleteFileW")
+export delete_file :: fn(path: u8[]) -> i32
 
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
@@ -108,6 +108,109 @@ export delete_file :: fn(path: string) -> i32
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
                         @c_pointer written: u32, overlapped: CPointer | null) -> bool
+
+
+// ---- UTF-8 <-> UTF-16 -----------------------------------------------------
+// UTF-16 buffers cross as `u8[]`, never `u16[]`. The callee only ever receives
+// an address -- `MultiByteToWideChar` writes `WCHAR`s whatever Vader calls the
+// storage -- and no Vader code here inspects a unit: a path is produced by one
+// call and handed to the next. Declaring `u16[]` would add a `u16` PRIMITIVE to
+// the type table, and a primitive is interned early, so every index behind it
+// shifts and the seed's shared header stops matching across targets. A struct
+// that only one target has (`LinuxStat`) lands at the END of the table and
+// shifts nothing, which is why that asymmetry is already tolerated.
+//
+// The corollary: every LENGTH below is in UTF-16 UNITS, while every buffer is
+// sized in BYTES -- twice the units.
+
+//
+// Every Win32 entry point comes in two flavours. The `A` one takes the system's
+// ANSI code page, so a path holding anything outside it -- `C:\Users\Zoé` --
+// arrives mangled or not at all, while Vader strings are UTF-8. The `W` one
+// takes UTF-16 and is exact, at the cost of converting on the way in and out.
+
+/// `CP_UTF8` — the code page identifier for UTF-8.
+export CP_UTF8: u32 : 65001
+
+/// `MultiByteToWideChar`. With `src_len` of `-1` the input is read up to its NUL
+/// and the terminator is written too, so the result is usable as `LPCWSTR`.
+///
+/// @param dst      receives the UTF-16 units; may be empty when `dst_len` is 0.
+/// @param dst_len  `dst`'s capacity in UTF-16 units, or 0 to measure.
+/// @return         units written (or required, when measuring); 0 on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "MultiByteToWideChar")
+export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, src_len: i32,
+                                     dst: u8[]!, dst_len: i32) -> i32
+
+/// `WideCharToMultiByte`. The two trailing `lpDefaultChar` / `lpUsedDefaultChar`
+/// arguments must be null for `CP_UTF8`; Windows fails the call otherwise.
+///
+/// @param src_len  units to read, or `-1` for a NUL-terminated input.
+/// @param dst_len  `dst`'s capacity in bytes, or 0 to measure.
+/// @return         bytes written (or required, when measuring); 0 on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "WideCharToMultiByte")
+export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u8[], src_len: i32,
+                                     dst: u8[]!, dst_len: i32,
+                                     default_char: CPointer | null,
+                                     used_default: CPointer | null) -> i32
+
+// ---- files ----------------------------------------------------------------
+
+/// `INVALID_HANDLE_VALUE`, as the machine word `isize(handle)` yields. Win32
+/// reports a failed `CreateFileW` with this and NOT with NULL, which is why the
+/// handle is tested through `isize` rather than a `CPointer | null`.
+export INVALID_HANDLE: isize : -1
+
+/// `dwDesiredAccess` bits.
+export GENERIC_READ: u32 : 0x8000_0000
+
+/// See `GENERIC_READ`.
+export GENERIC_WRITE: u32 : 0x4000_0000
+
+/// `dwShareMode` — let other readers in while we hold the file.
+export FILE_SHARE_READ: u32 : 0x1
+
+/// `dwCreationDisposition` — truncate an existing file, create it otherwise.
+export CREATE_ALWAYS: u32 : 2
+
+/// See `CREATE_ALWAYS` — open only what already exists.
+export OPEN_EXISTING: u32 : 3
+
+/// `dwFlagsAndAttributes` — no special semantics.
+export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
+
+/// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// `isize(h) == INVALID_HANDLE`, never against null.
+///
+/// Unlike `fopen` there is no text mode, so nothing ever rewrites a `\n`.
+///
+/// @param path         UTF-16, NUL-terminated. Prefix `\\?\\` to pass MAX_PATH.
+/// @param security     `lpSecurityAttributes`; null for the default descriptor.
+/// @param template     `hTemplateFile`; always null here.
+@c_header("<windows.h>")
+@extern("kernel32", "CreateFileW")
+export create_file_w :: fn(path: u8[], access: u32, share: u32,
+                           security: CPointer | null, disposition: u32,
+                           flags: u32, template: CPointer | null) -> Handle
+
+/// `ReadFile`. False on failure; a synchronous read returning true with `read`
+/// short of `count` has reached end of file.
+///
+/// @param read        receives the byte count; a one-element array so it reads
+///                    back — Win32 forbids null here on a synchronous call.
+/// @param overlapped  always null: this is the synchronous form.
+@c_header("<windows.h>")
+@extern("kernel32", "ReadFile")
+export read_file :: fn(h: Handle, buf: u8[]!, count: u32, read: u32[]!,
+                       overlapped: CPointer | null) -> bool
+
+/// `CloseHandle`. False on failure, which a caller that is done with the file
+/// has nothing to do about.
+@c_header("<windows.h>")
+@extern("kernel32", "CloseHandle")
+export close_handle :: fn(h: Handle) -> bool
 
 // ---- clocks ---------------------------------------------------------------
 //

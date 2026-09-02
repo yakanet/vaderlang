@@ -536,19 +536,32 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             return 1
         }
     }
-    // The shared header must be identical across targets, and now can be: the
-    // `@extern` declarations and their shims — measured as the ONLY part a
-    // target changes — live in their own header, written below. Anything else
-    // diverging is a genuine surprise and has to stop the build, since taking
-    // target 0's on faith would compile the others against declarations that
-    // are not theirs and surface as a link error far from here.
-    if !all_equal(headers_of(progs)) {
-        eprintln("vader build --seed-targets: the targets emitted different SHARED headers, "
-            + "which only the imports header is expected to carry")
-        return 1
-    }
-    if write_out("${out}.split.h".to_path(), first.header) != 0 {
-        return 1
+    // The shared header USUALLY matches across targets, because the `@extern`
+    // declarations and their shims — the part a target changes most — live in
+    // their own header. It does not have to: the synthetic type names
+    // (`__Tuple_N`, `__lambda_env_N`) are numbered AFTER target selection, so a
+    // function reached by one target only shifts every id behind it and the
+    // header diverges by pure renumbering. `to_wide` / `from_wide`, called on
+    // Windows and dead-stripped elsewhere, moved the whole table by two.
+    //
+    // So it falls back the same way the imports header and the globals unit
+    // already do — one copy per target directory, found first on the include
+    // path — rather than refusing a build whose output is perfectly valid.
+    if all_equal(headers_of(progs)) {
+        if write_out("${out}.split.h".to_path(), first.header) != 0 {
+            return 1
+        }
+    } else {
+        for i in 0..<targets.len() {
+            target :: display_target(targets[i])
+            if ensure_target_dir(out, target) != 0 {
+                return 1
+            }
+            name :: "${canonicalise(out).filename()}.split.h"
+            if write_out("${out.parent()}/${target}/${name}".to_path(), progs[i].header) != 0 {
+                return 1
+            }
+        }
     }
     // The imports header keeps a fixed NAME, so the units never mention a
     // target. When the targets agree it sits beside the shared header; when
