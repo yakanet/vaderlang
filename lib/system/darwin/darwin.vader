@@ -1,0 +1,41 @@
+// system/darwin — the Darwin calls and layouts the standard library needs.
+//
+// Split from `system/posix` because POSIX does not define these: `struct stat`'s
+// layout is the system's own, and `_NSGetExecutablePath` is Darwin's answer to
+// `/proc/self/exe`. Sibling of `system/linux` and `system/windows`.
+
+module "system/darwin"
+
+/// `struct stat` as far as `st_mode`, on Darwin.
+///
+/// A PREFIX of the real type. The members past `st_mode` are `struct timespec`s,
+/// and a nested member has no nameable path — but nothing here needs them. A
+/// prefix only leaves out what FOLLOWS it, so the offsets are the real ones, and
+/// `cc` checks every one.
+///
+/// Darwin and Linux order these differently — `st_mode` sits before `st_ino`
+/// here and after it there — so `system/linux` carries its own mirror.
+@c_struct("struct stat")
+export DarwinStat :: struct {
+    st_dev:  u32,
+    st_mode: u16,
+}
+
+/// `stat(2)` on Darwin. 0 on success, -1 with `errno` set.
+///
+/// Declared once per system because the mirror it fills differs, which is what
+/// every language with an FFI does. `@target` cannot express it — it wants one
+/// shared signature — so this and `system/linux`'s carry distinct names, and
+/// `std/io::is_dir` picks by target.
+@c_header("<sys/stat.h>")
+@extern("stat")
+export sys_stat_darwin :: fn(path: string, @c_pointer st: DarwinStat!) -> i32
+
+/// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success; `size` is updated
+/// to the needed capacity when the buffer is too small.
+///
+/// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
+/// carry symlinks, so callers pass it through `realpath`.
+@c_header("<mach-o/dyld.h>")
+@extern("_NSGetExecutablePath")
+export ns_get_executable_path :: fn(buf: u8[]!, @c_pointer size: u32) -> i32

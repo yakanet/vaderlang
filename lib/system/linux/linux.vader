@@ -1,0 +1,24 @@
+// system/linux — the Linux layouts the standard library needs.
+//
+// Split from `system/posix` for the reason `system/darwin` is: POSIX fixes the
+// CALLS, not the layouts. `struct stat` orders its members differently here —
+// `st_mode` comes after `st_ino`, not before it.
+
+module "system/linux"
+
+/// `struct stat` as far as `st_mode`, on Linux.
+///
+/// A PREFIX of the real type, like its Darwin counterpart: the members past
+/// `st_mode` are unreachable and unneeded, and a prefix omits only what follows.
+@c_struct("struct stat")
+export LinuxStat :: struct {
+    st_dev:   u64,
+    st_ino:   u64,
+    st_nlink: u64,
+    st_mode:  u32,
+}
+
+/// `stat(2)`. 0 on success, -1 with `errno` set.
+@c_header("<sys/stat.h>")
+@extern("stat")
+export sys_stat_linux :: fn(path: string, @c_pointer st: LinuxStat!) -> i32

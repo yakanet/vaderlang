@@ -7,6 +7,8 @@ module "std/io"
 
 import "std/env"
 import "std/target"
+import "system/darwin"
+import "system/linux"
 import "system/posix"
 import "system/windows"
 

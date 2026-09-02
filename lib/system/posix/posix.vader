@@ -25,30 +25,6 @@ export CLOCK_REALTIME :: 0
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
-/// `struct stat` as far as `st_mode`, on Darwin.
-///
-/// A PREFIX of the real type. The members past `st_mode` are `struct timespec`s,
-/// and a nested member has no nameable path — but nothing here needs them. A
-/// prefix only leaves out what FOLLOWS it, so the offsets are the real ones, and
-/// `cc` checks every one.
-///
-/// Darwin and Linux order these differently — `st_mode` sits before `st_ino`
-/// there and after it here — so one mirror cannot serve both.
-@c_struct("struct stat")
-export DarwinStat :: struct {
-    st_dev:  u32,
-    st_mode: u16,
-}
-
-/// `struct stat` as far as `st_mode`, on Linux. See `DarwinStat`.
-@c_struct("struct stat")
-export LinuxStat :: struct {
-    st_dev:   u64,
-    st_ino:   u64,
-    st_nlink: u64,
-    st_mode:  u32,
-}
-
 /// The bits of `st_mode` carrying the file type. POSIX fixes the value, and
 /// Darwin and Linux agree on it.
 export S_IFMT: u32 : 0xF000
@@ -56,35 +32,12 @@ export S_IFMT: u32 : 0xF000
 /// `S_IFDIR` — the `S_IFMT` value naming a directory.
 export S_IFDIR: u32 : 0x4000
 
-/// `stat(2)` on Darwin. 0 on success, -1 with `errno` set.
-///
-/// Declared once per system because the mirror it fills differs, which is what
-/// every language with an FFI does. `@target` cannot express it — it wants one
-/// shared signature — so the two carry distinct names and `is_dir` picks.
-@c_header("<sys/stat.h>")
-@extern("stat")
-export sys_stat_darwin :: fn(path: string, @c_pointer st: DarwinStat!) -> i32
-
-/// `stat(2)` on Linux. See `sys_stat_darwin`.
-@c_header("<sys/stat.h>")
-@extern("stat")
-export sys_stat_linux :: fn(path: string, @c_pointer st: LinuxStat!) -> i32
-
 /// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
 ///
 /// Linux reads the running binary's path from `/proc/self/exe`.
 @c_header("<unistd.h>")
 @extern("readlink")
 export sys_readlink :: fn(path: string, buf: u8[]!, size: usize) -> isize
-
-/// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success; `size` is updated
-/// to the needed capacity when the buffer is too small.
-///
-/// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
-/// carry symlinks, so callers pass it through `realpath`.
-@c_header("<mach-o/dyld.h>")
-@extern("_NSGetExecutablePath")
-export ns_get_executable_path :: fn(buf: u8[]!, @c_pointer size: u32) -> i32
 
 /// `realpath(3)`. Writes the canonical path into `resolved` and returns it, or
 /// null on failure. `resolved` must hold at least `PATH_MAX` bytes.

@@ -12,8 +12,8 @@ type 9 array 2
 type 10 union 2,6
 type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:9 }
-type 13 primitive isize
-type 14 primitive u64
+type 13 primitive u64
+type 14 primitive isize
 type 15 array 11
 string 0 "sha256-empty="
 string 1 ""
@@ -33,7 +33,7 @@ data 2 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab9
 import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
 import 2 bytes std_core$bytes result_type=6 (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=14 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 12 Display
 export main 0
