@@ -25,6 +25,34 @@ import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
+/// `bytecode.snapshot.virt` is pinned to `SNAPSHOT_TARGET`, but this test
+/// EXECUTES it. On a host that is not that target the pinned bytecode carries
+/// another platform's `@target` bodies: Windows ran the LINUX `temp_dir()`,
+/// looked up `TMPDIR` -- a variable Windows does not set, it uses `TMP`/`TEMP`
+/// -- and fell back to `"/tmp"`, which does not exist there, so
+/// `ppm_roundtrip` reported `open failed`. macOS never noticed because
+/// `@target(.Linux, .Darwin)` share one body.
+///
+/// A snapshot's identity is its target; an execution's identity is its host.
+/// The two cannot be the same artefact, so off-target hosts re-emit for
+/// themselves and only the pinned host reuses the committed file.
+const HOST_IS_SNAPSHOT_TARGET = process.platform === "linux" && process.arch === "x64";
+
+/// The `.virt` to run: the committed one when the host IS the pinned target,
+/// a host-targeted re-emission otherwise.
+async function virtForHost(name: string, mainPath: string, pinned: string): Promise<string> {
+  if (HOST_IS_SNAPSHOT_TARGET) {
+    return pinned;
+  }
+  const dumped = await runCli(["dump", "--stage=bytecode", mainPath]);
+  if (dumped.exit !== 0) {
+    throw new Error(`vader-vm: could not emit host bytecode for ${name}\n${dumped.stderr}`);
+  }
+  const out = join(tmpdir(), `vader-vm-host-${name}.virt`);
+  writeFileSync(out, dumped.stdout);
+  return out;
+}
+
 /// Snippets whose `@extern` targets a symbol no Windows DLL exports, so the VM
 /// cannot resolve it even though the native build links it statically.
 const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_c_size"]);
@@ -332,7 +360,8 @@ for (const s of scenarios) {
     }
   }
   test.concurrent(`vader-vm: ${s.name}`, async () => {
-    const { stdout, stderr, exit } = await runCli(["run", virtPath]);
+    const runVirt = await virtForHost(s.name, s.mainPath, virtPath);
+    const { stdout, stderr, exit } = await runCli(["run", runVirt]);
     const actual = formatRun(stdout, stderr, exit);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {
