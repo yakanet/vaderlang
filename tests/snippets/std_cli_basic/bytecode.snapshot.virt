@@ -18,8 +18,8 @@ type 15 union 13,0
 type 16 struct std_collections$MutableMap__string__string { ekeys:11,evals:11,index:21,mask:4,size:4,tombs:4 }
 type 17 array 18
 type 18 struct cli$ValueSpec { name:2,help:2 }
-type 19 primitive isize
-type 20 union 0,2
+type 19 union 0,2
+type 20 primitive isize
 type 21 array 1
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
@@ -89,20 +89,20 @@ string 59 "parse_int: empty string"
 string 60 "parse_int: no digits"
 string 61 "parse_int: invalid digit"
 string 62 "parse_int: overflow"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 byte_at std_core$byte_at (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 3 bytes std_core$bytes (string) -> ref
-import 4 hash std_core$string$Hash$hash (string) -> u64
-import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 6 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
-import 7 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
-import 8 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
-import 9 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
-import 10 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
-import 11 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
-import 12 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
-import 13 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=7 (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
+import 3 bytes std_core$bytes result_type=8 (string) -> ref
+import 4 hash std_core$string$Hash$hash result_type=6 (string) -> u64
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 (i32,ref,usize) -> isize
+import 6 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 7 extern pow std_math$pow vm_callable header=<math.h> result_type=26 (f64,f64) -> f64
+import 8 extern floor std_math$floor vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 9 extern ceil std_math$ceil vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 10 extern round std_math$round vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 11 extern sin std_math$sin vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 12 extern cos std_math$cos vm_callable header=<math.h> result_type=26 (f64) -> f64
+import 13 extern tan std_math$tan vm_callable header=<math.h> result_type=26 (f64) -> f64
 impl 5 ByteAccess
 impl 16 Index
 impl 16 IndexSet

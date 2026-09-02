@@ -334,18 +334,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
         return HostOk { .value = NullVal {} }
     }
-    .IoExists -> {
-        path :: read_string(stack[arg_base], at_pc, "exists")
-        if path is Trap { return path }
-        return HostOk { .value = BoolVal { .value = exists(path.value) } }
-    }
     .IoIsDir -> {
         path :: read_string(stack[arg_base], at_pc, "is_dir")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
-    }
-    .IoTempDir -> {
-        return HostOk { .value = StringVal { .value = temp_dir() } }
     }
     .IoCurrentExecutableLocation -> {
         // Reached when a compile runs in the self-host VM: the resolver's
@@ -353,20 +345,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // stdlib-root resolution. Returns the VM process's own location; a
         // wrong sidecar just fails the marker check and falls back to cwd.
         return HostOk { .value = StringVal { .value = current_executable_location() } }
-    }
-    .IoCreateDir -> {
-        path :: read_string(stack[arg_base], at_pc, "create_dir")
-        if path is Trap { return path }
-        result :: create_dir(path.value)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
-    }
-    .IoRemoveFile -> {
-        path :: read_string(stack[arg_base], at_pc, "remove_file")
-        if path is Trap { return path }
-        result :: remove_file(path.value)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
     }
     .IoCurrentWorkingDirectory -> {
         // Same reason as the arm above: a compile running in the self-host VM
@@ -993,10 +971,10 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 // `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
 // reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
+    .IoIsDir | .IoReadDir | .IoReadFileBytes
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
         | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
-        | .IoCurrentWorkingDirectory | .IoCreateDir | .IoRemoveFile -> true
+        | .IoCurrentWorkingDirectory -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.

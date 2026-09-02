@@ -18,8 +18,9 @@ type 15 struct images_ppm$PpmError { msg:2 }
 type 16 union 13,15
 type 17 primitive u32
 type 18 struct images_ppm$ScanInt { value:17,pos:4,found:3 }
-type 19 primitive isize
-type 20 ref Error
+type 19 union 0,2
+type 20 primitive isize
+type 21 ref Error
 string 0 "/vader_ppm_roundtrip.ppm"
 string 1 "encode failed"
 string 2 "write failed"
@@ -27,32 +28,35 @@ string 3 "read failed"
 string 4 "decode failed"
 string 5 "OK"
 string 6 "MISMATCH"
-string 7 "\n"
-string 8 "ppm: maxval must be in 1..=65535, got "
-string 9 "ppm: pixels is "
-string 10 " bytes, expected "
-string 11 "P6\n"
-string 12 " "
-string 13 "ppm: not a P6 stream (bad magic)"
-string 14 "ppm: missing or invalid width"
-string 15 "ppm: missing or invalid height"
-string 16 "ppm: missing or invalid maxval"
-string 17 "ppm: missing whitespace after maxval"
-string 18 "ppm: raster is "
-string 19 "8-bit"
-string 20 "16-bit"
-string 21 "Ppm "
-string 22 "x"
-string 23 " maxval="
-string 24 " ("
-string 25 " bytes, "
-string 26 ")"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 read_file_bytes std_io$read_file_bytes (string) -> any
-import 3 write_file_bytes std_io$write_file_bytes (string,ref) -> any
-import 4 temp_dir std_io$temp_dir () -> string
-import 5 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+string 7 "TMPDIR"
+string 8 "/tmp"
+string 9 "\n"
+string 10 "ppm: maxval must be in 1..=65535, got "
+string 11 "ppm: pixels is "
+string 12 " bytes, expected "
+string 13 "P6\n"
+string 14 " "
+string 15 "ppm: not a P6 stream (bad magic)"
+string 16 "ppm: missing or invalid width"
+string 17 "ppm: missing or invalid height"
+string 18 "ppm: missing or invalid maxval"
+string 19 "ppm: missing whitespace after maxval"
+string 20 "ppm: raster is "
+string 21 "8-bit"
+string 22 "16-bit"
+string 23 "Ppm "
+string 24 "x"
+string 25 " maxval="
+string 26 " ("
+string 27 " bytes, "
+string 28 ")"
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
+import 2 bytes std_core$bytes result_type=8 (string) -> ref
+import 3 read_file_bytes std_io$read_file_bytes result_type=11 (string) -> any
+import 4 write_file_bytes std_io$write_file_bytes result_type=12 (string,ref) -> any
+import 5 extern getenv std_env$get_env header=<stdlib.h> result_type=19 (string) -> any
+import 6 extern write system_posix$sys_write header=<unistd.h> result_type=20 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Display
 impl 10 Error
@@ -70,7 +74,7 @@ fn 0 snippet$main () -> i32
   local i usize
   local $idx_81 u8
   local $idx_82 u8
-  call.import 4   ; std_io$temp_dir
+  call 6   ; std_io$temp_dir
   string.const 0   ; "/vader_ppm_roundtrip.ppm"
   call 1   ; concat_2
   local.set 0   ; path
@@ -93,12 +97,12 @@ fn 0 snippet$main () -> i32
   i32.const 255
   local.get 1   ; px
   struct.new 13   ; images_ppm$Ppm
-  call 9   ; images_ppm$encode
+  call 11   ; images_ppm$encode
   local.tee 2   ; enc
   type_check 15   ; images_ppm$PpmError
   if $L0 void
     string.const 1   ; "encode failed"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
     return.lit i32.const 1
   end $L0
   local.get 2   ; enc
@@ -106,30 +110,30 @@ fn 0 snippet$main () -> i32
   local.set 3   ; $cast_28
   local.get 0   ; path
   local.get 3   ; $cast_28
-  call.import 3   ; std_io$write_file_bytes
-  type_check 20   ; ref Error
+  call.import 4   ; std_io$write_file_bytes
+  type_check 21   ; ref Error
   if $L1 void
     string.const 2   ; "write failed"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
     return.lit i32.const 1
   end $L1
   local.get 0   ; path
-  call.import 2   ; std_io$read_file_bytes
+  call.import 3   ; std_io$read_file_bytes
   local.tee 2   ; enc
-  type_check 20   ; ref Error
+  type_check 21   ; ref Error
   if $L2 void
     string.const 3   ; "read failed"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
     return.lit i32.const 1
   end $L2
   local.get 2   ; enc
   ref.cast 8   ; -> u8[]
-  call 10   ; images_ppm$decode
+  call 12   ; images_ppm$decode
   local.tee 2   ; enc
   type_check 15   ; images_ppm$PpmError
   if $L3 void
     string.const 4   ; "decode failed"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
     return.lit i32.const 1
   end $L3
   local.get 2   ; enc
@@ -220,15 +224,15 @@ fn 0 snippet$main () -> i32
   end $L7
   local.get 2   ; enc
   ref.cast 13   ; -> images_ppm$Ppm
-  call 16   ; images_ppm$Ppm$Display$to_string
-  call 8   ; std_io$println__string
+  call 18   ; images_ppm$Ppm$Display$to_string
+  call 10   ; std_io$println__string
   local.get 4   ; ok
   if $L11 void
     string.const 5   ; "OK"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
   else
     string.const 6   ; "MISMATCH"
-    call 8   ; std_io$println__string
+    call 10   ; std_io$println__string
   end $L11
   return.lit i32.const 0
 end
@@ -251,11 +255,11 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 22   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 22   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 3   ; std_core$finish_buffer
@@ -264,14 +268,14 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 17   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 19   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 19   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 21   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -280,7 +284,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 22   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -303,7 +307,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 18   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 20   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -358,7 +362,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0   ; arg 0
         local.get 5   ; i
         local.get 7   ; $add_27
-        call 18   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 20   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         u64.div
@@ -374,7 +378,27 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 6 std_io$write (i32,string) -> void
+fn 6 std_io$temp_dir () -> string
+  local __coalesce_0 any
+  local if_res string
+  string.const 7   ; "TMPDIR"
+  call.import 5   ; std_env$get_env
+  local.tee 0   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    string.const 8   ; "/tmp"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; __coalesce_0
+    ref.cast 2   ; -> string
+    local.set 1   ; if_res
+  end $L0
+  local.get 1   ; if_res
+  call 8   ; std_io$without_trailing_sep
+  return
+end
+
+fn 7 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -384,7 +408,7 @@ fn 6 std_io$write (i32,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 1   ; std_core$bytes
+  call.import 2   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -411,7 +435,7 @@ fn 6 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 7   ; std_io$write_bytes
+        call 9   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -432,7 +456,88 @@ fn 6 std_io$write (i32,string) -> void
   return
 end
 
-fn 7 std_io$write_bytes (i32,ref,usize) -> i32
+fn 8 std_io$without_trailing_sep (string) -> string
+  local b ref
+  local trailing usize
+  local __for_hi_0 usize
+  local i usize
+  local last usize
+  local or_res bool
+  local.get 0   ; arg 0
+  call.import 2   ; std_core$bytes
+  local.set 1   ; b
+  i64.const 0
+  local.set 2   ; trailing
+  local.get 1   ; b
+  array.len
+  local.set 3   ; __for_hi_0
+  i64.const 0
+  local.set 4   ; i
+  block $L0 void
+    loop $L1 void
+      local.get 4   ; i
+      local.get 3   ; __for_hi_0
+      u64.lt
+      if $L2 void
+        local.get 1   ; b
+        array.len
+        i64.const 1
+        i64.sub
+        local.get 4   ; i
+        i64.sub
+        local.tee 5   ; last
+        i64.const 0
+        i64.eq
+        if $L3 void
+          bool.const true
+          local.set 6   ; or_res
+        else
+          local.get 1   ; b
+          local.get 5   ; last
+          array.get 8   ; u8[][]
+          ref.cast 7   ; -> u8
+          i32.const 47
+          i32.ne
+          local.set 6   ; or_res
+        end $L3
+        local.get 6   ; or_res
+        if $L4 void
+        else
+          local.get 2   ; trailing
+          i64.const 1
+          i64.add
+          local.set 2   ; trailing
+          local.get 4   ; i
+          i64.const 1
+          i64.add
+          local.set 4   ; i
+          br $L1
+        end $L4
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 2   ; trailing
+  i64.const 0
+  i64.eq
+  if $L5 void
+    local.get 0   ; arg 0
+    return
+  end $L5
+  local.get 1   ; b
+  array.len
+  local.get 2   ; trailing
+  i64.sub
+  local.set 2   ; trailing
+  local.get 1   ; b
+  i64.const 0
+  local.get 2   ; trailing
+  array.slice 8   ; u8[][]
+  call.import 1   ; std_core$bytes_to_string
+  return
+end
+
+fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -447,22 +552,22 @@ fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 6   ; system_posix$sys_write
   isize.to_i32
   return
 end
 
-fn 8 std_io$println__string (string) -> void
+fn 10 std_io$println__string (string) -> void
   i32.const 0
   local.get 0   ; arg 0
-  call 6   ; std_io$write
+  call 7   ; std_io$write
   i32.const 0
-  string.const 7   ; "\n"
-  call 6   ; std_io$write
+  string.const 9   ; "\n"
+  call 7   ; std_io$write
   return
 end
 
-fn 9 images_ppm$encode (ref) -> any
+fn 11 images_ppm$encode (ref) -> any
   local or_res bool
   local __buf_0 ref
   local __off_1 usize
@@ -493,7 +598,7 @@ fn 9 images_ppm$encode (ref) -> any
     local.set 3   ; __off_1
     local.get 2   ; __buf_0
     local.get 3   ; __off_1
-    string.const 8   ; "ppm: maxval must be in 1..=65535, got "
+    string.const 10   ; "ppm: maxval must be in 1..=65535, got "
     call 4   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.field 0 13 2   ; arg 0.maxval
@@ -513,7 +618,7 @@ fn 9 images_ppm$encode (ref) -> any
   end $L1
   local.field 0 13 2   ; arg 0.maxval
   ref.cast 17   ; -> u32
-  call 11   ; images_ppm$bytes_per_sample
+  call 13   ; images_ppm$bytes_per_sample
   local.set 3   ; __off_1
   local.field 0 13 0   ; arg 0.width
   ref.cast 17   ; -> u32
@@ -543,7 +648,7 @@ fn 9 images_ppm$encode (ref) -> any
     local.set 5   ; $cast_26
     local.get 2   ; __buf_0
     local.get 5   ; $cast_26
-    string.const 9   ; "ppm: pixels is "
+    string.const 11   ; "ppm: pixels is "
     call 4   ; std_core$write_string_at
     local.set 5   ; $cast_26
     local.field 0 13 3   ; arg 0.pixels
@@ -557,7 +662,7 @@ fn 9 images_ppm$encode (ref) -> any
     local.set 5   ; $cast_26
     local.get 2   ; __buf_0
     local.get 5   ; $cast_26
-    string.const 10   ; " bytes, expected "
+    string.const 12   ; " bytes, expected "
     call 4   ; std_core$write_string_at
     local.set 5   ; $cast_26
     local.get 3   ; __off_1
@@ -581,7 +686,7 @@ fn 9 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 11   ; "P6\n"
+  string.const 13   ; "P6\n"
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 13 0   ; arg 0.width
@@ -595,7 +700,7 @@ fn 9 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 12   ; " "
+  string.const 14   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 13 1   ; arg 0.height
@@ -609,7 +714,7 @@ fn 9 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 7   ; "\n"
+  string.const 9   ; "\n"
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 13 2   ; arg 0.maxval
@@ -623,13 +728,13 @@ fn 9 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 7   ; "\n"
+  string.const 9   ; "\n"
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 3   ; std_core$finish_buffer
-  call.import 1   ; std_core$bytes
+  call.import 2   ; std_core$bytes
   local.set 2   ; __buf_0
   array.new 8 0   ; u8[][]
   local.set 7   ; $arr_80
@@ -658,7 +763,7 @@ fn 9 images_ppm$encode (ref) -> any
   return
 end
 
-fn 10 images_ppm$decode (ref) -> any
+fn 12 images_ppm$decode (ref) -> any
   local or_res bool
   local p0 usize
   local w ref
@@ -704,23 +809,23 @@ fn 10 images_ppm$decode (ref) -> any
   end $L1
   local.get 1   ; or_res
   if $L2 void
-    string.const 13   ; "ppm: not a P6 stream (bad magic)"
+    string.const 15   ; "ppm: not a P6 stream (bad magic)"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L2
   local.get 0   ; arg 0
   i64.const 2
-  call 12   ; images_ppm$skip_ws
+  call 14   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 13   ; images_ppm$scan_uint
+  call 15   ; images_ppm$scan_uint
   local.set 3   ; w
   local.field 3 18 2   ; w.found
   ref.cast 3   ; -> bool
   bool.not
   if $L3 void
-    string.const 14   ; "ppm: missing or invalid width"
+    string.const 16   ; "ppm: missing or invalid width"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L3
@@ -729,17 +834,17 @@ fn 10 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 12   ; images_ppm$skip_ws
+  call 14   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 13   ; images_ppm$scan_uint
+  call 15   ; images_ppm$scan_uint
   local.set 4   ; h
   local.field 4 18 2   ; h.found
   ref.cast 3   ; -> bool
   bool.not
   if $L4 void
-    string.const 15   ; "ppm: missing or invalid height"
+    string.const 17   ; "ppm: missing or invalid height"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L4
@@ -748,17 +853,17 @@ fn 10 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 12   ; images_ppm$skip_ws
+  call 14   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 13   ; images_ppm$scan_uint
+  call 15   ; images_ppm$scan_uint
   local.set 5   ; mv
   local.field 5 18 2   ; mv.found
   ref.cast 3   ; -> bool
   bool.not
   if $L5 void
-    string.const 16   ; "ppm: missing or invalid maxval"
+    string.const 18   ; "ppm: missing or invalid maxval"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L5
@@ -785,7 +890,7 @@ fn 10 images_ppm$decode (ref) -> any
     local.set 2   ; p0
     local.get 6   ; __buf_0
     local.get 2   ; p0
-    string.const 8   ; "ppm: maxval must be in 1..=65535, got "
+    string.const 10   ; "ppm: maxval must be in 1..=65535, got "
     call 4   ; std_core$write_string_at
     local.set 2   ; p0
     local.field 5 18 0   ; mv.value
@@ -823,13 +928,13 @@ fn 10 images_ppm$decode (ref) -> any
     local.get 2   ; p0
     array.get 8   ; u8[][]
     ref.cast 7   ; -> u8
-    call 14   ; images_ppm$is_ws_byte
+    call 16   ; images_ppm$is_ws_byte
     bool.not
     local.set 1   ; or_res
   end $L8
   local.get 1   ; or_res
   if $L9 void
-    string.const 17   ; "ppm: missing whitespace after maxval"
+    string.const 19   ; "ppm: missing whitespace after maxval"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L9
@@ -840,7 +945,7 @@ fn 10 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.field 5 18 0   ; mv.value
   ref.cast 17   ; -> u32
-  call 11   ; images_ppm$bytes_per_sample
+  call 13   ; images_ppm$bytes_per_sample
   local.set 8   ; $len_67
   local.field 3 18 0   ; w.value
   ref.cast 17   ; -> u32
@@ -873,7 +978,7 @@ fn 10 images_ppm$decode (ref) -> any
     local.set 10   ; $cast_87
     local.get 6   ; __buf_0
     local.get 10   ; $cast_87
-    string.const 18   ; "ppm: raster is "
+    string.const 20   ; "ppm: raster is "
     call 4   ; std_core$write_string_at
     local.set 10   ; $cast_87
     local.get 9   ; $cast_85
@@ -886,7 +991,7 @@ fn 10 images_ppm$decode (ref) -> any
     local.set 10   ; $cast_87
     local.get 6   ; __buf_0
     local.get 10   ; $cast_87
-    string.const 10   ; " bytes, expected "
+    string.const 12   ; " bytes, expected "
     call 4   ; std_core$write_string_at
     local.set 10   ; $cast_87
     local.get 8   ; $len_67
@@ -935,7 +1040,7 @@ fn 10 images_ppm$decode (ref) -> any
   return
 end
 
-fn 11 images_ppm$bytes_per_sample (u32) -> usize
+fn 13 images_ppm$bytes_per_sample (u32) -> usize
   local if_res usize
   local.get 0   ; arg 0
   i32.const 256
@@ -951,7 +1056,7 @@ fn 11 images_ppm$bytes_per_sample (u32) -> usize
   return
 end
 
-fn 12 images_ppm$skip_ws (ref,usize) -> usize
+fn 14 images_ppm$skip_ws (ref,usize) -> usize
   local n usize
   local p usize
   local b u8
@@ -1006,7 +1111,7 @@ fn 12 images_ppm$skip_ws (ref,usize) -> usize
           br $L1
         end $L3
         local.get 4   ; b
-        call 14   ; images_ppm$is_ws_byte
+        call 16   ; images_ppm$is_ws_byte
         if $L8 void
           local.get 3   ; p
           i64.const 1
@@ -1024,7 +1129,7 @@ fn 12 images_ppm$skip_ws (ref,usize) -> usize
   return
 end
 
-fn 13 images_ppm$scan_uint (ref,usize) -> ref
+fn 15 images_ppm$scan_uint (ref,usize) -> ref
   local n usize
   local p usize
   local v u32
@@ -1049,7 +1154,7 @@ fn 13 images_ppm$scan_uint (ref,usize) -> ref
         local.get 3   ; p
         array.get 8   ; u8[][]
         ref.cast 7   ; -> u8
-        call 15   ; images_ppm$is_digit_byte
+        call 17   ; images_ppm$is_digit_byte
         local.set 5   ; and_res
       else
         bool.const false
@@ -1108,7 +1213,7 @@ fn 13 images_ppm$scan_uint (ref,usize) -> ref
   return
 end
 
-fn 14 images_ppm$is_ws_byte (u8) -> bool
+fn 16 images_ppm$is_ws_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 32
@@ -1166,7 +1271,7 @@ fn 14 images_ppm$is_ws_byte (u8) -> bool
   return
 end
 
-fn 15 images_ppm$is_digit_byte (u8) -> bool
+fn 17 images_ppm$is_digit_byte (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 48
@@ -1184,21 +1289,21 @@ fn 15 images_ppm$is_digit_byte (u8) -> bool
   return
 end
 
-fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
+fn 18 images_ppm$Ppm$Display$to_string (ref) -> string
   local depth string
   local $call_10 usize
   local __buf_1 ref
   local $cast_19 u64
   local.field 0 13 2   ; arg 0.maxval
   ref.cast 17   ; -> u32
-  call 11   ; images_ppm$bytes_per_sample
+  call 13   ; images_ppm$bytes_per_sample
   i64.const 1
   i64.eq
   if $L0 void
-    string.const 19   ; "8-bit"
+    string.const 21   ; "8-bit"
     local.set 1   ; depth
   else
-    string.const 20   ; "16-bit"
+    string.const 22   ; "16-bit"
     local.set 1   ; depth
   end $L0
   local.get 1   ; depth
@@ -1213,7 +1318,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 21   ; "Ppm "
+  string.const 23   ; "Ppm "
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 0   ; arg 0.width
@@ -1227,7 +1332,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 22   ; "x"
+  string.const 24   ; "x"
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 1   ; arg 0.height
@@ -1241,7 +1346,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 23   ; " maxval="
+  string.const 25   ; " maxval="
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 2   ; arg 0.maxval
@@ -1255,7 +1360,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 24   ; " ("
+  string.const 26   ; " ("
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 3   ; arg 0.pixels
@@ -1269,7 +1374,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 25   ; " bytes, "
+  string.const 27   ; " bytes, "
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
@@ -1279,7 +1384,7 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 26   ; ")"
+  string.const 28   ; ")"
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
@@ -1288,13 +1393,13 @@ fn 16 images_ppm$Ppm$Display$to_string (ref) -> string
   return
 end
 
-fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 19 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 20 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1302,14 +1407,14 @@ fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 21 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 22 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

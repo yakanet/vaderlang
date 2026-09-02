@@ -25,8 +25,8 @@ string 3 "inner body (unreached)"
 string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=17 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=18 (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 10 Async

@@ -21,8 +21,8 @@ string 1 "true"
 string 2 "false"
 string 3 "0"
 string 4 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=13 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 (i32,ref,usize) -> isize
 impl 1 Iterator
 impl 8 Contains
 impl 8 Iterator

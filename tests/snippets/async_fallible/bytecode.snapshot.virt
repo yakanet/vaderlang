@@ -24,9 +24,9 @@ string 1 "err: "
 string 2 "ok: "
 string 3 "denied"
 string 4 "\n"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=14 (string) -> usize
+import 1 bytes std_core$bytes result_type=18 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 (i32,ref,usize) -> isize
 impl 6 Async
 impl 10 Async
 impl 15 ByteAccess

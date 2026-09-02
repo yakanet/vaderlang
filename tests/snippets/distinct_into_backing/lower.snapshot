@@ -1,0 +1,29 @@
+# Lower
+
+## snippet
+  fn snippet$Tag$Into$into(self: Tag) -> string
+    ~>
+      cast → string
+        self :Tag
+  fn snippet$takes(s: string) -> string
+    ~>
+      s :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            takes :fn(string) -> string
+          arg0:
+            cast → Tag
+              "coerced" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        cast → string
+          cast → Tag
+            "unwrapped" :string
+    return int(0) :i32

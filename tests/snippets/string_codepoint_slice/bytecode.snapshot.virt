@@ -10,8 +10,8 @@ type 7 primitive isize
 string 0 "héllo"
 string 1 "hello"
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=5 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=7 (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32

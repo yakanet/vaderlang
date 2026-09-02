@@ -14,16 +14,16 @@ type 11 fn (1,1) -> 2
 type 12 primitive isize
 type 13 primitive f64
 string 0 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 2 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
-import 3 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
-import 4 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
-import 5 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
-import 6 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
-import 7 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
-import 8 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
-import 9 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 0 bytes std_core$bytes result_type=8 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=12 (i32,ref,usize) -> isize
+import 2 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 3 extern pow std_math$pow vm_callable header=<math.h> result_type=13 (f64,f64) -> f64
+import 4 extern floor std_math$floor vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 5 extern ceil std_math$ceil vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 6 extern round std_math$round vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 7 extern sin std_math$sin vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 8 extern cos std_math$cos vm_callable header=<math.h> result_type=13 (f64) -> f64
+import 9 extern tan std_math$tan vm_callable header=<math.h> result_type=13 (f64) -> f64
 impl 4 ByteAccess
 export main 1
 

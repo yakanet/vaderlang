@@ -12,8 +12,8 @@ string 1 "E"
 string 2 "S"
 string 3 "W"
 string 4 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=5 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=7 (i32,ref,usize) -> isize
 export main 1
 
 fn 0 snippet$Direction$Display$to_string (i32) -> string

@@ -14,10 +14,10 @@
   Race<T>
   Race<T>
   Race<T>
-  Any<U, E>
-  Any<U, E>
-  Any<U, E>
   ArrayOps<T>
+  Any<U, E>
+  Any<U, E>
+  Any<U, E>
   Timeout<T>
   Timeout<T>
   Timeout<T>

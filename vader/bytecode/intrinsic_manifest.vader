@@ -106,9 +106,9 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/io
-    IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
+    IoIsDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
     IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
-    IoCurrentWorkingDirectory, IoCreateDir, IoRemoveFile,
+    IoCurrentWorkingDirectory,
     // std/core string + bytes
     ByteLen, ByteAt,
     Bytes, BytesToString, StringIndexAt, StringHash,
@@ -149,9 +149,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
     if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
     if mangled == r"vader_vm$ffi_call"                    { return .FfiCall }
-    if mangled == r"std_io$exists"                       { return .IoExists }
     if mangled == r"std_io$is_dir"                       { return .IoIsDir }
-    if mangled == r"std_io$temp_dir"                     { return .IoTempDir }
     if mangled == r"std_io$read_dir"                     { return .IoReadDir }
     if mangled == r"std_io$read_file_bytes"              { return .IoReadFileBytes }
     if mangled == r"std_io$write_file_bytes"             { return .IoWriteFileBytes }
@@ -161,8 +159,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_io$set_stdin_unbuffered"         { return .IoSetStdinUnbuffered }
     if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
     if mangled == r"std_io$current_working_directory"     { return .IoCurrentWorkingDirectory }
-    if mangled == r"std_io$create_dir"                    { return .IoCreateDir }
-    if mangled == r"std_io$remove_file"                   { return .IoRemoveFile }
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
     if mangled == r"std_core$byte_at"                    { return .ByteAt }

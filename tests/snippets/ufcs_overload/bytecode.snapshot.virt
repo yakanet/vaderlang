@@ -12,8 +12,8 @@ type 9 array 8
 type 10 primitive void
 type 11 primitive isize
 string 0 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=9 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=11 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 1
 

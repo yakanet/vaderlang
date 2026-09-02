@@ -12,8 +12,8 @@ string 1 "Alice"
 string 2 "Hello"
 string 3 "Eve"
 string 4 "Hey"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 byte_at std_core$byte_at (string,usize) -> u8
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=6 (string,usize) -> u8
 impl 5 ByteAccess
 export main 3
 

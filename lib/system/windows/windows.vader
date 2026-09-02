@@ -24,6 +24,47 @@ export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
+/// `GetTempPathA`. Writes the temp directory, trailing backslash included, into
+/// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
+/// too small — in both of which cases nothing usable was written.
+///
+/// @param size  `buf`'s capacity in bytes.
+/// @param buf   receives the path, NUL-terminated.
+/// @return      bytes written, excluding the NUL.
+@c_header("<windows.h>")
+@extern("kernel32", "GetTempPathA")
+export get_temp_path :: fn(size: u32, buf: u8[]!) -> u32
+
+/// `CreateDirectoryA`. False on failure, `ERROR_ALREADY_EXISTS` included — the
+/// caller re-tests the path rather than reading `GetLastError`.
+///
+/// @param path      directory to create.
+/// @param security  `lpSecurityAttributes`; `null` for the default descriptor.
+@c_header("<windows.h>")
+@extern("kernel32", "CreateDirectoryA")
+export create_directory :: fn(path: string, security: CPointer | null) -> bool
+
+/// What `GetFileAttributesA` returns for a path it cannot query.
+export INVALID_FILE_ATTRIBUTES: u32 : 0xFFFF_FFFF
+
+/// `GetFileAttributesA`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
+/// queried — which is how existence is tested, there being no `access` here.
+///
+/// @param path  the path to query.
+/// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
+@c_header("<windows.h>")
+@extern("kernel32", "GetFileAttributesA")
+export get_file_attributes :: fn(path: string) -> u32
+
+/// `DeleteFileA`. Zero on failure. Refuses a directory outright, which is the
+/// behaviour `std/io::remove_file` promises.
+///
+/// @param path  the file to delete.
+/// @return      non-zero on success.
+@c_header("<windows.h>")
+@extern("kernel32", "DeleteFileA")
+export delete_file :: fn(path: string) -> i32
+
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
 /// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may

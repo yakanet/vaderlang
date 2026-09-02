@@ -18,8 +18,8 @@ string 4 "a\\b"
 string 5 "x"
 data 0 str "alpha" "beta" "gamma"
 data 1 str "a\\b" "x"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=7 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 

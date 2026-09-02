@@ -467,6 +467,16 @@ try_emit_into_coercion :: fn(
     // Identity-coercion guard : `T(value)` where `value: T` is a no-op
     // ; never inject `into(self)` against the surrounding type.
     if src_name == target_name { return null }
+    // Representation-unwrap guard : `P(value)` where `value : X` and `X :: P`
+    // EXTRACTS the backing, it does not convert — the two share a repr, so there
+    // is nothing to run. Without this, a newtype that implements `Into<P>` cannot
+    // be written at all: the body has no other way to reach its representation,
+    // so `P(self)` lifts to `into(self)` and recurses until the stack goes.
+    if arg_type is DistinctType as d {
+        if equals_type(d.backing, target_type) {
+            return null
+        }
+    }
     for entry in ctx.project.impls.all {
         decl :: entry.decl
         if decl.trait_name != TRAIT_INTO { continue }

@@ -1,5 +1,5 @@
 # stdout
-observed 10 module(s), built nothing
+observed 11 module(s), built nothing
 # stderr
 vader build: wrote <project>/build/driver/driver
 # exit

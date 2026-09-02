@@ -54,13 +54,13 @@ string 6 "failed: "
 string 7 "carts"
 string 8 "\n"
 string 9 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now () -> i64
-import 4 sched_arm std_runtime$sched_arm (i64) -> void
-import 5 sched_park std_runtime$sched_park () -> i32
-import 6 panic std_abort$panic (string) -> void
+import 0 byte_len std_core$byte_len result_type=18 (string) -> usize
+import 1 bytes std_core$bytes result_type=22 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=38 (i32,ref,usize) -> isize
+import 3 sched_now std_runtime$sched_now result_type=3 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=10 (i64) -> void
+import 5 sched_park std_runtime$sched_park result_type=6 () -> i32
+import 6 panic std_abort$panic result_type=10 (string) -> void
 impl 1 Error
 impl 7 Async
 impl 11 Async

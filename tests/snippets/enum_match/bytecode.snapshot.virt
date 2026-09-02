@@ -18,9 +18,9 @@ string 5 "error"
 string 6 "true"
 string 7 "false"
 string 8 "\n"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 bytes std_core$bytes result_type=7 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 3
 

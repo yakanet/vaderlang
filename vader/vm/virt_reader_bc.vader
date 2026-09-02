@@ -507,6 +507,7 @@ parse_import_decl_bc :: fn(
     // silently shift the others.
     c_header := ""
     vm_callable := false
+    result_type: i32 = 0
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
         if attr.starts_with("header=") {
@@ -515,11 +516,27 @@ parse_import_decl_bc :: fn(
         if attr == "vm_callable" {
             vm_callable = true
         }
+        if attr.starts_with("result_type=") {
+            parsed :: parse_int_in_base(attr.trim_prefix("result_type="), 10)
+            if parsed !is ParseError {
+                result_type = i32(parsed)
+            }
+        }
+    }
+    // The result's type index is carried as an attribute rather than by
+    // `write_signature`, which renders a union as `any` — so it is stitched back
+    // in here. Without it a `string | null` result reads as a plain word and the
+    // FFI hands the atom back as an integer.
+    final_sig :: bc.BcSignature {
+        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
+        .result_type = if result_type == 0 { sig.result_type } else { result_type },
+        .param_names = sig.param_names,
+        .param_mutable = sig.param_mutable, .param_by_address = sig.param_by_address,
     }
     imports.push(bc.BcImport {
         .extern_name  = extern_name,
         .mangled_name = mangled,
-        .signature    = sig,
+        .signature    = final_sig,
         .is_extern    = is_extern,
         .c_library    = c_library,
         .c_header     = c_header,

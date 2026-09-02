@@ -12,7 +12,7 @@ type 9 struct std_core$Range__usize { start:7,end:7,inclusive:4,cursor:7 }
 type 10 union 0,11
 type 11 struct std_core$Yield__usize { value:7 }
 type 12 union 0,7
-import 0 extern env:console_log snippet$log (i32,i32) -> void
+import 0 extern env:console_log snippet$log result_type=1 (i32,i32) -> void
 impl 3 Contains
 impl 3 Iterator
 impl 9 Contains

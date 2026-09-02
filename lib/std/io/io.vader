@@ -5,6 +5,8 @@
 
 module "std/io"
 
+import "std/env"
+import "std/target"
 import "system/posix"
 import "system/windows"
 
@@ -180,7 +182,54 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @return      `null` on success.
 /// @error       `IOError` when a component cannot be created — a parent that is
 ///              a file, a read-only mount, a path over 4096 bytes.
-@intrinsic export create_dir :: fn(path: string) -> null | IOError
+// Create one directory. True when it exists afterwards — an existing directory
+// is success. The platforms report "already there" differently (`EEXIST` /
+// `ERROR_ALREADY_EXISTS`) and neither says WHAT is there, so both re-ask rather
+// than read the error code: a regular file in the way must stay a failure.
+@target
+mkdir_one :: fn(path: string) -> bool
+
+@target(.Linux, .Darwin)
+mkdir_one :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0 || is_dir(path)
+
+@target(.Windows)
+mkdir_one :: fn(path: string) -> bool = create_directory(path, null) || is_dir(path)
+
+export create_dir :: fn(path: string) -> null | IOError {
+    b :: path.bytes()
+    if b.len() == 0 {
+        return IOError { .msg = "empty path" }
+    }
+    if b.len() >= 4096 {
+        return IOError { .msg = "path too long" }
+    }
+    // Each prefix in turn. From 1, so a leading `/` is a root and not a
+    // component, and repeated separators are skipped.
+    for i in 1..<b.len() {
+        if b[i] != '/' {
+            continue
+        }
+        if b[i - 1] == '/' {
+            continue
+        }
+        // `C:` is a root, not a component. `CreateDirectoryA("C:")` reports
+        // ERROR_ALREADY_EXISTS, and the re-test then asks about "the current
+        // directory ON DRIVE C:" — a per-drive notion that need not exist when
+        // the process works from another drive. A CI runner on `D:\a\...` with
+        // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
+        // where a directory may legitimately be named `a:`.
+        if VADER_OS == Os.Windows && i == 2 && b[1] == ':' {
+            continue
+        }
+        if !mkdir_one(b[0..<i].bytes_to_string()) {
+            return IOError { .msg = "cannot create parent" }
+        }
+    }
+    if !mkdir_one(path) {
+        return IOError { .msg = "cannot create directory" }
+    }
+    return null
+}
 
 /// Delete the file at `path`.
 ///
@@ -193,7 +242,24 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @return      `null` on success.
 /// @error       `IOError` when the path is missing, is a directory, or is not
 ///              removable.
-@intrinsic export remove_file :: fn(path: string) -> null | IOError
+@target
+export remove_file :: fn(path: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+remove_file :: fn(path: string) -> null | IOError {
+    if sys_unlink(path) != 0 {
+        return IOError { .msg = "cannot remove file" }
+    }
+    return null
+}
+
+@target(.Windows)
+remove_file :: fn(path: string) -> null | IOError {
+    if delete_file(path) == 0 {
+        return IOError { .msg = "cannot remove file" }
+    }
+    return null
+}
 
 /// Read a file fully into a UTF-8 string — a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
@@ -219,7 +285,14 @@ export write_file_string :: fn(path: string, content: string) -> null | IOError 
 /// @param path  filesystem path to probe.
 /// @return      `true` if the entry exists, `false` otherwise (including
 ///              on access errors).
-@intrinsic export exists :: fn(path: string) -> bool
+@target
+export exists :: fn(path: string) -> bool
+
+@target(.Linux, .Darwin)
+exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
+
+@target(.Windows)
+exists :: fn(path: string) -> bool = get_file_attributes(path) != INVALID_FILE_ATTRIBUTES
 
 /// True iff `path` exists AND is a directory. Errors collapse to `false`.
 /// @param path  filesystem path to probe.
@@ -254,4 +327,50 @@ export write_file_string :: fn(path: string, content: string) -> null | IOError 
 /// `GetTempPath` on Windows), falling back to `"/tmp"` when unset. The
 /// directory is assumed to exist and be writable ; this does not create it.
 /// @return  the temp directory path, e.g. `"/tmp"` or `"/var/folders/…/T"`.
-@intrinsic export temp_dir :: fn() -> string
+@target
+export temp_dir :: fn() -> string
+
+@target(.Linux, .Darwin)
+temp_dir :: fn() -> string = without_trailing_sep(get_env("TMPDIR") ?? "/tmp")
+
+@target(.Windows)
+temp_dir :: fn() -> string {
+    // `GetTempPathA` reports 0 on failure and a length >= the capacity when the
+    // buffer is too small; neither wrote anything usable, so both fall back.
+    buf: u8[]! = [] * 4096
+    n :: get_temp_path(u32(buf.len()), buf)
+    if n == 0 || usize(n) >= buf.len() {
+        return "/tmp"
+    }
+    return without_trailing_sep(to_slash(buf[0..<usize(n)].bytes_to_string()))
+}
+
+// `\\` to `/`. Local rather than `std/path::to_posix` on purpose: importing
+// `std/path` here drags `std/string` and `std/math` into the closure of every
+// program that touches `std/io`, and the whole borrowing was one character.
+to_slash :: fn(p: string) -> string {
+    b :: p.bytes()
+    out: u8[]! = [] * b.len()
+    for i in 0..<b.len() {
+        out[i] = if b[i] == '\\' { '/' } else { b[i] }
+    }
+    return out.bytes_to_string()
+}
+
+// Drop trailing separators so `temp_dir() + "/name"` stays clean. Keeps a lone
+// `/`, which IS the directory rather than a separator after one.
+without_trailing_sep :: fn(p: string) -> string {
+    b :: p.bytes()
+    trailing: usize = 0
+    for i in 0..<b.len() {
+        last :: b.len() - 1 - i
+        if last == 0 || b[last] != '/' {
+            break
+        }
+        trailing += 1
+    }
+    if trailing == 0 {
+        return p
+    }
+    return b[0..<(b.len() - trailing)].bytes_to_string()
+}

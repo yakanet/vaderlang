@@ -36,13 +36,13 @@ string 3 "fast"
 string 4 "slow"
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now () -> i64
-import 4 sched_arm std_runtime$sched_arm (i64) -> void
-import 5 sched_park std_runtime$sched_park () -> i32
-import 6 panic std_abort$panic (string) -> void
+import 0 byte_len std_core$byte_len result_type=17 (string) -> usize
+import 1 bytes std_core$bytes result_type=20 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 (i32,ref,usize) -> isize
+import 3 sched_now std_runtime$sched_now result_type=2 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=6 (i64) -> void
+import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
+import 6 panic std_abort$panic result_type=6 (string) -> void
 impl 7 Async
 impl 10 Async
 impl 18 ByteAccess

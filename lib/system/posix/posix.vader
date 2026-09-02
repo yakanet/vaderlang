@@ -25,6 +25,34 @@ export CLOCK_REALTIME :: 0
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
+/// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
+/// why the caller re-tests the path rather than reading `errno`.
+///
+/// @param path  directory to create.
+/// @param mode  permission bits, masked by the process umask.
+@c_header("<sys/stat.h>")
+@extern("mkdir")
+export sys_mkdir :: fn(path: string, mode: u32) -> i32
+
+/// `access(2)` mode: does the entry exist at all.
+export F_OK :: 0
+
+/// `access(2)`. 0 when the check passes, -1 with `errno` set otherwise.
+///
+/// `F_OK` answers existence without a `struct stat`, which is why `exists` uses
+/// it: no C struct has to be mirrored to ask the only question being asked.
+@c_header("<unistd.h>")
+@extern("access")
+export sys_access :: fn(path: string, mode: i32) -> i32
+
+/// `unlink(2)`. 0 on success, -1 with `errno` set.
+///
+/// NOT `remove(3)`: on POSIX that falls back to `rmdir` for a directory, so an
+/// empty one would vanish through a call named remove_FILE.
+@c_header("<unistd.h>")
+@extern("unlink")
+export sys_unlink :: fn(path: string) -> i32
+
 /// `clock_gettime(2)`. Fills `ts` — two cells standing in for `struct timespec`,
 /// both members being 64-bit here — with seconds then nanoseconds. -1 on failure.
 @c_header("<time.h>")

@@ -23,7 +23,7 @@ type 20 union 0,11
 type 21 struct __Tuple_54 { _0:12,_1:3 }
 type 22 primitive isize
 type 23 primitive f64
-type 24 struct __Tuple_61 { _0:5,_1:1 }
+type 24 struct __Tuple_62 { _0:5,_1:1 }
 type 25 union 11,0
 string 0 "arr="
 string 1 "a"
@@ -33,18 +33,18 @@ string 4 "set="
 string 5 "héllo 世界"
 string 6 "chars="
 string 7 "\n"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 hash std_core$string$Hash$hash (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
-import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
-import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
-import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
-import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
-import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
-import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
-import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 0 byte_len std_core$byte_len result_type=3 (string) -> usize
+import 1 bytes std_core$bytes result_type=9 (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=7 (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=22 (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> result_type=23 (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> result_type=23 (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> result_type=23 (f64) -> f64
 impl 4 ByteAccess
 impl 14 Index
 impl 14 IndexSet
@@ -178,8 +178,8 @@ fn 0 snippet$main () -> i32
         local.set 4   ; x
         local.get 8   ; $idx_53
         local.get 4   ; x
-        struct.new_stack 24   ; __Tuple_61
-        struct.get 24 1   ; __Tuple_61._1
+        struct.new_stack 24   ; __Tuple_62
+        struct.get 24 1   ; __Tuple_62._1
         ref.cast 1   ; -> i32
         local.set 9   ; value
         local.get 3   ; __for_i_2

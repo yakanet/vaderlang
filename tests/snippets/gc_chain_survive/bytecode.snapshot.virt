@@ -16,11 +16,11 @@ string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 nodes survived GC; sum="
 string 4 "\n"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
-import 2 collect std_runtime$collect () -> void
-import 3 collections std_runtime$collections () -> i32
-import 4 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 bytes std_core$bytes result_type=9 (string) -> ref
+import 2 collect std_runtime$collect result_type=10 () -> void
+import 3 collections std_runtime$collections result_type=1 () -> i32
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=11 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 export main 0
 

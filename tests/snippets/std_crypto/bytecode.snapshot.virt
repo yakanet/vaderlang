@@ -31,18 +31,18 @@ string 11 "\n"
 data 0 u32 hex"78a46ad756b7c7e8db702024eecebdc1af0f7cf52ac68747134630a8019546fdd8988069aff7448bb15bffffbed75c892211906b937198fd8e4379a62108b44962251ef640b340c0515a5e26aac7b6e95d102fd65314440281e6a1d8c8fbd3e7e6cde121d60737c3870dd5f4ed145a4505e9e3a9f8a3effcd9026f678a4c2a8d4239faff81f6718722619d6d0c38e5fd44eabea4a9cfde4b604bbbf670bcbfbec67e9b28fa27a1ea8530efd4051d880439d0d4d9e599dbe6f87ca21f6556acc4442229f497ff2a43a72394ab39a093fcc3595b6592cc0c8f7df4efffd15d84854f7ea86fe0e62cfe144301a3a111084e827e53f735f23abdbbd2d72a91d386eb"
 data 1 u32 hex"070000000c0000001100000016000000070000000c0000001100000016000000070000000c0000001100000016000000070000000c000000110000001600000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e00000014000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000"
 data 2 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab98aa07d8015b8312be853124c37d0c55745dbe72feb1de80a706dc9b74f19bc1c1699be48647beefc69dc10fcca10c246f2ce92daa84744adca9b05cda88f97652513e986dc631a8c82703b0c77f59bff30be0c64791a7d55163ca0667292914850ab72738211b2efc6d2c4d130d385354730a65bb0a6a762ec9c281852c7292a1e8bfa24b661aa8708b4bc2a3516cc719e892d1240699d685350ef470a06a1016c1a419086c371e4c774827b5bcb034b30c1c394aaad84e4fca9c5bf36f2e68ee828f746f63a5781478c8840802c78cfaffbe90eb6c50a4f7a3f9bef27871c6"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 2 bytes std_core$bytes (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> (i32,ref,usize) -> isize
-import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> (f64) -> f64
-import 5 extern pow std_math$pow vm_callable header=<math.h> (f64,f64) -> f64
-import 6 extern floor std_math$floor vm_callable header=<math.h> (f64) -> f64
-import 7 extern ceil std_math$ceil vm_callable header=<math.h> (f64) -> f64
-import 8 extern round std_math$round vm_callable header=<math.h> (f64) -> f64
-import 9 extern sin std_math$sin vm_callable header=<math.h> (f64) -> f64
-import 10 extern cos std_math$cos vm_callable header=<math.h> (f64) -> f64
-import 11 extern tan std_math$tan vm_callable header=<math.h> (f64) -> f64
+import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
+import 2 bytes std_core$bytes result_type=6 (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 (i32,ref,usize) -> isize
+import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 5 extern pow std_math$pow vm_callable header=<math.h> result_type=15 (f64,f64) -> f64
+import 6 extern floor std_math$floor vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 7 extern ceil std_math$ceil vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 8 extern round std_math$round vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 9 extern sin std_math$sin vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 10 extern cos std_math$cos vm_callable header=<math.h> result_type=15 (f64) -> f64
+import 11 extern tan std_math$tan vm_callable header=<math.h> result_type=15 (f64) -> f64
 impl 5 ByteAccess
 impl 12 Display
 export main 0

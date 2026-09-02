@@ -1,5 +1,8 @@
 # Diagnostics
-(none)
+[lib/std/io/io.vader:190:1] error[R2041] no `@target` body covers the target being built: `mkdir_one` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:246:8] error[R2041] no `@target` body covers the target being built: `remove_file` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:289:8] error[R2041] no `@target` body covers the target being built: `exists` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:331:8] error[R2041] no `@target` body covers the target being built: `temp_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 
 # Baked
 VADER_OS = Os.Wasi
@@ -7,4 +10,8 @@ VADER_ARCH = Arch.Wasm32
 
 # Selected body
 main$platform_tag <- main.vader:14
-std_io$write_bytes <- lib/std/io/io.vader:49
+std_io$exists <- (no body)
+std_io$mkdir_one <- (no body)
+std_io$remove_file <- (no body)
+std_io$temp_dir <- (no body)
+std_io$write_bytes <- lib/std/io/io.vader:51
