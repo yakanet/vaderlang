@@ -18,8 +18,7 @@ type 15 struct std_string$StringChars { bytes:10,cursor:6,length:6 }
 type 16 struct __Tuple_32 { _0:1,_1:6 }
 type 17 primitive isize
 type 18 struct std_string_builder$StringBuilder { parts:13 }
-type 19 primitive f64
-type 20 union 5,0
+type 19 union 5,0
 string 0 "foo.vader"
 string 1 ".vader"
 string 2 "foo.bar"
@@ -37,14 +36,6 @@ import 1 byte_at std_core$byte_at result_type=11 (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=8 (ref) -> string
 import 3 bytes std_core$bytes result_type=10 (string) -> ref
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=17 (i32,ref,usize) -> isize
-import 5 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 6 extern pow std_math$pow vm_callable header=<math.h> result_type=19 (f64,f64) -> f64
-import 7 extern floor std_math$floor vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 8 extern ceil std_math$ceil vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 9 extern round std_math$round vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 10 extern sin std_math$sin vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 11 extern cos std_math$cos vm_callable header=<math.h> result_type=19 (f64) -> f64
-import 12 extern tan std_math$tan vm_callable header=<math.h> result_type=19 (f64) -> f64
 impl 7 ByteAccess
 impl 15 Iterator
 impl 18 Display

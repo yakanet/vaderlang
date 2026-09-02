@@ -13,8 +13,7 @@ type 10 array 2
 type 11 primitive u64
 type 12 primitive isize
 type 13 struct std_string_builder$StringBuilder { parts:10 }
-type 14 primitive f64
-type 15 array 3
+type 14 array 3
 string 0 "["
 string 1 "42"
 string 2 "]"
@@ -35,14 +34,6 @@ import 0 byte_len std_core$byte_len result_type=5 (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
 import 2 bytes std_core$bytes result_type=7 (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=12 (i32,ref,usize) -> isize
-import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 5 extern pow std_math$pow vm_callable header=<math.h> result_type=14 (f64,f64) -> f64
-import 6 extern floor std_math$floor vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 7 extern ceil std_math$ceil vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 8 extern round std_math$round vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 9 extern sin std_math$sin vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 10 extern cos std_math$cos vm_callable header=<math.h> result_type=14 (f64) -> f64
-import 11 extern tan std_math$tan vm_callable header=<math.h> result_type=14 (f64) -> f64
 impl 6 ByteAccess
 impl 13 Display
 export main 0
@@ -672,7 +663,7 @@ fn 14 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 14   ; "0"
   end $L0
-  array.new 15 0   ; char[][]
+  array.new 14 0   ; char[][]
   local.set 1   ; rev
   i64.const 16
   local.set 2   ; base
@@ -757,7 +748,7 @@ fn 15 std_numbers$to_bin (u64) -> string
   if $L0 void
     return.lit string.const 14   ; "0"
   end $L0
-  array.new 15 0   ; char[][]
+  array.new 14 0   ; char[][]
   local.set 1   ; rev
   i64.const 2
   local.set 2   ; two

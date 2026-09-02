@@ -41,10 +41,9 @@ type 38 struct regex$CharRange { lo:5,hi:5 }
 type 39 struct regex$WorkItem { pc:7,groups:23 }
 type 40 primitive isize
 type 41 struct __Tuple_65 { _0:5,_1:7 }
-type 42 primitive f64
-type 43 array 39
-type 44 union 29,30,24,32
-type 45 union 27,28,29,30,24,32,33
+type 42 array 39
+type 43 union 29,30,24,32
+type 44 union 27,28,29,30,24,32,33
 string 0 "="
 string 1 ".."
 string 2 ":"
@@ -129,14 +128,6 @@ import 0 byte_len std_core$byte_len result_type=7 (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 (ref) -> string
 import 2 bytes std_core$bytes result_type=10 (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=40 (i32,ref,usize) -> isize
-import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 5 extern pow std_math$pow vm_callable header=<math.h> result_type=42 (f64,f64) -> f64
-import 6 extern floor std_math$floor vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 7 extern ceil std_math$ceil vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 8 extern round std_math$round vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 9 extern sin std_math$sin vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 10 extern cos std_math$cos vm_callable header=<math.h> result_type=42 (f64) -> f64
-import 11 extern tan std_math$tan vm_callable header=<math.h> result_type=42 (f64) -> f64
 impl 8 ByteAccess
 impl 20 Display
 impl 16 Error
@@ -2473,7 +2464,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 39   ; regex$WorkItem
-  array.new 43 1   ; regex$WorkItem[][]
+  array.new 42 1   ; regex$WorkItem[][]
   local.set 8   ; stack
   block $L0 void
     loop $L1 void
@@ -2489,7 +2480,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
         local.set 9   ; $sub_16
         local.get 8   ; stack
         local.get 9   ; $sub_16
-        array.get 43   ; regex$WorkItem[][]
+        array.get 42   ; regex$WorkItem[][]
         local.set 10   ; item
         local.get 8   ; stack
         array.remove_last
@@ -2625,7 +2616,7 @@ fn 24 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
           br $L1
         end $L9
         local.get 13   ; inst
-        type_check 44   ; union
+        type_check 43   ; union
         if $L11 void
           local.get 11   ; pc
           local.get 12   ; groups
@@ -3005,7 +2996,7 @@ fn 32 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
             local.set 12   ; $cast_25
             local.get 0   ; arg 0
             local.get 12   ; $cast_25
-            array.push 45   ; union[]
+            array.push 44   ; union[]
           end $L4
         end $L3
         local.get 6   ; i

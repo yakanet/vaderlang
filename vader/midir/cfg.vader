@@ -81,8 +81,6 @@ export CFGExternDecl :: struct {
     c_header:    string
     /// See `FnMetadata.c_library`.
     c_library:   string
-    /// See `FnMetadata.vm_callable`.
-    vm_callable: bool
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

@@ -133,7 +133,6 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
                 .is_extern = imp.is_extern,
                 .c_header = imp.c_header,
                 .c_library = imp.c_library,
-                .vm_callable = imp.vm_callable,
             },
         )
     }

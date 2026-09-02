@@ -32,9 +32,8 @@ type 29 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
 type 30 primitive isize
 type 31 struct __Tuple_44 { _0:4,_1:8 }
 type 32 struct std_string_builder$StringBuilder { parts:19 }
-type 33 primitive f64
-type 34 array 1
-type 35 union 7,0
+type 33 array 1
+type 34 union 7,0
 string 0 "1.2.3-rc.1"
 string 1 "1.0.0"
 string 2 "after 1.0.0"
@@ -91,15 +90,7 @@ import 0 byte_len std_core$byte_len result_type=8 (string) -> usize
 import 1 byte_at std_core$byte_at result_type=11 (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
 import 3 bytes std_core$bytes result_type=12 (string) -> ref
-import 4 extern sqrt std_math$sqrt vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 5 extern pow std_math$pow vm_callable header=<math.h> result_type=33 (f64,f64) -> f64
-import 6 extern floor std_math$floor vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 7 extern ceil std_math$ceil vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 8 extern round std_math$round vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 9 extern sin std_math$sin vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 10 extern cos std_math$cos vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 11 extern tan std_math$tan vm_callable header=<math.h> result_type=33 (f64) -> f64
-import 12 extern write system_posix$sys_write header=<unistd.h> result_type=30 (i32,ref,usize) -> isize
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=30 (i32,ref,usize) -> isize
 impl 9 ByteAccess
 impl 3 Display
 impl 3 Comparable
@@ -576,7 +567,7 @@ fn 7 semver$parse (string) -> any
   i32.const 0
   i32.const 0
   i32.const 0
-  array.new 34 3   ; i32[][]
+  array.new 33 3   ; i32[][]
   local.set 1   ; sb
   i64.const 0
   local.set 6   ; j
@@ -7126,7 +7117,7 @@ fn 57 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 12   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   isize.to_i32
   return
 end

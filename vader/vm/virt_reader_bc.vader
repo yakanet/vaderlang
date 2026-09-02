@@ -502,19 +502,15 @@ parse_import_decl_bc :: fn(
         parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
     // Attributes written between the mangled name and the signature —
-    // `vm_callable` and `header=<...>`, in either order and both optional. Read
-    // by scanning rather than by position, so adding a third one later does not
-    // silently shift the others.
+    // `header=<...>` and `result_type=<n>`, in either order and both optional.
+    // Read by scanning rather than by position, so adding a third one later does
+    // not silently shift the others.
     c_header := ""
-    vm_callable := false
     result_type: i32 = 0
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
         if attr.starts_with("header=") {
             c_header = attr.trim_prefix("header=")
-        }
-        if attr == "vm_callable" {
-            vm_callable = true
         }
         if attr.starts_with("result_type=") {
             parsed :: parse_int_in_base(attr.trim_prefix("result_type="), 10)
@@ -540,7 +536,6 @@ parse_import_decl_bc :: fn(
         .is_extern    = is_extern,
         .c_library    = c_library,
         .c_header     = c_header,
-        .vm_callable  = vm_callable,
     })
     return null
 }

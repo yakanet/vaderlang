@@ -122,6 +122,9 @@ cc_link_parallel() {
     export CC_ABS UNIT_CFLAGS UNIT_OBJDIR UNIT_INCLUDES
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
+    case "$(uname -s)" in
+      Linux) unit_ldflags="$unit_ldflags -Wl,--no-as-needed" ;;
+    esac
     "$CC_ABS" $unit_ldflags -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
 }
 

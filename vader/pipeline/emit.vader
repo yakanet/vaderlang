@@ -153,6 +153,16 @@ export cc_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
+    // `--no-as-needed` on Linux, where libm is a separate object and the default
+    // `--as-needed` drops a `-l` nothing references. Nothing DOES reference it:
+    // the compiler calls `sqrt` and friends only from `@comptime`, through the
+    // interpreter, which resolves them in the running process — and a library
+    // the linker dropped is not in it. Elsewhere `-lm` is inert (macOS and MinGW
+    // carry the math symbols in the C runtime), so the flag is scoped rather
+    // than paid everywhere.
+    if VADER_OS == Os.Linux {
+        argv.push("-Wl,--no-as-needed")
+    }
     argv.push("-lm")
     return argv
 }

@@ -349,7 +349,6 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "c_header"
         || name == "c_pointer"
         || name == "c_struct"
-        || name == "vm_callable"
 }
 
 walk_opt_expr :: fn(self: ResolveState!, e: AST.Expr | null) -> void {

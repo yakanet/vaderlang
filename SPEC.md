@@ -2521,7 +2521,6 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
-| `@vm_callable` | an `@extern` fn | The compile-time interpreter must be able to call this symbol. Its address is baked into the binary instead of being looked up at run time. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit — see §12 |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2614,36 +2613,6 @@ a `uint32_t*` passed where Win32 wants `LPDWORD`.
 
 Only **system** headers work today: the driver puts the runtime directory on the
 include path and nothing else, so `@c_header("\"my_header.h\"")` does not resolve.
-
-### `@vm_callable` — a symbol the interpreter must reach
-
-`@comptime` code runs in the compiler's own interpreter, which calls a foreign
-function by looking its name up in the running process. That lookup only sees
-libraries the process actually loaded, and a linker is free to drop a library
-nothing references — so a symbol that links perfectly in a compiled program can
-be unreachable at compile time. `sqrt` and `sin` hit exactly that on Linux.
-
-`@vm_callable` states that the interpreter needs the symbol. The compiler then
-takes its address at build time and records it in a table the interpreter reads
-first, which both keeps the library linked and removes the lookup:
-
-```vader
-@vm_callable
-@c_header("<math.h>")
-@extern("sqrt")
-export sqrt :: fn(x: f64) -> f64
-```
-
-It changes nothing for compiled code — the call is direct either way — and it is
-not needed for a symbol the program itself calls, since that call already keeps
-the library reachable.
-
-**The table is baked into the binary being built**, so it serves whoever runs the
-interpreter *in that binary*: the compiler itself, for the declarations in its
-own closure. Marking a symbol in your program does not put it in the table of the
-compiler that compiles you — `@comptime` there still goes through the run-time
-lookup, which finds anything the C runtime exports. The decorator is therefore
-for the standard library and for a program that embeds the interpreter.
 
 ### `@c_struct` — mirroring a C struct
 

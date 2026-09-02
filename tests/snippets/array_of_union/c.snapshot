@@ -83,11 +83,6 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_str
 static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 9u, 8u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 
-// `@vm_callable` — addresses the VM reaches without `dlsym`.
-static const vader_ffi_static_sym_t vader_ffi_static_syms[] = {
-    { 0, 0 },
-};
-
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l1 = NULL;
@@ -363,7 +358,6 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    vader_ffi_register_statics(vader_ffi_static_syms);
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     (void)argc; (void)argv;

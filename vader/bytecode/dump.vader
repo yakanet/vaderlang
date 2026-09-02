@@ -315,16 +315,13 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // the signature — `parse_signature_bc` reads the return type to the end
         // of the line, so a trailing field lands inside it.
         header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
-        // Same round-trip reason: a `.virt` re-read that loses the marker sends
-        // the VM back to `dlsym` for a symbol the binary already holds.
-        vm :: if imp.vm_callable { "vm_callable " } else { "" }
         // The result's TYPE index, not just its `ValType`. `write_signature`
         // renders a union as `any`, so a `string | null` result read back from a
         // `.virt` looked like a plain word — and the FFI then returned the atom
         // as an integer instead of a string. Only non-zero indices are written;
         // 0 is the "no type" slot every other import carries.
         rt :: if imp.signature.result_type == 0 { "" } else { "result_type=${imp.signature.result_type} " }
-        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${vm}${header}${rt}")
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${header}${rt}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }
