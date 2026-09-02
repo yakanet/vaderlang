@@ -3,7 +3,6 @@
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <stdlib.h>
-#include <stdio.h>
 #include <windows.h>
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -11,19 +10,20 @@ static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) 
 static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
 static inline void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 11u, 169u); }
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) { return vader_string_hash(a0); }
-static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 163u, 379u); if (r.tag == 379u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 379u); e->f_msg = r.payload.s; return vader_box_obj(379u, e); } return r; }
+static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 163u, 398u); if (r.tag == 398u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 398u); e->f_msg = r.payload.s; return vader_box_obj(398u, e); } return r; }
 static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_cstr_free_for(a0, c0); return r == NULL ? vader_box_null() : vader_box_i64(163u, (int64_t) vader_atom_intern(r, strlen(r))); }
 static inline uint8_t vader_host_std_target_current_os(void) { return vader_current_os(); }
 static inline uint8_t vader_host_std_target_current_arch(void) { return vader_current_arch(); }
-static inline vader_box_t vader_host_system_posix_sys_fopen(vader_string_t a0, vader_string_t a1) { const char* c0 = vader_string_to_cstr(a0); const char* c1 = vader_string_to_cstr(a1); void* r = fopen(c0, c1); vader_cstr_free_for(a0, c0); vader_cstr_free_for(a1, c1); return r == NULL ? vader_box_null() : vader_box_i64(165u, (int64_t) (intptr_t) r); }
-static inline int32_t vader_host_system_posix_sys_fclose(void* a0) { return fclose(a0); }
-static inline size_t vader_host_system_posix_sys_fread(void* a0, size_t a1, size_t a2, void* a3) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); return fread((void*) s0.ptr, a1, a2, a3); }
-static inline size_t vader_host_system_posix_sys_fwrite(void* a0, size_t a1, size_t a2, void* a3) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); return fwrite(s0.ptr, a1, a2, a3); }
 static inline void* vader_host_system_windows_get_std_handle(uint32_t a0) { return GetStdHandle(a0); }
-static inline uint32_t vader_host_system_windows_get_module_file_name(vader_box_t a0, void* a1, uint32_t a2) { void* p0 = (a0.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a0.payload.i; vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return GetModuleFileNameA(p0, (void*) s1.ptr, a2); }
-static inline uint32_t vader_host_system_windows_get_current_directory(uint32_t a0, void* a1) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return GetCurrentDirectoryA(a0, (void*) s1.ptr); }
-static inline uint32_t vader_host_system_windows_get_file_attributes(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); uint32_t r = GetFileAttributesA(c0); vader_cstr_free_for(a0, c0); return r; }
+static inline uint32_t vader_host_system_windows_get_module_file_name(vader_box_t a0, void* a1, uint32_t a2) { void* p0 = (a0.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a0.payload.i; vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return GetModuleFileNameW(p0, (void*) s1.ptr, a2); }
+static inline uint32_t vader_host_system_windows_get_current_directory(uint32_t a0, void* a1) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return GetCurrentDirectoryW(a0, (void*) s1.ptr); }
+static inline uint32_t vader_host_system_windows_get_file_attributes(void* a0) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); return GetFileAttributesW(s0.ptr); }
 static inline bool vader_host_system_windows_write_file(void* a0, void* a1, uint32_t a2, uint32_t a3, vader_box_t a4) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); uint32_t p3 = a3; void* p4 = (a4.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a4.payload.i; return WriteFile(a0, s1.ptr, a2, (void*) &p3, p4); }
+static inline int32_t vader_host_system_windows_multi_byte_to_wide_char(uint32_t a0, uint32_t a1, vader_string_t a2, int32_t a3, void* a4, int32_t a5) { const char* c2 = vader_string_to_cstr(a2); vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4); int32_t r = MultiByteToWideChar(a0, a1, c2, a3, (void*) s4.ptr, a5); vader_cstr_free_for(a2, c2); return r; }
+static inline int32_t vader_host_system_windows_wide_char_to_multi_byte(uint32_t a0, uint32_t a1, void* a2, int32_t a3, void* a4, int32_t a5, vader_box_t a6, vader_box_t a7) { vader_slice_t s2 = vader_array_bytes((vader_array_t*) a2); vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4); void* p6 = (a6.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a6.payload.i; void* p7 = (a7.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a7.payload.i; return WideCharToMultiByte(a0, a1, s2.ptr, a3, (void*) s4.ptr, a5, p6, p7); }
+static inline void* vader_host_system_windows_create_file_w(void* a0, uint32_t a1, uint32_t a2, vader_box_t a3, uint32_t a4, uint32_t a5, vader_box_t a6) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); void* p3 = (a3.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a3.payload.i; void* p6 = (a6.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a6.payload.i; return CreateFileW(s0.ptr, a1, a2, p3, a4, a5, p6); }
+static inline bool vader_host_system_windows_read_file(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); vader_slice_t s3 = vader_array_bytes((vader_array_t*) a3); void* p4 = (a4.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a4.payload.i; return ReadFile(a0, (void*) s1.ptr, a2, (void*) s3.ptr, p4); }
+static inline bool vader_host_system_windows_close_handle(void* a0) { return CloseHandle(a0); }
 static inline bool vader_host_std_tty_raw_mode_begin(void) { return vader_terminal_raw_begin(); }
 static inline void vader_host_std_tty_raw_mode_end(void) { vader_terminal_raw_end(); }
 static inline int32_t vader_host_std_tty_columns(void) { return vader_terminal_columns(); }
