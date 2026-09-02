@@ -12,8 +12,8 @@ type 9 primitive u64
 type 10 struct std_core$Dec64 { mantissa:9,exp:1 }
 type 11 array 2
 type 12 struct std_core$Buffer {  }
-type 13 struct __Tuple_21 { _0:9,_1:9,_2:9 }
-type 14 struct __Tuple_22 { _0:9,_1:9 }
+type 13 struct __Tuple_u64_u64_u64 { _0:9,_1:9,_2:9 }
+type 14 struct __Tuple_u64_u64 { _0:9,_1:9 }
 type 15 primitive u8
 type 16 array 15
 type 17 primitive void
@@ -2270,7 +2270,7 @@ fn 23 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 32   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 13   ; __Tuple_21
+  struct.new 13   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -2606,7 +2606,7 @@ fn 31 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 14   ; __Tuple_22
+  struct.new 14   ; __Tuple_u64_u64
   return
 end
 

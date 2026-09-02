@@ -11,11 +11,11 @@ type 8 union 9,0
 type 9 struct std_core$DecimalParts { w:10,q:1,negative:3,too_many_digits:3 }
 type 10 primitive u64
 type 11 primitive u8
-type 12 struct __Tuple_20 { _0:10,_1:10 }
+type 12 struct __Tuple_u64_u64 { _0:10,_1:10 }
 type 13 struct std_core$SlowParts { d:14,e:1 }
 type 14 array 15
 type 15 primitive u32
-type 16 struct __Tuple_24 { _0:14,_1:15 }
+type 16 struct __Tuple_Array_u32_u32 { _0:14,_1:15 }
 type 17 array 11
 type 18 primitive void
 type 19 union 1,20
@@ -1541,7 +1541,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
     local.get 1   ; arg 1
     local.get 7   ; $idx_25
     call 16   ; std_core$umul128
-    struct.get 12 0   ; __Tuple_20._0
+    struct.get 12 0   ; __Tuple_u64_u64._0
     ref.cast 10   ; -> u64
     local.set 7   ; $idx_25
     local.get 6   ; lo
@@ -1562,7 +1562,7 @@ fn 10 std_core$pf_product (i32,u64) -> ref
   end $L0
   local.get 4   ; $idx_9
   local.get 6   ; lo
-  struct.new 12   ; __Tuple_20
+  struct.new 12   ; __Tuple_u64_u64
   return
 end
 
@@ -2311,7 +2311,7 @@ fn 16 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 12   ; __Tuple_20
+  struct.new 12   ; __Tuple_u64_u64
   return
 end
 
@@ -2746,7 +2746,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
   local.set 10   ; $cast_22
   local.get 12   ; out
   local.get 10   ; $cast_22
-  struct.new 16   ; __Tuple_24
+  struct.new 16   ; __Tuple_Array_u32_u32
   return
 end
 

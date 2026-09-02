@@ -22,11 +22,11 @@ type 19 array 13
 type 20 struct std_core$FloatDec32 { mantissa:15,exp:3 }
 type 21 struct std_core$Dec64 { mantissa:9,exp:3 }
 type 22 array 4
-type 23 struct __Tuple_31 { _0:9,_1:9,_2:9 }
-type 24 struct __Tuple_32 { _0:9,_1:9 }
+type 23 struct __Tuple_u64_u64_u64 { _0:9,_1:9,_2:9 }
+type 24 struct __Tuple_u64_u64 { _0:9,_1:9 }
 type 25 array 3
 type 26 array 5
-type 27 struct __Tuple_48 { _0:3,_1:4 }
+type 27 struct __Tuple_i32_string { _0:3,_1:4 }
 type 28 array 6
 type 29 array 9
 string 0 "hello"
@@ -287,8 +287,8 @@ fn 1 snippet$main () -> i32
   local.set 8   ; $k_62
   local.get 8   ; $k_62
   string.const 3   ; "seven"
-  struct.new_stack 27   ; __Tuple_48
-  struct.get 27 1   ; __Tuple_48._1
+  struct.new_stack 27   ; __Tuple_i32_string
+  struct.get 27 1   ; __Tuple_i32_string._1
   ref.cast 4   ; -> string
   local.tee 0   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -304,8 +304,8 @@ fn 1 snippet$main () -> i32
   local.set 8   ; $k_62
   local.get 8   ; $k_62
   string.const 3   ; "seven"
-  struct.new_stack 27   ; __Tuple_48
-  struct.get 27 0   ; __Tuple_48._0
+  struct.new_stack 27   ; __Tuple_i32_string
+  struct.get 27 0   ; __Tuple_i32_string._0
   ref.cast 3   ; -> i32
   i32.to_i64
   local.set 3   ; $cast_10
@@ -3844,7 +3844,7 @@ fn 46 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 54   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 23   ; __Tuple_31
+  struct.new 23   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -4101,7 +4101,7 @@ fn 53 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 24   ; __Tuple_32
+  struct.new 24   ; __Tuple_u64_u64
   return
 end
 

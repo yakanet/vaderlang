@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
 type 3 struct snippet$Entry { id:1,coord:4 }
-type 4 struct __Tuple_4 { _0:5,_1:5 }
+type 4 struct __Tuple_f64_f64 { _0:5,_1:5 }
 type 5 primitive f64
 type 6 primitive bool
 type 7 primitive usize
@@ -11,9 +11,9 @@ type 8 struct std_core$Buffer {  }
 type 9 primitive i64
 type 10 primitive u64
 type 11 struct std_core$Dec64 { mantissa:10,exp:1 }
-type 12 struct __Tuple_20 { _0:10,_1:10,_2:10 }
+type 12 struct __Tuple_u64_u64_u64 { _0:10,_1:10,_2:10 }
 type 13 array 2
-type 14 struct __Tuple_22 { _0:10,_1:10 }
+type 14 struct __Tuple_u64_u64 { _0:10,_1:10 }
 type 15 primitive u8
 type 16 array 15
 type 17 primitive void
@@ -66,19 +66,19 @@ fn 0 snippet$main () -> i32
   local $cast_26 i64
   f64.const 3.5 4615063718147915776
   f64.const 7.25 4619848792751996928
-  struct.new_stack 4   ; __Tuple_4
+  struct.new_stack 4   ; __Tuple_f64_f64
   local.set 0   ; $struct_3
   i32.const 1
   local.get 0   ; $struct_3
   struct.new_stack 3   ; snippet$Entry
   local.set 0   ; $struct_3
   local.field 0 3 1   ; $struct_3.coord
-  struct.get 4 0   ; __Tuple_4._0
+  struct.get 4 0   ; __Tuple_f64_f64._0
   ref.cast 5   ; -> f64
   call 8   ; std_core$format_f64
   local.set 1   ; __p_0
   local.field 0 3 1   ; $struct_3.coord
-  struct.get 4 1   ; __Tuple_4._1
+  struct.get 4 1   ; __Tuple_f64_f64._1
   ref.cast 5   ; -> f64
   call 8   ; std_core$format_f64
   local.set 2   ; __p_1
@@ -1430,7 +1430,7 @@ fn 15 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 22   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 12   ; __Tuple_20
+  struct.new 12   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -1802,7 +1802,7 @@ fn 21 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 14   ; __Tuple_22
+  struct.new 14   ; __Tuple_u64_u64
   return
 end
 

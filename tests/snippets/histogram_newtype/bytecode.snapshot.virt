@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 array 2
 type 2 primitive u32
-type 3 struct __Tuple_3 { _0:1,_1:2 }
+type 3 struct __Tuple_Array_u32_u32 { _0:1,_1:2 }
 type 4 primitive i32
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
@@ -110,7 +110,7 @@ fn 1 snippet$Histogram$Div$div (ref,u32) -> ref
   local.set 5   ; $div_10
   local.get 2   ; out
   local.get 5   ; $div_10
-  struct.new 3   ; __Tuple_3
+  struct.new 3   ; __Tuple_Array_u32_u32
   return
 end
 

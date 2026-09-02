@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
-type 1 struct __Tuple_1 { _0:2,_1:5 }
-type 2 struct __Tuple_2 { _0:3,_1:4 }
+type 1 struct __Tuple_Tuple_i32_string_bool { _0:2,_1:5 }
+type 2 struct __Tuple_i32_string { _0:3,_1:4 }
 type 3 primitive i32
 type 4 primitive string
 type 5 primitive bool
@@ -28,9 +28,9 @@ export main 1
 fn 0 snippet$make_record () -> ref
   i32.const 7
   string.const 0   ; "seven"
-  struct.new 2   ; __Tuple_2
+  struct.new 2   ; __Tuple_i32_string
   bool.const true
-  struct.new 1   ; __Tuple_1
+  struct.new 1   ; __Tuple_Tuple_i32_string_bool
   return
 end
 
@@ -44,11 +44,11 @@ fn 1 snippet$main () -> i32
   call 0   ; snippet$make_record
   local.set 0   ; __tup_0
   local.field 0 1 0   ; __tup_0._0
-  struct.get 2 0   ; __Tuple_2._0
+  struct.get 2 0   ; __Tuple_i32_string._0
   ref.cast 3   ; -> i32
   local.set 1   ; id
   local.field 0 1 0   ; __tup_0._0
-  struct.get 2 1   ; __Tuple_2._1
+  struct.get 2 1   ; __Tuple_i32_string._1
   ref.cast 4   ; -> string
   local.set 2   ; label
   local.field 0 1 1   ; __tup_0._1

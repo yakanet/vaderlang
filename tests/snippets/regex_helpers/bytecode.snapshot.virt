@@ -15,7 +15,7 @@ type 12 primitive void
 type 13 array 8
 type 14 fn (1) -> 2
 type 15 struct std_string$StringChars { bytes:10,cursor:6,length:6 }
-type 16 struct __Tuple_32 { _0:1,_1:6 }
+type 16 struct __Tuple_char_usize { _0:1,_1:6 }
 type 17 primitive isize
 type 18 struct std_string_builder$StringBuilder { parts:13 }
 type 19 union 5,0
@@ -900,7 +900,7 @@ fn 18 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 16   ; __Tuple_32
+  struct.new 16   ; __Tuple_char_usize
   return
 end
 

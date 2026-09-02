@@ -6,8 +6,8 @@
 
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_core_Dec64_t vader_struct_std_core_Dec64_t;
-typedef struct vader_struct___Tuple_17_t vader_struct___Tuple_17_t;
-typedef struct vader_struct___Tuple_19_t vader_struct___Tuple_19_t;
+typedef struct vader_struct___Tuple_u64_u64_u64_t vader_struct___Tuple_u64_u64_u64_t;
+typedef struct vader_struct___Tuple_u64_u64_t vader_struct___Tuple_u64_u64_t;
 
 struct vader_struct_std_core_Buffer_t {
     vader_obj_header_t header;
@@ -17,13 +17,13 @@ struct vader_struct_std_core_Dec64_t {
     uint64_t f_mantissa;
     int32_t f_exp;
 };
-struct vader_struct___Tuple_17_t {
+struct vader_struct___Tuple_u64_u64_u64_t {
     vader_obj_header_t header;
     uint64_t f__0;
     uint64_t f__1;
     uint64_t f__2;
 };
-struct vader_struct___Tuple_19_t {
+struct vader_struct___Tuple_u64_u64_t {
     vader_obj_header_t header;
     uint64_t f__0;
     uint64_t f__1;
@@ -158,9 +158,9 @@ static const uint16_t vader_type_17_ptrs[] = { offsetof(vader_array_t, buf) };
 const vader_type_info_t vader_type_info_table[18] = {
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Dec64_t), NULL, 0, 0, NULL, 0, NULL },
-    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_17_t), NULL, 0, 0, NULL, 0, NULL },
+    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_u64_u64_u64_t), NULL, 0, 0, NULL, 0, NULL },
     [10] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_10_ptrs, 1, 0, NULL, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_19_t), NULL, 0, 0, NULL, 0, NULL },
+    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_u64_u64_t), NULL, 0, 0, NULL, 0, NULL },
     [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
     [16] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_16_ptrs, 1, 0, NULL, 0, NULL },
     [17] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_17_ptrs, 1, 0, NULL, 0, NULL },
@@ -533,9 +533,9 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l16];
         l9 = (uint64_t) (int64_t) t0;
         l15 = std_core_mul_shift_all_64(l3, l8, l9, l14, l7);
-        l8 = ((vader_struct___Tuple_17_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_17_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_17_t*) l15)->f__2;
+        l8 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__2;
 #line 166 "lib/std/core/dtoa.vader"
         if ((l13 <= INT32_C(21))) {
 #line 168 "lib/std/core/dtoa.vader"
@@ -602,9 +602,9 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         t0 = ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l16];
         l18 = (uint64_t) (int64_t) t0;
         l15 = std_core_mul_shift_all_64(l3, l17, l18, l14, l7);
-        l8 = ((vader_struct___Tuple_17_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_17_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_17_t*) l15)->f__2;
+        l8 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__2;
 #line 187 "lib/std/core/dtoa.vader"
         if ((l13 <= INT32_C(1))) {
 #line 189 "lib/std/core/dtoa.vader"
@@ -961,12 +961,12 @@ static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     l5 = (uint64_t) (int64_t) t0;
 #line 79 "lib/std/core/dtoa.vader"
     l6 = std_core_umul128(l5, l1);
-    l7 = ((vader_struct___Tuple_19_t*) l6)->f__0;
-    l8 = ((vader_struct___Tuple_19_t*) l6)->f__1;
+    l7 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__0;
+    l8 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__1;
 #line 80 "lib/std/core/dtoa.vader"
     l6 = std_core_umul128(l5, l2);
-    l5 = ((vader_struct___Tuple_19_t*) l6)->f__0;
-    l9 = ((vader_struct___Tuple_19_t*) l6)->f__1;
+    l5 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__0;
+    l9 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__1;
 #line 81 "lib/std/core/dtoa.vader"
     t0 = (l7 + l9);
     l9 = (uint64_t) (int64_t) t0;
@@ -1051,7 +1051,7 @@ static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     l8 = (uint64_t) (int64_t) t0;
     t1 = std_core_shiftright128(l9, l5, l8);
 #line 105 "lib/std/core/dtoa.vader"
-    vader_struct___Tuple_17_t* _a0_obj = (vader_struct___Tuple_17_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_17_t));
+    vader_struct___Tuple_u64_u64_u64_t* _a0_obj = (vader_struct___Tuple_u64_u64_u64_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_u64_t));
     vader_obj_header_init(_a0_obj, 9u);
     _a0_obj->f__0 = t1;
     _a0_obj->f__1 = l7;
@@ -1304,7 +1304,7 @@ static void* std_core_umul128(uint64_t l0, uint64_t l1) {
     t0 = (l2 | l4);
     l2 = (uint64_t) (int64_t) t0;
 #line 68 "lib/std/core/dtoa.vader"
-    vader_struct___Tuple_19_t* _a0_obj = (vader_struct___Tuple_19_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_19_t));
+    vader_struct___Tuple_u64_u64_t* _a0_obj = (vader_struct___Tuple_u64_u64_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_t));
     vader_obj_header_init(_a0_obj, 11u);
     _a0_obj->f__0 = l3;
     _a0_obj->f__1 = l2;

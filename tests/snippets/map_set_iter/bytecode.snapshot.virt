@@ -17,7 +17,7 @@ type 14 struct std_collections$MutableSet__i32 { inner:12 }
 type 15 array 1
 type 16 array 2
 type 17 primitive isize
-type 18 struct __Tuple_58 { _0:5,_1:1 }
+type 18 struct __Tuple_string_i32 { _0:5,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -106,8 +106,8 @@ fn 0 snippet$main () -> i32
         local.set 7   ; $idx_27
         local.get 6   ; $idx_26
         local.get 7   ; $idx_27
-        struct.new_stack 18   ; __Tuple_58
-        struct.get 18 1   ; __Tuple_58._1
+        struct.new_stack 18   ; __Tuple_string_i32
+        struct.get 18 1   ; __Tuple_string_i32._1
         ref.cast 1   ; -> i32
         local.set 8   ; value
         local.get 5   ; __iter_pos_4

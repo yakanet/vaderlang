@@ -10,8 +10,8 @@ type 7 primitive u8
 type 8 array 7
 type 9 primitive void
 type 10 primitive isize
-type 11 struct __Tuple_36 { _0:1,_1:5 }
-type 12 struct __Tuple_37 { _0:11,_1:2 }
+type 11 struct __Tuple_i32_string { _0:1,_1:5 }
+type 12 struct __Tuple_Tuple_i32_string_bool { _0:11,_1:2 }
 string 0 "answer"
 string 1 "id="
 string 2 " label="
@@ -34,16 +34,16 @@ fn 0 snippet$main () -> i32
   local $cast_24 i64
   i32.const 42
   string.const 0   ; "answer"
-  struct.new_stack 11   ; __Tuple_36
+  struct.new_stack 11   ; __Tuple_i32_string
   bool.const true
-  struct.new_stack 12   ; __Tuple_37
+  struct.new_stack 12   ; __Tuple_Tuple_i32_string_bool
   local.set 0   ; record
   local.field 0 12 0   ; record._0
-  struct.get 11 0   ; __Tuple_36._0
+  struct.get 11 0   ; __Tuple_i32_string._0
   ref.cast 1   ; -> i32
   local.set 1   ; id
   local.field 0 12 0   ; record._0
-  struct.get 11 1   ; __Tuple_36._1
+  struct.get 11 1   ; __Tuple_i32_string._1
   ref.cast 5   ; -> string
   local.set 3   ; __p_0
   local.field 0 12 1   ; record._1

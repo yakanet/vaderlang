@@ -32,6 +32,72 @@ import "vader/diagnostics"
 ///
 /// @param t  the type to key.
 /// @return   the key string ; pass to `MutableMap<string, i32>`.
+/// A tuple's ELEMENT keys as a C-safe identifier fragment: `[i32, string]`
+/// becomes `i32_string`. Built from the elements rather than the tuple's own
+/// `type_intern_key`, which already starts with `Tuple<` and would spell the
+/// word twice.
+///
+/// Long shapes fall back to a hash. C99 only guarantees 63 significant
+/// characters in an internal identifier, and a nested shape reached 611: two
+/// names differing past a compiler's limit would silently become ONE struct.
+/// The threshold keeps the ordinary cases readable in a debugger and only the
+/// monsters opaque.
+///
+/// @param elements  the tuple's element types, in order.
+tuple_shape_name :: fn(elements: Type[]) -> string {
+    spelled :: c_safe_key(type_key_join(elements, "_"))
+    if spelled.byte_len() <= TUPLE_NAME_MAX {
+        return spelled
+    }
+    return "${elements.len()}_${fnv1a_hex(spelled)}"
+}
+
+/// Longest tuple shape spelled in full.
+///
+/// C99 guarantees 63 significant characters in an INTERNAL identifier, and the
+/// emitter wraps this fragment in 23 more: `vader_struct_` (13) + `__Tuple_`
+/// (8) + `_t` (2). What is left is 40. Measured on the bootstrap closure at 48,
+/// 8 of the 40 tuple names came out longer than 63 -- none colliding today,
+/// but two shapes differing only past the limit would silently become ONE
+/// struct on a compiler that applies the guarantee.
+TUPLE_NAME_MAX: usize : 40
+
+/// FNV-1a over the shape, as 16 hex digits. Only reached for a shape too long
+/// to spell; a collision would merge two distinct structs, so `intern_type`'s
+/// key map stays the authority on identity — this only names what it interned.
+fnv1a_hex :: fn(s: string) -> string {
+    h: u64 = 0xcbf29ce484222325
+    for b in s.bytes() {
+        h = (h ^ u64(b)) * 0x100000001b3
+    }
+    out := ""
+    for i in 0..<16 {
+        shift :: u64((15 - i) * 4)
+        nibble :: (h >> shift) & 0xF
+        out = out + "0123456789abcdef"[usize(nibble)..<usize(nibble) + 1]
+    }
+    return out
+}
+
+/// A type key as a C-safe identifier fragment. Every run of characters C would
+/// reject collapses to a single `_`.
+///
+/// @param key  a `type_intern_key` result, or a join of several.
+c_safe_key :: fn(key: string) -> string {
+    out := ""
+    prev_underscore := false
+    for b in key.bytes() {
+        if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
+            out = out + "${char(b)}"
+            prev_underscore = false
+        } else if !prev_underscore {
+            out = out + "_"
+            prev_underscore = true
+        }
+    }
+    return out
+}
+
 export type_intern_key :: fn(t: Type) -> string = match t {
     is PrimitiveType as p -> p.name
     // Key structs / traits by source position (`symbol_key`) + recursive
@@ -175,9 +241,16 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
                 .return_type = intern_type(f.return_type, ctx),
             }
         }
-        // Anonymous struct `__Tuple_<slot>` with positional fields `_0`,
-        // `_1`, … . The slot index disambiguates same-arity shapes so
-        // `[i32, string]` and `[bool, string]` emit distinct C structs.
+        // Anonymous struct with positional fields `_0`, `_1`, … , named after
+        // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
+        // distinct C structs.
+        //
+        // It used to be the slot's rank in the type table, which shifts:
+        // anything interned earlier on one target only renumbered every tuple
+        // behind it, so modules whose code is character-for-character the same
+        // emitted byte-different C per target and the seed stored each three
+        // times. `type_intern_key` is the same key `intern_type` dedupes on, so
+        // two tuples share a name exactly when they share a slot.
         is TupleType as p -> {
             fields: BcField[]! = []
             for i in 0..<p.elements.len() {
@@ -187,7 +260,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
                 })
             }
             return BcStruct {
-                .name      = "__Tuple_${slot_index}",
+                .name      = "__Tuple_${tuple_shape_name(p.elements)}",
                 .fields    = fields,
                 .c_name    = "",
                 .symbol_id = -1,

@@ -29,8 +29,8 @@ type 26 primitive u32
 type 27 struct std_core$FloatDec32 { mantissa:26,exp:1 }
 type 28 struct std_core$Dec64 { mantissa:24,exp:1 }
 type 29 array 13
-type 30 struct __Tuple_40 { _0:24,_1:24,_2:24 }
-type 31 struct __Tuple_41 { _0:24,_1:24 }
+type 30 struct __Tuple_u64_u64_u64 { _0:24,_1:24,_2:24 }
+type 31 struct __Tuple_u64_u64 { _0:24,_1:24 }
 type 32 primitive void
 type 33 primitive isize
 type 34 array 24
@@ -3042,7 +3042,7 @@ fn 28 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 37   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 30   ; __Tuple_40
+  struct.new 30   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -3378,7 +3378,7 @@ fn 36 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 31   ; __Tuple_41
+  struct.new 31   ; __Tuple_u64_u64
   return
 end
 

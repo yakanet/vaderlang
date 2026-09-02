@@ -10,7 +10,7 @@ type 7 primitive char
 type 8 array 9
 type 9 primitive u8
 type 10 primitive void
-type 11 struct __Tuple_27 { _0:7,_1:3 }
+type 11 struct __Tuple_char_usize { _0:7,_1:3 }
 type 12 primitive isize
 string 0 "ascii  cp="
 string 1 "vader"
@@ -863,7 +863,7 @@ fn 12 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 11   ; __Tuple_27
+  struct.new 11   ; __Tuple_char_usize
   return
 end
 

@@ -30,7 +30,7 @@ type 27 union 0,3
 type 28 array 21
 type 29 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
 type 30 primitive isize
-type 31 struct __Tuple_44 { _0:4,_1:8 }
+type 31 struct __Tuple_char_usize { _0:4,_1:8 }
 type 32 struct std_string_builder$StringBuilder { parts:19 }
 type 33 array 1
 type 34 union 7,0
@@ -6788,7 +6788,7 @@ fn 52 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 31   ; __Tuple_44
+  struct.new 31   ; __Tuple_char_usize
   return
 end
 

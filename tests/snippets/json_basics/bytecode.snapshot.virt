@@ -16,13 +16,13 @@ type 13 primitive u8
 type 14 union 15,0
 type 15 struct std_core$DecimalParts { w:16,q:3,negative:5,too_many_digits:5 }
 type 16 primitive u64
-type 17 struct __Tuple_27 { _0:16,_1:16 }
+type 17 struct __Tuple_u64_u64 { _0:16,_1:16 }
 type 18 struct std_core$SlowParts { d:19,e:3 }
 type 19 array 20
 type 20 primitive u32
-type 21 struct __Tuple_31 { _0:19,_1:20 }
+type 21 struct __Tuple_Array_u32_u32 { _0:19,_1:20 }
 type 22 struct std_core$Dec64 { mantissa:16,exp:3 }
-type 23 struct __Tuple_33 { _0:16,_1:16,_2:16 }
+type 23 struct __Tuple_u64_u64_u64 { _0:16,_1:16,_2:16 }
 type 24 array 1
 type 25 ref _
 type 26 union 27,28,29,30,31,32,33
@@ -49,12 +49,12 @@ type 46 primitive isize
 type 47 union 11,48
 type 48 struct std_string$ParseError { msg:1 }
 type 49 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
-type 50 struct __Tuple_78 { _0:4,_1:8 }
+type 50 struct __Tuple_char_usize { _0:4,_1:8 }
 type 51 struct std_collections$MutableMap__string__Any { ekeys:24,evals:53,index:52,mask:8,size:8,tombs:8 }
 type 52 array 3
 type 53 array 25
 type 54 array 16
-type 55 struct __Tuple_103 { _0:1,_1:25 }
+type 55 struct __Tuple_string_Any { _0:1,_1:25 }
 type 56 union 7,0
 type 57 array 4
 string 0 ": error: "
@@ -1803,7 +1803,7 @@ fn 14 std_core$pf_product (i32,u64) -> ref
     local.get 1   ; arg 1
     local.get 7   ; $idx_25
     call 20   ; std_core$umul128
-    struct.get 17 0   ; __Tuple_27._0
+    struct.get 17 0   ; __Tuple_u64_u64._0
     ref.cast 16   ; -> u64
     local.set 7   ; $idx_25
     local.get 6   ; lo
@@ -1824,7 +1824,7 @@ fn 14 std_core$pf_product (i32,u64) -> ref
   end $L0
   local.get 4   ; $idx_9
   local.get 6   ; lo
-  struct.new 17   ; __Tuple_27
+  struct.new 17   ; __Tuple_u64_u64
   return
 end
 
@@ -2573,7 +2573,7 @@ fn 20 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 17   ; __Tuple_27
+  struct.new 17   ; __Tuple_u64_u64
   return
 end
 
@@ -3008,7 +3008,7 @@ fn 26 std_core$BigInt$Div$div (ref,u32) -> ref
   local.set 10   ; $cast_22
   local.get 12   ; out
   local.get 10   ; $cast_22
-  struct.new 21   ; __Tuple_31
+  struct.new 21   ; __Tuple_Array_u32_u32
   return
 end
 
@@ -4034,7 +4034,7 @@ fn 34 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 40   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 23   ; __Tuple_33
+  struct.new 23   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -6003,7 +6003,7 @@ fn 64 json$write_object (ref,ref,i32,i32) -> void
         local.set 10   ; $idx_30
         local.get 9   ; $idx_29
         local.get 10   ; $idx_30
-        struct.new 55   ; __Tuple_103
+        struct.new 55   ; __Tuple_string_Any
         local.set 11   ; __gen_elem_1
         local.field 11 55 0   ; __gen_elem_1._0
         ref.cast 1   ; -> string
@@ -7329,7 +7329,7 @@ fn 86 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 50   ; __Tuple_78
+  struct.new 50   ; __Tuple_char_usize
   return
 end
 

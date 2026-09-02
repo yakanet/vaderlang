@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 struct __Tuple_1 { _0:2,_1:3,_2:4 }
+type 1 struct __Tuple_i32_string_bool { _0:2,_1:3,_2:4 }
 type 2 primitive i32
 type 3 primitive string
 type 4 primitive bool
@@ -27,7 +27,7 @@ fn 0 snippet$triple () -> ref
   i32.const 7
   string.const 0   ; "ignored"
   bool.const true
-  struct.new 1   ; __Tuple_1
+  struct.new 1   ; __Tuple_i32_string_bool
   return
 end
 

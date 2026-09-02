@@ -20,8 +20,8 @@ type 17 array 11
 type 18 struct std_core$FloatDec32 { mantissa:13,exp:1 }
 type 19 struct std_core$Dec64 { mantissa:7,exp:1 }
 type 20 array 2
-type 21 struct __Tuple_29 { _0:7,_1:7,_2:7 }
-type 22 struct __Tuple_30 { _0:7,_1:7 }
+type 21 struct __Tuple_u64_u64_u64 { _0:7,_1:7,_2:7 }
+type 22 struct __Tuple_u64_u64 { _0:7,_1:7 }
 type 23 primitive void
 type 24 union 3,0
 type 25 struct std_collections$MutableMap__string__bool { ekeys:20,evals:41,index:40,mask:4,size:4,tombs:4 }
@@ -3482,7 +3482,7 @@ fn 44 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 52   ; std_core$shiftright128
   local.get 7   ; tmp
   local.get 10   ; $add_28
-  struct.new 21   ; __Tuple_29
+  struct.new 21   ; __Tuple_u64_u64_u64
   return
 end
 
@@ -3739,7 +3739,7 @@ fn 51 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 22   ; __Tuple_30
+  struct.new 22   ; __Tuple_u64_u64
   return
 end
 

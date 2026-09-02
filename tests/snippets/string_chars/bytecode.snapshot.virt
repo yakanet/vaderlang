@@ -14,7 +14,7 @@ type 11 primitive void
 type 12 struct std_core$Yield__char { value:8 }
 type 13 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
 type 14 union 0,12
-type 15 struct __Tuple_30 { _0:8,_1:3 }
+type 15 struct __Tuple_char_usize { _0:8,_1:3 }
 type 16 primitive isize
 type 17 union 12,0
 string 0 "-- ascii --"
@@ -713,7 +713,7 @@ fn 12 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 15   ; __Tuple_30
+  struct.new 15   ; __Tuple_char_usize
   return
 end
 
