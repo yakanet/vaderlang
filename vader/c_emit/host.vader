@@ -24,6 +24,13 @@ import "vader/bytecode"
 /// `module.imports` already carries only the referenced host fns. A
 /// trailing blank line keeps the spacing before the fn bodies stable.
 emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+    // Ahead of the shims that dereference them, and of the assertions that check
+    // them — both of which name these types. Only under `--split`, where this
+    // lands in the per-target imports header; a single file already carries them
+    // with the other typedefs.
+    if ctx.split {
+        emit_mirrored_struct_typedefs(ctx, out)
+    }
     extern_decls: string[]! = []
     seen_extern: string[]! = []
     headers: string[]! = []

@@ -317,13 +317,50 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// of `emit_type_decls` : in a split build these are the module's public
 /// shape, routed to the shared header ; the atom table + data pool (the data
 /// half) go to the globals TU.
+/// The `@c_struct` mirrors, emitted with the imports rather than in the shared
+/// header.
+///
+/// A mirror is per SYSTEM by nature — `DarwinStat` and `LinuxStat` describe the
+/// same C type laid out differently, and each is materialised only where its
+/// `@target` body is kept. The shared header must read identically for every
+/// target (`--seed-targets` refuses otherwise, which is what broke regenerating
+/// the seed), so the mirrors belong beside the shims that marshal them and the
+/// `_Static_assert`s that check them — all of which already live per target.
+///
+/// @param ctx  the emit context.
+/// @param out  the imports accumulator.
+emit_mirrored_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+    for i in 0..<ctx.module.types.len() {
+        if ctx.module.types[i] is BcStruct as fwd {
+            if fwd.c_name != "" {
+                cname :: ctx.struct_c_names[i]
+                out.append("typedef struct ${cname} ${cname};\n")
+            }
+        }
+    }
+    for j in 0..<ctx.module.types.len() {
+        if ctx.module.types[j] is BcStruct as s {
+            if s.c_name != "" {
+                emit_struct_body(ctx, s, j, out)
+            }
+        }
+    }
+}
+
 emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Forward decls for every struct so field references compile in
     // any declaration order.
     for i in 0..<ctx.module.types.len() {
-        if ctx.module.types[i] is BcStruct {
-            cname :: ctx.struct_c_names[i]
-            out.append("typedef struct ${cname} ${cname};\n")
+        // Under `--split` a `@c_struct` mirror is emitted with the imports
+        // instead: it exists only on the systems that declare it, and the shared
+        // header has to read the same for every target. In a single file there
+        // is nowhere else to put it, and the type table below takes `sizeof` on
+        // it, so it stays here.
+        if ctx.module.types[i] is BcStruct as fwd {
+            if fwd.c_name == "" || !ctx.split {
+                cname :: ctx.struct_c_names[i]
+                out.append("typedef struct ${cname} ${cname};\n")
+            }
         }
     }
     out.append("\n")
@@ -332,7 +369,11 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // line. Phase 2 skips the packed-payload mirror twin (emitted next to
     // the regular typedef for inline-variant POD shapes).
     for j in 0..<ctx.module.types.len() {
-        if ctx.module.types[j] is BcStruct as s { emit_struct_body(ctx, s, j, out) }
+        if ctx.module.types[j] is BcStruct as s {
+            if s.c_name == "" || !ctx.split {
+                emit_struct_body(ctx, s, j, out)
+            }
+        }
     }
     out.append("\n")
 }
