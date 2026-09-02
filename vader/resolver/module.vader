@@ -131,7 +131,7 @@ export ModuleOrigin :: enum(u8) {
     /// That is DECIDED, not an omission, and it has one visible consequence: R2034
     /// does not fire on a library module compiled as the entry. `vader build
     /// lib/probe/probe.vader` stays silent where `vader build app.vader` importing
-    /// the same `probe` reports it (reproduced). Which is right: being a library is
+    /// the same `probe` reports it. Which is right: being a library is
     /// not a property of a DIRECTORY, it is a property of how a build reaches it.
     /// R2034 protects a consumer from a library that SHIPS a dependency on the
     /// compiler and is then imported; a file the caller named on the command line
@@ -341,10 +341,10 @@ export home_root :: fn(subdir: string, marker: string) -> string | null {
 /// `lib/` hosts every namespace the toolchain ships, `std/` among them — it is not
 /// the stdlib's own directory, which is why the name says library and not stdlib.
 /// The marker is `std/io/io.vader` : `std/io` is a folder module, so the bare
-/// `std/io.vader` file no longer exists — a stale marker silently defeated the
-/// exe-sidecar branch, forcing every binary onto the `<cwd>/lib` fallback
-/// (so a `dist/` bundle could never find its own stdlib unless run from a dir
-/// that happened to hold one).
+/// `std/io.vader` file does not exist. A stale marker silently defeats the
+/// exe-sidecar branch and forces every binary onto the `<cwd>/lib` fallback, so a
+/// `dist/` bundle cannot find its own stdlib unless it is run from a directory
+/// that happens to hold one.
 export default_library_root :: fn() = resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
 
 /// Marker proving a candidate directory really is a library root.

@@ -1,29 +1,23 @@
 // vader/resolver/target_select — choosing one body per `@target` group.
 //
-// The model, in one line: a function has ONE declaration and several candidate
-// bodies, and a build selects one. `@target` bare names the declaration (and may
-// carry the general body); `@target(.Os, …)` names a body for those systems.
+// The surface `@target` presents is SPEC.md §17 *Target selection*; this file
+// implements the choice. Three invariants govern it.
 //
-// This runs between parsing and collection, and that placement is the whole
-// point: everything downstream — `add_fn`, T3053, overload resolution, the
-// comptime evaluator, the typechecker — then sees a module with exactly one
-// declaration per name, and needs no knowledge of targets at all. A body that
-// loses is not "skipped later"; it never reaches them.
+// It runs between parsing and collection. Everything downstream — `add_fn`,
+// T3053, overload resolution, the comptime evaluator, the typechecker — sees a
+// module with exactly one declaration per name and needs no knowledge of targets.
+// A body that loses never reaches them; it is not "skipped later".
 //
-// When a specialised body wins, the bare declaration is not discarded: its
-// ENVELOPE is kept and the winning body grafted onto it. The envelope is the
-// name, the signature, the visibility and the decorators — everything a caller
-// and a reader depend on — so an exported function stays exported on every
-// target. Dropping the declaration whole (the first cut) made the group PRIVATE
-// wherever a specialisation won, which surfaced as `R2006 unresolved identifier`
-// at the call site of a perfectly good export.
+// The bare declaration's ENVELOPE survives a specialised body winning: the name,
+// the signature, the visibility, the decorators. Graft the body onto it rather
+// than replacing the node whole, or an exported function stops being exported
+// wherever a specialisation wins.
 //
-// Spans are NOT rewritten. The merged node carries the declaration's own span as
-// its identity — what `rename` and `references` must target — while the grafted
-// body keeps the spans it was parsed with, so a diagnostic inside it names the
-// file it was written in. That is also what keeps the mechanism correct once the
-// resolver moves to file-scoped imports (TODO §1.13d): the body resolves against
-// its own file, not against the declaration's.
+// Spans are NOT rewritten. The merged node keeps the declaration's own span as
+// its identity — what `rename` and `references` target — while the grafted body
+// keeps the spans it was parsed with, so a diagnostic inside it names the file it
+// was written in, and it resolves against that file's imports once the resolver
+// moves to file-scoped ones (TODO §1.13d).
 
 module "vader/resolver"
 
@@ -35,15 +29,6 @@ import "vader/diagnostics"
 import "std/target"
 import "vader/target"
 
-/// Filter every file's declarations down to the ones this target selects.
-///
-/// Returns the files unchanged when `target` is null — no `--target=` was given,
-/// so nothing selects and the module keeps every declaration, which is exactly
-/// today's behaviour for a tree that contains no `@target` at all.
-///
-/// @param files   the module's parsed files.
-/// @param target  the compilation target, or null to disable selection.
-/// @return        files whose programs hold only the selected declarations.
 // Whether THIS body's code is still present anywhere in the selected files. The
 // merged node keeps the winner's body verbatim, spans included, so the body's own
 // span is what identifies it — the declaration's name does not.
@@ -109,6 +94,17 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
     return out
 }
 
+/// Filter every file's declarations down to the ones this target selects.
+///
+/// Returns the files unchanged when `target` is null — no `--target=` was given,
+/// so nothing selects and the module keeps every declaration, which is the
+/// behaviour a tree containing no `@target` already has.
+///
+/// @param files   the module's parsed files.
+/// @param target  the compilation target, or null to disable selection.
+/// @param diags   accumulates the group well-formedness diagnostics, which are
+///                raised for every target rather than only the one being built.
+/// @return        files whose programs hold only the selected declarations.
 export select_target_bodies :: fn(
     files: SourceFile[],
     target: Target | null,
@@ -301,24 +297,24 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
     }
 }
 
-// The body's own signature is PARSED and then thrown away — `graft_body` keeps
-// the declaration's params and return type, because the declaration is the one
-// that carries the contract. That makes a divergent body silently wrong rather
-// than rejected, and the silence is total for exactly two shapes:
+// `graft_body` keeps the DECLARATION's params and return type — it carries the
+// contract — so the body's own signature is parsed and thrown away. A divergent
+// body is therefore silently wrong rather than rejected, and this check exists to
+// catch the two shapes where the silence is total:
 //
-//   - a different ARITY — the body simply cannot mention the params it dropped,
-//     so nothing downstream notices;
-//   - the same names in a different ORDER — the body's code resolves against the
+//   - a different ARITY — the body cannot mention the params it dropped, so
+//     nothing downstream notices;
+//   - the same names in a different ORDER — the body resolves against the
 //     declaration's slots, so `fn(b, a) = a - b` computes `a - b` at the
 //     DECLARATION's positions and returns the negation of what was written.
 //
-// Types are deliberately NOT compared here. The grafted node keeps the
-// declaration's types, so a body written against different ones fails to
-// type-check against them (T3020 on the return, an ordinary mismatch inside) —
-// caught downstream with a better message than this pass could give. Comparing
-// them would mean a structural TypeExpr comparator, and the only one in the tree
-// (`signature_help::render_type_expr`) falls back to `"?"`, which would make two
-// unrelated types compare EQUAL. A wrong comparator here is worse than none.
+// Types are deliberately NOT compared. The grafted node keeps the declaration's
+// types, so a body written against different ones fails to type-check against
+// them downstream (T3020 on the return, an ordinary mismatch inside) with a better
+// message than this pass could give. Comparing them needs a structural TypeExpr
+// comparator, and the tree's only one (`signature_help::render_type_expr`) falls
+// back to `"?"` — which makes two unrelated types compare EQUAL. A wrong
+// comparator here is worse than none.
 check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]!) -> void {
     if decl.params.len() != body.params.len() {
         diags.push(
@@ -485,11 +481,12 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
 
 /// A `@target`'s parsed selectors, plus whether it was written bare.
 ///
-/// The two are NOT the same question, and collapsing them was a bug: an empty
-/// list used to mean both "written bare" and "every selector failed to parse",
-/// so a single typo — `@target(.Drawin)` — was read as a second bare
-/// declaration and reported as `R2039` plus `T3053`, neither of which names the
-/// typo. `is_bare` answers the form; `os` answers the content.
+/// The two are NOT the same question, and one empty list cannot answer both.
+/// Fold `is_bare` into it and an empty `os` means "written bare" as much as
+/// "every selector failed to parse", so a single typo — `@target(.Drawin)` —
+/// reads as a second bare declaration and is reported as `R2039` plus `T3053`,
+/// neither of which names the typo. `is_bare` answers the form; `os` answers the
+/// content.
 TargetSelectors :: struct {
     os:      Os[]
     /// `true` for `@target` written with no argument list — THE declaration.
