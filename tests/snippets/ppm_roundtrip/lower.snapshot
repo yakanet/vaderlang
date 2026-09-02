@@ -68,7 +68,16 @@
           callee:
             std_io$println__string :void
           arg0:
-            "write failed" :string
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "write failed: " :string
+              arg1:
+                vcall Error.message :string
+                  recv:
+                    cast → Error
+                      wr :IOError | null
         return int(1) :i32
     let raw: IOError | u8[] =
       call :IOError | u8[]
@@ -85,7 +94,16 @@
           callee:
             std_io$println__string :void
           arg0:
-            "read failed" :string
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "read failed: " :string
+              arg1:
+                vcall Error.message :string
+                  recv:
+                    cast → Error
+                      raw :IOError | u8[]
         return int(1) :i32
     let dec: Ppm | PpmError =
       call :Ppm | PpmError

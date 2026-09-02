@@ -334,7 +334,22 @@
                             "parts": [
                               {
                                 "kind": "text",
-                                "value": "write failed"
+                                "value": "write failed: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "wr"
+                                    },
+                                    "field": "message"
+                                  },
+                                  "args": []
+                                }
                               }
                             ]
                           },
@@ -417,7 +432,22 @@
                             "parts": [
                               {
                                 "kind": "text",
-                                "value": "read failed"
+                                "value": "read failed: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "raw"
+                                    },
+                                    "field": "message"
+                                  },
+                                  "args": []
+                                }
                               }
                             ]
                           },

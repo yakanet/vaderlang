@@ -18,12 +18,12 @@ main :: fn() -> i32 {
     }
     wr :: write_file_bytes(path, enc)
     if wr is Error {
-        println("write failed")
+        println("write failed: ${wr.message()}")
         return 1
     }
     raw :: read_file_bytes(path)
     if raw is Error {
-        println("read failed")
+        println("read failed: ${raw.message()}")
         return 1
     }
     dec :: decode(raw)
