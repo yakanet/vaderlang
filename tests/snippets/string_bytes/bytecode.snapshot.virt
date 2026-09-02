@@ -39,10 +39,10 @@ string 26 " sl0="
 string 27 " sl1="
 string 28 " sl2="
 string 29 "\n"
-import 0 byte_len std_core$byte_len result_type=2 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=6 (string,usize) -> u8
-import 2 bytes std_core$bytes result_type=7 (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=9 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=2 param_types=4 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=6 param_types=4,2 (string,usize) -> u8
+import 2 bytes std_core$bytes result_type=7 param_types=4 (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,2 (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 

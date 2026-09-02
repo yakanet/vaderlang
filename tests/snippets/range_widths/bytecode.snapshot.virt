@@ -16,9 +16,9 @@ string 2 "isize sum="
 string 3 "u8 sum="
 string 4 "i16 sum="
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=2 (string) -> usize
-import 1 bytes std_core$bytes result_type=9 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=2 param_types=8 (string) -> usize
+import 1 bytes std_core$bytes result_type=9 param_types=8 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,9,2 (i32,ref,usize) -> isize
 impl 7 ByteAccess
 export main 0
 

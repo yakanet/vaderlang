@@ -13,8 +13,8 @@ type 10 primitive isize
 type 11 array 9
 string 0 "\n"
 data 0 u32 hex"0000000001000000040000000900000010000000190000002400000031000000"
-import 0 bytes std_core$bytes result_type=7 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=7 param_types=4 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,7,2 (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 

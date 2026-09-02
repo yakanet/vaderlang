@@ -17,8 +17,8 @@ string 3 "set has 4"
 string 4 "set lacks 5"
 string 5 "set has 7"
 string 6 "\n"
-import 0 bytes std_core$bytes result_type=8 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=8 param_types=6 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,8,5 (i32,ref,usize) -> isize
 impl 1 Contains
 impl 4 Contains
 impl 4 Iterator

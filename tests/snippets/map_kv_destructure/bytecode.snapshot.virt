@@ -20,10 +20,10 @@ string 2 "c"
 string 3 "="
 string 4 "sum="
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=2 (string) -> usize
-import 1 bytes std_core$bytes result_type=8 (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=6 (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=2 param_types=4 (string) -> usize
+import 1 bytes std_core$bytes result_type=8 param_types=4 (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=6 param_types=4 (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,8,2 (i32,ref,usize) -> isize
 impl 3 ByteAccess
 impl 11 Index
 impl 11 IndexSet

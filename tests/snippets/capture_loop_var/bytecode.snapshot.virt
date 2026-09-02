@@ -33,9 +33,9 @@ string 6 "mapped "
 string 7 "filtered defer z="
 string 8 "nested n="
 string 9 "\n"
-import 0 byte_len std_core$byte_len result_type=13 (string) -> usize
-import 1 bytes std_core$bytes result_type=16 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=13 param_types=11 (string) -> usize
+import 1 bytes std_core$bytes result_type=16 param_types=11 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,16,13 (i32,ref,usize) -> isize
 impl 14 ByteAccess
 export main 2
 

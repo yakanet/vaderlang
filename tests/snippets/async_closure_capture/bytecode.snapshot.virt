@@ -26,12 +26,12 @@ type 23 struct $Cell_i32 { value:1 }
 type 24 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 bytes std_core$bytes result_type=18 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=22 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=18 param_types=15 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=22 param_types=1,18,13 (i32,ref,usize) -> isize
 import 2 sched_now std_runtime$sched_now result_type=16 () -> i64
-import 3 sched_arm std_runtime$sched_arm result_type=4 (i64) -> void
+import 3 sched_arm std_runtime$sched_arm result_type=4 param_types=16 (i64) -> void
 import 4 sched_park std_runtime$sched_park result_type=1 () -> i32
-import 5 panic std_abort$panic result_type=4 (string) -> void
+import 5 panic std_abort$panic result_type=4 param_types=15 (string) -> void
 impl 5 Async
 impl 8 Async
 impl 14 ByteAccess

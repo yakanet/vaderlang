@@ -17,8 +17,8 @@ type 14 primitive u8
 type 15 array 14
 type 16 primitive isize
 string 0 "\n"
-import 0 bytes std_core$bytes result_type=15 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=15 param_types=12 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,15,10 (i32,ref,usize) -> isize
 impl 3 Async
 impl 6 Async
 impl 7 Async

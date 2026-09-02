@@ -23,9 +23,9 @@ string 4 "err "
 string 5 "str "
 string 6 "plain"
 string 7 "\n"
-import 0 byte_len std_core$byte_len result_type=9 (string) -> usize
-import 1 bytes std_core$bytes result_type=13 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=9 param_types=2 (string) -> usize
+import 1 bytes std_core$bytes result_type=13 param_types=2 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=8,13,9 (i32,ref,usize) -> isize
 impl 1 Error
 impl 3 Error
 impl 10 ByteAccess

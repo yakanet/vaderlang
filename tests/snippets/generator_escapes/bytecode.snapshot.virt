@@ -26,9 +26,9 @@ type 23 ref __genstate_pairs
 string 0 "c "
 string 1 "p "
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=8 (string) -> usize
-import 1 bytes std_core$bytes result_type=19 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=8 param_types=16 (string) -> usize
+import 1 bytes std_core$bytes result_type=19 param_types=16 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,19,8 (i32,ref,usize) -> isize
 impl 4 Iterator
 impl 7 Iterator
 impl 9 Contains

@@ -25,9 +25,9 @@ string 1 " ufcs="
 string 2 "member="
 string 3 " want=106"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=8 (string) -> usize
-import 1 bytes std_core$bytes result_type=18 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=8 param_types=14 (string) -> usize
+import 1 bytes std_core$bytes result_type=18 param_types=14 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=2,18,8 (i32,ref,usize) -> isize
 impl 3 Adder
 impl 4 Contains
 impl 4 Iterator

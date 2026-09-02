@@ -1,4 +1,6 @@
-# stderr
-vader vm: extern `gettimeofday` at pc=5: argument 0 is a struct the type table does not describe
+# stdout
+rc=0
+epoch=true
+usec_in_range=true
 # exit
-1
+0

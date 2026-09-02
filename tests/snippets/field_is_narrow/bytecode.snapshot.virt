@@ -20,9 +20,9 @@ string 3 "hit="
 string 4 " miss="
 string 5 " via="
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=7 (string) -> usize
-import 1 bytes std_core$bytes result_type=11 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=7 param_types=6 (string) -> usize
+import 1 bytes std_core$bytes result_type=11 param_types=6 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,11,7 (i32,ref,usize) -> isize
 impl 8 ByteAccess
 export main 2
 

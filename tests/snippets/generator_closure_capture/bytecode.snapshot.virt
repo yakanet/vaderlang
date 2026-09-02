@@ -25,8 +25,8 @@ type 22 primitive isize
 type 23 ref __genstate_gen
 type 24 struct $Cell_i32 { value:1 }
 string 0 "\n"
-import 0 bytes std_core$bytes result_type=20 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=22 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=20 param_types=17 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=22 param_types=1,20,12 (i32,ref,usize) -> isize
 impl 4 Iterator
 impl 9 Contains
 impl 9 Iterator

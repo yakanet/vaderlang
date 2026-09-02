@@ -18,8 +18,8 @@ type 15 fn (6) -> 4
 type 16 primitive isize
 string 0 "boom"
 string 1 "\n"
-import 0 bytes std_core$bytes result_type=13 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=13 param_types=2 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=6,13,9 (i32,ref,usize) -> isize
 impl 1 Error
 impl 10 ByteAccess
 export main 2

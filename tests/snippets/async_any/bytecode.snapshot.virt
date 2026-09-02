@@ -49,13 +49,13 @@ string 3 "all failed: "
 string 4 "first success: "
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=19 (string) -> usize
-import 1 bytes std_core$bytes result_type=23 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=36 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=19 param_types=2 (string) -> usize
+import 1 bytes std_core$bytes result_type=23 param_types=2 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=36 param_types=4,23,19 (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=27 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=8 (i64) -> void
+import 4 sched_arm std_runtime$sched_arm result_type=8 param_types=27 (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
-import 6 panic std_abort$panic result_type=8 (string) -> void
+import 6 panic std_abort$panic result_type=8 param_types=2 (string) -> void
 impl 1 Error
 impl 5 Async
 impl 10 Async

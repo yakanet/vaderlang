@@ -321,10 +321,87 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // as an integer instead of a string. Only non-zero indices are written;
         // 0 is the "no type" slot every other import carries.
         rt :: if imp.signature.result_type == 0 { "" } else { "result_type=${imp.signature.result_type} " }
-        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${header}${rt}")
+        // The PARAMETERS' type indices, for the same reason as the result's: a
+        // `@c_struct` argument renders as a bare `ref` in the signature, so a
+        // `.virt` re-read left the VM unable to describe the block it must lay
+        // out -- `argument 0 is a struct the type table does not describe`.
+        pt :: if all_zero(imp.signature.param_types) {
+            ""
+        } else {
+            "param_types=${join_indices(imp.signature.param_types)} "
+        }
+        // `!` and `@c_pointer` per parameter. `write_signature` renders neither
+        // (it serves functions too), so without them a `.virt` re-read lost the
+        // write-back: the callee filled the block and the VM never copied it
+        // out, leaving the Vader struct at its pre-call values.
+        pm :: if any_true(imp.signature.param_mutable) {
+            "param_mutable=${join_flags(imp.signature.param_mutable)} "
+        } else {
+            ""
+        }
+        pa :: if any_true(imp.signature.param_by_address) {
+            "param_by_address=${join_flags(imp.signature.param_by_address)} "
+        } else {
+            ""
+        }
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${header}${rt}${pt}${pm}${pa}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }
+}
+
+/// Whether every entry is the "no type" slot, in which case the attribute is
+/// left out rather than written as a run of zeroes.
+///
+/// @param xs  the signature's per-parameter `BcType` indices.
+all_zero :: fn(xs: i32[]) -> bool {
+    for x in xs {
+        if x != 0 {
+            return false
+        }
+    }
+    return true
+}
+
+/// Render type indices as a comma-separated list, the form the `.virt` reader
+/// splits on.
+///
+/// @param xs  the signature's per-parameter `BcType` indices.
+join_indices :: fn(xs: i32[]) -> string {
+    sb :: StringBuilder {}
+    for i in 0..<xs.len() {
+        if i > 0 {
+            sb.append(",")
+        }
+        sb.append("${xs[i]}")
+    }
+    return sb.to_string()
+}
+
+/// Whether any flag is set, in which case the attribute is worth writing.
+///
+/// @param xs  one flag per parameter.
+any_true :: fn(xs: bool[]) -> bool {
+    for x in xs {
+        if x {
+            return true
+        }
+    }
+    return false
+}
+
+/// Render per-parameter flags as a comma-separated run of `0` / `1`.
+///
+/// @param xs  one flag per parameter.
+join_flags :: fn(xs: bool[]) -> string {
+    sb :: StringBuilder {}
+    for i in 0..<xs.len() {
+        if i > 0 {
+            sb.append(",")
+        }
+        sb.append(if xs[i] { "1" } else { "0" })
+    }
+    return sb.to_string()
 }
 
 write_impl_table :: fn(sb: StringBuilder!, impls: ImplEntry[]) -> void {

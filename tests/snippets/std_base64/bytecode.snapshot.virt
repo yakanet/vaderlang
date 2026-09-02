@@ -61,12 +61,12 @@ string 42 "base64: invalid character at offset "
 string 43 "base64: invalid character in final quad"
 string 44 "base64: invalid character before padding"
 string 45 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-import 0 byte_len std_core$byte_len result_type=5 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=10 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=1 (ref) -> string
-import 3 bytes std_core$bytes result_type=9 (string) -> ref
-import 4 at std_core$string$Index$at result_type=8 (string,usize) -> char
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=5 param_types=1 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=10 param_types=1,5 (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 (ref) -> string
+import 3 bytes std_core$bytes result_type=9 param_types=1 (string) -> ref
+import 4 at std_core$string$Index$at result_type=8 param_types=1,5 (string,usize) -> char
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,9,5 (i32,ref,usize) -> isize
 impl 6 ByteAccess
 impl 13 Error
 impl 15 Display

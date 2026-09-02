@@ -14,8 +14,8 @@ type 11 primitive void
 type 12 primitive isize
 type 13 union 3,0
 string 0 "\n"
-import 0 bytes std_core$bytes result_type=10 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=12 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=10 param_types=7 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=5,10,4 (i32,ref,usize) -> isize
 impl 1 Iterator
 impl 6 ByteAccess
 export main 1

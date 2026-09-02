@@ -25,6 +25,10 @@ import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
+/// Snippets whose `@extern` targets a symbol no Windows DLL exports, so the VM
+/// cannot resolve it even though the native build links it statically.
+const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_c_size"]);
+
 // Snippets where Vader's self-emitted bytecode INTENTIONALLY diverges from
 // the TS snapshot (mode-a GATE A : concrete devirt instead of erased
 // `virtual.call`) AND is more correct — TS's erased form returns the wrong
@@ -296,6 +300,15 @@ for (const s of scenarios) {
   // Native-only snippets — `@extern` user imports trap in the Vader VM
   // for the same reason they trap in the TS VM (no host-fn registry).
   if (s.helperCFiles.length > 0) {
+    test.skip(`vader-vm: ${s.name}`, () => {});
+    continue;
+  }
+  // The VM resolves an `@extern` through `dlsym` on the C library, so it can
+  // only reach what that library EXPORTS. MinGW keeps the POSIX shims in
+  // libmingwex.a, a static archive: the native build links `gettimeofday` in
+  // and runs, while the VM gets "symbol not found". That is a property of the
+  // platform's libc, not of the snippet — so the parity check does not apply.
+  if (process.platform === "win32" && VM_PARITY_UNAVAILABLE_WIN32.has(s.name)) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
   }

@@ -21,10 +21,10 @@ string 1 " filled="
 string 2 "ab"
 string 3 "cde"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=6 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=13 (string,usize) -> u8
-import 2 bytes std_core$bytes result_type=14 (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=16 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=4 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=13 param_types=4,6 (string,usize) -> u8
+import 2 bytes std_core$bytes result_type=14 param_types=4 (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,14,6 (i32,ref,usize) -> isize
 impl 11 ByteAccess
 export main 0
 

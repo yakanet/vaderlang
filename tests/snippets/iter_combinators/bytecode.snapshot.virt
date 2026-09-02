@@ -25,9 +25,9 @@ string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=7 (string) -> usize
-import 1 bytes std_core$bytes result_type=18 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=7 param_types=13 (string) -> usize
+import 1 bytes std_core$bytes result_type=18 param_types=13 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,18,7 (i32,ref,usize) -> isize
 impl 3 Contains
 impl 3 Iterator
 impl 8 Contains

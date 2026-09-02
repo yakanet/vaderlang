@@ -19,9 +19,9 @@ string 5 " u16: "
 string 6 "u64max: "
 string 7 " usize: "
 string 8 "\n"
-import 0 byte_len std_core$byte_len result_type=2 (string) -> usize
-import 1 bytes std_core$bytes result_type=8 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=2 param_types=4 (string) -> usize
+import 1 bytes std_core$bytes result_type=8 param_types=4 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,2 (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 

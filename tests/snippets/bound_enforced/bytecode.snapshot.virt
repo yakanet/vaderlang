@@ -5,7 +5,7 @@ type 2 primitive string
 type 3 primitive bool
 type 4 primitive u64
 string 0 "foo"
-import 0 hash std_core$string$Hash$hash result_type=4 (string) -> u64
+import 0 hash std_core$string$Hash$hash result_type=4 param_types=2 (string) -> u64
 export main 0
 
 fn 0 snippet$main () -> i32

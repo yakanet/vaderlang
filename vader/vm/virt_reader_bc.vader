@@ -507,6 +507,9 @@ parse_import_decl_bc :: fn(
     // not silently shift the others.
     c_header := ""
     result_type: i32 = 0
+    param_types: i32[]! = []
+    param_mutable: bool[]! = []
+    param_by_address: bool[]! = []
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
         if attr.starts_with("header=") {
@@ -518,16 +521,50 @@ parse_import_decl_bc :: fn(
                 result_type = i32(parsed)
             }
         }
+        if attr.starts_with("param_types=") {
+            for field in attr.trim_prefix("param_types=").split(",") {
+                parsed :: parse_int_in_base(field, 10)
+                param_types.push(if parsed is ParseError { 0 } else { i32(parsed) })
+            }
+        }
+        if attr.starts_with("param_mutable=") {
+            for field in attr.trim_prefix("param_mutable=").split(",") {
+                param_mutable.push(field == "1")
+            }
+        }
+        if attr.starts_with("param_by_address=") {
+            for field in attr.trim_prefix("param_by_address=").split(",") {
+                param_by_address.push(field == "1")
+            }
+        }
     }
     // The result's type index is carried as an attribute rather than by
     // `write_signature`, which renders a union as `any` — so it is stitched back
     // in here. Without it a `string | null` result reads as a plain word and the
     // FFI hands the atom back as an integer.
     final_sig :: bc.BcSignature {
-        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
+        .params = sig.params, .result = sig.result,
+        // Only trust the attribute when it describes every parameter: a partial
+        // list would misalign the block layout it feeds.
+        .param_types = if param_types.len() == sig.params.len() {
+            param_types
+        } else {
+            sig.param_types
+        },
         .result_type = if result_type == 0 { sig.result_type } else { result_type },
         .param_names = sig.param_names,
-        .param_mutable = sig.param_mutable, .param_by_address = sig.param_by_address,
+        // Same rule as `param_types`: a list that does not cover every parameter
+        // is not trusted, the flags being read positionally.
+        .param_mutable = if param_mutable.len() == sig.params.len() {
+            param_mutable
+        } else {
+            sig.param_mutable
+        },
+        .param_by_address = if param_by_address.len() == sig.params.len() {
+            param_by_address
+        } else {
+            sig.param_by_address
+        },
     }
     imports.push(bc.BcImport {
         .extern_name  = extern_name,

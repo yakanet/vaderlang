@@ -31,9 +31,9 @@ string 1 "array sum  = "
 string 2 "hello, world!"
 string 3 "l count    = "
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=6 (string) -> usize
-import 1 bytes std_core$bytes result_type=19 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=25 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=5 (string) -> usize
+import 1 bytes std_core$bytes result_type=19 param_types=5 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=25 param_types=2,19,6 (i32,ref,usize) -> isize
 impl 7 Contains
 impl 7 Iterator
 impl 10 Contains

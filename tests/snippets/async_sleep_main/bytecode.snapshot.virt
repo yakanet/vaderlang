@@ -23,12 +23,12 @@ string 1 "woke at 2"
 string 2 "start"
 string 3 "\n"
 string 4 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 bytes std_core$bytes result_type=10 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=17 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=10 param_types=8 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,10,7 (i32,ref,usize) -> isize
 import 2 sched_now std_runtime$sched_now result_type=12 () -> i64
-import 3 sched_arm std_runtime$sched_arm result_type=11 (i64) -> void
+import 3 sched_arm std_runtime$sched_arm result_type=11 param_types=12 (i64) -> void
 import 4 sched_park std_runtime$sched_park result_type=1 () -> i32
-import 5 panic std_abort$panic result_type=11 (string) -> void
+import 5 panic std_abort$panic result_type=11 param_types=8 (string) -> void
 impl 2 Async
 impl 15 Async
 vtable Async.resume 2 1

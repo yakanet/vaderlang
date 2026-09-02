@@ -17,8 +17,8 @@ string 3 "S"
 string 4 "W"
 string 5 "err"
 string 6 "\n"
-import 0 bytes std_core$bytes result_type=8 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=8 param_types=5 (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,8,6 (i32,ref,usize) -> isize
 impl 4 Error
 export main 2
 

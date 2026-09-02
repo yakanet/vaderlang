@@ -88,12 +88,12 @@ string 59 "parse_int: empty string"
 string 60 "parse_int: no digits"
 string 61 "parse_int: invalid digit"
 string 62 "parse_int: overflow"
-import 0 byte_len std_core$byte_len result_type=4 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=7 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 (ref) -> string
-import 3 bytes std_core$bytes result_type=8 (string) -> ref
-import 4 hash std_core$string$Hash$hash result_type=6 (string) -> u64
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 (string) -> usize
+import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 (ref) -> string
+import 3 bytes std_core$bytes result_type=8 param_types=2 (string) -> ref
+import 4 hash std_core$string$Hash$hash result_type=6 param_types=2 (string) -> u64
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,8,4 (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 16 Index
 impl 16 IndexSet

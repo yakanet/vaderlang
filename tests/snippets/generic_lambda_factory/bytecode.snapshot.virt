@@ -16,9 +16,9 @@ type 13 primitive isize
 string 0 "lambda mismatches="
 string 1 "named  mismatches="
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=6 (string) -> usize
-import 1 bytes std_core$bytes result_type=12 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=9 (string) -> usize
+import 1 bytes std_core$bytes result_type=12 param_types=9 (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,12,6 (i32,ref,usize) -> isize
 impl 8 ByteAccess
 export main 3
 
