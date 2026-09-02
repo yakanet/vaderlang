@@ -63,11 +63,11 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         for d in extern_decls { out.append("${d}\n") }
         out.append("\n")
     }
-    // Layout assertions for every `@c_struct` a shim marshals. They compare the
-    // two `offsetof`s rather than hard-coded numbers, so `cc` — which has the
-    // real header — refuses to compile a Vader struct whose layout drifts from
-    // the one the library actually declares. `cc` IS the consumer: the check is
-    // spent entirely at build time, and nothing reads it at run time.
+    // Width assertions for every `@c_struct` a shim marshals. `cc` — which has
+    // the real header — refuses to compile a mirror whose field is narrower
+    // than what the library declares, so the field-by-field copy cannot
+    // truncate. `cc` IS the consumer: the check is spent entirely at build
+    // time, and nothing reads it at run time.
     asserts :: c_struct_layout_asserts(ctx.module.types, mirror_directions(ctx.module))
     if asserts.len() > 0 {
         out.append("// `@c_struct` layout — checked against the real headers.\n")
@@ -177,11 +177,22 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
         for field_index in 0..<t.fields.len() {
             f :: t.fields[field_index]
             cf :: c_field_name(f)
-            if f.c_size != 0 {
-                out.push(
-                    "_Static_assert(offsetof(${t.c_name}, ${cf}) == ${layout.offsets[field_index]}, \"${t.c_name}.${cf} offset\");",
-                )
-            }
+            // NO offset assertion. It compared a VADER offset to a C one, and
+            // nothing ever brings the two together: the shim declares its OWN C
+            // struct and copies field by field BY NAME
+            // (`v->f_st_mode = p1.st_mode`), so `cc` resolves the real offset
+            // itself, while the VM lays the block out and reads it back with
+            // the Vader layout on both sides.
+            //
+            // It was not merely useless, it was unsatisfiable. `struct stat`
+            // puts `st_mode` at 24 on x86_64 and at 16 on arm64, so the seed
+            // for `linux-arm64` failed to compile; and dropping `st_nlink` from
+            // the mirror to fix arm64 would have moved the Vader offset to 16
+            // and broken x86_64. No mirror can satisfy both, which is the proof
+            // that the constraint was wrong rather than mis-set.
+            //
+            // What does have to hold is the WIDTH of each field, asserted
+            // below: the copy must not truncate.
             if f.c_size == 0 {
                 // `@c_size(0, …)`: the field does not exist on this system, so
                 // there is nothing to compare and nothing to copy.
@@ -209,8 +220,22 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
                 )
                 continue
             }
+            // A BARE field takes the same direction as an annotated one. `==`
+            // everywhere looked stricter, but it is wrong where C writes: on
+            // LINUX, `struct stat.st_nlink` is 8 bytes on x86_64 and 4 on
+            // arm64, so `LinuxStat`'s `u64` — right on one — is rejected on the
+            // other, for a copy (`v->f_st_nlink = p.st_nlink`) that widens and
+            // cannot lose anything. (Darwin is untouched: `DarwinStat` mirrors
+            // its own two fields, which is why building on macOS arm64 never
+            // showed this.) Where C READS the copy runs the other way and a
+            // wider Vader field would truncate, so `==` stays there.
+            bare_fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
+                .CWrites -> "<="
+                .CReads  -> "=="
+                .Both    -> "=="
+            }
             out.push(
-                "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) == sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
+                "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) ${bare_fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
             )
         }
     }
