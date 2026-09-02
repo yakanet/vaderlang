@@ -682,7 +682,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if info.signature.result == bc.ValType.F32 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
-    desc[0] = if ffi_result_is_opt_string(types, info.signature.result_type) {
+    desc[0] = if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.String) {
         u8(FFI_STR_OPT)
     } else {
         u8(ffi_result_class(info.signature.result))
@@ -749,6 +749,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if info.signature.result == bc.ValType.String {
         return HostOk { .value = StringVal { .value = returned } }
     }
+    // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
+    // a null pointer from a pointer whose value is 0.
+    if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.Pointer)
+        && read_little_endian(frame, 0, 8, false) == 0 {
+        return HostOk { .value = NullVal {} }
+    }
     return extern_result(info.signature.result, read_little_endian(frame, 0, 8, true))
 }
 
@@ -778,13 +784,24 @@ ffi_result_class :: fn(result: bc.ValType) -> i32 {
     return FFI_WORD
 }
 
-/// Whether the import's result slot is `string | null`, which needs the presence
-/// flag `FFI_STR_OPT` carries — `string` alone cannot say "absent".
+/// Whether the result slot is `want | null`, a two-variant union whose other
+/// half is exactly `want`.
+///
+/// C says "absent" by returning NULL, and only the DECLARED type says whether a
+/// zero word means that. The native path never has to ask: its shim reads the
+/// sentinel (`r == NULL ? vader_box_null() : ...`). The VM calls the symbol
+/// through `dlsym`, so it owns that reading — without it a failed `fopen` came
+/// back as a pointer valued 0, `f == null` was false, and the next `fread`
+/// dereferenced it.
+///
+/// Only `string` and `pointer` are asked for: for `i32 | null` a returned 0 is
+/// a legitimate value, and collapsing it to `null` would corrupt the result.
 ///
 /// @param types        the module type table.
 /// @param result_type  the result slot's BcType index.
-/// @return             whether it is exactly `string | null`.
-ffi_result_is_opt_string :: fn(types: bc.BcType[], result_type: i32) -> bool {
+/// @param want         the non-`null` variant to match.
+/// @return             whether the slot is exactly `want | null`.
+ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) -> bool {
     if result_type < 0 || usize(result_type) >= types.len() {
         return false
     }
@@ -796,18 +813,18 @@ ffi_result_is_opt_string :: fn(types: bc.BcType[], result_type: i32) -> bool {
         return false
     }
     has_null := false
-    has_str := false
+    has_want := false
     for vi in u.variants {
         if vi < 0 || usize(vi) >= types.len() {
             continue
         }
         v :: types[usize(vi)]
         if v is bc.BcPrimitive as bp {
-            if bp.val == bc.ValType.Null   { has_null = true }
-            if bp.val == bc.ValType.String { has_str = true }
+            if bp.val == bc.ValType.Null { has_null = true }
+            if bp.val == want            { has_want = true }
         }
     }
-    return has_null && has_str
+    return has_null && has_want
 }
 
 /// One array lent to a foreign call, and where its bytes sit in the flat buffer

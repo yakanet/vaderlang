@@ -69,8 +69,9 @@ export check_file :: fn(
     overlay: MutableMap<string, string>,
     include_path_flags: string[],
     dump_types: bool,
+    selection: Selection | null = null,
 ) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
+    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
     diags: Diagnostic[]! = []
     result :: check_project_with_bodies(project, diags, dump_types)
     return FileCheck {
