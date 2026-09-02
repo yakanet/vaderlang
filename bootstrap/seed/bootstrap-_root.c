@@ -1,6 +1,6 @@
 #include "bootstrap.split.h"
 
-bool __lambda_1376(void* l0, int32_t l1, int32_t l2) {
+bool __lambda_1378(void* l0, int32_t l1, int32_t l2) {
     void* l3 = NULL;
     size_t l4;
     vader_string_t l5 = 0;
@@ -12,7 +12,7 @@ bool __lambda_1376(void* l0, int32_t l1, int32_t l2) {
     vader_string_t* gc_atom_roots[2] = { &l5, &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = ((vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) ((vader_struct___lambda_env_1377_t*) l0)->f_cap_0.payload.obj)->f_value;
+    l3 = ((vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) ((vader_struct___lambda_env_1379_t*) l0)->f_cap_0.payload.obj)->f_value;
     t0 = ((int64_t) (int32_t) l1);
     l4 = (size_t) (int64_t) t0;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
@@ -20,7 +20,7 @@ bool __lambda_1376(void* l0, int32_t l1, int32_t l2) {
     if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     l5 = ((vader_struct_vader_bytecode_BcFunction_t*) t1)->f_name;
-    l3 = ((vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) ((vader_struct___lambda_env_1377_t*) l0)->f_cap_0.payload.obj)->f_value;
+    l3 = ((vader_struct__Cell_Array_Struct_vader_bytecode_BcFunction____t*) ((vader_struct___lambda_env_1379_t*) l0)->f_cap_0.payload.obj)->f_value;
     t0 = ((int64_t) (int32_t) l2);
     l4 = (size_t) (int64_t) t0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
@@ -33,7 +33,7 @@ bool __lambda_1376(void* l0, int32_t l1, int32_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_1386(void* l0, vader_string_t l1, vader_string_t l2) {
+bool __lambda_1388(void* l0, vader_string_t l1, vader_string_t l2) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[2] = { &l1, &l2 };
@@ -44,15 +44,15 @@ bool __lambda_1386(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-void __lambda_1705(void* l0, vader_box_t l1) {
+void __lambda_1702(void* l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[3] = { &l0, &l2, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l2 = ((vader_struct__Cell_Array_Struct_vader_types_StructType____t*) ((vader_struct___lambda_env_1706_t*) l0)->f_cap_0.payload.obj)->f_value;
-    l3 = ((vader_struct__Cell_Struct_std_collections_MutableSet_string__t*) ((vader_struct___lambda_env_1706_t*) l0)->f_cap_1.payload.obj)->f_value;
+    l2 = ((vader_struct__Cell_Array_Struct_vader_types_StructType____t*) ((vader_struct___lambda_env_1703_t*) l0)->f_cap_0.payload.obj)->f_value;
+    l3 = ((vader_struct__Cell_Struct_std_collections_MutableSet_string__t*) ((vader_struct___lambda_env_1703_t*) l0)->f_cap_1.payload.obj)->f_value;
     vader_lower_push_struct_shape(l1, l2, l3);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -60,6 +60,26 @@ void __lambda_1705(void* l0, vader_box_t l1) {
 
 bool __lambda_174(void* l0, uint32_t l1) {
     return l1 == 92u;
+}
+
+void __lambda_1827(void* l0, int32_t l1) {
+    size_t l2, l3;
+    void* l4;
+    int64_t t0;
+    t0 = ((int64_t) (int32_t) l1);
+    l2 = (size_t) (int64_t) t0;
+    l3 = ((vader_struct__Cell_usize_t*) ((vader_struct___lambda_env_1828_t*) l0)->f_cap_0.payload.obj)->f_value;
+    if ((l2 < l3)) {
+        l4 = ((vader_struct__Cell_Array_bool__t*) ((vader_struct___lambda_env_1828_t*) l0)->f_cap_1.payload.obj)->f_value;
+        t0 = ((int64_t) (int32_t) l1);
+        l2 = (size_t) (int64_t) t0;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
+        if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+        if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+        ((uint8_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2] = (uint8_t) true;
+    } else {
+    }
+    return;
 }
 
 void __lambda_1830(void* l0, int32_t l1) {
@@ -82,27 +102,7 @@ void __lambda_1830(void* l0, int32_t l1) {
     return;
 }
 
-void __lambda_1833(void* l0, int32_t l1) {
-    size_t l2, l3;
-    void* l4;
-    int64_t t0;
-    t0 = ((int64_t) (int32_t) l1);
-    l2 = (size_t) (int64_t) t0;
-    l3 = ((vader_struct__Cell_usize_t*) ((vader_struct___lambda_env_1834_t*) l0)->f_cap_0.payload.obj)->f_value;
-    if ((l2 < l3)) {
-        l4 = ((vader_struct__Cell_Array_bool__t*) ((vader_struct___lambda_env_1834_t*) l0)->f_cap_1.payload.obj)->f_value;
-        t0 = ((int64_t) (int32_t) l1);
-        l2 = (size_t) (int64_t) t0;
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
-        if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-        if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-        ((uint8_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2] = (uint8_t) true;
-    } else {
-    }
-    return;
-}
-
-void* __lambda_1926(void* l0) {
+void* __lambda_1923(void* l0) {
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -113,7 +113,7 @@ void* __lambda_1926(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-void* __lambda_1944(void* l0) {
+void* __lambda_1941(void* l0) {
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -124,7 +124,7 @@ void* __lambda_1944(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_2054(void* l0, void* l1, void* l2) {
+bool __lambda_2051(void* l0, void* l1, void* l2) {
     vader_string_t l3 = 0;
     vader_string_t l4 = 0;
     bool t0;
@@ -174,7 +174,7 @@ void __lambda_209(void* l0, int32_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-vader_box_t __lambda_2104(void* l0, void* l1, void* l2) {
+vader_box_t __lambda_2101(void* l0, void* l1, void* l2) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
@@ -193,7 +193,7 @@ void __lambda_212(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_string_t* gc_atom_roots[3] = { &l1, &l2, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 2420u, l2);
+    l3 = concat_3(l1, 2397u, l2);
     t0 = std_collections_get__string__bool(((vader_struct__Cell_Struct_std_collections_MutableMap_string_bool__t*) ((vader_struct___lambda_env_213_t*) l0)->f_cap_0.payload.obj)->f_value, l3);
     if (t0.tag == 0u) {
         std_collections_put__string__bool(((vader_struct__Cell_Struct_std_collections_MutableMap_string_bool__t*) ((vader_struct___lambda_env_213_t*) l0)->f_cap_0.payload.obj)->f_value, l3, true);
@@ -204,7 +204,7 @@ void __lambda_212(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_2305(void* l0, void* l1, void* l2) {
+bool __lambda_2302(void* l0, void* l1, void* l2) {
     vader_string_t l3 = 0;
     vader_string_t l4 = 0;
     bool t0;
@@ -219,9 +219,9 @@ bool __lambda_2305(void* l0, void* l1, void* l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_2802(void* l0, size_t l1, size_t l2) {
+bool __lambda_2799(void* l0, size_t l1, size_t l2) {
     int32_t l3, l4;
-    vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_i32__t*) ((vader_struct___lambda_env_2803_t*) l0)->f_cap_0.payload.obj)->f_value);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_i32__t*) ((vader_struct___lambda_env_2800_t*) l0)->f_cap_0.payload.obj)->f_value);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l1 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     l3 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l1];
@@ -465,7 +465,7 @@ bool __lambda_3946(void* l0, vader_box_t l1, vader_box_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_4424(void* l0, vader_string_t l1, vader_string_t l2) {
+bool __lambda_4421(void* l0, vader_string_t l1, vader_string_t l2) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[2] = { &l1, &l2 };
@@ -476,7 +476,7 @@ bool __lambda_4424(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_5466(void* l0, vader_string_t l1, vader_string_t l2) {
+bool __lambda_5463(void* l0, vader_string_t l1, vader_string_t l2) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[2] = { &l1, &l2 };
@@ -487,7 +487,7 @@ bool __lambda_5466(void* l0, vader_string_t l1, vader_string_t l2) {
     vader_gc_top = gc_frame.prev;
 }
 
-bool __lambda_6040(void* l0, uint32_t l1) {
+bool __lambda_6037(void* l0, uint32_t l1) {
     return l1 == 95u;
 }
 

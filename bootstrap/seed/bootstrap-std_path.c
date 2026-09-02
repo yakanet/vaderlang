@@ -50,7 +50,7 @@ vader_string_t std_path_parent(vader_string_t l0) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     if (l2 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 440u; }
+        { vader_gc_top = gc_frame.prev; return 430u; }
     }
     l3 = vader_host_std_core_bytes(l1);
     t0 = ((int64_t) (ptrdiff_t) l2);
@@ -79,10 +79,10 @@ vader_string_t std_path_to_posix(vader_string_t l0) {
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 134u);
-    _a1_closure->code = (void*) &vader_fn_lift_229;
+    _a1_closure->code = (void*) &vader_fn_lift_237;
     _a1_closure->env = t0;
     l1 = (void*) _a1_closure;
-    t1 = std_string_replace_chars_where(l0, l1, 440u);
+    t1 = std_string_replace_chars_where(l0, l1, 430u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
