@@ -901,13 +901,13 @@ vader_string_t vader_types_display_type(vader_box_t l0) {
         { vader_gc_top = gc_frame.prev; return 1859u; }
     }
     if (l0.tag == 914u) {
-        { vader_gc_top = gc_frame.prev; return 2406u; }
+        { vader_gc_top = gc_frame.prev; return 2408u; }
     }
     if (l0.tag == 913u) {
-        { vader_gc_top = gc_frame.prev; return 2405u; }
+        { vader_gc_top = gc_frame.prev; return 2407u; }
     }
     if (l0.tag == 912u) {
-        { vader_gc_top = gc_frame.prev; return 2404u; }
+        { vader_gc_top = gc_frame.prev; return 2406u; }
     }
     if (l0.tag == 918u) {
         { vader_gc_top = gc_frame.prev; return 730u; }
@@ -1836,15 +1836,15 @@ static void vader_types_write_type_mut(void* l0, vader_box_t l1, bool l2) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 914u) {
-        std_string_builder_append(l0, 2406u);
+        std_string_builder_append(l0, 2408u);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 913u) {
-        std_string_builder_append(l0, 2405u);
+        std_string_builder_append(l0, 2407u);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 912u) {
-        std_string_builder_append(l0, 2404u);
+        std_string_builder_append(l0, 2406u);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 908u) {
