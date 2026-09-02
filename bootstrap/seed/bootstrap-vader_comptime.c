@@ -1644,62 +1644,62 @@ static void* vader_comptime_combine_binary(void* l0, vader_box_t l1, vader_box_t
     vader_gc_top = &gc_frame;
     l3 = ((vader_struct_toolchain_ast_BinaryExpr_t*) l0)->f_op;
     if (l3 == INT32_C(0)) {
-        l4 = (void*) &vader_fn_static_1071;
+        l4 = (void*) &vader_fn_static_1073;
         t0 = vader_comptime_arithmetic_or_concat(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(1)) {
-        l4 = (void*) &vader_fn_static_1069;
+        l4 = (void*) &vader_fn_static_1071;
         t0 = vader_comptime_arithmetic(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(2)) {
-        l4 = (void*) &vader_fn_static_1068;
+        l4 = (void*) &vader_fn_static_1070;
         t0 = vader_comptime_arithmetic(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(3)) {
-        l4 = (void*) &vader_fn_static_1066;
+        l4 = (void*) &vader_fn_static_1068;
         t0 = vader_comptime_int_div_check(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(4)) {
-        l4 = (void*) &vader_fn_static_1064;
+        l4 = (void*) &vader_fn_static_1066;
         t0 = vader_comptime_int_mod_check(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(5)) {
-        l4 = (void*) &vader_fn_static_1062;
+        l4 = (void*) &vader_fn_static_1064;
         t0 = vader_comptime_arithmetic_int(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(6)) {
-        l4 = (void*) &vader_fn_static_1061;
+        l4 = (void*) &vader_fn_static_1063;
         t0 = vader_comptime_arithmetic_int(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(7)) {
-        l4 = (void*) &vader_fn_static_1060;
+        l4 = (void*) &vader_fn_static_1062;
         t0 = vader_comptime_arithmetic_int(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(8)) {
-        l4 = (void*) &vader_fn_static_1059;
+        l4 = (void*) &vader_fn_static_1061;
         t0 = vader_comptime_arithmetic_int(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(9)) {
-        l4 = (void*) &vader_fn_static_1058;
+        l4 = (void*) &vader_fn_static_1060;
         t0 = vader_comptime_arithmetic_int(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(10)) {
-        l4 = (void*) &vader_fn_static_1056;
+        l4 = (void*) &vader_fn_static_1058;
         t0 = vader_comptime_bool_op(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l3 == INT32_C(11)) {
-        l4 = (void*) &vader_fn_static_1055;
+        l4 = (void*) &vader_fn_static_1057;
         t0 = vader_comptime_bool_op(l0, l1, l2, l4);
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -2813,7 +2813,7 @@ void* vader_comptime_evaluate_expr(vader_box_t l0, void* l1) {
                     } else {
                         if (l0.tag == 454u) {
                             l3 = l0.payload.obj;
-                            l7 = (void*) &vader_fn_static_973;
+                            l7 = (void*) &vader_fn_static_975;
                             l2 = vader_comptime_evaluate_string_lit(l3, l1, l7);
                         } else {
                             if (l0.tag == 420u) {
@@ -2822,12 +2822,12 @@ void* vader_comptime_evaluate_expr(vader_box_t l0, void* l1) {
                             } else {
                                 if (l0.tag == 389u) {
                                     l3 = l0.payload.obj;
-                                    l7 = (void*) &vader_fn_static_973;
+                                    l7 = (void*) &vader_fn_static_975;
                                     l2 = vader_comptime_evaluate_binary_expr(l3, l1, l7);
                                 } else {
                                     if (l0.tag == 469u) {
                                         l3 = l0.payload.obj;
-                                        l7 = (void*) &vader_fn_static_973;
+                                        l7 = (void*) &vader_fn_static_975;
                                         l2 = vader_comptime_evaluate_unary_expr(l3, l1, l7);
                                     } else {
                                         if (l0.tag == 431u) {
@@ -2840,7 +2840,7 @@ void* vader_comptime_evaluate_expr(vader_box_t l0, void* l1) {
                                             } else {
                                                 if (l0.tag == 452u) {
                                                     l3 = l0.payload.obj;
-                                                    l7 = (void*) &vader_fn_static_973;
+                                                    l7 = (void*) &vader_fn_static_975;
                                                     l2 = vader_comptime_evaluate_seq_lit(l3, l1, l7);
                                                 } else {
                                                     l3 = vader_comptime_span_of(l0);
@@ -5130,7 +5130,7 @@ static vader_string_t vader_comptime_render_struct(void* l0) {
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 137u);
-    _a3_closure->code = (void*) &vader_fn_lift_1091;
+    _a3_closure->code = (void*) &vader_fn_lift_1093;
     _a3_closure->env = t0;
     l4 = (void*) _a3_closure;
     l3 = std_sort_sort__string(l3, l4);
@@ -5324,7 +5324,7 @@ static void* vader_comptime_sorted_instances(void* l0) {
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 147u);
-    _a1_closure->code = (void*) &vader_fn_lift_982;
+    _a1_closure->code = (void*) &vader_fn_lift_984;
     _a1_closure->env = t0;
     l2 = (void*) _a1_closure;
     t0 = std_sort_sort__GenericInstance(l1, l2);

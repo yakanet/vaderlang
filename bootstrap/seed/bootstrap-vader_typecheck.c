@@ -231,6 +231,7 @@ static bool vader_typecheck_is_assignable_tuple(vader_box_t l0, void* l1, vader_
 static bool vader_typecheck_is_assignable_union(vader_box_t l0, void* l1, vader_box_t l2);
 static bool vader_typecheck_is_body_independent_value(vader_box_t l0);
 static bool vader_typecheck_is_bool(vader_box_t l0);
+static bool vader_typecheck_is_c_pointer(vader_box_t l0);
 static bool vader_typecheck_is_concrete_float(vader_box_t l0);
 static bool vader_typecheck_is_concrete_int(vader_box_t l0);
 static bool vader_typecheck_is_const_reassign(void* l0, void* l1);
@@ -245,6 +246,7 @@ static bool vader_typecheck_is_generator_symbol(void* l0, void* l1);
 static bool vader_typecheck_is_integer(vader_box_t l0);
 static bool vader_typecheck_is_integer_index(vader_box_t l0);
 static bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0);
+static bool vader_typecheck_is_machine_word(vader_box_t l0);
 static bool vader_typecheck_is_metatype(vader_box_t l0);
 static bool vader_typecheck_is_never(vader_box_t l0);
 static bool vader_typecheck_is_nonprimary_pick(void* l0, vader_box_t l1);
@@ -3215,6 +3217,15 @@ static bool vader_typecheck_cast_allowed(vader_box_t l0, vader_box_t l1, void* l
         l3 = true;
     } else {
         l3 = l1.tag == 908u;
+    }
+    if (l3) {
+        { vader_gc_top = gc_frame.prev; return true; }
+    }
+    t0 = vader_typecheck_is_c_pointer(l0);
+    if (t0) {
+        l3 = vader_typecheck_is_machine_word(l1);
+    } else {
+        l3 = false;
     }
     if (l3) {
         { vader_gc_top = gc_frame.prev; return true; }
@@ -10214,7 +10225,7 @@ static void vader_typecheck_declare_decl(vader_box_t l0, void* l1, void* l2, voi
         l8 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_name_span;
         l9 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_type_params;
         l10 = ((vader_struct_vader_resolver_ResolvedModule_t*) l2)->f_path;
-        l11 = (void*) &vader_fn_static_2449;
+        l11 = (void*) &vader_fn_static_2451;
         vader_typecheck_declare_named_with_args(l7, l8, l9, l1, l3, l10, l4, l11);
         l7 = ((vader_struct_toolchain_ast_TraitDecl_t*) l6)->f_name;
         l12 = std_collections_get__string__Any(l1, l7);
@@ -19077,6 +19088,17 @@ static bool vader_typecheck_is_bool(vader_box_t l0) {
     return l1;
 }
 
+static bool vader_typecheck_is_c_pointer(vader_box_t l0) {
+    void* t0;
+    vader_string_t t1;
+    if (l0.tag == 916u) {
+        t0 = l0.payload.obj;
+        t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
+        return t1 == 567u;
+    }
+    return false;
+}
+
 static bool vader_typecheck_is_concrete_float(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
@@ -19423,6 +19445,24 @@ static bool vader_typecheck_is_irrefutable_tuple_pattern(void* l0) {
         }
     }
     return true;
+}
+
+static bool vader_typecheck_is_machine_word(vader_box_t l0) {
+    void* l1;
+    bool l2;
+    vader_string_t t0;
+    if (l0.tag == 916u) {
+        l1 = l0.payload.obj;
+        t0 = ((vader_struct_vader_types_PrimitiveType_t*) l1)->f_name;
+        if (t0 == 1735u) {
+            l2 = true;
+        } else {
+            t0 = ((vader_struct_vader_types_PrimitiveType_t*) l1)->f_name;
+            l2 = t0 == 2287u;
+        }
+        return l2;
+    }
+    return false;
 }
 
 static bool vader_typecheck_is_metatype(vader_box_t l0) {

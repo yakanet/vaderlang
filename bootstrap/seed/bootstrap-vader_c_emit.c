@@ -13190,7 +13190,7 @@ static void* vader_c_emit_order_by_first(void* l0, size_t l1) {
     t0 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a4_closure, 144u);
-    _a4_closure->code = (void*) &vader_fn_lift_2185;
+    _a4_closure->code = (void*) &vader_fn_lift_2187;
     _a4_closure->env = t0;
     l5 = (void*) _a4_closure;
     t0 = std_sort_sort__usize(l3, l5);
@@ -14967,7 +14967,7 @@ static void* vader_c_emit_sorted_fn_indices(void* l0) {
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 141u);
-    _a3_closure->code = (void*) &vader_fn_lift_2025;
+    _a3_closure->code = (void*) &vader_fn_lift_2027;
     _a3_closure->env = t0;
     l6 = (void*) _a3_closure;
     t0 = std_sort_sort__i32(l2, l6);
@@ -15031,7 +15031,7 @@ static void* vader_c_emit_sorted_module_stems(void* l0) {
     t1 = (void*) _a5_obj;
     vader_fn_t* _a6_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a6_closure, 137u);
-    _a6_closure->code = (void*) &vader_fn_lift_2028;
+    _a6_closure->code = (void*) &vader_fn_lift_2030;
     _a6_closure->env = t1;
     l2 = (void*) _a6_closure;
     t1 = std_sort_sort__string(l1, l2);

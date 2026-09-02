@@ -3216,7 +3216,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         t2 = (void*) _a27_obj;
         vader_fn_t* _a28_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a28_closure, 137u);
-        _a28_closure->code = (void*) &vader_fn_lift_2590;
+        _a28_closure->code = (void*) &vader_fn_lift_2592;
         _a28_closure->env = t2;
         l17 = (void*) _a28_closure;
         t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1461u, l17);
@@ -3228,7 +3228,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         t2 = (void*) _a29_obj;
         vader_fn_t* _a30_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a30_closure, 137u);
-        _a30_closure->code = (void*) &vader_fn_lift_2589;
+        _a30_closure->code = (void*) &vader_fn_lift_2591;
         _a30_closure->env = t2;
         l17 = (void*) _a30_closure;
         t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1876u, l17);
@@ -3240,7 +3240,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         t2 = (void*) _a31_obj;
         vader_fn_t* _a32_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a32_closure, 142u);
-        _a32_closure->code = (void*) &vader_fn_lift_2588;
+        _a32_closure->code = (void*) &vader_fn_lift_2590;
         _a32_closure->env = t2;
         l17 = (void*) _a32_closure;
         t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1461u, l17);
@@ -3252,7 +3252,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         t2 = (void*) _a33_obj;
         vader_fn_t* _a34_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a34_closure, 142u);
-        _a34_closure->code = (void*) &vader_fn_lift_2587;
+        _a34_closure->code = (void*) &vader_fn_lift_2589;
         _a34_closure->env = t2;
         l17 = (void*) _a34_closure;
         t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1876u, l17);

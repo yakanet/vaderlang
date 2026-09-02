@@ -4377,7 +4377,7 @@ static void* vader_midir_compact_locals(void* l0) {
                             t1 = (void*) _a8_obj;
                             vader_fn_t* _a9_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                             vader_obj_header_init(_a9_closure, 139u);
-                            _a9_closure->code = (void*) &vader_fn_lift_1774;
+                            _a9_closure->code = (void*) &vader_fn_lift_1776;
                             _a9_closure->env = t1;
                             l12 = (void*) _a9_closure;
                             vader_midir_for_each_read_local(l11, l12);
@@ -4418,7 +4418,7 @@ static void* vader_midir_compact_locals(void* l0) {
                 t1 = (void*) _a11_obj;
                 vader_fn_t* _a12_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                 vader_obj_header_init(_a12_closure, 139u);
-                _a12_closure->code = (void*) &vader_fn_lift_1775;
+                _a12_closure->code = (void*) &vader_fn_lift_1777;
                 _a12_closure->env = t1;
                 l19 = (void*) _a12_closure;
                 vader_midir_for_each_read_in_terminator(l18, l19);
@@ -5625,7 +5625,7 @@ static void* vader_midir_compute_liveness(void* l0) {
                             t0 = (void*) _a18_obj;
                             vader_fn_t* _a19_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                             vader_obj_header_init(_a19_closure, 139u);
-                            _a19_closure->code = (void*) &vader_fn_lift_1804;
+                            _a19_closure->code = (void*) &vader_fn_lift_1806;
                             _a19_closure->env = t0;
                             l18 = (void*) _a19_closure;
                             vader_midir_for_each_read_local(l17, l18);
@@ -5651,7 +5651,7 @@ static void* vader_midir_compute_liveness(void* l0) {
                 t0 = (void*) _a20_obj;
                 vader_fn_t* _a21_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                 vader_obj_header_init(_a21_closure, 139u);
-                _a21_closure->code = (void*) &vader_fn_lift_1805;
+                _a21_closure->code = (void*) &vader_fn_lift_1807;
                 _a21_closure->env = t0;
                 l23 = (void*) _a21_closure;
                 vader_midir_for_each_read_in_terminator(l22, l23);
@@ -5694,7 +5694,7 @@ static void* vader_midir_compute_liveness(void* l0) {
     t0 = (void*) _a25_obj;
     vader_fn_t* _a26_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a26_closure, 134u);
-    _a26_closure->code = (void*) &vader_fn_lift_1806;
+    _a26_closure->code = (void*) &vader_fn_lift_1808;
     _a26_closure->env = t0;
     l6 = (void*) _a26_closure;
     l6 = std_core_filled__MutableSet_i32_(l1, l6);
@@ -5703,7 +5703,7 @@ static void* vader_midir_compute_liveness(void* l0) {
     t0 = (void*) _a27_obj;
     vader_fn_t* _a28_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a28_closure, 134u);
-    _a28_closure->code = (void*) &vader_fn_lift_1807;
+    _a28_closure->code = (void*) &vader_fn_lift_1809;
     _a28_closure->env = t0;
     l7 = (void*) _a28_closure;
     l7 = std_core_filled__MutableSet_i32_(l1, l7);
@@ -5984,7 +5984,7 @@ static void* vader_midir_compute_post_dominators(void* l0) {
     t0 = (void*) _a8_obj;
     vader_fn_t* _a9_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a9_closure, 133u);
-    _a9_closure->code = (void*) &vader_fn_lift_1786;
+    _a9_closure->code = (void*) &vader_fn_lift_1788;
     _a9_closure->env = t0;
     l2 = (void*) _a9_closure;
     l2 = std_core_filled__i32__(l4, l2);
@@ -6658,7 +6658,7 @@ static void* vader_midir_count_uses(void* l0) {
     t0 = (void*) _a5_obj;
     vader_fn_t* _a6_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a6_closure, 139u);
-    _a6_closure->code = (void*) &vader_fn_lift_1800;
+    _a6_closure->code = (void*) &vader_fn_lift_1802;
     _a6_closure->env = t0;
     l1 = (void*) _a6_closure;
     l2 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_blocks;
@@ -10499,7 +10499,7 @@ static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
                                             t2 = (void*) _a7_obj;
                                             vader_fn_t* _a8_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                                             vader_obj_header_init(_a8_closure, 139u);
-                                            _a8_closure->code = (void*) &vader_fn_lift_1802;
+                                            _a8_closure->code = (void*) &vader_fn_lift_1804;
                                             _a8_closure->env = t2;
                                             l32 = (void*) _a8_closure;
                                             vader_midir_for_each_read_local(l22, l32);
@@ -10534,7 +10534,7 @@ static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
                                     t2 = (void*) _a11_obj;
                                     vader_fn_t* _a12_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                                     vader_obj_header_init(_a12_closure, 139u);
-                                    _a12_closure->code = (void*) &vader_fn_lift_1802;
+                                    _a12_closure->code = (void*) &vader_fn_lift_1804;
                                     _a12_closure->env = t2;
                                     l32 = (void*) _a12_closure;
                                     vader_midir_for_each_read_local(l22, l32);
@@ -11982,7 +11982,7 @@ static void* vader_midir_predecessors_of(void* l0) {
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 133u);
-    _a1_closure->code = (void*) &vader_fn_lift_1783;
+    _a1_closure->code = (void*) &vader_fn_lift_1785;
     _a1_closure->env = t0;
     l2 = (void*) _a1_closure;
     l2 = std_core_filled__i32__(l1, l2);
@@ -12067,7 +12067,7 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     t0 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a4_closure, 139u);
-    _a4_closure->code = (void*) &vader_fn_lift_1809;
+    _a4_closure->code = (void*) &vader_fn_lift_1811;
     _a4_closure->env = t0;
     t0 = (void*) _a4_closure;
     vader_struct__Cell_Fn_i32___void_t* _a5_obj = (vader_struct__Cell_Fn_i32___void_t*) vader_gc_alloc(sizeof(vader_struct__Cell_Fn_i32___void_t));
@@ -12111,7 +12111,7 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     t0 = (void*) _a9_obj;
     vader_fn_t* _a10_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a10_closure, 139u);
-    _a10_closure->code = (void*) &vader_fn_lift_1810;
+    _a10_closure->code = (void*) &vader_fn_lift_1812;
     _a10_closure->env = t0;
     l5 = (void*) _a10_closure;
     vader_midir_for_each_read_in_terminator(l12, l5);
@@ -12190,7 +12190,7 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
                     t0 = (void*) _a20_obj;
                     vader_fn_t* _a21_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a21_closure, 139u);
-                    _a21_closure->code = (void*) &vader_fn_lift_1811;
+                    _a21_closure->code = (void*) &vader_fn_lift_1813;
                     _a21_closure->env = t0;
                     l24 = (void*) _a21_closure;
                     vader_midir_for_each_read_local(l12, l24);
