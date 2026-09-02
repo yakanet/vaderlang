@@ -3,12 +3,12 @@
 ## tests/snippets/async_sleep_main
 
 ## generic instances
+  All<E | U>
+  All<E | U>
+  All<T>
+  All<T>
+  All<T>
   ArrayOps<T>
-  All<E | U>
-  All<E | U>
-  All<T>
-  All<T>
-  All<T>
   TryAll<U, E>
   TryAll<U, E>
   TryAll<U, E>
