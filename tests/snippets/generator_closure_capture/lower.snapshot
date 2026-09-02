@@ -80,8 +80,8 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_generator_closure_capture_1 { cap_0: ? }
-  fn __lambda_tests_snippets_generator_closure_capture_0(__env_0: __lambda_env_tests_snippets_generator_closure_capture_1!, x: i32) -> i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
     return
       add :i32
         l:

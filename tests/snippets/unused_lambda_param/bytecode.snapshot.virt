@@ -2,8 +2,8 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 fn (1) -> 1
-type 3 struct __lambda_env_tests_snippets_unused_lambda_param_1 {  }
-type 4 struct __lambda_env_tests_snippets_unused_lambda_param_3 {  }
+type 3 struct __lambda_env_snippet_1 {  }
+type 4 struct __lambda_env_snippet_3 {  }
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
 type 7 primitive string
@@ -13,8 +13,8 @@ type 10 array 9
 type 11 primitive void
 type 12 primitive isize
 string 0 "\n"
-import 0 bytes std_core$bytes result_type=10 param_types=7 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=10 param_types=7 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 1
 
@@ -35,8 +35,8 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __buf_1
   i64.const 0
   local.set 1   ; __off_2
-  struct.new 3   ; __lambda_env_tests_snippets_unused_lambda_param_1
-  make_closure 2 2   ; __lambda_tests_snippets_unused_lambda_param_0
+  struct.new 3   ; __lambda_env_snippet_1
+  make_closure 2 2   ; __lambda_snippet_0
   local.set 2   ; $closure_7
   i32.const 5
   local.get 2   ; $closure_7
@@ -57,8 +57,8 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __buf_1
   i64.const 0
   local.set 1   ; __off_2
-  struct.new 4   ; __lambda_env_tests_snippets_unused_lambda_param_3
-  make_closure 3 2   ; __lambda_tests_snippets_unused_lambda_param_2
+  struct.new 4   ; __lambda_env_snippet_3
+  make_closure 3 2   ; __lambda_snippet_2
   local.set 2   ; $closure_7
   i32.const 5
   local.get 2   ; $closure_7
@@ -77,11 +77,11 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 __lambda_tests_snippets_unused_lambda_param_0 (ref,i32) -> i32
+fn 2 __lambda_snippet_0 (ref,i32) -> i32
   return.lit i32.const 7
 end
 
-fn 3 __lambda_tests_snippets_unused_lambda_param_2 (ref,i32) -> i32
+fn 3 __lambda_snippet_2 (ref,i32) -> i32
   local.get 1   ; arg 1
   i32.const 1
   i32.add

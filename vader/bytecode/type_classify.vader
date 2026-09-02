@@ -45,12 +45,28 @@ import "vader/diagnostics"
 ///
 /// @param elements  the tuple's element types, in order.
 tuple_shape_name :: fn(elements: Type[]) -> string {
-    spelled :: c_safe_key(type_key_join(elements, "_"))
-    if spelled.byte_len() <= TUPLE_NAME_MAX {
-        return spelled
+    // The hash is taken over the EXACT key, never over the sanitised spelling.
+    // `c_safe_key` is many-to-one -- it collapses each run of characters C
+    // rejects into one `_`, so `Box<i32>` and `Box_i32<>` spell alike -- and
+    // hashing the spelling would collapse the same pairs a second time instead
+    // of separating them. Two distinct tuple types then took one C struct name
+    // and `cc` refused the file outright.
+    //
+    // So the discriminant is unconditional: the spelling is for the reader, the
+    // hash is what makes the name an identity.
+    exact :: type_key_join(elements, "_")
+    digest :: fnv1a_hex(exact)
+    spelled :: c_safe_key(exact)
+    if spelled.byte_len() <= TUPLE_NAME_MAX - SHAPE_DIGEST_LEN - 1 {
+        return "${spelled}_${digest[0..<SHAPE_DIGEST_LEN]}"
     }
-    return "${elements.len()}_${fnv1a_hex(spelled)}"
+    return "${elements.len()}_${digest}"
 }
+
+/// Hex digits of the shape digest kept when the name is also spelled out. Eight
+/// is 32 bits of separation, which is what distinguishes two shapes that
+/// sanitise alike; the unspelled form keeps all sixteen.
+SHAPE_DIGEST_LEN: usize : 8
 
 /// Longest tuple shape spelled in full.
 ///

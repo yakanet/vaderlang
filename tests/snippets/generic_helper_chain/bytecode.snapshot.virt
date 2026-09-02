@@ -17,8 +17,8 @@ type 14 primitive void
 type 15 primitive isize
 string 0 "ok"
 string 1 "\n"
-import 0 bytes std_core$bytes result_type=13 param_types=2 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,13,9 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=13 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 10 ByteAccess
 export main 0
 

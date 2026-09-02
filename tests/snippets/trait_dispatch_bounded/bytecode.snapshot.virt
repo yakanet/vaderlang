@@ -16,9 +16,9 @@ string 0 "foo"
 string 1 "bar"
 string 2 "baz"
 string 3 "\n"
-import 0 bytes std_core$bytes result_type=10 param_types=4 (string) -> ref
-import 1 hash std_core$string$Hash$hash result_type=8 param_types=4 (string) -> u64
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=10 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 1 hash std_core$string$Hash$hash result_type=8 param_types=4 param_mutable=0 param_by_address= (string) -> u64
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 0
 

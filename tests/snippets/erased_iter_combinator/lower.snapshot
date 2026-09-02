@@ -19,9 +19,9 @@
     let total: i32 = int(0) :i32
     block :void
       let __iter_0: Iterator<i32> =
-        __gen_state_lib_std_iter_1! {
+        __gen_state_std_iter_1! {
           s0:
-            __gen_state_lib_std_iter_0! {
+            __gen_state_std_iter_0! {
               s0: it :Iterator<i32>
               s1: triple :fn(i32) -> i32
               s2: null
@@ -67,7 +67,7 @@
         callee:
           std_iter$collect__i32 :i32[]!
         arg0:
-          __gen_state_lib_std_iter_0! {
+          __gen_state_std_iter_0! {
             s0: it :Iterator<i32>
             s1: triple :fn(i32) -> i32
             s2: null

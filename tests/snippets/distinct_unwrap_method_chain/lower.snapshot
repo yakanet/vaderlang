@@ -181,8 +181,8 @@
                 cast → Flag
                   true
     return int(0) :i32
-  struct __lambda_env_tests_snippets_distinct_unwrap_method_chain_1 {  }
-  fn __lambda_tests_snippets_distinct_unwrap_method_chain_0(__env_0: __lambda_env_tests_snippets_distinct_unwrap_method_chain_1!, c: char) -> bool
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, c: char) -> bool
     ~>
       eq :bool
         l:

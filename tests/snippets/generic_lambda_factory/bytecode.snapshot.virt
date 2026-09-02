@@ -4,7 +4,7 @@ type 1 array 2
 type 2 primitive i32
 type 3 array 1
 type 4 primitive void
-type 5 struct __lambda_env_tests_snippets_generic_lambda_factory_1 {  }
+type 5 struct __lambda_env_snippet_1 {  }
 type 6 primitive usize
 type 7 fn () -> 1
 type 8 struct std_core$Buffer {  }
@@ -16,9 +16,9 @@ type 13 primitive isize
 string 0 "lambda mismatches="
 string 1 "named  mismatches="
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=6 param_types=9 (string) -> usize
-import 1 bytes std_core$bytes result_type=12 param_types=9 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,12,6 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=9 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=12 param_types=9 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,12,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 8 ByteAccess
 export main 3
 
@@ -196,8 +196,8 @@ fn 3 snippet$main () -> i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_13 i64
-  struct.new 5   ; __lambda_env_tests_snippets_generic_lambda_factory_1
-  make_closure 4 7   ; __lambda_tests_snippets_generic_lambda_factory_0
+  struct.new 5   ; __lambda_env_snippet_1
+  make_closure 4 7   ; __lambda_snippet_0
   local.set 0   ; $closure_2
   i64.const 40
   local.get 0   ; $closure_2
@@ -260,7 +260,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 __lambda_tests_snippets_generic_lambda_factory_0 (ref) -> ref
+fn 4 __lambda_snippet_0 (ref) -> ref
   array.new 1 0   ; i32[][]
   return
 end

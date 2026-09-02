@@ -23,7 +23,7 @@ type 20 primitive isize
 type 21 array 1
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
-type 24 struct __Tuple_char_usize { _0:10,_1:4 }
+type 24 struct __Tuple_char_usize_8bd920da { _0:10,_1:4 }
 type 25 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "verbose"
 string 1 "Say more"
@@ -88,12 +88,12 @@ string 59 "parse_int: empty string"
 string 60 "parse_int: no digits"
 string 61 "parse_int: invalid digit"
 string 62 "parse_int: overflow"
-import 0 byte_len std_core$byte_len result_type=4 param_types=2 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 (ref) -> string
-import 3 bytes std_core$bytes result_type=8 param_types=2 (string) -> ref
-import 4 hash std_core$string$Hash$hash result_type=6 param_types=2 (string) -> u64
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,8,4 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 4 hash std_core$string$Hash$hash result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> u64
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,8,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 16 Index
 impl 16 IndexSet
@@ -2552,7 +2552,7 @@ fn 32 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 24   ; __Tuple_char_usize
+  struct.new 24   ; __Tuple_char_usize_8bd920da
   return
 end
 

@@ -3,8 +3,8 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let f: __lambda_env_tests_snippets_fuse_generator_generic_1! =
-        __lambda_env_tests_snippets_fuse_generator_generic_1! {
+      let f: __lambda_env_snippet_1! =
+        __lambda_env_snippet_1! {
         }
       let __fuse_arr_3: i32[] =
         array :i32[]
@@ -84,8 +84,8 @@
               r:
                 int(1) :usize
     block :void
-      let pred: __lambda_env_tests_snippets_fuse_generator_generic_3! =
-        __lambda_env_tests_snippets_fuse_generator_generic_3! {
+      let pred: __lambda_env_snippet_3! =
+        __lambda_env_snippet_3! {
         }
       let __fuse_arr_9: i32[] =
         array :i32[]
@@ -174,16 +174,16 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_fuse_generator_generic_1 {  }
-  fn __lambda_tests_snippets_fuse_generator_generic_0(__env_2: __lambda_env_tests_snippets_fuse_generator_generic_1!, x: i32) -> i32
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(10) :i32
-  struct __lambda_env_tests_snippets_fuse_generator_generic_3 {  }
-  fn __lambda_tests_snippets_fuse_generator_generic_2(__env_8: __lambda_env_tests_snippets_fuse_generator_generic_3!, x: i32) -> bool
+  struct __lambda_env_snippet_3 {  }
+  fn __lambda_snippet_2(__env_8: __lambda_env_snippet_3!, x: i32) -> bool
     ~>
       eq :bool
         l:

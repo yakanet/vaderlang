@@ -13,8 +13,8 @@ string 1 "a string"
 string 2 "nothing"
 string 3 "hi"
 string 4 "\n"
-import 0 bytes std_core$bytes result_type=6 param_types=3 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=2,6,4 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=6 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=2,6,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 1
 
 fn 0 snippet$describe (any) -> string

@@ -84,8 +84,8 @@
       callee:
         reserve :fn() -> void
     return int(0) :i32
-  struct __defer_env_tests_snippets_panic_runs_defers_1 { cap_0: ? }
-  fn __defer_tests_snippets_panic_runs_defers_0(__env_0: __defer_env_tests_snippets_panic_runs_defers_1!) -> void
+  struct __defer_env_snippet_1 { cap_0: ? }
+  fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -133,8 +133,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-  struct __defer_env_tests_snippets_panic_runs_defers_3 {  }
-  fn __defer_tests_snippets_panic_runs_defers_2(__env_0: __defer_env_tests_snippets_panic_runs_defers_3!) -> void
+  struct __defer_env_snippet_3 {  }
+  fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     call :void
       callee:
         std_io$println__string :void

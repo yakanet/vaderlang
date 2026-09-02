@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 ref Async
 type 2 ref Async
 type 3 primitive i32
-type 4 struct __asyncstate_tests_snippets_async_sequential_0 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:12,s6:13,awaited:14,state:3 }
+type 4 struct __asyncstate_snippet_0 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:12,s6:13,awaited:14,state:3 }
 type 5 union 6,7
 type 6 primitive string
 type 7 struct std_core$Suspended {  }
@@ -26,9 +26,9 @@ string 4 "after-done = Suspended"
 string 5 "after-done = "
 string 6 ":"
 string 7 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=6 (string) -> usize
-import 1 bytes std_core$bytes result_type=17 param_types=6 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,13 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=13 param_types=6 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=17 param_types=6 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 Async
 impl 8 Async
 impl 11 Async
@@ -66,7 +66,7 @@ fn 2 snippet$mix () -> any
   i64.const 0
   local.get 1   ; $k_7
   i32.const 7
-  struct.new 4   ; __asyncstate_tests_snippets_async_sequential_0
+  struct.new 4   ; __asyncstate_snippet_0
   return
 end
 
@@ -110,7 +110,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -> any
+fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local $field_9 string
   local $call_12 usize
   local $call_14 ref
@@ -131,7 +131,7 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+        struct.set 4 8   ; __asyncstate_snippet_0.state
         br $L1
       else
       end $L2
@@ -151,10 +151,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 1   ; $field_9
           local.get 0   ; arg 0
           local.get 1   ; $field_9
-          struct.set 4 3   ; __asyncstate_tests_snippets_async_sequential_0.s3
+          struct.set 4 3   ; __asyncstate_snippet_0.s3
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L4
         local.field 0 4 8   ; arg 0.state
@@ -175,10 +175,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 6   ; $cast_45
           local.get 0   ; arg 0
           local.get 6   ; $cast_45
-          struct.set 4 2   ; __asyncstate_tests_snippets_async_sequential_0.s2
+          struct.set 4 2   ; __asyncstate_snippet_0.s2
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L5
         local.field 0 4 8   ; arg 0.state
@@ -190,10 +190,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 7   ; $cast_51
           local.get 0   ; arg 0
           local.get 7   ; $cast_51
-          struct.set 4 7   ; __asyncstate_tests_snippets_async_sequential_0.awaited
+          struct.set 4 7   ; __asyncstate_snippet_0.awaited
           local.get 0   ; arg 0
           i32.const 3
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L7
         local.field 0 4 8   ; arg 0.state
@@ -206,10 +206,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 8   ; $field_56
           local.get 0   ; arg 0
           local.get 8   ; $field_56
-          struct.set 4 1   ; __asyncstate_tests_snippets_async_sequential_0.s1
+          struct.set 4 1   ; __asyncstate_snippet_0.s1
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L8
         local.field 0 4 8   ; arg 0.state
@@ -230,10 +230,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 10   ; $cast_66
           local.get 0   ; arg 0
           local.get 10   ; $cast_66
-          struct.set 4 0   ; __asyncstate_tests_snippets_async_sequential_0.s0
+          struct.set 4 0   ; __asyncstate_snippet_0.s0
           local.get 0   ; arg 0
           i32.const 5
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L9
         local.field 0 4 8   ; arg 0.state
@@ -245,10 +245,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
           local.set 11   ; $cast_72
           local.get 0   ; arg 0
           local.get 11   ; $cast_72
-          struct.set 4 7   ; __asyncstate_tests_snippets_async_sequential_0.awaited
+          struct.set 4 7   ; __asyncstate_snippet_0.awaited
           local.get 0   ; arg 0
           i32.const 6
-          struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+          struct.set 4 8   ; __asyncstate_snippet_0.state
           br $L1
         end $L11
         struct.new 7   ; std_core$Suspended
@@ -258,13 +258,13 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
   end $L0
   local.get 0   ; arg 0
   i32.const -1
-  struct.set 4 8   ; __asyncstate_tests_snippets_async_sequential_0.state
+  struct.set 4 8   ; __asyncstate_snippet_0.state
   local.field 0 4 3   ; arg 0.s3
   ref.cast 6   ; -> string
   local.set 1   ; $field_9
   local.get 0   ; arg 0
   local.get 1   ; $field_9
-  struct.set 4 4   ; __asyncstate_tests_snippets_async_sequential_0.s4
+  struct.set 4 4   ; __asyncstate_snippet_0.s4
   local.field 0 4 4   ; arg 0.s4
   ref.cast 6   ; -> string
   call.import 0   ; std_core$byte_len
@@ -276,10 +276,10 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
   local.set 3   ; $call_14
   local.get 0   ; arg 0
   local.get 3   ; $call_14
-  struct.set 4 5   ; __asyncstate_tests_snippets_async_sequential_0.s5
+  struct.set 4 5   ; __asyncstate_snippet_0.s5
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 4 6   ; __asyncstate_tests_snippets_async_sequential_0.s6
+  struct.set 4 6   ; __asyncstate_snippet_0.s6
   local.field 0 4 5   ; arg 0.s5
   local.set 3   ; $call_14
   local.field 0 4 6   ; arg 0.s6
@@ -295,7 +295,7 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
   local.set 2   ; $call_12
   local.get 0   ; arg 0
   local.get 2   ; $call_12
-  struct.set 4 6   ; __asyncstate_tests_snippets_async_sequential_0.s6
+  struct.set 4 6   ; __asyncstate_snippet_0.s6
   local.field 0 4 5   ; arg 0.s5
   local.set 3   ; $call_14
   local.field 0 4 6   ; arg 0.s6
@@ -308,7 +308,7 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
   local.set 2   ; $call_12
   local.get 0   ; arg 0
   local.get 2   ; $call_12
-  struct.set 4 6   ; __asyncstate_tests_snippets_async_sequential_0.s6
+  struct.set 4 6   ; __asyncstate_snippet_0.s6
   local.field 0 4 5   ; arg 0.s5
   local.set 3   ; $call_14
   local.field 0 4 6   ; arg 0.s6
@@ -325,7 +325,7 @@ fn 4 snippet$__asyncstate_tests_snippets_async_sequential_0$Async$resume (ref) -
   local.set 2   ; $call_12
   local.get 0   ; arg 0
   local.get 2   ; $call_12
-  struct.set 4 6   ; __asyncstate_tests_snippets_async_sequential_0.s6
+  struct.set 4 6   ; __asyncstate_snippet_0.s6
   local.field 0 4 5   ; arg 0.s5
   local.set 3   ; $call_14
   local.field 0 4 6   ; arg 0.s6

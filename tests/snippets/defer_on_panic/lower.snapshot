@@ -26,22 +26,22 @@
     block :void
       defer.pop_exec 3
       return boom :i32
-  struct __defer_env_tests_snippets_defer_on_panic_1 {  }
-  fn __defer_tests_snippets_defer_on_panic_0(__env_0: __defer_env_tests_snippets_defer_on_panic_1!) -> void
+  struct __defer_env_snippet_1 {  }
+  fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "outer cleanup" :string
-  struct __defer_env_tests_snippets_defer_on_panic_3 {  }
-  fn __defer_tests_snippets_defer_on_panic_2(__env_1: __defer_env_tests_snippets_defer_on_panic_3!) -> void
+  struct __defer_env_snippet_3 {  }
+  fn __defer_snippet_2(__env_1: __defer_env_snippet_3!) -> void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "middle cleanup" :string
-  struct __defer_env_tests_snippets_defer_on_panic_5 {  }
-  fn __defer_tests_snippets_defer_on_panic_4(__env_2: __defer_env_tests_snippets_defer_on_panic_5!) -> void
+  struct __defer_env_snippet_5 {  }
+  fn __defer_snippet_4(__env_2: __defer_env_snippet_5!) -> void
     call :void
       callee:
         std_io$println__string :void

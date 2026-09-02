@@ -21,8 +21,8 @@ type 18 struct snippet_lib$Wrap { items:14 }
 type 19 primitive isize
 string 0 "null"
 string 1 "\n"
-import 0 bytes std_core$bytes result_type=8 param_types=4 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=1,8,2 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=8 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=1,8,2 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 ByteAccess
 impl 11 Index
 impl 11 IndexSet

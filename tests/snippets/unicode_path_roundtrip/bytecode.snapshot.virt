@@ -36,18 +36,18 @@ string 16 "file not found"
 string 17 "file too large"
 string 18 "cannot remove file"
 string 19 "\n"
-import 0 byte_len std_core$byte_len result_type=4 param_types=2 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 (ref) -> string
-import 3 bytes std_core$bytes result_type=7 param_types=2 (string) -> ref
-import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=12 param_types=2 (string) -> any
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,7,4 (i32,ref,usize) -> isize
-import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=14 param_types=2,2 (string,string) -> any
-import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=15 (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=7,4,4,15 param_mutable=1,0,0,0 (ref,usize,usize,pointer) -> usize
-import 9 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=4 param_types=7,4,4,15 (ref,usize,usize,pointer) -> usize
-import 10 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 (string,i32) -> i32
-import 11 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 (string) -> i32
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> any
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,7,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=14 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
+import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=15 param_mutable=0 param_by_address= (pointer) -> i32
+import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=7,4,4,15 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 9 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=4 param_types=7,4,4,15 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 10 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 param_mutable=0,0 param_by_address= (string,i32) -> i32
+import 11 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
 impl 5 ByteAccess
 impl 10 Error
 vtable Error.message 10 14

@@ -15,11 +15,11 @@ string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 array elements survived GC; sum="
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=2 param_types=4 (string) -> usize
-import 1 bytes std_core$bytes result_type=7 param_types=4 (string) -> ref
+import 0 byte_len std_core$byte_len result_type=2 param_types=4 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=7 param_types=4 param_mutable=0 param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=8 () -> void
 import 3 collections std_runtime$collections result_type=1 () -> i32
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,2 (i32,ref,usize) -> isize
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,2 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 ByteAccess
 export main 0
 

@@ -18,7 +18,7 @@ type 15 ref Iterator
 type 16 primitive u8
 type 17 array 16
 type 18 primitive void
-type 19 struct __gen_state_lib_std_iter_0 { s0:15,s1:15,s2:15,s3:20,s4:1,s5:15,s6:20,s7:1,state:1 }
+type 19 struct __gen_state_std_iter_0 { s0:15,s1:15,s2:15,s3:20,s4:1,s5:15,s6:20,s7:1,state:1 }
 type 20 union 5,0
 type 21 primitive isize
 string 0 "break in 1st source="
@@ -35,9 +35,9 @@ string 10 " want=30"
 string 11 "nested break="
 string 12 " want=6"
 string 13 "\n"
-import 0 byte_len std_core$byte_len result_type=6 param_types=12 (string) -> usize
-import 1 bytes std_core$bytes result_type=17 param_types=12 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,17,6 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=12 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=17 param_types=12 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,17,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 2 Contains
 impl 2 Iterator
 impl 7 Contains
@@ -220,7 +220,7 @@ fn 0 snippet$main () -> i32
   local.get 8   ; $k_20
   i32.const 0
   i32.const 22
-  struct.new 19   ; __gen_state_lib_std_iter_0
+  struct.new 19   ; __gen_state_std_iter_0
   local.set 5   ; $k_16
   block $L0 void
     loop $L1 void
@@ -314,7 +314,7 @@ fn 0 snippet$main () -> i32
       local.get 20   ; $k_56
       local.get 21   ; $k_57
       local.get 22   ; $k_58
-      struct.new 19   ; __gen_state_lib_std_iter_0
+      struct.new 19   ; __gen_state_std_iter_0
       local.set 23   ; __iter_4
       block $L4 void
         loop $L5 void
@@ -411,7 +411,7 @@ fn 0 snippet$main () -> i32
           local.get 41   ; $k_92
           local.get 42   ; $k_93
           local.get 43   ; $k_94
-          struct.new 19   ; __gen_state_lib_std_iter_0
+          struct.new 19   ; __gen_state_std_iter_0
           local.set 44   ; __iter_8
           block $L8 void
             loop $L9 void
@@ -1526,7 +1526,7 @@ fn 0 snippet$main () -> i32
       local.get 41   ; $k_92
       local.get 42   ; $k_93
       local.get 43   ; $k_94
-      struct.new 19   ; __gen_state_lib_std_iter_0
+      struct.new 19   ; __gen_state_std_iter_0
       local.set 44   ; __iter_8
       block $L80 void
         loop $L81 void
@@ -2641,7 +2641,7 @@ fn 0 snippet$main () -> i32
   local.get 20   ; $k_56
   local.get 21   ; $k_57
   local.get 22   ; $k_58
-  struct.new 19   ; __gen_state_lib_std_iter_0
+  struct.new 19   ; __gen_state_std_iter_0
   local.set 23   ; __iter_4
   block $L152 void
     loop $L153 void
@@ -2738,7 +2738,7 @@ fn 0 snippet$main () -> i32
       local.get 41   ; $k_92
       local.get 42   ; $k_93
       local.get 43   ; $k_94
-      struct.new 19   ; __gen_state_lib_std_iter_0
+      struct.new 19   ; __gen_state_std_iter_0
       local.set 44   ; __iter_8
       block $L156 void
         loop $L157 void
@@ -3853,7 +3853,7 @@ fn 0 snippet$main () -> i32
   local.get 41   ; $k_92
   local.get 42   ; $k_93
   local.get 43   ; $k_94
-  struct.new 19   ; __gen_state_lib_std_iter_0
+  struct.new 19   ; __gen_state_std_iter_0
   local.set 44   ; __iter_8
   block $L228 void
     loop $L229 void
@@ -5363,7 +5363,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
+fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
   local $field_40 i32
   local $vcall_53 any
   local $field_58 any
@@ -5379,7 +5379,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L2
@@ -5390,7 +5390,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L3 void
         local.get 0   ; arg 0
         i32.const 0
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L3
@@ -5401,7 +5401,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L4 void
         local.get 0   ; arg 0
         i32.const 10
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L4
@@ -5412,7 +5412,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L5 void
         local.get 0   ; arg 0
         i32.const 2
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L5
@@ -5423,7 +5423,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L6 void
         local.get 0   ; arg 0
         i32.const 3
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L6
@@ -5434,7 +5434,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L7 void
         local.get 0   ; arg 0
         i32.const 1
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L7
@@ -5445,7 +5445,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
       if $L8 void
         local.get 0   ; arg 0
         i32.const 3
-        struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+        struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
       else
       end $L8
@@ -5467,10 +5467,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 1   ; $field_40
           local.get 0   ; arg 0
           local.get 1   ; $field_40
-          struct.set 19 7   ; __gen_state_lib_std_iter_0.s7
+          struct.set 19 7   ; __gen_state_std_iter_0.s7
           local.get 0   ; arg 0
           i32.const 7
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L10
         local.field 0 19 8   ; arg 0.state
@@ -5483,11 +5483,11 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           if $L12 void
             local.get 0   ; arg 0
             i32.const 5
-            struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+            struct.set 19 8   ; __gen_state_std_iter_0.state
           else
             local.get 0   ; arg 0
             i32.const 8
-            struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+            struct.set 19 8   ; __gen_state_std_iter_0.state
           end $L12
           br $L1
         end $L11
@@ -5501,10 +5501,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 2   ; $vcall_53
           local.get 0   ; arg 0
           local.get 2   ; $vcall_53
-          struct.set 19 6   ; __gen_state_lib_std_iter_0.s6
+          struct.set 19 6   ; __gen_state_std_iter_0.s6
           local.get 0   ; arg 0
           i32.const 9
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L13
         local.field 0 19 8   ; arg 0.state
@@ -5516,10 +5516,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 3   ; $field_58
           local.get 0   ; arg 0
           local.get 3   ; $field_58
-          struct.set 19 5   ; __gen_state_lib_std_iter_0.s5
+          struct.set 19 5   ; __gen_state_std_iter_0.s5
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L14
         local.field 0 19 8   ; arg 0.state
@@ -5529,7 +5529,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L15 void
           local.get 0   ; arg 0
           i32.const 11
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L15
         local.field 0 19 8   ; arg 0.state
@@ -5539,7 +5539,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L16 void
           local.get 0   ; arg 0
           i32.const 21
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L16
         local.field 0 19 8   ; arg 0.state
@@ -5549,7 +5549,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L17 void
           local.get 0   ; arg 0
           i32.const 13
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L17
         local.field 0 19 8   ; arg 0.state
@@ -5559,7 +5559,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L18 void
           local.get 0   ; arg 0
           i32.const 14
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L18
         local.field 0 19 8   ; arg 0.state
@@ -5569,7 +5569,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L19 void
           local.get 0   ; arg 0
           i32.const 12
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L19
         local.field 0 19 8   ; arg 0.state
@@ -5579,7 +5579,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L20 void
           local.get 0   ; arg 0
           i32.const 14
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L20
         local.field 0 19 8   ; arg 0.state
@@ -5589,7 +5589,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
         if $L21 void
           local.get 0   ; arg 0
           i32.const 17
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           local.field 0 19 4   ; arg 0.s4
           ref.cast 1   ; -> i32
           struct.new 5   ; std_core$Yield__i32
@@ -5607,10 +5607,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 4   ; $field_95
           local.get 0   ; arg 0
           local.get 4   ; $field_95
-          struct.set 19 4   ; __gen_state_lib_std_iter_0.s4
+          struct.set 19 4   ; __gen_state_std_iter_0.s4
           local.get 0   ; arg 0
           i32.const 18
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L22
         local.field 0 19 8   ; arg 0.state
@@ -5623,11 +5623,11 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           if $L24 void
             local.get 0   ; arg 0
             i32.const 16
-            struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+            struct.set 19 8   ; __gen_state_std_iter_0.state
           else
             local.get 0   ; arg 0
             i32.const 19
-            struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+            struct.set 19 8   ; __gen_state_std_iter_0.state
           end $L24
           br $L1
         end $L23
@@ -5641,10 +5641,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 5   ; $vcall_108
           local.get 0   ; arg 0
           local.get 5   ; $vcall_108
-          struct.set 19 3   ; __gen_state_lib_std_iter_0.s3
+          struct.set 19 3   ; __gen_state_std_iter_0.s3
           local.get 0   ; arg 0
           i32.const 20
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L25
         local.field 0 19 8   ; arg 0.state
@@ -5656,10 +5656,10 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
           local.set 6   ; $field_113
           local.get 0   ; arg 0
           local.get 6   ; $field_113
-          struct.set 19 2   ; __gen_state_lib_std_iter_0.s2
+          struct.set 19 2   ; __gen_state_std_iter_0.s2
           local.get 0   ; arg 0
           i32.const 13
-          struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+          struct.set 19 8   ; __gen_state_std_iter_0.state
           br $L1
         end $L26
         null.const
@@ -5670,7 +5670,7 @@ fn 14 std_iter$__gen_state_lib_std_iter_0$Iterator$next (ref) -> any
   end $L0
   local.get 0   ; arg 0
   i32.const 6
-  struct.set 19 8   ; __gen_state_lib_std_iter_0.state
+  struct.set 19 8   ; __gen_state_std_iter_0.state
   local.field 0 19 7   ; arg 0.s7
   ref.cast 1   ; -> i32
   struct.new 5   ; std_core$Yield__i32

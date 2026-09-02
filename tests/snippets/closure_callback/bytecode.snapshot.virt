@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 fn (2) -> 2
 type 2 primitive i32
-type 3 struct __lambda_env_tests_snippets_closure_callback_1 { cap_0:4 }
+type 3 struct __lambda_env_snippet_1 { cap_0:4 }
 type 4 ref _
 type 5 struct $Cell_i32 { value:2 }
 export main 1
@@ -17,14 +17,14 @@ end
 fn 1 snippet$main () -> i32
   i32.const 100
   struct.new 5   ; $Cell_i32
-  struct.new 3   ; __lambda_env_tests_snippets_closure_callback_1
-  make_closure 2 1   ; __lambda_tests_snippets_closure_callback_0
+  struct.new 3   ; __lambda_env_snippet_1
+  make_closure 2 1   ; __lambda_snippet_0
   i32.const 23
   call 0   ; snippet$apply
   return
 end
 
-fn 2 __lambda_tests_snippets_closure_callback_0 (ref,i32) -> i32
+fn 2 __lambda_snippet_0 (ref,i32) -> i32
   local $cell_get_3 i32
   local.field 0 3 0   ; arg 0.cap_0
   struct.get 5 0   ; $Cell_i32.value

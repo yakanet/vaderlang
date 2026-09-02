@@ -14,10 +14,10 @@ string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
 string 2 "ok: 4 byte views survived 2 major GCs; sum="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=7 (string) -> usize
-import 1 bytes std_core$bytes result_type=2 param_types=7 (string) -> ref
+import 0 byte_len std_core$byte_len result_type=5 param_types=7 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=2 param_types=7 param_mutable=0 param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=9 () -> void
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,2,5 (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,2,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 2
 

@@ -15,8 +15,8 @@ type 12 primitive void
 type 13 primitive isize
 string 0 "boom"
 string 1 "\n"
-import 0 bytes std_core$bytes result_type=11 param_types=2 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=5,11,7 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=11 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=5,11,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Error
 impl 8 ByteAccess
 export main 2

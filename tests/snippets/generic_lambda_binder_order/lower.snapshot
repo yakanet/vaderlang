@@ -93,26 +93,26 @@
               arg1:
                 __off_5 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_generic_lambda_binder_order_1 {  }
-  fn __lambda_tests_snippets_generic_lambda_binder_order_0(__env_0: __lambda_env_tests_snippets_generic_lambda_binder_order_1!) -> string[]!
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> string[]!
     ~>
       array :string[]!
-  struct __lambda_env_tests_snippets_generic_lambda_binder_order_3 {  }
-  fn __lambda_tests_snippets_generic_lambda_binder_order_2(__env_1: __lambda_env_tests_snippets_generic_lambda_binder_order_3!, s: string) -> usize
+  struct __lambda_env_snippet_3 {  }
+  fn __lambda_snippet_2(__env_1: __lambda_env_snippet_3!, s: string) -> usize
     ~>
       call :usize
         callee:
           len :usize
         arg0:
           s :string
-  struct __lambda_env_tests_snippets_generic_lambda_binder_order_5 {  }
-  fn __lambda_tests_snippets_generic_lambda_binder_order_4(__env_2: __lambda_env_tests_snippets_generic_lambda_binder_order_5!) -> string[]!
+  struct __lambda_env_snippet_5 {  }
+  fn __lambda_snippet_4(__env_2: __lambda_env_snippet_5!) -> string[]!
     ~>
       array :string[]!
         "ab" :string
         "cde" :string
-  struct __lambda_env_tests_snippets_generic_lambda_binder_order_7 {  }
-  fn __lambda_tests_snippets_generic_lambda_binder_order_6(__env_3: __lambda_env_tests_snippets_generic_lambda_binder_order_7!, s: string) -> usize
+  struct __lambda_env_snippet_7 {  }
+  fn __lambda_snippet_6(__env_3: __lambda_env_snippet_7!, s: string) -> usize
     ~>
       call :usize
         callee:

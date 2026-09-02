@@ -16,9 +16,9 @@ string 1 "("
 string 2 ", "
 string 3 ")"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=3 (string) -> usize
-import 1 bytes std_core$bytes result_type=9 param_types=3 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=4,9,5 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=4,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 1
 

@@ -4,7 +4,7 @@ type 1 primitive string
 type 2 primitive i64
 type 3 primitive bool
 type 4 primitive i32
-type 5 struct __lambda_env_tests_snippets_distinct_unwrap_method_chain_1 {  }
+type 5 struct __lambda_env_snippet_1 {  }
 type 6 primitive char
 type 7 primitive usize
 type 8 struct std_core$Buffer {  }
@@ -16,7 +16,7 @@ type 13 array 1
 type 14 fn (6) -> 3
 type 15 struct std_string$StringChars { bytes:9,cursor:7,length:7 }
 type 16 union 0,12
-type 17 struct __Tuple_char_usize { _0:6,_1:7 }
+type 17 struct __Tuple_char_usize_8bd920da { _0:6,_1:7 }
 type 18 primitive isize
 type 19 struct std_string_builder$StringBuilder { parts:13 }
 type 20 union 12,0
@@ -38,10 +38,10 @@ string 14 "bool="
 string 15 "0"
 string 16 "\n"
 string 17 ""
-import 0 byte_len std_core$byte_len result_type=7 param_types=1 (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 (ref) -> string
-import 2 bytes std_core$bytes result_type=9 param_types=1 (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=4,9,7 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=7 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 param_mutable=0 param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=4,9,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 8 ByteAccess
 impl 15 Iterator
 impl 19 Display
@@ -58,8 +58,8 @@ fn 1 snippet$shout (string) -> string
   local $closure_3 ref
   local.get 0   ; arg 0
   local.set 1   ; $cast_1
-  struct.new 5   ; __lambda_env_tests_snippets_distinct_unwrap_method_chain_1
-  make_closure 8 14   ; __lambda_tests_snippets_distinct_unwrap_method_chain_0
+  struct.new 5   ; __lambda_env_snippet_1
+  make_closure 8 14   ; __lambda_snippet_0
   local.set 2   ; $closure_3
   local.get 1   ; $cast_1
   local.get 2   ; $closure_3
@@ -161,7 +161,7 @@ fn 7 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 8 __lambda_tests_snippets_distinct_unwrap_method_chain_0 (ref,char) -> bool
+fn 8 __lambda_snippet_0 (ref,char) -> bool
   local.get 1   ; arg 1
   char.const 97
   i32.eq
@@ -796,7 +796,7 @@ fn 22 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 17   ; __Tuple_char_usize
+  struct.new 17   ; __Tuple_char_usize_8bd920da
   return
 end
 

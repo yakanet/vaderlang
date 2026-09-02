@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_tests_snippets_iter_combinators_5 {  }
+type 2 struct __lambda_env_snippet_5 {  }
 type 3 struct std_core$Range__i32 { start:1,end:1,inclusive:4,cursor:1 }
 type 4 primitive bool
 type 5 union 0,6
@@ -25,9 +25,9 @@ string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=7 param_types=13 (string) -> usize
-import 1 bytes std_core$bytes result_type=18 param_types=13 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,18,7 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=7 param_types=13 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=18 param_types=13 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,18,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 Contains
 impl 3 Iterator
 impl 8 Contains
@@ -160,8 +160,8 @@ fn 0 snippet$main () -> i32
   i64.const 0
   struct.new 11   ; std_core$ArrayIterator__i32
   local.set 1   ; __collect_0
-  struct.new 2   ; __lambda_env_tests_snippets_iter_combinators_5
-  make_closure 1 20   ; __lambda_tests_snippets_iter_combinators_4
+  struct.new 2   ; __lambda_env_snippet_5
+  make_closure 1 20   ; __lambda_snippet_4
   local.set 2   ; __fuse_arr_3
   local.get 1   ; __collect_0
   i32.const 1
@@ -301,7 +301,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 __lambda_tests_snippets_iter_combinators_4 (ref,i32,i32) -> i32
+fn 1 __lambda_snippet_4 (ref,i32,i32) -> i32
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   i32.mul

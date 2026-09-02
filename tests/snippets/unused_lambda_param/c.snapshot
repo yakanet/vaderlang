@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t;
-typedef struct vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t;
+typedef struct vader_struct___lambda_env_snippet_1_t vader_struct___lambda_env_snippet_1_t;
+typedef struct vader_struct___lambda_env_snippet_3_t vader_struct___lambda_env_snippet_3_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
-struct vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t {
+struct vader_struct___lambda_env_snippet_1_t {
     vader_obj_header_t header;
 };
-struct vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t {
+struct vader_struct___lambda_env_snippet_3_t {
     vader_obj_header_t header;
 };
 struct vader_struct_std_core_Buffer_t {
@@ -31,8 +31,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_apply(int32_t l0, void* l1);
 static int32_t snippet_main(void);
-static int32_t __lambda_tests_snippets_unused_lambda_param_0(void* l0, int32_t l1);
-static int32_t __lambda_tests_snippets_unused_lambda_param_2(void* l0, int32_t l1);
+static int32_t __lambda_snippet_0(void* l0, int32_t l1);
+static int32_t __lambda_snippet_2(void* l0, int32_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
@@ -46,11 +46,11 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
-static vader_box_t vader_fn_lift___lambda_tests_snippets_unused_lambda_param_0(void* env, vader_box_t a0) {
-    return vader_box_i32(1u, __lambda_tests_snippets_unused_lambda_param_0(env, ((int32_t) a0.payload.i)));
+static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {
+    return vader_box_i32(1u, __lambda_snippet_0(env, ((int32_t) a0.payload.i)));
 }
-static vader_box_t vader_fn_lift___lambda_tests_snippets_unused_lambda_param_2(void* env, vader_box_t a0) {
-    return vader_box_i32(1u, __lambda_tests_snippets_unused_lambda_param_2(env, ((int32_t) a0.payload.i)));
+static vader_box_t vader_fn_lift___lambda_snippet_2(void* env, vader_box_t a0) {
+    return vader_box_i32(1u, __lambda_snippet_2(env, ((int32_t) a0.payload.i)));
 }
 
 static const uint16_t vader_type_2_ptrs[] = { offsetof(vader_fn_t, env) };
@@ -58,8 +58,8 @@ static const uint16_t vader_type_10_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
     [2] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_2_ptrs, 1, 0, NULL, 0, NULL },
-    [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t), NULL, 0, 0, NULL, 0, NULL },
-    [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t), NULL, 0, 0, NULL, 0, NULL },
+    [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_snippet_1_t), NULL, 0, 0, NULL, 0, NULL },
+    [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_snippet_3_t), NULL, 0, 0, NULL, 0, NULL },
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [10] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_10_ptrs, 1, 0, NULL, 0, NULL },
 };
@@ -117,12 +117,12 @@ static int32_t snippet_main(void) {
 #line 16 "tests/snippets/unused_lambda_param/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l1 = (size_t) (int64_t) INT64_C(0);
-    vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t* _a0_obj = (vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_tests_snippets_unused_lambda_param_1_t));
+    vader_struct___lambda_env_snippet_1_t* _a0_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
     vader_obj_header_init(_a0_obj, 3u);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 2u);
-    _a1_closure->code = (void*) &vader_fn_lift___lambda_tests_snippets_unused_lambda_param_0;
+    _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
     _a1_closure->env = t0;
     l2 = (void*) _a1_closure;
     t1 = snippet_apply(INT32_C(5), l2);
@@ -133,12 +133,12 @@ static int32_t snippet_main(void) {
 #line 18 "tests/snippets/unused_lambda_param/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l1 = (size_t) (int64_t) INT64_C(0);
-    vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t* _a2_obj = (vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_tests_snippets_unused_lambda_param_3_t));
+    vader_struct___lambda_env_snippet_3_t* _a2_obj = (vader_struct___lambda_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_3_t));
     vader_obj_header_init(_a2_obj, 4u);
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 2u);
-    _a3_closure->code = (void*) &vader_fn_lift___lambda_tests_snippets_unused_lambda_param_2;
+    _a3_closure->code = (void*) &vader_fn_lift___lambda_snippet_2;
     _a3_closure->env = t0;
     l2 = (void*) _a3_closure;
     t1 = snippet_apply(INT32_C(5), l2);
@@ -151,12 +151,12 @@ static int32_t snippet_main(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t __lambda_tests_snippets_unused_lambda_param_0(void* l0, int32_t l1) {
+static int32_t __lambda_snippet_0(void* l0, int32_t l1) {
 #line 16 "tests/snippets/unused_lambda_param/_main.vader"
     return INT32_C(7);
 }
 
-static int32_t __lambda_tests_snippets_unused_lambda_param_2(void* l0, int32_t l1) {
+static int32_t __lambda_snippet_2(void* l0, int32_t l1) {
 #line 18 "tests/snippets/unused_lambda_param/_main.vader"
     return (l1 + INT32_C(1));
 }

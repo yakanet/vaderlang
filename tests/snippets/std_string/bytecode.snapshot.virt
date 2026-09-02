@@ -11,7 +11,7 @@ type 8 array 9
 type 9 primitive u8
 type 10 primitive void
 type 11 array 5
-type 12 struct __Tuple_char_usize { _0:7,_1:3 }
+type 12 struct __Tuple_char_usize_8bd920da { _0:7,_1:3 }
 type 13 primitive u32
 type 14 primitive isize
 type 15 struct std_string_builder$StringBuilder { parts:11 }
@@ -30,12 +30,12 @@ string 11 "true"
 string 12 "false"
 string 13 "\n"
 string 14 ""
-import 0 byte_len std_core$byte_len result_type=3 param_types=5 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=9 param_types=5,3 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=5 param_types=8 (ref) -> string
-import 3 bytes std_core$bytes result_type=8 param_types=5 (string) -> ref
-import 4 at std_core$string$Index$at result_type=7 param_types=5,3 (string,usize) -> char
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,3 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=3 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=9 param_types=5,3 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=5 param_types=8 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=8 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 4 at std_core$string$Index$at result_type=7 param_types=5,3 param_mutable=0,0 param_by_address= (string,usize) -> char
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 ByteAccess
 impl 15 Display
 export main 0
@@ -1019,7 +1019,7 @@ fn 17 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 12   ; __Tuple_char_usize
+  struct.new 12   ; __Tuple_char_usize_8bd920da
   return
 end
 

@@ -10,9 +10,9 @@ type 7 primitive void
 type 8 primitive isize
 string 0 "  hi  "
 string 1 "\n"
-import 0 bytes_to_string std_core$bytes_to_string result_type=4 param_types=6 (ref) -> string
-import 1 bytes std_core$bytes result_type=6 param_types=4 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,6,3 (i32,ref,usize) -> isize
+import 0 bytes_to_string std_core$bytes_to_string result_type=4 param_types=6 param_mutable=0 param_by_address= (ref) -> string
+import 1 bytes std_core$bytes result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,6,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32

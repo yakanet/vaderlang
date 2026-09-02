@@ -504,7 +504,7 @@
               r:
                 int(1) :usize
     let bursts: __genstate_flat_map<i32>! =
-      __gen_state_lib_std_iter_0! {
+      __gen_state_std_iter_0! {
         s0:
           ArrayIterator<i32>! {
             arr:
@@ -591,8 +591,8 @@
                       arg1:
                         __off_29 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_iter_zip_chain_1 {  }
-  fn __lambda_tests_snippets_iter_zip_chain_0(__env_25: __lambda_env_tests_snippets_iter_zip_chain_1!, x: i32) -> i32[]!
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_25: __lambda_env_snippet_1!, x: i32) -> i32[]!
     ~>
       array :i32[]!
         x :i32

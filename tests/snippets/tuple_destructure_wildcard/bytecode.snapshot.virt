@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 struct __Tuple_i32_string_bool { _0:2,_1:3,_2:4 }
+type 1 struct __Tuple_i32_string_bool_85577c40 { _0:2,_1:3,_2:4 }
 type 2 primitive i32
 type 3 primitive string
 type 4 primitive bool
@@ -17,9 +17,9 @@ string 2 "c = "
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=3 (string) -> usize
-import 1 bytes std_core$bytes result_type=9 param_types=3 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,9,5 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 1
 
@@ -27,7 +27,7 @@ fn 0 snippet$triple () -> ref
   i32.const 7
   string.const 0   ; "ignored"
   bool.const true
-  struct.new 1   ; __Tuple_i32_string_bool
+  struct.new 1   ; __Tuple_i32_string_bool_85577c40
   return
 end
 

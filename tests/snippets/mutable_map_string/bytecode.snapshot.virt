@@ -32,10 +32,10 @@ string 13 "hello updated = "
 string 14 "true"
 string 15 "false"
 string 16 "\n"
-import 0 byte_len std_core$byte_len result_type=3 param_types=6 (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=6 (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=8 param_types=6 (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,10,3 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=3 param_types=6 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=8 param_types=6 param_mutable=0 param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,10,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Index
 impl 13 IndexSet

@@ -30,7 +30,7 @@ type 27 union 0,3
 type 28 array 21
 type 29 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
 type 30 primitive isize
-type 31 struct __Tuple_char_usize { _0:4,_1:8 }
+type 31 struct __Tuple_char_usize_8bd920da { _0:4,_1:8 }
 type 32 struct std_string_builder$StringBuilder { parts:19 }
 type 33 array 1
 type 34 union 7,0
@@ -86,11 +86,11 @@ string 48 "parse_int: no digits"
 string 49 "parse_int: invalid digit"
 string 50 "parse_int: overflow"
 string 51 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=2 (string) -> usize
-import 1 byte_at std_core$byte_at result_type=11 param_types=2,8 (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=12 (ref) -> string
-import 3 bytes std_core$bytes result_type=12 param_types=2 (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,12,8 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=11 param_types=2,8 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=12 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,12,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 9 ByteAccess
 impl 3 Display
 impl 3 Comparable
@@ -6788,7 +6788,7 @@ fn 52 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 31   ; __Tuple_char_usize
+  struct.new 31   ; __Tuple_char_usize_8bd920da
   return
 end
 

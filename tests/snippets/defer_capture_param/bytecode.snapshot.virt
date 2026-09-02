@@ -5,10 +5,10 @@ type 2 primitive i64
 type 3 primitive void
 type 4 struct snippet$Counter { hits:2 }
 type 5 primitive i32
-type 6 struct __defer_env_tests_snippets_defer_capture_param_1 { cap_0:8,cap_1:8 }
-type 7 struct __defer_env_tests_snippets_defer_capture_param_3 { cap_0:8,cap_1:8 }
+type 6 struct __defer_env_snippet_1 { cap_0:8,cap_1:8 }
+type 7 struct __defer_env_snippet_3 { cap_0:8,cap_1:8 }
 type 8 ref _
-type 9 struct __lambda_env_tests_snippets_defer_capture_param_5 { cap_0:8 }
+type 9 struct __lambda_env_snippet_5 { cap_0:8 }
 type 10 primitive usize
 type 11 struct std_core$Buffer {  }
 type 12 primitive u8
@@ -27,9 +27,9 @@ string 5 "world"
 string 6 "exit "
 string 7 " with code="
 string 8 "\n"
-import 0 byte_len std_core$byte_len result_type=10 param_types=1 (string) -> usize
-import 1 bytes std_core$bytes result_type=13 param_types=1 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=5,13,10 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=13 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=5,13,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 11 ByteAccess
 export main 3
 
@@ -46,8 +46,8 @@ fn 0 snippet$log_at_exit (string,i64) -> void
   local.set 3   ; code
   local.get 2   ; label
   local.get 3   ; code
-  struct.new 6   ; __defer_env_tests_snippets_defer_capture_param_1
-  make_closure 4 17   ; __defer_tests_snippets_defer_capture_param_0
+  struct.new 6   ; __defer_env_snippet_1
+  make_closure 4 17   ; __defer_snippet_0
   defer.push
   local.field 2 15 0   ; label.value
   local.set 4   ; $cell_get_9
@@ -75,8 +75,8 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local.set 3   ; by
   local.get 2   ; counter
   local.get 3   ; by
-  struct.new 7   ; __defer_env_tests_snippets_defer_capture_param_3
-  make_closure 5 17   ; __defer_tests_snippets_defer_capture_param_2
+  struct.new 7   ; __defer_env_snippet_3
+  make_closure 5 17   ; __defer_snippet_2
   defer.push
   i64.const 31
   call 7   ; std_core$new_byte_buffer
@@ -109,7 +109,7 @@ fn 2 snippet$make_greeter (string) -> void
   local $cell_get_7 string
   local.get 0   ; arg 0
   struct.new 15   ; $Cell_string
-  struct.new_stack 9   ; __lambda_env_tests_snippets_defer_capture_param_5
+  struct.new_stack 9   ; __lambda_env_snippet_5
   local.set 1   ; greet
   local.field 1 9 0   ; greet.cap_0
   struct.get 15 0   ; $Cell_string.value
@@ -164,7 +164,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 __defer_tests_snippets_defer_capture_param_0 (ref) -> void
+fn 4 __defer_snippet_0 (ref) -> void
   local __p_0 string
   local $call_5 usize
   local __buf_1 ref
@@ -211,7 +211,7 @@ fn 4 __defer_tests_snippets_defer_capture_param_0 (ref) -> void
   return
 end
 
-fn 5 __defer_tests_snippets_defer_capture_param_2 (ref) -> void
+fn 5 __defer_snippet_2 (ref) -> void
   local $cell_get_2 ref
   local $field_5 i64
   local $cell_get_7 i64

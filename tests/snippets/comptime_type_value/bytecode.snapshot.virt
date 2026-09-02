@@ -12,8 +12,8 @@ type 9 primitive i64
 type 10 ref _
 string 0 "ok"
 string 1 "\n"
-import 0 bytes std_core$bytes result_type=7 param_types=5 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,7,4 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=7 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,7,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32

@@ -19,7 +19,7 @@ type 16 primitive void
 string 0 "Hello, "
 string 1 "! You are "
 string 2 " years old."
-import 0 byte_len std_core$byte_len result_type=7 param_types=1 (string) -> usize
+import 0 byte_len std_core$byte_len result_type=7 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 impl 3 Contains
 impl 3 Iterator
 impl 9 Contains

@@ -368,7 +368,12 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
 /// @return     whether C may write through the slot.
 param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
     if j >= sig.param_mutable.len() {
-        return true
+        // No information is NOT a licence to write. Answering "yes" here left a
+        // read-only mirror marshalled backwards -- the callee handed an
+        // uninitialised struct. Answering "no" costs at worst a write-back that
+        // never happens, which is a wrong value rather than undefined
+        // behaviour. The list is now always emitted, so this is a belt.
+        return false
     }
     return sig.param_mutable[j]
 }

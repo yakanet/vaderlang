@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_tests_snippets_closure_counter_1 { cap_0:3 }
+type 2 struct __lambda_env_snippet_1 { cap_0:3 }
 type 3 ref _
 type 4 struct $Cell_i32 { value:1 }
 export main 0
@@ -13,15 +13,15 @@ fn 0 snippet$main () -> i32
   local c i32
   i32.const 0
   struct.new 4   ; $Cell_i32
-  struct.new 2   ; __lambda_env_tests_snippets_closure_counter_1
+  struct.new 2   ; __lambda_env_snippet_1
   local.tee 0   ; inc
-  call 1   ; __lambda_tests_snippets_closure_counter_0
+  call 1   ; __lambda_snippet_0
   local.set 1   ; a
   local.get 0   ; inc
-  call 1   ; __lambda_tests_snippets_closure_counter_0
+  call 1   ; __lambda_snippet_0
   local.set 2   ; b
   local.get 0   ; inc
-  call 1   ; __lambda_tests_snippets_closure_counter_0
+  call 1   ; __lambda_snippet_0
   local.set 3   ; c
   local.get 1   ; a
   local.get 2   ; b
@@ -31,7 +31,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 __lambda_tests_snippets_closure_counter_0 (ref) -> i32
+fn 1 __lambda_snippet_0 (ref) -> i32
   local $field_1 any
   local $add_5 i32
   local.field 0 2 0   ; arg 0.cap_0

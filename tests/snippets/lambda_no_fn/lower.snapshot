@@ -344,44 +344,44 @@
               arg1:
                 __off_17 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_1 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_0(__env_0: __lambda_env_tests_snippets_lambda_no_fn_1!, x: i32) -> i32
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
     ~>
       add :i32
         l:
           x :i32
         r:
           int(1) :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_3 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_2(__env_3: __lambda_env_tests_snippets_lambda_no_fn_3!, x: i32) -> i32
+  struct __lambda_env_snippet_3 {  }
+  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_5 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_4(__env_6: __lambda_env_tests_snippets_lambda_no_fn_5!, x: i32) -> i32
+  struct __lambda_env_snippet_5 {  }
+  fn __lambda_snippet_4(__env_6: __lambda_env_snippet_5!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           x :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_7 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_6(__env_9: __lambda_env_tests_snippets_lambda_no_fn_7!, a: i32, b: i32) -> i32
+  struct __lambda_env_snippet_7 {  }
+  fn __lambda_snippet_6(__env_9: __lambda_env_snippet_7!, a: i32, b: i32) -> i32
     ~>
       add :i32
         l:
           a :i32
         r:
           b :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_9 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_8(__env_12: __lambda_env_tests_snippets_lambda_no_fn_9!) -> i32
+  struct __lambda_env_snippet_9 {  }
+  fn __lambda_snippet_8(__env_12: __lambda_env_snippet_9!) -> i32
     ~>
       int(42) :i32
-  struct __lambda_env_tests_snippets_lambda_no_fn_11 {  }
-  fn __lambda_tests_snippets_lambda_no_fn_10(__env_15: __lambda_env_tests_snippets_lambda_no_fn_11!, x: i32) -> i32
+  struct __lambda_env_snippet_11 {  }
+  fn __lambda_snippet_10(__env_15: __lambda_env_snippet_11!, x: i32) -> i32
     let tmp: i32 =
       mul :i32
         l:

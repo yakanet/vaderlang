@@ -15,11 +15,11 @@ string 1 "widths_agree="
 string 2 "true"
 string 3 "false"
 string 4 "\n"
-import 0 extern malloc snippet$c_malloc header=<stdlib.h> result_type=3 param_types=2 (usize) -> pointer
-import 1 extern free snippet$c_free header=<stdlib.h> result_type=4 param_types=3 (pointer) -> void
-import 2 byte_len std_core$byte_len result_type=2 param_types=7 (string) -> usize
-import 3 bytes std_core$bytes result_type=9 param_types=7 (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,2 (i32,ref,usize) -> isize
+import 0 extern malloc snippet$c_malloc header=<stdlib.h> result_type=3 param_types=2 param_mutable=0 param_by_address= (usize) -> pointer
+import 1 extern free snippet$c_free header=<stdlib.h> result_type=4 param_types=3 param_mutable=0 param_by_address= (pointer) -> void
+import 2 byte_len std_core$byte_len result_type=2 param_types=7 param_mutable=0 param_by_address= (string) -> usize
+import 3 bytes std_core$bytes result_type=9 param_types=7 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,2 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 0
 

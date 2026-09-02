@@ -1,10 +1,10 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __defer_env_tests_snippets_defer_on_panic_1 {  }
+type 2 struct __defer_env_snippet_1 {  }
 type 3 primitive void
-type 4 struct __defer_env_tests_snippets_defer_on_panic_3 {  }
-type 5 struct __defer_env_tests_snippets_defer_on_panic_5 {  }
+type 4 struct __defer_env_snippet_3 {  }
+type 5 struct __defer_env_snippet_5 {  }
 type 6 primitive usize
 type 7 primitive string
 type 8 primitive u8
@@ -16,20 +16,20 @@ string 1 "outer cleanup"
 string 2 "middle cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
-import 0 bytes std_core$bytes result_type=9 param_types=7 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,6 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=9 param_types=7 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
-  struct.new 2   ; __defer_env_tests_snippets_defer_on_panic_1
-  make_closure 1 11   ; __defer_tests_snippets_defer_on_panic_0
+  struct.new 2   ; __defer_env_snippet_1
+  make_closure 1 11   ; __defer_snippet_0
   defer.push
-  struct.new 4   ; __defer_env_tests_snippets_defer_on_panic_3
-  make_closure 2 11   ; __defer_tests_snippets_defer_on_panic_2
+  struct.new 4   ; __defer_env_snippet_3
+  make_closure 2 11   ; __defer_snippet_2
   defer.push
-  struct.new 5   ; __defer_env_tests_snippets_defer_on_panic_5
-  make_closure 3 11   ; __defer_tests_snippets_defer_on_panic_4
+  struct.new 5   ; __defer_env_snippet_5
+  make_closure 3 11   ; __defer_snippet_4
   defer.push
   string.const 0   ; "starting"
   call 6   ; std_io$println__string
@@ -43,19 +43,19 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 __defer_tests_snippets_defer_on_panic_0 (ref) -> void
+fn 1 __defer_snippet_0 (ref) -> void
   string.const 1   ; "outer cleanup"
   call 6   ; std_io$println__string
   return
 end
 
-fn 2 __defer_tests_snippets_defer_on_panic_2 (ref) -> void
+fn 2 __defer_snippet_2 (ref) -> void
   string.const 2   ; "middle cleanup"
   call 6   ; std_io$println__string
   return
 end
 
-fn 3 __defer_tests_snippets_defer_on_panic_4 (ref) -> void
+fn 3 __defer_snippet_4 (ref) -> void
   string.const 3   ; "inner cleanup"
   call 6   ; std_io$println__string
   return

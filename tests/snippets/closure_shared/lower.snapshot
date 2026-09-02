@@ -4,39 +4,39 @@
   fn snippet$main() -> i32
     let n: ? =
       LoweredCellNew
-    let inc: __lambda_env_tests_snippets_closure_shared_1! =
-      __lambda_env_tests_snippets_closure_shared_1! {
+    let inc: __lambda_env_snippet_1! =
+      __lambda_env_snippet_1! {
         cap_0: n :i32
       }
-    let get: __lambda_env_tests_snippets_closure_shared_3! =
-      __lambda_env_tests_snippets_closure_shared_3! {
+    let get: __lambda_env_snippet_3! =
+      __lambda_env_snippet_3! {
         cap_0: n :i32
       }
     call :void
       callee:
-        __lambda_tests_snippets_closure_shared_0 :fn() -> void
+        __lambda_snippet_0 :fn() -> void
       arg0:
-        inc :__lambda_env_tests_snippets_closure_shared_1!
+        inc :__lambda_env_snippet_1!
     call :void
       callee:
-        __lambda_tests_snippets_closure_shared_0 :fn() -> void
+        __lambda_snippet_0 :fn() -> void
       arg0:
-        inc :__lambda_env_tests_snippets_closure_shared_1!
+        inc :__lambda_env_snippet_1!
     call :void
       callee:
-        __lambda_tests_snippets_closure_shared_0 :fn() -> void
+        __lambda_snippet_0 :fn() -> void
       arg0:
-        inc :__lambda_env_tests_snippets_closure_shared_1!
+        inc :__lambda_env_snippet_1!
     call :void
       callee:
-        __lambda_tests_snippets_closure_shared_0 :fn() -> void
+        __lambda_snippet_0 :fn() -> void
       arg0:
-        inc :__lambda_env_tests_snippets_closure_shared_1!
+        inc :__lambda_env_snippet_1!
     return
       LoweredCellGet
-  struct __lambda_env_tests_snippets_closure_shared_1 { cap_0: ? }
-  fn __lambda_tests_snippets_closure_shared_0(__env_0: __lambda_env_tests_snippets_closure_shared_1!) -> void
-  struct __lambda_env_tests_snippets_closure_shared_3 { cap_0: ? }
-  fn __lambda_tests_snippets_closure_shared_2(__env_1: __lambda_env_tests_snippets_closure_shared_3!) -> i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> void
+  struct __lambda_env_snippet_3 { cap_0: ? }
+  fn __lambda_snippet_2(__env_1: __lambda_env_snippet_3!) -> i32
     return
       LoweredCellGet

@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 array 2
 type 2 primitive u32
-type 3 struct __Tuple_Array_u32_u32 { _0:1,_1:2 }
+type 3 struct __Tuple_Array_u32_u32_6fc96a7e { _0:1,_1:2 }
 type 4 primitive i32
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
@@ -17,9 +17,9 @@ string 0 ","
 string 1 " rem="
 string 2 " len="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=7 (string) -> usize
-import 1 bytes std_core$bytes result_type=11 param_types=7 (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=4,11,5 (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=5 param_types=7 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=11 param_types=7 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=4,11,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 2
 
@@ -110,7 +110,7 @@ fn 1 snippet$Histogram$Div$div (ref,u32) -> ref
   local.set 5   ; $div_10
   local.get 2   ; out
   local.get 5   ; $div_10
-  struct.new 3   ; __Tuple_Array_u32_u32
+  struct.new 3   ; __Tuple_Array_u32_u32_6fc96a7e
   return
 end
 

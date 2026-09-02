@@ -81,7 +81,11 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, owner), sink)
             if elem is null { continue }
             entries.push(GenStateEntry {
-                .name = fn_decl.name, .module = owner.resolved.path, .id = sym_id, .element = elem,
+                // `display_path` (the DECLARED name), not `path`: this feeds `module_name`,
+                // which `symbol_key` folds into a type-intern key and from there into
+                // emitted C names. `path` is the filesystem identity and is absolute
+                // whenever the entry was named absolutely.
+                .name = fn_decl.name, .module = owner.resolved.display_path, .id = sym_id, .element = elem,
             })
         }
     }

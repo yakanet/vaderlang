@@ -90,11 +90,11 @@
               arg1:
                 __off_5 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_unused_lambda_param_1 {  }
-  fn __lambda_tests_snippets_unused_lambda_param_0(__env_0: __lambda_env_tests_snippets_unused_lambda_param_1!, v: i32) -> i32
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, v: i32) -> i32
     return int(7) :i32
-  struct __lambda_env_tests_snippets_unused_lambda_param_3 {  }
-  fn __lambda_tests_snippets_unused_lambda_param_2(__env_3: __lambda_env_tests_snippets_unused_lambda_param_3!, v: i32) -> i32
+  struct __lambda_env_snippet_3 {  }
+  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3!, v: i32) -> i32
     return
       add :i32
         l:

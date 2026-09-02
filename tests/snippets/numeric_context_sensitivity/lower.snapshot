@@ -713,8 +713,8 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let forty_two: __lambda_env_tests_snippets_numeric_context_sensitivity_1! =
-      __lambda_env_tests_snippets_numeric_context_sensitivity_1! {
+    let forty_two: __lambda_env_snippet_1! =
+      __lambda_env_snippet_1! {
       }
     call :void
       callee:
@@ -764,6 +764,6 @@
               arg1:
                 __off_12 :usize
     return int(0) :i32
-  struct __lambda_env_tests_snippets_numeric_context_sensitivity_1 {  }
-  fn __lambda_tests_snippets_numeric_context_sensitivity_0(__env_10: __lambda_env_tests_snippets_numeric_context_sensitivity_1!) -> usize
+  struct __lambda_env_snippet_1 {  }
+  fn __lambda_snippet_0(__env_10: __lambda_env_snippet_1!) -> usize
     return int(42) :usize

@@ -13,8 +13,8 @@ string 0 "got null"
 string 1 "got string"
 string 2 "nothing"
 string 3 "\n"
-import 0 bytes std_core$bytes result_type=7 param_types=3 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,7,5 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=7 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 1
 
 fn 0 snippet$pick (bool) -> any

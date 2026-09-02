@@ -15,8 +15,8 @@
                 LoweredCellNew
               ~>
                 block :void
-                  let shout: __lambda_env_tests_snippets_closure_pattern_binding_3! =
-                    __lambda_env_tests_snippets_closure_pattern_binding_3! {
+                  let shout: __lambda_env_snippet_3! =
+                    __lambda_env_snippet_3! {
                       cap_0: p :P
                     }
                   call :void
@@ -61,8 +61,8 @@
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled: __lambda_env_tests_snippets_closure_pattern_binding_1! =
-                          __lambda_env_tests_snippets_closure_pattern_binding_1! {
+                        let doubled: __lambda_env_snippet_1! =
+                          __lambda_env_snippet_1! {
                             cap_0: n :i32
                           }
                         ~>
@@ -134,16 +134,16 @@
       arg0:
         int(21) :i32 | P
     return int(0) :i32
-  struct __lambda_env_tests_snippets_closure_pattern_binding_1 { cap_0: ? }
-  fn __lambda_tests_snippets_closure_pattern_binding_0(__env_0: __lambda_env_tests_snippets_closure_pattern_binding_1!) -> i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
     ~>
       add :i32
         l:
           LoweredCellGet
         r:
           LoweredCellGet
-  struct __lambda_env_tests_snippets_closure_pattern_binding_3 { cap_0: ? }
-  fn __lambda_tests_snippets_closure_pattern_binding_2(__env_3: __lambda_env_tests_snippets_closure_pattern_binding_3!) -> string
+  struct __lambda_env_snippet_3 { cap_0: ? }
+  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3!) -> string
     ~>
       call :string
         callee:

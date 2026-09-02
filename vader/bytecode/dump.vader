@@ -334,12 +334,19 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // (it serves functions too), so without them a `.virt` re-read lost the
         // write-back: the callee filled the block and the VM never copied it
         // out, leaving the Vader struct at its pre-call values.
-        pm :: if any_true(imp.signature.param_mutable) {
+        // Written whenever the import HAS parameters, never conditioned on a
+        // flag being set. Omitting an all-false list looked like a saving, but
+        // absence is not the same as false downstream: `param_is_mutable`
+        // answers "yes" for a flag it cannot find, so a read-only mirror read
+        // back from a `.virt` was marshalled as if C wrote through it -- the
+        // callee received an UNINITIALISED struct and its result then clobbered
+        // the caller's.
+        pm :: if imp.signature.params.len() > 0 {
             "param_mutable=${join_flags(imp.signature.param_mutable)} "
         } else {
             ""
         }
-        pa :: if any_true(imp.signature.param_by_address) {
+        pa :: if imp.signature.params.len() > 0 {
             "param_by_address=${join_flags(imp.signature.param_by_address)} "
         } else {
             ""
@@ -376,18 +383,6 @@ join_indices :: fn(xs: i32[]) -> string {
         sb.append("${xs[i]}")
     }
     return sb.to_string()
-}
-
-/// Whether any flag is set, in which case the attribute is worth writing.
-///
-/// @param xs  one flag per parameter.
-any_true :: fn(xs: bool[]) -> bool {
-    for x in xs {
-        if x {
-            return true
-        }
-    }
-    return false
 }
 
 /// Render per-parameter flags as a comma-separated run of `0` / `1`.

@@ -29,8 +29,8 @@ string 16 "read-write"
 string 17 "unknown"
 string 18 "nope"
 string 19 "\n"
-import 0 bytes std_core$bytes result_type=7 param_types=2 (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=3,7,5 (i32,ref,usize) -> isize
+import 0 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 1 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=3,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 export main 4
 
 fn 0 snippet$describe_char (char) -> string
