@@ -32,6 +32,18 @@ export S_IFMT: u32 : 0xF000
 /// `S_IFDIR` — the `S_IFMT` value naming a directory.
 export S_IFDIR: u32 : 0x4000
 
+/// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error — and
+/// a SHORT read is not an error: a pipe hands over what has arrived so far, so
+/// a caller wanting `n` bytes loops until it has them.
+///
+/// @param fd     the descriptor; `0` is stdin.
+/// @param buf    receives the bytes.
+/// @param count  how many to ask for, at most `buf.len()`.
+/// @return       bytes read, `0` at EOF, `-1` on error.
+@c_header("<unistd.h>")
+@extern("read")
+export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
+
 /// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
 ///
 /// Linux reads the running binary's path from `/proc/self/exe`.

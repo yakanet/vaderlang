@@ -131,7 +131,35 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// returned string does NOT include the trailing `\n`.
 /// @return      the line text.
 /// @error       `IOError` on EOF or stdin read failure.
-@intrinsic export read_line :: fn() -> string | IOError
+export read_line :: fn() -> string | IOError {
+    out: u8[]! = []
+    // One byte at a time: stdin is a stream, and reading ahead of the newline
+    // would consume input the next caller expects to still be there.
+    for _ in 0..<MAX_LINE {
+        b :: read_stdin(1)
+        if b is IOError {
+            // EOF with something already read is a final line without its
+            // newline, which is a line; EOF with nothing is the error.
+            if out.len() > 0 {
+                return out.bytes_to_string()
+            }
+            return b
+        }
+        bytes :: b.bytes()
+        if bytes.len() == 0 || bytes[0] == '\n' {
+            return out.bytes_to_string()
+        }
+        // A CRLF peer: drop the CR so callers see the same line as on POSIX.
+        if bytes[0] != '\r' {
+            out.push(bytes[0])
+        }
+    }
+    return IOError { .msg = "line too long" }
+}
+
+/// Ceiling on `read_line`, so a peer that never sends a newline cannot make it
+/// spin forever.
+MAX_LINE: usize : 1024 * 1024
 
 /// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
 /// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
@@ -140,20 +168,77 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param n     number of bytes to consume.
 /// @return      a string of exactly `n` bytes (interpreted as UTF-8).
 /// @error       `IOError` on EOF, partial read, or stream error.
-@intrinsic export read_stdin :: fn(n: usize) -> string | IOError
+/// The fallback covers the targets with no backend that could run this —
+/// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
+/// already handles, and it is what `write_bytes` does on the same targets.
+@target
+export read_stdin :: fn(n: usize) -> string | IOError {
+    return IOError { .msg = "stdin is not available on this target" }
+}
 
-/// Switch stdin to unbuffered mode. Call once at startup, **before any stdin
-/// read**, so a later `poll_stdin` reflects the real pending bytes instead of
-/// being fooled by `read_stdin`'s readahead buffer. Intended for the LSP /
-/// length-prefixed RPC servers ; a streaming reader that wants buffering should
-/// not call this.
-@intrinsic export set_stdin_unbuffered :: fn() -> void
+@target(.Linux, .Darwin)
+read_stdin :: fn(n: usize) -> string | IOError {
+    if n == 0 {
+        return ""
+    }
+    buf: u8[]! = [0] * n
+    got: usize = 0
+    // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
+    // in bursts, so a short return is normal and only `0` means end of file.
+    for _ in 0..<n {
+        if got >= n {
+            break
+        }
+        slice: u8[]! = [0] * (n - got)
+        r :: sys_read(0, slice, n - got)
+        if r < 0 {
+            return IOError { .msg = "stdin read failed" }
+        }
+        if r == 0 {
+            return IOError { .msg = "unexpected end of input" }
+        }
+        for i in 0..<usize(r) {
+            buf[got + i] = slice[i]
+        }
+        got = got + usize(r)
+    }
+    return buf.bytes_to_string()
+}
+
+@target(.Windows)
+read_stdin :: fn(n: usize) -> string | IOError {
+    if n == 0 {
+        return ""
+    }
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    buf: u8[]! = [0] * n
+    got: usize = 0
+    for _ in 0..<n {
+        if got >= n {
+            break
+        }
+        slice: u8[]! = [0] * (n - got)
+        read: u32[]! = [0]
+        if !read_file(h, slice, u32(n - got), read, null) {
+            return IOError { .msg = "stdin read failed" }
+        }
+        r :: usize(read[0])
+        if r == 0 {
+            return IOError { .msg = "unexpected end of input" }
+        }
+        for i in 0..<r {
+            buf[got + i] = slice[i]
+        }
+        got = got + r
+    }
+    return buf.bytes_to_string()
+}
 
 /// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
 /// probe). Lets a length-prefixed server detect a quiescent input window —
-/// e.g. drain a burst of notifications, then do expensive work once. Requires
-/// `set_stdin_unbuffered` to have run first (unbuffered stdin), else the result may
-/// lag what `read_stdin` will actually consume. A closed peer (pipe hangup)
+/// e.g. drain a burst of notifications, then do expensive work once. `read_stdin`
+/// goes straight to the descriptor, so there is no stdio buffer left to lag
+/// behind what this reports. A closed peer (pipe hangup)
 /// reports ready so the next read observes EOF rather than spinning.
 /// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
 /// @return            `true` if a subsequent `read_stdin` won't block on the

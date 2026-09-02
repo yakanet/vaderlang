@@ -16,6 +16,9 @@ export STD_OUTPUT_HANDLE: u32 : 0xFFFF_FFF5
 /// See `STD_OUTPUT_HANDLE`.
 export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 
+/// See `STD_OUTPUT_HANDLE`.
+export STD_INPUT_HANDLE: u32 : 0xFFFF_FFF6
+
 /// `GetStdHandle`. Returns `INVALID_HANDLE_VALUE` on failure.
 ///
 /// @param which  one of the `STD_*_HANDLE` selectors.

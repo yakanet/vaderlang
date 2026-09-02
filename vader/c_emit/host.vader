@@ -441,10 +441,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
         return io_err_shim(head, "vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u", types)
     }
-    .IoReadLine -> { return io_err_shim(head, "vader_read_line(${tag_u(ctx.string_tag, "string")}", types) }
-    .IoReadStdin -> { return io_err_shim(head, "vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}", types) }
     .IoPollStdin -> { return "${head} { return vader_poll_stdin(a0); }" }
-    .IoSetStdinUnbuffered -> { return "${head} { vader_set_stdin_unbuffered(); }" }
 
     // std/string internals + std/core string intrinsics.
     .ByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
