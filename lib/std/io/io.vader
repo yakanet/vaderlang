@@ -372,7 +372,7 @@ current_executable_location :: fn() -> string {
     if n <= 0 {
         return "."
     }
-    return to_slash(buf[0..<usize(n)].bytes_to_string())
+    return to_slash(up_to_nul(buf))
 }
 
 @target(.Darwin)
@@ -398,7 +398,7 @@ current_executable_location :: fn() -> string {
     if n == 0 || usize(n) >= buf.len() {
         return "."
     }
-    return to_slash(buf[0..<usize(n)].bytes_to_string())
+    return to_slash(up_to_nul(buf))
 }
 
 /// Directory the process was invoked from, `/`-separated and WITHOUT a trailing
@@ -426,7 +426,7 @@ current_working_directory :: fn() -> string {
     if n == 0 || usize(n) >= buf.len() {
         return "."
     }
-    return without_trailing_sep(to_slash(buf[0..<usize(n)].bytes_to_string()))
+    return without_trailing_sep(to_slash(up_to_nul(buf)))
 }
 
 // The bytes before the first NUL. A C call that fills a buffer reports its
@@ -463,7 +463,7 @@ temp_dir :: fn() -> string {
     if n == 0 || usize(n) >= buf.len() {
         return "/tmp"
     }
-    return without_trailing_sep(to_slash(buf[0..<usize(n)].bytes_to_string()))
+    return without_trailing_sep(to_slash(up_to_nul(buf)))
 }
 
 // `\\` to `/`. Local rather than `std/path::to_posix` on purpose: importing
