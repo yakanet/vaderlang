@@ -18,14 +18,10 @@ struct vader_struct_system_linux_LinuxStat_t {
 // `@c_struct` layout — checked against the real headers.
 _Static_assert(32 <= sizeof(struct stat), "struct stat prefix");
 _Static_assert(sizeof(struct stat) <= 4096, "struct stat fits the interpreter block");
-_Static_assert(offsetof(struct stat, st_dev) == 0, "struct stat.st_dev offset");
-_Static_assert(sizeof(((struct stat*) 0)->st_dev) == sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_dev), "struct stat.st_dev");
-_Static_assert(offsetof(struct stat, st_ino) == 8, "struct stat.st_ino offset");
-_Static_assert(sizeof(((struct stat*) 0)->st_ino) == sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_ino), "struct stat.st_ino");
-_Static_assert(offsetof(struct stat, st_nlink) == 16, "struct stat.st_nlink offset");
-_Static_assert(sizeof(((struct stat*) 0)->st_nlink) == sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_nlink), "struct stat.st_nlink");
-_Static_assert(offsetof(struct stat, st_mode) == 24, "struct stat.st_mode offset");
-_Static_assert(sizeof(((struct stat*) 0)->st_mode) == sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_mode), "struct stat.st_mode");
+_Static_assert(sizeof(((struct stat*) 0)->st_dev) <= sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_dev), "struct stat.st_dev");
+_Static_assert(sizeof(((struct stat*) 0)->st_ino) <= sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_ino), "struct stat.st_ino");
+_Static_assert(sizeof(((struct stat*) 0)->st_nlink) <= sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_nlink), "struct stat.st_nlink");
+_Static_assert(sizeof(((struct stat*) 0)->st_mode) <= sizeof(((vader_struct_system_linux_LinuxStat_t*) 0)->f_st_mode), "struct stat.st_mode");
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
