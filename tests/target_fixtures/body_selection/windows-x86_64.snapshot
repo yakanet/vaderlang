@@ -7,10 +7,11 @@ VADER_ARCH = Arch.X86_64
 
 # Selected body
 main$platform_tag <- main-windows.vader:4
-std_io$current_executable_location <- lib/std/io/io.vader:395
-std_io$current_working_directory <- lib/std/io/io.vader:423
+std_io$current_executable_location <- lib/std/io/io.vader:423
+std_io$current_working_directory <- lib/std/io/io.vader:451
 std_io$exists <- lib/std/io/io.vader:346
+std_io$is_dir <- lib/std/io/io.vader:373
 std_io$mkdir_one <- lib/std/io/io.vader:247
 std_io$remove_file <- lib/std/io/io.vader:308
-std_io$temp_dir <- lib/std/io/io.vader:458
+std_io$temp_dir <- lib/std/io/io.vader:486
 std_io$write_bytes <- lib/std/io/io.vader:64

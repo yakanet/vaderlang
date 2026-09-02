@@ -307,11 +307,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // intrinsics below, so the VM executes their bytecode directly (which
     // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
     // dedicated host arm.
-    .IoIsDir -> {
-        path :: read_string(stack[arg_base], at_pc, "is_dir")
-        if path is Trap { return path }
-        return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
-    }
     .IoReadDir -> {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
@@ -1043,7 +1038,7 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 // `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
 // reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoIsDir | .IoReadDir | .IoReadLine | .IoReadStdin | .IoPollStdin
+    .IoReadDir | .IoReadLine | .IoReadStdin | .IoPollStdin
         | .IoSetStdinUnbuffered -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —

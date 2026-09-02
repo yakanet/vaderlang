@@ -13,8 +13,8 @@ type 10 union 2,6
 type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:9 }
 type 13 primitive isize
-type 14 array 11
-type 15 primitive u64
+type 14 primitive u64
+type 15 array 11
 string 0 "sha256-empty="
 string 1 ""
 string 2 "sha256-abc="
@@ -457,7 +457,7 @@ fn 9 crypto$md5 (string) -> string
         i64.const 64
         i64.mul
         local.set 8   ; block_offset
-        array.new 14 0   ; u32[][]
+        array.new 15 0   ; u32[][]
         local.set 9   ; m
         i64.const 0
         local.set 10   ; i
@@ -676,7 +676,7 @@ fn 9 crypto$md5 (string) -> string
               local.get 34   ; f
               i32.add
               local.set 42   ; $add_123
-              data.const 0 14   ; pool[0] : u32[]
+              data.const 0 15   ; pool[0] : u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 43   ; $idx_125
@@ -699,7 +699,7 @@ fn 9 crypto$md5 (string) -> string
               local.set 32   ; d
               local.get 30   ; b
               local.set 31   ; c
-              data.const 1 14   ; pool[1] : u32[]
+              data.const 1 15   ; pool[1] : u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 47   ; $idx_132
@@ -916,7 +916,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
   i32.const -1694144372
   i32.const 528734635
   i32.const 1541459225
-  array.new 14 8   ; u32[][]
+  array.new 15 8   ; u32[][]
   local.set 2   ; h
   local.get 1   ; data
   call 18   ; crypto$pad_sha256_bytes
@@ -937,7 +937,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
         i64.const 64
         i64.mul
         local.set 5   ; block_offset
-        array.new 14 0   ; u32[][]
+        array.new 15 0   ; u32[][]
         local.set 6   ; w
         i64.const 0
         local.set 7   ; i
@@ -1222,7 +1222,7 @@ fn 11 crypto$sha256_bytes (any) -> ref
               local.get 58   ; ch_efg
               i32.add
               local.set 59   ; $add_158
-              data.const 2 14   ; pool[2] : u32[]
+              data.const 2 15   ; pool[2] : u32[]
               local.get 46   ; t
               load_slot_i32
               local.set 60   ; $idx_160
@@ -1785,7 +1785,7 @@ end
 fn 21 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 14 0   ; u32[][]
+  array.new 15 0   ; u32[][]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len

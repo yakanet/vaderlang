@@ -429,7 +429,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     match intrinsic_id_for(m) {
     // std/io — implemented by the runtime.
     .AbortPanic -> { return "${head} { vader_panic(a0); }" }
-    .IoIsDir -> { return "${head} { return vader_is_dir(a0); }" }
     .IoReadDir -> {
         if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }

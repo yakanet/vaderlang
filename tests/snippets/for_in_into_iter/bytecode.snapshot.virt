@@ -22,7 +22,7 @@ type 19 struct std_string$StringChars { bytes:9,cursor:3,length:3 }
 type 20 union 0,11
 type 21 struct __Tuple_52 { _0:12,_1:3 }
 type 22 primitive isize
-type 23 struct __Tuple_60 { _0:5,_1:1 }
+type 23 struct __Tuple_63 { _0:5,_1:1 }
 type 24 union 11,0
 string 0 "arr="
 string 1 "a"
@@ -169,8 +169,8 @@ fn 0 snippet$main () -> i32
         local.set 4   ; x
         local.get 8   ; $idx_53
         local.get 4   ; x
-        struct.new_stack 23   ; __Tuple_60
-        struct.get 23 1   ; __Tuple_60._1
+        struct.new_stack 23   ; __Tuple_63
+        struct.get 23 1   ; __Tuple_63._1
         ref.cast 1   ; -> i32
         local.set 9   ; value
         local.get 3   ; __for_i_2

@@ -9,7 +9,7 @@ type 6 primitive u8
 type 7 array 6
 type 8 primitive void
 type 9 primitive isize
-type 10 struct __Tuple_30 { _0:1,_1:4 }
+type 10 struct __Tuple_34 { _0:1,_1:4 }
 string 0 "match"
 string 1 "n="
 string 2 " s="
@@ -28,7 +28,7 @@ fn 0 snippet$main () -> i32
   local $cast_18 i64
   i32.const 3
   string.const 0   ; "match"
-  struct.new_stack 10   ; __Tuple_30
+  struct.new_stack 10   ; __Tuple_34
   local.set 0   ; pair
   local.field 0 10 0   ; pair._0
   ref.cast 1   ; -> i32

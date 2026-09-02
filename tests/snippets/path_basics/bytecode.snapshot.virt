@@ -11,7 +11,7 @@ type 8 array 7
 type 9 primitive char
 type 10 array 1
 type 11 primitive isize
-type 12 struct __Tuple_33 { _0:9,_1:5 }
+type 12 struct __Tuple_37 { _0:9,_1:5 }
 type 13 struct std_string_builder$StringBuilder { parts:10 }
 string 0 "="
 string 1 "src/parser/expr.ts"
@@ -1409,7 +1409,7 @@ fn 28 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 12   ; __Tuple_33
+  struct.new 12   ; __Tuple_37
   return
 end
 

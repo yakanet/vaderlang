@@ -106,7 +106,7 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/io
-    IoIsDir, IoReadDir,
+    IoReadDir,
     IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered,
     // std/core string + bytes
     ByteLen, ByteAt,
@@ -148,7 +148,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
     if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
     if mangled == r"vader_vm$ffi_call"                    { return .FfiCall }
-    if mangled == r"std_io$is_dir"                       { return .IoIsDir }
     if mangled == r"std_io$read_dir"                     { return .IoReadDir }
     if mangled == r"std_io$read_line"                    { return .IoReadLine }
     if mangled == r"std_io$read_stdin"                   { return .IoReadStdin }
