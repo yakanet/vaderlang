@@ -120,6 +120,27 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> stri
 ///
 /// @param argv     the command line being built, appended to in place.
 /// @param ldflags  the raw flag string.
+/// Append the math library, and on Linux the flag that keeps it linked.
+///
+/// `--as-needed` — the default there — drops a `-l` nothing references, and
+/// nothing DOES reference libm: the compiler reaches `sqrt` and friends only from
+/// `@comptime`, through the interpreter, which resolves them in the running
+/// process. A library the linker dropped is not in it. Elsewhere `-lm` is inert,
+/// macOS and MinGW carrying the math symbols in their C runtime.
+///
+/// Shared by BOTH link paths — the mono `cc_argv` here and the split
+/// `cc_link_argv` in `vader/cli` — because only the split one produces a
+/// `--release` build, and having the flag on one of the two is what left CI
+/// failing on `pow` after the first fix.
+///
+/// @param argv  the command line being built, appended to in place.
+export push_math_library :: fn(argv: string[]!) -> void {
+    if VADER_OS == Os.Linux {
+        argv.push("-Wl,--no-as-needed")
+    }
+    argv.push("-lm")
+}
+
 export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
     for tok in ldflags.trim().split(" ") {
         if tok != "" {
@@ -153,17 +174,7 @@ export cc_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    // `--no-as-needed` on Linux, where libm is a separate object and the default
-    // `--as-needed` drops a `-l` nothing references. Nothing DOES reference it:
-    // the compiler calls `sqrt` and friends only from `@comptime`, through the
-    // interpreter, which resolves them in the running process — and a library
-    // the linker dropped is not in it. Elsewhere `-lm` is inert (macOS and MinGW
-    // carry the math symbols in the C runtime), so the flag is scoped rather
-    // than paid everywhere.
-    if VADER_OS == Os.Linux {
-        argv.push("-Wl,--no-as-needed")
-    }
-    argv.push("-lm")
+    push_math_library(argv)
     return argv
 }
 // Write `content` to `path`, surfacing a write failure as exit 1.

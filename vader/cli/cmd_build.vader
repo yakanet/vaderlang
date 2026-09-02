@@ -838,6 +838,6 @@ cc_link_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    argv.push("-lm")
+    push_math_library(argv)
     return argv
 }
