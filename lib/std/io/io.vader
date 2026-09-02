@@ -362,7 +362,44 @@ exists :: fn(path: string) -> bool = get_file_attributes(path) != INVALID_FILE_A
 /// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,
 /// C runtime) next to the binary. Falls back to `"."` if the OS query fails.
 /// @return  the executable's own path.
-@intrinsic export current_executable_location :: fn() -> string
+@target
+export current_executable_location :: fn() -> string
+
+@target(.Linux)
+current_executable_location :: fn() -> string {
+    buf: u8[]! = [0] * 4096
+    n :: sys_readlink("/proc/self/exe", buf, buf.len() - 1)
+    if n <= 0 {
+        return "."
+    }
+    return to_slash(buf[0..<usize(n)].bytes_to_string())
+}
+
+@target(.Darwin)
+current_executable_location :: fn() -> string {
+    raw: u8[]! = [0] * 4096
+    cap: u32 = 4096
+    if ns_get_executable_path(raw, cap) != 0 {
+        return "."
+    }
+    // What Darwin hands back may be relative or carry symlinks — `argv[0]` as
+    // the kernel saw it. `realpath` is what makes it usable as a sidecar anchor.
+    resolved: u8[]! = [0] * 4096
+    if sys_realpath(up_to_nul(raw), resolved) == null {
+        return "."
+    }
+    return to_slash(up_to_nul(resolved))
+}
+
+@target(.Windows)
+current_executable_location :: fn() -> string {
+    buf: u8[]! = [0] * 4096
+    n :: get_module_file_name(null, buf, u32(buf.len()))
+    if n == 0 || usize(n) >= buf.len() {
+        return "."
+    }
+    return to_slash(buf[0..<usize(n)].bytes_to_string())
+}
 
 /// Directory the process was invoked from, `/`-separated and WITHOUT a trailing
 /// separator — join with `"/name"` to build a path. Distinct from

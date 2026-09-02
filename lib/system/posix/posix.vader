@@ -25,6 +25,28 @@ export CLOCK_REALTIME :: 0
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
+/// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
+///
+/// Linux reads the running binary's path from `/proc/self/exe`.
+@c_header("<unistd.h>")
+@extern("readlink")
+export sys_readlink :: fn(path: string, buf: u8[]!, size: usize) -> isize
+
+/// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success; `size` is updated
+/// to the needed capacity when the buffer is too small.
+///
+/// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
+/// carry symlinks, so callers pass it through `realpath`.
+@c_header("<mach-o/dyld.h>")
+@extern("_NSGetExecutablePath")
+export ns_get_executable_path :: fn(buf: u8[]!, @c_pointer size: u32) -> i32
+
+/// `realpath(3)`. Writes the canonical path into `resolved` and returns it, or
+/// null on failure. `resolved` must hold at least `PATH_MAX` bytes.
+@c_header("<stdlib.h>")
+@extern("realpath")
+export sys_realpath :: fn(path: string, resolved: u8[]!) -> CPointer | null
+
 /// `fopen(3)`. A stream handle, or null when the file cannot be opened.
 ///
 /// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to

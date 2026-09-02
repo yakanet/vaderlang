@@ -107,7 +107,7 @@ export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/io
     IoIsDir, IoReadDir,
-    IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
+    IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered,
     // std/core string + bytes
     ByteLen, ByteAt,
     Bytes, BytesToString, StringIndexAt, StringHash,
@@ -154,7 +154,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_io$read_stdin"                   { return .IoReadStdin }
     if mangled == r"std_io$poll_stdin"                   { return .IoPollStdin }
     if mangled == r"std_io$set_stdin_unbuffered"         { return .IoSetStdinUnbuffered }
-    if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
     if mangled == r"std_core$byte_at"                    { return .ByteAt }

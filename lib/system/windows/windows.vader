@@ -24,6 +24,14 @@ export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
+/// `GetModuleFileNameA`. Writes the running module's path into `buf` and
+/// returns its length; 0 on failure, or `size` exactly when it was truncated.
+///
+/// @param module  `null` for the running executable.
+@c_header("<windows.h>")
+@extern("kernel32", "GetModuleFileNameA")
+export get_module_file_name :: fn(module: CPointer | null, buf: u8[]!, size: u32) -> u32
+
 /// `GetCurrentDirectoryA`. Writes the working directory into `buf` and returns
 /// its length; 0 on failure, or a length >= `size` when `buf` is too small.
 ///

@@ -7,9 +7,10 @@ VADER_ARCH = Arch.Arm64
 
 # Selected body
 main$normalize <- main.vader:20
-std_io$current_working_directory <- lib/std/io/io.vader:377
+std_io$current_executable_location <- lib/std/io/io.vader:379
+std_io$current_working_directory <- lib/std/io/io.vader:414
 std_io$exists <- lib/std/io/io.vader:343
 std_io$mkdir_one <- lib/std/io/io.vader:244
 std_io$remove_file <- lib/std/io/io.vader:300
-std_io$temp_dir <- lib/std/io/io.vader:418
+std_io$temp_dir <- lib/std/io/io.vader:455
 std_io$write_bytes <- lib/std/io/io.vader:56
