@@ -89,26 +89,19 @@ bool std_io_exists(vader_string_t l0) {
 }
 
 bool std_io_is_dir(vader_string_t l0) {
-    void* l1 = NULL;
-    int32_t t0;
-    uint32_t t1;
-    void** gc_raw_roots[1] = { &l1 };
+    vader_box_t l1 = vader_box_null();
+    void* t0;
+    vader_box_t* gc_roots[1] = { &l1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    vader_struct_system_linux_LinuxStat_t* _a0_obj = (vader_struct_system_linux_LinuxStat_t*) vader_gc_alloc(sizeof(vader_struct_system_linux_LinuxStat_t));
-    vader_obj_header_init(_a0_obj, 385u);
-    _a0_obj->f_st_dev = (uint64_t) (int64_t) INT64_C(0);
-    _a0_obj->f_st_ino = (uint64_t) (int64_t) INT64_C(0);
-    _a0_obj->f_st_nlink = (uint64_t) (int64_t) INT64_C(0);
-    _a0_obj->f_st_mode = (uint32_t) (int32_t) INT32_C(0);
-    l1 = (void*) _a0_obj;
-    t0 = vader_host_system_linux_sys_stat_linux(l0, l1);
-    if (t0 != INT32_C(0)) {
+    l1 = vader_host_system_posix_sys_opendir(l0);
+    if (l1.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    t1 = ((vader_struct_system_linux_LinuxStat_t*) l1)->f_st_mode;
-    { bool __vret = (t1 & INT32_C(61440)) == INT32_C(16384); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = ((void*) (intptr_t) l1.payload.i);
+    vader_host_system_posix_sys_closedir(t0);
+    { vader_gc_top = gc_frame.prev; return true; }
     vader_gc_top = gc_frame.prev;
 }
 
