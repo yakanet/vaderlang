@@ -95,11 +95,11 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static vader_box_t vader_fn_lift_4(void* env) {
+static vader_box_t vader_fn_lift___defer_1(void* env) {
     __defer_1(env);
     return vader_box_null();
 }
-static vader_box_t vader_fn_lift_5(void* env) {
+static vader_box_t vader_fn_lift___defer_14(void* env) {
     __defer_14(env);
     return vader_box_null();
 }
@@ -184,7 +184,7 @@ static void snippet_log_at_exit(vader_string_t l0, int64_t l1) {
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 17u);
-    _a3_closure->code = (void*) &vader_fn_lift_4;
+    _a3_closure->code = (void*) &vader_fn_lift___defer_1;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
     vader_defer_push(vader_ref_box(t0));
@@ -229,7 +229,7 @@ static void snippet_bump_at_exit(void* l0, int64_t l1) {
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 17u);
-    _a3_closure->code = (void*) &vader_fn_lift_5;
+    _a3_closure->code = (void*) &vader_fn_lift___defer_14;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
     vader_defer_push(vader_ref_box(t0));

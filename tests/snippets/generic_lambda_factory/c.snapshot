@@ -49,12 +49,12 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static vader_box_t vader_fn_tramp_0(void* env) {
+static vader_box_t vader_fn_tramp_snippet_new_row(void* env) {
     (void) env;
     return vader_ref_box(snippet_new_row());
 }
-static vader_fn_t vader_fn_static_0 = { { 7u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_0, NULL };
-static vader_box_t vader_fn_lift_4(void* env) {
+static vader_fn_t vader_fn_static_snippet_new_row = { { 7u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet_new_row, NULL };
+static vader_box_t vader_fn_lift___lambda_3(void* env) {
     return vader_ref_box(__lambda_3(env));
 }
 
@@ -246,7 +246,7 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 7u);
-    _a1_closure->code = (void*) &vader_fn_lift_4;
+    _a1_closure->code = (void*) &vader_fn_lift___lambda_3;
     _a1_closure->env = t0;
     l0 = (void*) _a1_closure;
     l0 = snippet_build__i32__((size_t) (int64_t) INT64_C(40), l0);
@@ -262,7 +262,7 @@ static int32_t snippet_main(void) {
     t2 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t2);
 #line 60 "tests/snippets/generic_lambda_factory/_main.vader"
-    l0 = (void*) &vader_fn_static_0;
+    l0 = (void*) &vader_fn_static_snippet_new_row;
     l0 = snippet_build__i32__((size_t) (int64_t) INT64_C(40), l0);
 #line 61 "tests/snippets/generic_lambda_factory/_main.vader"
     snippet_fill(l0);

@@ -81,11 +81,11 @@ static void std_io_println__string(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static vader_box_t vader_fn_lift_5(void* env) {
+static vader_box_t vader_fn_lift___defer_1(void* env) {
     __defer_1(env);
     return vader_box_null();
 }
-static vader_box_t vader_fn_lift_8(void* env) {
+static vader_box_t vader_fn_lift___defer_10(void* env) {
     __defer_10(env);
     return vader_box_null();
 }
@@ -359,7 +359,7 @@ static vader_box_t snippet___asyncstate_5_Async_resume(void* l0) {
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a5_closure, 12u);
-                    _a5_closure->code = (void*) &vader_fn_lift_5;
+                    _a5_closure->code = (void*) &vader_fn_lift___defer_1;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;
                     l11 = t3;
@@ -565,7 +565,7 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     t3 = (void*) _a4_obj;
                     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a5_closure, 12u);
-                    _a5_closure->code = (void*) &vader_fn_lift_8;
+                    _a5_closure->code = (void*) &vader_fn_lift___defer_10;
                     _a5_closure->env = t3;
                     t3 = (void*) _a5_closure;
                     l11 = t3;

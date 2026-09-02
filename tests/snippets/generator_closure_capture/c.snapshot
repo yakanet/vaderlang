@@ -88,7 +88,7 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
-static vader_box_t vader_fn_lift_2(void* env, vader_box_t a0) {
+static vader_box_t vader_fn_lift___lambda_1(void* env, vader_box_t a0) {
     return vader_box_i32(1u, __lambda_1(env, ((int32_t) a0.payload.i)));
 }
 
@@ -309,7 +309,7 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
                     t1 = (void*) _a1_obj;
                     vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a2_closure, 8u);
-                    _a2_closure->code = (void*) &vader_fn_lift_2;
+                    _a2_closure->code = (void*) &vader_fn_lift___lambda_1;
                     _a2_closure->env = t1;
                     l2 = (void*) _a2_closure;
                     ((vader_struct___genstate_gen_t*) l0)->f_s2 = l2;

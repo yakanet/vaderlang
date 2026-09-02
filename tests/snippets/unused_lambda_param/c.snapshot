@@ -46,10 +46,10 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
-static vader_box_t vader_fn_lift_2(void* env, vader_box_t a0) {
+static vader_box_t vader_fn_lift___lambda_1(void* env, vader_box_t a0) {
     return vader_box_i32(1u, __lambda_1(env, ((int32_t) a0.payload.i)));
 }
-static vader_box_t vader_fn_lift_3(void* env, vader_box_t a0) {
+static vader_box_t vader_fn_lift___lambda_6(void* env, vader_box_t a0) {
     return vader_box_i32(1u, __lambda_6(env, ((int32_t) a0.payload.i)));
 }
 
@@ -122,7 +122,7 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 2u);
-    _a1_closure->code = (void*) &vader_fn_lift_2;
+    _a1_closure->code = (void*) &vader_fn_lift___lambda_1;
     _a1_closure->env = t0;
     l2 = (void*) _a1_closure;
     t1 = snippet_apply(INT32_C(5), l2);
@@ -138,7 +138,7 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a3_closure, 2u);
-    _a3_closure->code = (void*) &vader_fn_lift_3;
+    _a3_closure->code = (void*) &vader_fn_lift___lambda_6;
     _a3_closure->env = t0;
     l2 = (void*) _a3_closure;
     t1 = snippet_apply(INT32_C(5), l2);

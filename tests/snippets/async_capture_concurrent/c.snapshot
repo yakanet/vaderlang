@@ -118,7 +118,7 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static vader_box_t vader_fn_lift_2(void* env) {
+static vader_box_t vader_fn_lift___lambda_1(void* env) {
     __lambda_1(env);
     return vader_box_null();
 }
@@ -410,7 +410,7 @@ static vader_box_t snippet___asyncstate_5_Async_resume(void* l0) {
                     t1 = (void*) _a3_obj;
                     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a4_closure, 10u);
-                    _a4_closure->code = (void*) &vader_fn_lift_2;
+                    _a4_closure->code = (void*) &vader_fn_lift___lambda_1;
                     _a4_closure->env = t1;
                     l10 = (void*) _a4_closure;
                     ((vader_struct___asyncstate_5_t*) l0)->f_s3 = l10;

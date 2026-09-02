@@ -135,7 +135,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
-static vader_box_t vader_fn_lift_1(void* env, vader_box_t a0) {
+static vader_box_t vader_fn_lift___lambda_26(void* env, vader_box_t a0) {
     return vader_ref_box(__lambda_26(env, ((int32_t) a0.payload.i)));
 }
 
@@ -456,7 +456,7 @@ static int32_t snippet_main(void) {
     t5 = (void*) _a18_obj;
     vader_fn_t* _a19_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a19_closure, 22u);
-    _a19_closure->code = (void*) &vader_fn_lift_1;
+    _a19_closure->code = (void*) &vader_fn_lift___lambda_26;
     _a19_closure->env = t5;
     l1 = (void*) _a19_closure;
 #line 170 "lib/std/iter/iter.vader"

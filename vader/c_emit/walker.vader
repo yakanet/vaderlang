@@ -1417,11 +1417,30 @@ pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
     return args
 }
 
+/// The C name of a function's trampoline family, keyed by the function's own
+/// MANGLED name rather than its index in the module table.
+///
+/// An index is a rank, and a rank shifts: a function reached by one target only
+/// renumbers every trampoline behind it, so `bootstrap.vader_lower.c` came out
+/// byte-different per target — 2.4 MB stored three times for 44 lines that
+/// differed by digits alone. The mangled name is the function's identity and
+/// does not move.
+///
+/// @param fns    the module's function table.
+/// @param index  the function's index in it.
+/// @return       the sanitised mangled name, or the index when out of range.
+tramp_key :: fn(fns: BcFunction[], index: i32) -> string {
+    if index < 0 || usize(index) >= fns.len() {
+        return "${index}"
+    }
+    return sanitise(fns[usize(index)].name)
+}
+
 /// `fn.ref` — box a pointer to the fn's static trampoline value. The
 /// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
 emit_fn_ref :: fn(s: FnState!, op: vm.FnRef) -> void {
     name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) &vader_fn_static_${op.function_index};")
+    line(s, "${name} = (void*) &vader_fn_static_${tramp_key(s.ctx.module.functions, op.function_index)};")
     push_tmp(s, name, .Ref)
 }
 
@@ -1435,7 +1454,7 @@ emit_make_closure :: fn(s: FnState!, op: vm.MakeClosure) -> void {
     fn_obj :: aux(s, "closure")
     line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));")
     line(s, "vader_obj_header_init(${fn_obj}, ${op.env_type_id}u);")
-    line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${op.function_index};")
+    line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${tramp_key(s.ctx.module.functions, op.function_index)};")
     env_ptr :: obj_ptr_of(env)
     line(s, "${fn_obj}->env = ${env_ptr};")
     name :: fresh_tmp(s, .Ref)
@@ -1602,8 +1621,8 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         if usage.fn_ref_type[i] >= 0 {
             sig :: fns[i].signature
             head :: tramp_head(sig.params.len())
-            out.append("vader_box_t vader_fn_tramp_${i}(${head});\n")
-            out.append("extern vader_fn_t vader_fn_static_${i};\n")
+            out.append("vader_box_t vader_fn_tramp_${tramp_key(fns, i32(i))}(${head});\n")
+            out.append("extern vader_fn_t vader_fn_static_${tramp_key(fns, i32(i))};\n")
         }
     }
     for i in 0..<fns.len() {
@@ -1612,7 +1631,7 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             sig :: fns[i].signature
             tail :: i32(sig.params.len()) - 1
             head :: tramp_head(usize(tail))
-            out.append("vader_box_t vader_fn_lift_${i}(${head});\n")
+            out.append("vader_box_t vader_fn_lift_${tramp_key(fns, i32(i))}(${head});\n")
         }
     }
     out.append("\n")
@@ -1626,7 +1645,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
     sig :: fn_decl.signature
     link :: linkage_prefix(ctx.split)
     head :: tramp_head(sig.params.len())
-    out.append("${link}vader_box_t vader_fn_tramp_${fn_index}(${head}) {\n")
+    out.append("${link}vader_box_t vader_fn_tramp_${cname}(${head}) {\n")
     out.append("    (void) env;\n")
     unboxed :: tramp_unbox_args(sig.params)
     if sig.result == ValType.Void {
@@ -1637,7 +1656,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
     }
     out.append("}\n")
     out.append(
-        "${link}vader_fn_t vader_fn_static_${fn_index} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fn_index}, NULL };\n",
+        "${link}vader_fn_t vader_fn_static_${cname} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${cname}, NULL };\n",
     )
 }
 
@@ -1653,7 +1672,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     }
     tail :: i32(sig.params.len()) - 1
     head :: tramp_head(usize(tail))
-    out.append("${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${fn_index}(${head}) {\n")
+    out.append("${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${cname}(${head}) {\n")
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
