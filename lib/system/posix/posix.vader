@@ -26,11 +26,27 @@ export CLOCK_REALTIME :: 0
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
 /// The bits of `st_mode` carrying the file type. POSIX fixes the value, and
-/// Darwin and Linux agree on it.
-export S_IFMT: u32 : 0xF000
+/// `opendir(3)`. NULL when `path` is not a directory, does not exist, or
+/// cannot be searched.
+///
+/// This is how POSIX answers "is it a directory" without a `struct stat`
+/// mirror. `struct stat`'s layout differs BETWEEN ARCHES of the same system --
+/// on Linux `st_mode` sits at 24 on x86_64 and at 16 on arm64 -- and a Vader
+/// mirror can match one or the other, never both. Asking `opendir` removes the
+/// question.
+///
+/// @param path  the directory to open.
+/// @return      a `DIR*`, or null.
+@c_header("<dirent.h>")
+@extern("opendir")
+export sys_opendir :: fn(path: string) -> CPointer | null
 
-/// `S_IFDIR` — the `S_IFMT` value naming a directory.
-export S_IFDIR: u32 : 0x4000
+/// `closedir(3)`. Pairs with `sys_opendir`.
+///
+/// @param dir  the handle `sys_opendir` returned.
+@c_header("<dirent.h>")
+@extern("closedir")
+export sys_closedir :: fn(dir: CPointer) -> i32
 
 /// `ferror(3)`. Non-zero once the stream's error indicator is set.
 ///

@@ -8,7 +8,6 @@ module "std/io"
 import "std/env"
 import "std/target"
 import "system/darwin"
-import "system/linux"
 import "system/posix"
 import "system/windows"
 
@@ -525,22 +524,21 @@ exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVAL
 @target
 export is_dir :: fn(path: string) -> bool
 
-@target(.Darwin)
+// `opendir` rather than a `struct stat` mirror. The mirror had to state the
+// layout of `struct stat`, which differs between ARCHES of one system: on Linux
+// `st_mode` is at offset 24 on x86_64 and at 16 on arm64, so `LinuxStat` was
+// right on one and read `st_uid` on the other — silently, under the VM, where
+// the block is laid out from the declared widths. `@c_size` selects by OS and
+// has no arch axis, so no single mirror could be correct. Opening the directory
+// asks the same question and has no layout at all.
+@target(.Linux, .Darwin)
 is_dir :: fn(path: string) -> bool {
-    st :: DarwinStat { .st_dev = 0, .st_mode = 0 }
-    if sys_stat_darwin(path, st) != 0 {
+    d :: sys_opendir(path)
+    if d == null {
         return false
     }
-    return (u32(st.st_mode) & S_IFMT) == S_IFDIR
-}
-
-@target(.Linux)
-is_dir :: fn(path: string) -> bool {
-    st :: LinuxStat { .st_dev = 0, .st_ino = 0, .st_nlink = 0, .st_mode = 0 }
-    if sys_stat_linux(path, st) != 0 {
-        return false
-    }
-    return (st.st_mode & S_IFMT) == S_IFDIR
+    sys_closedir(d)
+    return true
 }
 
 @target(.Windows)
