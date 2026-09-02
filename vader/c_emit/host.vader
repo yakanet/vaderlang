@@ -71,14 +71,25 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     out.append("\n")
 }
 
-/// `_Static_assert` lines pinning each mirrored struct's alignment, size and
-/// field offsets to the C type it mirrors.
+/// `_Static_assert` lines pinning each mirrored field's width to the C field it
+/// mirrors.
+///
+/// The shim declares its OWN C struct and copies field by field, by name, so the
+/// two layouts never have to agree — `cc` lays the C side out itself. What must
+/// hold is per FIELD: a width mismatch would truncate or sign-extend in silence
+/// on the way in or out. Naming a field the C type does not have fails the build
+/// here too, which is the other half of the check.
+///
+/// A mirror may therefore be PARTIAL: declaring `st_dev` and `st_mode` of a
+/// `struct stat` copies those two and ignores the rest, which is what makes a
+/// struct with nested members usable at all.
 ///
 /// @param types  the module type table.
-/// @return       one line per assertion, empty when no struct mirrors a C type.
+/// @return       one line per field, empty when no struct mirrors a C type.
 c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
     out: string[]! = []
-    for t in types {
+    for i in 0..<types.len() {
+        t :: types[i]
         if t !is BcStruct {
             continue
         }
@@ -88,22 +99,11 @@ c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
         if t.fields.len() == 0 {
             continue
         }
-        // Offsets are compared RELATIVE TO THE FIRST FIELD: a Vader struct is a
-        // GC object, so its fields always sit behind a `vader_obj_header_t`. The
-        // absolute offsets can never match; the field-to-field distances must.
         vt :: struct_c_name(t.name)
-        base :: "offsetof(${vt}, f_${t.fields[0].name})"
-        cbase :: "offsetof(${t.c_name}, ${c_field_name(t.fields[0])})"
-        // An allocation is never aligned beyond `VADER_GC_ALIGN`, so a C type
-        // asking for more (`_Alignas(16)`, SIMD) cannot be mirrored at all.
-        out.push("_Static_assert(_Alignof(${t.c_name}) <= VADER_GC_ALIGN, \"${t.c_name} alignment\");")
-        // Containment, not equality: the header ends in a `void*`, so the field
-        // region is padded up to a multiple of 8 and is legitimately larger.
-        out.push("_Static_assert(sizeof(${t.c_name}) <= sizeof(${vt}) - ${base}, \"${t.c_name} size\");")
-        for i in 1..<t.fields.len() {
-            f :: t.fields[i]
+        for f in t.fields {
+            cf :: c_field_name(f)
             out.push(
-                "_Static_assert(offsetof(${t.c_name}, ${c_field_name(f)}) - ${cbase} == offsetof(${vt}, f_${f.name}) - ${base}, \"${t.c_name}.${c_field_name(f)}\");",
+                "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) == sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
             )
         }
     }

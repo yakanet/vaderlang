@@ -79,9 +79,8 @@ const size_t vader_type_size[11] = {
 extern void fill_div(div_t*, int32_t, int32_t);
 
 // `@c_struct` layout — checked against the real headers.
-_Static_assert(_Alignof(div_t) <= VADER_GC_ALIGN, "div_t alignment");
-_Static_assert(sizeof(div_t) <= sizeof(vader_struct_snippet_Div_t) - offsetof(vader_struct_snippet_Div_t, f_quot), "div_t size");
-_Static_assert(offsetof(div_t, rem) - offsetof(div_t, quot) == offsetof(vader_struct_snippet_Div_t, f_rem) - offsetof(vader_struct_snippet_Div_t, f_quot), "div_t.rem");
+_Static_assert(sizeof(((div_t*) 0)->quot) == sizeof(((vader_struct_snippet_Div_t*) 0)->f_quot), "div_t.quot");
+_Static_assert(sizeof(((div_t*) 0)->rem) == sizeof(((vader_struct_snippet_Div_t*) 0)->f_rem), "div_t.rem");
 
 static int32_t vader_host_snippet_c_abs(int32_t a0) { return abs(a0); }
 static void vader_host_snippet_fill_div(void* a0, int32_t a1, int32_t a2) { div_t p0; fill_div(&p0, a1, a2); ((vader_struct_snippet_Div_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Div_t*) a0)->f_rem = p0.rem; return; }
