@@ -148,6 +148,12 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
+if [ ! -d "bootstrap/seed/$HOST_TARGET" ]; then
+    printf 'bootstrap/build.sh: no seed for %s -- seeded targets:' "$HOST_TARGET" >&2
+    for d in bootstrap/seed/*/; do printf ' %s' "$(basename "$d")" >&2; done
+    printf '\n' >&2
+    exit 1
+fi
 # `bootstrap-<module>.c`, flat, is shared by every target; a unit the targets
 # disagreed on lives in `seed/<target>/` instead. So the host's set is the flat
 # shared list plus ONE directory — nothing else is compiled, and a stale unit

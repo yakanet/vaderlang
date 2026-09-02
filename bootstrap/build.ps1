@@ -51,7 +51,11 @@ $seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g
 $seedIncDir = Join-Path (Join-Path $PWD 'bootstrap\seed') $hostTarget
 $seedHost = @(Get-ChildItem -Path $seedIncDir -Filter '*.c' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 $seedRoot = Join-Path $PWD 'bootstrap\seed'
-$seedInc = if (Test-Path $seedIncDir) { @($seedIncDir, $seedRoot) } else { @($seedRoot) }
+if (-not (Test-Path $seedIncDir)) {
+    $seeded = (Get-ChildItem -Path $seedRoot -Directory | ForEach-Object { $_.Name }) -join ' '
+    throw "no seed for $hostTarget -- seeded targets: $seeded"
+}
+$seedInc = @($seedIncDir, $seedRoot)
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }

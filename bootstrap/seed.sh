@@ -52,7 +52,10 @@ SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 # portable, and it makes every `@target` group answer for a case that cannot be
 # written yet — a write syscall needs `fd_write` and an iovec array on WASI, and
 # has no meaning at all in a browser. They come back with the WASM emitter.
-SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,windows-arm64"
+# One arch per OS: bootstrapping on a second arch of the same OS needs no seed
+# of its own — the emitted C is portable, `cc` targets the arch. Cross-compiling
+# to the others stays available through `--target`; only the seed is narrower.
+SEED_TARGETS="darwin-arm64,linux-x86_64,windows-x86_64"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
