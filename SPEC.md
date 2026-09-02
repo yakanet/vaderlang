@@ -2707,6 +2707,7 @@ Plus, on top of the scalars:
 |---|---|---|
 | a **distinct type** | both | zero-cost, so its ABI is its backing's — `Handle :: CPointer` is the idiom for a foreign handle |
 | a **nullable foreign pointer** (`CPointer \| null`) | both | the one union shape with an ABI; C has no other nullable scalar |
+| **`isize(p)` / `usize(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a pointer-width integer is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; native backend only |
 
