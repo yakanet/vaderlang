@@ -3306,72 +3306,7 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 /* ----------------------------------------------------------------- I/O */
 
-/* Byte-oriented file I/O. `read_file_bytes` reads the whole file into a fresh
- * owned `u8[]` (no intern, no UTF-8 reinterpretation) — `fread` lands directly
- * in the array's slots. No Vader allocation runs between `vader_array_new` and
- * the return, so `arr` cannot move before it is boxed. */
-vader_box_t vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
-                                  uint32_t elem_tag, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    FILE* f = fopen(p, "rb");
-    vader_atom_cstr_free(p);
-    if (f == NULL) return vader_box_string(err_tag, vader_string_new("file not found", 14));
 
-    if (fseek(f, 0, SEEK_END) != 0) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
-    }
-    long size = ftell(f);
-    if (size < 0) { fclose(f); return vader_box_string(err_tag, vader_string_new("ftell failed", 12)); }
-    if ((unsigned long) size > SIZE_MAX / 2) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("file too large", 14));
-    }
-    if (fseek(f, 0, SEEK_SET) != 0) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
-    }
-
-    vader_array_t* arr = vader_array_new(arr_type, (size_t) size, VADER_ARRAY_KIND_U8, elem_tag);
-    size_t n = (size_t) size > 0 ? fread(arr->buf->slots, 1, (size_t) size, f) : 0;
-    fclose(f);
-    if (n != (size_t) size) {
-        return vader_box_string(err_tag, vader_string_new("short read", 10));
-    }
-    return vader_box_obj(arr_type, arr);
-}
-
-/* Write a `u8[]`'s raw bytes verbatim. Handles both a borrowed view (bytes live
- * in the owner atom) and a materialised buffer — mirrors `vader_string_as_string`. */
-vader_box_t vader_write_file_bytes(vader_string_t path, vader_array_t* content,
-                                   uint32_t err_tag) {
-    /* A C path ends at the first NUL, so a NUL INSIDE a Vader path silently
-     * truncates it — the file lands somewhere the caller never named, and every
-     * later step (a linker, a reader) blames the wrong thing. Never an
-     * intention: refuse it here, where the truncation would happen. */
-    if (memchr(vader_atom_data(path), 0, vader_atom_len(path)) != NULL) {
-        return vader_box_string(err_tag,
-            vader_string_new("path contains a NUL byte", 24));
-    }
-    const char* p = vader_atom_to_cstr(path);
-    FILE* f = fopen(p, "wb");
-    vader_atom_cstr_free(p);
-    if (f == NULL) return vader_box_string(err_tag, vader_string_new("open failed", 11));
-
-    content = vader_array_resolve(content);
-    size_t len = content->length;
-    size_t n = len;
-    if (len > 0) {
-        if (vader_array_is_borrowed(content)) {
-            const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(content));
-            n = fwrite(src + content->offset, 1, len, f);
-        } else {
-            vader_array_resolve_buf(content);
-            const uint8_t* src = (const uint8_t*) content->buf->slots;
-            n = fwrite(src + content->offset, 1, len, f);
-        }
-    }
-    fclose(f);
-    if (n != len) return vader_box_string(err_tag, vader_string_new("short write", 11));
-    return vader_box_null();
-}
 
 vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
     char buf[4096];
@@ -3510,12 +3445,6 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
 
 #if defined(_WIN32)
 
-vader_bool_t vader_exists(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    DWORD attr = GetFileAttributesA(p);
-    vader_atom_cstr_free(p);
-    return attr != INVALID_FILE_ATTRIBUTES;
-}
 
 vader_bool_t vader_is_dir(vader_string_t path) {
     const char* p = vader_atom_to_cstr(path);
@@ -3573,14 +3502,6 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 #include <dirent.h>
 #include <sys/stat.h>
 
-vader_bool_t vader_exists(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    struct stat st;
-    int rc = stat(p, &st);
-    vader_atom_cstr_free(p);
-    return rc == 0;
-}
-
 vader_bool_t vader_is_dir(vader_string_t path) {
     const char* p = vader_atom_to_cstr(path);
     struct stat st;
@@ -3619,185 +3540,13 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 
 #endif  /* _WIN32 / POSIX */
 
-/* `vader_create_dir` backs `std/io::create_dir`. Creates `path` and every
- * missing parent, so a caller can name a nested destination without walking it
- * itself — the shape every generated-output path needs. An existing directory
- * is success, not an error: the caller asked for it to exist, and it does.
- *
- * Walks the path forward, creating each prefix in turn. Mode 0777 is masked by
- * the process umask, matching `mkdir -p`. */
-static int vader_mkdir_one(const char* p) {
-#if defined(_WIN32)
-    if (CreateDirectoryA(p, NULL)) return 0;
-    if (GetLastError() != ERROR_ALREADY_EXISTS) return -1;
-    /* EEXIST is only success when what exists is a DIRECTORY. A regular file
-     * there is a failure the caller must hear about — otherwise `create_dir`
-     * returns null and the error resurfaces later as an unrelated write
-     * failure, which is what the stdlib doc promises against. */
-    DWORD attr = GetFileAttributesA(p);
-    return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) ? 0 : -1;
-#else
-    if (mkdir(p, 0777) == 0) return 0;
-    if (errno != EEXIST) return -1;
-    struct stat st;
-    if (stat(p, &st) != 0) return -1;
-    return S_ISDIR(st.st_mode) ? 0 : -1;
-#endif
-}
-
-vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    size_t n = strlen(p);
-    if (n == 0) {
-        vader_atom_cstr_free(p);
-        return vader_box_string(err_tag, vader_string_new("empty path", 10));
-    }
-    if (n >= 4096) {
-        vader_atom_cstr_free(p);
-        return vader_box_string(err_tag, vader_string_new("path too long", 13));
-    }
-
-    char buf[4096];
-    memcpy(buf, p, n);
-    buf[n] = '\0';
-    vader_atom_cstr_free(p);
-
-    /* Create each prefix. Start at 1 so a leading "/" is not treated as a
-     * component to create, and skip repeated separators.
-     *
-     * A Windows drive designator is skipped for the same reason: `C:` is a root,
-     * not a component. `CreateDirectoryA("C:")` fails with ERROR_ALREADY_EXISTS
-     * and the guard below then asks `GetFileAttributesA("C:")`, which means "the
-     * current directory ON DRIVE C:" — a per-drive notion that need not exist in
-     * a process whose working directory is on another drive. GitHub's Windows
-     * runners work from `D:\a\...` while `GetTempPath` hands back a `C:` path,
-     * which is exactly that shape, and it made every `create_dir` under the temp
-     * directory fail with "cannot create parent".
-     *
-     * Guarded to `_WIN32`: on POSIX a directory may legitimately be named `a:`,
-     * and skipping it would refuse to create a path the caller asked for. */
-    for (size_t i = 1; i < n; i++) {
-        if (buf[i] != '/') continue;
-        if (buf[i - 1] == '/') continue;
-#if defined(_WIN32)
-        if (i == 2 && buf[1] == ':') continue;   /* "C:/..." — the drive root */
-#endif
-        buf[i] = '\0';
-        int rc = vader_mkdir_one(buf);
-        buf[i] = '/';
-        if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot create parent", 20));
-    }
-    if (vader_mkdir_one(buf) != 0) {
-        return vader_box_string(err_tag, vader_string_new("cannot create directory", 23));
-    }
-    return vader_box_null();
-}
-
-/* `vader_remove_file` backs `std/io::remove_file`. Deletes a FILE; a directory
- * is refused by the platform rather than silently recursed into, which is the
- * conservative default for something irreversible. A missing path is an error,
- * not success: a caller that does not care checks `exists` first, and one that
- * does would rather hear about it. */
-vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    /* NOT `remove()`: on POSIX that falls back to `rmdir` for a directory, so an
-     * empty one would silently vanish through a function named remove_FILE.
-     * `unlink` / `DeleteFileA` both refuse a directory outright. */
-#if defined(_WIN32)
-    int rc = DeleteFileA(p) ? 0 : -1;
-#else
-    int rc = unlink(p);
-#endif
-    vader_atom_cstr_free(p);
-    if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot remove file", 18));
-    return vader_box_null();
-}
 
 
-/* ----------------------------------------------------------------- location
- *
- * `vader_current_executable_location` backs the `std/io` intrinsic the resolver
- * uses to find the stdlib + C-runtime next to the running binary (sidecar
- * layout). Returns a `/`-separated path, falling back to "." when the platform
- * query fails, so resolution degrades to cwd-relative rather than breaking. */
 
-static void vader_path_to_slash(char* s, size_t n) {
-    for (size_t i = 0; i < n; i++) { if (s[i] == '\\') s[i] = '/'; }
-}
 
-vader_string_t vader_current_executable_location(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    DWORD len = GetModuleFileNameA(NULL, buf, (DWORD) sizeof(buf));
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#elif defined(__APPLE__)
-    char raw[4096];
-    uint32_t cap = (uint32_t) sizeof(raw);
-    if (_NSGetExecutablePath(raw, &cap) == 0 && realpath(raw, buf) != NULL) {
-        n = strlen(buf);
-    }
-#else  /* Linux + other /proc systems */
-    ssize_t r = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-    if (r > 0) { buf[(size_t) r] = '\0'; n = (size_t) r; }
-#endif
-    if (n == 0) return vader_string_new(".", 1);
-    vader_path_to_slash(buf, n);
-    return vader_string_new(buf, n);
-}
 
-/* `vader_current_working_directory` backs the `std/io` intrinsic. The process
- * working directory, `/`-separated and WITHOUT a trailing separator, falling
- * back to "." when the platform query fails — so a caller joining onto it stays
- * cwd-relative rather than producing an absolute path it cannot trust.
- *
- * Distinct from `vader_current_executable_location`: that one answers "where is
- * the binary", this one "where was it invoked from". The resolver wants the
- * former for sidecar layout; a build driver wants the latter to find the file
- * the user meant. */
-vader_string_t vader_current_working_directory(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    DWORD len = GetCurrentDirectoryA((DWORD) sizeof(buf), buf);
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#else
-    if (getcwd(buf, sizeof(buf)) != NULL) n = strlen(buf);
-#endif
-    if (n == 0) return vader_string_new(".", 1);
-    vader_path_to_slash(buf, n);
-    /* Drop a trailing separator so callers join with "/name" uniformly. The
-     * filesystem root ("/" on POSIX, "C:/" on Windows) keeps its separator. */
-    while (n > 1 && buf[n - 1] == '/' && buf[n - 2] != ':') n--;
-    return vader_string_new(buf, n);
-}
 
-/* `vader_temp_dir` backs the `std/io::temp_dir` intrinsic — the OS scratch
- * directory for temporary files, `/`-separated and WITHOUT a trailing
- * separator (callers join with "/name"). Honours $TMPDIR (POSIX) / GetTempPath
- * (Windows, which itself reads %TMP% / %TEMP% / %USERPROFILE%), so a sandboxed
- * CI runner's redirected temp is respected ; falls back to "/tmp" when unset. */
-vader_string_t vader_temp_dir(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    /* GetTempPathA writes the directory plus a trailing backslash. */
-    DWORD len = GetTempPathA((DWORD) sizeof(buf), buf);
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#else
-    const char* env = getenv("TMPDIR");
-    if (env != NULL && env[0] != '\0') {
-        n = strlen(env);
-        if (n >= sizeof(buf)) n = sizeof(buf) - 1;
-        memcpy(buf, env, n);
-    }
-#endif
-    if (n == 0) { memcpy(buf, "/tmp", 4); n = 4; }
-    vader_path_to_slash(buf, n);
-    /* Drop any trailing separator so `temp_dir() + "/name"` stays clean. */
-    while (n > 1 && buf[n - 1] == '/') n--;
-    return vader_string_new(buf, n);
-}
+
 
 /* ----------------------------------------------------------------- terminal / env
  *

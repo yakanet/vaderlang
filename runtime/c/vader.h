@@ -484,24 +484,6 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 /* One call, described by data — see vader_ffi.h. */
 vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
 
-/* Addresses the VM must reach without `dlsym`, baked in by the emitter from the
- * `@vm_callable` declarations in the program's closure. The array is DEFINED by
- * the emitted C (`emit_import_shims`) and terminated by a `{NULL, NULL}` entry,
- * so it exists even when nothing is marked.
- *
- * Why it has to exist: `dlsym` only sees libraries the process actually loaded,
- * and a linker that drops an unreferenced `-l` (`--as-needed`, the default on
- * Linux) leaves the symbol unreachable. Taking the address here is a real
- * reference, so the library is linked and the lookup never runs.
- *
- * Keyed by symbol name alone, not by library: two libraries exporting the same
- * name would collide, which no target does today.
- *
- * Handed over by a call rather than read through an `extern`, so a binary that
- * never emitted one still links — which is what the bootstrap seed is. */
-typedef struct { const char* name; void* addr; } vader_ffi_static_sym_t;
-void vader_ffi_register_statics(const vader_ffi_static_sym_t* table);
-
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
  * call: no Vader allocation runs inside a foreign call, so nothing can move the
@@ -1188,41 +1170,11 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-/* Byte-oriented file I/O — lossless for arbitrary binary (unlike the string
- * variants, which are codepoint/UTF-8 based). `read_file_bytes` materialises a
- * fresh owned `u8[]` (arr_type / elem_tag are its BcType indices) ; the success
- * box carries the array, the error box a message string. `write_file_bytes`
- * writes `content`'s raw bytes (borrowed view or owned buffer), null on success. */
-vader_box_t    vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
-                                     uint32_t elem_tag, uint32_t err_tag);
-vader_box_t    vader_write_file_bytes(vader_string_t path, vader_array_t* content,
-                                      uint32_t err_tag);
 vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
-vader_bool_t   vader_exists(vader_string_t path);
 vader_bool_t   vader_is_dir(vader_string_t path);
-/* The running executable's full path, `/`-separated ; "." on failure. Backs the
- * `std/io::current_executable_location` intrinsic for sidecar resolution. */
-vader_string_t vader_current_executable_location(void);
-
-/* `std/io::current_working_directory` — the process working directory,
- * `/`-separated, no trailing separator. "." when the query fails. */
-vader_string_t vader_current_working_directory(void);
-
-/* `std/io::create_dir` — create a directory and every missing parent. An
- * existing directory is success. */
-vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag);
-
-/* `std/io::remove_file` — delete a file. Directories and missing paths are
- * errors. */
-vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag);
-
 /* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
  * Idempotent; a finished or unknown handle is a no-op. */
 void vader_spawn_kill(vader_i64_t handle);
-/* The OS temp directory, `/`-separated, no trailing separator. Honours $TMPDIR
- * (POSIX) / GetTempPath (Windows), falling back to "/tmp". Backs the
- * `std/io::temp_dir` intrinsic. */
-vader_string_t vader_temp_dir(void);
 /* Read EXACTLY `n` bytes from stdin into a fresh string. Boxes the result
  * (success or `Error`). EOF before `n` bytes is reported as an error —
  * the LSP transport's Content-Length framing relies on this contract. */
