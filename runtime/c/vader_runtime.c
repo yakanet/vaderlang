@@ -3379,7 +3379,7 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
 }
 
 /* `exists` / `is_dir` / `read_dir` — filesystem queries split across POSIX
- * (`dirent.h`, `sys/stat.h`) and Windows (`FindFirstFileA` /
+ * (`dirent.h`, `sys/stat.h`) and Windows (`FindFirstFileW` /
  * `GetFileAttributesA`). `exists` must NOT be implemented via `fopen` : the
  * Windows CRT refuses to open a directory as a file, so an `fopen`-based
  * check reports every directory as missing. That silently empties the
@@ -3401,7 +3401,14 @@ vader_bool_t vader_is_dir(vader_string_t path) {
 
 vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
                            uint32_t str_type, uint32_t err_tag) {
-    /* FindFirstFileA expects a glob — append "\\*". */
+    /* The `W` form, not `A`: every path-taking call in `std/io` goes through
+     * `CreateFileW` now, and a name this hands back is joined into a path and
+     * fed straight to one of them. In the ANSI code page a name outside it
+     * comes back mangled, and the UTF-8 conversion on the other side then
+     * rejects it — so the two halves have to agree, and UTF-16 is the half
+     * that loses nothing.
+     *
+     * FindFirstFileW expects a glob — append "\\*". */
     const char* p = vader_atom_to_cstr(path);
     size_t plen = vader_atom_len(path);
     char* pat = (char*) malloc(plen + 3);
@@ -3416,11 +3423,21 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
     }
     pat[pat_len++] = '*';
     pat[pat_len] = '\0';
+
+    int wpat_len = MultiByteToWideChar(CP_UTF8, 0, pat, -1, NULL, 0);
+    wchar_t* wpat = wpat_len > 0 ? (wchar_t*) malloc((size_t) wpat_len * sizeof(wchar_t)) : NULL;
+    if (wpat == NULL) {
+        free(pat);
+        vader_atom_cstr_free(p);
+        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
+    }
+    MultiByteToWideChar(CP_UTF8, 0, pat, -1, wpat, wpat_len);
+    free(pat);
     vader_atom_cstr_free(p);
 
-    WIN32_FIND_DATAA fd;
-    HANDLE h = FindFirstFileA(pat, &fd);
-    free(pat);
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW(wpat, &fd);
+    free(wpat);
     if (h == INVALID_HANDLE_VALUE) {
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
@@ -3428,15 +3445,20 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
     vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
     do {
-        const char* name = fd.cFileName;
-        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
-        size_t n = strlen(name);
-        /* `fd.cFileName` lives on the stack and is overwritten by the
-         * next FindNextFileA — intern via `vader_string_new` to copy the
-         * bytes into the atom table before the next iteration. */
+        const wchar_t* wname = fd.cFileName;
+        if (wname[0] == L'.' && (wname[1] == L'\0' || (wname[1] == L'.' && wname[2] == L'\0'))) continue;
+        /* Back to UTF-8, which is what a Vader string holds. `fd.cFileName`
+         * lives on the stack and is overwritten by the next FindNextFileW, so
+         * the bytes are copied into the atom table before the next round. */
+        int need = WideCharToMultiByte(CP_UTF8, 0, wname, -1, NULL, 0, NULL, NULL);
+        if (need <= 1) continue;
+        char* name = (char*) malloc((size_t) need);
+        if (name == NULL) continue;
+        WideCharToMultiByte(CP_UTF8, 0, wname, -1, name, need, NULL, NULL);
         vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
-    } while (FindNextFileA(h, &fd));
+                         vader_box_string(str_type, vader_string_new(name, (size_t) need - 1)));
+        free(name);
+    } while (FindNextFileW(h, &fd));
     FindClose(h);
     vader_box_t result = arr_box;
     VADER_GC_POP();

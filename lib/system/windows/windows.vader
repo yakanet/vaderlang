@@ -166,6 +166,9 @@ export GENERIC_WRITE: u32 : 0x4000_0000
 /// `dwShareMode` — let other readers in while we hold the file.
 export FILE_SHARE_READ: u32 : 0x1
 
+/// See `FILE_SHARE_READ`.
+export FILE_SHARE_WRITE: u32 : 0x2
+
 /// `dwCreationDisposition` — truncate an existing file, create it otherwise.
 export CREATE_ALWAYS: u32 : 2
 

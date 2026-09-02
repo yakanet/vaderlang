@@ -271,7 +271,15 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
             out.push_all(chunk[0..<n])
         }
         if n < chunk.len() {
+            // A short `fread` is end of file OR an error; the count alone does
+            // not say which. Without this, an openable-but-unreadable path -- a
+            // DIRECTORY, where `fopen` succeeds and `fread` fails EISDIR --
+            // came back as an empty SUCCESS.
+            failed :: sys_ferror(f) != 0
             sys_fclose(f)
+            if failed {
+                return IOError { .msg = "read failed" }
+            }
             return out
         }
     }
@@ -284,7 +292,7 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
 /// folded into a short read.
 @target(.Windows)
 read_file_bytes :: fn(path: string) -> u8[] | IOError {
-    h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ, null,
+    h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
     // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
     if isize(h) == INVALID_HANDLE {
@@ -366,7 +374,11 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
         }
     }
     // No share mode: an exclusive write is what replacing a file means.
-    h :: create_file_w(to_wide(path), GENERIC_WRITE, 0, null,
+    // `FILE_SHARE_READ` for the same reason as the read path: `fopen` lets
+    // others read while we write, and a build that tails its own output should
+    // not fail. Write sharing is NOT granted -- two writers to one file is the
+    // race this refuses.
+    h :: create_file_w(to_wide(path), GENERIC_WRITE, FILE_SHARE_READ, null,
                        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
     if isize(h) == INVALID_HANDLE {
         return IOError { .msg = "open failed" }

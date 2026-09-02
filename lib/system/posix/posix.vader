@@ -32,6 +32,17 @@ export S_IFMT: u32 : 0xF000
 /// `S_IFDIR` — the `S_IFMT` value naming a directory.
 export S_IFDIR: u32 : 0x4000
 
+/// `ferror(3)`. Non-zero once the stream's error indicator is set.
+///
+/// A short `fread` means end of file OR an error, and the count cannot tell
+/// them apart -- this is what separates them.
+///
+/// @param stream  the `FILE*`.
+/// @return        non-zero if the stream is in error.
+@c_header("<stdio.h>")
+@extern("ferror")
+export sys_ferror :: fn(stream: CPointer) -> i32
+
 /// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error — and
 /// a SHORT read is not an error: a pipe hands over what has arrived so far, so
 /// a caller wanting `n` bytes loops until it has them.

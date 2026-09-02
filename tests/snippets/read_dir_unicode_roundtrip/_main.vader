@@ -1,0 +1,38 @@
+module "snippet"
+
+import "std/io"
+
+// `read_dir` must hand back a name that the path-taking calls can reopen. On
+// Windows the two halves disagreed: `FindFirstFileA` spoke the system ANSI
+// code page while `std/io` had moved to UTF-16, so a name outside that code
+// page came back mangled and `CreateFileW` then refused it.
+//
+// Writes into `temp_dir()` directly rather than a sub-directory: the answer
+// must not depend on what a previous run left behind.
+main :: fn() -> i32 {
+    name :: "vader_rd_café_日本.txt"
+    path :: "${temp_dir()}/${name}"
+    written :: write_file_bytes(path, [104, 105])
+    if written is Error {
+        println("write failed: ${written.message()}")
+        return 1
+    }
+    entries :: read_dir(temp_dir())
+    if entries is IOError {
+        println("read_dir failed: ${entries.msg}")
+        return 1
+    }
+    listed := false
+    reopened := false
+    for e in entries {
+        if e != name {
+            continue
+        }
+        listed = true
+        reopened = read_file_bytes("${temp_dir()}/${e}") !is IOError
+    }
+    println("listed=${listed}")
+    println("reopened=${reopened}")
+    remove_file(path)
+    return 0
+}

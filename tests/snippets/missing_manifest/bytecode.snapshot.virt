@@ -11,8 +11,8 @@ type 8 union 9,1
 type 9 struct std_io$IOError { msg:1 }
 type 10 union 9,6
 type 11 primitive isize
-type 12 union 13,0
-type 13 primitive pointer
+type 12 primitive pointer
+type 13 union 12,0
 string 0 "unreadable ("
 string 1 " / "
 string 2 ")"
@@ -21,15 +21,17 @@ string 4 "caught by trait: "
 string 5 "/no/such/manifest.toml"
 string 6 "rb"
 string 7 "file not found"
-string 8 "file too large"
-string 9 "\n"
+string 8 "read failed"
+string 9 "file too large"
+string 10 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=6 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,6,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 4 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 param_types=1,1 param_mutable=0,0 param_by_address= (string,string) -> any
-import 5 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
-import 6 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 param_types=6,3,3,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 4 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=12 param_mutable=0 param_by_address= (pointer) -> i32
+import 5 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=13 param_types=1,1 param_mutable=0,0 param_by_address= (string,string) -> any
+import 6 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=12 param_mutable=0 param_by_address= (pointer) -> i32
+import 7 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 param_types=6,3,3,12 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 impl 4 ByteAccess
 impl 9 Error
 vtable Error.message 9 11
@@ -290,9 +292,10 @@ fn 9 std_io$read_file_bytes (string) -> any
   local n usize
   local $slice_26 ref
   local $len_27 usize
+  local failed bool
   local.get 0   ; arg 0
   string.const 6   ; "rb"
-  call.import 4   ; system_posix$sys_fopen
+  call.import 5   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
@@ -319,13 +322,13 @@ fn 9 std_io$read_file_bytes (string) -> any
         array.len
         local.set 5   ; $len_19
         local.get 1   ; f
-        ref.cast 13   ; -> pointer
+        ref.cast 12   ; -> pointer
         local.set 6   ; $cast_20
         local.get 3   ; chunk
         i64.const 1
         local.get 5   ; $len_19
         local.get 6   ; $cast_20
-        call.import 6   ; system_posix$sys_fread
+        call.import 7   ; system_posix$sys_fread
         local.tee 7   ; n
         i64.const 0
         u64.gt
@@ -348,9 +351,21 @@ fn 9 std_io$read_file_bytes (string) -> any
         u64.lt
         if $L5 void
           local.get 1   ; f
-          ref.cast 13   ; -> pointer
-          call.import 5   ; system_posix$sys_fclose
+          ref.cast 12   ; -> pointer
+          call.import 4   ; system_posix$sys_ferror
+          i32.const 0
+          i32.ne
+          local.set 10   ; failed
+          local.get 1   ; f
+          ref.cast 12   ; -> pointer
+          call.import 6   ; system_posix$sys_fclose
           drop
+          local.get 10   ; failed
+          if $L6 void
+            string.const 8   ; "read failed"
+            struct.new 9   ; std_io$IOError
+            return
+          end $L6
           local.get 2   ; out
           return
         end $L5
@@ -364,10 +379,10 @@ fn 9 std_io$read_file_bytes (string) -> any
     end $L2
   end $L1
   local.get 1   ; f
-  ref.cast 13   ; -> pointer
-  call.import 5   ; system_posix$sys_fclose
+  ref.cast 12   ; -> pointer
+  call.import 6   ; system_posix$sys_fclose
   drop
-  string.const 8   ; "file too large"
+  string.const 9   ; "file too large"
   struct.new 9   ; std_io$IOError
   return
 end
@@ -403,7 +418,7 @@ fn 12 std_io$println__string (string) -> void
   local.get 0   ; arg 0
   call 8   ; std_io$write
   i32.const 0
-  string.const 9   ; "\n"
+  string.const 10   ; "\n"
   call 8   ; std_io$write
   return
 end

@@ -14,8 +14,8 @@ type 11 union 10,2
 type 12 union 10,7
 type 13 union 0,2
 type 14 primitive isize
-type 15 union 16,0
-type 16 primitive pointer
+type 15 primitive pointer
+type 16 union 15,0
 type 17 ref Error
 string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
@@ -41,11 +41,12 @@ import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 pa
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=13 param_types=2 param_mutable=0 param_by_address= (string) -> any
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,7,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=15 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
-import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=7,4,4,16 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 9 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=4 param_types=7,4,4,16 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 10 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 param_mutable=0,0 param_by_address= (string,i32) -> i32
+import 6 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=15 param_mutable=0 param_by_address= (pointer) -> i32
+import 7 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=16 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
+import 8 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=15 param_mutable=0 param_by_address= (pointer) -> i32
+import 9 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=7,4,4,15 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 10 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=4 param_types=7,4,4,15 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 11 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 param_mutable=0,0 param_by_address= (string,i32) -> i32
 impl 5 ByteAccess
 impl 10 Error
 export main 0
@@ -216,7 +217,7 @@ end
 fn 8 std_io$exists (string) -> bool
   local.get 0   ; arg 0
   i32.const 0
-  call.import 10   ; system_posix$sys_access
+  call.import 11   ; system_posix$sys_access
   i32.const 0
   i32.eq
   return
@@ -432,7 +433,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
   end $L0
   local.get 0   ; arg 0
   string.const 10   ; "wb"
-  call.import 6   ; system_posix$sys_fopen
+  call.import 7   ; system_posix$sys_fopen
   local.tee 4   ; f
   type_check 0   ; null
   if $L4 void
@@ -449,13 +450,13 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     array.len
     local.set 2   ; __for_len_1
     local.get 4   ; f
-    ref.cast 16   ; -> pointer
+    ref.cast 15   ; -> pointer
     local.set 5   ; $cast_26
     local.get 1   ; arg 1
     i64.const 1
     local.get 2   ; __for_len_1
     local.get 5   ; $cast_26
-    call.import 9   ; system_posix$sys_fwrite
+    call.import 10   ; system_posix$sys_fwrite
     local.set 2   ; __for_len_1
     local.get 1   ; arg 1
     array.len
@@ -465,16 +466,16 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     i64.ne
     if $L6 void
       local.get 4   ; f
-      ref.cast 16   ; -> pointer
-      call.import 7   ; system_posix$sys_fclose
+      ref.cast 15   ; -> pointer
+      call.import 8   ; system_posix$sys_fclose
       drop
       string.const 12   ; "short write"
       struct.new 10   ; std_io$IOError
       return
     end $L6
     local.get 4   ; f
-    ref.cast 16   ; -> pointer
-    call.import 7   ; system_posix$sys_fclose
+    ref.cast 15   ; -> pointer
+    call.import 8   ; system_posix$sys_fclose
     local.set 6   ; $call_36
     i32.const 0
     local.set 7   ; $k_37
@@ -491,8 +492,8 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     return
   end $L5
   local.get 4   ; f
-  ref.cast 16   ; -> pointer
-  call.import 7   ; system_posix$sys_fclose
+  ref.cast 15   ; -> pointer
+  call.import 8   ; system_posix$sys_fclose
   local.set 6   ; $call_36
   i32.const 0
   local.set 7   ; $k_37
@@ -519,9 +520,10 @@ fn 13 std_io$read_file_bytes (string) -> any
   local n usize
   local $slice_26 ref
   local $len_27 usize
+  local failed bool
   local.get 0   ; arg 0
   string.const 14   ; "rb"
-  call.import 6   ; system_posix$sys_fopen
+  call.import 7   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
@@ -548,13 +550,13 @@ fn 13 std_io$read_file_bytes (string) -> any
         array.len
         local.set 5   ; $len_19
         local.get 1   ; f
-        ref.cast 16   ; -> pointer
+        ref.cast 15   ; -> pointer
         local.set 6   ; $cast_20
         local.get 3   ; chunk
         i64.const 1
         local.get 5   ; $len_19
         local.get 6   ; $cast_20
-        call.import 8   ; system_posix$sys_fread
+        call.import 9   ; system_posix$sys_fread
         local.tee 7   ; n
         i64.const 0
         u64.gt
@@ -577,9 +579,21 @@ fn 13 std_io$read_file_bytes (string) -> any
         u64.lt
         if $L5 void
           local.get 1   ; f
-          ref.cast 16   ; -> pointer
-          call.import 7   ; system_posix$sys_fclose
+          ref.cast 15   ; -> pointer
+          call.import 6   ; system_posix$sys_ferror
+          i32.const 0
+          i32.ne
+          local.set 10   ; failed
+          local.get 1   ; f
+          ref.cast 15   ; -> pointer
+          call.import 8   ; system_posix$sys_fclose
           drop
+          local.get 10   ; failed
+          if $L6 void
+            string.const 4   ; "read failed"
+            struct.new 10   ; std_io$IOError
+            return
+          end $L6
           local.get 2   ; out
           return
         end $L5
@@ -593,8 +607,8 @@ fn 13 std_io$read_file_bytes (string) -> any
     end $L2
   end $L1
   local.get 1   ; f
-  ref.cast 16   ; -> pointer
-  call.import 7   ; system_posix$sys_fclose
+  ref.cast 15   ; -> pointer
+  call.import 8   ; system_posix$sys_fclose
   drop
   string.const 16   ; "file too large"
   struct.new 10   ; std_io$IOError
