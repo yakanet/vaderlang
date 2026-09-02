@@ -16,8 +16,8 @@ type 13 primitive u8
 type 14 array 13
 type 15 primitive void
 type 16 primitive isize
-type 17 struct __Tuple_37 { _0:1,_1:2,_2:3 }
-type 18 struct __Tuple_38 { _0:1,_1:2,_2:3,_3:7 }
+type 17 struct __Tuple_35 { _0:1,_1:2,_2:3 }
+type 18 struct __Tuple_36 { _0:1,_1:2,_2:3,_3:7 }
 type 19 array 8
 string 0 "x"
 string 1 " "
@@ -70,7 +70,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   string.const 0   ; "x"
   bool.const true
-  struct.new_stack 17   ; __Tuple_37
+  struct.new_stack 17   ; __Tuple_35
   local.set 0   ; triple
   local.field 0 17 1   ; triple._1
   ref.cast 2   ; -> string
@@ -124,7 +124,7 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "q"
   bool.const false
   f64.const 3.14 4614253070214989087
-  struct.new_stack 18   ; __Tuple_38
+  struct.new_stack 18   ; __Tuple_36
   local.set 0   ; triple
   local.field 0 18 1   ; triple._1
   ref.cast 2   ; -> string

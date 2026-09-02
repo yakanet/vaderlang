@@ -11,21 +11,28 @@ type 8 union 9,1
 type 9 struct std_io$IOError { msg:1 }
 type 10 union 9,6
 type 11 primitive isize
+type 12 union 13,0
+type 13 primitive pointer
 string 0 "unreadable ("
 string 1 " / "
 string 2 ")"
 string 3 "ok"
 string 4 "caught by trait: "
 string 5 "/no/such/manifest.toml"
-string 6 "\n"
+string 6 "rb"
+string 7 "file not found"
+string 8 "file too large"
+string 9 "\n"
 import 0 byte_len std_core$byte_len result_type=3 (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 (ref) -> string
 import 2 bytes std_core$bytes result_type=6 (string) -> ref
-import 3 read_file_bytes std_io$read_file_bytes result_type=10 (string) -> any
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=11 (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 (i32,ref,usize) -> isize
+import 4 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 (string,string) -> any
+import 5 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 (pointer) -> i32
+import 6 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 (ref,usize,usize,pointer) -> usize
 impl 4 ByteAccess
 impl 9 Error
-vtable Error.message 9 10
+vtable Error.message 9 11
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -83,10 +90,10 @@ end
 fn 2 snippet$main () -> i32
   string.const 5   ; "/no/such/manifest.toml"
   call 0   ; snippet$describe
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   string.const 5   ; "/no/such/manifest.toml"
   call 1   ; snippet$catch_all
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -132,23 +139,23 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   local.tee 10   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 5   ; c0
   local.get 1   ; arg 1
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 6   ; $call_7
   local.get 2   ; arg 2
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 7   ; $call_10
   local.get 3   ; arg 3
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 8   ; $call_13
   local.get 4   ; arg 4
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 9   ; $call_16
   call 6   ; std_core$finish_buffer
@@ -173,11 +180,11 @@ fn 4 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 6   ; std_core$finish_buffer
@@ -186,21 +193,21 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 13   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
 fn 7 std_io$read_file_string (string) -> any
   local r any
   local.get 0   ; arg 0
-  call.import 3   ; std_io$read_file_bytes
+  call 9   ; std_io$read_file_bytes
   local.tee 1   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
@@ -252,7 +259,7 @@ fn 8 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 9   ; std_io$write_bytes
+        call 10   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -273,7 +280,99 @@ fn 8 std_io$write (i32,string) -> void
   return
 end
 
-fn 9 std_io$write_bytes (i32,ref,usize) -> i32
+fn 9 std_io$read_file_bytes (string) -> any
+  local f any
+  local out ref
+  local chunk ref
+  local _ usize
+  local $len_19 usize
+  local $cast_20 pointer
+  local n usize
+  local $slice_26 ref
+  local $len_27 usize
+  local.get 0   ; arg 0
+  string.const 6   ; "rb"
+  call.import 4   ; system_posix$sys_fopen
+  local.tee 1   ; f
+  type_check 0   ; null
+  if $L0 void
+    string.const 7   ; "file not found"
+    struct.new 9   ; std_io$IOError
+    return
+  end $L0
+  array.new 6 0   ; u8[][]
+  local.set 2   ; out
+  i32.const 0
+  array.new 6 1   ; u8[][]
+  i64.const 65536
+  array.repeat
+  local.set 3   ; chunk
+  i64.const 0
+  local.set 4   ; _
+  block $L1 void
+    loop $L2 void
+      local.get 4   ; _
+      i64.const 65536
+      u64.lt
+      if $L3 void
+        local.get 3   ; chunk
+        array.len
+        local.set 5   ; $len_19
+        local.get 1   ; f
+        ref.cast 13   ; -> pointer
+        local.set 6   ; $cast_20
+        local.get 3   ; chunk
+        i64.const 1
+        local.get 5   ; $len_19
+        local.get 6   ; $cast_20
+        call.import 6   ; system_posix$sys_fread
+        local.tee 7   ; n
+        i64.const 0
+        u64.gt
+        if $L4 void
+          local.get 3   ; chunk
+          i64.const 0
+          local.get 7   ; n
+          array.slice 6   ; u8[][]
+          local.set 8   ; $slice_26
+          local.get 2   ; out
+          local.get 8   ; $slice_26
+          array.push_all
+        else
+        end $L4
+        local.get 3   ; chunk
+        array.len
+        local.set 9   ; $len_27
+        local.get 7   ; n
+        local.get 9   ; $len_27
+        u64.lt
+        if $L5 void
+          local.get 1   ; f
+          ref.cast 13   ; -> pointer
+          call.import 5   ; system_posix$sys_fclose
+          drop
+          local.get 2   ; out
+          return
+        end $L5
+        local.get 4   ; _
+        i64.const 1
+        i64.add
+        local.set 4   ; _
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 1   ; f
+  ref.cast 13   ; -> pointer
+  call.import 5   ; system_posix$sys_fclose
+  drop
+  string.const 8   ; "file too large"
+  struct.new 9   ; std_io$IOError
+  return
+end
+
+fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -288,41 +387,41 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 4   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   isize.to_i32
   return
 end
 
-fn 10 std_io$IOError$Error$message (ref) -> string
+fn 11 std_io$IOError$Error$message (ref) -> string
   local.field 0 9 0   ; arg 0.msg
   ref.cast 1   ; -> string
   return
 end
 
-fn 11 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   i32.const 0
   local.get 0   ; arg 0
   call 8   ; std_io$write
   i32.const 0
-  string.const 6   ; "\n"
+  string.const 9   ; "\n"
   call 8   ; std_io$write
   return
 end
 
-fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

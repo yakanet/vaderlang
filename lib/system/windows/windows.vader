@@ -24,6 +24,15 @@ export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
+/// `GetCurrentDirectoryA`. Writes the working directory into `buf` and returns
+/// its length; 0 on failure, or a length >= `size` when `buf` is too small.
+///
+/// @param size  `buf`'s capacity in bytes.
+/// @param buf   receives the path, NUL-terminated.
+@c_header("<windows.h>")
+@extern("kernel32", "GetCurrentDirectoryA")
+export get_current_directory :: fn(size: u32, buf: u8[]!) -> u32
+
 /// `GetTempPathA`. Writes the temp directory, trailing backslash included, into
 /// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
 /// too small — in both of which cases nothing usable was written.

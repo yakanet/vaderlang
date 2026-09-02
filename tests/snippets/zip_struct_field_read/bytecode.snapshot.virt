@@ -13,7 +13,7 @@ type 10 ref _
 type 11 array 5
 type 12 primitive isize
 type 13 array 2
-type 14 struct __Tuple_34 { _0:5,_1:10 }
+type 14 struct __Tuple_32 { _0:5,_1:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -100,7 +100,7 @@ fn 0 snippet$main () -> i32
         local.set 7   ; $idx_28
         local.get 6   ; $idx_27
         local.get 7   ; $idx_28
-        struct.new_stack 14   ; __Tuple_34
+        struct.new_stack 14   ; __Tuple_32
         local.set 1   ; $struct_10
         local.field 1 14 0   ; $struct_10._0
         ref.cast 5   ; -> string

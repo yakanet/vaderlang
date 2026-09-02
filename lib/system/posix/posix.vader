@@ -25,6 +25,48 @@ export CLOCK_REALTIME :: 0
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
+/// `fopen(3)`. A stream handle, or null when the file cannot be opened.
+///
+/// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to
+/// know the numeric value of `O_CREAT` — which is 512 on Darwin and 64 on Linux.
+/// Reading proceeds until end of file, so `SEEK_END` is not needed either.
+///
+/// @param path  the file to open.
+/// @param mode  `"rb"` or `"wb"`.
+@c_header("<stdio.h>")
+@extern("fopen")
+export sys_fopen :: fn(path: string, mode: string) -> CPointer | null
+
+/// `fclose(3)`. 0 on success.
+@c_header("<stdio.h>")
+@extern("fclose")
+export sys_fclose :: fn(stream: CPointer) -> i32
+
+/// `fread(3)`. The number of ITEMS read — short at end of file.
+///
+/// @param buf     receives the bytes.
+/// @param size    item size in bytes; 1 to read bytes.
+/// @param count   how many items to read.
+/// @param stream  an open stream.
+@c_header("<stdio.h>")
+@extern("fread")
+export sys_fread :: fn(buf: u8[]!, size: usize, count: usize, stream: CPointer) -> usize
+
+/// `fwrite(3)`. The number of items written; short means failure.
+@c_header("<stdio.h>")
+@extern("fwrite")
+export sys_fwrite :: fn(buf: u8[], size: usize, count: usize, stream: CPointer) -> usize
+
+/// `getcwd(3)`. Fills `buf` with the working directory, NUL-terminated, and
+/// returns it — or null when `buf` is too small or the directory is unreadable.
+/// The length is not reported: read up to the NUL.
+///
+/// @param buf   receives the path.
+/// @param size  `buf`'s capacity in bytes.
+@c_header("<unistd.h>")
+@extern("getcwd")
+export sys_getcwd :: fn(buf: u8[]!, size: usize) -> CPointer | null
+
 /// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
 /// why the caller re-tests the path rather than reading `errno`.
 ///

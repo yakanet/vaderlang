@@ -11,7 +11,7 @@ type 8 array 9
 type 9 primitive u8
 type 10 primitive void
 type 11 array 5
-type 12 struct __Tuple_29 { _0:7,_1:3 }
+type 12 struct __Tuple_27 { _0:7,_1:3 }
 type 13 primitive u32
 type 14 primitive isize
 type 15 struct std_string_builder$StringBuilder { parts:11 }
@@ -1028,7 +1028,7 @@ fn 17 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 12   ; __Tuple_29
+  struct.new 12   ; __Tuple_27
   return
 end
 

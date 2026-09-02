@@ -164,14 +164,65 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      the file's raw bytes.
 /// @error       `IOError` if the file can't be opened or read.
-@intrinsic export read_file_bytes :: fn(path: string) -> u8[] | IOError
+export read_file_bytes :: fn(path: string) -> u8[] | IOError {
+    f :: sys_fopen(path, "rb")
+    if f == null {
+        return IOError { .msg = "file not found" }
+    }
+    // Read to end of file in chunks rather than sizing it first: `fseek` +
+    // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
+    // anything that is not a regular file.
+    out: u8[]! = []
+    chunk: u8[]! = [0] * READ_CHUNK
+    for _ in 0..<MAX_CHUNKS {
+        n :: sys_fread(chunk, 1, chunk.len(), f)
+        if n > 0 {
+            out.push_all(chunk[0..<n])
+        }
+        if n < chunk.len() {
+            sys_fclose(f)
+            return out
+        }
+    }
+    sys_fclose(f)
+    return IOError { .msg = "file too large" }
+}
+
+// 64 KiB per `fread`, and a ceiling on the number of rounds so a stream that
+// never ends cannot spin forever. Together they cap a read at 4 GiB.
+READ_CHUNK: usize : 64 * 1024
+MAX_CHUNKS: usize : 65536
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
 /// @param path     filesystem path.
 /// @param content  the raw bytes to write.
 /// @error          `IOError` if the file can't be opened or written.
-@intrinsic export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
+export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+    // A NUL byte truncates the path at the C boundary, so the file would land
+    // somewhere the caller never named and every later step would blame the
+    // wrong thing. Refused here, where the truncation would happen.
+    for b in path.bytes() {
+        if b == 0 {
+            return IOError { .msg = "path contains a NUL byte" }
+        }
+    }
+    f :: sys_fopen(path, "wb")
+    if f == null {
+        return IOError { .msg = "open failed" }
+    }
+    if content.len() > 0 {
+        n :: sys_fwrite(content, 1, content.len(), f)
+        if n != content.len() {
+            sys_fclose(f)
+            return IOError { .msg = "short write" }
+        }
+    }
+    if sys_fclose(f) != 0 {
+        return IOError { .msg = "close failed" }
+    }
+    return null
+}
 
 /// Create `path` and every missing parent, the way `mkdir -p` does.
 ///
@@ -319,7 +370,40 @@ exists :: fn(path: string) -> bool = get_file_attributes(path) != INVALID_FILE_A
 /// this one to resolve a path the user typed, that one for resources shipped
 /// beside the executable. Falls back to `"."` if the OS query fails.
 /// @return  the working directory.
-@intrinsic export current_working_directory :: fn() -> string
+@target
+export current_working_directory :: fn() -> string
+
+@target(.Linux, .Darwin)
+current_working_directory :: fn() -> string {
+    buf: u8[]! = [0] * 4096
+    if sys_getcwd(buf, buf.len()) == null {
+        return "."
+    }
+    return without_trailing_sep(to_slash(up_to_nul(buf)))
+}
+
+@target(.Windows)
+current_working_directory :: fn() -> string {
+    buf: u8[]! = [0] * 4096
+    n :: get_current_directory(u32(buf.len()), buf)
+    if n == 0 || usize(n) >= buf.len() {
+        return "."
+    }
+    return without_trailing_sep(to_slash(buf[0..<usize(n)].bytes_to_string()))
+}
+
+// The bytes before the first NUL. A C call that fills a buffer reports its
+// length that way when it does not return one.
+up_to_nul :: fn(buf: u8[]) -> string {
+    end := buf.len()
+    for i in 0..<buf.len() {
+        if buf[i] == 0 {
+            end = i
+            break
+        }
+    }
+    return buf[0..<end].bytes_to_string()
+}
 
 /// OS scratch directory for temporary files, `/`-separated and WITHOUT a
 /// trailing separator — join with `"/name"` to build a path. Honours the
@@ -337,7 +421,7 @@ temp_dir :: fn() -> string = without_trailing_sep(get_env("TMPDIR") ?? "/tmp")
 temp_dir :: fn() -> string {
     // `GetTempPathA` reports 0 on failure and a length >= the capacity when the
     // buffer is too small; neither wrote anything usable, so both fall back.
-    buf: u8[]! = [] * 4096
+    buf: u8[]! = [0] * 4096
     n :: get_temp_path(u32(buf.len()), buf)
     if n == 0 || usize(n) >= buf.len() {
         return "/tmp"
@@ -350,7 +434,7 @@ temp_dir :: fn() -> string {
 // program that touches `std/io`, and the whole borrowing was one character.
 to_slash :: fn(p: string) -> string {
     b :: p.bytes()
-    out: u8[]! = [] * b.len()
+    out: u8[]! = [0] * b.len()
     for i in 0..<b.len() {
         out[i] = if b[i] == '\\' { '/' } else { b[i] }
     }
@@ -365,6 +449,10 @@ without_trailing_sep :: fn(p: string) -> string {
     for i in 0..<b.len() {
         last :: b.len() - 1 - i
         if last == 0 || b[last] != '/' {
+            break
+        }
+        // `C:/` IS the drive root; the separator is part of it.
+        if b[last - 1] == ':' {
             break
         }
         trailing += 1

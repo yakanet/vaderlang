@@ -307,33 +307,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // intrinsics below, so the VM executes their bytecode directly (which
     // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
     // dedicated host arm.
-    .IoReadFileBytes -> {
-        path :: read_string(stack[arg_base], at_pc, "read_file_bytes")
-        if path is Trap { return path }
-        result :: read_file_bytes(path.value)
-        // Early-return narrows `result` to `u8[]` on the success path. The
-        // bytes are boxed as `u8` slots (riding in `I32Val`) tagged so they
-        // narrow under `is u8[]` — mirrors the `bytes` arm above.
-        if result is IOError {
-            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
-        }
-        return HostOk { .value = u8_array_to_value(result, u8_array_type_id) }
-    }
-    .IoWriteFileBytes -> {
-        path :: read_string(stack[arg_base], at_pc, "write_file_bytes path")
-        if path is Trap { return path }
-        arr :: read_array(stack[arg_base + 1], at_pc, "write_file_bytes content")
-        if arr is Trap { return arr }
-        content: u8[]! = [] * arr.length
-        for i in 0..<arr.length {
-            b :: read_i32(arr.elements[arr.offset + i], at_pc, "write_file_bytes byte")
-            if b is Trap { return b }
-            content.push(u8(b.value))
-        }
-        result :: write_file_bytes(path.value, content)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
-    }
     .IoIsDir -> {
         path :: read_string(stack[arg_base], at_pc, "is_dir")
         if path is Trap { return path }
@@ -345,11 +318,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // stdlib-root resolution. Returns the VM process's own location; a
         // wrong sidecar just fails the marker check and falls back to cwd.
         return HostOk { .value = StringVal { .value = current_executable_location() } }
-    }
-    .IoCurrentWorkingDirectory -> {
-        // Same reason as the arm above: a compile running in the self-host VM
-        // must still be able to ask where it was invoked from.
-        return HostOk { .value = StringVal { .value = current_working_directory() } }
     }
     .IoReadDir -> {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
@@ -971,10 +939,8 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 // `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
 // reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoIsDir | .IoReadDir | .IoReadFileBytes
-        | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
-        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
-        | .IoCurrentWorkingDirectory -> true
+    .IoIsDir | .IoReadDir | .IoReadLine | .IoReadStdin | .IoPollStdin
+        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.

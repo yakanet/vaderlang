@@ -23,7 +23,7 @@ type 20 primitive isize
 type 21 array 1
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
-type 24 struct __Tuple_70 { _0:10,_1:4 }
+type 24 struct __Tuple_68 { _0:10,_1:4 }
 type 25 struct std_string_builder$StringBuilder { parts:11 }
 type 26 primitive f64
 string 0 "verbose"
@@ -2561,7 +2561,7 @@ fn 32 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 24   ; __Tuple_70
+  struct.new 24   ; __Tuple_68
   return
 end
 

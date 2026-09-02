@@ -23,7 +23,7 @@ type 20 primitive void
 type 21 struct std_core$Yield__char { value:3 }
 type 22 struct std_string$StringChars { bytes:19,cursor:6,length:6 }
 type 23 union 0,21
-type 24 struct __Tuple_35 { _0:3,_1:6 }
+type 24 struct __Tuple_33 { _0:3,_1:6 }
 type 25 primitive isize
 type 26 primitive f64
 type 27 union 21,0
@@ -849,7 +849,7 @@ fn 20 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 24   ; __Tuple_35
+  struct.new 24   ; __Tuple_33
   return
 end
 
