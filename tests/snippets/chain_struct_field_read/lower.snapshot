@@ -213,8 +213,8 @@
       block :Rec![]!
         let __collect_16: Rec![]! =
           array :Rec![]!
-        let f: __lambda_env_20! =
-          __lambda_env_20! {
+        let f: __lambda_env_tests_snippets_chain_struct_field_read_1! =
+          __lambda_env_tests_snippets_chain_struct_field_read_1! {
           }
         let __fuse_arr_19: Rec[] = a :Rec[]
         let __fuse_len_20: usize =
@@ -362,8 +362,8 @@
       block :Rec![]!
         let __collect_28: Rec![]! =
           array :Rec![]!
-        let pred: __lambda_env_34! =
-          __lambda_env_34! {
+        let pred: __lambda_env_tests_snippets_chain_struct_field_read_3! =
+          __lambda_env_tests_snippets_chain_struct_field_read_3! {
           }
         let __fuse_arr_31: Rec![]! = merged :Rec![]!
         let __fuse_len_32: usize =
@@ -931,8 +931,8 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __lambda_env_20 {  }
-  fn __lambda_19(__env_18: __lambda_env_20!, it: Rec) -> Rec!
+  struct __lambda_env_tests_snippets_chain_struct_field_read_1 {  }
+  fn __lambda_tests_snippets_chain_struct_field_read_0(__env_18: __lambda_env_tests_snippets_chain_struct_field_read_1!, it: Rec) -> Rec!
     ~>
       Rec! {
         name:
@@ -946,8 +946,8 @@
             r:
               int(2) :i32
       }
-  struct __lambda_env_34 {  }
-  fn __lambda_33(__env_30: __lambda_env_34!, it: Rec) -> bool
+  struct __lambda_env_tests_snippets_chain_struct_field_read_3 {  }
+  fn __lambda_tests_snippets_chain_struct_field_read_2(__env_30: __lambda_env_tests_snippets_chain_struct_field_read_3!, it: Rec) -> bool
     ~>
       gte :bool
         l:

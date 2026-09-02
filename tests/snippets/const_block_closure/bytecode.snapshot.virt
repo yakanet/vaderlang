@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_2 { cap_0:3 }
+type 2 struct __lambda_env_tests_snippets_const_block_closure_1 { cap_0:3 }
 type 3 ref _
 type 4 primitive usize
 type 5 struct std_core$Buffer {  }
@@ -26,8 +26,8 @@ fn 0 snippet$main () -> i32
   local $cast_13 i64
   i32.const 10
   struct.new 12   ; $Cell_i32
-  struct.new 2   ; __lambda_env_2
-  make_closure 1 13   ; __lambda_1
+  struct.new 2   ; __lambda_env_tests_snippets_const_block_closure_1
+  make_closure 1 13   ; __lambda_tests_snippets_const_block_closure_0
   local.set 0   ; add
   i64.const 20
   call 2   ; std_core$new_byte_buffer
@@ -70,7 +70,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 __lambda_1 (ref,i32) -> i32
+fn 1 __lambda_tests_snippets_const_block_closure_0 (ref,i32) -> i32
   local.field 0 2 0   ; arg 0.cap_0
   struct.get 12 0   ; $Cell_i32.value
   local.get 1   ; arg 1

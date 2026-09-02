@@ -474,40 +474,40 @@
                     arg1:
                       __off_40 :usize
     return int(0) :i32
-  struct __lambda_env_4 {  }
-  fn __lambda_3(__env_2: __lambda_env_4!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_1 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_0(__env_2: __lambda_env_tests_snippets_fuse_any_all_find_1!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(8) :i32
-  struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_any_all_find_3 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_2(__env_3: __lambda_env_tests_snippets_fuse_any_all_find_3!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_15 {  }
-  fn __lambda_14(__env_9: __lambda_env_15!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_5 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_4(__env_9: __lambda_env_tests_snippets_fuse_any_all_find_5!, x: i32) -> bool
     ~>
       lt :bool
         l:
           x :i32
         r:
           int(4) :i32
-  struct __lambda_env_18 {  }
-  fn __lambda_17(__env_10: __lambda_env_18!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_7 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_6(__env_10: __lambda_env_tests_snippets_fuse_any_all_find_7!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(0) :i32
-  struct __lambda_env_26 {  }
-  fn __lambda_25(__env_16: __lambda_env_26!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_9 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_8(__env_16: __lambda_env_tests_snippets_fuse_any_all_find_9!, x: i32) -> bool
     ~>
       eq :bool
         l:
@@ -518,40 +518,40 @@
               int(2) :i32
         r:
           int(0) :i32
-  struct __lambda_env_29 {  }
-  fn __lambda_28(__env_17: __lambda_env_29!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_any_all_find_11 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_10(__env_17: __lambda_env_tests_snippets_fuse_any_all_find_11!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_39 {  }
-  fn __lambda_38(__env_25: __lambda_env_39!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_13 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_12(__env_25: __lambda_env_tests_snippets_fuse_any_all_find_13!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(25) :i32
-  struct __lambda_env_42 {  }
-  fn __lambda_41(__env_26: __lambda_env_42!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_any_all_find_15 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_14(__env_26: __lambda_env_tests_snippets_fuse_any_all_find_15!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(10) :i32
-  struct __lambda_env_52 {  }
-  fn __lambda_51(__env_34: __lambda_env_52!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_17 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_16(__env_34: __lambda_env_tests_snippets_fuse_any_all_find_17!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(0) :i32
-  struct __lambda_env_55 {  }
-  fn __lambda_54(__env_35: __lambda_env_55!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_any_all_find_19 {  }
+  fn __lambda_tests_snippets_fuse_any_all_find_18(__env_35: __lambda_env_tests_snippets_fuse_any_all_find_19!, x: i32) -> bool
     ~>
       gt :bool
         l:

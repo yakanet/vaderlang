@@ -8,8 +8,8 @@
           array :i32[]!
         let pred: fn(i32) -> bool =
           LoweredMakeClosure
-        let f: __lambda_env_7! =
-          __lambda_env_7! {
+        let f: __lambda_env_tests_snippets_fuse_collect_3! =
+          __lambda_env_tests_snippets_fuse_collect_3! {
           }
         let __fuse_arr_4: i32[]! =
           array :i32[]!
@@ -335,24 +335,24 @@
               arg1:
                 __off_13 :usize
     return int(0) :i32
-  struct __lambda_env_4 {  }
-  fn __lambda_3(__env_2: __lambda_env_4!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_collect_1 {  }
+  fn __lambda_tests_snippets_fuse_collect_0(__env_2: __lambda_env_tests_snippets_fuse_collect_1!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(6) :i32
-  struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_collect_3 {  }
+  fn __lambda_tests_snippets_fuse_collect_2(__env_3: __lambda_env_tests_snippets_fuse_collect_3!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_17 {  }
-  fn __lambda_16(__env_11: __lambda_env_17!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_collect_5 {  }
+  fn __lambda_tests_snippets_fuse_collect_4(__env_11: __lambda_env_tests_snippets_fuse_collect_5!, x: i32) -> bool
     ~>
       eq :bool
         l:

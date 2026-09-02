@@ -18,8 +18,8 @@
       block :i32[]!
         let __collect_0: i32[]! =
           array :i32[]!
-        let f: __lambda_env_4! =
-          __lambda_env_4! {
+        let f: __lambda_env_tests_snippets_iter_combinators_1! =
+          __lambda_env_tests_snippets_iter_combinators_1! {
           }
         let __fuse_arr_3: i32[]! =
           array :i32[]!
@@ -69,8 +69,8 @@
       block :i32[]!
         let __collect_6: i32[]! =
           array :i32[]!
-        let pred: __lambda_env_12! =
-          __lambda_env_12! {
+        let pred: __lambda_env_tests_snippets_iter_combinators_3! =
+          __lambda_env_tests_snippets_iter_combinators_3! {
           }
         let __fuse_arr_9: i32[]! = nums :i32[]!
         let __fuse_len_10: usize =
@@ -331,16 +331,16 @@
               s3 :i32
         r:
           s4 :i32
-  struct __lambda_env_4 {  }
-  fn __lambda_3(__env_2: __lambda_env_4!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_iter_combinators_1 {  }
+  fn __lambda_tests_snippets_iter_combinators_0(__env_2: __lambda_env_tests_snippets_iter_combinators_1!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           x :i32
-  struct __lambda_env_12 {  }
-  fn __lambda_11(__env_8: __lambda_env_12!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_iter_combinators_3 {  }
+  fn __lambda_tests_snippets_iter_combinators_2(__env_8: __lambda_env_tests_snippets_iter_combinators_3!, x: i32) -> bool
     ~>
       eq :bool
         l:
@@ -351,8 +351,8 @@
               int(2) :i32
         r:
           int(0) :i32
-  struct __lambda_env_18 {  }
-  fn __lambda_17(__env_12: __lambda_env_18!, acc: i32, x: i32) -> i32
+  struct __lambda_env_tests_snippets_iter_combinators_5 {  }
+  fn __lambda_tests_snippets_iter_combinators_4(__env_12: __lambda_env_tests_snippets_iter_combinators_5!, acc: i32, x: i32) -> i32
     ~>
       mul :i32
         l:

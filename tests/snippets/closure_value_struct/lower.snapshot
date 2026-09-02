@@ -17,8 +17,8 @@
             a :Adder!
         arg0:
           int(3) :i32
-  struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_closure_value_struct_1 { cap_0: ? }
+  fn __lambda_tests_snippets_closure_value_struct_0(__env_0: __lambda_env_tests_snippets_closure_value_struct_1!, x: i32) -> i32
     ~>
       add :i32
         l:

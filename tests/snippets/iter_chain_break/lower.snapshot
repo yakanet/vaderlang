@@ -15,7 +15,7 @@
     let first: i32 = int(0) :i32
     block :void
       let __iter_0: Iterator<i32> =
-        __gen_state_58! {
+        __gen_state_lib_std_iter_0! {
           s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
@@ -131,7 +131,7 @@
     let second: i32 = int(0) :i32
     block :void
       let __iter_4: Iterator<i32> =
-        __gen_state_58! {
+        __gen_state_lib_std_iter_0! {
           s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
@@ -247,7 +247,7 @@
     let labelled: i32 = int(0) :i32
     block :void
       let __iter_8: Iterator<i32> =
-        __gen_state_58! {
+        __gen_state_lib_std_iter_0! {
           s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
@@ -660,8 +660,8 @@
                 __off_27 :usize
     let mapped: i32 = int(0) :i32
     block :void
-      let f: __lambda_env_30! =
-        __lambda_env_30! {
+      let f: __lambda_env_tests_snippets_iter_chain_break_1! =
+        __lambda_env_tests_snippets_iter_chain_break_1! {
         }
       let __fuse_arr_29: i32[]! = a :i32[]!
       let __fuse_len_30: usize =
@@ -950,8 +950,8 @@
               arg1:
                 __off_44 :usize
     return int(0) :i32
-  struct __lambda_env_30 {  }
-  fn __lambda_29(__env_28: __lambda_env_30!, v: i32) -> i32
+  struct __lambda_env_tests_snippets_iter_chain_break_1 {  }
+  fn __lambda_tests_snippets_iter_chain_break_0(__env_28: __lambda_env_tests_snippets_iter_chain_break_1!, v: i32) -> i32
     ~>
       mul :i32
         l:

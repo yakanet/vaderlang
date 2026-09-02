@@ -8,7 +8,7 @@
       }
   fn snippet$log_it() -> Async<null>
     return
-      __asyncstate_4! {
+      __asyncstate_tests_snippets_async_void_0! {
         s0: int(0) :i32
         s1: int(0) :i32
         awaited: null
@@ -16,7 +16,7 @@
       }
   fn snippet$wrap() -> Async<null>
     return
-      __asyncstate_10! {
+      __asyncstate_tests_snippets_async_void_1! {
         s0: null
         awaited: null
         state: int(3) :i32
@@ -45,22 +45,22 @@
       arg0:
         "complete" :string
     return int(0) :i32
-  struct __asyncstate_4 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_4$Async$resume(self: __asyncstate_4!) -> null | Suspended!
+  struct __asyncstate_tests_snippets_async_void_0 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_tests_snippets_async_void_0$Async$resume(self: __asyncstate_tests_snippets_async_void_0!) -> null | Suspended!
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_3 :__asyncstate_4!
+                __self_3 :__asyncstate_tests_snippets_async_void_0!
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_3 :__asyncstate_4!
+                __self_3 :__asyncstate_tests_snippets_async_void_0!
             value:
               int(-1) :i32
           return null
@@ -70,17 +70,17 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_tests_snippets_async_void_0!
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .s1 :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_tests_snippets_async_void_0!
                 value:
                   .s0 :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_tests_snippets_async_void_0!
               call :void
                 callee:
                   std_io$println__string :void
@@ -120,7 +120,7 @@
                           arg2:
                             cast → i64
                               .s1 :i32
-                                __self_3 :__asyncstate_4!
+                                __self_3 :__asyncstate_tests_snippets_async_void_0!
                     ~>
                       call :string
                         callee:
@@ -132,7 +132,7 @@
               assign
                 target:
                   .state :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_tests_snippets_async_void_0!
                 value:
                   int(0) :i32
             else:
@@ -141,7 +141,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_3 :__asyncstate_4!
+                        __self_3 :__asyncstate_tests_snippets_async_void_0!
                     r:
                       int(2) :i32
                 then:
@@ -149,7 +149,7 @@
                     vcall Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
-                          __self_3 :__asyncstate_4!
+                          __self_3 :__asyncstate_tests_snippets_async_void_0!
                   if :void
                     cond:
                       is Suspended! :bool
@@ -162,14 +162,14 @@
                       assign
                         target:
                           .s0 :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_tests_snippets_async_void_0!
                         value:
                           cast → i32
                             __resumed_4 :Any | Suspended!
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_tests_snippets_async_void_0!
                         value:
                           int(1) :i32
                 else:
@@ -178,14 +178,14 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_tests_snippets_async_void_0!
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_tests_snippets_async_void_0!
                         value:
                           cast → Async<Any>
                             call :Async<i32>
@@ -194,47 +194,47 @@
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_tests_snippets_async_void_0!
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended! {
                         }
-  fn snippet$__asyncstate_4$Async$cancel(self: __asyncstate_4!) -> void
+  fn snippet$__asyncstate_tests_snippets_async_void_0$Async$cancel(self: __asyncstate_tests_snippets_async_void_0!) -> void
     if :void
       cond:
         is null :bool
           .awaited :Async<Any>
-            __self_3 :__asyncstate_4!
+            __self_3 :__asyncstate_tests_snippets_async_void_0!
       then:
       else:
         vcall Async.cancel :void
           recv:
             .awaited :Async<Any>
-              __self_3 :__asyncstate_4!
+              __self_3 :__asyncstate_tests_snippets_async_void_0!
     assign
       target:
         .state :i32
-          __self_3 :__asyncstate_4!
+          __self_3 :__asyncstate_tests_snippets_async_void_0!
       value:
         int(-1) :i32
-  struct __asyncstate_10 { s0: null, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_10$Async$resume(self: __asyncstate_10!) -> null | Suspended!
+  struct __asyncstate_tests_snippets_async_void_1 { s0: null, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_tests_snippets_async_void_1$Async$resume(self: __asyncstate_tests_snippets_async_void_1!) -> null | Suspended!
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_tests_snippets_async_void_1!
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_tests_snippets_async_void_1!
             value:
               int(-1) :i32
           return null
@@ -244,12 +244,12 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_1 :__asyncstate_10!
+                    __self_1 :__asyncstate_tests_snippets_async_void_1!
                 r:
                   int(1) :i32
             then:
               .s0 :null
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_tests_snippets_async_void_1!
               call :void
                 callee:
                   std_io$println__string :void
@@ -258,7 +258,7 @@
               assign
                 target:
                   .state :i32
-                    __self_1 :__asyncstate_10!
+                    __self_1 :__asyncstate_tests_snippets_async_void_1!
                 value:
                   int(0) :i32
             else:
@@ -267,7 +267,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_1 :__asyncstate_10!
+                        __self_1 :__asyncstate_tests_snippets_async_void_1!
                     r:
                       int(2) :i32
                 then:
@@ -275,7 +275,7 @@
                     vcall Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
-                          __self_1 :__asyncstate_10!
+                          __self_1 :__asyncstate_tests_snippets_async_void_1!
                   if :void
                     cond:
                       is Suspended! :bool
@@ -288,14 +288,14 @@
                       assign
                         target:
                           .s0 :null
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_tests_snippets_async_void_1!
                         value:
                           cast → null
                             __resumed_2 :Any | Suspended!
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_tests_snippets_async_void_1!
                         value:
                           int(1) :i32
                 else:
@@ -304,14 +304,14 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_tests_snippets_async_void_1!
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_tests_snippets_async_void_1!
                         value:
                           cast → Async<Any>
                             call :Async<null>
@@ -320,29 +320,29 @@
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_tests_snippets_async_void_1!
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended! {
                         }
-  fn snippet$__asyncstate_10$Async$cancel(self: __asyncstate_10!) -> void
+  fn snippet$__asyncstate_tests_snippets_async_void_1$Async$cancel(self: __asyncstate_tests_snippets_async_void_1!) -> void
     if :void
       cond:
         is null :bool
           .awaited :Async<Any>
-            __self_1 :__asyncstate_10!
+            __self_1 :__asyncstate_tests_snippets_async_void_1!
       then:
       else:
         vcall Async.cancel :void
           recv:
             .awaited :Async<Any>
-              __self_1 :__asyncstate_10!
+              __self_1 :__asyncstate_tests_snippets_async_void_1!
     assign
       target:
         .state :i32
-          __self_1 :__asyncstate_10!
+          __self_1 :__asyncstate_tests_snippets_async_void_1!
       value:
         int(-1) :i32
   struct snippet$Ready__i32 { v: i32 }

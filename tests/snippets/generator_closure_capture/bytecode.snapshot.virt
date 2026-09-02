@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 ref Iterator
-type 3 struct __lambda_env_2 { cap_0:7 }
+type 3 struct __lambda_env_tests_snippets_generator_closure_capture_1 { cap_0:7 }
 type 4 struct __genstate_gen { s0:1,s1:7,s2:8,s3:1,state:1 }
 type 5 union 6,0
 type 6 struct std_core$Yield__i32 { value:1 }
@@ -108,7 +108,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 __lambda_1 (ref,i32) -> i32
+fn 2 __lambda_tests_snippets_generator_closure_capture_0 (ref,i32) -> i32
   local $cell_get_3 i32
   local.field 0 3 0   ; arg 0.cap_0
   struct.get 24 0   ; $Cell_i32.value
@@ -221,8 +221,8 @@ fn 3 snippet$__genstate_gen$Iterator$next (ref) -> any
           local.get 3   ; $cell_43
           struct.set 4 1   ; __genstate_gen.s1
           local.field 0 4 1   ; arg 0.s1
-          struct.new 3   ; __lambda_env_2
-          make_closure 2 8   ; __lambda_1
+          struct.new 3   ; __lambda_env_tests_snippets_generator_closure_capture_1
+          make_closure 2 8   ; __lambda_tests_snippets_generator_closure_capture_0
           local.set 2   ; $field_28
           local.get 0   ; arg 0
           local.get 2   ; $field_28

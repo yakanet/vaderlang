@@ -4,28 +4,28 @@
   fn snippet$main() -> i32
     let n: ? =
       LoweredCellNew
-    let inc: __lambda_env_2! =
-      __lambda_env_2! {
+    let inc: __lambda_env_tests_snippets_closure_counter_1! =
+      __lambda_env_tests_snippets_closure_counter_1! {
         cap_0: n :i32
       }
     let a: i32 =
       call :i32
         callee:
-          __lambda_1 :fn() -> i32
+          __lambda_tests_snippets_closure_counter_0 :fn() -> i32
         arg0:
-          inc :__lambda_env_2!
+          inc :__lambda_env_tests_snippets_closure_counter_1!
     let b: i32 =
       call :i32
         callee:
-          __lambda_1 :fn() -> i32
+          __lambda_tests_snippets_closure_counter_0 :fn() -> i32
         arg0:
-          inc :__lambda_env_2!
+          inc :__lambda_env_tests_snippets_closure_counter_1!
     let c: i32 =
       call :i32
         callee:
-          __lambda_1 :fn() -> i32
+          __lambda_tests_snippets_closure_counter_0 :fn() -> i32
         arg0:
-          inc :__lambda_env_2!
+          inc :__lambda_env_tests_snippets_closure_counter_1!
     return
       add :i32
         l:
@@ -36,7 +36,7 @@
               b :i32
         r:
           c :i32
-  struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2!) -> i32
+  struct __lambda_env_tests_snippets_closure_counter_1 { cap_0: ? }
+  fn __lambda_tests_snippets_closure_counter_0(__env_0: __lambda_env_tests_snippets_closure_counter_1!) -> i32
     return
       LoweredCellGet

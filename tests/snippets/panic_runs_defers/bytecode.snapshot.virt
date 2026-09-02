@@ -2,8 +2,8 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive void
-type 3 struct __defer_env_2 { cap_0:5 }
-type 4 struct __defer_env_10 {  }
+type 3 struct __defer_env_tests_snippets_panic_runs_defers_1 { cap_0:5 }
+type 4 struct __defer_env_tests_snippets_panic_runs_defers_3 {  }
 type 5 ref _
 type 6 primitive usize
 type 7 struct std_core$Buffer {  }
@@ -37,8 +37,8 @@ fn 0 snippet$charge (i32) -> void
   local.get 0   ; arg 0
   struct.new 13   ; $Cell_i32
   local.tee 1   ; amount
-  struct.new 3   ; __defer_env_2
-  make_closure 3 14   ; __defer_1
+  struct.new 3   ; __defer_env_tests_snippets_panic_runs_defers_1
+  make_closure 3 14   ; __defer_tests_snippets_panic_runs_defers_0
   defer.push
   i64.const 29
   call 5   ; std_core$new_byte_buffer
@@ -72,8 +72,8 @@ end
 
 fn 1 snippet$reserve () -> void
   local __block_1 void
-  struct.new 4   ; __defer_env_10
-  make_closure 4 14   ; __defer_9
+  struct.new 4   ; __defer_env_tests_snippets_panic_runs_defers_3
+  make_closure 4 14   ; __defer_tests_snippets_panic_runs_defers_2
   defer.push
   string.const 2   ; "reserve inventory"
   call 11   ; std_io$println__string
@@ -89,7 +89,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 __defer_1 (ref) -> void
+fn 3 __defer_tests_snippets_panic_runs_defers_0 (ref) -> void
   local __buf_0 ref
   local __off_1 usize
   local $cast_10 i64
@@ -119,7 +119,7 @@ fn 3 __defer_1 (ref) -> void
   return
 end
 
-fn 4 __defer_9 (ref) -> void
+fn 4 __defer_tests_snippets_panic_runs_defers_2 (ref) -> void
   string.const 4   ; "release hold"
   call 11   ; std_io$println__string
   return

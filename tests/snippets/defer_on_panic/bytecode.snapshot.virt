@@ -1,10 +1,10 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __defer_env_2 {  }
+type 2 struct __defer_env_tests_snippets_defer_on_panic_1 {  }
 type 3 primitive void
-type 4 struct __defer_env_5 {  }
-type 5 struct __defer_env_8 {  }
+type 4 struct __defer_env_tests_snippets_defer_on_panic_3 {  }
+type 5 struct __defer_env_tests_snippets_defer_on_panic_5 {  }
 type 6 primitive usize
 type 7 primitive string
 type 8 primitive u8
@@ -22,14 +22,14 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
-  struct.new 2   ; __defer_env_2
-  make_closure 1 11   ; __defer_1
+  struct.new 2   ; __defer_env_tests_snippets_defer_on_panic_1
+  make_closure 1 11   ; __defer_tests_snippets_defer_on_panic_0
   defer.push
-  struct.new 4   ; __defer_env_5
-  make_closure 2 11   ; __defer_4
+  struct.new 4   ; __defer_env_tests_snippets_defer_on_panic_3
+  make_closure 2 11   ; __defer_tests_snippets_defer_on_panic_2
   defer.push
-  struct.new 5   ; __defer_env_8
-  make_closure 3 11   ; __defer_7
+  struct.new 5   ; __defer_env_tests_snippets_defer_on_panic_5
+  make_closure 3 11   ; __defer_tests_snippets_defer_on_panic_4
   defer.push
   string.const 0   ; "starting"
   call 6   ; std_io$println__string
@@ -43,19 +43,19 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 __defer_1 (ref) -> void
+fn 1 __defer_tests_snippets_defer_on_panic_0 (ref) -> void
   string.const 1   ; "outer cleanup"
   call 6   ; std_io$println__string
   return
 end
 
-fn 2 __defer_4 (ref) -> void
+fn 2 __defer_tests_snippets_defer_on_panic_2 (ref) -> void
   string.const 2   ; "middle cleanup"
   call 6   ; std_io$println__string
   return
 end
 
-fn 3 __defer_7 (ref) -> void
+fn 3 __defer_tests_snippets_defer_on_panic_4 (ref) -> void
   string.const 3   ; "inner cleanup"
   call 6   ; std_io$println__string
   return

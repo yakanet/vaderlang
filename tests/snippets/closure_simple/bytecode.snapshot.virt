@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_2 { cap_0:3 }
+type 2 struct __lambda_env_tests_snippets_closure_simple_1 { cap_0:3 }
 type 3 ref _
 type 4 struct $Cell_i32 { value:1 }
 export main 0
@@ -9,8 +9,8 @@ export main 0
 fn 0 snippet$main () -> i32
   i32.const 10
   struct.new 4   ; $Cell_i32
-  struct.new_stack 2   ; __lambda_env_2
-  struct.get 2 0   ; __lambda_env_2.cap_0
+  struct.new_stack 2   ; __lambda_env_tests_snippets_closure_simple_1
+  struct.get 2 0   ; __lambda_env_tests_snippets_closure_simple_1.cap_0
   struct.get 4 0   ; $Cell_i32.value
   i32.const 5
   i32.add

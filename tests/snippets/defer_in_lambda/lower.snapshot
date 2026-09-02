@@ -4,15 +4,15 @@
   fn snippet$main() -> i32
     let x: ? =
       LoweredCellNew
-    let f: __lambda_env_2! =
-      __lambda_env_2! {
+    let f: __lambda_env_tests_snippets_defer_in_lambda_1! =
+      __lambda_env_tests_snippets_defer_in_lambda_1! {
         cap_0: x :string
       }
     call :void
       callee:
-        __lambda_1 :fn() -> void
+        __lambda_tests_snippets_defer_in_lambda_0 :fn() -> void
       arg0:
-        f :__lambda_env_2!
+        f :__lambda_env_tests_snippets_defer_in_lambda_1!
     call :void
       callee:
         std_io$println__string :void
@@ -20,8 +20,8 @@
         "--- now panic case ---" :string
     let n: ? =
       LoweredCellNew
-    let do_panic: __lambda_env_18! =
-      __lambda_env_18! {
+    let do_panic: __lambda_env_tests_snippets_defer_in_lambda_7! =
+      __lambda_env_tests_snippets_defer_in_lambda_7! {
         cap_0: x :string
         cap_1: n :i32
       }
@@ -65,9 +65,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        __lambda_17 :fn() -> i32
+                        __lambda_tests_snippets_defer_in_lambda_6 :fn() -> i32
                       arg0:
-                        do_panic :__lambda_env_18!
+                        do_panic :__lambda_env_tests_snippets_defer_in_lambda_7!
           ~>
             call :string
               callee:
@@ -77,15 +77,15 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  struct __defer_env_5 {  }
-  fn __defer_4(__env_0: __defer_env_5!) -> void
+  struct __defer_env_tests_snippets_defer_in_lambda_3 {  }
+  fn __defer_tests_snippets_defer_in_lambda_2(__env_0: __defer_env_tests_snippets_defer_in_lambda_3!) -> void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "lambda inner cleanup" :string
-  struct __defer_env_8 { cap_0: ? }
-  fn __defer_7(__env_1: __defer_env_8!) -> void
+  struct __defer_env_tests_snippets_defer_in_lambda_5 { cap_0: ? }
+  fn __defer_tests_snippets_defer_in_lambda_4(__env_1: __defer_env_tests_snippets_defer_in_lambda_5!) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -97,8 +97,8 @@
             "uses outer " :string
           arg1:
             LoweredCellGet
-  struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2!) -> void
+  struct __lambda_env_tests_snippets_defer_in_lambda_1 { cap_0: ? }
+  fn __lambda_tests_snippets_defer_in_lambda_0(__env_0: __lambda_env_tests_snippets_defer_in_lambda_1!) -> void
     defer.push
       LoweredMakeClosure
     defer.push
@@ -112,8 +112,8 @@
     defer.pop_exec 2
     ~>
       __block_2 :void
-  struct __defer_env_21 { cap_0: ? }
-  fn __defer_20(__env_0: __defer_env_21!) -> void
+  struct __defer_env_tests_snippets_defer_in_lambda_9 { cap_0: ? }
+  fn __defer_tests_snippets_defer_in_lambda_8(__env_0: __defer_env_tests_snippets_defer_in_lambda_9!) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -125,8 +125,8 @@
             "panic defer in lambda saw " :string
           arg1:
             LoweredCellGet
-  struct __lambda_env_18 { cap_0: ?, cap_1: ? }
-  fn __lambda_17(__env_1: __lambda_env_18!) -> i32
+  struct __lambda_env_tests_snippets_defer_in_lambda_7 { cap_0: ?, cap_1: ? }
+  fn __lambda_tests_snippets_defer_in_lambda_6(__env_1: __lambda_env_tests_snippets_defer_in_lambda_7!) -> i32
     defer.push
       LoweredMakeClosure
     call :void

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct___lambda_env_2_t vader_struct___lambda_env_2_t;
+typedef struct vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t;
 typedef struct vader_struct___genstate_gen_t vader_struct___genstate_gen_t;
 typedef struct vader_struct_std_core_Yield__i32_t vader_struct_std_core_Yield__i32_t;
 typedef struct vader_struct_std_core_Range__i32_t vader_struct_std_core_Range__i32_t;
@@ -13,7 +13,7 @@ typedef struct vader_struct_std_core_Yield__usize_t vader_struct_std_core_Yield_
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct__Cell_i32_t vader_struct__Cell_i32_t;
 
-struct vader_struct___lambda_env_2_t {
+struct vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
 };
@@ -68,7 +68,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static vader_box_t snippet_gen(int32_t l0);
 static int32_t snippet_main(void);
-static int32_t __lambda_1(void* l0, int32_t l1);
+static int32_t __lambda_tests_snippets_generator_closure_capture_0(void* l0, int32_t l1);
 static vader_box_t snippet___genstate_gen_Iterator_next(void* l0);
 static vader_box_t std_core_Range_Iterator_next__i32(void* l0);
 static vader_box_t std_core_Range_Iterator_next__usize(void* l0);
@@ -88,18 +88,18 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
-static vader_box_t vader_fn_lift___lambda_1(void* env, vader_box_t a0) {
-    return vader_box_i32(1u, __lambda_1(env, ((int32_t) a0.payload.i)));
+static vader_box_t vader_fn_lift___lambda_tests_snippets_generator_closure_capture_0(void* env, vader_box_t a0) {
+    return vader_box_i32(1u, __lambda_tests_snippets_generator_closure_capture_0(env, ((int32_t) a0.payload.i)));
 }
 
-static const uint16_t vader_type_3_ptrs[] = { offsetof(vader_struct___lambda_env_2_t, f_cap_0) };
+static const uint16_t vader_type_3_ptrs[] = { offsetof(vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t, f_cap_0) };
 static const uint16_t vader_type_4_ptrs[] = { offsetof(vader_struct___genstate_gen_t, f_s1) };
 static const uint16_t vader_type_4_refs[] = { offsetof(vader_struct___genstate_gen_t, f_s2) };
 static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_type_20_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[25] = {
-    [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_2_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
+    [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___genstate_gen_t), vader_type_4_ptrs, 1, 0, NULL, 1, vader_type_4_refs },
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__i32_t), NULL, 0, 0, NULL, 0, NULL },
     [8] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
@@ -214,10 +214,10 @@ static int32_t snippet_main(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t __lambda_1(void* l0, int32_t l1) {
+static int32_t __lambda_tests_snippets_generator_closure_capture_0(void* l0, int32_t l1) {
     int32_t l2;
 #line 12 "tests/snippets/generator_closure_capture/_main.vader"
-    l2 = ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_2_t*) l0)->f_cap_0.payload.obj)->f_value;
+    l2 = ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t*) l0)->f_cap_0.payload.obj)->f_value;
     return (l1 + l2);
 }
 
@@ -303,13 +303,13 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
                     VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
 #line 10 "tests/snippets/generator_closure_capture/_main.vader"
 #line 12 "tests/snippets/generator_closure_capture/_main.vader"
-                    vader_struct___lambda_env_2_t* _a1_obj = (vader_struct___lambda_env_2_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2_t));
+                    vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t* _a1_obj = (vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_tests_snippets_generator_closure_capture_1_t));
                     vader_obj_header_init(_a1_obj, 3u);
                     _a1_obj->f_cap_0 = ((vader_struct___genstate_gen_t*) l0)->f_s1;
                     t1 = (void*) _a1_obj;
                     vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a2_closure, 8u);
-                    _a2_closure->code = (void*) &vader_fn_lift___lambda_1;
+                    _a2_closure->code = (void*) &vader_fn_lift___lambda_tests_snippets_generator_closure_capture_0;
                     _a2_closure->env = t1;
                     l2 = (void*) _a2_closure;
                     ((vader_struct___genstate_gen_t*) l0)->f_s2 = l2;

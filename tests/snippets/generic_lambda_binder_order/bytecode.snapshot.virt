@@ -1,13 +1,13 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_2 {  }
+type 2 struct __lambda_env_tests_snippets_generic_lambda_binder_order_1 {  }
 type 3 array 4
 type 4 primitive string
-type 5 struct __lambda_env_5 {  }
+type 5 struct __lambda_env_tests_snippets_generic_lambda_binder_order_3 {  }
 type 6 primitive usize
-type 7 struct __lambda_env_8 {  }
-type 8 struct __lambda_env_11 {  }
+type 7 struct __lambda_env_tests_snippets_generic_lambda_binder_order_5 {  }
+type 8 struct __lambda_env_tests_snippets_generic_lambda_binder_order_7 {  }
 type 9 fn () -> 3
 type 10 fn (4) -> 6
 type 11 struct std_core$Buffer {  }
@@ -35,21 +35,21 @@ fn 0 snippet$main () -> i32
   local filled_in usize
   local __off_5 usize
   local $cast_19 u64
-  struct.new 2   ; __lambda_env_2
-  make_closure 1 9   ; __lambda_1
+  struct.new 2   ; __lambda_env_tests_snippets_generic_lambda_binder_order_1
+  make_closure 1 9   ; __lambda_tests_snippets_generic_lambda_binder_order_0
   local.set 0   ; $closure_1
-  struct.new 5   ; __lambda_env_5
-  make_closure 2 10   ; __lambda_4
+  struct.new 5   ; __lambda_env_tests_snippets_generic_lambda_binder_order_3
+  make_closure 2 10   ; __lambda_tests_snippets_generic_lambda_binder_order_2
   local.set 1   ; $closure_3
   local.get 0   ; $closure_1
   local.get 1   ; $closure_3
   call 5   ; snippet$zip_with__string
   local.set 2   ; empty
-  struct.new 7   ; __lambda_env_8
-  make_closure 3 9   ; __lambda_7
+  struct.new 7   ; __lambda_env_tests_snippets_generic_lambda_binder_order_5
+  make_closure 3 9   ; __lambda_tests_snippets_generic_lambda_binder_order_4
   local.set 0   ; $closure_1
-  struct.new 8   ; __lambda_env_11
-  make_closure 4 10   ; __lambda_10
+  struct.new 8   ; __lambda_env_tests_snippets_generic_lambda_binder_order_7
+  make_closure 4 10   ; __lambda_tests_snippets_generic_lambda_binder_order_6
   local.set 1   ; $closure_3
   local.get 0   ; $closure_1
   local.get 1   ; $closure_3
@@ -93,25 +93,25 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 __lambda_1 (ref) -> ref
+fn 1 __lambda_tests_snippets_generic_lambda_binder_order_0 (ref) -> ref
   array.new 3 0   ; string[][]
   return
 end
 
-fn 2 __lambda_4 (ref,string) -> usize
+fn 2 __lambda_tests_snippets_generic_lambda_binder_order_2 (ref,string) -> usize
   local.get 1   ; arg 1
   call 6   ; std_core$len
   return
 end
 
-fn 3 __lambda_7 (ref) -> ref
+fn 3 __lambda_tests_snippets_generic_lambda_binder_order_4 (ref) -> ref
   string.const 2   ; "ab"
   string.const 3   ; "cde"
   array.new 3 2   ; string[][]
   return
 end
 
-fn 4 __lambda_10 (ref,string) -> usize
+fn 4 __lambda_tests_snippets_generic_lambda_binder_order_6 (ref,string) -> usize
   local.get 1   ; arg 1
   call 6   ; std_core$len
   return

@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 ref Async
 type 2 primitive i32
-type 3 struct __asyncstate_8 { s0:8,s1:8,awaited:10,state:2 }
+type 3 struct __asyncstate_tests_snippets_async_main_0 { s0:8,s1:8,awaited:10,state:2 }
 type 4 union 2,5
 type 5 struct std_core$Suspended {  }
 type 6 struct snippet$Ready__string { v:8 }
@@ -44,7 +44,7 @@ fn 1 snippet$main () -> i32
   string.const 1   ; ""
   local.get 0   ; $k_2
   i32.const 4
-  struct.new 3   ; __asyncstate_8
+  struct.new 3   ; __asyncstate_tests_snippets_async_main_0
   ref.cast 16   ; -> ref Async
   virtual.call 1 Async.resume
   local.tee 0   ; $k_2
@@ -58,7 +58,7 @@ fn 1 snippet$main () -> i32
   end $L0
 end
 
-fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
+fn 2 snippet$__asyncstate_tests_snippets_async_main_0$Async$resume (ref) -> any
   local $field_13 string
   local $field_15 string
   local __resumed_2 any
@@ -73,7 +73,7 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 3 3   ; __asyncstate_8.state
+        struct.set 3 3   ; __asyncstate_tests_snippets_async_main_0.state
         br $L1
       else
       end $L2
@@ -93,7 +93,7 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
           local.set 1   ; $field_13
           local.get 0   ; arg 0
           local.get 1   ; $field_13
-          struct.set 3 1   ; __asyncstate_8.s1
+          struct.set 3 1   ; __asyncstate_tests_snippets_async_main_0.s1
           local.field 0 3 1   ; arg 0.s1
           ref.cast 8   ; -> string
           local.set 2   ; $field_15
@@ -103,7 +103,7 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
           call 9   ; std_io$println__string
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 3 3   ; __asyncstate_8.state
+          struct.set 3 3   ; __asyncstate_tests_snippets_async_main_0.state
           br $L1
         end $L4
         local.field 0 3 3   ; arg 0.state
@@ -124,10 +124,10 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
           local.set 4   ; $cast_26
           local.get 0   ; arg 0
           local.get 4   ; $cast_26
-          struct.set 3 0   ; __asyncstate_8.s0
+          struct.set 3 0   ; __asyncstate_tests_snippets_async_main_0.s0
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 3 3   ; __asyncstate_8.state
+          struct.set 3 3   ; __asyncstate_tests_snippets_async_main_0.state
           br $L1
         end $L5
         local.field 0 3 3   ; arg 0.state
@@ -139,10 +139,10 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
           local.set 5   ; $cast_32
           local.get 0   ; arg 0
           local.get 5   ; $cast_32
-          struct.set 3 2   ; __asyncstate_8.awaited
+          struct.set 3 2   ; __asyncstate_tests_snippets_async_main_0.awaited
           local.get 0   ; arg 0
           i32.const 3
-          struct.set 3 3   ; __asyncstate_8.state
+          struct.set 3 3   ; __asyncstate_tests_snippets_async_main_0.state
           br $L1
         end $L7
         struct.new 5   ; std_core$Suspended
@@ -152,7 +152,7 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
   end $L0
   local.get 0   ; arg 0
   i32.const -1
-  struct.set 3 3   ; __asyncstate_8.state
+  struct.set 3 3   ; __asyncstate_tests_snippets_async_main_0.state
   i32.const 0
   box 2   ; -> i32
   return

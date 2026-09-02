@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __asyncstate_4 { s0:1,s1:1,awaited:8,state:1 }
+type 2 struct __asyncstate_tests_snippets_generic_impl_via_generic_fn_0 { s0:1,s1:1,awaited:8,state:1 }
 type 3 union 1,4
 type 4 struct std_core$Suspended {  }
 type 5 struct snippet$Box__i32 { v:1 }
@@ -33,7 +33,7 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.get 0   ; $k_2
   i32.const 4
-  struct.new 2   ; __asyncstate_4
+  struct.new 2   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0
   ref.cast 7   ; -> ref Async
   virtual.call 1 Async.resume
   local.tee 0   ; $k_2
@@ -47,7 +47,7 @@ fn 0 snippet$main () -> i32
   end $L0
 end
 
-fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
+fn 1 snippet$__asyncstate_tests_snippets_generic_impl_via_generic_fn_0$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize
@@ -64,7 +64,7 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 2 3   ; __asyncstate_4.state
+        struct.set 2 3   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.state
         br $L1
       else
       end $L2
@@ -84,7 +84,7 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
           local.set 1   ; $field_13
           local.get 0   ; arg 0
           local.get 1   ; $field_13
-          struct.set 2 1   ; __asyncstate_4.s1
+          struct.set 2 1   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.s1
           i64.const 20
           call 3   ; std_core$new_byte_buffer
           local.set 2   ; __buf_1
@@ -105,7 +105,7 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
           call 8   ; std_io$println__string
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 2 3   ; __asyncstate_4.state
+          struct.set 2 3   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.state
           br $L1
         end $L4
         local.field 0 2 3   ; arg 0.state
@@ -126,10 +126,10 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
           local.set 6   ; $cast_32
           local.get 0   ; arg 0
           local.get 6   ; $cast_32
-          struct.set 2 0   ; __asyncstate_4.s0
+          struct.set 2 0   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.s0
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 2 3   ; __asyncstate_4.state
+          struct.set 2 3   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.state
           br $L1
         end $L5
         local.field 0 2 3   ; arg 0.state
@@ -143,10 +143,10 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
           local.set 7   ; $cast_39
           local.get 0   ; arg 0
           local.get 7   ; $cast_39
-          struct.set 2 2   ; __asyncstate_4.awaited
+          struct.set 2 2   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.awaited
           local.get 0   ; arg 0
           i32.const 3
-          struct.set 2 3   ; __asyncstate_4.state
+          struct.set 2 3   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.state
           br $L1
         end $L7
         struct.new 4   ; std_core$Suspended
@@ -156,7 +156,7 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
   end $L0
   local.get 0   ; arg 0
   i32.const -1
-  struct.set 2 3   ; __asyncstate_4.state
+  struct.set 2 3   ; __asyncstate_tests_snippets_generic_impl_via_generic_fn_0.state
   local.field 0 2 1   ; arg 0.s1
   ref.cast 1   ; -> i32
   box 1   ; -> i32

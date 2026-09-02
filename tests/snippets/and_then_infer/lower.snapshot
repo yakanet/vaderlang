@@ -144,16 +144,16 @@
               arg1:
                 __off_5 :usize
     return int(0) :i32
-  struct __lambda_env_2 {  }
-  fn __lambda_1(__env_0: __lambda_env_2!, v: i32) -> Error | i32
+  struct __lambda_env_tests_snippets_and_then_infer_1 {  }
+  fn __lambda_tests_snippets_and_then_infer_0(__env_0: __lambda_env_tests_snippets_and_then_infer_1!, v: i32) -> Error | i32
     return
       call :Error | i32
         callee:
           halve :fn(i32) -> Error | i32
         arg0:
           v :i32
-  struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7!, v: i32) -> Error | i32
+  struct __lambda_env_tests_snippets_and_then_infer_3 {  }
+  fn __lambda_tests_snippets_and_then_infer_2(__env_3: __lambda_env_tests_snippets_and_then_infer_3!, v: i32) -> Error | i32
     return
       call :Error | i32
         callee:

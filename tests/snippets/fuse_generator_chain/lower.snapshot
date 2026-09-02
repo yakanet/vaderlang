@@ -264,16 +264,16 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __lambda_env_4 {  }
-  fn __lambda_3(__env_2: __lambda_env_4!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_generator_chain_1 {  }
+  fn __lambda_tests_snippets_fuse_generator_chain_0(__env_2: __lambda_env_tests_snippets_fuse_generator_chain_1!, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(10) :i32
-  struct __lambda_env_12 {  }
-  fn __lambda_11(__env_8: __lambda_env_12!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_generator_chain_3 {  }
+  fn __lambda_tests_snippets_fuse_generator_chain_2(__env_8: __lambda_env_tests_snippets_fuse_generator_chain_3!, x: i32) -> bool
     ~>
       eq :bool
         l:
@@ -284,8 +284,8 @@
               int(2) :i32
         r:
           int(1) :i32
-  struct __lambda_env_20 {  }
-  fn __lambda_19(__env_14: __lambda_env_20!, x: i32) -> bool
+  struct __lambda_env_tests_snippets_fuse_generator_chain_5 {  }
+  fn __lambda_tests_snippets_fuse_generator_chain_4(__env_14: __lambda_env_tests_snippets_fuse_generator_chain_5!, x: i32) -> bool
     ~>
       eq :bool
         l:
@@ -296,8 +296,8 @@
               int(2) :i32
         r:
           int(0) :i32
-  struct __lambda_env_23 {  }
-  fn __lambda_22(__env_15: __lambda_env_23!, x: i32) -> i32
+  struct __lambda_env_tests_snippets_fuse_generator_chain_7 {  }
+  fn __lambda_tests_snippets_fuse_generator_chain_6(__env_15: __lambda_env_tests_snippets_fuse_generator_chain_7!, x: i32) -> i32
     ~>
       add :i32
         l:
