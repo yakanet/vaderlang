@@ -8,10 +8,10 @@
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
 static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
-static inline void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 11u, 169u); }
+static inline void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 11u, 170u); }
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) { return vader_string_hash(a0); }
-static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 163u, 398u); if (r.tag == 398u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 398u); e->f_msg = r.payload.s; return vader_box_obj(398u, e); } return r; }
-static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_cstr_free_for(a0, c0); return r == NULL ? vader_box_null() : vader_box_i64(163u, (int64_t) vader_atom_intern(r, strlen(r))); }
+static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 164u, 401u); if (r.tag == 401u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 401u); e->f_msg = r.payload.s; return vader_box_obj(401u, e); } return r; }
+static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_cstr_free_for(a0, c0); return r == NULL ? vader_box_null() : vader_box_i64(164u, (int64_t) vader_atom_intern(r, strlen(r))); }
 static inline uint8_t vader_host_std_target_current_os(void) { return vader_current_os(); }
 static inline uint8_t vader_host_std_target_current_arch(void) { return vader_current_arch(); }
 static inline void* vader_host_system_windows_get_std_handle(uint32_t a0) { return GetStdHandle(a0); }
