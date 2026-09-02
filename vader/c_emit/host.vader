@@ -553,8 +553,9 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 /// is paired with `vader_cstr_free_for(atom, cstr)` — the O(1) form that
 /// discriminates owner vs dup from the atom id (the id-less
 /// `vader_cstr_free` has to scan the atom table, hot at one call per
-/// string arg per FFI call). The result is captured before freeing so a
-/// returned pointer into a dup can't be used after free.
+/// string arg per FFI call). A `string` result is INTERNED before the frees,
+/// not merely captured: the pointer can aim INTO an argument, so holding it
+/// across the free was exactly the use-after-free this claimed to prevent.
 user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     sig :: imp.signature
     call_args: string[]! = []
@@ -647,8 +648,15 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         str_tag :: tag_u(prim_tag(types, ValType.String), "string")
         lines.push("const char* r = ${call_expr};")
         for al in after_lines { lines.push(al) }
+        // INTERNED BEFORE THE FREES. A returned `char*` may point INTO an
+        // argument -- `strstr` returns a suffix of its haystack -- and
+        // `vader_cstr_free_for` frees the dup a SLICE atom was marshalled
+        // through. Freeing first left `strlen` and the intern reading memory
+        // that had just gone back to the allocator: the same call returned the
+        // right suffix for an owner atom and an empty string for a slice.
+        lines.push("vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(${str_tag}, (int64_t) vader_atom_intern(r, strlen(r)));")
         for fl in free_lines { lines.push(fl) }
-        lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${str_tag}, (int64_t) vader_atom_intern(r, strlen(r)));")
+        lines.push("return out;")
     } else if sig.result == ValType.String {
         // A C string comes back BORROWED: interned into the atom table, never
         // freed. That is the default the FFI plan settles on — its worst case is
@@ -660,8 +668,11 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         // and `string | null` is not an admitted extern return type yet.
         lines.push("const char* r = ${call_expr};")
         for al in after_lines { lines.push(al) }
+        // Interned before the frees, for the reason spelled out just above: the
+        // result can point into an argument buffer that the frees release.
+        lines.push("vader_string_t out = r == NULL ? vader_atom_intern(\"\", 0) : vader_atom_intern(r, strlen(r));")
         for fl in free_lines { lines.push(fl) }
-        lines.push("return r == NULL ? vader_atom_intern(\"\", 0) : vader_atom_intern(r, strlen(r));")
+        lines.push("return out;")
     } else if free_lines.len() == 0 && after_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {

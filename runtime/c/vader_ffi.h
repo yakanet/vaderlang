@@ -257,6 +257,13 @@ vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* fram
     if (fview.len < nargs * sizeof(int64_t)) {
         vader_trap("vader_ffi: frame smaller than its argument list");
     }
+    /* A value-returning call writes its result into the frame's first slot, so
+     * the argument count alone does not size it: with no arguments the check
+     * above is `0 < 0` and the store below would land on the NULL pointer an
+     * empty array reports. Trapping names the contract instead of crashing. */
+    if (cls[0] != VADER_FFI_VOID && fview.len < sizeof(int64_t)) {
+        vader_trap("vader_ffi: frame has no slot for the result");
+    }
 
     for (i = 0; i < nargs; i++) {
         int64_t raw = ((const int64_t*) fview.ptr)[i];

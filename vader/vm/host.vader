@@ -699,6 +699,14 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         push_little_endian(frame, w, 8)
     }
     frame.push_all(data)
+    // The frame carries the RESULT back as well as the arguments out, so a
+    // value-returning call needs a slot even with no arguments. Without one the
+    // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
+    // runtime's `fview.len < nargs * 8` guard reads `0 < 0` — so `getpid()`
+    // wrote its result to address 0 and the interpreter took SIGSEGV.
+    if frame.len() == 0 && info.signature.result != bc.ValType.Void {
+        push_little_endian(frame, 0, 8)
+    }
 
     returned :: ffi_call(sym, desc, frame)
 
