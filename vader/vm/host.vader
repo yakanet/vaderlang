@@ -602,11 +602,8 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // compile, but nothing stops `vader run` on its own, and the callee
             // would then write past a block sized for a partial mirror. The
             // floor turns that into wrong values instead of a buffer overrun.
-            room :: if usize(layout.size) > MIRROR_BLOCK_FLOOR {
-                usize(layout.size)
-            } else {
-                MIRROR_BLOCK_FLOOR
-            }
+            floor :: usize(bc.MIRROR_BLOCK_FLOOR)
+            room :: if usize(layout.size) > floor { usize(layout.size) } else { floor }
             for _pad in 0..<room {
                 data.push(0)
             }
@@ -820,11 +817,6 @@ ffi_result_is_opt_string :: fn(types: bc.BcType[], result_type: i32) -> bool {
 
 /// One array lent to a foreign call, and where its bytes sit in the flat buffer
 /// — everything the write-back needs once the callee has returned.
-/// Smallest block a mirrored struct travels in. Sized past every system struct
-/// the standard library reaches (`struct stat` is 144 bytes, `termios` 72), so a
-/// mirror that under-describes its type cannot make the callee write out of
-/// bounds. The frame is per-call scratch, so the slack costs nothing that lasts.
-MIRROR_BLOCK_FLOOR: usize : 4096
 
 /// A `@c_struct` argument the callee writes through, to read back after the call.
 LentStruct :: struct {

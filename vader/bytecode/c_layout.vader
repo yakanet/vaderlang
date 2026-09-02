@@ -10,18 +10,34 @@
 // its own: if it diverges from what `cc` computes, the native build fails and
 // says which field. That is what makes it safe for the VM to rely on.
 //
-// It follows that a mirror must be EXHAUSTIVE for the VM path: a field left out
-// is padding this file cannot account for, and the size assertion catches it.
+// A mirror may describe only a PREFIX of its C type, which is what makes
+// `struct stat` usable: its `timespec` members have no nameable path, but
+// `st_mode` sits before them. The offsets of a prefix are the real ones — the
+// padding a prefix cannot account for is all past its end — so the block is
+// sized by `MIRROR_BLOCK_FLOOR` rather than by the computation, and the emitted
+// C asserts the C type fits inside it.
 
 module "vader/bytecode"
 
 // ---- layout ---------------------------------------------------------------
 
+/// Size the interpreter gives every mirrored-struct block, at minimum.
+///
+/// A mirror is allowed to describe only a PREFIX of its C type — reaching
+/// `st_mode` in a `struct stat` needs four of its nineteen members, and the ones
+/// that follow cannot even be named. The computed size is then smaller than the
+/// real one, so the block is sized by this floor instead, and the emitted C
+/// asserts the C type fits inside it. That is what keeps a callee from writing
+/// past the block.
+export MIRROR_BLOCK_FLOOR: i64 : 4096
+
 /// Byte offsets of a mirrored struct's fields, and the total size.
 export CLayout :: struct {
     /// One entry per field, in declaration order.
     offsets: i64[]
-    /// `sizeof` the C type, trailing padding included.
+    /// Size of the DECLARED fields, trailing padding included. Equal to
+    /// `sizeof` the C type only when the mirror is exhaustive; smaller for a
+    /// prefix, which is why the interpreter sizes its block by the floor.
     size:    i64
 }
 

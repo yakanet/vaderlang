@@ -498,6 +498,18 @@ c_size_gaps :: fn(t: Type, typed: TypedProgram) -> string[] {
     return out
 }
 
+/// Whether the declaration names the header that owns its prototype.
+///
+/// @param d  the `@extern` declaration.
+declares_c_header :: fn(d: AST.FnDecl) -> bool {
+    for dec in d.decorators {
+        if dec.name == "c_header" {
+            return true
+        }
+    }
+    return false
+}
+
 /// Whether the parameter carries `@c_pointer`.
 ///
 /// @param pm  the parameter.
@@ -636,12 +648,16 @@ validate_extern :: fn(
     //
     // The cost is that a stdlib `@extern` reserves its C name project-wide:
     // since `std/math` names `pow`, a program importing it cannot declare its
-    // own. Lifting that needs the shapes compared rather than the names, which
-    // needs the resolved signature of the earlier declaration kept somewhere.
+    // own — unless both name a header, see below.
     sym_name :: extern_symbol_name_for(decl)
     prior :: typed.extern_symbols[sym_name]
     if prior is AST.FnDecl as p {
-        if p.id != decl.id {
+        // Unless BOTH name a header. The clash above is about the SYNTHESISED
+        // prototype, and `@c_header` emits none — each shim calls the symbol
+        // with its own types, which `cc` checks against the real declaration. It
+        // is what lets `stat` be declared once per system, the way every FFI
+        // does: the mirror it fills differs, so the signature does too.
+        if p.id != decl.id && !(declares_c_header(decl) && declares_c_header(p)) {
             diags.push(
                 typecheck_error(
                     .InvalidExternDecl,

@@ -157,8 +157,15 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
         // real one, so a divergence fails the native build and names the field
         // rather than letting the interpreter write at a wrong offset.
         layout :: c_struct_layout(t.fields, types)
+        // A mirror may describe only a PREFIX: the members past the last
+        // declared one are unreachable in `struct stat`, whose `timespec`s have
+        // no nameable path. So the computed size must merely FIT, and the C type
+        // must in turn fit the block the interpreter allocates.
         out.push(
-            "_Static_assert(sizeof(${t.c_name}) == ${layout.size}, \"${t.c_name} size\");",
+            "_Static_assert(${layout.size} <= sizeof(${t.c_name}), \"${t.c_name} prefix\");",
+        )
+        out.push(
+            "_Static_assert(sizeof(${t.c_name}) <= ${MIRROR_BLOCK_FLOOR}, \"${t.c_name} fits the interpreter block\");",
         )
         for field_index in 0..<t.fields.len() {
             f :: t.fields[field_index]
