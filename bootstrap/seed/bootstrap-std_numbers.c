@@ -199,12 +199,12 @@ vader_string_t std_numbers_strip_numeric_text(vader_string_t l0, int32_t l1) {
     if (!(t1)) {
         { vader_string_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_struct___lambda_env_lib_std_numbers_1_t* _a1_obj = (vader_struct___lambda_env_lib_std_numbers_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_lib_std_numbers_1_t));
+    vader_struct___lambda_env_std_numbers_1_t* _a1_obj = (vader_struct___lambda_env_std_numbers_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_std_numbers_1_t));
     vader_obj_header_init(_a1_obj, 236u);
     t0 = (void*) _a1_obj;
     vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a2_closure, 137u);
-    _a2_closure->code = (void*) &vader_fn_lift___lambda_lib_std_numbers_0;
+    _a2_closure->code = (void*) &vader_fn_lift___lambda_std_numbers_0;
     _a2_closure->env = t0;
     l3 = (void*) _a2_closure;
     t2 = std_string_replace_chars_where(l5, l3, 0u);

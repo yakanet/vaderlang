@@ -120,8 +120,8 @@ vader_box_t vader_fn_tramp_vader_types_mk_trait(void* env, vader_box_t a0, vader
     return vader_types_mk_trait(a0.payload.obj, a1.payload.obj);
 }
 vader_fn_t vader_fn_static_vader_types_mk_trait = { { 153u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_vader_types_mk_trait, NULL };
-vader_box_t vader_fn_lift___lambda_lib_std_path_0(void* env, vader_box_t a0) {
-    return vader_box_bool(162u, __lambda_lib_std_path_0(env, ((uint32_t) a0.payload.i)));
+vader_box_t vader_fn_lift___lambda_std_path_0(void* env, vader_box_t a0) {
+    return vader_box_bool(162u, __lambda_std_path_0(env, ((uint32_t) a0.payload.i)));
 }
 vader_box_t vader_fn_lift___lambda_vader_resolver_0(void* env, vader_box_t a0, vader_box_t a1) {
     return vader_box_bool(162u, __lambda_vader_resolver_0(env, a0.payload.obj, a1.payload.obj));
@@ -213,8 +213,8 @@ vader_box_t vader_fn_lift___lambda_vader_c_emit_2(void* env, vader_box_t a0, vad
 vader_box_t vader_fn_lift___lambda_vader_c_emit_4(void* env, vader_box_t a0, vader_box_t a1) {
     return vader_box_bool(162u, __lambda_vader_c_emit_4(env, ((size_t) a0.payload.i), ((size_t) a1.payload.i)));
 }
-vader_box_t vader_fn_lift___lambda_lib_std_numbers_0(void* env, vader_box_t a0) {
-    return vader_box_bool(162u, __lambda_lib_std_numbers_0(env, ((uint32_t) a0.payload.i)));
+vader_box_t vader_fn_lift___lambda_std_numbers_0(void* env, vader_box_t a0) {
+    return vader_box_bool(162u, __lambda_std_numbers_0(env, ((uint32_t) a0.payload.i)));
 }
 vader_box_t vader_fn_lift___lambda_vader_vm_0(void* env, vader_box_t a0, vader_box_t a1) {
     return vader_box_bool(162u, __lambda_vader_vm_0(env, ((int64_t) a0.payload.i), ((int64_t) a1.payload.i)));

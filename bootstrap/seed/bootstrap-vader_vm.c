@@ -3182,8 +3182,8 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
             loop_343: {
                 if ((l18 < l22)) {
                     l19 = std_string_utf8_decode_len(l17, l18);
-                    l23 = ((vader_struct___Tuple_char_usize_t*) l19)->f__0;
-                    l24 = ((vader_struct___Tuple_char_usize_t*) l19)->f__1;
+                    l23 = ((vader_struct___Tuple_char_usize_8bd920da_t*) l19)->f__0;
+                    l24 = ((vader_struct___Tuple_char_usize_8bd920da_t*) l19)->f__1;
                     if (l20 == l15) {
                         vader_struct_vader_vm_CharVal_t* _a24_obj = (vader_struct_vader_vm_CharVal_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_CharVal_t));
                         vader_obj_header_init(_a24_obj, 928u);
@@ -14931,7 +14931,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                     } else {
                                     }
                                     t2 = std_string_utf8_decode_len(l3815, l3817);
-                                    l3821 = ((vader_struct___Tuple_char_usize_t*) t2)->f__1;
+                                    l3821 = ((vader_struct___Tuple_char_usize_8bd920da_t*) t2)->f__1;
                                     t0 = (l3817 + l3821);
                                     l3817 = (size_t) (int64_t) t0;
                                     l3822 = (size_t) (int64_t) INT64_C(1);
@@ -25927,7 +25927,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                 } else {
                                 }
                                 t2 = std_string_utf8_decode_len(l3815, l3817);
-                                l3821 = ((vader_struct___Tuple_char_usize_t*) t2)->f__1;
+                                l3821 = ((vader_struct___Tuple_char_usize_8bd920da_t*) t2)->f__1;
                                 t0 = (l3817 + l3821);
                                 l3817 = (size_t) (int64_t) t0;
                                 l3822 = (size_t) (int64_t) INT64_C(1);

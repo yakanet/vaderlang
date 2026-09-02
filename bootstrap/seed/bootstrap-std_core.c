@@ -113,8 +113,8 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
     }
     t5 = ((int32_t) (uint64_t) l3);
     l10 = (uint32_t) (int32_t) t5;
-    vader_struct___Tuple_Array_u32_u32_t* _a4_obj = (vader_struct___Tuple_Array_u32_u32_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Array_u32_u32_t));
-    vader_obj_header_init(_a4_obj, 211u);
+    vader_struct___Tuple_Array_u32_u32_6fc96a7e_t* _a4_obj = (vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Array_u32_u32_6fc96a7e_t));
+    vader_obj_header_init(_a4_obj, 221u);
     _a4_obj->f__0 = l12;
     _a4_obj->f__1 = l10;
     t6 = (void*) _a4_obj;
@@ -463,9 +463,9 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l16];
         l9 = (uint64_t) (int64_t) t0;
         l15 = std_core_mul_shift_all_64(l3, l8, l9, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__2;
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__2;
         if ((l13 <= INT32_C(21))) {
             t1 = vader_div_u64(l5, INT64_C(5));
             t0 = (t1 * INT64_C(5));
@@ -510,9 +510,9 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         t0 = ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l16];
         l18 = (uint64_t) (int64_t) t0;
         l15 = std_core_mul_shift_all_64(l3, l17, l18, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_t*) l15)->f__2;
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__2;
         if ((l13 <= INT32_C(1))) {
             l12 = true;
             if (l4) {
@@ -787,8 +787,8 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
     t0 = (l0 << l3);
     l3 = (uint64_t) (int64_t) t0;
     l6 = std_core_pf_product(l1, l3);
-    l3 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__0;
-    l4 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__1;
+    l3 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__0;
+    l4 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__1;
     l7 = ((int32_t) (uint64_t) (l3 >> INT64_C(63)));
     l8 = (((l7 + INT32_C(64)) - INT32_C(52)) - INT32_C(3));
     t0 = ((int64_t) (int32_t) l8);
@@ -1338,11 +1338,11 @@ static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     t0 = (l0 << INT64_C(1));
     l5 = (uint64_t) (int64_t) t0;
     l6 = std_core_umul128(l5, l1);
-    l7 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__0;
-    l8 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__1;
+    l7 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__0;
+    l8 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__1;
     l6 = std_core_umul128(l5, l2);
-    l5 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__0;
-    l9 = ((vader_struct___Tuple_u64_u64_t*) l6)->f__1;
+    l5 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__0;
+    l9 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l6)->f__1;
     t0 = (l7 + l9);
     l9 = (uint64_t) (int64_t) t0;
     l7 = std_core_b2u((l9 < l7));
@@ -1405,7 +1405,7 @@ static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     t0 = ((int64_t) (int32_t) ((l3 - INT32_C(64)) - INT32_C(1)));
     l8 = (uint64_t) (int64_t) t0;
     t1 = std_core_shiftright128(l9, l5, l8);
-    vader_struct___Tuple_u64_u64_u64_t* _a0_obj = (vader_struct___Tuple_u64_u64_u64_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_u64_t));
+    vader_struct___Tuple_u64_u64_u64_2d035edd_t* _a0_obj = (vader_struct___Tuple_u64_u64_u64_2d035edd_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_u64_2d035edd_t));
     vader_obj_header_init(_a0_obj, 235u);
     _a0_obj->f__0 = t1;
     _a0_obj->f__1 = l7;
@@ -1580,8 +1580,8 @@ static double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
             loop_72: {
                 if ((l9 < l7)) {
                     l10 = std_core_BigInt_Div_div(l4, (uint32_t) (int32_t) INT32_C(5));
-                    l4 = ((vader_struct___Tuple_Array_u32_u32_t*) l10)->f__0;
-                    t3 = ((vader_struct___Tuple_Array_u32_u32_t*) l10)->f__1;
+                    l4 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__0;
+                    t3 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__1;
                     if (t3 != INT32_C(0)) {
                         l6 = true;
                     } else {
@@ -1689,8 +1689,8 @@ static void* std_core_pf_product(int32_t l0, uint64_t l1) {
     t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
     l4 = (uint64_t) (int64_t) t0;
     l5 = std_core_umul128(l1, l4);
-    l4 = ((vader_struct___Tuple_u64_u64_t*) l5)->f__0;
-    l6 = ((vader_struct___Tuple_u64_u64_t*) l5)->f__1;
+    l4 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l5)->f__0;
+    l6 = ((vader_struct___Tuple_u64_u64_2959d966_t*) l5)->f__1;
     if ((l4 & INT64_C(511)) == INT64_C(511)) {
         l5 = (void*) &vader_data_0;
         t0 = (l3 + INT64_C(1));
@@ -1701,7 +1701,7 @@ static void* std_core_pf_product(int32_t l0, uint64_t l1) {
         t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
         l7 = (uint64_t) (int64_t) t0;
         t1 = std_core_umul128(l1, l7);
-        l7 = ((vader_struct___Tuple_u64_u64_t*) t1)->f__0;
+        l7 = ((vader_struct___Tuple_u64_u64_2959d966_t*) t1)->f__0;
         t0 = (l6 + l7);
         l6 = (uint64_t) (int64_t) t0;
         if ((l7 > l6)) {
@@ -1711,7 +1711,7 @@ static void* std_core_pf_product(int32_t l0, uint64_t l1) {
         }
     } else {
     }
-    vader_struct___Tuple_u64_u64_t* _a2_obj = (vader_struct___Tuple_u64_u64_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_t));
+    vader_struct___Tuple_u64_u64_2959d966_t* _a2_obj = (vader_struct___Tuple_u64_u64_2959d966_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_2959d966_t));
     vader_obj_header_init(_a2_obj, 234u);
     _a2_obj->f__0 = l4;
     _a2_obj->f__1 = l6;
@@ -2402,7 +2402,7 @@ static void* std_core_umul128(uint64_t l0, uint64_t l1) {
     l4 = (uint64_t) (int64_t) t0;
     t0 = (l2 | l4);
     l2 = (uint64_t) (int64_t) t0;
-    vader_struct___Tuple_u64_u64_t* _a0_obj = (vader_struct___Tuple_u64_u64_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_t));
+    vader_struct___Tuple_u64_u64_2959d966_t* _a0_obj = (vader_struct___Tuple_u64_u64_2959d966_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_2959d966_t));
     vader_obj_header_init(_a0_obj, 234u);
     _a0_obj->f__0 = l3;
     _a0_obj->f__1 = l2;

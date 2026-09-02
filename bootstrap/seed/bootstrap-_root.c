@@ -1,10 +1,10 @@
 #include "bootstrap.split.h"
 
-bool __lambda_lib_std_numbers_0(void* l0, uint32_t l1) {
+bool __lambda_std_numbers_0(void* l0, uint32_t l1) {
     return l1 == 95u;
 }
 
-bool __lambda_lib_std_path_0(void* l0, uint32_t l1) {
+bool __lambda_std_path_0(void* l0, uint32_t l1) {
     return l1 == 92u;
 }
 
