@@ -1794,10 +1794,10 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l1) {
-        l3 = (void*) &vader_fn_static_247;
+        l3 = (void*) &vader_fn_static_vader_diagnostics_diag_less_with_file;
         l3 = std_sort_sort__Diagnostic(l0, l3);
     } else {
-        l4 = (void*) &vader_fn_static_248;
+        l4 = (void*) &vader_fn_static_vader_diagnostics_diag_less;
         l3 = std_sort_sort__Diagnostic(l0, l4);
     }
     l3 = vader_diagnostics_dedup_diagnostics(l3);

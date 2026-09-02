@@ -3211,48 +3211,48 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(12)) {
-        vader_struct___lambda_env_3485_t* _a27_obj = (vader_struct___lambda_env_3485_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3485_t));
+        vader_struct___lambda_env_3467_t* _a27_obj = (vader_struct___lambda_env_3467_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3467_t));
         vader_obj_header_init(_a27_obj, 279u);
         t2 = (void*) _a27_obj;
         vader_fn_t* _a28_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a28_closure, 138u);
-        _a28_closure->code = (void*) &vader_fn_lift_2592;
+        _a28_closure->code = (void*) &vader_fn_lift___lambda_3466;
         _a28_closure->env = t2;
         l17 = (void*) _a28_closure;
         t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1461u, l17);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(13)) {
-        vader_struct___lambda_env_3482_t* _a29_obj = (vader_struct___lambda_env_3482_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3482_t));
+        vader_struct___lambda_env_3464_t* _a29_obj = (vader_struct___lambda_env_3464_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3464_t));
         vader_obj_header_init(_a29_obj, 277u);
         t2 = (void*) _a29_obj;
         vader_fn_t* _a30_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a30_closure, 138u);
-        _a30_closure->code = (void*) &vader_fn_lift_2591;
+        _a30_closure->code = (void*) &vader_fn_lift___lambda_3463;
         _a30_closure->env = t2;
         l17 = (void*) _a30_closure;
         t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1876u, l17);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(14)) {
-        vader_struct___lambda_env_3479_t* _a31_obj = (vader_struct___lambda_env_3479_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3479_t));
+        vader_struct___lambda_env_3461_t* _a31_obj = (vader_struct___lambda_env_3461_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3461_t));
         vader_obj_header_init(_a31_obj, 275u);
         t2 = (void*) _a31_obj;
         vader_fn_t* _a32_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a32_closure, 143u);
-        _a32_closure->code = (void*) &vader_fn_lift_2590;
+        _a32_closure->code = (void*) &vader_fn_lift___lambda_3460;
         _a32_closure->env = t2;
         l17 = (void*) _a32_closure;
         t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1461u, l17);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(15)) {
-        vader_struct___lambda_env_3476_t* _a33_obj = (vader_struct___lambda_env_3476_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3476_t));
+        vader_struct___lambda_env_3458_t* _a33_obj = (vader_struct___lambda_env_3458_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_3458_t));
         vader_obj_header_init(_a33_obj, 273u);
         t2 = (void*) _a33_obj;
         vader_fn_t* _a34_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
         vader_obj_header_init(_a34_closure, 143u);
-        _a34_closure->code = (void*) &vader_fn_lift_2589;
+        _a34_closure->code = (void*) &vader_fn_lift___lambda_3457;
         _a34_closure->env = t2;
         l17 = (void*) _a34_closure;
         t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1876u, l17);
