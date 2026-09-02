@@ -350,6 +350,21 @@
                                   },
                                   "args": []
                                 }
+                              },
+                              {
+                                "kind": "text",
+                                "value": " path=["
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "path"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "]"
                               }
                             ]
                           },

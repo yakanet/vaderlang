@@ -30,6 +30,7 @@
   expr 21:34    CallExpr       :: string
   expr 21:34    FieldExpr      :: fn() -> string
   expr 21:34    IdentExpr      :: Error
+  expr 21:56    IdentExpr      :: string
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(T) -> void
   expr 24:12    CallExpr       :: IOError | u8[]
