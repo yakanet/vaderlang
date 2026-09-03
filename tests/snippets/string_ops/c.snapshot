@@ -80,7 +80,7 @@ static int32_t snippet_main(void) {
     l0 = concat_2(t0, 3u);
 #line 16 "tests/snippets/string_ops/_main.vader"
     if (l0 == 4u) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
         l0 = concat_2(l0, 5u);
         std_io_write(INT32_C(0), l0);
 #line 18 "tests/snippets/string_ops/_main.vader"

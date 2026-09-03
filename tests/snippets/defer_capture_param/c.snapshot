@@ -190,7 +190,7 @@ static void snippet_log_at_exit(vader_string_t l0, int64_t l1) {
 #line 20 "tests/snippets/defer_capture_param/_main.vader"
     l4 = ((vader_struct__Cell_string_t*) l2.payload.obj)->f_value;
     t1 = concat_2(1u, l4);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l4);
 #line 20 "tests/snippets/defer_capture_param/_main.vader"
@@ -243,7 +243,7 @@ static void snippet_bump_at_exit(void* l0, int64_t l1) {
     l6 = ((vader_struct__Cell_i64_t*) l3.payload.obj)->f_value;
     l5 = std_core_write_int(l4, l5, l6);
     t1 = std_core_finish_buffer(l4, l5);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l7 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l7);
 #line 26 "tests/snippets/defer_capture_param/_main.vader"
@@ -276,7 +276,7 @@ static void snippet_make_greeter(vader_string_t l0) {
     l1 = (void*) _a2_obj;
     l2 = ((vader_struct__Cell_string_t*) ((vader_struct___lambda_env_snippet_5_t*) l1)->f_cap_0.payload.obj)->f_value;
     t1 = concat_2(4u, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l2 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l2);
 #line 30 "tests/snippets/defer_capture_param/_main.vader"
@@ -314,7 +314,7 @@ static int32_t snippet_main(void) {
     l3 = ((vader_struct_snippet_Counter_t*) l0)->f_hits;
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l4);
 #line 41 "tests/snippets/defer_capture_param/_main.vader"
@@ -345,7 +345,7 @@ static void __defer_snippet_0(void* l0) {
     l4 = ((vader_struct__Cell_i64_t*) ((vader_struct___defer_env_snippet_1_t*) l0)->f_cap_1.payload.obj)->f_value;
     l2 = std_core_write_int(l3, l2, l4);
     t0 = std_core_finish_buffer(l3, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l1);
 #line 19 "tests/snippets/defer_capture_param/_main.vader"

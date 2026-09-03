@@ -182,7 +182,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     l2 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1;
 #line 16 "tests/snippets/async_main/_main.vader"
                     t1 = concat_2(2u, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l3 = concat_2(t1, 3u);
                     std_io_write(INT32_C(0), l3);
 #line 14 "tests/snippets/async_main/_main.vader"

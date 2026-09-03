@@ -113,7 +113,7 @@ static int32_t snippet_main(void) {
                 l7 = (uint64_t) (int64_t) t1;
                 l6 = std_core_write_unsigned(l5, l6, l7);
                 t2 = std_core_finish_buffer(l5, l6);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l8 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l8);
 #line 17 "tests/snippets/intrinsic_type_args/_main.vader"
@@ -136,7 +136,7 @@ static int32_t snippet_main(void) {
     l7 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l5, l3, l7);
     t2 = std_core_finish_buffer(l5, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l8 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l8);
 #line 22 "tests/snippets/intrinsic_type_args/_main.vader"

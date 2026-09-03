@@ -174,7 +174,7 @@ static void snippet_Never_Async_cancel(void* l0) {
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(1u, 2u);
     std_io_write(INT32_C(0), l1);
 #line 16 "tests/snippets/async_cancel_defer/_main.vader"
@@ -246,7 +246,7 @@ static int32_t snippet_main(void) {
     t0 = vader_vt_Async__resume(l0);
 #line 37 "tests/snippets/async_cancel_defer/_main.vader"
     vader_vt_Async__cancel(l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(3u, 2u);
     std_io_write(INT32_C(0), l1);
 #line 39 "tests/snippets/async_cancel_defer/_main.vader"
@@ -260,7 +260,7 @@ static void __defer_snippet_0(void* l0) {
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(4u, 2u);
     std_io_write(INT32_C(0), l1);
 #line 20 "tests/snippets/async_cancel_defer/_main.vader"
@@ -343,7 +343,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
 #line 22 "tests/snippets/async_cancel_defer/_main.vader"
                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2 = l6;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l7 = concat_2(5u, 2u);
                     std_io_write(INT32_C(0), l7);
 #line 19 "tests/snippets/async_cancel_defer/_main.vader"
@@ -471,7 +471,7 @@ static void __defer_snippet_3(void* l0) {
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(6u, 2u);
     std_io_write(INT32_C(0), l1);
 #line 28 "tests/snippets/async_cancel_defer/_main.vader"
@@ -553,7 +553,7 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
 #line 29 "tests/snippets/async_cancel_defer/_main.vader"
                     ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s1 = l6;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_5_t*) l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l7 = concat_2(7u, 2u);
                     std_io_write(INT32_C(0), l7);
 #line 27 "tests/snippets/async_cancel_defer/_main.vader"

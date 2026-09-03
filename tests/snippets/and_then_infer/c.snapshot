@@ -175,7 +175,7 @@ static int32_t snippet_main(void) {
     l4 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l4);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l5);
 #line 24 "tests/snippets/and_then_infer/_main.vader"
@@ -197,7 +197,7 @@ static int32_t snippet_main(void) {
     l4 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l4);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l5);
 #line 26 "tests/snippets/and_then_infer/_main.vader"

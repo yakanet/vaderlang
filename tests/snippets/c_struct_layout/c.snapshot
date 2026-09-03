@@ -129,7 +129,7 @@ static int32_t snippet_main(void) {
     l4 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l2, l3, l4);
     t2 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 4u);
     std_io_write(INT32_C(0), l5);
 #line 29 "tests/snippets/c_struct_layout/_main.vader"

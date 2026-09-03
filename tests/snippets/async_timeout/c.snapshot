@@ -243,7 +243,7 @@ static void __defer_snippet_0(void* l0) {
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(1u, 2u);
     std_io_write(INT32_C(0), l1);
 #line 11 "tests/snippets/async_timeout/_main.vader"
@@ -473,7 +473,7 @@ static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
 #line 19 "tests/snippets/async_timeout/_main.vader"
                     l2 = vader_vt_Error__message(((vader_struct___asyncstate_snippet_3_t*) l0)->f_s2);
                     t1 = concat_2(4u, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l3 = concat_2(t1, 2u);
                     std_io_write(INT32_C(0), l3);
 #line 16 "tests/snippets/async_timeout/_main.vader"
@@ -486,7 +486,7 @@ static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
 #line 21 "tests/snippets/async_timeout/_main.vader"
                     l4 = ((vader_struct___asyncstate_snippet_3_t*) l0)->f_s1.payload.s;
                     t1 = concat_2(5u, l4);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l5 = concat_2(t1, 2u);
                     std_io_write(INT32_C(0), l5);
 #line 16 "tests/snippets/async_timeout/_main.vader"

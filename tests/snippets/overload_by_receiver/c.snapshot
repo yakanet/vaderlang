@@ -127,7 +127,7 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l3);
 #line 24 "tests/snippets/overload_by_receiver/_main.vader"
@@ -138,7 +138,7 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l3);
 #line 25 "tests/snippets/overload_by_receiver/_main.vader"
@@ -150,7 +150,7 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l3);
 #line 26 "tests/snippets/overload_by_receiver/_main.vader"
@@ -162,7 +162,7 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l3);
 #line 27 "tests/snippets/overload_by_receiver/_main.vader"

@@ -178,7 +178,7 @@ static int32_t snippet_main(void) {
                 l7 = ((int64_t) (int32_t) l4);
                 l6 = std_core_write_int(l5, l6, l7);
                 t3 = std_core_finish_buffer(l5, l6);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l8 = concat_2(t3, 2u);
                 std_io_write(INT32_C(0), l8);
 #line 26 "tests/snippets/fuse_generator_chain/_main.vader"
@@ -227,7 +227,7 @@ static int32_t snippet_main(void) {
                     l7 = ((int64_t) (int32_t) l9);
                     l6 = std_core_write_int(l5, l6, l7);
                     t3 = std_core_finish_buffer(l5, l6);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l8 = concat_2(t3, 2u);
                     std_io_write(INT32_C(0), l8);
 #line 21 "tests/snippets/fuse_generator_chain/_main.vader"
@@ -292,7 +292,7 @@ static int32_t snippet_main(void) {
                     l7 = ((int64_t) (int32_t) l9);
                     l6 = std_core_write_int(l10, l6, l7);
                     t3 = std_core_finish_buffer(l10, l6);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l8 = concat_2(t3, 2u);
                     std_io_write(INT32_C(0), l8);
 #line 21 "tests/snippets/fuse_generator_chain/_main.vader"

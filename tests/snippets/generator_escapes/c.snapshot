@@ -226,7 +226,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l2);
                 l4 = std_core_write_int(l3, l4, l5);
                 t1 = std_core_finish_buffer(l3, l4);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l6 = concat_2(t1, 2u);
                 std_io_write(INT32_C(0), l6);
 #line 21 "tests/snippets/generator_escapes/_main.vader"
@@ -258,7 +258,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l2);
                 l4 = std_core_write_int(l3, l4, l5);
                 t1 = std_core_finish_buffer(l3, l4);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l6 = concat_2(t1, 2u);
                 std_io_write(INT32_C(0), l6);
 #line 23 "tests/snippets/generator_escapes/_main.vader"

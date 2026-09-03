@@ -237,7 +237,7 @@ static void __defer_snippet_0(void* l0) {
 #line 12 "tests/snippets/async_defer/_main.vader"
     l1 = ((vader_struct__Cell_string_t*) ((vader_struct___defer_env_snippet_1_t*) l0)->f_cap_0.payload.obj)->f_value;
     t0 = concat_2(1u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l1);
 #line 12 "tests/snippets/async_defer/_main.vader"
@@ -255,7 +255,7 @@ static void __defer_snippet_2(void* l0) {
 #line 14 "tests/snippets/async_defer/_main.vader"
     l1 = ((vader_struct__Cell_string_t*) ((vader_struct___defer_env_snippet_3_t*) l0)->f_cap_0.payload.obj)->f_value;
     t0 = concat_2(3u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l1);
 #line 14 "tests/snippets/async_defer/_main.vader"
@@ -367,7 +367,7 @@ static vader_box_t snippet___asyncstate_snippet_4_Async_resume(void* l0) {
 #line 15 "tests/snippets/async_defer/_main.vader"
                     l10 = ((vader_struct__Cell_string_t*) ((vader_struct___asyncstate_snippet_4_t*) l0)->f_s0.payload.obj)->f_value;
                     t4 = concat_2(4u, l10);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l11 = concat_2(t4, 2u);
                     std_io_write(INT32_C(0), l11);
 #line 11 "tests/snippets/async_defer/_main.vader"

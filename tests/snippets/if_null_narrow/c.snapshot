@@ -256,57 +256,57 @@ static int32_t snippet_main(void) {
     l2 = vader_box_obj(0u, NULL);
 #line 63 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet(l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 64 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet(l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 65 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v2(l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 66 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v2(l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 67 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v3(l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 68 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v3(l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 69 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v4(l0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 70 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_greet_v4(l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 71 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_combine(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 72 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_combine(l2, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 73 "tests/snippets/if_null_narrow/_main.vader"
     t1 = snippet_combine(l0, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l3 = concat_2(t1, 13u);
     std_io_write(INT32_C(0), l3);
 #line 74 "tests/snippets/if_null_narrow/_main.vader"

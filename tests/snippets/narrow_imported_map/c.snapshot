@@ -173,7 +173,7 @@ static int32_t snippet_main(void) {
     l3 = snippet_lib_pick(l0, INT32_C(1));
 #line 20 "tests/snippets/narrow_imported_map/_main.vader"
     if (l3.tag == 0u) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
         l4 = concat_2(1u, 2u);
         std_io_write(INT32_C(0), l4);
 #line 22 "tests/snippets/narrow_imported_map/_main.vader"
@@ -188,7 +188,7 @@ static int32_t snippet_main(void) {
     l6 = ((int64_t) (int32_t) t1);
     l5 = std_core_write_int(l0, l5, l6);
     t2 = std_core_finish_buffer(l0, l5);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l4);
 #line 25 "tests/snippets/narrow_imported_map/_main.vader"

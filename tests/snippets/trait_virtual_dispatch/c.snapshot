@@ -145,7 +145,7 @@ static int32_t snippet_main(void) {
     _a0_obj->f_msg = 3u;
     t0 = (void*) _a0_obj;
     t1 = snippet_report(vader_ref_box(t0));
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l0 = concat_2(t1, 4u);
     std_io_write(INT32_C(0), l0);
 #line 21 "tests/snippets/trait_virtual_dispatch/_main.vader"
@@ -154,7 +154,7 @@ static int32_t snippet_main(void) {
     _a1_obj->f_reason = 5u;
     t0 = (void*) _a1_obj;
     t1 = snippet_report(vader_ref_box(t0));
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l0 = concat_2(t1, 4u);
     std_io_write(INT32_C(0), l0);
 #line 22 "tests/snippets/trait_virtual_dispatch/_main.vader"

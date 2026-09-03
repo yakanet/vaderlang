@@ -209,7 +209,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t2 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 6u);
     std_io_write(INT32_C(0), l5);
 #line 48 "tests/snippets/union_variant_narrow_mutation/_main.vader"
@@ -238,7 +238,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_string_at(l2, l3, 9u);
     l3 = std_core_write_string_at(l2, l3, l5);
     t2 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 6u);
     std_io_write(INT32_C(0), l5);
 #line 49 "tests/snippets/union_variant_narrow_mutation/_main.vader"
@@ -255,7 +255,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t2 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t2, 6u);
     std_io_write(INT32_C(0), l5);
 #line 50 "tests/snippets/union_variant_narrow_mutation/_main.vader"

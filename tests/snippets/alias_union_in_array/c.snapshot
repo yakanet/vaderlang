@@ -174,7 +174,7 @@ static int32_t snippet_main(void) {
                 t0 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l3);
 #line 33 "tests/snippets/alias_union_in_array/_main.vader"
                 t1 = snippet_describe(t0);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l4 = concat_2(t1, 5u);
                 std_io_write(INT32_C(0), l4);
 #line 32 "tests/snippets/alias_union_in_array/_main.vader"

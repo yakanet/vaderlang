@@ -280,7 +280,7 @@ static int32_t snippet_main(void) {
     l6 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l2, l3, l6);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l7 = concat_2(t1, 3u);
     std_io_write(INT32_C(0), l7);
 #line 55 "tests/snippets/iter_coerce_method_arg/_main.vader"
@@ -304,7 +304,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_int(l2, l3, l6);
     l3 = std_core_write_string_at(l2, l3, 5u);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l7 = concat_2(t1, 3u);
     std_io_write(INT32_C(0), l7);
 #line 57 "tests/snippets/iter_coerce_method_arg/_main.vader"

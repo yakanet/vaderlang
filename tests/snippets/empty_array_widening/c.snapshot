@@ -181,7 +181,7 @@ static int32_t snippet_main(void) {
     l5 = ((int64_t) (int32_t) t2);
     l3 = std_core_write_int(l2, l3, l5);
     t3 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l6 = concat_2(t3, 5u);
     std_io_write(INT32_C(0), l6);
 #line 32 "tests/snippets/empty_array_widening/_main.vader"
@@ -232,7 +232,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_string_at(l2, l3, 3u);
     l3 = std_core_write_string_at(l2, l3, l7);
     t3 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l6 = concat_2(t3, 5u);
     std_io_write(INT32_C(0), l6);
 #line 39 "tests/snippets/empty_array_widening/_main.vader"
@@ -273,7 +273,7 @@ static int32_t snippet_main(void) {
     l5 = ((int64_t) (int32_t) t2);
     l3 = std_core_write_int(l2, l3, l5);
     t3 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l6 = concat_2(t3, 5u);
     std_io_write(INT32_C(0), l6);
 #line 44 "tests/snippets/empty_array_widening/_main.vader"

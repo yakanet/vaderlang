@@ -79,7 +79,7 @@ static int32_t snippet_main(void) {
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)11u));
 #line 16 "tests/snippets/comptime_type_value/_main.vader"
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)4u));
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l0 = concat_2(1u, 2u);
     std_io_write(INT32_C(0), l0);
 #line 18 "tests/snippets/comptime_type_value/_main.vader"

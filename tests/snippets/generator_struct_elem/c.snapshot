@@ -196,7 +196,7 @@ static int32_t snippet_main(void) {
                             l11 = ((int64_t) (int32_t) t1);
                             l10 = std_core_write_int(l9, l10, l11);
                             t2 = std_core_finish_buffer(l9, l10);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                             l12 = concat_2(t2, 5u);
                             std_io_write(INT32_C(0), l12);
 #line 11 "tests/snippets/generator_struct_elem/_main.vader"

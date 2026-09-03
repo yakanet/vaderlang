@@ -308,7 +308,7 @@ static int32_t snippet_main(void) {
                 l7 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l6.payload.obj)->f_value);
                 l2 = std_core_write_int(l0, l2, l7);
                 t1 = std_core_finish_buffer(l0, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l8 = concat_2(t1, 5u);
                 std_io_write(INT32_C(0), l8);
 #line 30 "tests/snippets/capture_loop_var/_main.vader"
@@ -429,7 +429,7 @@ static void __lambda_snippet_0(void* l0) {
 #line 23 "tests/snippets/capture_loop_var/_main.vader"
     l1 = ((vader_struct__Cell_string_t*) ((vader_struct___lambda_env_snippet_1_t*) l0)->f_cap_0.payload.obj)->f_value;
     t0 = concat_2(6u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t0, 5u);
     std_io_write(INT32_C(0), l1);
 #line 23 "tests/snippets/capture_loop_var/_main.vader"
@@ -454,7 +454,7 @@ static void __defer_snippet_2(void* l0) {
     l3 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) ((vader_struct___defer_env_snippet_3_t*) l0)->f_cap_0.payload.obj)->f_value);
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t0, 5u);
     std_io_write(INT32_C(0), l4);
 #line 29 "tests/snippets/capture_loop_var/_main.vader"
@@ -479,7 +479,7 @@ static void __lambda_snippet_4(void* l0) {
     l3 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_snippet_5_t*) l0)->f_cap_0.payload.obj)->f_value);
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t0, 5u);
     std_io_write(INT32_C(0), l4);
 #line 36 "tests/snippets/capture_loop_var/_main.vader"
@@ -504,7 +504,7 @@ static void __defer_snippet_6(void* l0) {
     l3 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) ((vader_struct___defer_env_snippet_7_t*) l0)->f_cap_0.payload.obj)->f_value);
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t0, 5u);
     std_io_write(INT32_C(0), l4);
 #line 42 "tests/snippets/capture_loop_var/_main.vader"
@@ -529,7 +529,7 @@ static void __lambda_snippet_10(void* l0) {
     l3 = ((vader_struct__Cell_i64_t*) ((vader_struct___lambda_env_snippet_11_t*) l0)->f_cap_0.payload.obj)->f_value;
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t0, 5u);
     std_io_write(INT32_C(0), l4);
 #line 47 "tests/snippets/capture_loop_var/_main.vader"

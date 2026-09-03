@@ -280,7 +280,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     l4 = std_core_write_int(l3, l4, l5);
                     l4 = std_core_write_string_at(l3, l4, 2u);
                     t1 = std_core_finish_buffer(l3, l4);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l6 = concat_2(t1, 3u);
                     std_io_write(INT32_C(0), l6);
 #line 11 "tests/snippets/async_interleave/_main.vader"
@@ -322,7 +322,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     t1 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0;
 #line 12 "tests/snippets/async_interleave/_main.vader"
                     t5 = concat_2(t1, 4u);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l10 = concat_2(t5, 3u);
                     std_io_write(INT32_C(0), l10);
 #line 11 "tests/snippets/async_interleave/_main.vader"

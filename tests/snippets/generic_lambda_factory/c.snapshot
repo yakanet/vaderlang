@@ -261,7 +261,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l3);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l4);
 #line 60 "tests/snippets/generic_lambda_factory/_main.vader"
@@ -277,7 +277,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l3);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l4);
 #line 63 "tests/snippets/generic_lambda_factory/_main.vader"

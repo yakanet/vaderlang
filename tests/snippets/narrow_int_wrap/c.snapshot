@@ -104,7 +104,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t0;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l5);
 #line 39 "tests/snippets/narrow_int_wrap/_main.vader"
@@ -120,7 +120,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t0;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l5);
 #line 44 "tests/snippets/narrow_int_wrap/_main.vader"
@@ -132,7 +132,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t0;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l5);
 #line 47 "tests/snippets/narrow_int_wrap/_main.vader"
@@ -147,7 +147,7 @@ static int32_t snippet_main(void) {
     l4 = (uint64_t) (int64_t) t0;
     l3 = std_core_write_unsigned(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l5 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l5);
 #line 51 "tests/snippets/narrow_int_wrap/_main.vader"

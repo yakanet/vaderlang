@@ -155,7 +155,7 @@ static int32_t snippet_main(void) {
                 l9 = (uint64_t) (int64_t) t1;
                 l8 = std_core_write_unsigned(l3, l8, l9);
                 t2 = std_core_finish_buffer(l3, l8);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l10 = concat_2(t2, 5u);
                 std_io_write(INT32_C(0), l10);
 #line 22 "tests/snippets/intrinsic_fields/_main.vader"
@@ -205,7 +205,7 @@ static int32_t snippet_main(void) {
                 l9 = (uint64_t) (int64_t) t1;
                 l8 = std_core_write_unsigned(l3, l8, l9);
                 t2 = std_core_finish_buffer(l3, l8);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l10 = concat_2(t2, 5u);
                 std_io_write(INT32_C(0), l10);
 #line 25 "tests/snippets/intrinsic_fields/_main.vader"

@@ -132,7 +132,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l3);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 1u);
     std_io_write(INT32_C(0), l4);
 #line 18 "tests/snippets/unused_lambda_param/_main.vader"
@@ -150,7 +150,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l3);
     t2 = std_core_finish_buffer(l0, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 1u);
     std_io_write(INT32_C(0), l4);
 #line 19 "tests/snippets/unused_lambda_param/_main.vader"

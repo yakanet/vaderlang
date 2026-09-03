@@ -119,7 +119,7 @@ static void snippet_scan(void) {
                                 l5 = ((int64_t) (int32_t) l1);
                                 l3 = std_core_write_int(l2, l3, l5);
                                 t0 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                                 l6 = concat_2(t0, 3u);
                                 std_io_write(INT32_C(0), l6);
 #line 12 "tests/snippets/loop_break_by_var/_main.vader"
@@ -226,7 +226,7 @@ static void snippet_sift(void) {
                                 l9 = ((int64_t) (int32_t) l7);
                                 l8 = std_core_write_int(l2, l8, l9);
                                 t1 = std_core_finish_buffer(l2, l8);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                                 l10 = concat_2(t1, 3u);
                                 std_io_write(INT32_C(0), l10);
 #line 24 "tests/snippets/loop_break_by_var/_main.vader"

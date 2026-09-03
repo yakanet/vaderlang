@@ -203,21 +203,21 @@ static int32_t snippet_main(void) {
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
     t1 = concat_2(4u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t1, 5u);
     std_io_write(INT32_C(0), l1);
 #line 34 "tests/snippets/async_countdown/_main.vader"
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
     t1 = concat_2(6u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t1, 5u);
     std_io_write(INT32_C(0), l1);
 #line 35 "tests/snippets/async_countdown/_main.vader"
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
     t1 = concat_2(7u, l1);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t1, 5u);
     std_io_write(INT32_C(0), l1);
 #line 36 "tests/snippets/async_countdown/_main.vader"

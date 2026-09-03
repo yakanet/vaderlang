@@ -237,7 +237,7 @@ static int32_t snippet_main(void) {
     l5 = std_core_format_f64(t0);
 #line 15 "tests/snippets/f64_non_finite/_main.vader"
     t1 = concat_9(l1, 1u, l2, 1u, l3, 1u, l4, 1u, l5);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l1 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l1);
 #line 16 "tests/snippets/f64_non_finite/_main.vader"

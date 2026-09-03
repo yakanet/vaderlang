@@ -250,7 +250,7 @@ static int32_t snippet_main(void) {
     l3 = (uint64_t) (int64_t) t1;
     l2 = std_core_write_unsigned(l1, l2, l3);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l4);
 #line 10 "tests/snippets/iter_zip_chain/_main.vader"
@@ -266,7 +266,7 @@ static int32_t snippet_main(void) {
     l5 = ((int64_t) (int32_t) t3);
     l2 = std_core_write_int(l1, l2, l5);
     t2 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t2, 2u);
     std_io_write(INT32_C(0), l4);
 #line 14 "tests/snippets/iter_zip_chain/_main.vader"
@@ -322,7 +322,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l10);
                 l13 = std_core_write_int(l12, l13, l5);
                 t2 = std_core_finish_buffer(l12, l13);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l14 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l14);
 #line 110 "lib/std/iter/iter.vader"
@@ -361,7 +361,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l8);
                 l7 = std_core_write_int(l9, l7, l5);
                 t2 = std_core_finish_buffer(l9, l7);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l4 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l4);
 #line 23 "tests/snippets/iter_zip_chain/_main.vader"
@@ -388,7 +388,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l8);
                 l7 = std_core_write_int(l1, l7, l5);
                 t2 = std_core_finish_buffer(l1, l7);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l4 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l4);
 #line 23 "tests/snippets/iter_zip_chain/_main.vader"
@@ -437,7 +437,7 @@ static int32_t snippet_main(void) {
                 l16 = std_core_write_string_at(l9, l16, 13u);
                 l16 = std_core_write_string_at(l9, l16, l11);
                 t2 = std_core_finish_buffer(l9, l16);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l14 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l14);
 #line 160 "lib/std/iter/iter.vader"
@@ -505,7 +505,7 @@ static int32_t snippet_main(void) {
                 l5 = ((int64_t) (int32_t) l8);
                 l2 = std_core_write_int(l0, l2, l5);
                 t2 = std_core_finish_buffer(l0, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                 l4 = concat_2(t2, 2u);
                 std_io_write(INT32_C(0), l4);
 #line 35 "tests/snippets/iter_zip_chain/_main.vader"

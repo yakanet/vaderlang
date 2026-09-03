@@ -106,7 +106,7 @@ static int32_t snippet_main(void) {
     l5 = (uint64_t) (int64_t) t0;
     l3 = std_core_write_unsigned(l2, l3, l5);
     t1 = std_core_finish_buffer(l2, l3);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l6 = concat_2(t1, 4u);
     std_io_write(INT32_C(0), l6);
 #line 18 "tests/snippets/extern_native_basic/_main.vader"

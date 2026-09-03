@@ -163,7 +163,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) l0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
     l4 = concat_2(t1, 2u);
     std_io_write(INT32_C(0), l4);
 #line 24 "tests/snippets/async_sleep/_main.vader"
@@ -200,7 +200,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                 if (t0 == INT32_C(2)) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l1 = concat_2(3u, 2u);
                     std_io_write(INT32_C(0), l1);
 #line 12 "tests/snippets/async_sleep/_main.vader"
@@ -238,7 +238,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 }
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                 if (t0 == INT32_C(5)) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l5 = concat_2(4u, 2u);
                     std_io_write(INT32_C(0), l5);
 #line 12 "tests/snippets/async_sleep/_main.vader"
@@ -276,7 +276,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 }
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                 if (t0 == INT32_C(8)) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l9 = concat_2(5u, 2u);
                     std_io_write(INT32_C(0), l9);
 #line 12 "tests/snippets/async_sleep/_main.vader"

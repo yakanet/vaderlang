@@ -511,7 +511,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
 #line 32 "tests/snippets/async_try_all/_main.vader"
                     l2 = vader_vt_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5);
                     t1 = concat_2(2u, l2);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l3 = concat_2(t1, 3u);
                     std_io_write(INT32_C(0), l3);
 #line 20 "tests/snippets/async_try_all/_main.vader"
@@ -561,7 +561,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                 }
                 t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                 if (t0 == INT32_C(7)) {
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l7 = concat_2(4u, 3u);
                     std_io_write(INT32_C(0), l7);
 #line 20 "tests/snippets/async_try_all/_main.vader"
@@ -581,7 +581,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                     l10 = ((int64_t) (int32_t) t0);
                     l9 = std_core_write_int(l8, l9, l10);
                     t1 = std_core_finish_buffer(l8, l9);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l11 = concat_2(t1, 3u);
                     std_io_write(INT32_C(0), l11);
 #line 20 "tests/snippets/async_try_all/_main.vader"
@@ -731,7 +731,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
 #line 27 "tests/snippets/async_try_all/_main.vader"
                     l29 = vader_vt_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2);
                     t1 = concat_2(8u, l29);
-#line 116 "lib/std/io/io.vader"
+#line 115 "lib/std/io/io.vader"
                     l30 = concat_2(t1, 3u);
                     std_io_write(INT32_C(0), l30);
 #line 20 "tests/snippets/async_try_all/_main.vader"
