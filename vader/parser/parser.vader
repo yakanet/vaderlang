@@ -1218,6 +1218,12 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
+/// Whether `n` is a width a C scalar can have — and therefore an alignment
+/// `c_struct_layout` can use.
+///
+/// @param n  the declared width in bytes.
+is_c_scalar_width :: fn(n: u64) -> bool = n == 0 || n == 1 || n == 2 || n == 4 || n == 8
+
 /// Read one `@c_size(N, .Os)` on a struct field.
 ///
 /// `N` is the width the C field has on that system, `0` meaning it does not
@@ -1243,6 +1249,14 @@ parse_c_size :: fn(p: Parser!, d: Decorator) -> CSizeSelector | null {
         p.error(.UnknownDecoratorPlacement, os.span,
             "`@c_size`'s second argument names a system, written `.Linux`, `.Darwin`, "
                 + "`.Windows`, `.Wasi` or `.Browser`")
+        return null
+    }
+    // `c_struct_layout` uses the width AS the field's alignment, which only holds
+    // for a power-of-two scalar size — this is what guarantees it.
+    if !is_c_scalar_width(width.value) {
+        p.error(.UnknownDecoratorPlacement, width.span,
+            "`@c_size` takes 0, 1, 2, 4 or 8 — `0` when the field does not exist "
+                + "on that system, otherwise the width of a C scalar")
         return null
     }
     return CSizeSelector { .span = d.span, .bytes = width.value, .os = os.variant }

@@ -39,6 +39,31 @@ export CLayout :: struct {
     /// `sizeof` the C type only when the mirror is exhaustive; smaller for a
     /// prefix, which is why the interpreter sizes its block by the floor.
     size:    i64
+    /// Name of the first field whose width could not be derived, `null` when
+    /// every field has one. A name invalidates every offset from that field on,
+    /// so a caller must refuse the layout rather than use it.
+    unknown_field: string | null = null
+}
+
+/// The `ValType` a mirrored field holds on the Vader side.
+///
+/// The one place that resolves a `BcField` through the type table — the width,
+/// the interpreter's read-back signedness and the emitter's signedness assert are
+/// all read off it, and they must not each answer from their own copy.
+///
+/// @param f      the field.
+/// @param types  the module type table.
+/// @return       the field's `ValType`, or `null` when its type is not a
+///               primitive, or its index is not one the table holds.
+export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+        return null
+    }
+    t :: types[usize(f.type_index)]
+    if t is BcPrimitive as p {
+        return p.val
+    }
+    return null
 }
 
 /// The width a mirrored field occupies in the C struct.
@@ -47,56 +72,76 @@ export CLayout :: struct {
 /// that receives it (`mode_t` is 2 bytes on Darwin against a `u32` mirror). With
 /// no annotation the two are the same width, which is what the emitter asserts.
 ///
+/// The SIGNEDNESS is not carried here. The interpreter takes it from the Vader
+/// field, so a narrowed field must carry the same signedness as the C one it
+/// mirrors — `vader/c_emit/host.vader::signedness_assert` is what holds the two
+/// together.
+///
 /// @param f      the field.
 /// @param types  the module type table, to size the field's own type.
-/// @return       the width in bytes, `0` for a field absent on this system.
-export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 {
+/// @return       the width in bytes, `0` for a field absent on this system, and
+///               `null` when the field's type carries no width. `0` and `null`
+///               must not be conflated: the first is declared, the second is a
+///               mirror nothing can lay out.
+export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
     if f.c_size >= 0 {
         return f.c_size
     }
-    if f.type_index < 0 || usize(f.type_index) >= types.len() {
-        return 0
+    v :: c_field_val_type(f, types)
+    if v == null {
+        return null
     }
-    t :: types[usize(f.type_index)]
-    if t is BcPrimitive as p {
-        return i64(size_of_val_type(p.val))
-    }
-    return 0
+    return i64(size_of_val_type(v))
 }
 
 /// Lay a mirrored struct out the way a C compiler would.
 ///
-/// Each field starts at the next multiple of its own width — the natural
-/// alignment every ABI we target uses for scalars — and the total is rounded up
-/// to the widest member, which is what produces the trailing padding.
+/// Each field starts at the next multiple of its own alignment, and the total is
+/// rounded up to the STRICTEST alignment among them, which is what produces the
+/// trailing padding.
 ///
 /// A field of width `0` (`@c_size(0, …)`, absent on this system) takes no room
-/// and keeps the offset it would have had, so callers can index by position.
+/// and keeps the offset it would have had, so callers can index by position. A
+/// field whose width is UNDERIVABLE is a different matter and lands in
+/// `unknown_field` — see `CLayout`.
 ///
 /// @param fields  the mirror's fields, in declaration order.
 /// @param types   the module type table.
-/// @return        the offsets and the total size.
+/// @return        the offsets, the total size, and the first underivable field.
 export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout {
     offsets: i64[]! = []
     at: i64 = 0
-    widest: i64 = 1
+    strictest: i64 = 1
+    unknown: string | null = null
     for f in fields {
         w :: c_field_width(f, types)
+        if w == null {
+            if unknown == null {
+                unknown = f.name
+            }
+            offsets.push(at)
+            continue
+        }
         if w == 0 {
             offsets.push(at)
             continue
         }
-        if w > widest {
-            widest = w
+        // A mirror field can only be a C SCALAR, and every ABI we target aligns a
+        // scalar on its own size — which is what lets the width stand in for the
+        // alignment here. It stops holding for a composite member, whose size and
+        // alignment differ (`struct { char a; int b; }` is 8 wide, 4 aligned).
+        align :: w
+        if align > strictest {
+            strictest = align
         }
-        rem :: at % w
+        rem :: at % align
         if rem != 0 {
-            at += w - rem
+            at += align - rem
         }
         offsets.push(at)
         at += w
     }
-    tail :: at % widest
-    total :: if tail == 0 { at } else { at + widest - tail }
-    return CLayout { .offsets = offsets, .size = total }
+    tail :: at % strictest
+    total :: if tail == 0 { at } else { at + strictest - tail }
+    return CLayout { .offsets = offsets, .size = total, .unknown_field = unknown }
 }

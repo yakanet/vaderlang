@@ -82,7 +82,9 @@ extern void fill_div(div_t*, int32_t, int32_t);
 _Static_assert(8 <= sizeof(div_t), "div_t prefix");
 _Static_assert(sizeof(div_t) <= 4096, "div_t fits the interpreter block");
 _Static_assert(sizeof(((div_t*) 0)->quot) <= sizeof(((vader_struct_snippet_Div_t*) 0)->f_quot), "div_t.quot");
+_Static_assert((((__typeof__(((div_t*) 0)->quot)) -1) < 0) == 1, "div_t.quot signedness");
 _Static_assert(sizeof(((div_t*) 0)->rem) <= sizeof(((vader_struct_snippet_Div_t*) 0)->f_rem), "div_t.rem");
+_Static_assert((((__typeof__(((div_t*) 0)->rem)) -1) < 0) == 1, "div_t.rem signedness");
 
 static int32_t vader_host_snippet_c_abs(int32_t a0) { return abs(a0); }
 static void vader_host_snippet_fill_div(void* a0, int32_t a1, int32_t a2) { div_t p0; fill_div(&p0, a1, a2); ((vader_struct_snippet_Div_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Div_t*) a0)->f_rem = p0.rem; return; }

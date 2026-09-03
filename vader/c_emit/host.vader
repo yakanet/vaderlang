@@ -131,6 +131,41 @@ mirror_directions :: fn(module: BytecodeModule) -> MutableMap<i32, MirrorDirecti
     return out
 }
 
+/// `_Static_assert` pinning a mirrored field's SIGNEDNESS to the C field's, or
+/// `null` when the field's type carries no signedness to compare.
+///
+/// The shim assigns `v->f_st_mode = p.st_mode`, so C's own conversion applies and
+/// uses the C field's signedness, while the interpreter reads the block back
+/// using the VADER field's. The two must therefore agree, or a `u64` mirror over
+/// an `int32_t` reads `-1` as `4294967295` under the VM and as `-1` natively.
+///
+/// `(T)-1 < 0` is the constant-expression test for a signed `T`. The cast pins
+/// the type before the integer promotion, which preserves the value, so the
+/// answer holds for a narrow member too.
+///
+/// @param types    the module type table, to read the Vader field's own type.
+/// @param f        the field.
+/// @param c_name   the C type's spelling, e.g. `struct stat`.
+/// @param c_field  the C field's name.
+/// @return         the assert line, or `null` for a non-integer field.
+signedness_assert :: fn(
+    types: BcType[],
+    f: BcField,
+    c_name: string,
+    c_field: string,
+) -> string | null {
+    v :: c_field_val_type(f, types)
+    if v == null {
+        return null
+    }
+    if !is_integer_val(v) {
+        return null
+    }
+    want :: if is_unsigned_val(v) { "0" } else { "1" }
+    probe :: "(((__typeof__(((${c_name}*) 0)->${c_field})) -1) < 0)"
+    return "_Static_assert(${probe} == ${want}, \"${c_name}.${c_field} signedness\");"
+}
+
 /// `_Static_assert` lines pinning each mirrored field's width to the C field it
 /// mirrors.
 ///
@@ -188,6 +223,15 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
                 // there is nothing to compare and nothing to copy.
                 continue
             }
+            // `<=` only where C WRITES: the shim copies out of the C field, and
+            // a wider Vader field receives an extension. Where C READS, the copy
+            // runs the other way and a wider Vader field would be truncated, so
+            // exactness is the only safe reading. An annotated field and a bare
+            // one take the same direction.
+            fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
+                .CWrites        -> "<="
+                .CReads | .Both -> "=="
+            }
             if f.c_size > 0 {
                 // The declared width is pinned to the C field, so a header that
                 // widens it fails the build instead of passing unnoticed — which
@@ -196,33 +240,18 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
                 out.push(
                     "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) == ${f.c_size}, \"${t.c_name}.${cf} width\");",
                 )
-                // `<=` only where C WRITES: the shim then copies out of the C
-                // field, and a wider Vader field receives an extension. Where C
-                // READS, the copy runs the other way and a wider Vader field
-                // would be truncated — so exactness is the only safe reading.
-                fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
-                    .CWrites -> "<="
-                    .CReads  -> "=="
-                    .Both    -> "=="
-                }
                 out.push(
                     "_Static_assert(${f.c_size} ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf} fits\");",
                 )
-                continue
+            } else {
+                out.push(
+                    "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
+                )
             }
-            // A bare field takes the same direction as an annotated one. Where
-            // C WRITES, `<=` — the copy widens into the Vader field and cannot
-            // lose anything, and a C field's width may differ between arches of
-            // one system. Where C READS, the copy runs the other way and a wider
-            // Vader field would truncate, so exactness is required.
-            bare_fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
-                .CWrites -> "<="
-                .CReads  -> "=="
-                .Both    -> "=="
+            sign :: signedness_assert(types, f, t.c_name, cf)
+            if sign != null {
+                out.push(sign)
             }
-            out.push(
-                "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) ${bare_fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
-            )
         }
     }
     return out
