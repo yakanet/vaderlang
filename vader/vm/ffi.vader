@@ -32,18 +32,6 @@ module "vader/vm"
 /// @return        the function's address, or `0` when absent.
 @intrinsic export ffi_symbol :: fn(lib: usize, symbol: string) -> usize
 
-/// Call `fn_ptr` with `nargs` integer-or-pointer arguments, reading the result
-/// as an integer.
-///
-/// Every argument rides an `i64` slot: on every ABI we target, integers and
-/// pointers of any width share the general registers, so one slot carries an
-/// `int`, a `size_t` or a `void*` alike. Floating ARGUMENTS are not covered and
-/// must be rejected before the call.
-///
-/// @param fn_ptr  the address from `ffi_symbol`.
-/// @param args    argument slots, in order.
-/// @param nargs   how many of `args` to pass — at most 8.
-/// @return        the callee's result, widened to `i64`.
 /// One foreign call, described by DATA rather than by its shape.
 ///
 /// `desc` is one byte per slot — `desc[0]` classifies the result, `desc[1+i]`

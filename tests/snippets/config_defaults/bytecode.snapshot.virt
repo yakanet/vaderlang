@@ -15,16 +15,16 @@ string 0 "width"
 string 1 "height"
 string 2 "have "
 string 3 "="
-string 4 "width="
-string 5 " depth="
-string 6 "depth"
-string 7 "first="
-string 8 "sum="
-string 9 "req_width="
-string 10 " req_depth="
-string 11 "missing="
-string 12 "scaled="
-string 13 "\n"
+string 4 "\n"
+string 5 "width="
+string 6 " depth="
+string 7 "depth"
+string 8 "first="
+string 9 "sum="
+string 10 "req_width="
+string 11 " req_depth="
+string 12 "missing="
+string 13 "scaled="
 import 0 byte_len std_core$byte_len result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=3,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -187,10 +187,11 @@ fn 5 snippet$count_missing (ref) -> i32
   local present i32
   local __coalesce_3 any
   local __p_4 string
-  local $call_22 usize
+  local $call_23 usize
   local __buf_5 ref
   local __off_6 usize
-  local $cast_33 i64
+  local $cast_34 i64
+  local $call_38 string
   i32.const 0
   local.set 1   ; missing
   local.get 0   ; arg 0
@@ -230,41 +231,46 @@ fn 5 snippet$count_missing (ref) -> i32
         local.get 5   ; k
         local.tee 8   ; __p_4
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_22
+        local.set 9   ; $call_23
         i64.const 26
-        local.get 9   ; $call_22
+        local.get 9   ; $call_23
         i64.add
-        call 7   ; std_core$new_byte_buffer
+        call 8   ; std_core$new_byte_buffer
         local.set 10   ; __buf_5
         i64.const 0
         local.set 11   ; __off_6
         local.get 10   ; __buf_5
         local.get 11   ; __off_6
         string.const 2   ; "have "
-        call 9   ; std_core$write_string_at
+        call 10   ; std_core$write_string_at
         local.set 11   ; __off_6
         local.get 10   ; __buf_5
         local.get 11   ; __off_6
         local.get 8   ; __p_4
-        call 9   ; std_core$write_string_at
+        call 10   ; std_core$write_string_at
         local.set 11   ; __off_6
         local.get 10   ; __buf_5
         local.get 11   ; __off_6
         string.const 3   ; "="
-        call 9   ; std_core$write_string_at
+        call 10   ; std_core$write_string_at
         local.set 11   ; __off_6
         local.get 6   ; present
         i32.to_i64
-        local.set 12   ; $cast_33
+        local.set 12   ; $cast_34
         local.get 10   ; __buf_5
         local.get 11   ; __off_6
-        local.get 12   ; $cast_33
-        call 10   ; std_core$write_int
+        local.get 12   ; $cast_34
+        call 11   ; std_core$write_int
         local.set 11   ; __off_6
         local.get 10   ; __buf_5
         local.get 11   ; __off_6
-        call 8   ; std_core$finish_buffer
-        call 13   ; std_io$println__string
+        call 9   ; std_core$finish_buffer
+        string.const 4   ; "\n"
+        call 7   ; concat_2
+        local.set 13   ; $call_38
+        i32.const 0
+        local.get 13   ; $call_38
+        call 12   ; std_io$write
         local.get 4   ; __for_i_2
         i64.const 1
         i64.add
@@ -281,217 +287,277 @@ end
 fn 6 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_9 i64
+  local $cast_10 i64
+  local $call_20 string
   local __coalesce_10 any
   local if_res i32
   i64.const 53
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 4   ; "width="
-  call 9   ; std_core$write_string_at
+  string.const 5   ; "width="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 0   ; "width"
   call 1   ; snippet$resolve
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 5   ; " depth="
-  call 9   ; std_core$write_string_at
+  string.const 6   ; " depth="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
-  string.const 6   ; "depth"
+  string.const 7   ; "depth"
   call 1   ; snippet$resolve
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   i64.const 26
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 7   ; "first="
-  call 9   ; std_core$write_string_at
+  string.const 8   ; "first="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
-  string.const 6   ; "depth"
+  string.const 7   ; "depth"
   string.const 1   ; "height"
   string.const 0   ; "width"
   array.new 4 3   ; string[][]
   call 2   ; snippet$first_present
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   i64.const 24
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 8   ; "sum="
-  call 9   ; std_core$write_string_at
+  string.const 9   ; "sum="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 0   ; "width"
   string.const 1   ; "height"
-  string.const 6   ; "depth"
+  string.const 7   ; "depth"
   string.const 0   ; "width"
   array.new 4 4   ; string[][]
   call 3   ; snippet$sum_prefix
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   i64.const 61
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 9   ; "req_width="
-  call 9   ; std_core$write_string_at
+  string.const 10   ; "req_width="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 0   ; "width"
   call 4   ; snippet$required
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 10   ; " req_depth="
-  call 9   ; std_core$write_string_at
+  string.const 11   ; " req_depth="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
-  string.const 6   ; "depth"
+  string.const 7   ; "depth"
   call 4   ; snippet$required
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   i64.const 28
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 11   ; "missing="
-  call 9   ; std_core$write_string_at
+  string.const 12   ; "missing="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 0   ; "width"
-  string.const 6   ; "depth"
+  string.const 7   ; "depth"
   string.const 1   ; "height"
   array.new 4 3   ; string[][]
   call 5   ; snippet$count_missing
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   string.const 0   ; "width"
   call 0   ; snippet$setting
-  local.tee 3   ; __coalesce_10
+  local.tee 4   ; __coalesce_10
   type_check 0   ; null
   if $L0 void
     i32.const 0
-    local.set 4   ; if_res
+    local.set 5   ; if_res
   else
-    local.get 3   ; __coalesce_10
+    local.get 4   ; __coalesce_10
     ref.cast 3   ; -> i32
-    local.set 4   ; if_res
+    local.set 5   ; if_res
   end $L0
-  local.get 4   ; if_res
+  local.get 5   ; if_res
   i32.const 1
   i32.add
-  local.set 4   ; if_res
+  local.set 5   ; if_res
   i64.const 27
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 12   ; "scaled="
-  call 9   ; std_core$write_string_at
+  string.const 13   ; "scaled="
+  call 10   ; std_core$write_string_at
   local.set 1   ; __off_1
-  local.get 4   ; if_res
+  local.get 5   ; if_res
   i32.to_i64
-  local.set 2   ; $cast_9
+  local.set 2   ; $cast_10
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_9
-  call 10   ; std_core$write_int
+  local.get 2   ; $cast_10
+  call 11   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 7   ; concat_2
+  local.set 3   ; $call_20
+  i32.const 0
+  local.get 3   ; $call_20
+  call 12   ; std_io$write
   return.lit i32.const 0
 end
 
-fn 7 std_core$new_byte_buffer (usize) -> ref
+fn 7 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 8   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 9   ; std_core$finish_buffer
+  return
+end
+
+fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 14   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 8 std_core$finish_buffer (ref,usize) -> string
+fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 16   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 9 std_core$write_string_at (ref,usize,string) -> usize
+fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -506,7 +572,7 @@ fn 9 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 10 std_core$write_int (ref,usize,i64) -> usize
+fn 11 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -623,7 +689,7 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 11 std_io$write (i32,string) -> void
+fn 12 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -660,7 +726,7 @@ fn 11 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 12   ; std_io$write_bytes
+        call 13   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -681,7 +747,7 @@ fn 11 std_io$write (i32,string) -> void
   return
 end
 
-fn 12 std_io$write_bytes (i32,ref,usize) -> i32
+fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -698,16 +764,6 @@ fn 12 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 13 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 11   ; std_io$write
-  i32.const 0
-  string.const 13   ; "\n"
-  call 11   ; std_io$write
   return
 end
 

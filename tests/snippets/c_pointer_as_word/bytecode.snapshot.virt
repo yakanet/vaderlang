@@ -1,26 +1,26 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive usize
-type 3 primitive pointer
-type 4 primitive void
-type 5 primitive bool
-type 6 struct std_core$Buffer {  }
-type 7 primitive string
+type 2 primitive string
+type 3 primitive usize
+type 4 primitive pointer
+type 5 primitive void
+type 6 primitive bool
+type 7 struct std_core$Buffer {  }
 type 8 primitive u8
 type 9 array 8
 type 10 primitive isize
 string 0 "live="
-string 1 "widths_agree="
-string 2 "true"
-string 3 "false"
-string 4 "\n"
-import 0 extern malloc snippet$c_malloc header=<stdlib.h> result_type=3 param_types=2 param_mutable=0 param_by_address= (usize) -> pointer
-import 1 extern free snippet$c_free header=<stdlib.h> result_type=4 param_types=3 param_mutable=0 param_by_address= (pointer) -> void
-import 2 byte_len std_core$byte_len result_type=2 param_types=7 param_mutable=0 param_by_address= (string) -> usize
-import 3 bytes std_core$bytes result_type=9 param_types=7 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,2 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+string 1 "\n"
+string 2 "widths_agree="
+string 3 "true"
+string 4 "false"
+import 0 extern malloc snippet$c_malloc header=<stdlib.h> result_type=4 param_types=3 param_mutable=0 param_by_address= (usize) -> pointer
+import 1 extern free snippet$c_free header=<stdlib.h> result_type=5 param_types=4 param_mutable=0 param_by_address= (pointer) -> void
+import 2 byte_len std_core$byte_len result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 3 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,9,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -28,22 +28,23 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local and_res bool
-  local $cast_14 isize
-  local $unop_16 isize
-  local $cast_28 usize
-  local $cast_30 usize
+  local $cast_15 isize
+  local $unop_17 isize
+  local $call_23 string
+  local $cast_32 usize
+  local $cast_34 usize
   i64.const 16
   call.import 0   ; snippet$c_malloc
   local.set 0   ; p
   i64.const 10
-  call 1   ; std_core$new_byte_buffer
+  call 2   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; "live="
-  call 3   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; p
   ref.cast 10   ; -> isize
@@ -52,12 +53,12 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 0   ; p
     ref.cast 10   ; -> isize
-    local.set 4   ; $cast_14
+    local.set 4   ; $cast_15
     i64.const 1
     i64.neg
-    local.set 5   ; $unop_16
-    local.get 4   ; $cast_14
-    local.get 5   ; $unop_16
+    local.set 5   ; $unop_17
+    local.get 4   ; $cast_15
+    local.get 5   ; $unop_17
     i64.ne
     local.set 3   ; and_res
   else
@@ -67,61 +68,100 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; and_res
-  call 4   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 2   ; std_core$finish_buffer
-  call 7   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 1   ; concat_2
+  local.set 6   ; $call_23
+  i32.const 0
+  local.get 6   ; $call_23
+  call 6   ; std_io$write
   i64.const 18
-  call 1   ; std_core$new_byte_buffer
+  call 2   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 1   ; "widths_agree="
-  call 3   ; std_core$write_string_at
+  string.const 2   ; "widths_agree="
+  call 4   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; p
-  ref.cast 2   ; -> usize
-  local.set 6   ; $cast_28
+  ref.cast 3   ; -> usize
+  local.set 7   ; $cast_32
   local.get 0   ; p
   ref.cast 10   ; -> isize
   isize.to_i64
-  local.set 7   ; $cast_30
-  local.get 6   ; $cast_28
-  local.get 7   ; $cast_30
+  local.set 8   ; $cast_34
+  local.get 7   ; $cast_32
+  local.get 8   ; $cast_34
   i64.eq
   local.set 3   ; and_res
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; and_res
-  call 4   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 2   ; std_core$finish_buffer
-  call 7   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 1   ; concat_2
+  local.set 6   ; $call_23
+  i32.const 0
+  local.get 6   ; $call_23
+  call 6   ; std_io$write
   local.get 0   ; p
   call.import 1   ; snippet$c_free
   return.lit i32.const 0
 end
 
-fn 1 std_core$new_byte_buffer (usize) -> ref
+fn 1 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 2   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 2   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 2   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 3   ; std_core$finish_buffer
+  return
+end
+
+fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 8   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 2 std_core$finish_buffer (ref,usize) -> string
+fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 9   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 3 std_core$write_string_at (ref,usize,string) -> usize
+fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -136,23 +176,23 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 4 std_core$write_bool (ref,usize,bool) -> usize
+fn 5 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 2   ; "true"
-    call 3   ; std_core$write_string_at
+    string.const 3   ; "true"
+    call 4   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 3   ; "false"
-  call 3   ; std_core$write_string_at
+  string.const 4   ; "false"
+  call 4   ; std_core$write_string_at
   return
 end
 
-fn 5 std_io$write (i32,string) -> void
+fn 6 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -189,7 +229,7 @@ fn 5 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 6   ; std_io$write_bytes
+        call 7   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -210,7 +250,7 @@ fn 5 std_io$write (i32,string) -> void
   return
 end
 
-fn 6 std_io$write_bytes (i32,ref,usize) -> i32
+fn 7 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -227,16 +267,6 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 7 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 5   ; std_io$write
-  i32.const 0
-  string.const 4   ; "\n"
-  call 5   ; std_io$write
   return
 end
 

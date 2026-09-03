@@ -48,103 +48,119 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "u8 x: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "u8 x: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              block :string
-                let __p_0: string =
-                  vcall Display.to_string :string
-                    recv:
-                      call :null | u8
-                        callee:
-                          std_collections$get__string__u8 :null | u8
-                        arg0:
-                          mu8 :MutableMap<string, u8>!
-                        arg1:
-                          "y" :string
-                let __buf_1: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      add :usize
-                        l:
-                          int(28) :usize
-                        r:
-                          call :usize
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  block :string
+                    let __p_0: string =
+                      vcall Display.to_string :string
+                        recv:
+                          call :null | u8
                             callee:
-                              byte_len :usize
+                              std_collections$get__string__u8 :null | u8
                             arg0:
-                              __p_0 :string
-                let __off_2: usize = int(0) :usize
-                assign
-                  target:
-                    __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
+                              mu8 :MutableMap<string, u8>!
+                            arg1:
+                              "y" :string
+                    let __buf_1: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          add :usize
+                            l:
+                              int(28) :usize
+                            r:
+                              call :usize
+                                callee:
+                                  byte_len :usize
+                                arg0:
+                                  __p_0 :string
+                    let __off_2: usize = int(0) :usize
+                    assign
+                      target:
                         __off_2 :usize
-                      arg2:
-                        "u8 x=" :string
-                assign
-                  target:
-                    __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_unsigned :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            "u8 x=" :string
+                    assign
+                      target:
                         __off_2 :usize
-                      arg2:
-                        cast → u64
-                          cast → u8
-                            vx :null | u8
-                assign
-                  target:
-                    __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_unsigned :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            cast → u64
+                              cast → u8
+                                vx :null | u8
+                    assign
+                      target:
                         __off_2 :usize
-                      arg2:
-                        " y=" :string
-                assign
-                  target:
-                    __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            " y=" :string
+                    assign
+                      target:
                         __off_2 :usize
-                      arg2:
-                        __p_0 :string
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            __p_0 :string
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
+                arg1:
+                  "\n" :string
     let mbool: MutableMap<string, bool>! =
       MutableMap<string, bool>! {
         ekeys:
@@ -204,30 +220,46 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "bool: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "bool: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
+              int(0) :i32
+            arg1:
               call :string
                 callee:
-                  concat_4 :string
+                  concat_2 :string
                 arg0:
-                  "bool t=" :string
+                  call :string
+                    callee:
+                      concat_4 :string
+                    arg0:
+                      "bool t=" :string
+                    arg1:
+                      vcall Display.to_string :string
+                        recv:
+                          vt :bool | null
+                    arg2:
+                      " f=" :string
+                    arg3:
+                      vcall Display.to_string :string
+                        recv:
+                          vf :bool | null
                 arg1:
-                  vcall Display.to_string :string
-                    recv:
-                      vt :bool | null
-                arg2:
-                  " f=" :string
-                arg3:
-                  vcall Display.to_string :string
-                    recv:
-                      vf :bool | null
+                  "\n" :string
     let mchar: MutableMap<string, char>! =
       MutableMap<string, char>! {
         ekeys:
@@ -274,43 +306,59 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "char: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "char: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
+              int(0) :i32
+            arg1:
               call :string
                 callee:
-                  concat_4 :string
+                  concat_2 :string
                 arg0:
-                  "char first=" :string
-                arg1:
                   call :string
                     callee:
-                      bytes_to_string :string
+                      concat_4 :string
                     arg0:
-                      call :u8[]
+                      "char first=" :string
+                    arg1:
+                      call :string
                         callee:
-                          utf8_encode :fn(char) -> u8[]
+                          bytes_to_string :string
                         arg0:
-                          cast → char
-                            vc :char | null
-                arg2:
-                  " accent=" :string
-                arg3:
-                  vcall Display.to_string :string
-                    recv:
-                      call :char | null
-                        callee:
-                          std_collections$get__string__char :char | null
-                        arg0:
-                          mchar :MutableMap<string, char>!
-                        arg1:
-                          "accent" :string
+                          call :u8[]
+                            callee:
+                              utf8_encode :fn(char) -> u8[]
+                            arg0:
+                              cast → char
+                                vc :char | null
+                    arg2:
+                      " accent=" :string
+                    arg3:
+                      vcall Display.to_string :string
+                        recv:
+                          call :char | null
+                            callee:
+                              std_collections$get__string__char :char | null
+                            arg0:
+                              mchar :MutableMap<string, char>!
+                            arg1:
+                              "accent" :string
+                arg1:
+                  "\n" :string
     let mf32: MutableMap<string, f32>! =
       MutableMap<string, f32>! {
         ekeys:
@@ -348,27 +396,43 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "f32: missing" :string
-      else:
-        ~>
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
+              int(0) :i32
+            arg1:
               call :string
                 callee:
                   concat_2 :string
                 arg0:
-                  "f32 pi=" :string
+                  "f32: missing" :string
                 arg1:
+                  "\n" :string
+      else:
+        ~>
+          call :void
+            callee:
+              write :fn(Stream, string) -> void
+            arg0:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
                   call :string
                     callee:
-                      format_f32 :fn(f32) -> string
+                      concat_2 :string
                     arg0:
-                      cast → f32
-                        vp :f32 | null
+                      "f32 pi=" :string
+                    arg1:
+                      call :string
+                        callee:
+                          format_f32 :fn(f32) -> string
+                        arg0:
+                          cast → f32
+                            vp :f32 | null
+                arg1:
+                  "\n" :string
     let mf64: MutableMap<string, f64>! =
       MutableMap<string, f64>! {
         ekeys:
@@ -406,27 +470,43 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "f64: missing" :string
-      else:
-        ~>
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
+              int(0) :i32
+            arg1:
               call :string
                 callee:
                   concat_2 :string
                 arg0:
-                  "f64 e=" :string
+                  "f64: missing" :string
                 arg1:
+                  "\n" :string
+      else:
+        ~>
+          call :void
+            callee:
+              write :fn(Stream, string) -> void
+            arg0:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
                   call :string
                     callee:
-                      format_f64 :fn(f64) -> string
+                      concat_2 :string
                     arg0:
-                      cast → f64
-                        ve :f64 | null
+                      "f64 e=" :string
+                    arg1:
+                      call :string
+                        callee:
+                          format_f64 :fn(f64) -> string
+                        arg0:
+                          cast → f64
+                            ve :f64 | null
+                arg1:
+                  "\n" :string
     let mi16: MutableMap<string, i16>! =
       MutableMap<string, i16>! {
         ekeys:
@@ -465,59 +545,75 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "i16: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "i16: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              block :string
-                let __buf_3: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      int(28) :usize
-                let __off_4: usize = int(0) :usize
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  block :string
+                    let __buf_3: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          int(28) :usize
+                    let __off_4: usize = int(0) :usize
+                    assign
+                      target:
                         __off_4 :usize
-                      arg2:
-                        "i16 neg=" :string
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_int :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_3 :Buffer
+                          arg1:
+                            __off_4 :usize
+                          arg2:
+                            "i16 neg=" :string
+                    assign
+                      target:
                         __off_4 :usize
-                      arg2:
-                        cast → i64
-                          cast → i16
-                            vn :i16 | null
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_3 :Buffer
-                    arg1:
-                      __off_4 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_int :usize
+                          arg0:
+                            __buf_3 :Buffer
+                          arg1:
+                            __off_4 :usize
+                          arg2:
+                            cast → i64
+                              cast → i16
+                                vn :i16 | null
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_3 :Buffer
+                        arg1:
+                          __off_4 :usize
+                arg1:
+                  "\n" :string
     let mu16: MutableMap<string, u16>! =
       MutableMap<string, u16>! {
         ekeys:
@@ -555,59 +651,75 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "u16: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "u16: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              block :string
-                let __buf_5: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      int(28) :usize
-                let __off_6: usize = int(0) :usize
-                assign
-                  target:
-                    __off_6 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_5 :Buffer
-                      arg1:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  block :string
+                    let __buf_5: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          int(28) :usize
+                    let __off_6: usize = int(0) :usize
+                    assign
+                      target:
                         __off_6 :usize
-                      arg2:
-                        "u16 big=" :string
-                assign
-                  target:
-                    __off_6 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_unsigned :usize
-                      arg0:
-                        __buf_5 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_5 :Buffer
+                          arg1:
+                            __off_6 :usize
+                          arg2:
+                            "u16 big=" :string
+                    assign
+                      target:
                         __off_6 :usize
-                      arg2:
-                        cast → u64
-                          cast → u16
-                            vb :null | u16
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
-                      __off_6 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_unsigned :usize
+                          arg0:
+                            __buf_5 :Buffer
+                          arg1:
+                            __off_6 :usize
+                          arg2:
+                            cast → u64
+                              cast → u16
+                                vb :null | u16
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_5 :Buffer
+                        arg1:
+                          __off_6 :usize
+                arg1:
+                  "\n" :string
     let mi64: MutableMap<string, i64>! =
       MutableMap<string, i64>! {
         ekeys:
@@ -646,58 +758,74 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "i64: missing" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "i64: missing" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              block :string
-                let __buf_7: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      int(29) :usize
-                let __off_8: usize = int(0) :usize
-                assign
-                  target:
-                    __off_8 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_7 :Buffer
-                      arg1:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  block :string
+                    let __buf_7: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          int(29) :usize
+                    let __off_8: usize = int(0) :usize
+                    assign
+                      target:
                         __off_8 :usize
-                      arg2:
-                        "i64 huge=" :string
-                assign
-                  target:
-                    __off_8 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_int :usize
-                      arg0:
-                        __buf_7 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_7 :Buffer
+                          arg1:
+                            __off_8 :usize
+                          arg2:
+                            "i64 huge=" :string
+                    assign
+                      target:
                         __off_8 :usize
-                      arg2:
-                        cast → i64
-                          vh :i64 | null
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_7 :Buffer
-                    arg1:
-                      __off_8 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_int :usize
+                          arg0:
+                            __buf_7 :Buffer
+                          arg1:
+                            __off_8 :usize
+                          arg2:
+                            cast → i64
+                              vh :i64 | null
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_7 :Buffer
+                        arg1:
+                          __off_8 :usize
+                arg1:
+                  "\n" :string
     let miss: null | u8 =
       call :null | u8
         callee:
@@ -714,59 +842,75 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "miss: ok" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "miss: ok" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              block :string
-                let __buf_9: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      int(32) :usize
-                let __off_10: usize = int(0) :usize
-                assign
-                  target:
-                    __off_10 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_9 :Buffer
-                      arg1:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  block :string
+                    let __buf_9: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          int(32) :usize
+                    let __off_10: usize = int(0) :usize
+                    assign
+                      target:
                         __off_10 :usize
-                      arg2:
-                        "miss: WRONG " :string
-                assign
-                  target:
-                    __off_10 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_unsigned :usize
-                      arg0:
-                        __buf_9 :Buffer
-                      arg1:
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_9 :Buffer
+                          arg1:
+                            __off_10 :usize
+                          arg2:
+                            "miss: WRONG " :string
+                    assign
+                      target:
                         __off_10 :usize
-                      arg2:
-                        cast → u64
-                          cast → u8
-                            miss :null | u8
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_9 :Buffer
-                    arg1:
-                      __off_10 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_unsigned :usize
+                          arg0:
+                            __buf_9 :Buffer
+                          arg1:
+                            __off_10 :usize
+                          arg2:
+                            cast → u64
+                              cast → u8
+                                miss :null | u8
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_9 :Buffer
+                        arg1:
+                          __off_10 :usize
+                arg1:
+                  "\n" :string
     return int(0) :i32
   fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
     let c0: usize =

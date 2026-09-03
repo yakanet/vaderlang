@@ -28,9 +28,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "parked?!" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "parked?!" :string
+              arg1:
+                "\n" :string
         return
     if :void
       cond:
@@ -43,66 +51,82 @@
               r :i32 | LoadError | Suspended!
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
+            int(0) :i32
+          arg1:
             call :string
               callee:
                 concat_2 :string
               arg0:
-                "err: " :string
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    "err: " :string
+                  arg1:
+                    .reason :string
+                      e :LoadError
               arg1:
-                .reason :string
-                  e :LoadError
+                "\n" :string
         return
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          block :string
-            let __buf_0: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(24) :usize
-            let __off_1: usize = int(0) :usize
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              block :string
+                let __buf_0: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(24) :usize
+                let __off_1: usize = int(0) :usize
+                assign
+                  target:
                     __off_1 :usize
-                  arg2:
-                    "ok: " :string
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        "ok: " :string
+                assign
+                  target:
                     __off_1 :usize
-                  arg2:
-                    cast → i64
-                      cast → i32
-                        r :i32 | LoadError | Suspended!
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        cast → i64
+                          cast → i32
+                            r :i32 | LoadError | Suspended!
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+            arg1:
+              "\n" :string
   fn snippet$main() -> i32
     call :void
       callee:

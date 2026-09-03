@@ -82,13 +82,21 @@
               __for_i_2 :usize
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
+            int(0) :i32
+          arg1:
             call :string
               callee:
-                describe :fn(Cat | Dog) -> string
+                concat_2 :string
               arg0:
-                p :Cat | Dog
+                call :string
+                  callee:
+                    describe :fn(Cat | Dog) -> string
+                  arg0:
+                    p :Cat | Dog
+              arg1:
+                "\n" :string
         assign
           target:
             __for_i_2 :usize

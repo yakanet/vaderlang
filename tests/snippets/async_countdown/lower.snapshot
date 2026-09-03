@@ -109,55 +109,79 @@
           waiter :fn() -> Async<i32>
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "1: " :string
-          arg1:
             call :string
               callee:
-                tag :fn(i32 | Suspended) -> string
+                concat_2 :string
               arg0:
-                vcall Async.resume :i32 | Suspended!
-                  recv:
-                    w :Async<i32>
+                "1: " :string
+              arg1:
+                call :string
+                  callee:
+                    tag :fn(i32 | Suspended) -> string
+                  arg0:
+                    vcall Async.resume :i32 | Suspended!
+                      recv:
+                        w :Async<i32>
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "2: " :string
-          arg1:
             call :string
               callee:
-                tag :fn(i32 | Suspended) -> string
+                concat_2 :string
               arg0:
-                vcall Async.resume :i32 | Suspended!
-                  recv:
-                    w :Async<i32>
+                "2: " :string
+              arg1:
+                call :string
+                  callee:
+                    tag :fn(i32 | Suspended) -> string
+                  arg0:
+                    vcall Async.resume :i32 | Suspended!
+                      recv:
+                        w :Async<i32>
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "3: " :string
-          arg1:
             call :string
               callee:
-                tag :fn(i32 | Suspended) -> string
+                concat_2 :string
               arg0:
-                vcall Async.resume :i32 | Suspended!
-                  recv:
-                    w :Async<i32>
+                "3: " :string
+              arg1:
+                call :string
+                  callee:
+                    tag :fn(i32 | Suspended) -> string
+                  arg0:
+                    vcall Async.resume :i32 | Suspended!
+                      recv:
+                        w :Async<i32>
+          arg1:
+            "\n" :string
     return int(0) :i32
   struct __asyncstate_snippet_0 { s0: Async<i32>, s1: i32, s2: i32, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!

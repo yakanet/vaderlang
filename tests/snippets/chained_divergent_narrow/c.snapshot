@@ -47,13 +47,13 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_params_of(vader_box_t l0);
 static int32_t snippet_main(void);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
-static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -68,7 +68,7 @@ const vader_type_info_t vader_type_info_table[15] = {
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Meta_t), NULL, 0, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Other_t), NULL, 0, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Unres_t), NULL, 0, 0, NULL, 0, NULL },
-    [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [12] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 15;
@@ -81,8 +81,8 @@ const size_t vader_type_size[15] = {
     [4] = 16u,
     [5] = 16u,
     [6] = 4u,
-    [7] = 8u,
-    [8] = 16u,
+    [7] = 16u,
+    [8] = 8u,
     [9] = 16u,
     [10] = 8u,
     [11] = 1u,
@@ -124,11 +124,12 @@ static int32_t snippet_main(void) {
     void* l2 = NULL;
     size_t l3;
     int64_t l4;
+    vader_string_t l5 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     void** gc_raw_roots[2] = { &l2, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_string_t* gc_atom_roots[2] = { &l5, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 33 "tests/snippets/chained_divergent_narrow/_main.vader"
     vader_struct_snippet_FnLike_t* _a0_obj = (vader_struct_snippet_FnLike_t*) vader_gc_alloc(sizeof(vader_struct_snippet_FnLike_t));
@@ -152,9 +153,32 @@ static int32_t snippet_main(void) {
     l4 = ((int64_t) (int32_t) l1);
     l3 = std_core_write_int(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
-    std_io_println__string(t1);
+#line 116 "lib/std/io/io.vader"
+    l5 = concat_2(t1, 3u);
+    std_io_write(INT32_C(0), l5);
 #line 36 "tests/snippets/chained_divergent_narrow/_main.vader"
     { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
+    size_t l2, l3;
+    void* l4 = NULL;
+    int64_t t0;
+    vader_string_t t1 = 0;
+    void** gc_raw_roots[1] = { &l4 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+    l2 = vader_host_std_core_byte_len(l0);
+    l3 = vader_host_std_core_byte_len(l1);
+    t0 = (l2 + l3);
+    l3 = (size_t) (int64_t) t0;
+    l4 = std_core_new_byte_buffer(l3);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -343,19 +367,6 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 61 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void std_io_println__string(vader_string_t l0) {
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), l0);
-#line 117 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), 3u);
-#line 115 "lib/std/io/io.vader"
-    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

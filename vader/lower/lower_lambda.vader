@@ -194,15 +194,13 @@ export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_
     // unique program-wide, the name only has to be stable. `next_synthetic_id`
     // is a project-wide rank, so a function reached by one target alone
     // renumbered every lambda behind it — see `LowerProjectCtx.lambda_seq`.
-    // `display_path` is the DECLARED module name, not the folder. `path` carries
-    // the filesystem identity, so it is absolute whenever the entry was named
-    // absolutely — baking it into a symbol name put the build directory in the
-    // emitted C and made two checkouts disagree.
+    // `display_path` is the DECLARED module name, not the folder: `path` carries
+    // the filesystem identity and is absolute whenever the entry was named
+    // absolutely, which would put the build directory in the emitted C.
     //
     // The counter is keyed on the SAME sanitised string the name uses. Keyed on
-    // the raw one, two modules that sanitise alike each started at 0 and minted
-    // identical names: in C a redefinition, in the VM a closure wired to another
-    // closure's body.
+    // the raw one, two modules that sanitise alike both start at 0 and mint
+    // identical names.
     key :: module_key(ctx.typed.resolved.display_path)
     seq :: ctx.project.lambda_seq[key] ?? 0
     ctx.project.lambda_seq[key] = seq + 1

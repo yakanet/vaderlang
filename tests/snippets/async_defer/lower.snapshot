@@ -30,29 +30,45 @@
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
+          int(0) :i32
+        arg1:
           call :string
             callee:
               concat_2 :string
             arg0:
-              "defer 1 " :string
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "defer 1 " :string
+                arg1:
+                  LoweredCellGet
             arg1:
-              LoweredCellGet
+              "\n" :string
   struct __defer_env_snippet_3 { cap_0: ? }
   fn __defer_snippet_2(__env_2: __defer_env_snippet_3!) -> void
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
+          int(0) :i32
+        arg1:
           call :string
             callee:
               concat_2 :string
             arg0:
-              "defer 2 " :string
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "defer 2 " :string
+                arg1:
+                  LoweredCellGet
             arg1:
-              LoweredCellGet
+              "\n" :string
   struct __asyncstate_snippet_4 { s0: ?, s1: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_4$Async$resume(self: __asyncstate_snippet_4!) -> i32 | Suspended!
     loop
@@ -176,15 +192,23 @@
                           LoweredArrayPush
                           call :void
                             callee:
-                              std_io$println__string :void
+                              write :fn(Stream, string) -> void
                             arg0:
+                              int(0) :i32
+                            arg1:
                               call :string
                                 callee:
                                   concat_2 :string
                                 arg0:
-                                  "body " :string
+                                  call :string
+                                    callee:
+                                      concat_2 :string
+                                    arg0:
+                                      "body " :string
+                                    arg1:
+                                      LoweredCellGet
                                 arg1:
-                                  LoweredCellGet
+                                  "\n" :string
                           assign
                             target:
                               .state :i32

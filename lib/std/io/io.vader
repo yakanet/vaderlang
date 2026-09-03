@@ -113,8 +113,7 @@ export print :: fn<T: Display>(msg: T) = write(.Stdout, msg.to_string())
 /// Write `msg` to stdout followed by a `\n`. See `print` for the
 /// Display routing rule.
 export println :: fn<T: Display>(msg: T) -> void {
-    write(.Stdout, msg.to_string())
-    write(.Stdout, "\n")
+    write(.Stdout, "${msg}\n")
 }
 
 /// Write `msg` to stderr without a trailing newline.
@@ -122,8 +121,7 @@ export eprint :: fn<T: Display>(msg: T) = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
 export eprintln :: fn<T: Display>(msg: T) -> void {
-    write(.Stderr, msg.to_string())
-    write(.Stderr, "\n")
+    write(.Stderr, "${msg}\n")
 }
 
 /// Read one line from stdin, blocking until a newline arrives. The
@@ -397,15 +395,6 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     return null
 }
 
-/// Create `path` and every missing parent, the way `mkdir -p` does.
-///
-/// An existing directory is success, not an error: the caller asked for it to
-/// exist, and it does. Permissions follow the process umask.
-///
-/// @param path  directory to create, `/`-separated.
-/// @return      `null` on success.
-/// @error       `IOError` when a component cannot be created — a parent that is
-///              a file, a read-only mount, a path over 4096 bytes.
 // Create one directory. True when it exists afterwards — an existing directory
 // is success. The platforms report "already there" differently (`EEXIST` /
 // `ERROR_ALREADY_EXISTS`) and neither says WHAT is there, so both re-ask rather
@@ -419,6 +408,15 @@ mkdir_one :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0 || is_dir(pa
 @target(.Windows)
 mkdir_one :: fn(path: string) -> bool = create_directory(to_wide(path), null) || is_dir(path)
 
+/// Create `path` and every missing parent, the way `mkdir -p` does.
+///
+/// An existing directory is success, not an error: the caller asked for it to
+/// exist, and it does. Permissions follow the process umask.
+///
+/// @param path  directory to create, `/`-separated.
+/// @return      `null` on success.
+/// @error       `IOError` when a component cannot be created — a parent that is
+///              a file, a read-only mount, a path over 4096 bytes.
 export create_dir :: fn(path: string) -> null | IOError {
     b :: path.bytes()
     if b.len() == 0 {
@@ -660,9 +658,8 @@ temp_dir :: fn() -> string = without_trailing_sep(get_env("TMPDIR") ?? "/tmp")
 temp_dir :: fn() -> string {
     // `GetTempPathW` reports 0 on failure and a length >= the capacity when the
     // buffer is too small; neither wrote anything usable, so both fall back.
-    // The fallback is the WORKING directory, which always exists: `"/tmp"` is a
-    // POSIX path Windows has no reason to hold, so it turned a failed call into
-    // an `open failed` several layers away instead of a usable location.
+    // The fallback is the WORKING directory, which always exists — a POSIX
+    // `"/tmp"` would only defer the failure to whoever opens a file under it.
     // 4096 UTF-16 units, so 8192 bytes.
     buf: u16[]! = [0] * 4096
     n :: get_temp_path(u32(buf.len()), buf)

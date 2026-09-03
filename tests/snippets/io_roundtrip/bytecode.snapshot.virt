@@ -20,21 +20,21 @@ type 17 ref Error
 string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
-string 3 "read: "
-string 4 "read failed"
-string 5 "true"
-string 6 "false"
-string 7 "TMPDIR"
-string 8 "/tmp"
-string 9 "path contains a NUL byte"
-string 10 "wb"
-string 11 "open failed"
-string 12 "short write"
-string 13 "close failed"
-string 14 "rb"
-string 15 "file not found"
-string 16 "file too large"
-string 17 "\n"
+string 3 "\n"
+string 4 "read: "
+string 5 "read failed"
+string 6 "true"
+string 7 "false"
+string 8 "TMPDIR"
+string 9 "/tmp"
+string 10 "path contains a NUL byte"
+string 11 "wb"
+string 12 "open failed"
+string 13 "short write"
+string 14 "close failed"
+string 15 "rb"
+string 16 "file not found"
+string 17 "file too large"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
@@ -55,7 +55,8 @@ fn 0 snippet$main () -> i32
   local path string
   local __buf_0 ref
   local __off_1 usize
-  local $call_13 bool
+  local $call_14 bool
+  local $call_18 string
   local contents any
   call 6   ; std_io$temp_dir
   string.const 0   ; "/vader_io_roundtrip.txt"
@@ -76,35 +77,50 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; path
   call 8   ; std_io$exists
-  local.set 3   ; $call_13
+  local.set 3   ; $call_14
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $call_13
+  local.get 3   ; $call_14
   call 5   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 15   ; std_io$println__string
+  string.const 3   ; "\n"
+  call 1   ; concat_2
+  local.set 4   ; $call_18
+  i32.const 0
+  local.get 4   ; $call_18
+  call 10   ; std_io$write
   local.get 0   ; path
   call 9   ; std_io$read_file_string
-  local.tee 4   ; contents
+  local.tee 5   ; contents
   type_check 2   ; string
   if $L0 void
-    local.get 4   ; contents
+    local.get 5   ; contents
     ref.cast 2   ; -> string
     local.set 0   ; path
-    string.const 3   ; "read: "
+    string.const 4   ; "read: "
     local.get 0   ; path
     call 1   ; concat_2
-    call 15   ; std_io$println__string
+    string.const 3   ; "\n"
+    call 1   ; concat_2
+    local.set 0   ; path
+    i32.const 0
+    local.get 0   ; path
+    call 10   ; std_io$write
     return.lit i32.const 0
   end $L0
-  local.get 4   ; contents
+  local.get 5   ; contents
   type_check 17   ; ref Error
   if $L1 void
-    string.const 4   ; "read failed"
-    call 15   ; std_io$println__string
+    string.const 5   ; "read failed"
+    string.const 3   ; "\n"
+    call 1   ; concat_2
+    local.set 0   ; path
+    i32.const 0
+    local.get 0   ; path
+    call 10   ; std_io$write
     return.lit i32.const 0
   end $L1
   return
@@ -128,11 +144,11 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 3   ; std_core$finish_buffer
@@ -141,14 +157,14 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 16   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 15   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 17   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 16   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -157,7 +173,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -172,13 +188,13 @@ fn 5 std_core$write_bool (ref,usize,bool) -> usize
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 5   ; "true"
+    string.const 6   ; "true"
     call 4   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 6   ; "false"
+  string.const 7   ; "false"
   call 4   ; std_core$write_string_at
   return
 end
@@ -186,12 +202,12 @@ end
 fn 6 std_io$temp_dir () -> string
   local __coalesce_0 any
   local if_res string
-  string.const 7   ; "TMPDIR"
+  string.const 8   ; "TMPDIR"
   call.import 4   ; std_env$get_env
   local.tee 0   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
-    string.const 8   ; "/tmp"
+    string.const 9   ; "/tmp"
     local.set 1   ; if_res
   else
     local.get 0   ; __coalesce_0
@@ -418,7 +434,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
         i32.const 0
         i32.eq
         if $L3 void
-          string.const 9   ; "path contains a NUL byte"
+          string.const 10   ; "path contains a NUL byte"
           struct.new 10   ; std_io$IOError
           return
         end $L3
@@ -432,12 +448,12 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     end $L1
   end $L0
   local.get 0   ; arg 0
-  string.const 10   ; "wb"
+  string.const 11   ; "wb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 4   ; f
   type_check 0   ; null
   if $L4 void
-    string.const 11   ; "open failed"
+    string.const 12   ; "open failed"
     struct.new 10   ; std_io$IOError
     return
   end $L4
@@ -469,7 +485,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
       ref.cast 16   ; -> pointer
       call.import 8   ; system_posix$sys_fclose
       drop
-      string.const 12   ; "short write"
+      string.const 13   ; "short write"
       struct.new 10   ; std_io$IOError
       return
     end $L6
@@ -483,7 +499,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     local.get 7   ; $k_37
     i32.ne
     if $L7 void
-      string.const 13   ; "close failed"
+      string.const 14   ; "close failed"
       struct.new 10   ; std_io$IOError
       return
     end $L7
@@ -501,7 +517,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
   local.get 7   ; $k_37
   i32.ne
   if $L8 void
-    string.const 13   ; "close failed"
+    string.const 14   ; "close failed"
     struct.new 10   ; std_io$IOError
     return
   end $L8
@@ -522,12 +538,12 @@ fn 13 std_io$read_file_bytes (string) -> any
   local $len_27 usize
   local failed bool
   local.get 0   ; arg 0
-  string.const 14   ; "rb"
+  string.const 15   ; "rb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
-    string.const 15   ; "file not found"
+    string.const 16   ; "file not found"
     struct.new 10   ; std_io$IOError
     return
   end $L0
@@ -590,7 +606,7 @@ fn 13 std_io$read_file_bytes (string) -> any
           drop
           local.get 10   ; failed
           if $L6 void
-            string.const 4   ; "read failed"
+            string.const 5   ; "read failed"
             struct.new 10   ; std_io$IOError
             return
           end $L6
@@ -610,7 +626,7 @@ fn 13 std_io$read_file_bytes (string) -> any
   ref.cast 16   ; -> pointer
   call.import 8   ; system_posix$sys_fclose
   drop
-  string.const 16   ; "file too large"
+  string.const 17   ; "file too large"
   struct.new 10   ; std_io$IOError
   return
 end
@@ -635,30 +651,20 @@ fn 14 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 15 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 10   ; std_io$write
-  i32.const 0
-  string.const 17   ; "\n"
-  call 10   ; std_io$write
-  return
-end
-
-fn 16 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 15 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

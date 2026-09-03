@@ -27,6 +27,7 @@ end
 
 fn 1 snippet$main () -> i32
   local matched bool
+  local $call_8 string
   bool.const false
   local.tee 0   ; matched
   if $L0 void
@@ -39,7 +40,12 @@ fn 1 snippet$main () -> i32
   bool.not
   if $L1 void
     string.const 2   ; "not matched"
-    call 7   ; std_io$println__string
+    string.const 3   ; "\n"
+    call 2   ; concat_2
+    local.set 1   ; $call_8
+    i32.const 0
+    local.get 1   ; $call_8
+    call 5   ; std_io$write
   else
   end $L1
   return.lit i32.const 0
@@ -63,11 +69,11 @@ fn 2 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 4   ; std_core$finish_buffer
@@ -76,14 +82,14 @@ end
 
 fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 8   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 7   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 4 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 9   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 8   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -165,30 +171,20 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 7 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 5   ; std_io$write
-  i32.const 0
-  string.const 3   ; "\n"
-  call 5   ; std_io$write
-  return
-end
-
-fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

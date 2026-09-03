@@ -431,19 +431,6 @@ is_user_type_kind :: fn(k: SymbolKind) -> bool {
 
 // ---- @extern ABI validation -----------------------------------------------
 
-/// Check the decorators written on each of `decl`'s parameters.
-///
-/// `@c_pointer` is the only one a parameter may carry, and only on an `@extern`
-/// declaration: it says the foreign callee receives the parameter's ADDRESS
-/// rather than its value, which has no meaning for a Vader-bodied fn.
-///
-/// Direction is NOT part of the decorator — the `!` already carries it. Without
-/// one, C reads through the pointer and the caller supplies the value; with one,
-/// C writes through it.
-///
-/// @param decl       the fn whose parameters to check.
-/// @param is_extern  whether the declaration carries `@extern`.
-/// @param diags      accumulator for T3078.
 /// Whether `t` is a struct declaring the C type it mirrors (`@c_struct`).
 ///
 /// @param t      the candidate parameter type.
@@ -523,6 +510,19 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
     return false
 }
 
+/// Check the decorators written on each of `decl`'s parameters.
+///
+/// `@c_pointer` is the only one a parameter may carry, and only on an `@extern`
+/// declaration: it says the foreign callee receives the parameter's ADDRESS
+/// rather than its value, which has no meaning for a Vader-bodied fn.
+///
+/// Direction is NOT part of the decorator — the `!` already carries it. Without
+/// one, C reads through the pointer and the caller supplies the value; with one,
+/// C writes through it.
+///
+/// @param decl       the fn whose parameters to check.
+/// @param is_extern  whether the declaration carries `@extern`.
+/// @param diags      accumulator for T3079.
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]!) -> void {
     for pm in decl.params {
         for d in pm.decorators {
@@ -776,16 +776,6 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
     }
 }
 
-/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
-/// foreign pointer, and the only union that crosses the C boundary.
-///
-/// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
-/// shim converts it at the boundary, exactly as it already converts a
-/// `vader_string_t` atom id to a `const char*`. Nothing about how Vader
-/// represents unions changes.
-///
-/// @param t  the candidate slot type.
-/// @return   whether it is the nullable-pointer shape.
 /// True when `t` is `string | null` — the shape a C function returning a
 /// `char*` needs to say "absent" rather than "empty".
 ///
@@ -810,6 +800,16 @@ is_nullable_string :: fn(t: Type) -> bool {
     return has_null && has_str
 }
 
+/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
+/// foreign pointer, and the only union that crosses the C boundary.
+///
+/// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
+/// shim converts it at the boundary, exactly as it already converts a
+/// `vader_string_t` atom id to a `const char*`. Nothing about how Vader
+/// represents unions changes.
+///
+/// @param t  the candidate slot type.
+/// @return   whether it is the nullable-pointer shape.
 is_nullable_pointer :: fn(t: Type) -> bool {
     if t is UnionType as u {
         if u.variants.len() != 2 {

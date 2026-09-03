@@ -114,14 +114,10 @@ export write_file :: fn(h: Handle, buf: u8[], count: u32,
 
 
 // ---- UTF-8 <-> UTF-16 -----------------------------------------------------
-// UTF-16 buffers cross as `u16[]`, which is what they hold. Declaring them
-// `u8[]` would work -- the callee only receives an address, and no Vader code
-// here reads a unit -- and it keeps the `u16` PRIMITIVE out of the type table,
-// whose early interning shifts every index behind it. Measured, that buys 72 KB
-// of seed out of 31 MB: the header diverges anyway, on the `__lambda_env_N`
-// renumbering. Not a trade worth a type that lies about its contents.
+// UTF-16 buffers cross as `u16[]`, which is what they hold.
 //
-// Every LENGTH below is in UTF-16 units, which is also the buffer's length.
+// Every LENGTH below is in UTF-16 UNITS, which for a `u16[]` is also the
+// buffer's length -- not its size in bytes.
 
 /// `CP_UTF8` — the code page identifier for UTF-8.
 export CP_UTF8: u32 : 65001

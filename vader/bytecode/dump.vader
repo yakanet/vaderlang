@@ -335,12 +335,9 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // write-back: the callee filled the block and the VM never copied it
         // out, leaving the Vader struct at its pre-call values.
         // Written whenever the import HAS parameters, never conditioned on a
-        // flag being set. Omitting an all-false list looked like a saving, but
-        // absence is not the same as false downstream: `param_is_mutable`
-        // answers "yes" for a flag it cannot find, so a read-only mirror read
-        // back from a `.virt` was marshalled as if C wrote through it -- the
-        // callee received an UNINITIALISED struct and its result then clobbered
-        // the caller's.
+        // flag being set: absence is not the same as false downstream, and a
+        // read-only mirror marshalled as if C wrote through it hands the callee
+        // an UNINITIALISED struct.
         pm :: if imp.signature.params.len() > 0 {
             "param_mutable=${join_flags(imp.signature.param_mutable)} "
         } else {

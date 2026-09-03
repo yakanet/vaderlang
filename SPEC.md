@@ -2689,24 +2689,28 @@ i8 i16 i32 i64    u8 u16 u32 u64    isize usize
 f32 f64    bool   char    void    string
 ```
 
-`string` is the exception to "either direction", and the typechecker does NOT
-catch it:
+`string` crosses in both directions, with one asymmetry worth stating:
 
-- as an **argument** it crosses natively as a `const char*`, but the **VM traps**
-  ("expected i64, got string") — it passes scalars through one integer
-  trampoline and has nowhere to put the bytes;
-- as a **RETURN** it is accepted by the typechecker and then fails to compile —
-  the shim assigns a `char*` to a `vader_string_t` (a `u32` atom id), and turning
-  a C string back into a Vader one has no primitive yet.
+- as an **argument** it becomes a `const char*`. An atom that owns its bytes is
+  passed straight through; a SLICE atom is copied to a NUL-terminated heap dup,
+  freed after the call.
+- as a **RETURN** it is interned into the atom table and **borrowed** — never
+  freed. That is right for the library-owned pointers this serves (`getenv`,
+  `strerror`); its worst case is a leak on the C side, never a corruption. The
+  interning happens BEFORE the argument buffers are released, because a returned
+  pointer may aim into one of them (`strstr` gives back a suffix of its
+  haystack).
 
-So a foreign function that hands back a string cannot be declared usefully today.
+`string | null` is admitted as a result and is the only way a callee can say
+"absent" rather than "empty" — `getenv` rests on that distinction.
 
 Plus, on top of the scalars:
 
 | shape | direction | notes |
 |---|---|---|
 | a **distinct type** | both | zero-cost, so its ABI is its backing's — `Handle :: CPointer` is the idiom for a foreign handle |
-| a **nullable foreign pointer** (`CPointer \| null`) | both | the one union shape with an ABI; C has no other nullable scalar |
+| a **nullable foreign pointer** (`CPointer \| null`) | both | one of the two union shapes with an ABI; C has no other nullable scalar |
+| a **nullable string** (`string \| null`) | RESULT only | how a callee says "absent" rather than "empty"; the atom is borrowed, as above |
 | **`isize(p)` / `usize(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a pointer-width integer is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; native backend only |
@@ -3103,7 +3107,7 @@ clamp :: fn(x: f64, lo: f64, hi: f64) -> f64
 lerp  :: fn(a: f64, b: f64, t: f64) -> f64        // a + (b - a) * clamp(t, 0.0, 1.0)
 
 // libm, declared `@extern` with `@c_header("<math.h>")` — the emitted C calls
-// it directly, and the VM answers these symbols itself rather than resolving them.
+// it directly, and the VM resolves them through `ffi_symbol` like any other import.
 sqrt  :: fn(x: f64) -> f64
 pow   :: fn(x: f64, n: f64) -> f64
 floor :: fn(x: f64) -> f64

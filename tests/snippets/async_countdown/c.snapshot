@@ -34,9 +34,9 @@ static const char vader_atom_blob[] =
     "done(" "\0"
     ")" "\0"
     "1: " "\0"
+    "\n" "\0"
     "2: " "\0"
     "3: " "\0"
-    "\n" "\0"
 ;
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -44,9 +44,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13] },
     { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
@@ -63,7 +63,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
-static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -204,17 +203,23 @@ static int32_t snippet_main(void) {
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
     t1 = concat_2(4u, l1);
-    std_io_println__string(t1);
+#line 116 "lib/std/io/io.vader"
+    l1 = concat_2(t1, 5u);
+    std_io_write(INT32_C(0), l1);
 #line 34 "tests/snippets/async_countdown/_main.vader"
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
-    t1 = concat_2(5u, l1);
-    std_io_println__string(t1);
+    t1 = concat_2(6u, l1);
+#line 116 "lib/std/io/io.vader"
+    l1 = concat_2(t1, 5u);
+    std_io_write(INT32_C(0), l1);
 #line 35 "tests/snippets/async_countdown/_main.vader"
     t0 = vader_vt_Async__resume(l0);
     l1 = snippet_tag(t0);
-    t1 = concat_2(6u, l1);
-    std_io_println__string(t1);
+    t1 = concat_2(7u, l1);
+#line 116 "lib/std/io/io.vader"
+    l1 = concat_2(t1, 5u);
+    std_io_write(INT32_C(0), l1);
 #line 36 "tests/snippets/async_countdown/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
@@ -517,19 +522,6 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 61 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void std_io_println__string(vader_string_t l0) {
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), l0);
-#line 117 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), 7u);
-#line 115 "lib/std/io/io.vader"
-    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

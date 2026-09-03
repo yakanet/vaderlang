@@ -80,16 +80,24 @@
                         __self_1 :__asyncstate_snippet_0!
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
+                      int(0) :i32
+                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          "hello, " :string
+                          call :string
+                            callee:
+                              concat_2 :string
+                            arg0:
+                              "hello, " :string
+                            arg1:
+                              .s1 :string
+                                __self_1 :__asyncstate_snippet_0!
                         arg1:
-                          .s1 :string
-                            __self_1 :__asyncstate_snippet_0!
+                          "\n" :string
                   assign
                     target:
                       .state :i32

@@ -32,6 +32,37 @@ import "vader/diagnostics"
 ///
 /// @param t  the type to key.
 /// @return   the key string ; pass to `MutableMap<string, i32>`.
+export type_intern_key :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    // Key structs / traits by source position (`symbol_key`) + recursive
+    // arg keys, NOT by `display_type` (bare name). Two import shapes of the
+    // same decl resolve to distinct symbols but share a source position, so
+    // they collapse to one slot — and `reserve_struct` keys identically, so
+    // a referenced struct dedupes with its reserved definition instead of
+    // minting an orphan `ref`.
+    is StructType as s    -> "Struct#${symbol_key(s.symbol)}<${type_key_join(s.args, "|")}>"
+    is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
+    // Enums lower to their `repr` primitive — share the bare primitive's slot.
+    is EnumType as e      -> e.repr
+    // Distinct (newtype) shares its backing primitive's slot, exactly like an
+    // enum shares its `repr` — no separate type-table entry, so it rides the
+    // backing's zero-cost representation end to end.
+    is DistinctType as d  -> type_intern_key(d.backing)
+    is ArrayType as a     -> "Array<${type_intern_key(a.element)}>"
+    is UnionType as u     -> "Union<${type_key_join(u.variants, "|")}>"
+    is TupleType as p     -> "Tuple<${type_key_join(p.elements, "|")}>"
+    is FnType as f        -> "Fn(${type_key_join(f.params, ",")})->${type_intern_key(f.return_type)}"
+    is TypeParamType      -> display_type(t)
+    is TypeMetaType       -> display_type(t)
+    is SelfType           -> display_type(t)
+    is UnresolvedType     -> display_type(t)
+    is FreeIntType        -> display_type(t)
+    is FreeCharType       -> display_type(t)
+    is FreeFloatType      -> display_type(t)
+    is NeverType          -> display_type(t)
+    is AnyType            -> "Any"
+}
+
 /// A tuple's ELEMENT keys as a C-safe identifier fragment: `[i32, string]`
 /// becomes `i32_string`. Built from the elements rather than the tuple's own
 /// `type_intern_key`, which already starts with `Tuple<` and would spell the
@@ -72,10 +103,9 @@ SHAPE_DIGEST_LEN: usize : 8
 ///
 /// C99 guarantees 63 significant characters in an INTERNAL identifier, and the
 /// emitter wraps this fragment in 23 more: `vader_struct_` (13) + `__Tuple_`
-/// (8) + `_t` (2). What is left is 40. Measured on the bootstrap closure at 48,
-/// 8 of the 40 tuple names came out longer than 63 -- none colliding today,
-/// but two shapes differing only past the limit would silently become ONE
-/// struct on a compiler that applies the guarantee.
+/// (8) + `_t` (2). What is left is 40. Past that, two shapes differing only
+/// beyond the limit would be ONE struct to a compiler that applies the
+/// guarantee, so the name is hashed instead of spelled.
 TUPLE_NAME_MAX: usize : 40
 
 /// FNV-1a over the shape, as 16 hex digits. Only reached for a shape too long
@@ -112,37 +142,6 @@ c_safe_key :: fn(key: string) -> string {
         }
     }
     return out
-}
-
-export type_intern_key :: fn(t: Type) -> string = match t {
-    is PrimitiveType as p -> p.name
-    // Key structs / traits by source position (`symbol_key`) + recursive
-    // arg keys, NOT by `display_type` (bare name). Two import shapes of the
-    // same decl resolve to distinct symbols but share a source position, so
-    // they collapse to one slot — and `reserve_struct` keys identically, so
-    // a referenced struct dedupes with its reserved definition instead of
-    // minting an orphan `ref`.
-    is StructType as s    -> "Struct#${symbol_key(s.symbol)}<${type_key_join(s.args, "|")}>"
-    is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
-    // Enums lower to their `repr` primitive — share the bare primitive's slot.
-    is EnumType as e      -> e.repr
-    // Distinct (newtype) shares its backing primitive's slot, exactly like an
-    // enum shares its `repr` — no separate type-table entry, so it rides the
-    // backing's zero-cost representation end to end.
-    is DistinctType as d  -> type_intern_key(d.backing)
-    is ArrayType as a     -> "Array<${type_intern_key(a.element)}>"
-    is UnionType as u     -> "Union<${type_key_join(u.variants, "|")}>"
-    is TupleType as p     -> "Tuple<${type_key_join(p.elements, "|")}>"
-    is FnType as f        -> "Fn(${type_key_join(f.params, ",")})->${type_intern_key(f.return_type)}"
-    is TypeParamType      -> display_type(t)
-    is TypeMetaType       -> display_type(t)
-    is SelfType           -> display_type(t)
-    is UnresolvedType     -> display_type(t)
-    is FreeIntType        -> display_type(t)
-    is FreeCharType       -> display_type(t)
-    is FreeFloatType      -> display_type(t)
-    is NeverType          -> display_type(t)
-    is AnyType            -> "Any"
 }
 
 // Source-position identity for a symbol — file:offset when the decl has a
@@ -261,12 +260,11 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
         // distinct C structs.
         //
-        // It used to be the slot's rank in the type table, which shifts:
-        // anything interned earlier on one target only renumbered every tuple
-        // behind it, so modules whose code is character-for-character the same
-        // emitted byte-different C per target and the seed stored each three
-        // times. `type_intern_key` is the same key `intern_type` dedupes on, so
-        // two tuples share a name exactly when they share a slot.
+        // The name must not depend on the slot's RANK in the type table: a rank
+        // shifts when anything interned earlier differs, and a name that shifts
+        // makes identical modules emit different C. `type_intern_key` is the
+        // same key `intern_type` dedupes on, so two tuples share a name exactly
+        // when they share a slot.
         is TupleType as p -> {
             fields: BcField[]! = []
             for i in 0..<p.elements.len() {

@@ -120,10 +120,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
     // A user `@extern` names a linker symbol, never a manifest entry, so
-    // classifying it first was pure waste — and `intrinsic_id_for` is not cheap:
-    // it rebuilds and INTERNS mangled names. Measured at 29% of a VM run whose
-    // hot path is `@extern` (20M `sqrt`: 7.51s -> 4.99s). Placed after the
-    // `vader_profile$*` arms above, which ARE `@extern` and must still be served.
+    // classifying it first is waste — and `intrinsic_id_for` is not cheap: it
+    // rebuilds and INTERNS mangled names. Placed after the `vader_profile$*`
+    // arms above, which ARE `@extern` and must still be served.
     if info.is_extern {
         return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
     }
@@ -445,8 +444,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
 /// Whether `symbol` is the raw write syscall behind `std/io` — `write(2)` on POSIX,
 /// which the Windows CRT also exports (as an alias of `_write`).
 ///
-/// Two call sites need to recognise it: the comptime gate, which exempts
-/// program output, and the DAP routing below.
+/// Recognised so the DAP routing below can send program output to the debug
+/// client rather than the process's own stdout.
 ///
 /// @param symbol  the import's foreign symbol name.
 /// @return        whether it is the write syscall.
@@ -548,11 +547,6 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
-    // Symbols the VM answers ITSELF, without resolving them. `std/math` names
-    // libm through `@extern`, so the native shim calls it directly; the VM is
-    // itself a compiled Vader program that already links libm, so it just calls
-    // the same function rather than going through `ffi_symbol` — which would
-    // need a floating-argument trampoline for no gain.
     // The declared library, or the default scope. `GetStdHandle` lives in
     // `kernel32.dll`, which the running process exports nothing of.
     lib :: ffi_open(info.c_library)

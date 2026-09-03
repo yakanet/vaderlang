@@ -41,10 +41,9 @@ import "vader/bytecode"
 /// import shims, dispatchers and `main`.
 export CProgram :: struct {
     header:  string
-    /// The `@extern` declarations and their shims, split out of `header` because
-    /// they are the ONLY part of it a target can change: measured on a `@target`
-    /// group, darwin and windows headers differed by four lines, all of them
-    /// here. Keeping them apart lets the shared header stay shared — see
+    /// The `@extern` declarations and their shims, split out of `header`
+    /// because they are the part of it a target is most likely to change.
+    /// Keeping them apart lets the shared header stay shared — see
     /// `IMPORTS_HEADER_SUFFIX`.
     imports: string
     globals: string

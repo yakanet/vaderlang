@@ -4,21 +4,21 @@ type 1 primitive i32
 type 2 array 3
 type 3 primitive u8
 type 4 primitive u64
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive string
+type 5 primitive string
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
 type 8 primitive i64
 type 9 primitive void
 type 10 primitive isize
 string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
-string 2 "ok: 4 byte views survived 2 major GCs; sum="
-string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=7 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=2 param_types=7 param_mutable=0 param_by_address= (string) -> ref
+string 2 "\n"
+string 3 "ok: 4 byte views survived 2 major GCs; sum="
+import 0 byte_len std_core$byte_len result_type=6 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=2 param_types=5 param_mutable=0 param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=9 () -> void
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,2,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,2,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 export main 2
 
 fn 0 snippet$view_of (i32) -> ref
@@ -26,14 +26,14 @@ fn 0 snippet$view_of (i32) -> ref
   local __off_1 usize
   local $cast_9 i64
   i64.const 44
-  call 3   ; std_core$new_byte_buffer
+  call 4   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; "vader-byte-view-payload-"
-  call 5   ; std_core$write_string_at
+  call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
   i32.to_i64
@@ -41,11 +41,11 @@ fn 0 snippet$view_of (i32) -> ref
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_9
-  call 6   ; std_core$write_int
+  call 7   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 4   ; std_core$finish_buffer
+  call 5   ; std_core$finish_buffer
   call.import 1   ; std_core$bytes
   return
 end
@@ -103,6 +103,7 @@ fn 2 snippet$main () -> i32
   local sc u64
   local sd u64
   local or_res bool
+  local $call_37 string
   local __off_1 usize
   i32.const 1
   call 0   ; snippet$view_of
@@ -169,7 +170,12 @@ fn 2 snippet$main () -> i32
   local.get 8   ; or_res
   if $L3 void
     string.const 1   ; "byte-view GC corruption after major cycles"
-    call 10   ; std_io$println__string
+    string.const 2   ; "\n"
+    call 3   ; concat_2
+    local.set 9   ; $call_37
+    i32.const 0
+    local.get 9   ; $call_37
+    call 9   ; std_io$write
     return.lit i32.const 1
   end $L3
   local.get 4   ; sa
@@ -181,41 +187,75 @@ fn 2 snippet$main () -> i32
   i64.add
   local.set 4   ; sa
   i64.const 63
-  call 3   ; std_core$new_byte_buffer
+  call 4   ; std_core$new_byte_buffer
   local.set 0   ; va
   i64.const 0
-  local.set 9   ; __off_1
+  local.set 10   ; __off_1
   local.get 0   ; va
-  local.get 9   ; __off_1
-  string.const 2   ; "ok: 4 byte views survived 2 major GCs; sum="
-  call 5   ; std_core$write_string_at
-  local.set 9   ; __off_1
+  local.get 10   ; __off_1
+  string.const 3   ; "ok: 4 byte views survived 2 major GCs; sum="
+  call 6   ; std_core$write_string_at
+  local.set 10   ; __off_1
   local.get 0   ; va
-  local.get 9   ; __off_1
+  local.get 10   ; __off_1
   local.get 4   ; sa
-  call 7   ; std_core$write_unsigned
-  local.set 9   ; __off_1
+  call 8   ; std_core$write_unsigned
+  local.set 10   ; __off_1
   local.get 0   ; va
-  local.get 9   ; __off_1
-  call 4   ; std_core$finish_buffer
-  call 10   ; std_io$println__string
+  local.get 10   ; __off_1
+  call 5   ; std_core$finish_buffer
+  string.const 2   ; "\n"
+  call 3   ; concat_2
+  local.set 9   ; $call_37
+  i32.const 0
+  local.get 9   ; $call_37
+  call 9   ; std_io$write
   return.lit i32.const 0
 end
 
-fn 3 std_core$new_byte_buffer (usize) -> ref
+fn 3 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 4   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 5   ; std_core$finish_buffer
+  return
+end
+
+fn 4 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 11   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 4 std_core$finish_buffer (ref,usize) -> string
+fn 5 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 5 std_core$write_string_at (ref,usize,string) -> usize
+fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -230,7 +270,7 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 6 std_core$write_int (ref,usize,i64) -> usize
+fn 7 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -347,7 +387,7 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 7 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -431,7 +471,7 @@ fn 7 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 8 std_io$write (i32,string) -> void
+fn 9 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -468,7 +508,7 @@ fn 8 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 9   ; std_io$write_bytes
+        call 10   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -489,7 +529,7 @@ fn 8 std_io$write (i32,string) -> void
   return
 end
 
-fn 9 std_io$write_bytes (i32,ref,usize) -> i32
+fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -506,16 +546,6 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 10 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 8   ; std_io$write
-  i32.const 0
-  string.const 3   ; "\n"
-  call 8   ; std_io$write
   return
 end
 

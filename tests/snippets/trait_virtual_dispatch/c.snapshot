@@ -25,16 +25,16 @@ static const char vader_atom_blob[] =
     "parse: " "\0"
     "net: " "\0"
     "bad token" "\0"
-    "timeout" "\0"
     "\n" "\0"
+    "timeout" "\0"
 ;
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
     { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
@@ -48,7 +48,6 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
-static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
@@ -133,11 +132,12 @@ static vader_string_t snippet_report(vader_box_t l0) {
 }
 
 static int32_t snippet_main(void) {
+    vader_string_t l0 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/trait_virtual_dispatch/_main.vader"
     vader_struct_snippet_ParseErr_t* _a0_obj = (vader_struct_snippet_ParseErr_t*) vader_gc_alloc(sizeof(vader_struct_snippet_ParseErr_t));
@@ -145,14 +145,18 @@ static int32_t snippet_main(void) {
     _a0_obj->f_msg = 3u;
     t0 = (void*) _a0_obj;
     t1 = snippet_report(vader_ref_box(t0));
-    std_io_println__string(t1);
+#line 116 "lib/std/io/io.vader"
+    l0 = concat_2(t1, 4u);
+    std_io_write(INT32_C(0), l0);
 #line 21 "tests/snippets/trait_virtual_dispatch/_main.vader"
     vader_struct_snippet_NetErr_t* _a1_obj = (vader_struct_snippet_NetErr_t*) vader_gc_alloc(sizeof(vader_struct_snippet_NetErr_t));
     vader_obj_header_init(_a1_obj, 3u);
-    _a1_obj->f_reason = 4u;
+    _a1_obj->f_reason = 5u;
     t0 = (void*) _a1_obj;
     t1 = snippet_report(vader_ref_box(t0));
-    std_io_println__string(t1);
+#line 116 "lib/std/io/io.vader"
+    l0 = concat_2(t1, 4u);
+    std_io_write(INT32_C(0), l0);
 #line 22 "tests/snippets/trait_virtual_dispatch/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
@@ -268,19 +272,6 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 61 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void std_io_println__string(vader_string_t l0) {
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-#line 116 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), l0);
-#line 117 "lib/std/io/io.vader"
-    std_io_write(INT32_C(0), 5u);
-#line 115 "lib/std/io/io.vader"
-    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

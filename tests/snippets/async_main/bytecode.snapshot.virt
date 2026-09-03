@@ -60,10 +60,11 @@ end
 
 fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local $field_13 string
-  local $field_15 string
+  local $field_16 string
+  local $call_19 string
   local __resumed_2 any
-  local $cast_26 string
-  local $cast_32 any
+  local $cast_29 string
+  local $cast_35 any
   block $L0 void
     loop $L1 void
       local.field 0 3 3   ; arg 0.state
@@ -96,11 +97,16 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           struct.set 3 1   ; __asyncstate_snippet_0.s1
           local.field 0 3 1   ; arg 0.s1
           ref.cast 8   ; -> string
-          local.set 2   ; $field_15
+          local.set 2   ; $field_16
           string.const 2   ; "hello, "
-          local.get 2   ; $field_15
+          local.get 2   ; $field_16
           call 4   ; concat_2
-          call 9   ; std_io$println__string
+          string.const 3   ; "\n"
+          call 4   ; concat_2
+          local.set 3   ; $call_19
+          i32.const 0
+          local.get 3   ; $call_19
+          call 7   ; std_io$write
           local.get 0   ; arg 0
           i32.const 1
           struct.set 3 3   ; __asyncstate_snippet_0.state
@@ -113,17 +119,17 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         if $L5 void
           local.field 0 3 2   ; arg 0.awaited
           virtual.call 1 Async.resume
-          local.tee 3   ; __resumed_2
+          local.tee 4   ; __resumed_2
           type_check 5   ; std_core$Suspended
           if $L6 void
             struct.new 5   ; std_core$Suspended
             return
           end $L6
-          local.get 3   ; __resumed_2
+          local.get 4   ; __resumed_2
           ref.cast 8   ; -> string
-          local.set 4   ; $cast_26
+          local.set 5   ; $cast_29
           local.get 0   ; arg 0
-          local.get 4   ; $cast_26
+          local.get 5   ; $cast_29
           struct.set 3 0   ; __asyncstate_snippet_0.s0
           local.get 0   ; arg 0
           i32.const 2
@@ -136,9 +142,9 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         i32.eq
         if $L7 void
           call 0   ; snippet$greeting
-          local.set 5   ; $cast_32
+          local.set 6   ; $cast_35
           local.get 0   ; arg 0
-          local.get 5   ; $cast_32
+          local.get 6   ; $cast_35
           struct.set 3 2   ; __asyncstate_snippet_0.awaited
           local.get 0   ; arg 0
           i32.const 3
@@ -183,11 +189,11 @@ fn 4 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 11   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 11   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 6   ; std_core$finish_buffer
@@ -196,14 +202,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 10   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 9   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 11   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 10   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -285,30 +291,20 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 9 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 7   ; std_io$write
-  i32.const 0
-  string.const 3   ; "\n"
-  call 7   ; std_io$write
-  return
-end
-
-fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 9 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 10 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

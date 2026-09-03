@@ -320,12 +320,11 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// The `@c_struct` mirrors, emitted with the imports rather than in the shared
 /// header.
 ///
-/// A mirror is per SYSTEM by nature — `DarwinStat` and `LinuxStat` describe the
-/// same C type laid out differently, and each is materialised only where its
-/// `@target` body is kept. The shared header must read identically for every
-/// target (`--seed-targets` refuses otherwise, which is what broke regenerating
-/// the seed), so the mirrors belong beside the shims that marshal them and the
-/// `_Static_assert`s that check them — all of which already live per target.
+/// A mirror is per SYSTEM by nature: two systems describe the same C type with
+/// different fields, and each mirror is materialised only where its `@target`
+/// body is kept. So a mirror belongs beside the shims that marshal it and the
+/// `_Static_assert`s that check it — all of which already live per target —
+/// rather than in the header every target shares.
 ///
 /// @param ctx  the emit context.
 /// @param out  the imports accumulator.

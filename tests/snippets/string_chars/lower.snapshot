@@ -4,9 +4,17 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "-- ascii --" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "-- ascii --" :string
+          arg1:
+            "\n" :string
     block :void
       let __iter_0: StringChars =
         call :StringChars
@@ -34,22 +42,38 @@
                   __step_1 :Yield<char>! | null
             call :void
               callee:
-                std_io$println__string :void
+                write :fn(Stream, string) -> void
               arg0:
+                int(0) :i32
+              arg1:
                 call :string
                   callee:
-                    bytes_to_string :string
+                    concat_2 :string
                   arg0:
-                    call :u8[]
+                    call :string
                       callee:
-                        utf8_encode :fn(char) -> u8[]
+                        bytes_to_string :string
                       arg0:
-                        c :char
+                        call :u8[]
+                          callee:
+                            utf8_encode :fn(char) -> u8[]
+                          arg0:
+                            c :char
+                  arg1:
+                    "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "-- multibyte --" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "-- multibyte --" :string
+          arg1:
+            "\n" :string
     block :void
       let __iter_2: StringChars =
         call :StringChars
@@ -77,17 +101,25 @@
                   __step_3 :Yield<char>! | null
             call :void
               callee:
-                std_io$println__string :void
+                write :fn(Stream, string) -> void
               arg0:
+                int(0) :i32
+              arg1:
                 call :string
                   callee:
-                    bytes_to_string :string
+                    concat_2 :string
                   arg0:
-                    call :u8[]
+                    call :string
                       callee:
-                        utf8_encode :fn(char) -> u8[]
+                        bytes_to_string :string
                       arg0:
-                        c :char
+                        call :u8[]
+                          callee:
+                            utf8_encode :fn(char) -> u8[]
+                          arg0:
+                            c :char
+                  arg1:
+                    "\n" :string
     let n: i32 = int(0) :i32
     block :void
       let __iter_4: StringChars =
@@ -125,87 +157,103 @@
                     int(1) :i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_6: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(58) :usize
-          let __off_7: usize = int(0) :usize
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_6: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(58) :usize
+              let __off_7: usize = int(0) :usize
+              assign
+                target:
                   __off_7 :usize
-                arg2:
-                  "codepoints=" :string
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_6 :Buffer
+                    arg1:
+                      __off_7 :usize
+                    arg2:
+                      "codepoints=" :string
+              assign
+                target:
                   __off_7 :usize
-                arg2:
-                  cast → i64
-                    n :i32
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_6 :Buffer
+                    arg1:
+                      __off_7 :usize
+                    arg2:
+                      cast → i64
+                        n :i32
+              assign
+                target:
                   __off_7 :usize
-                arg2:
-                  " bytes=" :string
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_6 :Buffer
+                    arg1:
+                      __off_7 :usize
+                    arg2:
+                      " bytes=" :string
+              assign
+                target:
                   __off_7 :usize
-                arg2:
-                  cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "héllo" :string
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_6 :Buffer
-              arg1:
-                __off_7 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_unsigned :usize
+                    arg0:
+                      __buf_6 :Buffer
+                    arg1:
+                      __off_7 :usize
+                    arg2:
+                      cast → u64
+                        call :usize
+                          callee:
+                            byte_len :fn(string) -> usize
+                          arg0:
+                            "héllo" :string
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_6 :Buffer
+                  arg1:
+                    __off_7 :usize
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "-- empty --" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "-- empty --" :string
+          arg1:
+            "\n" :string
     block :void
       let __iter_8: StringChars =
         call :StringChars
@@ -233,12 +281,77 @@
                   __step_9 :Yield<char>! | null
             call :void
               callee:
-                std_io$println__string :void
+                write :fn(Stream, string) -> void
               arg0:
-                "never" :string
+                int(0) :i32
+              arg1:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    "never" :string
+                  arg1:
+                    "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "done" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "done" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

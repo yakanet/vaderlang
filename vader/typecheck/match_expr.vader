@@ -132,13 +132,11 @@ export infer_match :: fn(
             }
             is AST.EnumVariantPattern as ev -> {
                 // A variant in a PATTERN is checked exactly as one in an
-                // expression is (`expr_dot_variant`, same T3027). Without this
-                // an arm naming a variant that does not exist type-checked,
-                // matched nothing, and counted itself as covering something --
-                // so a typo silently became dead code, and REMOVING a variant
-                // left every arm still naming it invisible. Only a directly
-                // enum-typed scrutinee is judged; anything wider stays silent
-                // rather than risk a false positive.
+                // expression is (`expr_dot_variant`, same T3027): an arm naming
+                // a variant that does not exist would otherwise type-check,
+                // match nothing, and count itself as covering one. Only a
+                // directly enum-typed scrutinee is judged; anything wider stays
+                // silent rather than risk a false positive.
                 if scrut_ty is EnumType as en {
                     if en.indices[ev.variant] is null {
                         diags.push(typecheck_error(.UnknownEnumVariant, ev.span,

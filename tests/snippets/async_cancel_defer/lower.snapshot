@@ -10,9 +10,17 @@
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          "never cancelled" :string
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "never cancelled" :string
+            arg1:
+              "\n" :string
   fn snippet$inner() -> Async<i32>
     return
       __asyncstate_snippet_2! {
@@ -48,18 +56,34 @@
         o :Async<i32>
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "done" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "done" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
   struct __defer_env_snippet_1 {  }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          "inner cleanup" :string
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "inner cleanup" :string
+            arg1:
+              "\n" :string
   struct __asyncstate_snippet_2 { s0: Async<i32>, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
     loop
@@ -177,9 +201,17 @@
                                 __self_2 :__asyncstate_snippet_2!
                           call :void
                             callee:
-                              std_io$println__string :void
+                              write :fn(Stream, string) -> void
                             arg0:
-                              "inner body (unreached)" :string
+                              int(0) :i32
+                            arg1:
+                              call :string
+                                callee:
+                                  concat_2 :string
+                                arg0:
+                                  "inner body (unreached)" :string
+                                arg1:
+                                  "\n" :string
                           assign
                             target:
                               .state :i32
@@ -328,9 +360,17 @@
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          "outer cleanup" :string
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "outer cleanup" :string
+            arg1:
+              "\n" :string
   struct __asyncstate_snippet_5 { s0: i32, s1: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_5$Async$resume(self: __asyncstate_snippet_5!) -> i32 | Suspended!
     loop
@@ -448,9 +488,17 @@
                                 __self_2 :__asyncstate_snippet_5!
                           call :void
                             callee:
-                              std_io$println__string :void
+                              write :fn(Stream, string) -> void
                             arg0:
-                              "outer body (unreached)" :string
+                              int(0) :i32
+                            arg1:
+                              call :string
+                                callee:
+                                  concat_2 :string
+                                arg0:
+                                  "outer body (unreached)" :string
+                                arg1:
+                                  "\n" :string
                           assign
                             target:
                               .state :i32
@@ -588,3 +636,52 @@
           __self_2 :__asyncstate_snippet_5!
       value:
         int(-1) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -27,10 +27,10 @@ type 24 struct __Tuple_char_usize_8bd920da { _0:3,_1:6 }
 type 25 primitive isize
 type 26 union 21,0
 string 0 "range sum  = "
-string 1 "array sum  = "
-string 2 "hello, world!"
-string 3 "l count    = "
-string 4 "\n"
+string 1 "\n"
+string 2 "array sum  = "
+string 3 "hello, world!"
+string 4 "l count    = "
 import 0 byte_len std_core$byte_len result_type=6 param_types=5 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=19 param_types=5 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=25 param_types=2,19,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -41,9 +41,9 @@ impl 10 Iterator
 impl 13 Iterator
 impl 14 ByteAccess
 impl 22 Iterator
-vtable Iterator.next 7 4
-vtable Iterator.next 10 5
-vtable Iterator.next 13 6
+vtable Iterator.next 7 5
+vtable Iterator.next 10 6
+vtable Iterator.next 13 7
 vtable Iterator.next 22 19
 export main 3
 
@@ -130,9 +130,10 @@ fn 3 snippet$main () -> i32
   local b i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_22 i64
+  local $cast_23 i64
+  local $call_27 string
   local __off_5 usize
-  local $cast_45 u64
+  local $cast_52 u64
   i32.const 0
   i32.const 5
   bool.const false
@@ -149,78 +150,122 @@ fn 3 snippet$main () -> i32
   call 0   ; snippet$sum_iter
   local.set 1   ; b
   i64.const 33
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   string.const 0   ; "range sum  = "
-  call 9   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; a
   i32.to_i64
-  local.set 4   ; $cast_22
+  local.set 4   ; $cast_23
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_22
-  call 10   ; std_core$write_int
+  local.get 4   ; $cast_23
+  call 11   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 4   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 16   ; std_io$write
   i64.const 33
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 1   ; "array sum  = "
-  call 9   ; std_core$write_string_at
+  string.const 2   ; "array sum  = "
+  call 10   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 1   ; b
   i32.to_i64
-  local.set 4   ; $cast_22
+  local.set 4   ; $cast_23
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_22
-  call 10   ; std_core$write_int
+  local.get 4   ; $cast_23
+  call 11   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  call 8   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
-  string.const 2   ; "hello, world!"
+  call 9   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 4   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 16   ; std_io$write
+  string.const 3   ; "hello, world!"
   call 2   ; snippet$count_ls
   local.set 3   ; __off_1
   i64.const 33
-  call 7   ; std_core$new_byte_buffer
+  call 8   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
   i64.const 0
-  local.set 5   ; __off_5
+  local.set 6   ; __off_5
   local.get 2   ; __buf_0
-  local.get 5   ; __off_5
-  string.const 3   ; "l count    = "
-  call 9   ; std_core$write_string_at
-  local.set 5   ; __off_5
+  local.get 6   ; __off_5
+  string.const 4   ; "l count    = "
+  call 10   ; std_core$write_string_at
+  local.set 6   ; __off_5
   local.get 3   ; __off_1
   usize.to_i64
-  local.set 6   ; $cast_45
+  local.set 7   ; $cast_52
   local.get 2   ; __buf_0
-  local.get 5   ; __off_5
-  local.get 6   ; $cast_45
-  call 11   ; std_core$write_unsigned
-  local.set 5   ; __off_5
+  local.get 6   ; __off_5
+  local.get 7   ; $cast_52
+  call 12   ; std_core$write_unsigned
+  local.set 6   ; __off_5
   local.get 2   ; __buf_0
-  local.get 5   ; __off_5
-  call 8   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  local.get 6   ; __off_5
+  call 9   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 4   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 16   ; std_io$write
   return.lit i32.const 0
 end
 
-fn 4 std_core$Range$Iterator$next__i32 (ref) -> any
+fn 4 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 8   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 27   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 27   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 9   ; std_core$finish_buffer
+  return
+end
+
+fn 5 std_core$Range$Iterator$next__i32 (ref) -> any
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -235,7 +280,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 13   ; std_core$i32$Comparable$compare
+    call 14   ; std_core$i32$Comparable$compare
     i32.const 0
     i32.gt
     local.set 1   ; done
@@ -248,7 +293,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 13   ; std_core$i32$Comparable$compare
+    call 14   ; std_core$i32$Comparable$compare
     i32.const 0
     i32.ge
     local.set 1   ; done
@@ -275,7 +320,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> any
   return
 end
 
-fn 5 std_core$Range$Iterator$next__usize (ref) -> any
+fn 6 std_core$Range$Iterator$next__usize (ref) -> any
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -290,7 +335,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 14   ; std_core$usize$Comparable$compare
+    call 15   ; std_core$usize$Comparable$compare
     i32.const 0
     i32.gt
     local.set 1   ; done
@@ -303,7 +348,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 14   ; std_core$usize$Comparable$compare
+    call 15   ; std_core$usize$Comparable$compare
     i32.const 0
     i32.ge
     local.set 1   ; done
@@ -330,7 +375,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> any
   return
 end
 
-fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> any
+fn 7 std_core$ArrayIterator$Iterator$next__i32 (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -371,20 +416,20 @@ fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> any
   return
 end
 
-fn 7 std_core$new_byte_buffer (usize) -> ref
+fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 24   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 8 std_core$finish_buffer (ref,usize) -> string
+fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 26   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 9 std_core$write_string_at (ref,usize,string) -> usize
+fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -399,7 +444,7 @@ fn 9 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 10 std_core$write_int (ref,usize,i64) -> usize
+fn 11 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -516,7 +561,7 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 11 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 12 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -600,7 +645,7 @@ fn 11 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 12 std_core$three_way (bool,bool) -> i32
+fn 13 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local.get 0   ; arg 0
   if $L0 void
@@ -621,7 +666,7 @@ fn 12 std_core$three_way (bool,bool) -> i32
   return
 end
 
-fn 13 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 14 std_core$i32$Comparable$compare (i32,i32) -> i32
   local $lt_2 bool
   local $gt_3 bool
   local.get 0   ; arg 0
@@ -634,7 +679,7 @@ fn 13 std_core$i32$Comparable$compare (i32,i32) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 12   ; std_core$three_way
+  call 13   ; std_core$three_way
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -646,11 +691,11 @@ fn 13 std_core$i32$Comparable$compare (i32,i32) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 12   ; std_core$three_way
+  call 13   ; std_core$three_way
   return
 end
 
-fn 14 std_core$usize$Comparable$compare (usize,usize) -> i32
+fn 15 std_core$usize$Comparable$compare (usize,usize) -> i32
   local $lt_2 bool
   local $gt_3 bool
   local.get 0   ; arg 0
@@ -663,7 +708,7 @@ fn 14 std_core$usize$Comparable$compare (usize,usize) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 12   ; std_core$three_way
+  call 13   ; std_core$three_way
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -675,11 +720,11 @@ fn 14 std_core$usize$Comparable$compare (usize,usize) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 12   ; std_core$three_way
+  call 13   ; std_core$three_way
   return
 end
 
-fn 15 std_io$write (i32,string) -> void
+fn 16 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -716,7 +761,7 @@ fn 15 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 16   ; std_io$write_bytes
+        call 17   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -737,7 +782,7 @@ fn 15 std_io$write (i32,string) -> void
   return
 end
 
-fn 16 std_io$write_bytes (i32,ref,usize) -> i32
+fn 17 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -754,16 +799,6 @@ fn 16 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 17 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 15   ; std_io$write
-  i32.const 0
-  string.const 4   ; "\n"
-  call 15   ; std_io$write
   return
 end
 

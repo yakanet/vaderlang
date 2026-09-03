@@ -29,9 +29,17 @@
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          "work cleanup" :string
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "work cleanup" :string
+            arg1:
+              "\n" :string
   struct __asyncstate_snippet_2 { s0: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> string | Suspended!
     loop
@@ -334,18 +342,26 @@
                           __self_1 :__asyncstate_snippet_3!
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
+                      int(0) :i32
+                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          "timed out: " :string
+                          call :string
+                            callee:
+                              concat_2 :string
+                            arg0:
+                              "timed out: " :string
+                            arg1:
+                              vcall Error.message :string
+                                recv:
+                                  .s2 :Error
+                                    __self_1 :__asyncstate_snippet_3!
                         arg1:
-                          vcall Error.message :string
-                            recv:
-                              .s2 :Error
-                                __self_1 :__asyncstate_snippet_3!
+                          "\n" :string
                   assign
                     target:
                       .state :i32
@@ -364,17 +380,25 @@
                     then:
                       call :void
                         callee:
-                          std_io$println__string :void
+                          write :fn(Stream, string) -> void
                         arg0:
+                          int(0) :i32
+                        arg1:
                           call :string
                             callee:
                               concat_2 :string
                             arg0:
-                              "got: " :string
+                              call :string
+                                callee:
+                                  concat_2 :string
+                                arg0:
+                                  "got: " :string
+                                arg1:
+                                  cast → string
+                                    .s1 :string | TimeoutError
+                                      __self_1 :__asyncstate_snippet_3!
                             arg1:
-                              cast → string
-                                .s1 :string | TimeoutError
-                                  __self_1 :__asyncstate_snippet_3!
+                              "\n" :string
                       assign
                         target:
                           .state :i32

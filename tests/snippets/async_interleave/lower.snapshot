@@ -74,88 +74,96 @@
                     __self_4 :__asyncstate_snippet_0!
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
-                      block :string
-                        let __p_1: string =
-                          .s0 :string
-                            __self_4 :__asyncstate_snippet_0!
-                        let __buf_2: Buffer =
-                          call :Buffer
-                            callee:
-                              new_byte_buffer :Buffer
-                            arg0:
-                              add :usize
-                                l:
-                                  int(34) :usize
-                                r:
-                                  call :usize
-                                    callee:
-                                      byte_len :usize
-                                    arg0:
-                                      __p_1 :string
-                        let __off_3: usize = int(0) :usize
-                        assign
-                          target:
-                            __off_3 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_2 :Buffer
-                              arg1:
+                      int(0) :i32
+                    arg1:
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          block :string
+                            let __p_1: string =
+                              .s0 :string
+                                __self_4 :__asyncstate_snippet_0!
+                            let __buf_2: Buffer =
+                              call :Buffer
+                                callee:
+                                  new_byte_buffer :Buffer
+                                arg0:
+                                  add :usize
+                                    l:
+                                      int(34) :usize
+                                    r:
+                                      call :usize
+                                        callee:
+                                          byte_len :usize
+                                        arg0:
+                                          __p_1 :string
+                            let __off_3: usize = int(0) :usize
+                            assign
+                              target:
                                 __off_3 :usize
-                              arg2:
-                                __p_1 :string
-                        assign
-                          target:
-                            __off_3 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_2 :Buffer
-                              arg1:
+                              value:
+                                call :usize
+                                  callee:
+                                    write_string_at :usize
+                                  arg0:
+                                    __buf_2 :Buffer
+                                  arg1:
+                                    __off_3 :usize
+                                  arg2:
+                                    __p_1 :string
+                            assign
+                              target:
                                 __off_3 :usize
-                              arg2:
-                                ": end (slept " :string
-                        assign
-                          target:
-                            __off_3 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_int :usize
-                              arg0:
-                                __buf_2 :Buffer
-                              arg1:
+                              value:
+                                call :usize
+                                  callee:
+                                    write_string_at :usize
+                                  arg0:
+                                    __buf_2 :Buffer
+                                  arg1:
+                                    __off_3 :usize
+                                  arg2:
+                                    ": end (slept " :string
+                            assign
+                              target:
                                 __off_3 :usize
-                              arg2:
-                                .s1 :i64
-                                  __self_4 :__asyncstate_snippet_0!
-                        assign
-                          target:
-                            __off_3 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_2 :Buffer
-                              arg1:
+                              value:
+                                call :usize
+                                  callee:
+                                    write_int :usize
+                                  arg0:
+                                    __buf_2 :Buffer
+                                  arg1:
+                                    __off_3 :usize
+                                  arg2:
+                                    .s1 :i64
+                                      __self_4 :__asyncstate_snippet_0!
+                            assign
+                              target:
                                 __off_3 :usize
-                              arg2:
-                                ")" :string
-                        ~>
-                          call :string
-                            callee:
-                              finish_buffer :string
-                            arg0:
-                              __buf_2 :Buffer
-                            arg1:
-                              __off_3 :usize
+                              value:
+                                call :usize
+                                  callee:
+                                    write_string_at :usize
+                                  arg0:
+                                    __buf_2 :Buffer
+                                  arg1:
+                                    __off_3 :usize
+                                  arg2:
+                                    ")" :string
+                            ~>
+                              call :string
+                                callee:
+                                  finish_buffer :string
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                        arg1:
+                          "\n" :string
                   assign
                     target:
                       .state :i32
@@ -239,16 +247,24 @@
                             then:
                               call :void
                                 callee:
-                                  std_io$println__string :void
+                                  write :fn(Stream, string) -> void
                                 arg0:
+                                  int(0) :i32
+                                arg1:
                                   call :string
                                     callee:
                                       concat_2 :string
                                     arg0:
-                                      .s0 :string
-                                        __self_4 :__asyncstate_snippet_0!
+                                      call :string
+                                        callee:
+                                          concat_2 :string
+                                        arg0:
+                                          .s0 :string
+                                            __self_4 :__asyncstate_snippet_0!
+                                        arg1:
+                                          ": start" :string
                                     arg1:
-                                      ": start" :string
+                                      "\n" :string
                               assign
                                 target:
                                   .state :i32

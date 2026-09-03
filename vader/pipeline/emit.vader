@@ -129,9 +129,9 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> stri
 /// macOS and MinGW carrying the math symbols in their C runtime.
 ///
 /// Shared by BOTH link paths — the mono `cc_argv` here and the split
-/// `cc_link_argv` in `vader/cli` — because only the split one produces a
-/// `--release` build, and having the flag on one of the two is what left CI
-/// failing on `pow` after the first fix.
+/// `cc_link_argv` in `vader/cli`. Only the split one produces a `--release`
+/// build, so a flag added to just one of them leaves the shipped binary
+/// without it.
 ///
 /// @param argv  the command line being built, appended to in place.
 export push_math_library :: fn(argv: string[]!) -> void {
@@ -141,6 +141,13 @@ export push_math_library :: fn(argv: string[]!) -> void {
     argv.push("-lm")
 }
 
+/// Split a user `--ldflags` string on spaces and append each token.
+///
+/// Empty tokens are dropped, so a doubled or trailing space cannot reach `cc`
+/// as an empty argument.
+///
+/// @param argv     the command line being built, appended to in place.
+/// @param ldflags  the raw `--ldflags` value, space-separated.
 export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
     for tok in ldflags.trim().split(" ") {
         if tok != "" {
@@ -149,9 +156,6 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
     }
 }
 
-// Assemble the `cc` command line : runtime include + the emitted C unit + the
-// external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
-// `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
 /// Assemble the `cc` command line for a native link.
 ///
 /// Runtime include, the emitted unit, the runtime unit, opt flags, user

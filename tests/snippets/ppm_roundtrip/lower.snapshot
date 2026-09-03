@@ -46,9 +46,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "encode failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "encode failed" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     let wr: IOError | null =
       call :IOError | null
@@ -66,24 +74,32 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
+            int(0) :i32
+          arg1:
             call :string
               callee:
-                concat_5 :string
+                concat_2 :string
               arg0:
-                "write failed: " :string
+                call :string
+                  callee:
+                    concat_5 :string
+                  arg0:
+                    "write failed: " :string
+                  arg1:
+                    vcall Error.message :string
+                      recv:
+                        cast → Error
+                          wr :IOError | null
+                  arg2:
+                    " path=[" :string
+                  arg3:
+                    path :string
+                  arg4:
+                    "]" :string
               arg1:
-                vcall Error.message :string
-                  recv:
-                    cast → Error
-                      wr :IOError | null
-              arg2:
-                " path=[" :string
-              arg3:
-                path :string
-              arg4:
-                "]" :string
+                "\n" :string
         return int(1) :i32
     let raw: IOError | u8[] =
       call :IOError | u8[]
@@ -98,18 +114,26 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
+            int(0) :i32
+          arg1:
             call :string
               callee:
                 concat_2 :string
               arg0:
-                "read failed: " :string
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    "read failed: " :string
+                  arg1:
+                    vcall Error.message :string
+                      recv:
+                        cast → Error
+                          raw :IOError | u8[]
               arg1:
-                vcall Error.message :string
-                  recv:
-                    cast → Error
-                      raw :IOError | u8[]
+                "\n" :string
         return int(1) :i32
     let dec: Ppm | PpmError =
       call :Ppm | PpmError
@@ -125,9 +149,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "decode failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "decode failed" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     let ok: bool =
       and :bool
@@ -208,14 +240,22 @@
                 int(1) :usize
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            images_ppm$Ppm$Display$to_string :string
+            concat_2 :string
           arg0:
-            cast → Ppm
-              dec :Ppm | PpmError
+            call :string
+              callee:
+                images_ppm$Ppm$Display$to_string :string
+              arg0:
+                cast → Ppm
+                  dec :Ppm | PpmError
+          arg1:
+            "\n" :string
     if :void
       cond:
         ok :bool
@@ -223,16 +263,32 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "OK" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "OK" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "MISMATCH" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "MISMATCH" :string
+                arg1:
+                  "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

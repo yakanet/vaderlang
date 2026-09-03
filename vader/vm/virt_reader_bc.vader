@@ -349,16 +349,6 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
     return DirectiveError { .reason = "unrecognised type kind in `${rest}`" }
 }
 
-/// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
-/// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
-/// → `-1`.
-///
-/// Field order IS the field index, so a dropped field silently renumbers every one
-/// after it — the reader refuses the line rather than hand back a struct whose
-/// slots no longer line up with the emitter's.
-///
-/// @param rest  the text after `type N `, starting at `struct `.
-/// @return      the parsed struct, or why the line could not be read.
 /// Byte offset of the ` as "` that introduces a mirrored C type, or -1.
 ///
 /// Scanned by hand: `std/string` has no substring search, and the one place
@@ -379,6 +369,16 @@ find_mirror_marker :: fn(s: string) -> isize {
     return -1
 }
 
+/// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
+/// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
+/// → `-1`.
+///
+/// Field order IS the field index, so a dropped field silently renumbers every one
+/// after it — the reader refuses the line rather than hand back a struct whose
+/// slots no longer line up with the emitter's.
+///
+/// @param rest  the text after `type N `, starting at `struct `.
+/// @return      the parsed struct, or why the line could not be read.
 parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     rb :: rest.bytes()
     after_struct :: rb["struct ".bytes().len()..<rb.len()].bytes_to_string()

@@ -70,116 +70,172 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "inline=" :string
-          arg1:
             call :string
               callee:
-                inline_trim :fn(Name) -> string
+                concat_2 :string
               arg0:
-                cast → Name
-                  "  hi  " :string
+                "inline=" :string
+              arg1:
+                call :string
+                  callee:
+                    inline_trim :fn(Name) -> string
+                  arg0:
+                    cast → Name
+                      "  hi  " :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "shout=" :string
-          arg1:
-            cast → string
-              call :Name
-                callee:
-                  shout :fn(Name) -> Name
-                arg0:
-                  cast → Name
-                    "banana" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "bound=" :string
-          arg1:
             call :string
               callee:
-                bound :fn(Name) -> string
+                concat_2 :string
               arg0:
-                cast → Name
-                  "  ho  " :string
+                "shout=" :string
+              arg1:
+                cast → string
+                  call :Name
+                    callee:
+                      shout :fn(Name) -> Name
+                    arg0:
+                      cast → Name
+                        "banana" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "freefn=" :string
-          arg1:
             call :string
               callee:
-                freefn :fn(Name) -> string
+                concat_2 :string
               arg0:
-                cast → Name
-                  "  he  " :string
+                "bound=" :string
+              arg1:
+                call :string
+                  callee:
+                    bound :fn(Name) -> string
+                  arg0:
+                    cast → Name
+                      "  ho  " :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "identity=" :string
-          arg1:
             call :string
               callee:
-                identity :fn(string) -> string
+                concat_2 :string
               arg0:
-                "  hu  " :string
+                "freefn=" :string
+              arg1:
+                call :string
+                  callee:
+                    freefn :fn(Name) -> string
+                  arg0:
+                    cast → Name
+                      "  he  " :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "int=" :string
-          arg1:
             call :string
               callee:
-                backed_int :fn(Count) -> string
+                concat_2 :string
               arg0:
-                cast → Count
-                  int(42) :i32
+                "identity=" :string
+              arg1:
+                call :string
+                  callee:
+                    identity :fn(string) -> string
+                  arg0:
+                    "  hu  " :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "bool=" :string
-          arg1:
             call :string
               callee:
-                backed_bool :fn(Flag) -> string
+                concat_2 :string
               arg0:
-                cast → Flag
-                  true
+                "int=" :string
+              arg1:
+                call :string
+                  callee:
+                    backed_int :fn(Count) -> string
+                  arg0:
+                    cast → Count
+                      int(42) :i32
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "bool=" :string
+              arg1:
+                call :string
+                  callee:
+                    backed_bool :fn(Flag) -> string
+                  arg0:
+                    cast → Flag
+                      true
+          arg1:
+            "\n" :string
     return int(0) :i32
   struct __lambda_env_snippet_1 {  }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, c: char) -> bool

@@ -4,287 +4,367 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_3 :string
+            concat_2 :string
           arg0:
-            "[" :string
-          arg1:
             call :string
               callee:
-                pad_start :string
+                concat_3 :string
               arg0:
-                "42" :string
+                "[" :string
               arg1:
-                int(5) :usize
+                call :string
+                  callee:
+                    pad_start :string
+                  arg0:
+                    "42" :string
+                  arg1:
+                    int(5) :usize
+                  arg2:
+                    char(0x30)
               arg2:
-                char(0x30)
-          arg2:
-            "]" :string
+                "]" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_3 :string
+            concat_2 :string
           arg0:
-            "[" :string
-          arg1:
             call :string
               callee:
-                pad_end :string
+                concat_3 :string
               arg0:
-                "42" :string
+                "[" :string
               arg1:
-                int(5) :usize
+                call :string
+                  callee:
+                    pad_end :string
+                  arg0:
+                    "42" :string
+                  arg1:
+                    int(5) :usize
+                  arg2:
+                    char(0x2e)
               arg2:
-                char(0x2e)
-          arg2:
-            "]" :string
+                "]" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_3 :string
+            concat_2 :string
           arg0:
-            "[" :string
-          arg1:
             call :string
               callee:
-                pad_start :string
+                concat_3 :string
               arg0:
-                "hello" :string
+                "[" :string
               arg1:
-                int(3) :usize
+                call :string
+                  callee:
+                    pad_start :string
+                  arg0:
+                    "hello" :string
+                  arg1:
+                    int(3) :usize
+                  arg2:
+                    char(0x20)
               arg2:
-                char(0x20)
-          arg2:
-            "]" :string
+                "]" :string
+          arg1:
+            "\n" :string
     let n: u64 = int(255) :u64
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "hex=" :string
-          arg1:
             call :string
               callee:
-                to_hex :string
+                concat_2 :string
               arg0:
-                n :u64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "bin=" :string
-          arg1:
-            call :string
-              callee:
-                to_bin :string
-              arg0:
-                n :u64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "hex_padded=" :string
-          arg1:
-            call :string
-              callee:
-                pad_start :string
-              arg0:
+                "hex=" :string
+              arg1:
                 call :string
                   callee:
                     to_hex :string
                   arg0:
                     n :u64
-              arg1:
-                int(4) :usize
-              arg2:
-                char(0x30)
-    let zero: u64 = int(0) :u64
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "zero_bin=" :string
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "bin=" :string
+              arg1:
+                call :string
+                  callee:
+                    to_bin :string
+                  arg0:
+                    n :u64
           arg1:
-            call :string
-              callee:
-                to_bin :string
-              arg0:
-                zero :u64
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
               callee:
-                new_byte_buffer :Buffer
+                concat_2 :string
               arg0:
-                int(14) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
+                "hex_padded=" :string
+              arg1:
+                call :string
+                  callee:
+                    pad_start :string
+                  arg0:
+                    call :string
+                      callee:
+                        to_hex :string
+                      arg0:
+                        n :u64
+                  arg1:
+                    int(4) :usize
+                  arg2:
+                    char(0x30)
+          arg1:
+            "\n" :string
+    let zero: u64 = int(0) :u64
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "zero_bin=" :string
+              arg1:
+                call :string
+                  callee:
+                    to_bin :string
+                  arg0:
+                    zero :u64
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(14) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
                   __off_1 :usize
-                arg2:
-                  "ws_space=" :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "ws_space=" :string
+              assign
+                target:
                   __off_1 :usize
-                arg2:
-                  call :bool
+                value:
+                  call :usize
                     callee:
-                      is_white_char :bool
+                      write_bool :usize
                     arg0:
-                      char(0x20)
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      call :bool
+                        callee:
+                          is_white_char :bool
+                        arg0:
+                          char(0x20)
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_2: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(10) :usize
-          let __off_3: usize = int(0) :usize
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_2: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(10) :usize
+              let __off_3: usize = int(0) :usize
+              assign
+                target:
                   __off_3 :usize
-                arg2:
-                  "ws_a=" :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  call :bool
+                value:
+                  call :usize
                     callee:
-                      is_white_char :bool
+                      write_string_at :usize
                     arg0:
-                      char(0x61)
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_2 :Buffer
-              arg1:
-                __off_3 :usize
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      "ws_a=" :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_bool :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      call :bool
+                        callee:
+                          is_white_char :bool
+                        arg0:
+                          char(0x61)
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_2 :Buffer
+                  arg1:
+                    __off_3 :usize
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_4: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(12) :usize
-          let __off_5: usize = int(0) :usize
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_4: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(12) :usize
+              let __off_5: usize = int(0) :usize
+              assign
+                target:
                   __off_5 :usize
-                arg2:
-                  "ws_tab=" :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  call :bool
+                value:
+                  call :usize
                     callee:
-                      is_white_char :bool
+                      write_string_at :usize
                     arg0:
-                      char(0x9)
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_4 :Buffer
-              arg1:
-                __off_5 :usize
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      "ws_tab=" :string
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_bool :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      call :bool
+                        callee:
+                          is_white_char :bool
+                        arg0:
+                          char(0x9)
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_4 :Buffer
+                  arg1:
+                    __off_5 :usize
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

@@ -63,9 +63,17 @@
                     __self_2 :__asyncstate_snippet_0!
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
-                      "woke at 5" :string
+                      int(0) :i32
+                    arg1:
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "woke at 5" :string
+                        arg1:
+                          "\n" :string
                   assign
                     target:
                       .state :i32
@@ -150,9 +158,17 @@
                                 __self_2 :__asyncstate_snippet_0!
                               call :void
                                 callee:
-                                  std_io$println__string :void
+                                  write :fn(Stream, string) -> void
                                 arg0:
-                                  "woke at 2" :string
+                                  int(0) :i32
+                                arg1:
+                                  call :string
+                                    callee:
+                                      concat_2 :string
+                                    arg0:
+                                      "woke at 2" :string
+                                    arg1:
+                                      "\n" :string
                               assign
                                 target:
                                   .state :i32
@@ -235,9 +251,17 @@
                                         then:
                                           call :void
                                             callee:
-                                              std_io$println__string :void
+                                              write :fn(Stream, string) -> void
                                             arg0:
-                                              "start" :string
+                                              int(0) :i32
+                                            arg1:
+                                              call :string
+                                                callee:
+                                                  concat_2 :string
+                                                arg0:
+                                                  "start" :string
+                                                arg1:
+                                                  "\n" :string
                                           assign
                                             target:
                                               .state :i32
@@ -266,3 +290,52 @@
           __self_2 :__asyncstate_snippet_0!
       value:
         int(-1) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

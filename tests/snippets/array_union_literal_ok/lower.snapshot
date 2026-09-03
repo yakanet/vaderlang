@@ -31,15 +31,23 @@
             ~>
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
+                  int(0) :i32
+                arg1:
                   call :string
                     callee:
                       concat_2 :string
                     arg0:
-                      "str " :string
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "str " :string
+                        arg1:
+                          s :string
                     arg1:
-                      s :string
+                      "\n" :string
           else:
             ~>
               if :void
@@ -52,51 +60,59 @@
                       x :i32 | string
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
-                      block :string
-                        let __buf_3: Buffer =
-                          call :Buffer
-                            callee:
-                              new_byte_buffer :Buffer
-                            arg0:
-                              int(24) :usize
-                        let __off_4: usize = int(0) :usize
-                        assign
-                          target:
-                            __off_4 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_3 :Buffer
-                              arg1:
+                      int(0) :i32
+                    arg1:
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          block :string
+                            let __buf_3: Buffer =
+                              call :Buffer
+                                callee:
+                                  new_byte_buffer :Buffer
+                                arg0:
+                                  int(24) :usize
+                            let __off_4: usize = int(0) :usize
+                            assign
+                              target:
                                 __off_4 :usize
-                              arg2:
-                                "int " :string
-                        assign
-                          target:
-                            __off_4 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_int :usize
-                              arg0:
-                                __buf_3 :Buffer
-                              arg1:
+                              value:
+                                call :usize
+                                  callee:
+                                    write_string_at :usize
+                                  arg0:
+                                    __buf_3 :Buffer
+                                  arg1:
+                                    __off_4 :usize
+                                  arg2:
+                                    "int " :string
+                            assign
+                              target:
                                 __off_4 :usize
-                              arg2:
-                                cast → i64
-                                  n :i32
-                        ~>
-                          call :string
-                            callee:
-                              finish_buffer :string
-                            arg0:
-                              __buf_3 :Buffer
-                            arg1:
-                              __off_4 :usize
+                              value:
+                                call :usize
+                                  callee:
+                                    write_int :usize
+                                  arg0:
+                                    __buf_3 :Buffer
+                                  arg1:
+                                    __off_4 :usize
+                                  arg2:
+                                    cast → i64
+                                      n :i32
+                            ~>
+                              call :string
+                                callee:
+                                  finish_buffer :string
+                                arg0:
+                                  __buf_3 :Buffer
+                                arg1:
+                                  __off_4 :usize
+                        arg1:
+                          "\n" :string
         assign
           target:
             __for_i_2 :usize
@@ -129,51 +145,59 @@
                 int(0) :i32
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            block :string
-              let __buf_5: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(26) :usize
-              let __off_6: usize = int(0) :usize
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                block :string
+                  let __buf_5: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(26) :usize
+                  let __off_6: usize = int(0) :usize
+                  assign
+                    target:
                       __off_6 :usize
-                    arg2:
-                      "view0 " :string
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_5 :Buffer
+                        arg1:
+                          __off_6 :usize
+                        arg2:
+                          "view0 " :string
+                  assign
+                    target:
                       __off_6 :usize
-                    arg2:
-                      cast → i64
-                        n :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_5 :Buffer
-                  arg1:
-                    __off_6 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_5 :Buffer
+                        arg1:
+                          __off_6 :usize
+                        arg2:
+                          cast → i64
+                            n :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_5 :Buffer
+                      arg1:
+                        __off_6 :usize
+              arg1:
+                "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

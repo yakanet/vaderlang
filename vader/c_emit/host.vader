@@ -177,22 +177,12 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
         for field_index in 0..<t.fields.len() {
             f :: t.fields[field_index]
             cf :: c_field_name(f)
-            // NO offset assertion. It compared a VADER offset to a C one, and
-            // nothing ever brings the two together: the shim declares its OWN C
-            // struct and copies field by field BY NAME
-            // (`v->f_st_mode = p1.st_mode`), so `cc` resolves the real offset
-            // itself, while the VM lays the block out and reads it back with
-            // the Vader layout on both sides.
-            //
-            // It was not merely useless, it was unsatisfiable. `struct stat`
-            // puts `st_mode` at 24 on x86_64 and at 16 on arm64, so the seed
-            // for `linux-arm64` failed to compile; and dropping `st_nlink` from
-            // the mirror to fix arm64 would have moved the Vader offset to 16
-            // and broken x86_64. No mirror can satisfy both, which is the proof
-            // that the constraint was wrong rather than mis-set.
-            //
-            // What does have to hold is the WIDTH of each field, asserted
-            // below: the copy must not truncate.
+            // No offset assertion: a Vader offset and a C one never meet. The
+            // shim declares its OWN C struct and copies field by field BY NAME,
+            // so `cc` resolves the real offset; the VM lays the block out and
+            // reads it back with the Vader layout on both sides. What must hold
+            // is the WIDTH of each field, asserted below — the copy must not
+            // truncate.
             if f.c_size == 0 {
                 // `@c_size(0, …)`: the field does not exist on this system, so
                 // there is nothing to compare and nothing to copy.
@@ -220,15 +210,11 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
                 )
                 continue
             }
-            // A BARE field takes the same direction as an annotated one. `==`
-            // everywhere looked stricter, but it is wrong where C writes: on
-            // LINUX, `struct stat.st_nlink` is 8 bytes on x86_64 and 4 on
-            // arm64, so `LinuxStat`'s `u64` — right on one — is rejected on the
-            // other, for a copy (`v->f_st_nlink = p.st_nlink`) that widens and
-            // cannot lose anything. (Darwin is untouched: `DarwinStat` mirrors
-            // its own two fields, which is why building on macOS arm64 never
-            // showed this.) Where C READS the copy runs the other way and a
-            // wider Vader field would truncate, so `==` stays there.
+            // A bare field takes the same direction as an annotated one. Where
+            // C WRITES, `<=` — the copy widens into the Vader field and cannot
+            // lose anything, and a C field's width may differ between arches of
+            // one system. Where C READS, the copy runs the other way and a wider
+            // Vader field would truncate, so exactness is required.
             bare_fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
                 .CWrites -> "<="
                 .CReads  -> "=="
@@ -368,11 +354,10 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
 /// @return     whether C may write through the slot.
 param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
     if j >= sig.param_mutable.len() {
-        // No information is NOT a licence to write. Answering "yes" here left a
-        // read-only mirror marshalled backwards -- the callee handed an
-        // uninitialised struct. Answering "no" costs at worst a write-back that
-        // never happens, which is a wrong value rather than undefined
-        // behaviour. The list is now always emitted, so this is a belt.
+        // No information is not a licence to write: answering "yes" would hand
+        // the callee an uninitialised struct, while "no" costs at worst a
+        // write-back that does not happen. The list is always emitted, so this
+        // only guards a `.virt` from an older writer.
         return false
     }
     return sig.param_mutable[j]
@@ -664,8 +649,9 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         // library-owned pointers (`getenv`, `strerror`) this unblocks. An
         // `@owned` form, zero-copy through `vader_atom_intern_take`, comes next.
         //
-        // NULL interns as the empty string: `string` carries no null variant,
-        // and `string | null` is not an admitted extern return type yet.
+        // NULL interns as the empty string: a bare `string` carries no null
+        // variant. A callee that must distinguish absent from empty is declared
+        // `string | null`, handled by the branch above.
         lines.push("const char* r = ${call_expr};")
         for al in after_lines { lines.push(al) }
         // Interned before the frees, for the reason spelled out just above: the

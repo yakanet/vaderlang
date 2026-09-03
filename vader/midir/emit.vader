@@ -174,15 +174,6 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     ctx.type_key[s.mangled] = new_index
 }
 
-/// The C type named by `@c_struct("struct timespec")` on the origin struct
-/// declaration, or `""`.
-///
-/// Read from the AST decl rather than a symbol table: `MonoEntry` already
-/// carries the declaration a lowered struct came from, which is the same route
-/// `fn_metadata` takes for `@c_header`.
-///
-/// @param origin  the lowered struct's monomorphisation entry.
-/// @return        the C type spelling, or `""` for an ordinary Vader struct.
 /// The `@c_size` a field resolved to, and whether its target was left out.
 ///
 /// Read off the origin AST for the same reason `c_struct_of` is: the widths only
@@ -208,6 +199,15 @@ c_size_of :: fn(origin: MonoEntry, name: string) -> [i64, bool] {
     return [-1, false]
 }
 
+/// The C type named by `@c_struct("struct timespec")` on the origin struct
+/// declaration, or `""`.
+///
+/// Read from the AST decl rather than a symbol table: `MonoEntry` already
+/// carries the declaration a lowered struct came from, which is the same route
+/// `fn_metadata` takes for `@c_header`.
+///
+/// @param origin  the lowered struct's monomorphisation entry.
+/// @return        the C type spelling, or `""` for an ordinary Vader struct.
 c_struct_of :: fn(origin: MonoEntry) -> string {
     d :: origin.decl
     if d !is StructDecl {

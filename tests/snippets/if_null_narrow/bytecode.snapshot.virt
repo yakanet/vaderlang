@@ -140,6 +140,7 @@ fn 5 snippet$main () -> i32
   local cat any
   local dog any
   local nothing any
+  local $call_13 string
   string.const 11   ; "Whiskers"
   i32.const 3
   struct.new 2   ; snippet$Cat
@@ -152,40 +153,95 @@ fn 5 snippet$main () -> i32
   local.set 2   ; nothing
   local.get 0   ; cat
   call 0   ; snippet$greet
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 2   ; nothing
   call 0   ; snippet$greet
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 0   ; cat
   call 1   ; snippet$greet_v2
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 2   ; nothing
   call 1   ; snippet$greet_v2
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 0   ; cat
   call 2   ; snippet$greet_v3
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 2   ; nothing
   call 2   ; snippet$greet_v3
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 0   ; cat
   call 3   ; snippet$greet_v4
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 2   ; nothing
   call 3   ; snippet$greet_v4
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 0   ; cat
   local.get 1   ; dog
   call 4   ; snippet$combine
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 2   ; nothing
   local.get 1   ; dog
   call 4   ; snippet$combine
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   local.get 0   ; cat
   local.get 2   ; nothing
   call 4   ; snippet$combine
-  call 12   ; std_io$println__string
+  string.const 13   ; "\n"
+  call 6   ; concat_2
+  local.set 3   ; $call_13
+  i32.const 0
+  local.get 3   ; $call_13
+  call 10   ; std_io$write
   return.lit i32.const 0
 end
 
@@ -207,11 +263,11 @@ fn 6 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 9   ; std_core$finish_buffer
@@ -244,15 +300,15 @@ fn 7 concat_3 (string,string,string) -> string
   local.tee 6   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 3   ; c0
   local.get 1   ; arg 1
-  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 4   ; $call_5
   local.get 2   ; arg 2
-  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 5   ; $call_8
   call 9   ; std_core$finish_buffer
@@ -261,14 +317,14 @@ end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 13   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -350,30 +406,20 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 12 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 10   ; std_io$write
-  i32.const 0
-  string.const 13   ; "\n"
-  call 10   ; std_io$write
-  return
-end
-
-fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

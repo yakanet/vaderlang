@@ -1,35 +1,35 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive bool
-type 3 primitive usize
-type 4 union 1,0
-type 5 struct std_core$Buffer {  }
-type 6 primitive string
+type 2 primitive string
+type 3 primitive bool
+type 4 primitive usize
+type 5 union 1,0
+type 6 struct std_core$Buffer {  }
 type 7 primitive i64
 type 8 primitive u64
 type 9 primitive u8
 type 10 array 9
 type 11 primitive void
-type 12 struct std_collections$MutableMap__i32__i32 { ekeys:13,evals:13,index:13,mask:3,size:3,tombs:3 }
+type 12 struct std_collections$MutableMap__i32__i32 { ekeys:13,evals:13,index:13,mask:4,size:4,tombs:4 }
 type 13 array 1
 type 14 primitive isize
 string 0 "size = "
-string 1 "v1: missing"
-string 2 "v1 = "
-string 3 "v17: missing"
-string 4 "v17 = "
-string 5 "has 2? "
-string 6 "has 99? "
-string 7 "v1b: missing"
-string 8 "v1b = "
-string 9 "true"
-string 10 "false"
-string 11 "\n"
-import 0 byte_len std_core$byte_len result_type=3 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,10,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 5 ByteAccess
+string 1 "\n"
+string 2 "v1: missing"
+string 3 "v1 = "
+string 4 "v17: missing"
+string 5 "v17 = "
+string 6 "has 2? "
+string 7 "has 99? "
+string 8 "v1b: missing"
+string 9 "v1b = "
+string 10 "true"
+string 11 "false"
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,10,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 6 ByteAccess
 impl 12 Index
 impl 12 IndexSet
 impl 12 Contains
@@ -41,32 +41,57 @@ fn 0 snippet$main () -> i32
   local $arr_1 ref
   local $arr_2 ref
   local __off_1 usize
-  local $cast_22 u64
+  local $cast_23 u64
+  local $call_27 string
   local v1 any
-  local $cast_39 i64
-  local $k_42 i32
+  local $cast_46 i64
+  local $k_51 i32
   local v17 any
+  local $k_55 i32
+  local $k_56 string
+  local $k_57 string
+  local $call_58 string
+  local $k_60 i32
   local __off_5 usize
-  local $k_53 string
-  local $cast_56 i64
+  local $k_66 string
+  local $cast_69 i64
+  local $call_71 string
+  local $k_72 string
+  local $call_73 string
+  local $k_74 i32
   local __buf_6 ref
   local __off_7 usize
-  local $k_64 string
-  local $k_66 i32
-  local $call_67 bool
+  local $k_80 string
+  local $k_82 i32
+  local $call_83 bool
+  local $call_85 string
+  local $k_86 string
+  local $call_87 string
+  local $k_88 i32
   local __buf_8 ref
   local __off_9 usize
-  local $k_75 string
-  local $k_77 i32
-  local $call_78 bool
-  local $k_81 i32
-  local $k_82 i32
-  local $k_83 i32
+  local $k_94 string
+  local $k_96 i32
+  local $call_97 bool
+  local $call_99 string
+  local $k_100 string
+  local $call_101 string
+  local $k_102 i32
+  local $k_103 i32
+  local $k_104 i32
   local v1b any
+  local $k_108 i32
+  local $k_109 string
+  local $k_110 string
+  local $call_111 string
+  local $k_113 i32
   local __buf_10 ref
   local __off_11 usize
-  local $k_94 string
-  local $cast_97 i64
+  local $k_119 string
+  local $cast_122 i64
+  local $call_124 string
+  local $k_125 string
+  local $call_126 string
   array.new 13 0   ; i32[][]
   local.set 0   ; $arr_0
   array.new 13 0   ; i32[][]
@@ -93,560 +118,795 @@ fn 0 snippet$main () -> i32
   i32.const 170
   call 14   ; std_collections$put__i32__i32
   i64.const 27
-  call 1   ; std_core$new_byte_buffer
+  call 2   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
   i64.const 0
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   string.const 0   ; "size = "
-  call 3   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 12 4   ; $arr_0.size
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   usize.to_i64
-  local.set 4   ; $cast_22
+  local.set 4   ; $cast_23
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
-  local.get 4   ; $cast_22
-  call 5   ; std_core$write_unsigned
+  local.get 4   ; $cast_23
+  call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
-  call 2   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 1   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 8   ; std_io$write
   local.get 0   ; $arr_0
   i32.const 1
   call 15   ; std_collections$get__i32__i32
-  local.tee 5   ; v1
+  local.tee 6   ; v1
   type_check 0   ; null
   if $L0 void
-    string.const 1   ; "v1: missing"
-    call 9   ; std_io$println__string
+    string.const 2   ; "v1: missing"
+    string.const 1   ; "\n"
+    call 1   ; concat_2
+    local.set 5   ; $call_27
+    i32.const 0
+    local.get 5   ; $call_27
+    call 8   ; std_io$write
     i32.const 17
-    local.set 7   ; $k_42
+    local.set 8   ; $k_51
     local.get 0   ; $arr_0
-    local.get 7   ; $k_42
+    local.get 8   ; $k_51
     call 15   ; std_collections$get__i32__i32
-    local.tee 8   ; v17
+    local.tee 9   ; v17
     type_check 0   ; null
     if $L1 void
-      string.const 3   ; "v17: missing"
-      call 9   ; std_io$println__string
+      i32.const 0
+      local.set 10   ; $k_55
+      string.const 4   ; "v17: missing"
+      local.set 11   ; $k_56
+      string.const 1   ; "\n"
+      local.set 12   ; $k_57
+      local.get 11   ; $k_56
+      local.get 12   ; $k_57
+      call 1   ; concat_2
+      local.set 13   ; $call_58
+      local.get 10   ; $k_55
+      local.get 13   ; $call_58
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 21   ; $k_74
       i64.const 12
-      call 1   ; std_core$new_byte_buffer
-      local.set 12   ; __buf_6
+      call 2   ; std_core$new_byte_buffer
+      local.set 22   ; __buf_6
       i64.const 0
-      local.set 13   ; __off_7
-      string.const 5   ; "has 2? "
-      local.set 14   ; $k_64
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 14   ; $k_64
-      call 3   ; std_core$write_string_at
-      local.set 13   ; __off_7
+      local.set 23   ; __off_7
+      string.const 6   ; "has 2? "
+      local.set 24   ; $k_80
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 24   ; $k_80
+      call 4   ; std_core$write_string_at
+      local.set 23   ; __off_7
       i32.const 2
-      local.set 15   ; $k_66
+      local.set 25   ; $k_82
       local.get 0   ; $arr_0
-      local.get 15   ; $k_66
+      local.get 25   ; $k_82
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 16   ; $call_67
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 16   ; $call_67
-      call 6   ; std_core$write_bool
-      local.set 13   ; __off_7
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 26   ; $call_83
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 26   ; $call_83
+      call 7   ; std_core$write_bool
+      local.set 23   ; __off_7
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      call 3   ; std_core$finish_buffer
+      local.set 27   ; $call_85
+      string.const 1   ; "\n"
+      local.set 28   ; $k_86
+      local.get 27   ; $call_85
+      local.get 28   ; $k_86
+      call 1   ; concat_2
+      local.set 29   ; $call_87
+      local.get 21   ; $k_74
+      local.get 29   ; $call_87
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 30   ; $k_88
       i64.const 13
-      call 1   ; std_core$new_byte_buffer
-      local.set 17   ; __buf_8
+      call 2   ; std_core$new_byte_buffer
+      local.set 31   ; __buf_8
       i64.const 0
-      local.set 18   ; __off_9
-      string.const 6   ; "has 99? "
-      local.set 19   ; $k_75
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 19   ; $k_75
-      call 3   ; std_core$write_string_at
-      local.set 18   ; __off_9
+      local.set 32   ; __off_9
+      string.const 7   ; "has 99? "
+      local.set 33   ; $k_94
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 33   ; $k_94
+      call 4   ; std_core$write_string_at
+      local.set 32   ; __off_9
       i32.const 99
-      local.set 20   ; $k_77
+      local.set 34   ; $k_96
       local.get 0   ; $arr_0
-      local.get 20   ; $k_77
+      local.get 34   ; $k_96
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 21   ; $call_78
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 21   ; $call_78
-      call 6   ; std_core$write_bool
-      local.set 18   ; __off_9
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 35   ; $call_97
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 35   ; $call_97
+      call 7   ; std_core$write_bool
+      local.set 32   ; __off_9
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      call 3   ; std_core$finish_buffer
+      local.set 36   ; $call_99
+      string.const 1   ; "\n"
+      local.set 37   ; $k_100
+      local.get 36   ; $call_99
+      local.get 37   ; $k_100
+      call 1   ; concat_2
+      local.set 38   ; $call_101
+      local.get 30   ; $k_88
+      local.get 38   ; $call_101
+      call 8   ; std_io$write
       i32.const 1
-      local.set 22   ; $k_81
+      local.set 39   ; $k_102
       i32.const 999
-      local.set 23   ; $k_82
+      local.set 40   ; $k_103
       local.get 0   ; $arr_0
-      local.get 22   ; $k_81
-      local.get 23   ; $k_82
+      local.get 39   ; $k_102
+      local.get 40   ; $k_103
       call 14   ; std_collections$put__i32__i32
       i32.const 1
-      local.set 24   ; $k_83
+      local.set 41   ; $k_104
       local.get 0   ; $arr_0
-      local.get 24   ; $k_83
+      local.get 41   ; $k_104
       call 15   ; std_collections$get__i32__i32
-      local.tee 25   ; v1b
+      local.tee 42   ; v1b
       type_check 0   ; null
       if $L2 void
-        string.const 7   ; "v1b: missing"
-        call 9   ; std_io$println__string
+        i32.const 0
+        local.set 43   ; $k_108
+        string.const 8   ; "v1b: missing"
+        local.set 44   ; $k_109
+        string.const 1   ; "\n"
+        local.set 45   ; $k_110
+        local.get 44   ; $k_109
+        local.get 45   ; $k_110
+        call 1   ; concat_2
+        local.set 46   ; $call_111
+        local.get 43   ; $k_108
+        local.get 46   ; $call_111
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L2
-      local.get 25   ; v1b
+      local.get 42   ; v1b
       type_check 1   ; i32
       if $L3 void
+        i32.const 0
+        local.set 47   ; $k_113
         i64.const 26
-        call 1   ; std_core$new_byte_buffer
-        local.set 26   ; __buf_10
+        call 2   ; std_core$new_byte_buffer
+        local.set 48   ; __buf_10
         i64.const 0
-        local.set 27   ; __off_11
-        string.const 8   ; "v1b = "
-        local.set 28   ; $k_94
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 28   ; $k_94
-        call 3   ; std_core$write_string_at
-        local.set 27   ; __off_11
-        local.get 25   ; v1b
+        local.set 49   ; __off_11
+        string.const 9   ; "v1b = "
+        local.set 50   ; $k_119
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 50   ; $k_119
+        call 4   ; std_core$write_string_at
+        local.set 49   ; __off_11
+        local.get 42   ; v1b
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 29   ; $cast_97
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 29   ; $cast_97
-        call 4   ; std_core$write_int
-        local.set 27   ; __off_11
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        call 2   ; std_core$finish_buffer
-        call 9   ; std_io$println__string
+        local.set 51   ; $cast_122
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 51   ; $cast_122
+        call 5   ; std_core$write_int
+        local.set 49   ; __off_11
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        call 3   ; std_core$finish_buffer
+        local.set 52   ; $call_124
+        string.const 1   ; "\n"
+        local.set 53   ; $k_125
+        local.get 52   ; $call_124
+        local.get 53   ; $k_125
+        call 1   ; concat_2
+        local.set 54   ; $call_126
+        local.get 47   ; $k_113
+        local.get 54   ; $call_126
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L3
       return
     end $L1
-    local.get 8   ; v17
+    local.get 9   ; v17
     type_check 1   ; i32
     if $L4 void
+      i32.const 0
+      local.set 14   ; $k_60
       i64.const 26
-      call 1   ; std_core$new_byte_buffer
+      call 2   ; std_core$new_byte_buffer
       local.set 2   ; $arr_2
       i64.const 0
-      local.set 9   ; __off_5
-      string.const 4   ; "v17 = "
-      local.set 10   ; $k_53
+      local.set 15   ; __off_5
+      string.const 5   ; "v17 = "
+      local.set 16   ; $k_66
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      local.get 10   ; $k_53
-      call 3   ; std_core$write_string_at
-      local.set 9   ; __off_5
-      local.get 8   ; v17
+      local.get 15   ; __off_5
+      local.get 16   ; $k_66
+      call 4   ; std_core$write_string_at
+      local.set 15   ; __off_5
+      local.get 9   ; v17
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 11   ; $cast_56
+      local.set 17   ; $cast_69
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      local.get 11   ; $cast_56
-      call 4   ; std_core$write_int
-      local.set 9   ; __off_5
+      local.get 15   ; __off_5
+      local.get 17   ; $cast_69
+      call 5   ; std_core$write_int
+      local.set 15   ; __off_5
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.get 15   ; __off_5
+      call 3   ; std_core$finish_buffer
+      local.set 18   ; $call_71
+      string.const 1   ; "\n"
+      local.set 19   ; $k_72
+      local.get 18   ; $call_71
+      local.get 19   ; $k_72
+      call 1   ; concat_2
+      local.set 20   ; $call_73
+      local.get 14   ; $k_60
+      local.get 20   ; $call_73
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 21   ; $k_74
       i64.const 12
-      call 1   ; std_core$new_byte_buffer
-      local.set 12   ; __buf_6
+      call 2   ; std_core$new_byte_buffer
+      local.set 22   ; __buf_6
       i64.const 0
-      local.set 13   ; __off_7
-      string.const 5   ; "has 2? "
-      local.set 14   ; $k_64
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 14   ; $k_64
-      call 3   ; std_core$write_string_at
-      local.set 13   ; __off_7
+      local.set 23   ; __off_7
+      string.const 6   ; "has 2? "
+      local.set 24   ; $k_80
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 24   ; $k_80
+      call 4   ; std_core$write_string_at
+      local.set 23   ; __off_7
       i32.const 2
-      local.set 15   ; $k_66
+      local.set 25   ; $k_82
       local.get 0   ; $arr_0
-      local.get 15   ; $k_66
+      local.get 25   ; $k_82
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 16   ; $call_67
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 16   ; $call_67
-      call 6   ; std_core$write_bool
-      local.set 13   ; __off_7
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 26   ; $call_83
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 26   ; $call_83
+      call 7   ; std_core$write_bool
+      local.set 23   ; __off_7
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      call 3   ; std_core$finish_buffer
+      local.set 27   ; $call_85
+      string.const 1   ; "\n"
+      local.set 28   ; $k_86
+      local.get 27   ; $call_85
+      local.get 28   ; $k_86
+      call 1   ; concat_2
+      local.set 29   ; $call_87
+      local.get 21   ; $k_74
+      local.get 29   ; $call_87
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 30   ; $k_88
       i64.const 13
-      call 1   ; std_core$new_byte_buffer
-      local.set 17   ; __buf_8
+      call 2   ; std_core$new_byte_buffer
+      local.set 31   ; __buf_8
       i64.const 0
-      local.set 18   ; __off_9
-      string.const 6   ; "has 99? "
-      local.set 19   ; $k_75
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 19   ; $k_75
-      call 3   ; std_core$write_string_at
-      local.set 18   ; __off_9
+      local.set 32   ; __off_9
+      string.const 7   ; "has 99? "
+      local.set 33   ; $k_94
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 33   ; $k_94
+      call 4   ; std_core$write_string_at
+      local.set 32   ; __off_9
       i32.const 99
-      local.set 20   ; $k_77
+      local.set 34   ; $k_96
       local.get 0   ; $arr_0
-      local.get 20   ; $k_77
+      local.get 34   ; $k_96
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 21   ; $call_78
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 21   ; $call_78
-      call 6   ; std_core$write_bool
-      local.set 18   ; __off_9
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 35   ; $call_97
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 35   ; $call_97
+      call 7   ; std_core$write_bool
+      local.set 32   ; __off_9
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      call 3   ; std_core$finish_buffer
+      local.set 36   ; $call_99
+      string.const 1   ; "\n"
+      local.set 37   ; $k_100
+      local.get 36   ; $call_99
+      local.get 37   ; $k_100
+      call 1   ; concat_2
+      local.set 38   ; $call_101
+      local.get 30   ; $k_88
+      local.get 38   ; $call_101
+      call 8   ; std_io$write
       i32.const 1
-      local.set 22   ; $k_81
+      local.set 39   ; $k_102
       i32.const 999
-      local.set 23   ; $k_82
+      local.set 40   ; $k_103
       local.get 0   ; $arr_0
-      local.get 22   ; $k_81
-      local.get 23   ; $k_82
+      local.get 39   ; $k_102
+      local.get 40   ; $k_103
       call 14   ; std_collections$put__i32__i32
       i32.const 1
-      local.set 24   ; $k_83
+      local.set 41   ; $k_104
       local.get 0   ; $arr_0
-      local.get 24   ; $k_83
+      local.get 41   ; $k_104
       call 15   ; std_collections$get__i32__i32
-      local.tee 25   ; v1b
+      local.tee 42   ; v1b
       type_check 0   ; null
       if $L5 void
-        string.const 7   ; "v1b: missing"
-        call 9   ; std_io$println__string
+        i32.const 0
+        local.set 43   ; $k_108
+        string.const 8   ; "v1b: missing"
+        local.set 44   ; $k_109
+        string.const 1   ; "\n"
+        local.set 45   ; $k_110
+        local.get 44   ; $k_109
+        local.get 45   ; $k_110
+        call 1   ; concat_2
+        local.set 46   ; $call_111
+        local.get 43   ; $k_108
+        local.get 46   ; $call_111
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L5
-      local.get 25   ; v1b
+      local.get 42   ; v1b
       type_check 1   ; i32
       if $L6 void
+        i32.const 0
+        local.set 47   ; $k_113
         i64.const 26
-        call 1   ; std_core$new_byte_buffer
-        local.set 26   ; __buf_10
+        call 2   ; std_core$new_byte_buffer
+        local.set 48   ; __buf_10
         i64.const 0
-        local.set 27   ; __off_11
-        string.const 8   ; "v1b = "
-        local.set 28   ; $k_94
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 28   ; $k_94
-        call 3   ; std_core$write_string_at
-        local.set 27   ; __off_11
-        local.get 25   ; v1b
+        local.set 49   ; __off_11
+        string.const 9   ; "v1b = "
+        local.set 50   ; $k_119
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 50   ; $k_119
+        call 4   ; std_core$write_string_at
+        local.set 49   ; __off_11
+        local.get 42   ; v1b
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 29   ; $cast_97
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 29   ; $cast_97
-        call 4   ; std_core$write_int
-        local.set 27   ; __off_11
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        call 2   ; std_core$finish_buffer
-        call 9   ; std_io$println__string
+        local.set 51   ; $cast_122
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 51   ; $cast_122
+        call 5   ; std_core$write_int
+        local.set 49   ; __off_11
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        call 3   ; std_core$finish_buffer
+        local.set 52   ; $call_124
+        string.const 1   ; "\n"
+        local.set 53   ; $k_125
+        local.get 52   ; $call_124
+        local.get 53   ; $k_125
+        call 1   ; concat_2
+        local.set 54   ; $call_126
+        local.get 47   ; $k_113
+        local.get 54   ; $call_126
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L6
       return
     end $L4
     return
   end $L0
-  local.get 5   ; v1
+  local.get 6   ; v1
   type_check 1   ; i32
   if $L7 void
     i64.const 25
-    call 1   ; std_core$new_byte_buffer
+    call 2   ; std_core$new_byte_buffer
     local.set 1   ; $arr_1
     i64.const 0
     local.set 3   ; __off_1
     local.get 1   ; $arr_1
     local.get 3   ; __off_1
-    string.const 2   ; "v1 = "
-    call 3   ; std_core$write_string_at
+    string.const 3   ; "v1 = "
+    call 4   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.get 5   ; v1
+    local.get 6   ; v1
     ref.cast 1   ; -> i32
     i32.to_i64
-    local.set 6   ; $cast_39
+    local.set 7   ; $cast_46
     local.get 1   ; $arr_1
     local.get 3   ; __off_1
-    local.get 6   ; $cast_39
-    call 4   ; std_core$write_int
+    local.get 7   ; $cast_46
+    call 5   ; std_core$write_int
     local.set 3   ; __off_1
     local.get 1   ; $arr_1
     local.get 3   ; __off_1
-    call 2   ; std_core$finish_buffer
-    call 9   ; std_io$println__string
+    call 3   ; std_core$finish_buffer
+    string.const 1   ; "\n"
+    call 1   ; concat_2
+    local.set 5   ; $call_27
+    i32.const 0
+    local.get 5   ; $call_27
+    call 8   ; std_io$write
     i32.const 17
-    local.set 7   ; $k_42
+    local.set 8   ; $k_51
     local.get 0   ; $arr_0
-    local.get 7   ; $k_42
+    local.get 8   ; $k_51
     call 15   ; std_collections$get__i32__i32
-    local.tee 8   ; v17
+    local.tee 9   ; v17
     type_check 0   ; null
     if $L8 void
-      string.const 3   ; "v17: missing"
-      call 9   ; std_io$println__string
+      i32.const 0
+      local.set 10   ; $k_55
+      string.const 4   ; "v17: missing"
+      local.set 11   ; $k_56
+      string.const 1   ; "\n"
+      local.set 12   ; $k_57
+      local.get 11   ; $k_56
+      local.get 12   ; $k_57
+      call 1   ; concat_2
+      local.set 13   ; $call_58
+      local.get 10   ; $k_55
+      local.get 13   ; $call_58
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 21   ; $k_74
       i64.const 12
-      call 1   ; std_core$new_byte_buffer
-      local.set 12   ; __buf_6
+      call 2   ; std_core$new_byte_buffer
+      local.set 22   ; __buf_6
       i64.const 0
-      local.set 13   ; __off_7
-      string.const 5   ; "has 2? "
-      local.set 14   ; $k_64
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 14   ; $k_64
-      call 3   ; std_core$write_string_at
-      local.set 13   ; __off_7
+      local.set 23   ; __off_7
+      string.const 6   ; "has 2? "
+      local.set 24   ; $k_80
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 24   ; $k_80
+      call 4   ; std_core$write_string_at
+      local.set 23   ; __off_7
       i32.const 2
-      local.set 15   ; $k_66
+      local.set 25   ; $k_82
       local.get 0   ; $arr_0
-      local.get 15   ; $k_66
+      local.get 25   ; $k_82
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 16   ; $call_67
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 16   ; $call_67
-      call 6   ; std_core$write_bool
-      local.set 13   ; __off_7
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 26   ; $call_83
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 26   ; $call_83
+      call 7   ; std_core$write_bool
+      local.set 23   ; __off_7
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      call 3   ; std_core$finish_buffer
+      local.set 27   ; $call_85
+      string.const 1   ; "\n"
+      local.set 28   ; $k_86
+      local.get 27   ; $call_85
+      local.get 28   ; $k_86
+      call 1   ; concat_2
+      local.set 29   ; $call_87
+      local.get 21   ; $k_74
+      local.get 29   ; $call_87
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 30   ; $k_88
       i64.const 13
-      call 1   ; std_core$new_byte_buffer
-      local.set 17   ; __buf_8
+      call 2   ; std_core$new_byte_buffer
+      local.set 31   ; __buf_8
       i64.const 0
-      local.set 18   ; __off_9
-      string.const 6   ; "has 99? "
-      local.set 19   ; $k_75
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 19   ; $k_75
-      call 3   ; std_core$write_string_at
-      local.set 18   ; __off_9
+      local.set 32   ; __off_9
+      string.const 7   ; "has 99? "
+      local.set 33   ; $k_94
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 33   ; $k_94
+      call 4   ; std_core$write_string_at
+      local.set 32   ; __off_9
       i32.const 99
-      local.set 20   ; $k_77
+      local.set 34   ; $k_96
       local.get 0   ; $arr_0
-      local.get 20   ; $k_77
+      local.get 34   ; $k_96
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 21   ; $call_78
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 21   ; $call_78
-      call 6   ; std_core$write_bool
-      local.set 18   ; __off_9
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 35   ; $call_97
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 35   ; $call_97
+      call 7   ; std_core$write_bool
+      local.set 32   ; __off_9
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      call 3   ; std_core$finish_buffer
+      local.set 36   ; $call_99
+      string.const 1   ; "\n"
+      local.set 37   ; $k_100
+      local.get 36   ; $call_99
+      local.get 37   ; $k_100
+      call 1   ; concat_2
+      local.set 38   ; $call_101
+      local.get 30   ; $k_88
+      local.get 38   ; $call_101
+      call 8   ; std_io$write
       i32.const 1
-      local.set 22   ; $k_81
+      local.set 39   ; $k_102
       i32.const 999
-      local.set 23   ; $k_82
+      local.set 40   ; $k_103
       local.get 0   ; $arr_0
-      local.get 22   ; $k_81
-      local.get 23   ; $k_82
+      local.get 39   ; $k_102
+      local.get 40   ; $k_103
       call 14   ; std_collections$put__i32__i32
       i32.const 1
-      local.set 24   ; $k_83
+      local.set 41   ; $k_104
       local.get 0   ; $arr_0
-      local.get 24   ; $k_83
+      local.get 41   ; $k_104
       call 15   ; std_collections$get__i32__i32
-      local.tee 25   ; v1b
+      local.tee 42   ; v1b
       type_check 0   ; null
       if $L9 void
-        string.const 7   ; "v1b: missing"
-        call 9   ; std_io$println__string
+        i32.const 0
+        local.set 43   ; $k_108
+        string.const 8   ; "v1b: missing"
+        local.set 44   ; $k_109
+        string.const 1   ; "\n"
+        local.set 45   ; $k_110
+        local.get 44   ; $k_109
+        local.get 45   ; $k_110
+        call 1   ; concat_2
+        local.set 46   ; $call_111
+        local.get 43   ; $k_108
+        local.get 46   ; $call_111
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L9
-      local.get 25   ; v1b
+      local.get 42   ; v1b
       type_check 1   ; i32
       if $L10 void
+        i32.const 0
+        local.set 47   ; $k_113
         i64.const 26
-        call 1   ; std_core$new_byte_buffer
-        local.set 26   ; __buf_10
+        call 2   ; std_core$new_byte_buffer
+        local.set 48   ; __buf_10
         i64.const 0
-        local.set 27   ; __off_11
-        string.const 8   ; "v1b = "
-        local.set 28   ; $k_94
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 28   ; $k_94
-        call 3   ; std_core$write_string_at
-        local.set 27   ; __off_11
-        local.get 25   ; v1b
+        local.set 49   ; __off_11
+        string.const 9   ; "v1b = "
+        local.set 50   ; $k_119
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 50   ; $k_119
+        call 4   ; std_core$write_string_at
+        local.set 49   ; __off_11
+        local.get 42   ; v1b
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 29   ; $cast_97
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 29   ; $cast_97
-        call 4   ; std_core$write_int
-        local.set 27   ; __off_11
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        call 2   ; std_core$finish_buffer
-        call 9   ; std_io$println__string
+        local.set 51   ; $cast_122
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 51   ; $cast_122
+        call 5   ; std_core$write_int
+        local.set 49   ; __off_11
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        call 3   ; std_core$finish_buffer
+        local.set 52   ; $call_124
+        string.const 1   ; "\n"
+        local.set 53   ; $k_125
+        local.get 52   ; $call_124
+        local.get 53   ; $k_125
+        call 1   ; concat_2
+        local.set 54   ; $call_126
+        local.get 47   ; $k_113
+        local.get 54   ; $call_126
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L10
       return
     end $L8
-    local.get 8   ; v17
+    local.get 9   ; v17
     type_check 1   ; i32
     if $L11 void
+      i32.const 0
+      local.set 14   ; $k_60
       i64.const 26
-      call 1   ; std_core$new_byte_buffer
+      call 2   ; std_core$new_byte_buffer
       local.set 2   ; $arr_2
       i64.const 0
-      local.set 9   ; __off_5
-      string.const 4   ; "v17 = "
-      local.set 10   ; $k_53
+      local.set 15   ; __off_5
+      string.const 5   ; "v17 = "
+      local.set 16   ; $k_66
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      local.get 10   ; $k_53
-      call 3   ; std_core$write_string_at
-      local.set 9   ; __off_5
-      local.get 8   ; v17
+      local.get 15   ; __off_5
+      local.get 16   ; $k_66
+      call 4   ; std_core$write_string_at
+      local.set 15   ; __off_5
+      local.get 9   ; v17
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 11   ; $cast_56
+      local.set 17   ; $cast_69
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      local.get 11   ; $cast_56
-      call 4   ; std_core$write_int
-      local.set 9   ; __off_5
+      local.get 15   ; __off_5
+      local.get 17   ; $cast_69
+      call 5   ; std_core$write_int
+      local.set 15   ; __off_5
       local.get 2   ; $arr_2
-      local.get 9   ; __off_5
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.get 15   ; __off_5
+      call 3   ; std_core$finish_buffer
+      local.set 18   ; $call_71
+      string.const 1   ; "\n"
+      local.set 19   ; $k_72
+      local.get 18   ; $call_71
+      local.get 19   ; $k_72
+      call 1   ; concat_2
+      local.set 20   ; $call_73
+      local.get 14   ; $k_60
+      local.get 20   ; $call_73
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 21   ; $k_74
       i64.const 12
-      call 1   ; std_core$new_byte_buffer
-      local.set 12   ; __buf_6
+      call 2   ; std_core$new_byte_buffer
+      local.set 22   ; __buf_6
       i64.const 0
-      local.set 13   ; __off_7
-      string.const 5   ; "has 2? "
-      local.set 14   ; $k_64
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 14   ; $k_64
-      call 3   ; std_core$write_string_at
-      local.set 13   ; __off_7
+      local.set 23   ; __off_7
+      string.const 6   ; "has 2? "
+      local.set 24   ; $k_80
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 24   ; $k_80
+      call 4   ; std_core$write_string_at
+      local.set 23   ; __off_7
       i32.const 2
-      local.set 15   ; $k_66
+      local.set 25   ; $k_82
       local.get 0   ; $arr_0
-      local.get 15   ; $k_66
+      local.get 25   ; $k_82
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 16   ; $call_67
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      local.get 16   ; $call_67
-      call 6   ; std_core$write_bool
-      local.set 13   ; __off_7
-      local.get 12   ; __buf_6
-      local.get 13   ; __off_7
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 26   ; $call_83
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      local.get 26   ; $call_83
+      call 7   ; std_core$write_bool
+      local.set 23   ; __off_7
+      local.get 22   ; __buf_6
+      local.get 23   ; __off_7
+      call 3   ; std_core$finish_buffer
+      local.set 27   ; $call_85
+      string.const 1   ; "\n"
+      local.set 28   ; $k_86
+      local.get 27   ; $call_85
+      local.get 28   ; $k_86
+      call 1   ; concat_2
+      local.set 29   ; $call_87
+      local.get 21   ; $k_74
+      local.get 29   ; $call_87
+      call 8   ; std_io$write
+      i32.const 0
+      local.set 30   ; $k_88
       i64.const 13
-      call 1   ; std_core$new_byte_buffer
-      local.set 17   ; __buf_8
+      call 2   ; std_core$new_byte_buffer
+      local.set 31   ; __buf_8
       i64.const 0
-      local.set 18   ; __off_9
-      string.const 6   ; "has 99? "
-      local.set 19   ; $k_75
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 19   ; $k_75
-      call 3   ; std_core$write_string_at
-      local.set 18   ; __off_9
+      local.set 32   ; __off_9
+      string.const 7   ; "has 99? "
+      local.set 33   ; $k_94
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 33   ; $k_94
+      call 4   ; std_core$write_string_at
+      local.set 32   ; __off_9
       i32.const 99
-      local.set 20   ; $k_77
+      local.set 34   ; $k_96
       local.get 0   ; $arr_0
-      local.get 20   ; $k_77
+      local.get 34   ; $k_96
       call 16   ; std_collections$contains_key__i32__i32
-      local.set 21   ; $call_78
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      local.get 21   ; $call_78
-      call 6   ; std_core$write_bool
-      local.set 18   ; __off_9
-      local.get 17   ; __buf_8
-      local.get 18   ; __off_9
-      call 2   ; std_core$finish_buffer
-      call 9   ; std_io$println__string
+      local.set 35   ; $call_97
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      local.get 35   ; $call_97
+      call 7   ; std_core$write_bool
+      local.set 32   ; __off_9
+      local.get 31   ; __buf_8
+      local.get 32   ; __off_9
+      call 3   ; std_core$finish_buffer
+      local.set 36   ; $call_99
+      string.const 1   ; "\n"
+      local.set 37   ; $k_100
+      local.get 36   ; $call_99
+      local.get 37   ; $k_100
+      call 1   ; concat_2
+      local.set 38   ; $call_101
+      local.get 30   ; $k_88
+      local.get 38   ; $call_101
+      call 8   ; std_io$write
       i32.const 1
-      local.set 22   ; $k_81
+      local.set 39   ; $k_102
       i32.const 999
-      local.set 23   ; $k_82
+      local.set 40   ; $k_103
       local.get 0   ; $arr_0
-      local.get 22   ; $k_81
-      local.get 23   ; $k_82
+      local.get 39   ; $k_102
+      local.get 40   ; $k_103
       call 14   ; std_collections$put__i32__i32
       i32.const 1
-      local.set 24   ; $k_83
+      local.set 41   ; $k_104
       local.get 0   ; $arr_0
-      local.get 24   ; $k_83
+      local.get 41   ; $k_104
       call 15   ; std_collections$get__i32__i32
-      local.tee 25   ; v1b
+      local.tee 42   ; v1b
       type_check 0   ; null
       if $L12 void
-        string.const 7   ; "v1b: missing"
-        call 9   ; std_io$println__string
+        i32.const 0
+        local.set 43   ; $k_108
+        string.const 8   ; "v1b: missing"
+        local.set 44   ; $k_109
+        string.const 1   ; "\n"
+        local.set 45   ; $k_110
+        local.get 44   ; $k_109
+        local.get 45   ; $k_110
+        call 1   ; concat_2
+        local.set 46   ; $call_111
+        local.get 43   ; $k_108
+        local.get 46   ; $call_111
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L12
-      local.get 25   ; v1b
+      local.get 42   ; v1b
       type_check 1   ; i32
       if $L13 void
+        i32.const 0
+        local.set 47   ; $k_113
         i64.const 26
-        call 1   ; std_core$new_byte_buffer
-        local.set 26   ; __buf_10
+        call 2   ; std_core$new_byte_buffer
+        local.set 48   ; __buf_10
         i64.const 0
-        local.set 27   ; __off_11
-        string.const 8   ; "v1b = "
-        local.set 28   ; $k_94
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 28   ; $k_94
-        call 3   ; std_core$write_string_at
-        local.set 27   ; __off_11
-        local.get 25   ; v1b
+        local.set 49   ; __off_11
+        string.const 9   ; "v1b = "
+        local.set 50   ; $k_119
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 50   ; $k_119
+        call 4   ; std_core$write_string_at
+        local.set 49   ; __off_11
+        local.get 42   ; v1b
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 29   ; $cast_97
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        local.get 29   ; $cast_97
-        call 4   ; std_core$write_int
-        local.set 27   ; __off_11
-        local.get 26   ; __buf_10
-        local.get 27   ; __off_11
-        call 2   ; std_core$finish_buffer
-        call 9   ; std_io$println__string
+        local.set 51   ; $cast_122
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        local.get 51   ; $cast_122
+        call 5   ; std_core$write_int
+        local.set 49   ; __off_11
+        local.get 48   ; __buf_10
+        local.get 49   ; __off_11
+        call 3   ; std_core$finish_buffer
+        local.set 52   ; $call_124
+        string.const 1   ; "\n"
+        local.set 53   ; $k_125
+        local.get 52   ; $call_124
+        local.get 53   ; $k_125
+        call 1   ; concat_2
+        local.set 54   ; $call_126
+        local.get 47   ; $k_113
+        local.get 54   ; $call_126
+        call 8   ; std_io$write
         return.lit i32.const 0
       end $L13
       return
@@ -656,20 +916,49 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 std_core$new_byte_buffer (usize) -> ref
+fn 1 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 2   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 20   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 3   ; std_core$finish_buffer
+  return
+end
+
+fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 17   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 2 std_core$finish_buffer (ref,usize) -> string
+fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 19   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 3 std_core$write_string_at (ref,usize,string) -> usize
+fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -684,7 +973,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 4 std_core$write_int (ref,usize,i64) -> usize
+fn 5 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -801,7 +1090,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -885,23 +1174,23 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 6 std_core$write_bool (ref,usize,bool) -> usize
+fn 7 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 9   ; "true"
-    call 3   ; std_core$write_string_at
+    string.const 10   ; "true"
+    call 4   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 10   ; "false"
-  call 3   ; std_core$write_string_at
+  string.const 11   ; "false"
+  call 4   ; std_core$write_string_at
   return
 end
 
-fn 7 std_io$write (i32,string) -> void
+fn 8 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -938,7 +1227,7 @@ fn 7 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 8   ; std_io$write_bytes
+        call 9   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -959,7 +1248,7 @@ fn 7 std_io$write (i32,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (i32,ref,usize) -> i32
+fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -976,16 +1265,6 @@ fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 9 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 7   ; std_io$write
-  i32.const 0
-  string.const 11   ; "\n"
-  call 7   ; std_io$write
   return
 end
 
@@ -1078,7 +1357,7 @@ fn 12 std_collections$rehash__i32__i32 (ref,usize) -> void
   block $L3 void
     loop $L4 void
       local.field 0 12 4   ; arg 0.size
-      ref.cast 3   ; -> usize
+      ref.cast 4   ; -> usize
       local.set 5   ; $field_15
       local.get 4   ; e
       local.get 5   ; $field_15
@@ -1145,7 +1424,7 @@ fn 13 std_collections$write_entry__i32__i32 (ref,i32,i32) -> void
   local $len_5 usize
   local $field_7 ref
   local.field 0 12 4   ; arg 0.size
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 3   ; $field_3
   local.field 0 12 0   ; arg 0.ekeys
   array.len
@@ -1157,7 +1436,7 @@ fn 13 std_collections$write_entry__i32__i32 (ref,i32,i32) -> void
     local.field 0 12 0   ; arg 0.ekeys
     local.set 5   ; $field_7
     local.field 0 12 4   ; arg 0.size
-    ref.cast 3   ; -> usize
+    ref.cast 4   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1166,7 +1445,7 @@ fn 13 std_collections$write_entry__i32__i32 (ref,i32,i32) -> void
     local.field 0 12 1   ; arg 0.evals
     local.set 5   ; $field_7
     local.field 0 12 4   ; arg 0.size
-    ref.cast 3   ; -> usize
+    ref.cast 4   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1196,10 +1475,10 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   local.get 0   ; arg 0
   call 11   ; std_collections$ensure_index__i32__i32
   local.field 0 12 4   ; arg 0.size
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 3   ; $field_3
   local.field 0 12 5   ; arg 0.tombs
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1210,7 +1489,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 12 3   ; arg 0.mask
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1225,7 +1504,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
     block $L1 void
       loop $L2 void
         local.field 0 12 4   ; arg 0.size
-        ref.cast 3   ; -> usize
+        ref.cast 4   ; -> usize
         i64.const 1
         i64.add
         i64.const 4
@@ -1257,7 +1536,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   i32.to_i64
   local.set 6   ; $cast_28
   local.field 0 12 3   ; arg 0.mask
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 3   ; $field_3
   local.get 6   ; $cast_28
   local.get 3   ; $field_3
@@ -1296,7 +1575,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
           i64.add
           local.set 8   ; $add_57
           local.field 0 12 3   ; arg 0.mask
-          ref.cast 3   ; -> usize
+          ref.cast 4   ; -> usize
           local.set 9   ; $field_58
           local.get 8   ; $add_57
           local.get 9   ; $field_58
@@ -1330,7 +1609,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
         i64.add
         local.set 8   ; $add_57
         local.field 0 12 3   ; arg 0.mask
-        ref.cast 3   ; -> usize
+        ref.cast 4   ; -> usize
         local.set 9   ; $field_58
         local.get 8   ; $add_57
         local.get 9   ; $field_58
@@ -1357,7 +1636,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   i64.ge
   if $L11 void
     local.field 0 12 5   ; arg 0.tombs
-    ref.cast 3   ; -> usize
+    ref.cast 4   ; -> usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1373,7 +1652,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   local.field 0 12 2   ; arg 0.index
   local.set 10   ; $field_69
   local.field 0 12 4   ; arg 0.size
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1383,7 +1662,7 @@ fn 14 std_collections$put__i32__i32 (ref,i32,i32) -> void
   local.get 11   ; $cast_73
   store_slot_i32
   local.field 0 12 4   ; arg 0.size
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1413,7 +1692,7 @@ fn 15 std_collections$get__i32__i32 (ref,i32) -> any
   i32.to_i64
   local.set 2   ; $cast_7
   local.field 0 12 3   ; arg 0.mask
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $cast_7
   local.get 3   ; $field_8
@@ -1459,7 +1738,7 @@ fn 15 std_collections$get__i32__i32 (ref,i32) -> any
           i64.add
           local.set 6   ; $add_31
           local.field 0 12 3   ; arg 0.mask
-          ref.cast 3   ; -> usize
+          ref.cast 4   ; -> usize
           local.set 7   ; $field_32
           local.get 6   ; $add_31
           local.get 7   ; $field_32
@@ -1474,7 +1753,7 @@ fn 15 std_collections$get__i32__i32 (ref,i32) -> any
         i64.add
         local.set 6   ; $add_31
         local.field 0 12 3   ; arg 0.mask
-        ref.cast 3   ; -> usize
+        ref.cast 4   ; -> usize
         local.set 7   ; $field_32
         local.get 6   ; $add_31
         local.get 7   ; $field_32
@@ -1508,7 +1787,7 @@ fn 16 std_collections$contains_key__i32__i32 (ref,i32) -> bool
   i32.to_i64
   local.set 2   ; $cast_7
   local.field 0 12 3   ; arg 0.mask
-  ref.cast 3   ; -> usize
+  ref.cast 4   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $cast_7
   local.get 3   ; $field_8
@@ -1550,7 +1829,7 @@ fn 16 std_collections$contains_key__i32__i32 (ref,i32) -> bool
           i64.add
           local.set 6   ; $add_30
           local.field 0 12 3   ; arg 0.mask
-          ref.cast 3   ; -> usize
+          ref.cast 4   ; -> usize
           local.set 7   ; $field_31
           local.get 6   ; $add_30
           local.get 7   ; $field_31
@@ -1565,7 +1844,7 @@ fn 16 std_collections$contains_key__i32__i32 (ref,i32) -> bool
         i64.add
         local.set 6   ; $add_30
         local.field 0 12 3   ; arg 0.mask
-        ref.cast 3   ; -> usize
+        ref.cast 4   ; -> usize
         local.set 7   ; $field_31
         local.get 6   ; $add_30
         local.get 7   ; $field_31

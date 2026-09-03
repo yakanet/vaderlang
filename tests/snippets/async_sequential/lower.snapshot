@@ -40,22 +40,38 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "parked?!" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "parked?!" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "mix = " :string
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "mix = " :string
+              arg1:
+                cast → string
+                  r :string | Suspended!
           arg1:
-            cast → string
-              r :string | Suspended!
+            "\n" :string
     let again: string | Suspended! =
       vcall Async.resume :string | Suspended!
         recv:
@@ -68,23 +84,39 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "after-done = Suspended" :string
-      else:
-        ~>
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
+              int(0) :i32
+            arg1:
               call :string
                 callee:
                   concat_2 :string
                 arg0:
-                  "after-done = " :string
+                  "after-done = Suspended" :string
                 arg1:
-                  cast → string
-                    again :string | Suspended!
+                  "\n" :string
+      else:
+        ~>
+          call :void
+            callee:
+              write :fn(Stream, string) -> void
+            arg0:
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  call :string
+                    callee:
+                      concat_2 :string
+                    arg0:
+                      "after-done = " :string
+                    arg1:
+                      cast → string
+                        again :string | Suspended!
+                arg1:
+                  "\n" :string
     return int(0) :i32
   struct __asyncstate_snippet_0 { s0: i32, s1: i32, s2: string, s3: string, s4: string, s5: Buffer, s6: usize, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> string | Suspended!

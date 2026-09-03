@@ -34,37 +34,37 @@ string 5 " "
 string 6 "a"
 string 7 "str"
 string 8 " want=7:int a:str"
-string 9 ">"
-string 10 "abc"
-string 11 "!"
-string 12 " want=>|7 abc|!"
-string 13 "d"
-string 14 " want=one two:d"
-string 15 "X"
-string 16 "Y"
-string 17 " want=7:X a:Y"
-string 18 "#"
-string 19 "?"
-string 20 " want=#|7 abc|?"
-string 21 "P"
-string 22 "Q"
-string 23 " want=7:P a:Q"
-string 24 "true"
-string 25 "false"
-string 26 "0"
-string 27 "nan"
-string 28 "-inf"
-string 29 "inf"
-string 30 "-0.0"
-string 31 "0.0"
-string 32 "-"
-string 33 ".0"
-string 34 "."
-string 35 "0."
-string 36 "+"
-string 37 "e"
-string 38 ""
-string 39 "\n"
+string 9 "\n"
+string 10 ">"
+string 11 "abc"
+string 12 "!"
+string 13 " want=>|7 abc|!"
+string 14 "d"
+string 15 " want=one two:d"
+string 16 "X"
+string 17 "Y"
+string 18 " want=7:X a:Y"
+string 19 "#"
+string 20 "?"
+string 21 " want=#|7 abc|?"
+string 22 "P"
+string 23 "Q"
+string 24 " want=7:P a:Q"
+string 25 "true"
+string 26 "false"
+string 27 "0"
+string 28 "nan"
+string 29 "-inf"
+string 30 "inf"
+string 31 "-0.0"
+string 32 "0.0"
+string 33 "-"
+string 34 ".0"
+string 35 "."
+string 36 "0."
+string 37 "+"
+string 38 "e"
+string 39 ""
 string 40 "1"
 string 41 "2"
 string 42 "3"
@@ -160,91 +160,121 @@ fn 2 snippet$tw (i32) -> string
 end
 
 fn 3 snippet$main () -> i32
-  local $call_2 string
-  local $call_6 string
+  local $call_3 string
+  local $call_7 string
   i32.const 7
   string.const 4   ; "int"
   call 0   ; snippet$pick
-  local.set 0   ; $call_2
+  local.set 0   ; $call_3
   string.const 6   ; "a"
   string.const 7   ; "str"
   call 4   ; snippet$pick_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
+  local.get 1   ; $call_7
   string.const 8   ; " want=7:int a:str"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   i32.const 7
-  string.const 9   ; ">"
+  string.const 10   ; ">"
   call 1   ; snippet$tag
-  local.set 0   ; $call_2
-  string.const 10   ; "abc"
-  string.const 11   ; "!"
+  local.set 0   ; $call_3
+  string.const 11   ; "abc"
+  string.const 12   ; "!"
   call 5   ; snippet$tag_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
-  string.const 12   ; " want=>|7 abc|!"
+  local.get 1   ; $call_7
+  string.const 13   ; " want=>|7 abc|!"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   i32.const 1
   call 2   ; snippet$tw
-  local.set 0   ; $call_2
+  local.set 0   ; $call_3
   string.const 6   ; "a"
-  string.const 13   ; "d"
+  string.const 14   ; "d"
   call 6   ; snippet$tw_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
-  string.const 14   ; " want=one two:d"
+  local.get 1   ; $call_7
+  string.const 15   ; " want=one two:d"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   i32.const 7
-  string.const 15   ; "X"
+  string.const 16   ; "X"
   call 0   ; snippet$pick
-  local.set 0   ; $call_2
+  local.set 0   ; $call_3
   string.const 6   ; "a"
-  string.const 16   ; "Y"
+  string.const 17   ; "Y"
   call 4   ; snippet$pick_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
-  string.const 17   ; " want=7:X a:Y"
+  local.get 1   ; $call_7
+  string.const 18   ; " want=7:X a:Y"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   i32.const 7
-  string.const 18   ; "#"
+  string.const 19   ; "#"
   call 1   ; snippet$tag
-  local.set 0   ; $call_2
-  string.const 10   ; "abc"
-  string.const 19   ; "?"
+  local.set 0   ; $call_3
+  string.const 11   ; "abc"
+  string.const 20   ; "?"
   call 5   ; snippet$tag_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
-  string.const 20   ; " want=#|7 abc|?"
+  local.get 1   ; $call_7
+  string.const 21   ; " want=#|7 abc|?"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   i32.const 7
-  string.const 21   ; "P"
+  string.const 22   ; "P"
   call 0   ; snippet$pick
-  local.set 0   ; $call_2
+  local.set 0   ; $call_3
   string.const 6   ; "a"
-  string.const 22   ; "Q"
+  string.const 23   ; "Q"
   call 4   ; snippet$pick_1
-  local.set 1   ; $call_6
-  local.get 0   ; $call_2
+  local.set 1   ; $call_7
+  local.get 0   ; $call_3
   string.const 5   ; " "
-  local.get 1   ; $call_6
-  string.const 23   ; " want=7:P a:Q"
+  local.get 1   ; $call_7
+  string.const 24   ; " want=7:P a:Q"
   call 9   ; concat_4
-  call 61   ; std_io$println__string
+  string.const 9   ; "\n"
+  call 8   ; concat_2
+  local.set 0   ; $call_3
+  i32.const 0
+  local.get 0   ; $call_3
+  call 59   ; std_io$write
   return.lit i32.const 0
 end
 
@@ -311,15 +341,15 @@ fn 7 concat_3 (string,string,string) -> string
   local.tee 6   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 3   ; c0
   local.get 1   ; arg 1
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 4   ; $call_5
   local.get 2   ; arg 2
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 6   ; buf
   local.get 5   ; $call_8
   call 11   ; std_core$finish_buffer
@@ -344,11 +374,11 @@ fn 8 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 11   ; std_core$finish_buffer
@@ -389,19 +419,19 @@ fn 9 concat_4 (string,string,string,string) -> string
   local.tee 8   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 8   ; buf
   local.get 4   ; c0
   local.get 1   ; arg 1
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 8   ; buf
   local.get 5   ; $call_6
   local.get 2   ; arg 2
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 8   ; buf
   local.get 6   ; $call_9
   local.get 3   ; arg 3
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 8   ; buf
   local.get 7   ; $call_12
   call 11   ; std_core$finish_buffer
@@ -410,14 +440,14 @@ end
 
 fn 10 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 62   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 61   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 11 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 64   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 63   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -426,7 +456,7 @@ fn 12 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 65   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 64   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -450,7 +480,7 @@ fn 13 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -529,7 +559,7 @@ fn 13 std_core$write_int (ref,usize,i64) -> usize
         local.get 0   ; arg 0
         local.get 4   ; ndigits
         local.get 8   ; $add_37
-        call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         i64.div
@@ -544,7 +574,7 @@ fn 13 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
-    call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
   else
   end $L9
   local.get 1   ; arg 1
@@ -625,10 +655,10 @@ fn 24 std_core$bool$Display$to_string (bool) -> string
   local if_res string
   local.get 0   ; arg 0
   if $L0 void
-    string.const 24   ; "true"
+    string.const 25   ; "true"
     local.set 1   ; if_res
   else
-    string.const 25   ; "false"
+    string.const 26   ; "false"
     local.set 1   ; if_res
   end $L0
   local.get 1   ; if_res
@@ -671,7 +701,7 @@ fn 29 std_core$format_signed (i64) -> string
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 26   ; "0"
+    return.lit string.const 27   ; "0"
   end $L0
   local.get 0   ; arg 0
   i64.const 0
@@ -720,7 +750,7 @@ fn 29 std_core$format_signed (i64) -> string
     local.set 4   ; total
   end $L5
   local.get 4   ; total
-  call 62   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 61   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.set 5   ; buf
   local.get 4   ; total
   local.set 2   ; ndigits
@@ -747,7 +777,7 @@ fn 29 std_core$format_signed (i64) -> string
         local.get 5   ; buf
         local.get 2   ; ndigits
         local.get 7   ; $add_34
-        call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 0   ; arg 0
         i64.const 10
         i64.div
@@ -762,12 +792,12 @@ fn 29 std_core$format_signed (i64) -> string
     local.get 5   ; buf
     i64.const 0
     i32.const 45
-    call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
   else
   end $L9
   local.get 5   ; buf
   local.get 4   ; total
-  call 64   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 63   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -782,7 +812,7 @@ fn 30 std_core$format_unsigned (u64) -> string
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 26   ; "0"
+    return.lit string.const 27   ; "0"
   end $L0
   i64.const 0
   local.set 1   ; ndigits
@@ -808,7 +838,7 @@ fn 30 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 1   ; ndigits
-  call 62   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 61   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.set 3   ; buf
   local.get 1   ; ndigits
   local.set 4   ; i
@@ -834,7 +864,7 @@ fn 30 std_core$format_unsigned (u64) -> string
         local.get 3   ; buf
         local.get 4   ; i
         local.get 6   ; $add_24
-        call 63   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 62   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 0   ; arg 0
         i64.const 10
         u64.div
@@ -846,7 +876,7 @@ fn 30 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 3   ; buf
   local.get 1   ; ndigits
-  call 64   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 63   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -1012,7 +1042,7 @@ fn 32 std_core$format_f32 (f32) -> string
   local $cast_36 u64
   local $field_37 i32
   local.get 0   ; arg 0
-  call 67   ; std_core$f32$Float32Bits$to_bits_vt
+  call 66   ; std_core$f32$Float32Bits$to_bits_vt
   local.tee 1   ; bits
   i32.const 31
   u32.shr
@@ -1036,14 +1066,14 @@ fn 32 std_core$format_f32 (f32) -> string
     i32.const 0
     i32.ne
     if $L1 void
-      return.lit string.const 27   ; "nan"
+      return.lit string.const 28   ; "nan"
     end $L1
     local.get 2   ; sign
     if $L2 void
-      string.const 28   ; "-inf"
+      string.const 29   ; "-inf"
       local.set 4   ; if_res
     else
-      string.const 29   ; "inf"
+      string.const 30   ; "inf"
       local.set 4   ; if_res
     end $L2
     local.get 4   ; if_res
@@ -1065,10 +1095,10 @@ fn 32 std_core$format_f32 (f32) -> string
   if $L4 void
     local.get 2   ; sign
     if $L5 void
-      string.const 30   ; "-0.0"
+      string.const 31   ; "-0.0"
       local.set 4   ; if_res
     else
-      string.const 31   ; "0.0"
+      string.const 32   ; "0.0"
       local.set 4   ; if_res
     end $L5
     local.get 4   ; if_res
@@ -1101,7 +1131,7 @@ fn 33 std_core$format_f64 (f64) -> string
   local d ref
   local $field_36 i32
   local.get 0   ; arg 0
-  call 66   ; std_core$f64$FloatBits$to_bits_vt
+  call 65   ; std_core$f64$FloatBits$to_bits_vt
   local.tee 1   ; bits
   i64.const 63
   u64.shr
@@ -1125,14 +1155,14 @@ fn 33 std_core$format_f64 (f64) -> string
     i64.const 0
     i64.ne
     if $L1 void
-      return.lit string.const 27   ; "nan"
+      return.lit string.const 28   ; "nan"
     end $L1
     local.get 2   ; sign
     if $L2 void
-      string.const 28   ; "-inf"
+      string.const 29   ; "-inf"
       local.set 4   ; if_res
     else
-      string.const 29   ; "inf"
+      string.const 30   ; "inf"
       local.set 4   ; if_res
     end $L2
     local.get 4   ; if_res
@@ -1154,10 +1184,10 @@ fn 33 std_core$format_f64 (f64) -> string
   if $L4 void
     local.get 2   ; sign
     if $L5 void
-      string.const 30   ; "-0.0"
+      string.const 31   ; "-0.0"
       local.set 4   ; if_res
     else
-      string.const 31   ; "0.0"
+      string.const 32   ; "0.0"
       local.set 4   ; if_res
     end $L5
     local.get 4   ; if_res
@@ -1840,7 +1870,7 @@ fn 35 std_core$render (u64,i32,bool) -> string
   local.set 7   ; body
   local.get 2   ; arg 2
   if $L3 void
-    string.const 32   ; "-"
+    string.const 33   ; "-"
     local.get 7   ; body
     call 8   ; concat_2
     local.set 8   ; if_res
@@ -2597,7 +2627,7 @@ fn 45 std_core$digits_of (u64) -> ref
   i64.const 0
   i64.eq
   if $L0 void
-    string.const 26   ; "0"
+    string.const 27   ; "0"
     array.new 21 1   ; string[][]
     return
   end $L0
@@ -2708,7 +2738,7 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
     local.set 5   ; $call_11
     local.get 4   ; $call_9
     local.get 5   ; $call_11
-    string.const 33   ; ".0"
+    string.const 34   ; ".0"
     call 7   ; concat_3
     return
   end $L1
@@ -2737,7 +2767,7 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
     call 54   ; std_core$join_range
     local.set 5   ; $call_11
     local.get 4   ; $call_9
-    string.const 34   ; "."
+    string.const 35   ; "."
     local.get 5   ; $call_11
     call 7   ; concat_3
     return
@@ -2766,7 +2796,7 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
     local.get 1   ; arg 1
     call 54   ; std_core$join_range
     local.set 5   ; $call_11
-    string.const 35   ; "0."
+    string.const 36   ; "0."
     local.get 4   ; $call_9
     local.get 5   ; $call_11
     call 7   ; concat_3
@@ -2791,7 +2821,7 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
     call 54   ; std_core$join_range
     local.set 5   ; $call_11
     local.get 4   ; $call_9
-    string.const 34   ; "."
+    string.const 35   ; "."
     local.get 5   ; $call_11
     call 7   ; concat_3
     local.set 4   ; $call_9
@@ -2801,10 +2831,10 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
   i32.const 0
   i32.lt
   if $L7 void
-    string.const 32   ; "-"
+    string.const 33   ; "-"
     local.set 5   ; $call_11
   else
-    string.const 36   ; "+"
+    string.const 37   ; "+"
     local.set 5   ; $call_11
   end $L7
   local.get 6   ; e
@@ -2823,7 +2853,7 @@ fn 46 std_core$format_decimal (ref,i32,i32) -> string
   call 30   ; std_core$format_unsigned
   local.set 8   ; $call_62
   local.get 4   ; $call_9
-  string.const 37   ; "e"
+  string.const 38   ; "e"
   local.get 5   ; $call_11
   local.get 8   ; $call_62
   call 9   ; concat_4
@@ -3169,7 +3199,7 @@ fn 54 std_core$join_range (ref,i32,i32) -> string
   local i i32
   local $cast_7 usize
   local $idx_8 string
-  string.const 38   ; ""
+  string.const 39   ; ""
   local.set 3   ; out
   local.get 1   ; arg 1
   local.set 4   ; i
@@ -3207,7 +3237,7 @@ end
 fn 55 std_core$zeros (i32) -> string
   local out string
   local _ i32
-  string.const 38   ; ""
+  string.const 39   ; ""
   local.set 1   ; out
   i32.const 0
   local.set 2   ; _
@@ -3218,7 +3248,7 @@ fn 55 std_core$zeros (i32) -> string
       i32.lt
       if $L2 void
         local.get 1   ; out
-        string.const 26   ; "0"
+        string.const 27   ; "0"
         call 8   ; concat_2
         local.set 1   ; out
         local.get 2   ; _
@@ -3451,23 +3481,13 @@ fn 60 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 61 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 59   ; std_io$write
-  i32.const 0
-  string.const 39   ; "\n"
-  call 59   ; std_io$write
-  return
-end
-
-fn 62 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 61 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 63 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 62 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3475,14 +3495,14 @@ fn 63 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 64 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 63 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 65 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 64 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3490,13 +3510,13 @@ fn 65 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 66 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+fn 65 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
   local.get 0   ; arg 0
   f64_to_bits
   return
 end
 
-fn 67 std_core$f32$Float32Bits$to_bits_vt (f32) -> u32
+fn 66 std_core$f32$Float32Bits$to_bits_vt (f32) -> u32
   local.get 0   ; arg 0
   f32_to_bits
   return

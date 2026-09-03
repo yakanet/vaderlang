@@ -4,51 +4,75 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            bytes_to_string :string
+            concat_2 :string
           arg0:
-            call :u8[]
+            call :string
               callee:
-                bytes :u8[]
+                bytes_to_string :string
               arg0:
-                "vader" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            bytes_to_string :string
-          arg0:
-            call :u8[]
-              callee:
-                bytes :u8[]
-              arg0:
-                "héllo café 你好" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            bytes_to_string :string
-          arg0:
-            slice :u8[]
-              on:
                 call :u8[]
                   callee:
                     bytes :u8[]
                   arg0:
-                    "abcde" :string
-              lo:
-                cast → usize
-                  int(1) :usize
-              hi:
-                cast → usize
-                  int(4) :usize
+                    "vader" :string
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                bytes_to_string :string
+              arg0:
+                call :u8[]
+                  callee:
+                    bytes :u8[]
+                  arg0:
+                    "héllo café 你好" :string
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                bytes_to_string :string
+              arg0:
+                slice :u8[]
+                  on:
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "abcde" :string
+                  lo:
+                    cast → usize
+                      int(1) :usize
+                  hi:
+                    cast → usize
+                      int(4) :usize
+          arg1:
+            "\n" :string
     let e: string =
       call :string
         callee:
@@ -61,17 +85,25 @@
               "" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_3 :string
+            concat_2 :string
           arg0:
-            "[" :string
+            call :string
+              callee:
+                concat_3 :string
+              arg0:
+                "[" :string
+              arg1:
+                e :string
+              arg2:
+                "]" :string
           arg1:
-            e :string
-          arg2:
-            "]" :string
+            "\n" :string
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =
@@ -141,3 +173,52 @@
           buf :Buffer
         arg1:
           c2 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

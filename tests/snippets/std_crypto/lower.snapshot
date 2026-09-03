@@ -4,109 +4,165 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "sha256-empty=" :string
-          arg1:
             call :string
               callee:
-                sha256 :fn(string | u8[]) -> string
+                concat_2 :string
               arg0:
-                "" :string
+                "sha256-empty=" :string
+              arg1:
+                call :string
+                  callee:
+                    sha256 :fn(string | u8[]) -> string
+                  arg0:
+                    "" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "sha256-abc=" :string
-          arg1:
             call :string
               callee:
-                sha256 :fn(string | u8[]) -> string
+                concat_2 :string
               arg0:
-                "abc" :string
+                "sha256-abc=" :string
+              arg1:
+                call :string
+                  callee:
+                    sha256 :fn(string | u8[]) -> string
+                  arg0:
+                    "abc" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "sha256-quick=" :string
-          arg1:
             call :string
               callee:
-                sha256 :fn(string | u8[]) -> string
+                concat_2 :string
               arg0:
-                "The quick brown fox jumps over the lazy dog" :string
+                "sha256-quick=" :string
+              arg1:
+                call :string
+                  callee:
+                    sha256 :fn(string | u8[]) -> string
+                  arg0:
+                    "The quick brown fox jumps over the lazy dog" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "sha256-long=" :string
-          arg1:
             call :string
               callee:
-                sha256 :fn(string | u8[]) -> string
+                concat_2 :string
               arg0:
-                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
+                "sha256-long=" :string
+              arg1:
+                call :string
+                  callee:
+                    sha256 :fn(string | u8[]) -> string
+                  arg0:
+                    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "md5-empty=" :string
-          arg1:
             call :string
               callee:
-                md5 :fn(string) -> string
+                concat_2 :string
               arg0:
-                "" :string
+                "md5-empty=" :string
+              arg1:
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "md5-abc=" :string
-          arg1:
             call :string
               callee:
-                md5 :fn(string) -> string
+                concat_2 :string
               arg0:
-                "abc" :string
+                "md5-abc=" :string
+              arg1:
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "abc" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "md5-quick=" :string
-          arg1:
             call :string
               callee:
-                md5 :fn(string) -> string
+                concat_2 :string
               arg0:
-                "The quick brown fox jumps over the lazy dog" :string
+                "md5-quick=" :string
+              arg1:
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "The quick brown fox jumps over the lazy dog" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

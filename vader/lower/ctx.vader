@@ -156,10 +156,9 @@ export LowerProjectCtx :: struct {
     /// the ids it mints must be unique across the whole program.
     ///
     /// A name keyed on a project-wide rank shifts whenever anything before it
-    /// changes — a function reached by one target only renumbered every lambda
-    /// behind it, so units identical character-for-character came out
-    /// byte-different per target and the seed stored each three times. Keyed
-    /// per module, a module that does not change keeps its names.
+    /// changes, so a function reached by one target alone renumbers every
+    /// lambda behind it and modules whose code is identical emit different C.
+    /// Keyed per module, a module that does not change keeps its names.
     lambda_seq:          MutableMap<string, i32>!
 
     /// Monotonically-increasing counter for synthetic `MonoEntry` IDs,

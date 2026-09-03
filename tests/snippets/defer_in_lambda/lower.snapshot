@@ -15,9 +15,17 @@
         f :__lambda_env_snippet_1!
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "--- now panic case ---" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "--- now panic case ---" :string
+          arg1:
+            "\n" :string
     let n: ? =
       LoweredCellNew
     let do_panic: __lambda_env_snippet_7! =
@@ -27,76 +35,100 @@
       }
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_2: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(27) :usize
-          let __off_3: usize = int(0) :usize
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_2: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(27) :usize
+              let __off_3: usize = int(0) :usize
+              assign
+                target:
                   __off_3 :usize
-                arg2:
-                  "result=" :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      "result=" :string
+              assign
+                target:
                   __off_3 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        __lambda_snippet_6 :fn() -> i32
-                      arg0:
-                        do_panic :__lambda_env_snippet_7!
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_2 :Buffer
-              arg1:
-                __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      cast → i64
+                        call :i32
+                          callee:
+                            __lambda_snippet_6 :fn() -> i32
+                          arg0:
+                            do_panic :__lambda_env_snippet_7!
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_2 :Buffer
+                  arg1:
+                    __off_3 :usize
+          arg1:
+            "\n" :string
     return int(0) :i32
   struct __defer_env_snippet_3 {  }
   fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "lambda inner cleanup" :string
-  struct __defer_env_snippet_5 { cap_0: ? }
-  fn __defer_snippet_4(__env_1: __defer_env_snippet_5!) -> void
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "uses outer " :string
+            "lambda inner cleanup" :string
           arg1:
-            LoweredCellGet
+            "\n" :string
+  struct __defer_env_snippet_5 { cap_0: ? }
+  fn __defer_snippet_4(__env_1: __defer_env_snippet_5!) -> void
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "uses outer " :string
+              arg1:
+                LoweredCellGet
+          arg1:
+            "\n" :string
   struct __lambda_env_snippet_1 { cap_0: ? }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> void
     defer.push
@@ -106,9 +138,17 @@
     let __block_2: void =
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          "lambda body" :string
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "lambda body" :string
+            arg1:
+              "\n" :string
     defer.pop_exec 2
     ~>
       __block_2 :void
@@ -116,24 +156,40 @@
   fn __defer_snippet_8(__env_0: __defer_env_snippet_9!) -> void
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "panic defer in lambda saw " :string
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "panic defer in lambda saw " :string
+              arg1:
+                LoweredCellGet
           arg1:
-            LoweredCellGet
+            "\n" :string
   struct __lambda_env_snippet_7 { cap_0: ?, cap_1: ? }
   fn __lambda_snippet_6(__env_1: __lambda_env_snippet_7!) -> i32
     defer.push
       LoweredMakeClosure
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "about to boom" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "about to boom" :string
+          arg1:
+            "\n" :string
     block :void
       defer.pop_exec 1
       return

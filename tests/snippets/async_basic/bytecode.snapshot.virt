@@ -2,27 +2,28 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 ref Async
-type 3 struct __asyncstate_snippet_0 { s0:1,s1:1,s2:1,awaited:9,state:1 }
+type 3 struct __asyncstate_snippet_0 { s0:1,s1:1,s2:1,awaited:10,state:1 }
 type 4 union 1,5
 type 5 struct std_core$Suspended {  }
-type 6 struct __asyncstate_snippet_1 { s0:1,s1:1,awaited:9,state:1 }
+type 6 struct __asyncstate_snippet_1 { s0:1,s1:1,awaited:10,state:1 }
 type 7 struct snippet$Ready__i32 { v:1 }
 type 8 primitive void
-type 9 ref Async
-type 10 primitive usize
-type 11 struct std_core$Buffer {  }
-type 12 primitive string
+type 9 primitive string
+type 10 ref Async
+type 11 primitive usize
+type 12 struct std_core$Buffer {  }
 type 13 primitive i64
 type 14 primitive u8
 type 15 array 14
 type 16 primitive isize
 string 0 "\n"
-import 0 bytes std_core$bytes result_type=15 param_types=12 param_mutable=0 param_by_address= (string) -> ref
-import 1 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,15,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=11 param_types=9 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=15 param_types=9 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,15,11 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 Async
 impl 6 Async
 impl 7 Async
-impl 11 ByteAccess
+impl 12 ByteAccess
 vtable Async.resume 3 3
 vtable Async.resume 6 4
 vtable Async.resume 7 5
@@ -172,10 +173,11 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize
-  local $cast_20 i64
+  local $cast_21 i64
+  local $call_25 string
   local __resumed_4 any
-  local $cast_32 i32
-  local $cast_39 any
+  local $cast_35 i32
+  local $cast_42 any
   block $L0 void
     loop $L1 void
       local.field 0 6 3   ; arg 0.state
@@ -207,23 +209,28 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           local.get 1   ; $field_13
           struct.set 6 1   ; __asyncstate_snippet_1.s1
           i64.const 20
-          call 6   ; std_core$new_byte_buffer
+          call 7   ; std_core$new_byte_buffer
           local.set 2   ; __buf_1
           i64.const 0
           local.set 3   ; __off_2
           local.field 0 6 1   ; arg 0.s1
           ref.cast 1   ; -> i32
           i32.to_i64
-          local.set 4   ; $cast_20
+          local.set 4   ; $cast_21
           local.get 2   ; __buf_1
           local.get 3   ; __off_2
-          local.get 4   ; $cast_20
-          call 8   ; std_core$write_int
+          local.get 4   ; $cast_21
+          call 9   ; std_core$write_int
           local.set 3   ; __off_2
           local.get 2   ; __buf_1
           local.get 3   ; __off_2
-          call 7   ; std_core$finish_buffer
-          call 11   ; std_io$println__string
+          call 8   ; std_core$finish_buffer
+          string.const 0   ; "\n"
+          call 6   ; concat_2
+          local.set 5   ; $call_25
+          i32.const 0
+          local.get 5   ; $call_25
+          call 10   ; std_io$write
           local.get 0   ; arg 0
           i32.const 1
           struct.set 6 3   ; __asyncstate_snippet_1.state
@@ -236,17 +243,17 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L5 void
           local.field 0 6 2   ; arg 0.awaited
           virtual.call 1 Async.resume
-          local.tee 5   ; __resumed_4
+          local.tee 6   ; __resumed_4
           type_check 5   ; std_core$Suspended
           if $L6 void
             struct.new 5   ; std_core$Suspended
             return
           end $L6
-          local.get 5   ; __resumed_4
+          local.get 6   ; __resumed_4
           ref.cast 1   ; -> i32
-          local.set 6   ; $cast_32
+          local.set 7   ; $cast_35
           local.get 0   ; arg 0
-          local.get 6   ; $cast_32
+          local.get 7   ; $cast_35
           struct.set 6 0   ; __asyncstate_snippet_1.s0
           local.get 0   ; arg 0
           i32.const 2
@@ -260,9 +267,9 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L7 void
           i32.const 20
           call 1   ; snippet$add_one
-          local.set 7   ; $cast_39
+          local.set 8   ; $cast_42
           local.get 0   ; arg 0
-          local.get 7   ; $cast_39
+          local.get 8   ; $cast_42
           struct.set 6 2   ; __asyncstate_snippet_1.awaited
           local.get 0   ; arg 0
           i32.const 3
@@ -289,20 +296,49 @@ fn 5 snippet$Ready$Async$resume__i32 (ref) -> any
   return
 end
 
-fn 6 std_core$new_byte_buffer (usize) -> ref
+fn 6 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 7   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 8   ; std_core$finish_buffer
+  return
+end
+
+fn 7 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 7 std_core$finish_buffer (ref,usize) -> string
+fn 8 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 8 std_core$write_int (ref,usize,i64) -> usize
+fn 9 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -419,7 +455,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 9 std_io$write (i32,string) -> void
+fn 10 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -429,7 +465,7 @@ fn 9 std_io$write (i32,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 0   ; std_core$bytes
+  call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -456,7 +492,7 @@ fn 9 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 10   ; std_io$write_bytes
+        call 11   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -477,7 +513,7 @@ fn 9 std_io$write (i32,string) -> void
   return
 end
 
-fn 10 std_io$write_bytes (i32,ref,usize) -> i32
+fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -492,18 +528,8 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 1   ; system_posix$sys_write
+  call.import 2   ; system_posix$sys_write
   isize.to_i32
-  return
-end
-
-fn 11 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 9   ; std_io$write
-  i32.const 0
-  string.const 0   ; "\n"
-  call 9   ; std_io$write
   return
 end
 
@@ -525,5 +551,13 @@ fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
+  return
+end
+
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
   return
 end

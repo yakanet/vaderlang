@@ -1421,9 +1421,8 @@ pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
 /// MANGLED name rather than its index in the module table.
 ///
 /// An index is a rank, and a rank shifts: a function reached by one target only
-/// renumbers every trampoline behind it, so `bootstrap.vader_lower.c` came out
-/// byte-different per target — 2.4 MB stored three times for 44 lines that
-/// differed by digits alone. The mangled name is the function's identity and
+/// renumbers every trampoline behind it, so modules whose code is identical
+/// emit different C per target. The mangled name is the function's identity and
 /// does not move.
 ///
 /// @param fns    the module's function table.

@@ -31,15 +31,23 @@
     ~>
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
+          int(0) :i32
+        arg1:
           call :string
             callee:
               concat_2 :string
             arg0:
-              "cleanup " :string
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "cleanup " :string
+                arg1:
+                  LoweredCellGet
             arg1:
-              LoweredCellGet
+              "\n" :string
   struct __asyncstate_snippet_2 { s0: ?, s1: i64, s2: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> string | Suspended!
     loop
@@ -343,16 +351,24 @@
                         __self_1 :__asyncstate_snippet_3!
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
+                      int(0) :i32
+                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          "winner: " :string
+                          call :string
+                            callee:
+                              concat_2 :string
+                            arg0:
+                              "winner: " :string
+                            arg1:
+                              .s1 :string
+                                __self_1 :__asyncstate_snippet_3!
                         arg1:
-                          .s1 :string
-                            __self_1 :__asyncstate_snippet_3!
+                          "\n" :string
                   assign
                     target:
                       .state :i32

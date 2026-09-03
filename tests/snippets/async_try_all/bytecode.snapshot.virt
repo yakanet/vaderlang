@@ -46,13 +46,13 @@ type 43 union 29,9
 type 44 ref _
 string 0 "down: "
 string 1 "unexpected: "
-string 2 "?"
-string 3 "ok "
-string 4 "users"
-string 5 "orders"
-string 6 "failed: "
-string 7 "carts"
-string 8 "\n"
+string 2 "\n"
+string 3 "?"
+string 4 "ok "
+string 5 "users"
+string 6 "orders"
+string 7 "failed: "
+string 8 "carts"
 string 9 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=18 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=22 param_types=2 param_mutable=0 param_by_address= (string) -> ref
@@ -76,14 +76,14 @@ impl 35 Async
 vtable Error.message 1 0
 vtable Async.resume 7 3
 vtable Async.resume 11 5
-vtable Async.resume 24 15
-vtable Async.resume 27 17
-vtable Async.resume 33 21
+vtable Async.resume 24 14
+vtable Async.resume 27 16
+vtable Async.resume 33 20
 vtable Async.cancel 7 4
 vtable Async.cancel 11 6
-vtable Async.cancel 24 16
-vtable Async.cancel 27 18
-vtable Async.cancel 33 22
+vtable Async.cancel 24 15
+vtable Async.cancel 27 17
+vtable Async.cancel 33 21
 export main 2
 
 fn 0 snippet$Outage$Error$message (ref) -> string
@@ -153,7 +153,7 @@ fn 2 snippet$main () -> i32
   i32.const 20
   struct.new 11   ; __asyncstate_snippet_1
   ref.cast 32   ; -> ref Async
-  call 20   ; std_async$run_async_main
+  call 19   ; std_async$run_async_main
   return
 end
 
@@ -263,7 +263,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         if $L11 void
           local.field 0 7 1   ; arg 0.s1
           ref.cast 3   ; -> i64
-          call 19   ; std_async$sleep
+          call 18   ; std_async$sleep
           local.set 3   ; $cast_50
           local.get 0   ; arg 0
           local.get 3   ; $cast_50
@@ -306,43 +306,47 @@ end
 
 fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local $cast_14 any
-  local $vcall_17 string
-  local $field_31 usize
-  local $field_32 usize
-  local $add_41 usize
+  local $vcall_18 string
+  local $call_21 string
+  local $field_34 usize
+  local $field_35 usize
+  local $add_44 usize
+  local $call_52 string
   local __buf_5 ref
   local __off_6 usize
-  local $cast_60 i64
-  local $field_74 ref
-  local $field_75 usize
-  local $idx_76 any
-  local $cast_82 ref
-  local $len_84 usize
-  local $field_97 any
+  local $cast_67 i64
+  local $call_71 string
+  local $field_83 ref
+  local $field_84 usize
+  local $idx_85 any
+  local $cast_91 ref
+  local $len_93 usize
+  local $field_106 any
   local __resumed_8 any
-  local $cast_107 any
-  local $call_115 any
-  local $call_119 any
-  local $arr_120 ref
-  local $arr_121 ref
-  local $arr_122 ref
-  local $arr_123 ref
-  local $struct_127 ref
-  local $cast_130 any
-  local $cast_136 any
-  local $vcall_139 string
-  local $field_152 any
+  local $cast_116 any
+  local $call_124 any
+  local $call_128 any
+  local $arr_129 ref
+  local $arr_130 ref
+  local $arr_131 ref
+  local $arr_132 ref
+  local $struct_136 ref
+  local $cast_139 any
+  local $cast_145 any
+  local $vcall_149 string
+  local $call_152 string
+  local $field_164 any
   local __resumed_9 any
-  local $cast_162 any
-  local $call_170 any
-  local $call_174 any
-  local $call_178 any
-  local $arr_179 ref
-  local $arr_180 ref
-  local $arr_181 ref
-  local $arr_182 ref
-  local $struct_186 ref
-  local $cast_189 any
+  local $cast_174 any
+  local $call_182 any
+  local $call_186 any
+  local $call_190 any
+  local $arr_191 ref
+  local $arr_192 ref
+  local $arr_193 ref
+  local $arr_194 ref
+  local $struct_198 ref
+  local $cast_201 any
   block $L0 void
     loop $L1 void
       local.field 0 11 11   ; arg 0.state
@@ -374,11 +378,16 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           struct.set 11 5   ; __asyncstate_snippet_1.s5
           local.field 0 11 5   ; arg 0.s5
           virtual.call 1 Error.message
-          local.set 2   ; $vcall_17
+          local.set 2   ; $vcall_18
           string.const 1   ; "unexpected: "
-          local.get 2   ; $vcall_17
+          local.get 2   ; $vcall_18
           call 7   ; concat_2
-          call 14   ; std_io$println__string
+          string.const 2   ; "\n"
+          call 7   ; concat_2
+          local.set 3   ; $call_21
+          i32.const 0
+          local.get 3   ; $call_21
+          call 12   ; std_io$write
           local.get 0   ; arg 0
           i32.const 1
           struct.set 11 11   ; __asyncstate_snippet_1.state
@@ -411,12 +420,12 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L7 void
           local.field 0 11 8   ; arg 0.s8
           ref.cast 18   ; -> usize
-          local.set 3   ; $field_31
+          local.set 4   ; $field_34
           local.field 0 11 7   ; arg 0.s7
           ref.cast 18   ; -> usize
-          local.set 4   ; $field_32
-          local.get 3   ; $field_31
-          local.get 4   ; $field_32
+          local.set 5   ; $field_35
+          local.get 4   ; $field_34
+          local.get 5   ; $field_35
           u64.lt
           if $L8 void
             local.get 0   ; arg 0
@@ -438,9 +447,9 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           ref.cast 18   ; -> usize
           i64.const 1
           i64.add
-          local.set 5   ; $add_41
+          local.set 6   ; $add_44
           local.get 0   ; arg 0
-          local.get 5   ; $add_41
+          local.get 6   ; $add_44
           struct.set 11 8   ; __asyncstate_snippet_1.s8
           local.get 0   ; arg 0
           i32.const 5
@@ -452,8 +461,13 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.const 7
         i32.eq
         if $L10 void
-          string.const 2   ; "?"
-          call 14   ; std_io$println__string
+          string.const 3   ; "?"
+          string.const 2   ; "\n"
+          call 7   ; concat_2
+          local.set 7   ; $call_52
+          i32.const 0
+          local.get 7   ; $call_52
+          call 12   ; std_io$write
           local.get 0   ; arg 0
           i32.const 6
           struct.set 11 11   ; __asyncstate_snippet_1.state
@@ -466,27 +480,32 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L11 void
           i64.const 23
           call 8   ; std_core$new_byte_buffer
-          local.set 6   ; __buf_5
+          local.set 8   ; __buf_5
           i64.const 0
-          local.set 7   ; __off_6
-          local.get 6   ; __buf_5
-          local.get 7   ; __off_6
-          string.const 3   ; "ok "
+          local.set 9   ; __off_6
+          local.get 8   ; __buf_5
+          local.get 9   ; __off_6
+          string.const 4   ; "ok "
           call 10   ; std_core$write_string_at
-          local.set 7   ; __off_6
+          local.set 9   ; __off_6
           local.field 0 11 9   ; arg 0.s9
           ref.cast 6   ; -> i32
           i32.to_i64
-          local.set 8   ; $cast_60
-          local.get 6   ; __buf_5
-          local.get 7   ; __off_6
-          local.get 8   ; $cast_60
+          local.set 10   ; $cast_67
+          local.get 8   ; __buf_5
+          local.get 9   ; __off_6
+          local.get 10   ; $cast_67
           call 11   ; std_core$write_int
-          local.set 7   ; __off_6
-          local.get 6   ; __buf_5
-          local.get 7   ; __off_6
+          local.set 9   ; __off_6
+          local.get 8   ; __buf_5
+          local.get 9   ; __off_6
           call 9   ; std_core$finish_buffer
-          call 14   ; std_io$println__string
+          string.const 2   ; "\n"
+          call 7   ; concat_2
+          local.set 11   ; $call_71
+          i32.const 0
+          local.get 11   ; $call_71
+          call 12   ; std_io$write
           local.get 0   ; arg 0
           i32.const 6
           struct.set 11 11   ; __asyncstate_snippet_1.state
@@ -516,16 +535,16 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.eq
         if $L14 void
           local.field 0 11 6   ; arg 0.s6
-          local.set 9   ; $field_74
+          local.set 12   ; $field_83
           local.field 0 11 8   ; arg 0.s8
           ref.cast 18   ; -> usize
-          local.set 10   ; $field_75
-          local.get 9   ; $field_74
-          local.get 10   ; $field_75
+          local.set 13   ; $field_84
+          local.get 12   ; $field_83
+          local.get 13   ; $field_84
           array.get 15   ; union[][]
-          local.set 11   ; $idx_76
+          local.set 14   ; $idx_85
           local.get 0   ; arg 0
-          local.get 11   ; $idx_76
+          local.get 14   ; $idx_85
           struct.set 11 9   ; __asyncstate_snippet_1.s9
           local.get 0   ; arg 0
           i32.const 9
@@ -539,15 +558,15 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L15 void
           local.field 0 11 4   ; arg 0.s4
           ref.cast 15   ; -> union[]
-          local.set 12   ; $cast_82
+          local.set 15   ; $cast_91
           local.get 0   ; arg 0
-          local.get 12   ; $cast_82
+          local.get 15   ; $cast_91
           struct.set 11 6   ; __asyncstate_snippet_1.s6
           local.field 0 11 6   ; arg 0.s6
           array.len
-          local.set 13   ; $len_84
+          local.set 16   ; $len_93
           local.get 0   ; arg 0
-          local.get 13   ; $len_84
+          local.get 16   ; $len_93
           struct.set 11 7   ; __asyncstate_snippet_1.s7
           local.get 0   ; arg 0
           i64.const 0
@@ -581,9 +600,9 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.eq
         if $L18 void
           local.field 0 11 3   ; arg 0.s3
-          local.set 14   ; $field_97
+          local.set 17   ; $field_106
           local.get 0   ; arg 0
-          local.get 14   ; $field_97
+          local.get 17   ; $field_106
           struct.set 11 4   ; __asyncstate_snippet_1.s4
           local.get 0   ; arg 0
           i32.const 12
@@ -597,16 +616,16 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L19 void
           local.field 0 11 10   ; arg 0.awaited
           virtual.call 1 Async.resume
-          local.tee 15   ; __resumed_8
+          local.tee 18   ; __resumed_8
           type_check 9   ; std_core$Suspended
           if $L20 void
             struct.new 9   ; std_core$Suspended
             return
           end $L20
-          local.get 15   ; __resumed_8
-          local.set 16   ; $cast_107
+          local.get 18   ; __resumed_8
+          local.set 19   ; $cast_116
           local.get 0   ; arg 0
-          local.get 16   ; $cast_107
+          local.get 19   ; $cast_116
           struct.set 11 3   ; __asyncstate_snippet_1.s3
           local.get 0   ; arg 0
           i32.const 13
@@ -618,42 +637,42 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.const 15
         i32.eq
         if $L21 void
-          string.const 4   ; "users"
+          string.const 5   ; "users"
           i64.const 3
           bool.const true
           call 1   ; snippet$fetch
-          local.set 17   ; $call_115
-          string.const 5   ; "orders"
+          local.set 20   ; $call_124
+          string.const 6   ; "orders"
           i64.const 1
           bool.const true
           call 1   ; snippet$fetch
-          local.set 18   ; $call_119
-          local.get 17   ; $call_115
-          local.get 18   ; $call_119
+          local.set 21   ; $call_128
+          local.get 20   ; $call_124
+          local.get 21   ; $call_128
           array.new 42 2   ; ref Async[][]
-          local.set 19   ; $arr_120
+          local.set 22   ; $arr_129
           array.new 41 0   ; usize[][]
-          local.set 20   ; $arr_121
+          local.set 23   ; $arr_130
           array.new 26 0   ; ref[][]
-          local.set 21   ; $arr_122
+          local.set 24   ; $arr_131
           array.new 40 0   ; i32[][]
-          local.set 22   ; $arr_123
-          local.get 20   ; $arr_121
-          local.get 21   ; $arr_122
-          local.get 22   ; $arr_123
+          local.set 25   ; $arr_132
+          local.get 23   ; $arr_130
+          local.get 24   ; $arr_131
+          local.get 25   ; $arr_132
           i64.const 0
           i64.const 0
           i64.const 0
           struct.new 37   ; std_collections$MutableMap__usize__Any
-          local.set 23   ; $struct_127
-          local.get 19   ; $arr_120
-          local.get 23   ; $struct_127
+          local.set 26   ; $struct_136
+          local.get 22   ; $arr_129
+          local.get 26   ; $struct_136
           struct.new 24   ; std_async$All__Any
           struct.new 27   ; std_async$TryAll__i32__Any
           ref.cast 13   ; -> ref Async
-          local.set 24   ; $cast_130
+          local.set 27   ; $cast_139
           local.get 0   ; arg 0
-          local.get 24   ; $cast_130
+          local.get 27   ; $cast_139
           struct.set 11 10   ; __asyncstate_snippet_1.awaited
           local.get 0   ; arg 0
           i32.const 14
@@ -666,17 +685,22 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.eq
         if $L22 void
           local.field 0 11 1   ; arg 0.s1
-          local.set 25   ; $cast_136
+          local.set 28   ; $cast_145
           local.get 0   ; arg 0
-          local.get 25   ; $cast_136
+          local.get 28   ; $cast_145
           struct.set 11 2   ; __asyncstate_snippet_1.s2
           local.field 0 11 2   ; arg 0.s2
           virtual.call 1 Error.message
-          local.set 26   ; $vcall_139
-          string.const 6   ; "failed: "
-          local.get 26   ; $vcall_139
+          local.set 29   ; $vcall_149
+          string.const 7   ; "failed: "
+          local.get 29   ; $vcall_149
           call 7   ; concat_2
-          call 14   ; std_io$println__string
+          string.const 2   ; "\n"
+          call 7   ; concat_2
+          local.set 30   ; $call_152
+          i32.const 0
+          local.get 30   ; $call_152
+          call 12   ; std_io$write
           local.get 0   ; arg 0
           i32.const 15
           struct.set 11 11   ; __asyncstate_snippet_1.state
@@ -706,9 +730,9 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.eq
         if $L25 void
           local.field 0 11 0   ; arg 0.s0
-          local.set 27   ; $field_152
+          local.set 31   ; $field_164
           local.get 0   ; arg 0
-          local.get 27   ; $field_152
+          local.get 31   ; $field_164
           struct.set 11 1   ; __asyncstate_snippet_1.s1
           local.get 0   ; arg 0
           i32.const 17
@@ -722,16 +746,16 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         if $L26 void
           local.field 0 11 10   ; arg 0.awaited
           virtual.call 1 Async.resume
-          local.tee 28   ; __resumed_9
+          local.tee 32   ; __resumed_9
           type_check 9   ; std_core$Suspended
           if $L27 void
             struct.new 9   ; std_core$Suspended
             return
           end $L27
-          local.get 28   ; __resumed_9
-          local.set 29   ; $cast_162
+          local.get 32   ; __resumed_9
+          local.set 33   ; $cast_174
           local.get 0   ; arg 0
-          local.get 29   ; $cast_162
+          local.get 33   ; $cast_174
           struct.set 11 0   ; __asyncstate_snippet_1.s0
           local.get 0   ; arg 0
           i32.const 18
@@ -743,48 +767,48 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.const 20
         i32.eq
         if $L28 void
-          string.const 4   ; "users"
+          string.const 5   ; "users"
           i64.const 3
           bool.const true
           call 1   ; snippet$fetch
-          local.set 30   ; $call_170
-          string.const 5   ; "orders"
+          local.set 34   ; $call_182
+          string.const 6   ; "orders"
           i64.const 1
           bool.const false
           call 1   ; snippet$fetch
-          local.set 31   ; $call_174
-          string.const 7   ; "carts"
+          local.set 35   ; $call_186
+          string.const 8   ; "carts"
           i64.const 2
           bool.const true
           call 1   ; snippet$fetch
-          local.set 32   ; $call_178
-          local.get 30   ; $call_170
-          local.get 31   ; $call_174
-          local.get 32   ; $call_178
+          local.set 36   ; $call_190
+          local.get 34   ; $call_182
+          local.get 35   ; $call_186
+          local.get 36   ; $call_190
           array.new 42 3   ; ref Async[][]
-          local.set 33   ; $arr_179
+          local.set 37   ; $arr_191
           array.new 41 0   ; usize[][]
-          local.set 34   ; $arr_180
+          local.set 38   ; $arr_192
           array.new 26 0   ; ref[][]
-          local.set 35   ; $arr_181
+          local.set 39   ; $arr_193
           array.new 40 0   ; i32[][]
-          local.set 36   ; $arr_182
-          local.get 34   ; $arr_180
-          local.get 35   ; $arr_181
-          local.get 36   ; $arr_182
+          local.set 40   ; $arr_194
+          local.get 38   ; $arr_192
+          local.get 39   ; $arr_193
+          local.get 40   ; $arr_194
           i64.const 0
           i64.const 0
           i64.const 0
           struct.new 37   ; std_collections$MutableMap__usize__Any
-          local.set 37   ; $struct_186
-          local.get 33   ; $arr_179
-          local.get 37   ; $struct_186
+          local.set 41   ; $struct_198
+          local.get 37   ; $arr_191
+          local.get 41   ; $struct_198
           struct.new 24   ; std_async$All__Any
           struct.new 27   ; std_async$TryAll__i32__Any
           ref.cast 13   ; -> ref Async
-          local.set 38   ; $cast_189
+          local.set 42   ; $cast_201
           local.get 0   ; arg 0
-          local.get 38   ; $cast_189
+          local.get 42   ; $cast_201
           struct.set 11 10   ; __asyncstate_snippet_1.awaited
           local.get 0   ; arg 0
           i32.const 19
@@ -836,11 +860,11 @@ fn 7 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 34   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 33   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 34   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 33   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 9   ; std_core$finish_buffer
@@ -849,14 +873,14 @@ end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 31   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 30   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 33   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 32   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -865,7 +889,7 @@ fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 34   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 33   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -889,7 +913,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 32   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 31   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -968,7 +992,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
         local.get 0   ; arg 0
         local.get 4   ; ndigits
         local.get 8   ; $add_37
-        call 32   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 31   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         i64.div
@@ -983,7 +1007,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
-    call 32   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 31   ; std_core$Buffer$ByteAccess$store_u8_vt
   else
   end $L9
   local.get 1   ; arg 1
@@ -1070,17 +1094,7 @@ fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 14 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0   ; arg 0
-  call 12   ; std_io$write
-  i32.const 0
-  string.const 8   ; "\n"
-  call 12   ; std_io$write
-  return
-end
-
-fn 15 std_async$All$Async$resume__Any (ref) -> any
+fn 14 std_async$All$Async$resume__Any (ref) -> any
   local n usize
   local i usize
   local r any
@@ -1099,7 +1113,7 @@ fn 15 std_async$All$Async$resume__Any (ref) -> any
       if $L2 void
         local.field 0 24 1   ; arg 0.results
         local.get 2   ; i
-        call 30   ; std_collections$contains_key__usize__Any
+        call 29   ; std_collections$contains_key__usize__Any
         if $L3 void
           local.get 2   ; i
           i64.const 1
@@ -1127,7 +1141,7 @@ fn 15 std_async$All$Async$resume__Any (ref) -> any
         local.get 4   ; $field_18
         local.get 2   ; i
         local.get 5   ; $cast_19
-        call 28   ; std_collections$put__usize__Any
+        call 27   ; std_collections$put__usize__Any
         local.get 2   ; i
         i64.const 1
         i64.add
@@ -1158,7 +1172,7 @@ fn 15 std_async$All$Async$resume__Any (ref) -> any
       if $L8 void
         local.field 0 24 1   ; arg 0.results
         local.get 2   ; i
-        call 29   ; std_collections$get__usize__Any
+        call 28   ; std_collections$get__usize__Any
         local.tee 3   ; r
         type_check 0   ; null
         bool.not
@@ -1183,7 +1197,7 @@ fn 15 std_async$All$Async$resume__Any (ref) -> any
   return
 end
 
-fn 16 std_async$All$Async$cancel__Any (ref) -> void
+fn 15 std_async$All$Async$cancel__Any (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
@@ -1215,14 +1229,14 @@ fn 16 std_async$All$Async$cancel__Any (ref) -> void
   return
 end
 
-fn 17 std_async$TryAll$Async$resume__i32__Any (ref) -> any
+fn 16 std_async$TryAll$Async$resume__i32__Any (ref) -> any
   local r any
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
   local v any
   local.field 0 27 0   ; arg 0.inner
-  call 15   ; std_async$All$Async$resume__Any
+  call 14   ; std_async$All$Async$resume__Any
   local.tee 1   ; r
   type_check 9   ; std_core$Suspended
   if $L0 void
@@ -1265,13 +1279,13 @@ fn 17 std_async$TryAll$Async$resume__i32__Any (ref) -> any
   return
 end
 
-fn 18 std_async$TryAll$Async$cancel__i32__Any (ref) -> void
+fn 17 std_async$TryAll$Async$cancel__i32__Any (ref) -> void
   local.field 0 27 0   ; arg 0.inner
-  call 16   ; std_async$All$Async$cancel__Any
+  call 15   ; std_async$All$Async$cancel__Any
   return
 end
 
-fn 19 std_async$sleep (i64) -> any
+fn 18 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
@@ -1279,13 +1293,13 @@ fn 19 std_async$sleep (i64) -> any
   return
 end
 
-fn 20 std_async$run_async_main (any) -> i32
+fn 19 std_async$run_async_main (any) -> i32
   local.get 0   ; arg 0
-  call 23   ; std_async$block_on__i32
+  call 22   ; std_async$block_on__i32
   return
 end
 
-fn 21 std_async$Sleep$Async$resume (ref) -> any
+fn 20 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 33 2   ; arg 0.armed
@@ -1329,11 +1343,11 @@ fn 21 std_async$Sleep$Async$resume (ref) -> any
   return
 end
 
-fn 22 std_async$Sleep$Async$cancel (ref) -> void
+fn 21 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 23 std_async$block_on__i32 (any) -> i32
+fn 22 std_async$block_on__i32 (any) -> i32
   local r any
   block $L0 void
     loop $L1 void
@@ -1361,7 +1375,7 @@ fn 23 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 24 std_collections$slot_for (u64,usize) -> usize
+fn 23 std_collections$slot_for (u64,usize) -> usize
   local.get 0   ; arg 0
   u64.to_i64
   local.get 1   ; arg 1
@@ -1369,7 +1383,7 @@ fn 24 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 25 std_collections$ensure_index__usize__Any (ref) -> void
+fn 24 std_collections$ensure_index__usize__Any (ref) -> void
   local idx ref
   local __for_discard_0 usize
   local.field 0 37 2   ; arg 0.index
@@ -1412,7 +1426,7 @@ fn 25 std_collections$ensure_index__usize__Any (ref) -> void
   return
 end
 
-fn 26 std_collections$rehash__usize__Any (ref,usize) -> void
+fn 25 std_collections$rehash__usize__Any (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
   local e usize
@@ -1461,7 +1475,7 @@ fn 26 std_collections$rehash__usize__Any (ref,usize) -> void
         load_slot_i64
         usize.to_i64
         local.get 3   ; __for_discard_0
-        call 24   ; std_collections$slot_for
+        call 23   ; std_collections$slot_for
         local.set 6   ; s
         block $L6 void
           loop $L7 void
@@ -1512,7 +1526,7 @@ fn 26 std_collections$rehash__usize__Any (ref,usize) -> void
   return
 end
 
-fn 27 std_collections$write_entry__usize__Any (ref,usize,any) -> void
+fn 26 std_collections$write_entry__usize__Any (ref,usize,any) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -1555,7 +1569,7 @@ fn 27 std_collections$write_entry__usize__Any (ref,usize,any) -> void
   return
 end
 
-fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
+fn 27 std_collections$put__usize__Any (ref,usize,any) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_24 usize
@@ -1566,7 +1580,7 @@ fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
   local $field_69 ref
   local $cast_73 i32
   local.get 0   ; arg 0
-  call 25   ; std_collections$ensure_index__usize__Any
+  call 24   ; std_collections$ensure_index__usize__Any
   local.field 0 37 4   ; arg 0.size
   ref.cast 18   ; -> usize
   local.set 3   ; $field_3
@@ -1622,7 +1636,7 @@ fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    call 26   ; std_collections$rehash__usize__Any
+    call 25   ; std_collections$rehash__usize__Any
   else
   end $L0
   local.get 1   ; arg 1
@@ -1633,7 +1647,7 @@ fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
   local.set 3   ; $field_3
   local.get 6   ; $cast_28
   local.get 3   ; $field_3
-  call 24   ; std_collections$slot_for
+  call 23   ; std_collections$slot_for
   local.set 3   ; $field_3
   i64.const 1
   i64.neg
@@ -1741,7 +1755,7 @@ fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 27   ; std_collections$write_entry__usize__Any
+  call 26   ; std_collections$write_entry__usize__Any
   local.field 0 37 2   ; arg 0.index
   local.set 10   ; $field_69
   local.field 0 37 4   ; arg 0.size
@@ -1765,7 +1779,7 @@ fn 28 std_collections$put__usize__Any (ref,usize,any) -> void
   return
 end
 
-fn 29 std_collections$get__usize__Any (ref,usize) -> any
+fn 28 std_collections$get__usize__Any (ref,usize) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -1789,7 +1803,7 @@ fn 29 std_collections$get__usize__Any (ref,usize) -> any
   local.set 3   ; $field_8
   local.get 2   ; $cast_7
   local.get 3   ; $field_8
-  call 24   ; std_collections$slot_for
+  call 23   ; std_collections$slot_for
   local.set 3   ; $field_8
   block $L1 void
     loop $L2 void
@@ -1861,7 +1875,7 @@ fn 29 std_collections$get__usize__Any (ref,usize) -> any
   return
 end
 
-fn 30 std_collections$contains_key__usize__Any (ref,usize) -> bool
+fn 29 std_collections$contains_key__usize__Any (ref,usize) -> bool
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -1883,7 +1897,7 @@ fn 30 std_collections$contains_key__usize__Any (ref,usize) -> bool
   local.set 3   ; $field_8
   local.get 2   ; $cast_7
   local.get 3   ; $field_8
-  call 24   ; std_collections$slot_for
+  call 23   ; std_collections$slot_for
   local.set 3   ; $field_8
   block $L1 void
     loop $L2 void
@@ -1950,13 +1964,13 @@ fn 30 std_collections$contains_key__usize__Any (ref,usize) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 30 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 32 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 31 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1964,14 +1978,14 @@ fn 32 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 33 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 32 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 34 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 33 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
