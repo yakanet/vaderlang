@@ -3023,6 +3023,7 @@ struct vader_struct_vader_bytecode_CLayout_t {
     vader_obj_header_t header;
     void* f_offsets;
     int64_t f_size;
+    vader_box_t f_unknown_field;
 };
 struct vader_struct_vader_bytecode_Call_t {
     vader_obj_header_t header;
@@ -5767,7 +5768,9 @@ bool vader_bytecode_is_64_bit_int_val(uint8_t l0);
 bool vader_bytecode_is_integer_val(uint8_t l0);
 vader_string_t vader_bytecode_primitive_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 int32_t vader_bytecode_struct_type_index(void* l0, vader_string_t l1);
-int64_t vader_bytecode_c_field_width(void* l0, void* l1);
+vader_box_t vader_bytecode_c_field_width(void* l0, void* l1);
+vader_box_t vader_bytecode_c_field_val_type(void* l0, void* l1);
+bool vader_bytecode_is_unsigned_val(uint8_t l0);
 uint8_t vader_bytecode_array_kind_of(vader_box_t l0, void* l1);
 vader_string_t vader_bytecode_bc_type_key(void* l0, int32_t l1);
 vader_string_t vader_bytecode_val_type_name(uint8_t l0);
@@ -5780,7 +5783,6 @@ vader_box_t vader_bytecode_slot_load_op_for(uint8_t l0, bool l1);
 vader_box_t vader_bytecode_slot_store_op_for(uint8_t l0, bool l1);
 vader_box_t vader_bytecode_convert_target_of(uint8_t l0);
 int32_t vader_bytecode_intern_cell_type(vader_box_t l0, void* l1);
-bool vader_bytecode_is_unsigned_val(uint8_t l0);
 void* vader_c_emit_emit_c_split(void* l0, void* l1, vader_string_t l2);
 bool __lambda_vader_c_emit_0(void* l0, int32_t l1, int32_t l2);
 bool __lambda_vader_c_emit_2(void* l0, vader_string_t l1, vader_string_t l2);
@@ -5987,7 +5989,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2418u
+#define VADER_COMPTIME_ATOM_COUNT 2425u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
