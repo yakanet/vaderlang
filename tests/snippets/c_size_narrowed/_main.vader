@@ -1,0 +1,38 @@
+// `@c_size` narrowing — a Vader field WIDER than the C one it mirrors.
+//
+// `div_t.quot` is an `int` on every target, mirrored here by an `i64`, so the
+// emitted asserts take the `<=` branch (C writes) and the signedness pin has a
+// real width difference to straddle.
+//
+// Its `.virt` carries the `@4` marker, which is what pins that the text form
+// records a declared width. It does NOT pin the read-back: the VM parity corpus
+// skips any snippet with a `helper.c`, since the interpreter reaches an `@extern`
+// through `dlsym` on the C library and nothing builds a snippet-local helper into
+// one. The reader side is covered by the colocated tests in
+// `vader/vm/virt_reader_bc.vader`.
+
+module "snippet"
+
+import "std/io"
+
+/// Mirror of C's `div_t`, with a deliberately wider quotient.
+@c_struct("div_t")
+Div :: struct {
+    @c_size(4, .Darwin)
+    @c_size(4, .Linux)
+    @c_size(4, .Windows)
+    quot: i64
+    rem:  i32
+}
+
+@c_header("<stdlib.h>")
+@extern("abs") c_abs :: fn(x: i32) -> i32
+
+@extern fill_div :: fn(@c_pointer d: Div!, quot: i32, rem: i32) -> void
+
+main :: fn() -> i32 {
+    d :: Div { .quot = 0, .rem = 0 }
+    fill_div(d, -7, 3)
+    println("quot=${d.quot} abs=${c_abs(i32(d.quot))} rem=${d.rem}")
+    return 0
+}

@@ -233,14 +233,32 @@ format_bc_type :: fn(t: BcType) -> string = match t {
     is BcFn as f        -> "fn (${format_variants(f.params)}) -> ${f.return_type}"
 }
 
-/// `name:idx` joined by `,` for struct fields.
+/// `name:idx` joined by `,` for struct fields, each with its `@c_size` suffix.
 format_fields :: fn(fields: BcField[]) -> string {
     sb :: StringBuilder {}
     for i in 0..<fields.len() {
         if i > 0 { sb.append(",") }
-        sb.append("${fields[i].name}:${fields[i].type_index}")
+        sb.append("${fields[i].name}:${fields[i].type_index}${format_c_size(fields[i])}")
     }
     return "${sb}"
+}
+
+/// `@N` for a resolved `@c_size` width, `@?` for a field annotated on other
+/// systems only, and nothing for an ordinary field.
+///
+/// The interpreter lays a mirrored block out from these widths, so dropping them
+/// makes a module re-read from `.virt` take every width from the Vader primitive
+/// — losing exactly the narrowing (`mode_t` is 2 bytes against a `u32` mirror)
+/// the annotation exists to express. Emitted only when non-default, which is what
+/// keeps an ordinary struct's line byte-identical.
+format_c_size :: fn(f: BcField) -> string {
+    if f.c_size >= 0 {
+        return "@${f.c_size}"
+    }
+    if f.c_size_missing {
+        return "@?"
+    }
+    return ""
 }
 
 /// Type-indices joined by `,`. Used by union and fn param/return formats.

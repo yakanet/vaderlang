@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/c_size_narrowed
+  FnDecl         c_abs                :: fn(i32) -> i32
+  StructDecl     Div                  :: Div!
+  FnDecl         fill_div             :: fn(Div!, i32, i32) -> void
+  FnDecl         main                 :: fn() -> i32
+  expr 34:10    StructLitExpr  :: Div!
+  expr 35:14    IdentExpr      :: Div!
+  expr 35:17    UnaryExpr      :: i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(Div!, i32, i32) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:21    FieldExpr      :: i64
+  expr 36:21    IdentExpr      :: Div!
+  expr 36:35    CallExpr       :: i32
+  expr 36:35    IdentExpr      :: fn(i32) -> i32
+  expr 36:41    CallExpr       :: i32
+  expr 36:41    IdentExpr      :: type
+  expr 36:45    FieldExpr      :: i64
+  expr 36:45    IdentExpr      :: Div!
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 36:61    FieldExpr      :: i32
+  expr 36:61    IdentExpr      :: Div!

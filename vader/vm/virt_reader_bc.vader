@@ -423,13 +423,35 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
                 }
                 ptb :: pt.bytes()
                 fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
-                tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
+                // `name:idx`, `name:idx@N` (a resolved `@c_size` width) or
+                // `name:idx@?` (annotated on other systems only) — see
+                // `bytecode/dump.vader::format_c_size`.
+                after_colon :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
+                acb :: after_colon.bytes()
+                at :: after_colon.index_of('@', 0)
+                tidtext :: if at < 0 { after_colon } else { acb[0..<usize(at)].bytes_to_string() }
+                width :: if at < 0 { "" } else { acb[usize(at) + 1..<acb.len()].bytes_to_string() }
                 tid :: parse_int_in_base(tidtext, 10)
                 if tid is ParseError {
                     detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
                     return DirectiveError { .reason = "struct `${name}`: ${detail}" }
                 }
-                fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
+                c_size: i64 = -1
+                missing := false
+                if width == "?" {
+                    missing = true
+                } else if width != "" {
+                    parsed :: parse_int_in_base(width, 10)
+                    if parsed is ParseError {
+                        detail :: "field `${fname}` `@c_size` width \"${width}\" is not a number"
+                        return DirectiveError { .reason = "struct `${name}`: ${detail}" }
+                    }
+                    c_size = parsed
+                }
+                fields.push(bc.BcField {
+                    .name = fname, .type_index = i32(tid),
+                    .c_size = c_size, .c_size_missing = missing,
+                })
             }
         }
     }
@@ -1069,6 +1091,40 @@ value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_parse_struct_keeps_c_size_widths :: fn() -> void {
+    // The width is what places the NEXT field: dropping it would size `tv_sec`
+    // from the Vader primitive and move `tv_usec` past what C wrote.
+    r :: parse_struct_type_bc("TimeVal as \"struct timeval\" { tv_sec:0@8,tv_usec:0@4 }")
+    if r is DirectiveError as e {
+        assert(false, "well-formed struct should parse: ${e.reason}")
+        return
+    }
+    assert_eq(r.fields.len(), 2)
+    assert_eq(r.fields[0].c_size, 8)
+    assert_eq(r.fields[1].c_size, 4)
+}
+
+@test test_parse_struct_keeps_absent_and_unannotated_fields :: fn() -> void {
+    // `@0` is the field declared ABSENT on this system and `@?` the field
+    // annotated for other systems only — neither may read as the unannotated
+    // `-1`, which is checked against the C field exactly.
+    r :: parse_struct_type_bc("Mixed as \"struct m\" { gone:0@0, elsewhere:0@?, plain:0 }")
+    if r is DirectiveError as e {
+        assert(false, "well-formed struct should parse: ${e.reason}")
+        return
+    }
+    assert_eq(r.fields[0].c_size, 0)
+    assert_eq(r.fields[1].c_size, -1)
+    assert(r.fields[1].c_size_missing, "`@?` marks the target as undescribed")
+    assert_eq(r.fields[2].c_size, -1)
+    assert(!r.fields[2].c_size_missing, "a bare field describes every target")
+}
+
+@test test_parse_struct_rejects_non_numeric_c_size :: fn() -> void {
+    r :: parse_struct_type_bc("Bad as \"struct b\" { f:0@wide }")
+    assert(r is DirectiveError, "a non-numeric width must not read as unannotated")
+}
 
 @test test_parse_virt_bc_roundtrips_struct_and_signature :: fn() -> void {
     // A minimal module exercising the metadata the VM reader drops: a struct
