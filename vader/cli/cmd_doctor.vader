@@ -82,7 +82,7 @@ cmd_doctor :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("doctor", parsed) {
         return 1
     }
-    checks :: collect_checks(parsed.string_flag("cc", "cc"))
+    checks :: collect_checks(parsed.string_flag("cc", default_cc()))
     if parsed.bool_flag("json") {
         println(render_json(checks))
     } else {
@@ -159,10 +159,9 @@ check_compiler :: fn() -> Check {
 check_cc :: fn(cc: string) -> Check {
     resolved :: resolve_program(cc)
     if resolved == null {
-        // Naming one that IS there turns a dead end into a next step. This is not
-        // hypothetical on Windows: `vader build` passes `cc` on every platform,
-        // and Windows has no `cc` — `bootstrap/build.ps1` defaults to `gcc` for
-        // exactly that reason.
+        // Naming one that IS there turns a dead end into a next step — a user who
+        // passed `--cc` at all is the one who needs it most, since the host
+        // default (`driver::default_cc`) is what they overrode.
         fallback :: first_available(CC_CANDIDATES)
         if fallback == "" {
             tried :: CC_CANDIDATES.join(", ")
@@ -191,11 +190,10 @@ check_cc :: fn(cc: string) -> Check {
 /// C compilers to name when the requested one is missing, most conventional
 /// first.
 ///
-/// `cc` is the POSIX-guaranteed name and what `vader build` defaults to; `gcc` is
-/// what the Windows bootstrap defaults to (`bootstrap/build.ps1`), where no `cc`
-/// exists at all. MSVC's `cl` is deliberately absent — `build.ps1` states it is
-/// not supported, so naming it would send someone down a path the toolchain does
-/// not take.
+/// Both names a build could reasonably want, whichever host it runs on, since a
+/// user reaching this list has already overridden the host default. MSVC's `cl` is
+/// deliberately absent — `build.ps1` states it is not supported, so naming it
+/// would send someone down a path the toolchain does not take.
 CC_CANDIDATES: string[]: ["cc", "gcc", "clang"]
 
 // The first of `names` that resolves on PATH, or "" when none does.

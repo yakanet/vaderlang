@@ -33,6 +33,7 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "std/string_builder"
+import "std/target"
 import "std/async"
 import "std/process"
 import "vader/diagnostics"
@@ -123,6 +124,12 @@ export find_build_driver :: fn(root: string) -> string | null {
 ///
 /// @param root  invocation directory, used as the checkout fallback.
 /// @return      a directory under which `vader/pipeline/` is expected to resolve.
+/// The C compiler `--cc` defaults to on this host.
+///
+/// Keyed on the HOST, not on `--target`: this names a program to spawn HERE, and
+/// a cross build has to name its own (`--cc=x86_64-w64-mingw32-gcc`).
+export default_cc :: fn() -> string = if current_os() == Os.Windows { "gcc" } else { "cc" }
+
 /// The compiler's own sources under `$VADER_HOME`, or `""` when it does not
 /// supply them (unset, or holding neither layout).
 ///

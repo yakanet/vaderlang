@@ -52,7 +52,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     use_manifest :: parsed.bool_flag("manifest")
     out_flag     :: parsed.string_flag("out", "")
     release      :: parsed.bool_flag("release")
-    cc           :: parsed.string_flag("cc", "cc")
+    cc           :: parsed.string_flag("cc", default_cc())
     ldflags      :: parsed.string_flag("ldflags", "")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
