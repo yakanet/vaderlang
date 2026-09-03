@@ -2521,7 +2521,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
-| `@c_size(N, .System)` | a field of a `@c_struct` | The width the C field has on that system; `0` when it does not exist there. Repeatable, one per system. A field with none is checked against the C field exactly; a field that names other systems but not the one being built is `T3080`. See §13 |
+| `@c_size(N, .System)` | a field of a `@c_struct` | The width the C field has on that system; `0` when it does not exist there. `N` is one of `0`, `1`, `2`, `4`, `8` (`P1034`), and the Vader field must match the C field's signedness. Repeatable, one per system. A field with none is checked against the C field exactly; a field that names other systems but not the one being built is `T3080`. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit — see §12 |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2665,9 +2665,21 @@ Stat :: struct {
 and that `N` fits the Vader field. So a header that changes a width fails the
 build instead of passing unnoticed.
 
+**`N` must be `0`, `1`, `2`, `4` or `8`** (`P1034` otherwise) — the width of a C
+scalar, which is all a mirror field may be. The interpreter lays a mirrored block
+out from these widths and uses each as the field's ALIGNMENT, so a width of 3
+would describe no ABI at all.
+
 **`@c_size(0, .System)`** says the field does not exist there. It is then skipped
 entirely — no assertion, no copy — while staying readable from Vader, where it
 holds its default.
+
+**The Vader field must carry the same SIGNEDNESS as the C one.** Only the width
+may differ. The shim copies with C's own conversion, which uses the C field's
+signedness, while the interpreter reads the block back using the Vader field's —
+so a `u64` mirror over an `int32_t` would read `-1` as `4294967295` under the
+interpreter and as `-1` natively. `cc` checks this alongside the widths, so the
+two can never disagree.
 
 **A field with no `@c_size` is checked exactly**, which is the safe default: a
 bare field may simply mean the annotation for this system was forgotten.

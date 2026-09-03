@@ -153,6 +153,9 @@ export ParserCode :: enum(u8) {
     ExpressionNestingTooDeep,               // P1029
     RepeatedMutabilityMarker,               // P1030
     MutabilityMarkerOnName,                 // P1031
+    DecoratorArgumentCount,                 // P1032
+    DecoratorArgumentForm,                  // P1033
+    DecoratorArgumentValue,                 // P1034
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -331,6 +334,9 @@ export parser_info :: fn(c: ParserCode) = match c {
     .MissingFunctionBody                -> CodeInfo { .id = "P1012", .message = "missing function body" }
     .ExecutableStatementAtTopLevel      -> CodeInfo { .id = "P1013", .message = "executable statement at top level (only declarations allowed)" }
     .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
+    .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
+    .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
+    .DecoratorArgumentValue             -> CodeInfo { .id = "P1034", .message = "decorator argument is out of range" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
