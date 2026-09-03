@@ -112,17 +112,13 @@ export print :: fn<T: Display>(msg: T) = write(.Stdout, msg.to_string())
 
 /// Write `msg` to stdout followed by a `\n`. See `print` for the
 /// Display routing rule.
-export println :: fn<T: Display>(msg: T) -> void {
-    write(.Stdout, "${msg}\n")
-}
+export println :: fn<T: Display>(msg: T) -> void = write(.Stdout, "${msg}\n")
 
 /// Write `msg` to stderr without a trailing newline.
 export eprint :: fn<T: Display>(msg: T) = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
-export eprintln :: fn<T: Display>(msg: T) -> void {
-    write(.Stderr, "${msg}\n")
-}
+export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")
 
 /// Read one line from stdin, blocking until a newline arrives. The
 /// returned string does NOT include the trailing `\n`.

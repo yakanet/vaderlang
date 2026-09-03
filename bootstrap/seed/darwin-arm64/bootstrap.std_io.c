@@ -4,7 +4,6 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0);
 static vader_string_t std_io_to_slash(vader_string_t l0);
 static vader_string_t std_io_up_to_nul(void* l0);
 static vader_string_t std_io_without_trailing_sep(vader_string_t l0);
-static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
 static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1);
 
@@ -72,16 +71,6 @@ vader_string_t std_io_current_working_directory(void) {
     t3 = std_io_to_slash(t2);
     t2 = std_io_without_trailing_sep(t3);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-void std_io_eprintln__string(vader_string_t l0) {
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-    std_io_write(INT32_C(1), l0);
-    std_io_write(INT32_C(1), 1u);
-    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -369,7 +358,7 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_write(int32_t l0, vader_string_t l1) {
+void std_io_write(int32_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     size_t l3, l4, l5, l7, l9;
