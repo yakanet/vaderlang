@@ -12,10 +12,10 @@ std_io$current_working_directory <- lib/std/io/io.vader:660
 std_io$exists <- lib/std/io/io.vader:562
 std_io$is_dir <- lib/std/io/io.vader:580
 std_io$mkdir_one <- lib/std/io/io.vader:454
-std_io$poll_stdin <- lib/std/io/io.vader:247
-std_io$read_file_bytes <- lib/std/io/io.vader:303
-std_io$read_stdin <- lib/std/io/io.vader:173
+std_io$poll_stdin <- lib/std/io/io.vader:248
+std_io$read_file_bytes <- lib/std/io/io.vader:304
+std_io$read_stdin <- lib/std/io/io.vader:174
 std_io$remove_file <- lib/std/io/io.vader:519
 std_io$temp_dir <- lib/std/io/io.vader:702
 std_io$write_bytes <- lib/std/io/io.vader:57
-std_io$write_file_bytes <- lib/std/io/io.vader:383
+std_io$write_file_bytes <- lib/std/io/io.vader:384

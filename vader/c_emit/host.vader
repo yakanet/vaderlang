@@ -80,8 +80,13 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
 /// Which way a mirrored struct's fields are copied, across a module's imports.
 MirrorDirection :: enum(u8) {
-    /// `@c_pointer st: T!` — the callee fills the C struct and the shim copies
-    /// OUT of it, so a wider Vader field only ever receives an extension.
+    /// `@c_pointer st: T!` — IN-OUT. The shim fills the C struct on the way in
+    /// and copies back on the way out, because `!` grants mutation without
+    /// saying the value is meaningless on entry (`poll` reads `events` and
+    /// writes `revents`). The `<=` names the leg that decides the operator: what
+    /// the callee wrote lands in a Vader field at least as wide, so it cannot be
+    /// truncated. The inward leg is the reverse and is exact by construction —
+    /// the same field, read then written.
     CWrites,
     /// `@c_pointer req: T` — the shim copies INTO the C struct before the call,
     /// so a wider Vader field would be truncated on the way.

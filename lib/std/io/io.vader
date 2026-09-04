@@ -64,9 +64,10 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
 @target(.Windows)
 write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
     which :: if out == .Stdout { STD_OUTPUT_HANDLE } else { STD_ERROR_HANDLE }
-    // Scratch for the callee's byte count; see `write_file` for why it is not
-    // read back.
-    written: u32 = 0
+    // A synchronous `WriteFile` writes everything or fails, so the count it
+    // reports adds nothing — but it READS BACK now, so a future caller that
+    // cares has it. Short writes belong to the overlapped path, unused here.
+    written: u32[]! = [0]
     if write_file(get_std_handle(which), buf, u32(count), written, null) {
         return i32(count)
     }
@@ -429,10 +430,9 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
         return IOError { .msg = "open failed" }
     }
     if content.len() > 0 {
-        // A synchronous `WriteFile` writes everything or fails, so the count it
-        // reports has nothing left to say -- short writes belong to the
-        // overlapped path, which this does not use.
-        if !write_file(h, content, u32(content.len()), 0, null) {
+        // See `write_bytes` on why the count is taken and ignored.
+        written: u32[]! = [0]
+        if !write_file(h, content, u32(content.len()), written, null) {
             close_handle(h)
             return IOError { .msg = "short write" }
         }

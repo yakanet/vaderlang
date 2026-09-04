@@ -97,14 +97,18 @@ export POLLIN: i16: 1
 @extern("poll")
 export sys_poll_one :: fn(@c_pointer fds: Pollfd!, nfds: u64, timeout_ms: i32) -> i32
 
-/// Bytes a `struct termios` occupies. MEASURED: 72 on Darwin, 60 on Linux —
-/// x86_64 and arm64 alike, the type being built from fixed-width members.
+/// Bytes to reserve for a `struct termios`. The LARGER of the measured sizes,
+/// deliberately, and not a per-system value.
 ///
-/// A SIZE, not an offset, which is why one value per system is enough here where
-/// a `struct stat` mirror needed one per architecture too. The risk is
-/// asymmetric — over-sizing wastes bytes, under-sizing corrupts — so the buffer
-/// this measures is deliberately the larger of the two everywhere.
-export TERMIOS_BYTES: usize: if VADER_OS == Os.Darwin { 72 } else { 72 }
+/// MEASURED: 72 on Darwin, 60 on Linux — x86_64 and arm64 alike, the type being
+/// built from fixed-width members. A SIZE, not an offset, which is why no
+/// architecture axis is needed where a `struct stat` mirror would have wanted one.
+///
+/// ⚠️ Do NOT narrow this to the per-system figure. The risk is asymmetric —
+/// over-reserving wastes 12 bytes on Linux, under-reserving is an out-of-bounds
+/// write by `tcgetattr`, which nothing here checks. One constant, taken high, is
+/// the shape that cannot be got wrong.
+export TERMIOS_BYTES: usize: 72
 
 /// `TCSAFLUSH` — apply after draining output, DISCARDING pending input. That
 /// last part is why raw mode uses it: keystrokes meant for the shell must not

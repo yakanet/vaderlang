@@ -520,7 +520,7 @@ emit_slot_decls :: fn(
         // a `vader_box_t` — init `vader_box_null()`, `&name` chains into the box
         // root list. Both give the GC a valid root before the first write.
         // No-frame fns (and primitives) get a bare decl (write-before-read).
-        is_raw_ref :: val == ValType.Ref
+        is_raw_ref :: val == ValType.Ref || val == ValType.Pointer
         rooted :: is_ref_val(val) && !no_frame
         // A `string` slot holds an ATOM ID, not a pointer, so it belongs to
         // neither root list above — `ptrs` and `raw` are pointer arrays. It gets

@@ -1,6 +1,6 @@
 # Diagnostics
-[lib/std/io/io.vader:300:8] error[R2041] no `@target` body covers the target being built: `read_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:380:8] error[R2041] no `@target` body covers the target being built: `write_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:301:8] error[R2041] no `@target` body covers the target being built: `read_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:381:8] error[R2041] no `@target` body covers the target being built: `write_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:451:1] error[R2041] no `@target` body covers the target being built: `mkdir_one` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:516:8] error[R2041] no `@target` body covers the target being built: `remove_file` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:559:8] error[R2041] no `@target` body covers the target being built: `exists` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
@@ -20,9 +20,9 @@ std_io$current_working_directory <- (no body)
 std_io$exists <- (no body)
 std_io$is_dir <- (no body)
 std_io$mkdir_one <- (no body)
-std_io$poll_stdin <- lib/std/io/io.vader:240
+std_io$poll_stdin <- lib/std/io/io.vader:241
 std_io$read_file_bytes <- (no body)
-std_io$read_stdin <- lib/std/io/io.vader:168
+std_io$read_stdin <- lib/std/io/io.vader:169
 std_io$remove_file <- (no body)
 std_io$temp_dir <- (no body)
 std_io$write_bytes <- lib/std/io/io.vader:52

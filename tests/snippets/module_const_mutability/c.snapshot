@@ -434,7 +434,7 @@ static int32_t snippet_main(void) {
     l4 = INT32_C(0) == INT32_C(0);
     l1 = std_core_write_bool(l2, l1, l4);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 65 "tests/snippets/module_const_mutability/_main.vader"
@@ -486,7 +486,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_string_at(l2, l1, 2u);
     l1 = std_core_write_string_at(l2, l1, l6);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 95 "tests/snippets/module_const_mutability/_main.vader"
@@ -511,7 +511,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, l0);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 98 "tests/snippets/module_const_mutability/_main.vader"
@@ -554,7 +554,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 105 "tests/snippets/module_const_mutability/_main.vader"
@@ -657,7 +657,7 @@ static int32_t snippet_main(void) {
     l4 = (t4 > INT32_C(0));
     l1 = std_core_write_bool(l2, l1, l4);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 83 "tests/snippets/module_const_mutability/_main.vader"
@@ -699,7 +699,7 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 125 "tests/snippets/module_const_mutability/_main.vader"
@@ -766,7 +766,7 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 86 "tests/snippets/module_const_mutability/_main.vader"
@@ -879,7 +879,7 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 158 "tests/snippets/module_const_mutability/_main.vader"
@@ -912,7 +912,7 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) l9);
     l1 = std_core_write_int(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
-#line 115 "lib/std/io/io.vader"
+#line 116 "lib/std/io/io.vader"
     l0 = concat_2(t0, 3u);
     std_io_write(INT32_C(0), l0);
 #line 163 "tests/snippets/module_const_mutability/_main.vader"
@@ -3176,43 +3176,43 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 85 "lib/std/io/io.vader"
-    l2 = vader_host_std_core_bytes(l1);
 #line 86 "lib/std/io/io.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l2 = vader_host_std_core_bytes(l1);
 #line 87 "lib/std/io/io.vader"
+    l3 = (size_t) (int64_t) INT64_C(0);
+#line 88 "lib/std/io/io.vader"
     {
         loop_6: {
-#line 88 "lib/std/io/io.vader"
+#line 89 "lib/std/io/io.vader"
             l4 = ((vader_array_t*) l2)->length;
             if ((l3 >= l4)) {
             } else {
-#line 91 "lib/std/io/io.vader"
+#line 92 "lib/std/io/io.vader"
                 l5 = ((vader_array_t*) l2)->length;
                 vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
                 l6 = (void*) _a0_arr;
-#line 92 "lib/std/io/io.vader"
+#line 93 "lib/std/io/io.vader"
                 l7 = ((vader_array_t*) l6)->length;
                 l8 = std_io_write_bytes(l0, l6, l7);
-#line 93 "lib/std/io/io.vader"
-                if ((l8 <= INT32_C(0))) {
 #line 94 "lib/std/io/io.vader"
+                if ((l8 <= INT32_C(0))) {
+#line 95 "lib/std/io/io.vader"
                     { vader_gc_top = gc_frame.prev; return; }
-#line 93 "lib/std/io/io.vader"
+#line 94 "lib/std/io/io.vader"
                 }
-#line 96 "lib/std/io/io.vader"
+#line 97 "lib/std/io/io.vader"
                 t0 = ((int64_t) (int32_t) l8);
                 l9 = (size_t) (int64_t) t0;
                 t0 = (l3 + l9);
                 l3 = (size_t) (int64_t) t0;
-#line 87 "lib/std/io/io.vader"
-                goto loop_6;
 #line 88 "lib/std/io/io.vader"
+                goto loop_6;
+#line 89 "lib/std/io/io.vader"
             }
-#line 87 "lib/std/io/io.vader"
+#line 88 "lib/std/io/io.vader"
         }
     }
-#line 89 "lib/std/io/io.vader"
+#line 90 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }

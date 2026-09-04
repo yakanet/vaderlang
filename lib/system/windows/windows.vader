@@ -91,15 +91,11 @@ export delete_file :: fn(path: u16[]) -> i32
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
 /// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
-/// NOT pass as null. It is a `@c_pointer` scalar and not a one-element array,
-/// for a reason that only holds because of `@c_header`: the prototype comes
-/// from `<windows.h>`, so nothing here has to spell `DWORD*` and the missing
-/// `const` cannot mislead. An array would be the tidier cell — it reads back —
-/// but the VM lends at most ONE per call, and `buf` has already taken it.
+/// NOT pass as null.
 ///
-/// The count is therefore not read back. A synchronous `WriteFile` to a console
-/// or a file writes everything or fails; short writes belong to the overlapped
-/// path, which this does not use.
+/// `written` is a one-element array so the count READS BACK, the same shape
+/// `read_file` uses. A `@c_pointer` scalar would not: the callee writes through
+/// it and the value is discarded.
 ///
 /// @param h           the device handle.
 /// @param buf         the bytes to write.
@@ -110,7 +106,7 @@ export delete_file :: fn(path: u16[]) -> i32
 @c_header("<windows.h>")
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
-                        @c_pointer written: u32, overlapped: CPointer | null) -> bool
+                        written: u32[]!, overlapped: CPointer | null) -> bool
 
 
 // ---- UTF-8 <-> UTF-16 -----------------------------------------------------
