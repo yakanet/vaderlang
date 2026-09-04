@@ -348,6 +348,7 @@ const char vader_atom_blob[] =
     ") }).__vd)" "\0"
     ") }).__vf)" "\0"
     ") \xe2\x80\x94 a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated" "\0"
+    ") \xe2\x80\x94 callback target was never materialised" "\0"
     ") \xe2\x80\x94 fn-as-value materialisation gap (GATE B1)" "\0"
     ") \xe2\x80\x94 make-closure materialisation gap (GATE B1)" "\0"
     ")) -1) < 0)" "\0"
@@ -815,6 +816,7 @@ const char vader_atom_blob[] =
     "T3077" "\0"
     "T3078" "\0"
     "T3079" "\0"
+    "T3080" "\0"
     "T:" "\0"
     "T<" "\0"
     "Trait#" "\0"
@@ -969,6 +971,7 @@ const char vader_atom_blob[] =
     "` is `@internal` to module `" "\0"
     "` is a " "\0"
     "` is a body ; the bare `@target` declaration carries `export`" "\0"
+    "` is a callback that names no function \xe2\x80\x94 typecheck should have refused it (T3080)" "\0"
     "` is already a type parameter" "\0"
     "` is already declared at " "\0"
     "` is already defined with the same signature in this module" "\0"
@@ -999,6 +1002,7 @@ const char vader_atom_blob[] =
     "` must precede a `match` expression" "\0"
     "` mutates a parameter that `" "\0"
     "` mutates its receiver (declared `self!`), but this receiver is immutable" "\0"
+    "` names `" "\0"
     "` names no operating system" "\0"
     "` not defined for " "\0"
     "` not found" "\0"
@@ -1051,6 +1055,7 @@ const char vader_atom_blob[] =
     "`)` to close parenthesised type" "\0"
     "`)` to close type parameter list" "\0"
     "`, closing an import cycle" "\0"
+    "`, which is not a function \xe2\x80\x94 typecheck should have refused it (T3080)" "\0"
     "`, which is not exported from its module ; export `" "\0"
     "`->` between lambda params and body" "\0"
     "`->` between pattern and arm body" "\0"
@@ -1173,6 +1178,7 @@ const char vader_atom_blob[] =
     "and_res" "\0"
     "any" "\0"
     "arg" "\0"
+    "argument " "\0"
     "argument for `" "\0"
     "arm64" "\0"
     "arr" "\0"
@@ -1317,6 +1323,7 @@ const char vader_atom_blob[] =
     "call.indirect receiver" "\0"
     "call.indirect type " "\0"
     "call_ind" "\0"
+    "callback argument must name a function directly" "\0"
     "callee has type " "\0"
     "cancel" "\0"
     "cannot assign a value of type " "\0"
@@ -1573,6 +1580,7 @@ const char vader_atom_blob[] =
     "fn(" "\0"
     "fn.addr at pc=" "\0"
     "fn.ref" "\0"
+    "fn_addr" "\0"
     "fn_ref" "\0"
     "fnobj" "\0"
     "for" "\0"
@@ -1827,11 +1835,13 @@ const char vader_atom_blob[] =
     "memory_copy src" "\0"
     "memory_copy src_off" "\0"
     "method call lacks a resolvable `self` receiver" "\0"
+    "midir/build: argument " "\0"
     "midir/emit: no field `" "\0"
     "midir/emit: unhandled Instruction reached emit_instr \xe2\x80\x94 a variant has no emitter" "\0"
     "midir/emit: unhandled intrinsic `" "\0"
     "midir/emit: unresolved callee '" "\0"
     "midir/emit: unresolved closure fn '" "\0"
+    "midir/emit: unresolved fn-addr '" "\0"
     "midir/emit: unresolved fn-ref '" "\0"
     "midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt \xe2\x80\x94 lower_coroutine should have consumed it" "\0"
     "midir: lowered_to_bc_value reached a non-primitive leaf \xe2\x80\x94 is_bakeable/converter drift" "\0"
@@ -2772,350 +2782,343 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7670] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7681] },
     { 0u, 0u, 90u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7692] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7783] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7831] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7880] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7892] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7896] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7900] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7905] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7909] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7915] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7929] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7932] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7936] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7939] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7941] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7944] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7952] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7956] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7961] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7969] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7979] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7984] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8010] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8013] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8015] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8018] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8024] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8026] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8029] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8033] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8060] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8106] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8118] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8138] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8142] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8149] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8160] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8164] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8169] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8178] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8185] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8193] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8210] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8226] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8265] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8267] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8270] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8275] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8278] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8281] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8299] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8332] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8340] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8350] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8358] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8366] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8400] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8415] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8448] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8457] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8463] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8472] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8480] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8485] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8540] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8550] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8562] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8583] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8596] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8601] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8603] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8607] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8611] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8615] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8619] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8622] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8625] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8628] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8639] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8650] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8662] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8674] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8686] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8699] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8713] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8724] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8729] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8740] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8749] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8754] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8812] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8819] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8821] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8884] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8942] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9002] },
-    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9066] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9146] },
-    { 0u, 0u, 76u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9214] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9291] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9352] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9413] },
-    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9467] },
-    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9546] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9622] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9625] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9640] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9642] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9645] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9649] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9666] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9673] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9675] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9705] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9707] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9709] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9712] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9715] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9717] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9719] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9721] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9723] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9725] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9727] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9729] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9732] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9736] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9755] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9769] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9790] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9822] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9834] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9853] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9868] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9883] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9892] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9915] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9937] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9958] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9978] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9999] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10020] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10051] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10084] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10108] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10132] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10156] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10180] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10199] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10253] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10257] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10260] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10269] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10272] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10274] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10277] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10288] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10337] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10339] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10342] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10345] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10370] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10407] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10417] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10426] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10435] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10444] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10449] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10464] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10470] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10482] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10489] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10499] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10510] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10512] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10515] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10518] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10520] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10523] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10526] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7783] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7828] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7876] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7925] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7937] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7941] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7945] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7950] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7954] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7960] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7974] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7977] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7981] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7984] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7986] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7989] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7997] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8001] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8006] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8014] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8024] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8029] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8055] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8058] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8060] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8063] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8069] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8071] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8074] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8078] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8105] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8151] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8163] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8183] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8187] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8194] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8205] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8209] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8214] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8223] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8230] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8238] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8255] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8271] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8310] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8312] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8315] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8320] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8323] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8326] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8344] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8377] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8385] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8395] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8403] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8411] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8445] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8460] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8493] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8502] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8508] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8517] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8525] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8530] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8585] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8595] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8607] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8628] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8641] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8646] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8648] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8652] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8656] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8660] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8664] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8667] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8670] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8673] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8684] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8695] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8707] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8719] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8731] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8744] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8758] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8769] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8774] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8785] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8794] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8799] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8857] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8864] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8866] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8929] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8987] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9047] },
+    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9111] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9191] },
+    { 0u, 0u, 76u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9259] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9336] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9397] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9458] },
+    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9512] },
+    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9591] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9667] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9670] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9685] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9687] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9690] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9694] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9711] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9718] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9720] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9750] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9752] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9754] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9757] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9760] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9762] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9764] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9766] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9768] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9770] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9772] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9774] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9777] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9781] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9800] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9814] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9835] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9867] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9879] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9898] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9913] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9928] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9937] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9960] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9982] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10003] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10023] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10044] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10065] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10096] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10129] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10153] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10177] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10201] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10225] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10244] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10298] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10302] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10305] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10314] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10317] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10319] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10322] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10333] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10382] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10384] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10387] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10390] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10415] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10452] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10462] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10471] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10480] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10489] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10494] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10509] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10515] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10527] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10534] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10544] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10555] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10557] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10560] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10563] },
     { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10565] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10568] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10570] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10600] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10632] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10669] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10700] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10737] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10784] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10813] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10887] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10889] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10892] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10896] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10900] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10906] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10913] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10927] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10941] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10947] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10957] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10968] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10980] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10992] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11007] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11017] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11029] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11037] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11043] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11049] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11055] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11061] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11067] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11073] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11079] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11085] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11091] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11097] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11103] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11109] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11115] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11121] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11127] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11133] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11142] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11151] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11177] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11225] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11253] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11283] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11312] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11344] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11372] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11404] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11413] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11425] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11436] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11445] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11452] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11460] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11464] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11479] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11482] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11516] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11523] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11529] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11534] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11538] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11541] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11544] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11547] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11550] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11554] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11558] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11562] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11568] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11578] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11591] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11595] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11606] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11622] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11635] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11654] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11659] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11668] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11678] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11687] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11697] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11707] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11719] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11742] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11749] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11755] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11765] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11774] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11785] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11790] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11808] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11817] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11823] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11829] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11835] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11841] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11847] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11853] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11859] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11865] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11871] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11877] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11883] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11894] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11900] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11902] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11908] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11914] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11920] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11926] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11932] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11938] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11944] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11950] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11953] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11963] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11967] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11978] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11989] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12005] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12009] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12018] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12023] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12040] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12052] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12056] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12058] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12064] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12070] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12076] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12082] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12088] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12094] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12100] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12106] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12112] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12118] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12124] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12130] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12136] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12142] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12148] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12154] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12160] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12166] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12172] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12178] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12184] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12190] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12196] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12202] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12208] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12214] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12220] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12226] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12232] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12238] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10568] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10571] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10608] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10610] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10613] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10615] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10645] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10677] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10714] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10745] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10782] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10829] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10858] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10932] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10934] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10937] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10941] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10945] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10951] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10958] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10972] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10986] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10992] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11002] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11013] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11025] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11037] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11052] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11062] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11074] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11082] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11088] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11094] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11100] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11106] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11112] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11118] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11124] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11130] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11136] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11142] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11148] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11154] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11160] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11166] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11172] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11178] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11187] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11196] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11222] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11270] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11298] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11328] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11357] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11389] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11417] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11449] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11458] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11470] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11481] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11490] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11497] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11505] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11509] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11524] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11527] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11561] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11568] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11574] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11579] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11583] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11586] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11589] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11592] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11595] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11599] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11603] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11607] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11613] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11623] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11636] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11640] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11651] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11667] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11680] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11699] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11704] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11713] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11723] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11732] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11742] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11752] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11764] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11787] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11794] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11800] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11810] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11819] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11830] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11835] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11853] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11862] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11868] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11874] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11880] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11886] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11892] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11898] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11904] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11910] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11916] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11922] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11928] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11939] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11945] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11947] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11953] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11959] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11965] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11971] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11977] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11983] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11989] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11995] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11998] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12008] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12012] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12023] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12034] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12050] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12054] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12063] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12068] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12085] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12097] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12101] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12103] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12109] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12115] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12121] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12127] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12133] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12139] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12145] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12151] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12157] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12163] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12169] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12175] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12181] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12187] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12193] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12199] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12205] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12211] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12217] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12223] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12229] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12235] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12241] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12247] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12253] },
@@ -3123,1733 +3126,1750 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12265] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12271] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12277] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12283] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12289] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12295] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12301] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12307] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12313] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12319] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12325] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12331] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12337] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12343] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12349] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12355] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12361] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12367] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12373] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12379] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12385] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12391] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12397] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12403] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12409] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12415] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12421] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12427] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12433] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12439] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12445] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12451] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12457] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12463] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12469] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12475] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12481] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12487] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12493] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12503] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12507] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12509] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12512] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12517] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12528] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12532] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12546] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12554] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12568] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12572] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12582] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12588] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12594] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12600] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12606] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12612] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12618] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12624] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12630] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12636] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12642] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12648] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12654] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12660] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12666] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12672] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12678] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12684] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12690] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12696] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12702] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12708] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12714] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12720] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12726] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12732] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12738] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12744] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12750] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12756] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12762] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12768] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12774] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12780] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12786] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12792] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12798] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12804] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12810] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12816] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12822] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12828] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12834] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12840] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12846] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12852] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12858] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12864] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12870] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12876] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12882] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12888] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12894] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12900] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12906] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12912] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12918] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12924] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12930] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12936] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12942] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12948] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12954] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12960] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12966] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12972] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12978] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12984] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12990] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12996] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12999] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13002] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13009] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13013] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13020] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13024] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13027] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13037] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13044] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13048] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13059] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13080] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13102] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13108] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13114] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13120] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13126] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13132] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13138] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13144] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13150] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13156] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13162] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13167] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13174] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13182] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13192] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13199] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13202] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13205] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13211] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13213] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13216] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13221] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13223] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13226] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13231] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13237] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13244] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13251] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13315] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13373] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13411] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13419] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13425] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13428] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13434] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13451] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13453] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13455] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13458] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13461] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13470] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13479] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13487] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13493] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13502] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13511] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13522] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13532] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13547] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13563] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13586] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13611] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13625] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13628] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13634] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13642] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13651] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13658] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13667] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13681] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13697] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13715] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13727] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13736] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13745] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13758] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13767] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13774] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13787] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13799] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13809] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13823] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13826] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13831] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13836] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13846] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13855] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13858] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13861] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13867] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13873] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13904] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13917] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13962] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14004] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14010] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14023] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14029] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14035] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14048] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14051] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14056] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14061] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14064] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14068] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14075] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14078] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14080] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14083] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14093] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14125] },
-    { 0u, 0u, 225u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14160] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14386] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14418] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14444] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14496] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14530] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14558] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14581] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14623] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14648] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14655] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14661] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14670] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14691] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14747] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14801] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14861] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14884] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14943] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14965] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14988] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14998] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15033] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15043] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15050] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15059] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15066] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15117] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15137] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15160] },
-    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15205] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15271] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15340] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15352] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15359] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15367] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15388] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15395] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15424] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15432] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15494] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15524] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15550] },
-    { 0u, 0u, 164u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15610] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15775] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15791] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15846] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15864] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15908] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15932] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15948] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16010] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16053] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16071] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16087] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16110] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16150] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16207] },
-    { 0u, 0u, 211u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16262] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16474] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16513] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16557] },
-    { 0u, 0u, 84u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16616] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16701] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16712] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16718] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16746] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16767] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16803] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16832] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16906] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16934] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16953] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16965] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16972] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16978] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16985] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17007] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17019] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17059] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17069] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17089] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17098] },
-    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17128] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17212] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17235] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17273] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17291] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17319] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17341] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17369] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17438] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17496] },
-    { 0u, 0u, 137u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17532] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17670] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17708] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17721] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17777] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17826] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17882] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17941] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17955] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17994] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18042] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18060] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18102] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18115] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18147] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18171] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18203] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18206] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18214] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18249] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18279] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18307] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18342] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18358] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18385] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18413] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18451] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18483] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18516] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18543] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18595] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18631] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18665] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18699] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18720] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18723] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18760] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18764] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18812] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18857] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18878] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18916] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18952] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18985] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19020] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19049] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19072] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19092] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19156] },
-    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19159] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19242] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19311] },
-    { 0u, 0u, 76u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19373] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19450] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19469] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19506] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19541] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19595] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19640] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19700] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19755] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19824] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19867] },
-    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19882] },
-    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19974] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20063] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20095] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20152] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20190] },
-    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20248] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20320] },
-    { 0u, 0u, 84u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20354] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20439] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20467] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20500] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20519] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20544] },
-    { 0u, 0u, 112u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20571] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20684] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20729] },
-    { 0u, 0u, 85u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20803] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20889] },
-    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20937] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21021] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21059] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21107] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21153] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21174] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21208] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21236] },
-    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21275] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21341] },
-    { 0u, 0u, 181u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21391] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21573] },
-    { 0u, 0u, 86u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21628] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21715] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21733] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21755] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21778] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21802] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21829] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21852] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21871] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21894] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21917] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21942] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21961] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21986] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22014] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22042] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22066] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22083] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22085] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22111] },
-    { 0u, 0u, 86u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22170] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22257] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22305] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22364] },
-    { 0u, 0u, 107u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22415] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22523] },
-    { 0u, 0u, 101u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22572] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22674] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22734] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22781] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22790] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22798] },
-    { 0u, 0u, 95u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22846] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22942] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22946] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22950] },
-    { 0u, 0u, 77u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22954] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23032] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23036] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23042] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23059] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23068] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23101] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23105] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23118] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23122] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23152] },
-    { 0u, 0u, 150u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23156] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23307] },
-    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23329] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23408] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23416] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23431] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23435] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23443] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23451] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23455] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23459] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23474] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23480] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23484] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23498] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23504] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23541] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23553] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23587] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23608] },
-    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23619] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23703] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23718] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23739] },
-    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23754] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23827] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23872] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23887] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23908] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23924] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23941] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23987] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24006] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24038] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24057] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24075] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24091] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24138] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24158] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24173] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24220] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24244] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24266] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24284] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24324] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24351] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24364] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24383] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24432] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24454] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24470] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24487] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24541] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24560] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24575] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24590] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24640] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24661] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24667] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24670] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24677] },
-    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24684] },
-    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24754] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24834] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24878] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24923] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24971] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24974] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24979] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24985] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25018] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25026] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25031] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25070] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25078] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25102] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25138] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25145] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25151] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25163] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25209] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25221] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25267] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25274] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25280] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25285] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25294] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25302] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25310] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25319] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25350] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25358] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25384] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25396] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25404] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25433] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25444] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25476] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25504] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25510] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12283] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12286] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12292] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12298] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12304] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12310] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12316] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12322] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12328] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12334] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12340] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12346] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12352] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12358] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12364] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12370] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12376] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12382] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12388] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12394] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12400] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12406] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12412] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12418] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12424] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12430] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12436] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12442] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12448] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12454] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12460] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12466] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12472] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12478] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12484] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12490] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12496] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12502] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12508] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12514] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12520] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12526] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12532] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12538] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12548] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12552] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12554] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12557] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12562] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12573] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12577] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12591] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12599] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12613] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12617] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12627] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12633] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12639] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12645] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12651] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12657] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12663] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12669] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12675] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12681] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12687] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12693] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12699] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12705] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12711] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12717] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12723] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12729] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12735] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12741] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12747] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12753] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12759] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12765] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12771] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12777] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12783] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12789] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12795] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12801] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12807] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12813] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12819] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12825] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12831] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12837] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12843] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12849] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12855] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12861] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12867] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12873] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12879] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12885] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12891] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12897] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12903] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12909] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12915] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12921] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12927] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12933] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12939] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12945] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12951] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12957] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12963] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12969] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12975] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12981] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12987] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12993] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12999] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13005] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13011] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13017] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13023] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13029] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13035] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13041] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13047] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13050] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13053] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13060] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13064] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13071] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13075] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13078] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13088] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13095] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13099] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13110] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13131] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13153] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13159] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13165] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13171] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13177] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13183] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13189] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13195] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13201] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13207] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13213] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13218] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13225] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13233] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13243] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13250] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13253] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13256] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13262] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13264] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13267] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13272] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13274] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13277] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13282] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13288] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13295] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13302] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13366] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13424] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13462] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13470] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13476] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13479] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13485] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13502] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13504] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13506] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13509] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13512] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13521] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13530] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13538] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13544] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13553] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13562] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13573] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13583] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13598] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13614] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13637] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13662] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13676] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13679] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13685] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13693] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13702] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13709] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13718] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13732] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13748] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13766] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13778] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13787] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13796] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13809] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13818] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13825] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13838] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13850] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13860] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13874] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13877] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13882] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13887] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13897] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13906] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13909] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13912] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13918] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13924] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13955] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13968] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14013] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14055] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14061] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14074] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14080] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14086] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14099] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14102] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14107] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14112] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14115] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14119] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14126] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14129] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14131] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14134] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14144] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14176] },
+    { 0u, 0u, 225u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14211] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14437] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14469] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14495] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14547] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14581] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14609] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14632] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14674] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14699] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14706] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14712] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14721] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14742] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14798] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14852] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14912] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14935] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[14994] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15016] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15039] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15049] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15084] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15094] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15101] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15110] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15117] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15168] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15188] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15211] },
+    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15256] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15322] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15391] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15403] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15410] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15418] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15439] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15446] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15475] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15483] },
+    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15545] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15629] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15659] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15685] },
+    { 0u, 0u, 164u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15745] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15910] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15926] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15981] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15999] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16043] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16067] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16083] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16145] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16188] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16206] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16222] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16245] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16285] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16342] },
+    { 0u, 0u, 211u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16397] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16609] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16648] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16692] },
+    { 0u, 0u, 84u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16751] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16836] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16847] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16853] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16881] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16902] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16938] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16967] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17041] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17051] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17079] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17098] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17110] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17117] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17123] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17130] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17152] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17164] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17204] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17214] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17234] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17243] },
+    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17273] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17357] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17380] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17418] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17436] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17464] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17486] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17514] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17583] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17641] },
+    { 0u, 0u, 137u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17677] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17815] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17853] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17866] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17922] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17971] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18027] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18086] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18100] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18139] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18187] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18205] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18247] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18260] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18292] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18316] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18348] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18351] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18359] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18394] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18424] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18452] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18487] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18503] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18530] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18558] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18596] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18628] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18661] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18688] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18760] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18812] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18848] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18882] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18916] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18937] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18940] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18977] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[18981] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19029] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19074] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19095] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19133] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19169] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19202] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19237] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19266] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19289] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19309] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19373] },
+    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19376] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19459] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19528] },
+    { 0u, 0u, 76u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19590] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19667] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19686] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19723] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19758] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19812] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19857] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19917] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19972] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20041] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20084] },
+    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20099] },
+    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20191] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20280] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20312] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20369] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20407] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20465] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20537] },
+    { 0u, 0u, 84u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20571] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20656] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20684] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20717] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20736] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20761] },
+    { 0u, 0u, 112u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20788] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20901] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[20946] },
+    { 0u, 0u, 85u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21020] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21106] },
+    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21154] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21238] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21276] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21324] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21370] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21391] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21425] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21453] },
+    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21492] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21558] },
+    { 0u, 0u, 181u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21608] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21790] },
+    { 0u, 0u, 86u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21845] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21932] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21950] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21972] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21995] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22019] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22046] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22069] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22088] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22111] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22134] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22159] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22178] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22203] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22231] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22259] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22283] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22300] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22302] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22328] },
+    { 0u, 0u, 86u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22387] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22474] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22522] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22581] },
+    { 0u, 0u, 107u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22632] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22740] },
+    { 0u, 0u, 101u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22789] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22891] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22951] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22998] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23007] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23015] },
+    { 0u, 0u, 95u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23063] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23159] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23163] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23167] },
+    { 0u, 0u, 77u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23171] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23249] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23253] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23259] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23276] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23285] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23318] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23322] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23335] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23339] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23369] },
+    { 0u, 0u, 150u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23373] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23524] },
+    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23546] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23625] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23633] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23648] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23652] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23660] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23668] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23672] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23676] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23686] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23701] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23707] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23711] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23725] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23731] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23768] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23780] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23814] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23835] },
+    { 0u, 0u, 83u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23846] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23930] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23945] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23966] },
+    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23981] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24054] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24099] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24114] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24135] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24151] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24168] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24214] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24233] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24265] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24284] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24302] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24318] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24365] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24385] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24400] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24447] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24471] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24493] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24511] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24551] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24578] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24591] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24610] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24659] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24681] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24697] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24714] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24768] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24787] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24802] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24817] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24867] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24888] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24894] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24897] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24904] },
+    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24911] },
+    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24981] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25061] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25105] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25150] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25198] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25201] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25206] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25212] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25245] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25253] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25258] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25297] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25305] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25329] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25365] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25372] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25378] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25390] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25436] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25448] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25494] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25501] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25507] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25512] },
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25521] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25529] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25533] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25571] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25587] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25604] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25621] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25642] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25694] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25720] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25784] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25827] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25851] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25879] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25908] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25935] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25941] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25999] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26015] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26054] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26095] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26147] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26158] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26171] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26176] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26201] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26209] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26223] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26240] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26249] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26293] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26337] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26343] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26358] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26379] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26404] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26406] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26438] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26465] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26501] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26510] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26520] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26529] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26534] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26564] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26574] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26587] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26601] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26615] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26651] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26672] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26702] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26725] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26745] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26754] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26771] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26778] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26809] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26822] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26858] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26888] },
-    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26924] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27006] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27022] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27055] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27102] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27137] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27142] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27148] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27153] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27158] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27163] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27172] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27182] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27196] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27210] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27215] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27228] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27258] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27292] },
-    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27345] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27412] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27418] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27424] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27437] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27445] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27454] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27487] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27531] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27558] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27566] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27572] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27578] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27586] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27620] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27640] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27670] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27679] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27703] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27732] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27758] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27796] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27826] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27855] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27890] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27919] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27957] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27994] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28014] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28038] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28046] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28051] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28076] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28117] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28123] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28130] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28162] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28174] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28188] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28205] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28243] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28273] },
-    { 0u, 0u, 135u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28287] },
-    { 0u, 0u, 153u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28423] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28577] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28604] },
-    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28625] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28714] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28772] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28819] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28831] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28842] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28851] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28860] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28875] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28905] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28913] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28919] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28928] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28935] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28953] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28955] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28962] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28985] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28996] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29007] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29016] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29056] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29094] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29150] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29175] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29215] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29249] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29257] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29263] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29277] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29292] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29313] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29346] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29379] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29390] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29406] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29410] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29413] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29420] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29424] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29434] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29441] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29468] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29499] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29536] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29565] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29604] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29629] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29690] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29727] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29729] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29753] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29759] },
-    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29764] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29837] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29842] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29873] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29911] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29942] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29973] },
-    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29985] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30077] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30081] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30093] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30098] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30125] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30164] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30169] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30215] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30264] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30268] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30272] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30275] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30282] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30288] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30300] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30309] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30352] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30358] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30393] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30455] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30465] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30487] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30507] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30527] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30576] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30592] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30619] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30642] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30675] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30694] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30715] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30761] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30777] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30800] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30839] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30862] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30877] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30902] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30929] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30963] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31015] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31045] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31060] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31129] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31152] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31159] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31190] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31215] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31226] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31290] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31339] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31399] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31423] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31434] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31481] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31508] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31536] },
-    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31564] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31635] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31642] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31650] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31659] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31699] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31761] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31796] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31847] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31851] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31863] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31909] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31913] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31921] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31929] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31936] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31943] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31950] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31957] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31964] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31972] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31979] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31987] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31995] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32007] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32053] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32057] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32063] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32073] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32101] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32115] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32134] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32150] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32165] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32185] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32199] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32214] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32230] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32236] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32244] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32285] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32319] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32330] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32351] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32390] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32419] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32431] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32443] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32479] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32491] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32506] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32562] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32604] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32642] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32649] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32654] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32669] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32684] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32740] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32745] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32759] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32765] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32779] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32782] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32786] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32801] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32808] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32815] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32821] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32825] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32854] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32893] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32901] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32913] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32922] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32929] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32935] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32943] },
-    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32951] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33024] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33092] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33137] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33156] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33199] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33208] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33215] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33225] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33234] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33244] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33258] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33271] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33280] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33294] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33303] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33357] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33420] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33468] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33500] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33544] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33580] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33585] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33590] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33596] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33599] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33603] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33608] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33622] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33646] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33651] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33658] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33660] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33664] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33668] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33676] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33687] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33698] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33708] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33719] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33727] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33750] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33757] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33764] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33771] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33778] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33785] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33793] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33816] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33824] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33831] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33839] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33847] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33855] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33864] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33872] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33876] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33884] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33895] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33906] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33916] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33927] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33935] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33958] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33965] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33972] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33979] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33986] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33993] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34001] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34009] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34016] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34024] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34047] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34055] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34063] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34072] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34080] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34083] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34086] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34092] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34096] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34099] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34104] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34118] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34132] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34166] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34195] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34220] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34228] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34235] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34240] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34281] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25529] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25537] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25546] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25577] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25585] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25611] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25623] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25631] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25660] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25671] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25703] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25731] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25737] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25748] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25756] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25760] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25798] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25814] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25831] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25848] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25869] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25921] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25947] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26011] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26054] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26078] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26106] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26135] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26162] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26168] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26226] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26242] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26281] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26322] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26374] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26385] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26398] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26403] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26428] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26436] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26450] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26467] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26476] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26520] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26564] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26570] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26585] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26606] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26631] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26633] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26665] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26692] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26728] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26737] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26747] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26756] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26761] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26791] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26801] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26814] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26828] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26842] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26878] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26899] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26929] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26952] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26972] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26981] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27029] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27046] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27053] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27084] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27097] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27133] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27163] },
+    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27199] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27281] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27297] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27330] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27377] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27412] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27417] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27423] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27428] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27433] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27438] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27447] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27457] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27471] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27485] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27490] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27503] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27533] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27567] },
+    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27620] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27687] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27693] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27699] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27712] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27720] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27729] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27762] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27806] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27833] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27841] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27847] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27853] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27861] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27895] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27915] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27945] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27954] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27978] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28007] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28033] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28071] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28101] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28130] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28165] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28194] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28232] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28269] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28289] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28313] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28321] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28326] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28351] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28392] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28398] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28405] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28437] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28449] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28463] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28480] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28518] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28548] },
+    { 0u, 0u, 135u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28562] },
+    { 0u, 0u, 153u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28698] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28852] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28879] },
+    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28900] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28989] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29047] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29094] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29106] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29117] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29126] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29135] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29150] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29180] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29188] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29194] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29203] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29210] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29228] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29230] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29237] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29260] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29271] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29282] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29291] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29331] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29369] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29425] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29450] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29490] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29524] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29532] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29538] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29552] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29567] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29588] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29621] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29654] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29665] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29681] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29685] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29688] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29695] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29699] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29709] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29716] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29743] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29774] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29811] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29840] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29879] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29904] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29965] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30002] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30004] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30028] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30034] },
+    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30039] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30112] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30117] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30148] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30186] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30217] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30248] },
+    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30260] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30352] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30356] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30368] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30373] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30400] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30439] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30444] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30490] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30539] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30543] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30547] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30550] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30557] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30563] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30575] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30584] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30627] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30633] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30668] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30730] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30740] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30762] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30782] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30802] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30851] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30867] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30894] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30917] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30950] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30969] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30990] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31036] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31052] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31075] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31114] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31137] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31152] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31177] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31204] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31238] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31290] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31320] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31335] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31404] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31427] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31434] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31465] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31490] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31501] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31565] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31614] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31674] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31698] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31709] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31756] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31783] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31811] },
+    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31839] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31910] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31917] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31925] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31934] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31974] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32036] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32071] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32122] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32126] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32138] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32184] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32188] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32196] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32204] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32211] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32218] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32225] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32232] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32239] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32247] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32254] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32262] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32270] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32282] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32328] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32332] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32338] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32348] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32376] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32390] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32409] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32425] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32440] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32460] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32474] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32489] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32505] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32511] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32519] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32560] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32594] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32605] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32626] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32665] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32694] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32706] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32718] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32754] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32766] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32781] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32837] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32879] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32917] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32924] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32929] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32944] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32959] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33015] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33020] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33034] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33040] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33054] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33057] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33061] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33076] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33083] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33091] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33098] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33104] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33108] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33137] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33176] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33184] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33196] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33205] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33212] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33218] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33226] },
+    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33234] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33307] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33375] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33420] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33439] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33482] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33491] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33498] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33508] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33517] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33527] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33541] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33554] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33563] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33577] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33586] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33640] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33703] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33751] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33783] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33827] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33863] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33868] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33873] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33879] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33882] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33886] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33891] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33905] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33929] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33934] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33941] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33943] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33947] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33951] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33959] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33970] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33981] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33991] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34002] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34010] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34033] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34040] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34047] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34054] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34061] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34068] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34076] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34099] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34107] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34114] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34122] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34130] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34138] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34147] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34155] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34159] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34167] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34178] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34189] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34199] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34210] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34218] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34241] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34248] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34255] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34262] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34269] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34276] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34284] },
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34292] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34299] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34319] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34341] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34353] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34374] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34389] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34403] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34440] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34474] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34503] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34506] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34519] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34529] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34556] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34581] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34585] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34590] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34597] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34603] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34625] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34629] },
-    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34664] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34735] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34743] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34751] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34759] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34766] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34778] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34795] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34821] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34874] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34912] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34921] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34934] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34946] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34988] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35029] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35034] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35044] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35085] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35130] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35180] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35210] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35243] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35261] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35291] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35316] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35329] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35355] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35369] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35393] },
-    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35431] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35513] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35528] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35531] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35568] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35582] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35588] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35593] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35604] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35615] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35624] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35634] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35643] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35671] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35673] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35679] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35688] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35697] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35706] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35718] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35727] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35735] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35743] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35753] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35762] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35768] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35775] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35781] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35795] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35805] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35811] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35817] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35826] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35834] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35844] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35852] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35862] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35871] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35879] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35888] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35890] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35945] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35964] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34299] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34307] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34330] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34338] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34346] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34355] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34363] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34366] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34369] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34375] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34379] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34382] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34387] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34401] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34415] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34449] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34478] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34503] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34511] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34518] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34523] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34564] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34575] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34582] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34602] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34624] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34636] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34657] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34672] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34686] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34723] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34757] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34786] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34789] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34802] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34812] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34839] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34864] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34868] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34873] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34880] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34886] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34908] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34912] },
+    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34947] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35018] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35026] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35034] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35042] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35049] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35061] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35078] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35104] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35157] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35195] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35204] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35217] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35229] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35271] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35312] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35317] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35327] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35368] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35413] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35463] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35493] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35526] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35544] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35574] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35599] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35612] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35638] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35652] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35676] },
+    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35714] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35796] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35811] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35814] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35851] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35865] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35871] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35876] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35887] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35898] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35907] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35917] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35926] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35954] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35956] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35962] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35971] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35980] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36010] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36014] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36059] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36097] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36101] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36107] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36116] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36125] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36134] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36150] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36167] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36213] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36232] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36240] },
-    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36246] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36313] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36325] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36343] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36359] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36391] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36407] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36439] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36455] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36495] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36500] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36505] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36511] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36530] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36537] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36540] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36544] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36546] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36551] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36572] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36636] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36649] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36688] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36714] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36720] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36760] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36780] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36817] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36848] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36873] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36889] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36909] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36923] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36991] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37033] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37060] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37076] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37096] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37143] },
-    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37166] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37248] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37282] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37314] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37350] },
-    { 0u, 0u, 114u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37382] },
-    { 0u, 0u, 87u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37497] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37585] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37591] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37604] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37626] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37673] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37691] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37717] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37745] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37786] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37805] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37809] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37816] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37825] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37879] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37932] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37973] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37985] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38002] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38052] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38056] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38061] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38101] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38155] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38198] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38202] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38209] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38250] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38254] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38260] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38276] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38284] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38289] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38310] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38315] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38363] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38389] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38410] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38420] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38453] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38474] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38527] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38549] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38560] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38565] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38569] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38576] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38580] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38590] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38628] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38640] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38681] },
-    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38729] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38794] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38804] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38816] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38842] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38887] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38890] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38896] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38903] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38925] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38934] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38936] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38939] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38945] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38964] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38970] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38981] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39010] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39018] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39043] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39051] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39066] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39071] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39076] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39088] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39096] },
-    { 0u, 0u, 141u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39139] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39281] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39291] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39301] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39306] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39315] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39333] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39336] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39347] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39358] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39361] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39368] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39377] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39399] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39411] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39459] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39468] },
-    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39482] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39561] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39566] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39618] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39622] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39629] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39667] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39674] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39712] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39721] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39780] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39784] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39796] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39832] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39875] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39924] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39933] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39940] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39948] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39955] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39963] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39980] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39992] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40045] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40055] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40077] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40098] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40129] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40137] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40145] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40150] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40157] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40172] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40174] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40177] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40187] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40206] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40221] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40237] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40243] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40248] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40299] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40340] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40347] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40382] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40386] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40392] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40449] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40461] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40465] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40472] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40477] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40485] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40498] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40530] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40537] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40544] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40550] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40563] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40569] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40577] },
-    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40585] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40661] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40679] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40697] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40714] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40739] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40764] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40789] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40814] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40837] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40844] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40881] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40886] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40898] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40904] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40910] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40917] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40925] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40940] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40994] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41046] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41089] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41099] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41115] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41131] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41140] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41155] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41171] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41190] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41201] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41218] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41234] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41243] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41253] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41294] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41329] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41368] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41404] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41444] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41461] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35980] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35989] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36001] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36010] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36018] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36026] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36036] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36045] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36051] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36058] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36064] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36078] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36088] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36094] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36100] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36109] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36117] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36127] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36135] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36145] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36154] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36162] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36171] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36173] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36228] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36247] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36254] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36263] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36293] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36297] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36342] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36380] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36384] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36390] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36399] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36408] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36417] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36433] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36450] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36496] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36515] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36523] },
+    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36529] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36596] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36608] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36626] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36642] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36674] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36690] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36722] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36738] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36778] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36783] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36788] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36794] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36813] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36820] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36823] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36827] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36829] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36834] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36855] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36919] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36932] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36971] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36997] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37003] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37043] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37063] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37100] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37131] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37156] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37172] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37192] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37206] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37274] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37316] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37343] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37359] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37379] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37426] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37449] },
+    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37472] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37554] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37588] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37620] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37656] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37689] },
+    { 0u, 0u, 114u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37721] },
+    { 0u, 0u, 87u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37836] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37924] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37930] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37943] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37965] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38012] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38030] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38056] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38084] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38125] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38144] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38148] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38155] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38164] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38218] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38271] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38312] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38324] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38341] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38391] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38395] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38400] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38440] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38494] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38537] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38541] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38548] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38589] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38593] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38599] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38615] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38623] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38628] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38649] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38654] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38702] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38728] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38749] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38759] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38792] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38813] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38866] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38888] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38899] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38904] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38908] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38915] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38919] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38929] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38967] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38979] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39020] },
+    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39068] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39133] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39143] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39155] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39181] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39226] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39229] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39235] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39242] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39264] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39273] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39275] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39278] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39284] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39303] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39309] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39320] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39349] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39357] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39382] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39390] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39405] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39410] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39415] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39427] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39435] },
+    { 0u, 0u, 141u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39478] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39620] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39630] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39640] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39645] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39654] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39672] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39675] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39686] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39697] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39700] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39707] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39716] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39738] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39750] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39798] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39807] },
+    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39821] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39900] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39905] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39957] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39961] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39968] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40006] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40013] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40051] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40060] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40119] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40123] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40135] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40171] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40214] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40263] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40272] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40279] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40287] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40294] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40302] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40319] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40331] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40384] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40394] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40416] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40437] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40468] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40476] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40484] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40489] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40496] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40511] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40513] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40516] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40526] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40545] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40560] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40576] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40582] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40587] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40638] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40679] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40686] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40721] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40725] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40731] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40788] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40800] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40804] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40811] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40816] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40824] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40837] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40869] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40876] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40883] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40889] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40902] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40908] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40916] },
+    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40924] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41000] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41018] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41036] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41053] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41078] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41103] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41128] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41153] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41176] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41183] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41220] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41225] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41237] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41243] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41249] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41256] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41264] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41279] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41333] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41385] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41428] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41438] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41454] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41470] },
     { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41479] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41494] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41519] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41552] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41583] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41610] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41637] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41667] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41701] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41736] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41769] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41807] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41822] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41840] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41856] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41879] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41902] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41926] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41956] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41986] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42011] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42034] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42054] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42078] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42100] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42122] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42145] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42169] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42191] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42207] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42222] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42245] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42266] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42284] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42289] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42297] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42307] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42363] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42379] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42389] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42445] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42461] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42471] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42527] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42543] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42560] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42578] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42633] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42653] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42662] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42717] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42732] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42781] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42788] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42808] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42845] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42883] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42940] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42960] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42970] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42980] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43007] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43034] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43097] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43130] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43145] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43163] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43176] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43187] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43199] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43206] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43214] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43254] },
-    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43280] },
-    { 0u, 0u, 129u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43352] },
-    { 0u, 0u, 147u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43482] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43630] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43641] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43674] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43705] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43722] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43740] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43790] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43821] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43841] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43845] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43856] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43863] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43902] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43912] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43929] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43943] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43958] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43974] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43987] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43989] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44015] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44022] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44057] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44062] },
-    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44123] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44206] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44221] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44236] },
-    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44256] },
-    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44336] },
-    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44483] },
-    { 0u, 0u, 90u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44572] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44663] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44680] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44730] },
-    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44794] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44864] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44938] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44944] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44954] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44985] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45001] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45038] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45089] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45095] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45103] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45114] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45151] },
-    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45171] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45269] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45274] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45278] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45284] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45327] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45372] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45422] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45427] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45465] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45479] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45520] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45540] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45570] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45581] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45592] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45603] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45619] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45674] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45703] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45720] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45730] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45741] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45752] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45785] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45802] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45813] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45823] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45857] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45867] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45901] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45909] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45932] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45940] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45956] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45999] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46001] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46004] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46008] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46013] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46019] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46022] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46027] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46033] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46037] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46042] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46048] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46052] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46056] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46069] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46083] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46107] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46121] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46146] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46170] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46192] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46222] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46263] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46285] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46309] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46357] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46382] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46397] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46406] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46453] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46460] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46491] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46526] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46546] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46550] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46554] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46562] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46585] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46592] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46599] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46606] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46613] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46621] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46644] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46648] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46656] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46679] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46686] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46693] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46700] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46707] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46715] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46738] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46741] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46745] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46756] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46760] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46766] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46773] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46782] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46791] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46800] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46808] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46816] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46838] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46866] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46887] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46911] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46928] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46934] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46942] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46970] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46991] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47006] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47023] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47046] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47070] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47088] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47093] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47105] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47122] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47144] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47162] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47184] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47205] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47214] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47233] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47260] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47291] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47311] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47331] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47351] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47379] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47426] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47472] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47502] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47576] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47582] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47593] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47628] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47635] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47653] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47660] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47683] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47719] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47754] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47789] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47828] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47868] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47907] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47946] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47985] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48024] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48063] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48101] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48140] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48178] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48203] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48228] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48251] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48278] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48304] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48320] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48336] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48351] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48366] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48381] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48398] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48413] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48431] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48443] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48457] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48521] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48538] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48555] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48582] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48610] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48638] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48660] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48682] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48704] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48725] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48751] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48774] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48797] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48820] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48842] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48869] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48891] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48903] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48925] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48943] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48971] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48984] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48996] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49019] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49045] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49076] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49106] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49135] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49155] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49170] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49186] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49217] },
-    { 0u, 0u, 92u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49232] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49325] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49339] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49351] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49388] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49407] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49441] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49483] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49501] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49519] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49539] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49549] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49555] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49562] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49615] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49624] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49634] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49647] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49670] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49684] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49722] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49728] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49743] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49748] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49754] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49764] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49776] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49784] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49795] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49804] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49812] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49817] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49824] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49827] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49833] },
-    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49870] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49988] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50019] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50027] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50033] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50041] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50052] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50062] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50075] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50091] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50106] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50169] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50195] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50231] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50238] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50242] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50248] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50279] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50342] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50344] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50347] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50376] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50409] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50416] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50424] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50434] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50436] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50439] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50441] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50444] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50453] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50460] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50464] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50466] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50470] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41494] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41510] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41529] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41540] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41557] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41573] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41582] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41592] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41633] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41668] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41707] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41743] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41783] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41800] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41818] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41833] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41858] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41891] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41922] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41949] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41976] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42006] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42040] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42075] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42108] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42146] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42161] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42179] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42195] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42218] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42241] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42265] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42295] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42325] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42350] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42373] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42393] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42417] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42439] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42461] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42484] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42508] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42530] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42546] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42561] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42584] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42605] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42623] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42628] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42636] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42646] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42702] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42718] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42728] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42784] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42800] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42810] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42866] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42882] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42899] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42917] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42972] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42992] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43001] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43056] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43071] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43120] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43127] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43147] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43184] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43222] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43279] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43299] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43309] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43319] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43346] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43373] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43436] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43469] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43484] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43502] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43515] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43526] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43538] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43545] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43553] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43593] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43619] },
+    { 0u, 0u, 129u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43691] },
+    { 0u, 0u, 147u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43821] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43969] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43980] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44013] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44044] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44061] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44079] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44129] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44160] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44180] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44184] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44195] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44202] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44241] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44251] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44268] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44282] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44297] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44313] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44326] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44328] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44354] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44361] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44396] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44401] },
+    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44462] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44545] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44560] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44575] },
+    { 0u, 0u, 79u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44595] },
+    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44675] },
+    { 0u, 0u, 88u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44822] },
+    { 0u, 0u, 90u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44911] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45002] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45019] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45069] },
+    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45133] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45203] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45277] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45283] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45293] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45324] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45340] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45377] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45428] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45434] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45442] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45453] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45490] },
+    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45510] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45608] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45613] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45617] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45623] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45666] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45711] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45761] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45766] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45804] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45818] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45859] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45879] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45909] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45920] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45931] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45942] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45958] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46013] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46042] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46059] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46069] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46080] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46091] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46124] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46141] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46152] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46162] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46196] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46206] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46240] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46248] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46271] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46279] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46295] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46338] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46340] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46343] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46347] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46352] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46358] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46361] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46366] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46372] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46376] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46381] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46387] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46391] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46395] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46408] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46422] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46446] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46460] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46485] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46509] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46531] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46561] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46602] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46624] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46648] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46696] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46721] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46736] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46745] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46792] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46799] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46830] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46865] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46885] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46889] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46893] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46901] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46924] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46931] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46938] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46945] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46952] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46960] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46983] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46987] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46995] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47018] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47025] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47032] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47039] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47046] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47054] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47077] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47080] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47084] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47095] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47099] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47105] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47112] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47121] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47130] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47139] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47147] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47155] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47177] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47205] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47226] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47250] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47267] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47273] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47281] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47309] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47330] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47345] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47362] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47385] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47409] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47427] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47432] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47444] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47461] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47483] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47501] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47523] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47544] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47553] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47572] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47599] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47630] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47650] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47670] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47690] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47718] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47765] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47811] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47841] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47915] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47921] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47932] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47967] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47974] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47992] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47999] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48022] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48058] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48093] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48128] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48167] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48207] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48246] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48285] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48324] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48363] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48402] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48440] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48479] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48517] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48542] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48567] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48590] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48617] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48643] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48659] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48675] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48690] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48705] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48720] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48737] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48752] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48770] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48782] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48796] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48860] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48877] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48894] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48921] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48949] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48977] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48999] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49021] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49043] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49064] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49090] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49113] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49136] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49159] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49181] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49208] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49230] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49242] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49264] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49282] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49310] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49323] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49335] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49358] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49384] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49415] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49445] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49474] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49494] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49509] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49525] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49556] },
+    { 0u, 0u, 92u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49571] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49664] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49678] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49690] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49727] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49746] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49780] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49822] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49840] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49858] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49878] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49888] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49894] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49901] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49954] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49963] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49973] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49986] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50009] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50023] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50061] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50067] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50082] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50087] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50093] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50103] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50115] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50123] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50134] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50143] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50151] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50156] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50163] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50166] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50172] },
+    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50209] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50327] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50358] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50366] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50372] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50380] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50391] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50401] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50414] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50430] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50445] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50508] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50534] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50570] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50577] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50581] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50587] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50618] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50681] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50683] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50686] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50715] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50748] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50755] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50763] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50773] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50775] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50778] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50780] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50783] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50792] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50799] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50803] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50805] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50809] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 2421u
+#define VADER_COMPTIME_ATOM_COUNT 2431u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
@@ -4891,17 +4911,17 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
 const vader_array_t vader_data_6 = { { 14u, 0u, 0u, 0u, NULL }, 47u, 47u, 0u, (vader_array_buf_t*) &vader_data_6_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[10]; } vader_data_7_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 10u, 10u, 165u, 0u, { 0u, 0u, 0u },
-    { { 165u, 0u, { .s = 452u } }, { 165u, 0u, { .s = 457u } }, { 165u, 0u, { .s = 459u } }, { 165u, 0u, { .s = 460u } }, { 165u, 0u, { .s = 463u } }, { 165u, 0u, { .s = 464u } }, { 165u, 0u, { .s = 465u } }, { 165u, 0u, { .s = 466u } }, { 165u, 0u, { .s = 467u } }, { 165u, 0u, { .s = 468u } } }
+    { { 165u, 0u, { .s = 453u } }, { 165u, 0u, { .s = 458u } }, { 165u, 0u, { .s = 460u } }, { 165u, 0u, { .s = 461u } }, { 165u, 0u, { .s = 464u } }, { 165u, 0u, { .s = 465u } }, { 165u, 0u, { .s = 466u } }, { 165u, 0u, { .s = 467u } }, { 165u, 0u, { .s = 468u } }, { 165u, 0u, { .s = 469u } } }
 };
 const vader_array_t vader_data_7 = { { 8u, 0u, 0u, 0u, NULL }, 10u, 10u, 0u, (vader_array_buf_t*) &vader_data_7_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_8_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 165u, 0u, { 0u, 0u, 0u },
-    { { 165u, 0u, { .s = 737u } }, { 165u, 0u, { .s = 2160u } } }
+    { { 165u, 0u, { .s = 738u } }, { 165u, 0u, { .s = 2170u } } }
 };
 const vader_array_t vader_data_8 = { { 8u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_8_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[44]; } vader_data_9_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 44u, 44u, 165u, 0u, { 0u, 0u, 0u },
-    { { 165u, 0u, { .s = 1229u } }, { 165u, 0u, { .s = 1260u } }, { 165u, 0u, { .s = 1330u } }, { 165u, 0u, { .s = 1337u } }, { 165u, 0u, { .s = 1375u } }, { 165u, 0u, { .s = 1394u } }, { 165u, 0u, { .s = 1414u } }, { 165u, 0u, { .s = 1424u } }, { 165u, 0u, { .s = 1428u } }, { 165u, 0u, { .s = 1442u } }, { 165u, 0u, { .s = 1454u } }, { 165u, 0u, { .s = 1507u } }, { 165u, 0u, { .s = 1566u } }, { 165u, 0u, { .s = 1574u } }, { 165u, 0u, { .s = 1606u } }, { 165u, 0u, { .s = 1665u } }, { 165u, 0u, { .s = 1694u } }, { 165u, 0u, { .s = 1697u } }, { 165u, 0u, { .s = 1797u } }, { 165u, 0u, { .s = 1936u } }, { 165u, 0u, { .s = 1943u } }, { 165u, 0u, { .s = 1946u } }, { 165u, 0u, { .s = 1973u } }, { 165u, 0u, { .s = 1977u } }, { 165u, 0u, { .s = 1983u } }, { 165u, 0u, { .s = 2004u } }, { 165u, 0u, { .s = 2098u } }, { 165u, 0u, { .s = 2115u } }, { 165u, 0u, { .s = 2185u } }, { 165u, 0u, { .s = 2256u } }, { 165u, 0u, { .s = 2272u } }, { 165u, 0u, { .s = 2374u } }, { 165u, 0u, { .s = 2380u } }, { 165u, 0u, { .s = 2385u } }, { 165u, 0u, { .s = 866u } }, { 165u, 0u, { .s = 867u } }, { 165u, 0u, { .s = 868u } }, { 165u, 0u, { .s = 869u } }, { 165u, 0u, { .s = 870u } }, { 165u, 0u, { .s = 871u } }, { 165u, 0u, { .s = 872u } }, { 165u, 0u, { .s = 873u } }, { 165u, 0u, { .s = 874u } }, { 165u, 0u, { .s = 878u } } }
+    { { 165u, 0u, { .s = 1235u } }, { 165u, 0u, { .s = 1266u } }, { 165u, 0u, { .s = 1337u } }, { 165u, 0u, { .s = 1344u } }, { 165u, 0u, { .s = 1382u } }, { 165u, 0u, { .s = 1401u } }, { 165u, 0u, { .s = 1421u } }, { 165u, 0u, { .s = 1431u } }, { 165u, 0u, { .s = 1435u } }, { 165u, 0u, { .s = 1449u } }, { 165u, 0u, { .s = 1461u } }, { 165u, 0u, { .s = 1514u } }, { 165u, 0u, { .s = 1573u } }, { 165u, 0u, { .s = 1582u } }, { 165u, 0u, { .s = 1614u } }, { 165u, 0u, { .s = 1673u } }, { 165u, 0u, { .s = 1702u } }, { 165u, 0u, { .s = 1705u } }, { 165u, 0u, { .s = 1805u } }, { 165u, 0u, { .s = 1946u } }, { 165u, 0u, { .s = 1953u } }, { 165u, 0u, { .s = 1956u } }, { 165u, 0u, { .s = 1983u } }, { 165u, 0u, { .s = 1987u } }, { 165u, 0u, { .s = 1993u } }, { 165u, 0u, { .s = 2014u } }, { 165u, 0u, { .s = 2108u } }, { 165u, 0u, { .s = 2125u } }, { 165u, 0u, { .s = 2195u } }, { 165u, 0u, { .s = 2266u } }, { 165u, 0u, { .s = 2282u } }, { 165u, 0u, { .s = 2384u } }, { 165u, 0u, { .s = 2390u } }, { 165u, 0u, { .s = 2395u } }, { 165u, 0u, { .s = 868u } }, { 165u, 0u, { .s = 869u } }, { 165u, 0u, { .s = 870u } }, { 165u, 0u, { .s = 871u } }, { 165u, 0u, { .s = 872u } }, { 165u, 0u, { .s = 873u } }, { 165u, 0u, { .s = 874u } }, { 165u, 0u, { .s = 875u } }, { 165u, 0u, { .s = 876u } }, { 165u, 0u, { .s = 880u } } }
 };
 const vader_array_t vader_data_9 = { { 8u, 0u, 0u, 0u, NULL }, 44u, 44u, 0u, (vader_array_buf_t*) &vader_data_9_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e0_f1_buf = {
@@ -4909,130 +4929,130 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     { (uint8_t) UINT64_C(1) }
 };
 const vader_array_t vader_data_10_e0_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e0_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e0 = { { 855u, 0u, 0u, 0u, NULL }, 1979u, (void*) (vader_array_t*) &vader_data_10_e0_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e0 = { { 858u, 0u, 0u, 0u, NULL }, 1989u, (void*) (vader_array_t*) &vader_data_10_e0_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e1_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e1_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e1_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e1 = { { 855u, 0u, 0u, 0u, NULL }, 1155u, (void*) (vader_array_t*) &vader_data_10_e1_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e1 = { { 858u, 0u, 0u, 0u, NULL }, 1160u, (void*) (vader_array_t*) &vader_data_10_e1_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e2_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e2_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e2_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e2 = { { 855u, 0u, 0u, 0u, NULL }, 2181u, (void*) (vader_array_t*) &vader_data_10_e2_f1, 2081u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e2 = { { 858u, 0u, 0u, 0u, NULL }, 2191u, (void*) (vader_array_t*) &vader_data_10_e2_f1, 2091u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e3_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e3_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e3_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e3 = { { 855u, 0u, 0u, 0u, NULL }, 2179u, (void*) (vader_array_t*) &vader_data_10_e3_f1, 2081u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e3 = { { 858u, 0u, 0u, 0u, NULL }, 2189u, (void*) (vader_array_t*) &vader_data_10_e3_f1, 2091u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e4_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e4_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e4_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e4 = { { 855u, 0u, 0u, 0u, NULL }, 1552u, (void*) (vader_array_t*) &vader_data_10_e4_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e4 = { { 858u, 0u, 0u, 0u, NULL }, 1559u, (void*) (vader_array_t*) &vader_data_10_e4_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e5_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e5_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e5_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e5 = { { 855u, 0u, 0u, 0u, NULL }, 2370u, (void*) (vader_array_t*) &vader_data_10_e5_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e5 = { { 858u, 0u, 0u, 0u, NULL }, 2380u, (void*) (vader_array_t*) &vader_data_10_e5_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[2]; } vader_data_10_e6_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) }
 };
 const vader_array_t vader_data_10_e6_f1 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_10_e6_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e6 = { { 855u, 0u, 0u, 0u, NULL }, 1554u, (void*) (vader_array_t*) &vader_data_10_e6_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e6 = { { 858u, 0u, 0u, 0u, NULL }, 1561u, (void*) (vader_array_t*) &vader_data_10_e6_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[2]; } vader_data_10_e7_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e7_f1 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_10_e7_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e7 = { { 855u, 0u, 0u, 0u, NULL }, 1962u, (void*) (vader_array_t*) &vader_data_10_e7_f1, 1246u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e7 = { { 858u, 0u, 0u, 0u, NULL }, 1972u, (void*) (vader_array_t*) &vader_data_10_e7_f1, 1252u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e8_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(1) }
 };
 const vader_array_t vader_data_10_e8_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e8_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e8 = { { 855u, 0u, 0u, 0u, NULL }, 1560u, (void*) (vader_array_t*) &vader_data_10_e8_f1, 2081u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e8 = { { 858u, 0u, 0u, 0u, NULL }, 1567u, (void*) (vader_array_t*) &vader_data_10_e8_f1, 2091u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e9_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(1) }
 };
 const vader_array_t vader_data_10_e9_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e9_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e9 = { { 855u, 0u, 0u, 0u, NULL }, 2183u, (void*) (vader_array_t*) &vader_data_10_e9_f1, 2160u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e9 = { { 858u, 0u, 0u, 0u, NULL }, 2193u, (void*) (vader_array_t*) &vader_data_10_e9_f1, 2170u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e10_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e10_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e10_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e10 = { { 855u, 0u, 0u, 0u, NULL }, 1559u, (void*) (vader_array_t*) &vader_data_10_e10_f1, 1551u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e10 = { { 858u, 0u, 0u, 0u, NULL }, 1566u, (void*) (vader_array_t*) &vader_data_10_e10_f1, 1558u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_10_e11_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0) }
 };
 const vader_array_t vader_data_10_e11_f1 = { { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_10_e11_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e11 = { { 855u, 0u, 0u, 0u, NULL }, 2173u, (void*) (vader_array_t*) &vader_data_10_e11_f1, 2174u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e11 = { { 858u, 0u, 0u, 0u, NULL }, 2183u, (void*) (vader_array_t*) &vader_data_10_e11_f1, 2184u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[2]; } vader_data_10_e12_f1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1) }
 };
 const vader_array_t vader_data_10_e12_f1 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_10_e12_f1_buf };
-const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e12 = { { 855u, 0u, 0u, 0u, NULL }, 1543u, (void*) (vader_array_t*) &vader_data_10_e12_f1, 2284u };
+const struct vader_struct_vader_parser_IntrinsicSpec_t vader_data_10_e12 = { { 858u, 0u, 0u, 0u, NULL }, 1550u, (void*) (vader_array_t*) &vader_data_10_e12_f1, 2294u };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[13]; } vader_data_10_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 13u, 13u, 855u, 0u, { 0u, 0u, 0u },
-    { { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e0 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e1 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e2 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e3 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e4 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e5 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e6 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e7 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e8 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e9 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e10 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e11 } }, { 855u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e12 } } }
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 13u, 13u, 858u, 0u, { 0u, 0u, 0u },
+    { { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e0 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e1 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e2 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e3 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e4 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e5 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e6 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e7 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e8 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e9 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e10 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e11 } }, { 858u, 0u, { .obj = (void*) (struct vader_struct_vader_parser_IntrinsicSpec_t*) &vader_data_10_e12 } } }
 };
 const vader_array_t vader_data_10 = { { 80u, 0u, 0u, 0u, NULL }, 13u, 13u, 0u, (vader_array_buf_t*) &vader_data_10_buf };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e0 = { { 915u, 0u, 0u, 0u, NULL }, 1661u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e1 = { { 915u, 0u, 0u, 0u, NULL }, 1616u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e2 = { { 915u, 0u, 0u, 0u, NULL }, 1617u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e3 = { { 915u, 0u, 0u, 0u, NULL }, 1639u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e4 = { { 915u, 0u, 0u, 0u, NULL }, 1734u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e5 = { { 915u, 0u, 0u, 0u, NULL }, 2240u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e6 = { { 915u, 0u, 0u, 0u, NULL }, 2221u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e7 = { { 915u, 0u, 0u, 0u, NULL }, 2222u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e8 = { { 915u, 0u, 0u, 0u, NULL }, 2231u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e9 = { { 915u, 0u, 0u, 0u, NULL }, 2284u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e10 = { { 915u, 0u, 0u, 0u, NULL }, 1514u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e11 = { { 915u, 0u, 0u, 0u, NULL }, 1517u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e12 = { { 915u, 0u, 0u, 0u, NULL }, 1246u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e13 = { { 915u, 0u, 0u, 0u, NULL }, 1337u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e14 = { { 915u, 0u, 0u, 0u, NULL }, 2081u, (int64_t) UINT64_C(16), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e15 = { { 915u, 0u, 0u, 0u, NULL }, 2374u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e16 = { { 915u, 0u, 0u, 0u, NULL }, 1876u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
-const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e17 = { { 915u, 0u, 0u, 0u, NULL }, 570u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e0 = { { 918u, 0u, 0u, 0u, NULL }, 1669u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e1 = { { 918u, 0u, 0u, 0u, NULL }, 1624u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e2 = { { 918u, 0u, 0u, 0u, NULL }, 1625u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e3 = { { 918u, 0u, 0u, 0u, NULL }, 1647u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e4 = { { 918u, 0u, 0u, 0u, NULL }, 1742u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e5 = { { 918u, 0u, 0u, 0u, NULL }, 2250u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e6 = { { 918u, 0u, 0u, 0u, NULL }, 2231u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e7 = { { 918u, 0u, 0u, 0u, NULL }, 2232u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e8 = { { 918u, 0u, 0u, 0u, NULL }, 2241u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e9 = { { 918u, 0u, 0u, 0u, NULL }, 2294u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e10 = { { 918u, 0u, 0u, 0u, NULL }, 1521u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e11 = { { 918u, 0u, 0u, 0u, NULL }, 1524u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e12 = { { 918u, 0u, 0u, 0u, NULL }, 1252u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e13 = { { 918u, 0u, 0u, 0u, NULL }, 1344u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e14 = { { 918u, 0u, 0u, 0u, NULL }, 2091u, (int64_t) UINT64_C(16), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e15 = { { 918u, 0u, 0u, 0u, NULL }, 2384u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e16 = { { 918u, 0u, 0u, 0u, NULL }, 1886u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
+const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_11_e17 = { { 918u, 0u, 0u, 0u, NULL }, 571u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0) };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[18]; } vader_data_11_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 915u, 0u, { 0u, 0u, 0u },
-    { { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e0 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e1 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e2 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e3 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e4 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e5 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e6 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e7 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e8 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e9 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e10 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e11 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e12 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e13 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e14 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e15 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e16 } }, { 915u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e17 } } }
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 918u, 0u, { 0u, 0u, 0u },
+    { { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e0 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e1 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e2 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e3 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e4 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e5 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e6 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e7 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e8 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e9 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e10 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e11 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e12 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e13 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e14 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e15 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e16 } }, { 918u, 0u, { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_11_e17 } } }
 };
 const vader_array_t vader_data_11 = { { 101u, 0u, 0u, 0u, NULL }, 18u, 18u, 0u, (vader_array_buf_t*) &vader_data_11_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_12_e0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .s = 1697u } }, { 0u, 0u, { .s = 1617u } } }
+    { { 0u, 0u, { .s = 1705u } }, { 0u, 0u, { .s = 1625u } } }
 };
 const vader_array_t vader_data_12_e0 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_12_e0_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_12_e1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .s = 1797u } }, { 0u, 0u, { .s = 1639u } } }
+    { { 0u, 0u, { .s = 1805u } }, { 0u, 0u, { .s = 1647u } } }
 };
 const vader_array_t vader_data_12_e1 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_12_e1_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_12_e2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .s = 1566u } }, { 0u, 0u, { .s = 1514u } } }
+    { { 0u, 0u, { .s = 1573u } }, { 0u, 0u, { .s = 1521u } } }
 };
 const vader_array_t vader_data_12_e2 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_12_e2_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_12_e3_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .s = 1428u } }, { 0u, 0u, { .s = 1517u } } }
+    { { 0u, 0u, { .s = 1435u } }, { 0u, 0u, { .s = 1524u } } }
 };
 const vader_array_t vader_data_12_e3 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_12_e3_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_12_e4_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .s = 1285u } }, { 0u, 0u, { .s = 2240u } } }
+    { { 0u, 0u, { .s = 1291u } }, { 0u, 0u, { .s = 2250u } } }
 };
 const vader_array_t vader_data_12_e4 = { { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_12_e4_buf };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[5]; } vader_data_12_buf = {
@@ -5305,731 +5325,735 @@ const uint16_t vader_type_294_refs[] = { offsetof(vader_struct_std_collections_M
 const uint16_t vader_type_295_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_index) };
 const uint16_t vader_type_296_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_index) };
 const uint16_t vader_type_297_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_index) };
-const uint16_t vader_type_298_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_index) };
-const uint16_t vader_type_299_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_index) };
-const uint16_t vader_type_300_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_index) };
-const uint16_t vader_type_301_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_index) };
-const uint16_t vader_type_302_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_index) };
-const uint16_t vader_type_303_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_index) };
-const uint16_t vader_type_304_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_index) };
-const uint16_t vader_type_305_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_index) };
-const uint16_t vader_type_306_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_index) };
-const uint16_t vader_type_307_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_index) };
-const uint16_t vader_type_308_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_index) };
-const uint16_t vader_type_309_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_index) };
-const uint16_t vader_type_310_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_index) };
-const uint16_t vader_type_311_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_index) };
-const uint16_t vader_type_312_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_index) };
-const uint16_t vader_type_313_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) };
-const uint16_t vader_type_314_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_index) };
-const uint16_t vader_type_315_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_index) };
-const uint16_t vader_type_316_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
-const uint16_t vader_type_317_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_index) };
-const uint16_t vader_type_318_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) };
-const uint16_t vader_type_319_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_index) };
-const uint16_t vader_type_320_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_index) };
-const uint16_t vader_type_321_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_index) };
-const uint16_t vader_type_322_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_index) };
-const uint16_t vader_type_323_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_index) };
-const uint16_t vader_type_324_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_index) };
-const uint16_t vader_type_325_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_index) };
-const uint16_t vader_type_326_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_index) };
-const uint16_t vader_type_327_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_index) };
-const uint16_t vader_type_328_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_index) };
-const uint16_t vader_type_329_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_index) };
-const uint16_t vader_type_330_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_index) };
-const uint16_t vader_type_331_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_index) };
-const uint16_t vader_type_332_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_index) };
-const uint16_t vader_type_333_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_index) };
-const uint16_t vader_type_334_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_index) };
-const uint16_t vader_type_335_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_index) };
-const uint16_t vader_type_336_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_index) };
-const uint16_t vader_type_337_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_index) };
-const uint16_t vader_type_338_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_index) };
-const uint16_t vader_type_339_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_index) };
-const uint16_t vader_type_340_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_index) };
-const uint16_t vader_type_341_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_index) };
-const uint16_t vader_type_342_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_index) };
-const uint16_t vader_type_343_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_index) };
-const uint16_t vader_type_344_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_index) };
-const uint16_t vader_type_345_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_index) };
-const uint16_t vader_type_346_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_index) };
-const uint16_t vader_type_347_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_index) };
-const uint16_t vader_type_348_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_index) };
-const uint16_t vader_type_349_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_index) };
-const uint16_t vader_type_350_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_index) };
-const uint16_t vader_type_351_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_index) };
-const uint16_t vader_type_352_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_index) };
-const uint16_t vader_type_353_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_index) };
-const uint16_t vader_type_354_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_index) };
-const uint16_t vader_type_355_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_index) };
-const uint16_t vader_type_356_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_index) };
-const uint16_t vader_type_357_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_index) };
-const uint16_t vader_type_358_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_index) };
-const uint16_t vader_type_359_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_index) };
-const uint16_t vader_type_360_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_index) };
-const uint16_t vader_type_361_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_index) };
-const uint16_t vader_type_362_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
-const uint16_t vader_type_363_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_index) };
-const uint16_t vader_type_364_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_index) };
-const uint16_t vader_type_365_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_index) };
-const uint16_t vader_type_366_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
-const uint16_t vader_type_367_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_index) };
-const uint16_t vader_type_368_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_index) };
-const uint16_t vader_type_369_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_index) };
-const uint16_t vader_type_370_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) };
-const uint16_t vader_type_371_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_index) };
-const uint16_t vader_type_372_refs[] = { offsetof(vader_struct_std_collections_MutableSet__i32_t, f_inner) };
-const uint16_t vader_type_373_refs[] = { offsetof(vader_struct_std_collections_MutableSet__i64_t, f_inner) };
-const uint16_t vader_type_374_refs[] = { offsetof(vader_struct_std_collections_MutableSet__string_t, f_inner) };
-const uint16_t vader_type_379_refs[] = { offsetof(vader_struct_std_core_SlowParts_t, f_d) };
-const uint16_t vader_type_381_strs[] = { offsetof(vader_struct_std_io_IOError_t, f_msg) };
-const uint16_t vader_type_382_strs[] = { offsetof(vader_struct_std_string_ParseError_t, f_msg) };
-const uint16_t vader_type_383_refs[] = { offsetof(vader_struct_std_string_StringChars_t, f_bytes) };
-const uint16_t vader_type_384_refs[] = { offsetof(vader_struct_std_string_builder_StringBuilder_t, f_parts) };
-const uint16_t vader_type_385_ptrs[] = { offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_element) };
-const uint16_t vader_type_385_refs[] = { offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_span) };
-const uint16_t vader_type_386_ptrs[] = { offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_condition), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_message) };
-const uint16_t vader_type_386_refs[] = { offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_span), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_decorators) };
-const uint16_t vader_type_387_ptrs[] = { offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_target), offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_value) };
-const uint16_t vader_type_387_refs[] = { offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_span) };
-const uint16_t vader_type_388_ptrs[] = { offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_inner) };
-const uint16_t vader_type_388_refs[] = { offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_span) };
-const uint16_t vader_type_389_ptrs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_left), offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_right) };
-const uint16_t vader_type_389_strs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_bind_as) };
-const uint16_t vader_type_389_refs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_span) };
-const uint16_t vader_type_390_strs[] = { offsetof(vader_struct_toolchain_ast_BindingPattern_t, f_name) };
-const uint16_t vader_type_390_refs[] = { offsetof(vader_struct_toolchain_ast_BindingPattern_t, f_span) };
-const uint16_t vader_type_391_ptrs[] = { offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_trailing) };
-const uint16_t vader_type_391_refs[] = { offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_span), offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_stmts) };
-const uint16_t vader_type_392_refs[] = { offsetof(vader_struct_toolchain_ast_BoolLitExpr_t, f_span) };
-const uint16_t vader_type_393_ptrs[] = { offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_label) };
-const uint16_t vader_type_393_refs[] = { offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_span) };
-const uint16_t vader_type_394_ptrs[] = { offsetof(vader_struct_toolchain_ast_CallArg_t, f_name), offsetof(vader_struct_toolchain_ast_CallArg_t, f_value) };
-const uint16_t vader_type_394_refs[] = { offsetof(vader_struct_toolchain_ast_CallArg_t, f_span) };
-const uint16_t vader_type_395_ptrs[] = { offsetof(vader_struct_toolchain_ast_CallExpr_t, f_callee) };
-const uint16_t vader_type_395_refs[] = { offsetof(vader_struct_toolchain_ast_CallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_CallExpr_t, f_args) };
-const uint16_t vader_type_396_ptrs[] = { offsetof(vader_struct_toolchain_ast_CastExpr_t, f_target), offsetof(vader_struct_toolchain_ast_CastExpr_t, f_value) };
-const uint16_t vader_type_396_refs[] = { offsetof(vader_struct_toolchain_ast_CastExpr_t, f_span) };
-const uint16_t vader_type_397_refs[] = { offsetof(vader_struct_toolchain_ast_CharLitExpr_t, f_span) };
-const uint16_t vader_type_398_ptrs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_ty), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_value), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_comptime_body) };
-const uint16_t vader_type_398_strs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_name) };
-const uint16_t vader_type_398_refs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_decorators) };
-const uint16_t vader_type_399_ptrs[] = { offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_label) };
-const uint16_t vader_type_399_refs[] = { offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_span) };
-const uint16_t vader_type_400_strs[] = { offsetof(vader_struct_toolchain_ast_Decorator_t, f_name) };
-const uint16_t vader_type_400_refs[] = { offsetof(vader_struct_toolchain_ast_Decorator_t, f_span), offsetof(vader_struct_toolchain_ast_Decorator_t, f_args) };
-const uint16_t vader_type_401_refs[] = { offsetof(vader_struct_toolchain_ast_DeferBlockBody_t, f_block) };
-const uint16_t vader_type_402_ptrs[] = { offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_body) };
-const uint16_t vader_type_402_refs[] = { offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_span) };
-const uint16_t vader_type_403_ptrs[] = { offsetof(vader_struct_toolchain_ast_DeferStmtBody_t, f_stmt) };
-const uint16_t vader_type_404_refs[] = { offsetof(vader_struct_toolchain_ast_DestructureImport_t, f_names) };
-const uint16_t vader_type_405_ptrs[] = { offsetof(vader_struct_toolchain_ast_DestructureVar_t, f_pattern) };
-const uint16_t vader_type_407_strs[] = { offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant) };
-const uint16_t vader_type_407_refs[] = { offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_span), offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant_span) };
-const uint16_t vader_type_408_ptrs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_repr) };
-const uint16_t vader_type_408_strs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name) };
-const uint16_t vader_type_408_refs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_variants), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_decorators) };
-const uint16_t vader_type_409_ptrs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value), offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value_span) };
-const uint16_t vader_type_409_strs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_name) };
-const uint16_t vader_type_409_refs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_span) };
-const uint16_t vader_type_410_strs[] = { offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_variant) };
-const uint16_t vader_type_410_refs[] = { offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_span) };
-const uint16_t vader_type_411_ptrs[] = { offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_expr) };
-const uint16_t vader_type_411_refs[] = { offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_span) };
-const uint16_t vader_type_412_ptrs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_target) };
-const uint16_t vader_type_412_strs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_field) };
-const uint16_t vader_type_412_refs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_field_span) };
-const uint16_t vader_type_413_refs[] = { offsetof(vader_struct_toolchain_ast_FloatLitExpr_t, f_span) };
-const uint16_t vader_type_414_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_return_type), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_body) };
-const uint16_t vader_type_414_strs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_name) };
-const uint16_t vader_type_414_refs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_decorators) };
-const uint16_t vader_type_415_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_ty), offsetof(vader_struct_toolchain_ast_FnParam_t, f_default_value) };
-const uint16_t vader_type_415_strs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_name) };
-const uint16_t vader_type_415_refs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_span), offsetof(vader_struct_toolchain_ast_FnParam_t, f_decorators) };
-const uint16_t vader_type_416_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_return_type) };
-const uint16_t vader_type_416_refs[] = { offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params_mutable) };
-const uint16_t vader_type_417_ptrs[] = { offsetof(vader_struct_toolchain_ast_ForStmt_t, f_label), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_form) };
-const uint16_t vader_type_417_refs[] = { offsetof(vader_struct_toolchain_ast_ForStmt_t, f_span), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_body) };
-const uint16_t vader_type_418_ptrs[] = { offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_callee) };
-const uint16_t vader_type_418_refs[] = { offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_span), offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_type_args) };
-const uint16_t vader_type_419_strs[] = { offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_name) };
-const uint16_t vader_type_419_refs[] = { offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_span) };
-const uint16_t vader_type_420_refs[] = { offsetof(vader_struct_toolchain_ast_IfElseBlock_t, f_block) };
-const uint16_t vader_type_421_refs[] = { offsetof(vader_struct_toolchain_ast_IfElseIf_t, f_branch) };
-const uint16_t vader_type_422_ptrs[] = { offsetof(vader_struct_toolchain_ast_IfExpr_t, f_cond), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_else_branch) };
-const uint16_t vader_type_422_refs[] = { offsetof(vader_struct_toolchain_ast_IfExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_then_block) };
-const uint16_t vader_type_423_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_for_type) };
-const uint16_t vader_type_423_strs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_name) };
-const uint16_t vader_type_423_refs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_name_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_args), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_members), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_decorators) };
-const uint16_t vader_type_424_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_binding) };
-const uint16_t vader_type_424_strs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_path) };
-const uint16_t vader_type_424_refs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_decorators) };
-const uint16_t vader_type_425_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_alias) };
-const uint16_t vader_type_425_strs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_name) };
-const uint16_t vader_type_425_refs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_span) };
-const uint16_t vader_type_426_ptrs[] = { offsetof(vader_struct_toolchain_ast_InFor_t, f_loop_var), offsetof(vader_struct_toolchain_ast_InFor_t, f_iter) };
-const uint16_t vader_type_427_ptrs[] = { offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_target), offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_index) };
-const uint16_t vader_type_427_refs[] = { offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_span) };
-const uint16_t vader_type_429_refs[] = { offsetof(vader_struct_toolchain_ast_IntLitExpr_t, f_span) };
-const uint16_t vader_type_430_strs[] = { offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name) };
-const uint16_t vader_type_430_refs[] = { offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_args) };
-const uint16_t vader_type_431_ptrs[] = { offsetof(vader_struct_toolchain_ast_IsPattern_t, f_ty), offsetof(vader_struct_toolchain_ast_IsPattern_t, f_inner), offsetof(vader_struct_toolchain_ast_IsPattern_t, f_bind_as) };
-const uint16_t vader_type_431_refs[] = { offsetof(vader_struct_toolchain_ast_IsPattern_t, f_span) };
-const uint16_t vader_type_432_ptrs[] = { offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_return_type) };
-const uint16_t vader_type_432_refs[] = { offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_span), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_params), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_body) };
-const uint16_t vader_type_433_ptrs[] = { offsetof(vader_struct_toolchain_ast_LetStmt_t, f_binding), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_ty), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_value) };
-const uint16_t vader_type_433_refs[] = { offsetof(vader_struct_toolchain_ast_LetStmt_t, f_span) };
-const uint16_t vader_type_434_ptrs[] = { offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_value) };
-const uint16_t vader_type_434_refs[] = { offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_span) };
-const uint16_t vader_type_435_ptrs[] = { offsetof(vader_struct_toolchain_ast_MatchArm_t, f_pattern), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_guard), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_body) };
-const uint16_t vader_type_435_refs[] = { offsetof(vader_struct_toolchain_ast_MatchArm_t, f_span) };
-const uint16_t vader_type_436_ptrs[] = { offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_scrutinee) };
-const uint16_t vader_type_436_refs[] = { offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_span), offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_arms) };
-const uint16_t vader_type_437_strs[] = { offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name) };
-const uint16_t vader_type_437_refs[] = { offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name_span) };
-const uint16_t vader_type_438_ptrs[] = { offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_inner) };
-const uint16_t vader_type_438_refs[] = { offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_span) };
-const uint16_t vader_type_439_strs[] = { offsetof(vader_struct_toolchain_ast_NamedNamespaceImport_t, f_name) };
-const uint16_t vader_type_440_strs[] = { offsetof(vader_struct_toolchain_ast_NamedVar_t, f_name) };
-const uint16_t vader_type_440_refs[] = { offsetof(vader_struct_toolchain_ast_NamedVar_t, f_span) };
-const uint16_t vader_type_441_ptrs[] = { offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_left), offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_fallback) };
-const uint16_t vader_type_441_refs[] = { offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_span) };
-const uint16_t vader_type_442_refs[] = { offsetof(vader_struct_toolchain_ast_NullLitExpr_t, f_span) };
-const uint16_t vader_type_443_refs[] = { offsetof(vader_struct_toolchain_ast_OrPattern_t, f_span), offsetof(vader_struct_toolchain_ast_OrPattern_t, f_patterns) };
-const uint16_t vader_type_444_strs[] = { offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_name) };
-const uint16_t vader_type_444_refs[] = { offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_span) };
-const uint16_t vader_type_445_ptrs[] = { offsetof(vader_struct_toolchain_ast_PatternLiteral_t, f_value) };
-const uint16_t vader_type_446_ptrs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_module) };
-const uint16_t vader_type_446_strs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_file) };
-const uint16_t vader_type_446_refs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_span), offsetof(vader_struct_toolchain_ast_Program_t, f_decls) };
-const uint16_t vader_type_447_ptrs[] = { offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_lower), offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_upper) };
-const uint16_t vader_type_447_refs[] = { offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_span) };
-const uint16_t vader_type_448_ptrs[] = { offsetof(vader_struct_toolchain_ast_RangePattern_t, f_lower), offsetof(vader_struct_toolchain_ast_RangePattern_t, f_upper) };
-const uint16_t vader_type_448_refs[] = { offsetof(vader_struct_toolchain_ast_RangePattern_t, f_span) };
-const uint16_t vader_type_449_strs[] = { offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name) };
-const uint16_t vader_type_449_refs[] = { offsetof(vader_struct_toolchain_ast_RestBinding_t, f_span), offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name_span) };
-const uint16_t vader_type_450_ptrs[] = { offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_value) };
-const uint16_t vader_type_450_refs[] = { offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_span) };
-const uint16_t vader_type_451_refs[] = { offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_elements) };
-const uint16_t vader_type_452_strs[] = { offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name) };
-const uint16_t vader_type_452_refs[] = { offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name_span) };
-const uint16_t vader_type_453_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_parts) };
-const uint16_t vader_type_454_ptrs[] = { offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_expr) };
-const uint16_t vader_type_454_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_span) };
-const uint16_t vader_type_455_strs[] = { offsetof(vader_struct_toolchain_ast_StringLitText_t, f_value) };
-const uint16_t vader_type_455_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitText_t, f_span) };
-const uint16_t vader_type_456_strs[] = { offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name) };
-const uint16_t vader_type_456_refs[] = { offsetof(vader_struct_toolchain_ast_StructDecl_t, f_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_fields), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_decorators) };
-const uint16_t vader_type_457_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_ty), offsetof(vader_struct_toolchain_ast_StructField_t, f_default_v) };
-const uint16_t vader_type_457_strs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_name) };
-const uint16_t vader_type_457_refs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_span) };
-const uint16_t vader_type_458_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_type_name) };
-const uint16_t vader_type_458_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_items) };
-const uint16_t vader_type_459_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_value) };
-const uint16_t vader_type_459_strs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_name) };
-const uint16_t vader_type_459_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitField_t, f_name_span) };
-const uint16_t vader_type_460_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_expr) };
-const uint16_t vader_type_460_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_span) };
-const uint16_t vader_type_461_refs[] = { offsetof(vader_struct_toolchain_ast_StructPattern_t, f_span), offsetof(vader_struct_toolchain_ast_StructPattern_t, f_fields) };
-const uint16_t vader_type_462_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_value) };
-const uint16_t vader_type_462_strs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_name) };
-const uint16_t vader_type_462_refs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_span), offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_name_span) };
-const uint16_t vader_type_463_ptrs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_requires) };
-const uint16_t vader_type_463_strs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_name) };
-const uint16_t vader_type_463_refs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_members), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_decorators) };
-const uint16_t vader_type_464_refs[] = { offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_elements) };
-const uint16_t vader_type_465_refs[] = { offsetof(vader_struct_toolchain_ast_TuplePattern_t, f_span), offsetof(vader_struct_toolchain_ast_TuplePattern_t, f_elements) };
-const uint16_t vader_type_466_ptrs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_aliased) };
-const uint16_t vader_type_466_strs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_name) };
-const uint16_t vader_type_466_refs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_decorators) };
-const uint16_t vader_type_467_ptrs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_bound), offsetof(vader_struct_toolchain_ast_TypeParam_t, f_default_v) };
-const uint16_t vader_type_467_strs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_name) };
-const uint16_t vader_type_467_refs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_span) };
-const uint16_t vader_type_468_ptrs[] = { offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_operand) };
-const uint16_t vader_type_468_refs[] = { offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_span) };
-const uint16_t vader_type_469_ptrs[] = { offsetof(vader_struct_toolchain_ast_WhileFor_t, f_cond) };
-const uint16_t vader_type_470_refs[] = { offsetof(vader_struct_toolchain_ast_WildcardBinding_t, f_span) };
-const uint16_t vader_type_472_refs[] = { offsetof(vader_struct_toolchain_ast_WildcardPattern_t, f_span) };
-const uint16_t vader_type_473_ptrs[] = { offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_value) };
-const uint16_t vader_type_473_refs[] = { offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_span) };
-const uint16_t vader_type_474_strs[] = { offsetof(vader_struct_toolchain_span_Position_t, f_file) };
-const uint16_t vader_type_475_refs[] = { offsetof(vader_struct_toolchain_span_Span_t, f_start), offsetof(vader_struct_toolchain_span_Span_t, f_end) };
-const uint16_t vader_type_476_strs[] = { offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_entry) };
-const uint16_t vader_type_476_refs[] = { offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_lower_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_module) };
-const uint16_t vader_type_477_refs[] = { offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_loaded), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typed), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_evaluated), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_resolver_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typecheck_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_comptime_diags) };
-const uint16_t vader_type_478_strs[] = { offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_entry) };
-const uint16_t vader_type_478_refs[] = { offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lowered), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lower_diags) };
-const uint16_t vader_type_490_strs[] = { offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_element_type_name) };
-const uint16_t vader_type_490_refs[] = { offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_elements) };
-const uint16_t vader_type_492_strs[] = { offsetof(vader_struct_vader_bytecode_BcExport_t, f_extern_name) };
-const uint16_t vader_type_493_strs[] = { offsetof(vader_struct_vader_bytecode_BcField_t, f_name) };
-const uint16_t vader_type_494_refs[] = { offsetof(vader_struct_vader_bytecode_BcFn_t, f_params) };
-const uint16_t vader_type_495_strs[] = { offsetof(vader_struct_vader_bytecode_BcFunction_t, f_name) };
-const uint16_t vader_type_495_refs[] = { offsetof(vader_struct_vader_bytecode_BcFunction_t, f_signature), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_locals), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_body), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_debug), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_jump_table) };
-const uint16_t vader_type_496_strs[] = { offsetof(vader_struct_vader_bytecode_BcImport_t, f_extern_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_mangled_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_header), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_library) };
-const uint16_t vader_type_496_refs[] = { offsetof(vader_struct_vader_bytecode_BcImport_t, f_signature) };
-const uint16_t vader_type_497_strs[] = { offsetof(vader_struct_vader_bytecode_BcLocal_t, f_name) };
-const uint16_t vader_type_498_refs[] = { offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_body), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_jump_table), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_debug) };
-const uint16_t vader_type_499_refs[] = { offsetof(vader_struct_vader_bytecode_BcPrimData_t, f_items) };
-const uint16_t vader_type_501_strs[] = { offsetof(vader_struct_vader_bytecode_BcRef_t, f_trait_name) };
-const uint16_t vader_type_502_refs[] = { offsetof(vader_struct_vader_bytecode_BcSignature_t, f_params), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_types), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_names), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_mutable), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_by_address) };
-const uint16_t vader_type_503_refs[] = { offsetof(vader_struct_vader_bytecode_BcStrData_t, f_values) };
-const uint16_t vader_type_504_strs[] = { offsetof(vader_struct_vader_bytecode_BcStruct_t, f_name), offsetof(vader_struct_vader_bytecode_BcStruct_t, f_c_name) };
-const uint16_t vader_type_504_refs[] = { offsetof(vader_struct_vader_bytecode_BcStruct_t, f_fields) };
-const uint16_t vader_type_505_refs[] = { offsetof(vader_struct_vader_bytecode_BcUnion_t, f_variants) };
-const uint16_t vader_type_506_strs[] = { offsetof(vader_struct_vader_bytecode_BcValArray_t, f_element_type_name) };
-const uint16_t vader_type_506_refs[] = { offsetof(vader_struct_vader_bytecode_BcValArray_t, f_elements) };
-const uint16_t vader_type_508_strs[] = { offsetof(vader_struct_vader_bytecode_BcValStr_t, f_value) };
-const uint16_t vader_type_509_refs[] = { offsetof(vader_struct_vader_bytecode_BcValStruct_t, f_fields) };
-const uint16_t vader_type_525_strs[] = { offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_name) };
-const uint16_t vader_type_525_refs[] = { offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_types), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_strings), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_data_pool), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_functions), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_imports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_exports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_impl_table), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_vtables) };
-const uint16_t vader_type_526_ptrs[] = { offsetof(vader_struct_vader_bytecode_CLayout_t, f_unknown_field) };
-const uint16_t vader_type_526_refs[] = { offsetof(vader_struct_vader_bytecode_CLayout_t, f_offsets) };
-const uint16_t vader_type_531_strs[] = { offsetof(vader_struct_vader_bytecode_Convert_t, f_from_name) };
-const uint16_t vader_type_533_strs[] = { offsetof(vader_struct_vader_bytecode_DebugPos_t, f_file) };
-const uint16_t vader_type_538_refs[] = { offsetof(vader_struct_vader_bytecode_EmitOptions_t, f_keep_mangles) };
-const uint16_t vader_type_539_refs[] = { offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_type_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_strings), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_string_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_functions), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_imports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_exports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types_by_fn) };
-const uint16_t vader_type_598_strs[] = { offsetof(vader_struct_vader_bytecode_ImplEntry_t, f_trait_name) };
-const uint16_t vader_type_618_ptrs[] = { offsetof(vader_struct_vader_bytecode_ReturnLit_t, f_value) };
-const uint16_t vader_type_649_strs[] = { offsetof(vader_struct_vader_bytecode_Unreachable_t, f_reason) };
-const uint16_t vader_type_650_strs[] = { offsetof(vader_struct_vader_bytecode_VirtualCall_t, f_vtable_key) };
-const uint16_t vader_type_652_strs[] = { offsetof(vader_struct_vader_bytecode_VtableRow_t, f_key) };
-const uint16_t vader_type_652_refs[] = { offsetof(vader_struct_vader_bytecode_VtableRow_t, f_entries) };
-const uint16_t vader_type_653_refs[] = { offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_break_targets) };
-const uint16_t vader_type_654_strs[] = { offsetof(vader_struct_vader_c_emit_CProgram_t, f_header), offsetof(vader_struct_vader_c_emit_CProgram_t, f_imports), offsetof(vader_struct_vader_c_emit_CProgram_t, f_globals) };
-const uint16_t vader_type_654_refs[] = { offsetof(vader_struct_vader_c_emit_CProgram_t, f_units), offsetof(vader_struct_vader_c_emit_CProgram_t, f_unit_names) };
-const uint16_t vader_type_655_strs[] = { offsetof(vader_struct_vader_c_emit_CoalesceResult_t, f_body) };
-const uint16_t vader_type_655_refs[] = { offsetof(vader_struct_vader_c_emit_CoalesceResult_t, f_types) };
-const uint16_t vader_type_656_strs[] = { offsetof(vader_struct_vader_c_emit_CopyLine_t, f_local) };
-const uint16_t vader_type_657_strs[] = { offsetof(vader_struct_vader_c_emit_DefLine_t, f_indent), offsetof(vader_struct_vader_c_emit_DefLine_t, f_expr) };
-const uint16_t vader_type_658_refs[] = { offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_module), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_struct_c_names), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_ids), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_table), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_may_alloc), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_internal_fns) };
-const uint16_t vader_type_659_strs[] = { offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_entry_mangled) };
-const uint16_t vader_type_659_refs[] = { offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_atom_universe) };
-const uint16_t vader_type_660_refs[] = { offsetof(vader_struct_vader_c_emit_FnState_t, f_ctx), offsetof(vader_struct_vader_c_emit_FnState_t, f_function), offsetof(vader_struct_vader_c_emit_FnState_t, f_out), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack), offsetof(vader_struct_vader_c_emit_FnState_t, f_tmp_types), offsetof(vader_struct_vader_c_emit_FnState_t, f_scopes), offsetof(vader_struct_vader_c_emit_FnState_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_break_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_resolved_arrays), offsetof(vader_struct_vader_c_emit_FnState_t, f_pinned_resolves), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack_storages) };
-const uint16_t vader_type_661_refs[] = { offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_fn_ref_type), offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_is_closure) };
-const uint16_t vader_type_663_strs[] = { offsetof(vader_struct_vader_c_emit_SlotFill_t, f_cty) };
-const uint16_t vader_type_665_strs[] = { offsetof(vader_struct_vader_c_emit_StackExpr_t, f_text) };
-const uint16_t vader_type_666_strs[] = { offsetof(vader_struct_vader_c_emit_StackLit_t, f_text) };
-const uint16_t vader_type_668_strs[] = { offsetof(vader_struct_vader_c_emit_StackStorage_t, f_cname), offsetof(vader_struct_vader_c_emit_StackStorage_t, f_storage) };
-const uint16_t vader_type_669_strs[] = { offsetof(vader_struct_vader_c_emit_StackTmp_t, f_name) };
-const uint16_t vader_type_670_refs[] = { offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ptr_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_str_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ref_offsets) };
-const uint16_t vader_type_671_strs[] = { offsetof(vader_struct_vader_comptime_ArrayValue_t, f_element_type_name) };
-const uint16_t vader_type_671_refs[] = { offsetof(vader_struct_vader_comptime_ArrayValue_t, f_elements) };
-const uint16_t vader_type_674_refs[] = { offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_typed), offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_bindings) };
-const uint16_t vader_type_675_refs[] = { offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_order), offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_cycle_diags) };
-const uint16_t vader_type_676_ptrs[] = { offsetof(vader_struct_vader_comptime_EvalResult_t, f_value), offsetof(vader_struct_vader_comptime_EvalResult_t, f_diag) };
-const uint16_t vader_type_677_refs[] = { offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_comptime_decls) };
-const uint16_t vader_type_678_refs[] = { offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_modules), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_baked_consts), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_exprs), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_instances), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_vm_required) };
-const uint16_t vader_type_679_strs[] = { offsetof(vader_struct_vader_comptime_FloatValue_t, f_type_name) };
-const uint16_t vader_type_680_strs[] = { offsetof(vader_struct_vader_comptime_GenericInstance_t, f_display_key) };
-const uint16_t vader_type_680_refs[] = { offsetof(vader_struct_vader_comptime_GenericInstance_t, f_symbol), offsetof(vader_struct_vader_comptime_GenericInstance_t, f_args) };
-const uint16_t vader_type_681_refs[] = { offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_by_key), offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_order) };
-const uint16_t vader_type_682_strs[] = { offsetof(vader_struct_vader_comptime_IntValue_t, f_type_name) };
-const uint16_t vader_type_683_ptrs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_decl), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_symbol), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_module) };
-const uint16_t vader_type_683_strs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_mangled) };
-const uint16_t vader_type_683_refs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_subst), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_type_arguments) };
-const uint16_t vader_type_684_refs[] = { offsetof(vader_struct_vader_comptime_NodeRecord_t, f_decl), offsetof(vader_struct_vader_comptime_NodeRecord_t, f_dependency_ids) };
-const uint16_t vader_type_685_refs[] = { offsetof(vader_struct_vader_comptime_Nodes_t, f_by_id), offsetof(vader_struct_vader_comptime_Nodes_t, f_order), offsetof(vader_struct_vader_comptime_Nodes_t, f_by_symbol) };
-const uint16_t vader_type_687_strs[] = { offsetof(vader_struct_vader_comptime_StringValue_t, f_value) };
-const uint16_t vader_type_688_strs[] = { offsetof(vader_struct_vader_comptime_StructValue_t, f_type_name) };
-const uint16_t vader_type_688_refs[] = { offsetof(vader_struct_vader_comptime_StructValue_t, f_fields) };
-const uint16_t vader_type_689_ptrs[] = { offsetof(vader_struct_vader_comptime_TypeValue_t, f_value) };
-const uint16_t vader_type_690_ptrs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_decl_type) };
-const uint16_t vader_type_690_strs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_module_id), offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_callee_name) };
-const uint16_t vader_type_690_refs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_span) };
-const uint16_t vader_type_692_strs[] = { offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_id), offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_message) };
-const uint16_t vader_type_693_strs[] = { offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_detail) };
-const uint16_t vader_type_693_refs[] = { offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_code), offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_primary) };
-const uint16_t vader_type_695_strs[] = { offsetof(vader_struct_vader_lexer_Lexer_t, f_src), offsetof(vader_struct_vader_lexer_Lexer_t, f_file) };
-const uint16_t vader_type_695_refs[] = { offsetof(vader_struct_vader_lexer_Lexer_t, f_bytes), offsetof(vader_struct_vader_lexer_Lexer_t, f_tokens), offsetof(vader_struct_vader_lexer_Lexer_t, f_errors), offsetof(vader_struct_vader_lexer_Lexer_t, f_interp_stack) };
-const uint16_t vader_type_696_ptrs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_value) };
-const uint16_t vader_type_696_strs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_text) };
-const uint16_t vader_type_696_refs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_span) };
-const uint16_t vader_type_697_strs[] = { offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_element_type_name) };
-const uint16_t vader_type_697_refs[] = { offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_literal) };
-const uint16_t vader_type_698_refs[] = { offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_aliases), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_closures), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_escaped), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_bound) };
-const uint16_t vader_type_699_refs[] = { offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_by_mangle), offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_by_symid), offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_memo) };
-const uint16_t vader_type_700_refs[] = { offsetof(vader_struct_vader_lower_BlockCtx_t, f_defers) };
-const uint16_t vader_type_701_ptrs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_element_type), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_pattern) };
-const uint16_t vader_type_701_strs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_binding_name) };
-const uint16_t vader_type_701_refs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_binding_symbol), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_user_body) };
-const uint16_t vader_type_702_ptrs[] = { offsetof(vader_struct_vader_lower_BveCtx_t, f_usize_ty), offsetof(vader_struct_vader_lower_BveCtx_t, f_u8_ty) };
-const uint16_t vader_type_702_refs[] = { offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_len_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_at_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_candidates), offsetof(vader_struct_vader_lower_BveCtx_t, f_disq), offsetof(vader_struct_vader_lower_BveCtx_t, f_bound), offsetof(vader_struct_vader_lower_BveCtx_t, f_reassigned) };
-const uint16_t vader_type_703_ptrs[] = { offsetof(vader_struct_vader_lower_Capture_t, f_type) };
-const uint16_t vader_type_703_refs[] = { offsetof(vader_struct_vader_lower_Capture_t, f_symbol) };
-const uint16_t vader_type_704_ptrs[] = { offsetof(vader_struct_vader_lower_CellInit_t, f_value), offsetof(vader_struct_vader_lower_CellInit_t, f_slot_type) };
-const uint16_t vader_type_705_ptrs[] = { offsetof(vader_struct_vader_lower_ClosureAlias_t, f_env_type) };
-const uint16_t vader_type_705_refs[] = { offsetof(vader_struct_vader_lower_ClosureAlias_t, f_fn_sym) };
-const uint16_t vader_type_706_refs[] = { offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_captured_symbols), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_lambda_captures), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_defer_captures) };
-const uint16_t vader_type_707_strs[] = { offsetof(vader_struct_vader_lower_CollectCtx_t, f_self_mangle) };
-const uint16_t vader_type_707_refs[] = { offsetof(vader_struct_vader_lower_CollectCtx_t, f_param_ids), offsetof(vader_struct_vader_lower_CollectCtx_t, f_counts) };
-const uint16_t vader_type_708_ptrs[] = { offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_call_type) };
-const uint16_t vader_type_708_refs[] = { offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_fn_symbol) };
-const uint16_t vader_type_709_refs[] = { offsetof(vader_struct_vader_lower_EntryTypes_t, f_typed), offsetof(vader_struct_vader_lower_EntryTypes_t, f_subst) };
-const uint16_t vader_type_710_ptrs[] = { offsetof(vader_struct_vader_lower_FluentCombinator_t, f_receiver), offsetof(vader_struct_vader_lower_FluentCombinator_t, f_fn_arg) };
-const uint16_t vader_type_711_ptrs[] = { offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_return_type), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_lifted_context), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_gen_inline_sink) };
-const uint16_t vader_type_711_refs[] = { offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_project), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_entry), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_typed), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_subst), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_types), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_blocks), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_comptime_bindings), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_pending_awaits) };
-const uint16_t vader_type_712_ptrs[] = { offsetof(vader_struct_vader_lower_GenBuild_t, f_state_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_i32_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_yield_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_result_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_suspended_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_async_any_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_resume_erased_ty) };
-const uint16_t vader_type_712_refs[] = { offsetof(vader_struct_vader_lower_GenBuild_t, f_self_sym), offsetof(vader_struct_vader_lower_GenBuild_t, f_span), offsetof(vader_struct_vader_lower_GenBuild_t, f_states), offsetof(vader_struct_vader_lower_GenBuild_t, f_field_map), offsetof(vader_struct_vader_lower_GenBuild_t, f_fields), offsetof(vader_struct_vader_lower_GenBuild_t, f_loop_stack), offsetof(vader_struct_vader_lower_GenBuild_t, f_fn_ctx) };
-const uint16_t vader_type_713_ptrs[] = { offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_sym), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_expr), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_output_elem) };
-const uint16_t vader_type_713_refs[] = { offsetof(vader_struct_vader_lower_GenComboLayer_t, f_decl), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_subst), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_owner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_loopvar), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_inner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_prelude), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_extra_sources) };
-const uint16_t vader_type_714_ptrs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_element_type) };
-const uint16_t vader_type_714_strs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_binding_name) };
-const uint16_t vader_type_714_refs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_binding_symbol), offsetof(vader_struct_vader_lower_GenInlineSink_t, f_body) };
-const uint16_t vader_type_715_refs[] = { offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_source), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_loopvar), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_prelude) };
-const uint16_t vader_type_716_refs[] = { offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_loopvar_span), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_prelude) };
-const uint16_t vader_type_717_strs[] = { offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_mangled), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_owner_module) };
-const uint16_t vader_type_717_refs[] = { offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_fn_symbol), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_type_args) };
-const uint16_t vader_type_718_refs[] = { offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_entry), offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_member) };
-const uint16_t vader_type_719_strs[] = { offsetof(vader_struct_vader_lower_ImplTraitMethod_t, f_trait_name), offsetof(vader_struct_vader_lower_ImplTraitMethod_t, f_method) };
-const uint16_t vader_type_720_ptrs[] = { offsetof(vader_struct_vader_lower_InlineInfo_t, f_body) };
-const uint16_t vader_type_720_refs[] = { offsetof(vader_struct_vader_lower_InlineInfo_t, f_params), offsetof(vader_struct_vader_lower_InlineInfo_t, f_use_counts) };
-const uint16_t vader_type_721_ptrs[] = { offsetof(vader_struct_vader_lower_IterChain_t, f_range_lower), offsetof(vader_struct_vader_lower_IterChain_t, f_range_upper), offsetof(vader_struct_vader_lower_IterChain_t, f_element_type), offsetof(vader_struct_vader_lower_IterChain_t, f_array_expr), offsetof(vader_struct_vader_lower_IterChain_t, f_source), offsetof(vader_struct_vader_lower_IterChain_t, f_gen_layer), offsetof(vader_struct_vader_lower_IterChain_t, f_iter_expr) };
-const uint16_t vader_type_721_refs[] = { offsetof(vader_struct_vader_lower_IterChain_t, f_span) };
-const uint16_t vader_type_722_ptrs[] = { offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_type) };
-const uint16_t vader_type_722_refs[] = { offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_symbol), offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_capture_fields) };
-const uint16_t vader_type_723_ptrs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_pattern) };
-const uint16_t vader_type_723_strs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_name) };
-const uint16_t vader_type_723_refs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_symbol) };
-const uint16_t vader_type_724_ptrs[] = { offsetof(vader_struct_vader_lower_LoopFrame_t, f_label) };
-const uint16_t vader_type_725_refs[] = { offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_evaluated), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_loaded), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_typed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_impls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_core_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_module_symbol_cache), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_comptime_value_by_symbol_id), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_local_symbol_indices), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_closures), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_synth_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_concat_fn_syms), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_concat_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_lambda_seq), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_mangled), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_fns), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_consts), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_const_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_impl_keys), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_struct_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_referenced_impl_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_virtually_dispatched_traits), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_constructed_struct_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_array_blanket_elems), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_pending_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_collected), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_processed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_diags) };
-const uint16_t vader_type_726_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_target) };
-const uint16_t vader_type_726_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_span) };
-const uint16_t vader_type_727_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_type) };
-const uint16_t vader_type_727_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_span), offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_elements) };
-const uint16_t vader_type_728_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_target), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_value) };
-const uint16_t vader_type_728_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_span) };
-const uint16_t vader_type_729_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_hi) };
-const uint16_t vader_type_729_refs[] = { offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_span) };
-const uint16_t vader_type_730_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredAssign_t, f_target), offsetof(vader_struct_vader_lower_LoweredAssign_t, f_value) };
-const uint16_t vader_type_730_refs[] = { offsetof(vader_struct_vader_lower_LoweredAssign_t, f_span) };
-const uint16_t vader_type_731_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target_type), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_awaited) };
-const uint16_t vader_type_731_refs[] = { offsetof(vader_struct_vader_lower_LoweredAwait_t, f_span), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target) };
-const uint16_t vader_type_732_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBinary_t, f_type), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_left), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_right) };
-const uint16_t vader_type_732_refs[] = { offsetof(vader_struct_vader_lower_LoweredBinary_t, f_span) };
-const uint16_t vader_type_733_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBlock_t, f_type), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_trailing) };
-const uint16_t vader_type_733_refs[] = { offsetof(vader_struct_vader_lower_LoweredBlock_t, f_span), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_stmts) };
-const uint16_t vader_type_734_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_type) };
-const uint16_t vader_type_734_refs[] = { offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_span) };
-const uint16_t vader_type_735_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBreak_t, f_label) };
-const uint16_t vader_type_735_refs[] = { offsetof(vader_struct_vader_lower_LoweredBreak_t, f_span) };
-const uint16_t vader_type_736_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCall_t, f_type), offsetof(vader_struct_vader_lower_LoweredCall_t, f_callee) };
-const uint16_t vader_type_736_refs[] = { offsetof(vader_struct_vader_lower_LoweredCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredCall_t, f_args) };
-const uint16_t vader_type_737_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCast_t, f_type), offsetof(vader_struct_vader_lower_LoweredCast_t, f_value) };
-const uint16_t vader_type_737_refs[] = { offsetof(vader_struct_vader_lower_LoweredCast_t, f_span) };
-const uint16_t vader_type_738_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_value_type) };
-const uint16_t vader_type_738_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_span) };
-const uint16_t vader_type_739_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value_type) };
-const uint16_t vader_type_739_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_span) };
-const uint16_t vader_type_740_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value_type) };
-const uint16_t vader_type_740_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_span) };
-const uint16_t vader_type_741_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_type) };
-const uint16_t vader_type_741_refs[] = { offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_span) };
-const uint16_t vader_type_742_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_type), offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_value) };
-const uint16_t vader_type_742_strs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_mangled) };
-const uint16_t vader_type_742_refs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_origin) };
-const uint16_t vader_type_743_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredContinue_t, f_label) };
-const uint16_t vader_type_743_refs[] = { offsetof(vader_struct_vader_lower_LoweredContinue_t, f_span) };
-const uint16_t vader_type_744_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_type) };
-const uint16_t vader_type_744_refs[] = { offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_span) };
-const uint16_t vader_type_745_refs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPopExec_t, f_span) };
-const uint16_t vader_type_746_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_thunk) };
-const uint16_t vader_type_746_refs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_span) };
-const uint16_t vader_type_747_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_expr) };
-const uint16_t vader_type_747_refs[] = { offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_span) };
-const uint16_t vader_type_748_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_type), offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_target) };
-const uint16_t vader_type_748_strs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_field) };
-const uint16_t vader_type_748_refs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_span) };
-const uint16_t vader_type_749_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_type) };
-const uint16_t vader_type_749_refs[] = { offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_span) };
-const uint16_t vader_type_750_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_return_type), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_body) };
-const uint16_t vader_type_750_strs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_mangled) };
-const uint16_t vader_type_750_refs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_params), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_origin) };
-const uint16_t vader_type_751_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIdent_t, f_type) };
-const uint16_t vader_type_751_refs[] = { offsetof(vader_struct_vader_lower_LoweredIdent_t, f_span), offsetof(vader_struct_vader_lower_LoweredIdent_t, f_symbol) };
-const uint16_t vader_type_752_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIf_t, f_type), offsetof(vader_struct_vader_lower_LoweredIf_t, f_cond), offsetof(vader_struct_vader_lower_LoweredIf_t, f_else_block) };
-const uint16_t vader_type_752_refs[] = { offsetof(vader_struct_vader_lower_LoweredIf_t, f_span), offsetof(vader_struct_vader_lower_LoweredIf_t, f_then_block) };
-const uint16_t vader_type_753_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIndex_t, f_type), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_target), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_index) };
-const uint16_t vader_type_753_refs[] = { offsetof(vader_struct_vader_lower_LoweredIndex_t, f_span) };
-const uint16_t vader_type_754_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_type) };
-const uint16_t vader_type_754_refs[] = { offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_span) };
-const uint16_t vader_type_755_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_type) };
-const uint16_t vader_type_755_strs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_name) };
-const uint16_t vader_type_755_refs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_args) };
-const uint16_t vader_type_756_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_type), offsetof(vader_struct_vader_lower_LoweredLet_t, f_value) };
-const uint16_t vader_type_756_strs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_name) };
-const uint16_t vader_type_756_refs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_span), offsetof(vader_struct_vader_lower_LoweredLet_t, f_symbol) };
-const uint16_t vader_type_757_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredLoop_t, f_label), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_cond) };
-const uint16_t vader_type_757_refs[] = { offsetof(vader_struct_vader_lower_LoweredLoop_t, f_span), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_body) };
-const uint16_t vader_type_758_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_type), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_env) };
-const uint16_t vader_type_758_refs[] = { offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_span), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_fn_symbol) };
-const uint16_t vader_type_759_strs[] = { offsetof(vader_struct_vader_lower_LoweredModule_t, f_module_id), offsetof(vader_struct_vader_lower_LoweredModule_t, f_display_path) };
-const uint16_t vader_type_759_refs[] = { offsetof(vader_struct_vader_lower_LoweredModule_t, f_decls) };
-const uint16_t vader_type_760_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_type) };
-const uint16_t vader_type_760_refs[] = { offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_span) };
-const uint16_t vader_type_761_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_type) };
-const uint16_t vader_type_761_strs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_name) };
-const uint16_t vader_type_761_refs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_symbol) };
-const uint16_t vader_type_762_strs[] = { offsetof(vader_struct_vader_lower_LoweredProject_t, f_entry) };
-const uint16_t vader_type_762_refs[] = { offsetof(vader_struct_vader_lower_LoweredProject_t, f_modules), offsetof(vader_struct_vader_lower_LoweredProject_t, f_vtable_entries), offsetof(vader_struct_vader_lower_LoweredProject_t, f_data_pool), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_fn_wrap), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_inline), offsetof(vader_struct_vader_lower_LoweredProject_t, f_trait_membership) };
-const uint16_t vader_type_763_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredReturn_t, f_value) };
-const uint16_t vader_type_763_refs[] = { offsetof(vader_struct_vader_lower_LoweredReturn_t, f_span) };
-const uint16_t vader_type_764_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_type) };
-const uint16_t vader_type_764_strs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_value) };
-const uint16_t vader_type_764_refs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_span) };
-const uint16_t vader_type_765_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_hi) };
-const uint16_t vader_type_765_refs[] = { offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_span) };
-const uint16_t vader_type_766_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_mangled) };
-const uint16_t vader_type_766_refs[] = { offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_fields), offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_origin) };
-const uint16_t vader_type_767_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructField_t, f_type) };
-const uint16_t vader_type_767_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructField_t, f_name) };
-const uint16_t vader_type_768_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_type) };
-const uint16_t vader_type_768_refs[] = { offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_span), offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_fields) };
-const uint16_t vader_type_769_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructLitField_t, f_value) };
-const uint16_t vader_type_769_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructLitField_t, f_name) };
-const uint16_t vader_type_770_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_type), offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_value), offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_check_type) };
-const uint16_t vader_type_770_refs[] = { offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_span) };
-const uint16_t vader_type_771_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_type), offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_value) };
-const uint16_t vader_type_771_refs[] = { offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_span) };
-const uint16_t vader_type_772_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredUnary_t, f_type), offsetof(vader_struct_vader_lower_LoweredUnary_t, f_operand) };
-const uint16_t vader_type_772_refs[] = { offsetof(vader_struct_vader_lower_LoweredUnary_t, f_span) };
-const uint16_t vader_type_773_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_type) };
-const uint16_t vader_type_773_strs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_reason) };
-const uint16_t vader_type_773_refs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_span) };
-const uint16_t vader_type_774_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_type), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_receiver) };
-const uint16_t vader_type_774_strs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_trait_name), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_method) };
-const uint16_t vader_type_774_refs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_args) };
-const uint16_t vader_type_775_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_struct_type) };
-const uint16_t vader_type_775_strs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_trait_name), offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_method_name) };
-const uint16_t vader_type_775_refs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_fn_symbol) };
-const uint16_t vader_type_776_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredYield_t, f_value) };
-const uint16_t vader_type_776_refs[] = { offsetof(vader_struct_vader_lower_LoweredYield_t, f_span) };
-const uint16_t vader_type_777_strs[] = { offsetof(vader_struct_vader_lower_OpTraitInfo_t, f_trait_name), offsetof(vader_struct_vader_lower_OpTraitInfo_t, f_method_name) };
-const uint16_t vader_type_778_strs[] = { offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_module_id), offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_key) };
-const uint16_t vader_type_778_refs[] = { offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_decl) };
-const uint16_t vader_type_779_strs[] = { offsetof(vader_struct_vader_lower_PrimDataPoolEntry_t, f_element_type_name) };
-const uint16_t vader_type_779_refs[] = { offsetof(vader_struct_vader_lower_PrimDataPoolEntry_t, f_items) };
-const uint16_t vader_type_780_refs[] = { offsetof(vader_struct_vader_lower_StrDataPoolEntry_t, f_values) };
-const uint16_t vader_type_781_ptrs[] = { offsetof(vader_struct_vader_lower_TerminalPredCall_t, f_chain_arg), offsetof(vader_struct_vader_lower_TerminalPredCall_t, f_pred) };
-const uint16_t vader_type_782_refs[] = { offsetof(vader_struct_vader_lower_TransformCtx_t, f_index), offsetof(vader_struct_vader_lower_TransformCtx_t, f_param_map) };
-const uint16_t vader_type_783_refs[] = { offsetof(vader_struct_vader_lower_UfcsMember_t, f_symbol), offsetof(vader_struct_vader_lower_UfcsMember_t, f_arg_types) };
-const uint16_t vader_type_784_refs[] = { offsetof(vader_struct_vader_lower_WalkCtx_t, f_typed), offsetof(vader_struct_vader_lower_WalkCtx_t, f_symbol_index), offsetof(vader_struct_vader_lower_WalkCtx_t, f_analysis), offsetof(vader_struct_vader_lower_WalkCtx_t, f_empty_captures) };
-const uint16_t vader_type_785_ptrs[] = { offsetof(vader_struct_vader_lower_WrapResult_t, f_iter), offsetof(vader_struct_vader_lower_WrapResult_t, f_iter_type) };
-const uint16_t vader_type_786_refs[] = { offsetof(vader_struct_vader_midir_AnnotatedProject_t, f_project), offsetof(vader_struct_vader_midir_AnnotatedProject_t, f_stats) };
-const uint16_t vader_type_787_ptrs[] = { offsetof(vader_struct_vader_midir_BasicBlock_t, f_terminator) };
-const uint16_t vader_type_787_refs[] = { offsetof(vader_struct_vader_midir_BasicBlock_t, f_instructions), offsetof(vader_struct_vader_midir_BasicBlock_t, f_span) };
-const uint16_t vader_type_788_ptrs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_return_type) };
-const uint16_t vader_type_788_strs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_mangled), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_extern_name), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_c_header), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_c_library) };
-const uint16_t vader_type_788_refs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_params), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_origin) };
-const uint16_t vader_type_789_ptrs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_return_type) };
-const uint16_t vader_type_789_strs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_mangled), offsetof(vader_struct_vader_midir_CFGFunction_t, f_extern_name) };
-const uint16_t vader_type_789_refs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_params), offsetof(vader_struct_vader_midir_CFGFunction_t, f_locals), offsetof(vader_struct_vader_midir_CFGFunction_t, f_blocks), offsetof(vader_struct_vader_midir_CFGFunction_t, f_origin) };
-const uint16_t vader_type_790_ptrs[] = { offsetof(vader_struct_vader_midir_CFGLocal_t, f_type), offsetof(vader_struct_vader_midir_CFGLocal_t, f_symbol) };
-const uint16_t vader_type_790_strs[] = { offsetof(vader_struct_vader_midir_CFGLocal_t, f_name) };
-const uint16_t vader_type_791_strs[] = { offsetof(vader_struct_vader_midir_CFGModule_t, f_module_id), offsetof(vader_struct_vader_midir_CFGModule_t, f_display_path) };
-const uint16_t vader_type_791_refs[] = { offsetof(vader_struct_vader_midir_CFGModule_t, f_functions), offsetof(vader_struct_vader_midir_CFGModule_t, f_externs), offsetof(vader_struct_vader_midir_CFGModule_t, f_struct_decls) };
-const uint16_t vader_type_792_ptrs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_type) };
-const uint16_t vader_type_792_strs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_name) };
-const uint16_t vader_type_792_refs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_symbol) };
-const uint16_t vader_type_793_refs[] = { offsetof(vader_struct_vader_midir_CFGProject_t, f_modules), offsetof(vader_struct_vader_midir_CFGProject_t, f_vtable_entries), offsetof(vader_struct_vader_midir_CFGProject_t, f_strings), offsetof(vader_struct_vader_midir_CFGProject_t, f_data_pool), offsetof(vader_struct_vader_midir_CFGProject_t, f_trait_membership) };
-const uint16_t vader_type_794_strs[] = { offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_mangled) };
-const uint16_t vader_type_794_refs[] = { offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_fields), offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_origin) };
-const uint16_t vader_type_795_ptrs[] = { offsetof(vader_struct_vader_midir_CFGStructField_t, f_type) };
-const uint16_t vader_type_795_strs[] = { offsetof(vader_struct_vader_midir_CFGStructField_t, f_name) };
-const uint16_t vader_type_802_refs[] = { offsetof(vader_struct_vader_midir_EscapeResult_t, f_escaping), offsetof(vader_struct_vader_midir_EscapeResult_t, f_alias_of), offsetof(vader_struct_vader_midir_EscapeResult_t, f_alias_from) };
-const uint16_t vader_type_804_ptrs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_return_type), offsetof(vader_struct_vader_midir_FnCtx_t, f_current) };
-const uint16_t vader_type_804_strs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_mangled) };
-const uint16_t vader_type_804_refs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_project), offsetof(vader_struct_vader_midir_FnCtx_t, f_origin), offsetof(vader_struct_vader_midir_FnCtx_t, f_params), offsetof(vader_struct_vader_midir_FnCtx_t, f_locals), offsetof(vader_struct_vader_midir_FnCtx_t, f_local_by_sym_id), offsetof(vader_struct_vader_midir_FnCtx_t, f_blocks), offsetof(vader_struct_vader_midir_FnCtx_t, f_loop_stack) };
-const uint16_t vader_type_805_refs[] = { offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_fn_), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_pinned_types_bucket), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_slot), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_project), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_string_index_map), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_local_to_slot), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_preds), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_idom), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_ipostdom), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_loop_exit), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_scopes), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_pending), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_wrapped_loop_headers), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_hints) };
-const uint16_t vader_type_806_strs[] = { offsetof(vader_struct_vader_midir_FnMetadata_t, f_extern_name), offsetof(vader_struct_vader_midir_FnMetadata_t, f_c_library), offsetof(vader_struct_vader_midir_FnMetadata_t, f_c_header) };
-const uint16_t vader_type_807_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArrayGet_t, f_type) };
-const uint16_t vader_type_807_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayGet_t, f_span) };
-const uint16_t vader_type_808_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayLen_t, f_span) };
-const uint16_t vader_type_809_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_type) };
-const uint16_t vader_type_809_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_span), offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_elements) };
-const uint16_t vader_type_810_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayPush_t, f_span) };
-const uint16_t vader_type_811_refs[] = { offsetof(vader_struct_vader_midir_InstrArraySet_t, f_span) };
-const uint16_t vader_type_812_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArraySlice_t, f_type) };
-const uint16_t vader_type_812_refs[] = { offsetof(vader_struct_vader_midir_InstrArraySlice_t, f_span) };
-const uint16_t vader_type_813_ptrs[] = { offsetof(vader_struct_vader_midir_InstrBinOp_t, f_type) };
-const uint16_t vader_type_813_refs[] = { offsetof(vader_struct_vader_midir_InstrBinOp_t, f_span) };
-const uint16_t vader_type_814_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCall_t, f_dst), offsetof(vader_struct_vader_midir_InstrCall_t, f_type) };
-const uint16_t vader_type_814_refs[] = { offsetof(vader_struct_vader_midir_InstrCall_t, f_span), offsetof(vader_struct_vader_midir_InstrCall_t, f_callee), offsetof(vader_struct_vader_midir_InstrCall_t, f_args) };
-const uint16_t vader_type_815_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_dst), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_fn_type), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_type) };
-const uint16_t vader_type_815_refs[] = { offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_span), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_args) };
-const uint16_t vader_type_816_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCast_t, f_type) };
-const uint16_t vader_type_816_refs[] = { offsetof(vader_struct_vader_midir_InstrCast_t, f_span) };
-const uint16_t vader_type_817_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellGet_t, f_value_type) };
-const uint16_t vader_type_817_refs[] = { offsetof(vader_struct_vader_midir_InstrCellGet_t, f_span) };
-const uint16_t vader_type_818_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellNew_t, f_value_type) };
-const uint16_t vader_type_818_refs[] = { offsetof(vader_struct_vader_midir_InstrCellNew_t, f_span) };
-const uint16_t vader_type_819_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellSet_t, f_value_type) };
-const uint16_t vader_type_819_refs[] = { offsetof(vader_struct_vader_midir_InstrCellSet_t, f_span) };
-const uint16_t vader_type_820_ptrs[] = { offsetof(vader_struct_vader_midir_InstrConst_t, f_value), offsetof(vader_struct_vader_midir_InstrConst_t, f_type) };
-const uint16_t vader_type_820_refs[] = { offsetof(vader_struct_vader_midir_InstrConst_t, f_span) };
-const uint16_t vader_type_821_ptrs[] = { offsetof(vader_struct_vader_midir_InstrDataConst_t, f_type) };
-const uint16_t vader_type_821_refs[] = { offsetof(vader_struct_vader_midir_InstrDataConst_t, f_span) };
-const uint16_t vader_type_822_refs[] = { offsetof(vader_struct_vader_midir_InstrDeferPopExec_t, f_span) };
-const uint16_t vader_type_823_refs[] = { offsetof(vader_struct_vader_midir_InstrDeferPush_t, f_span) };
-const uint16_t vader_type_824_ptrs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_type) };
-const uint16_t vader_type_824_strs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_field) };
-const uint16_t vader_type_824_refs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_span) };
-const uint16_t vader_type_825_strs[] = { offsetof(vader_struct_vader_midir_InstrFieldSet_t, f_field) };
-const uint16_t vader_type_825_refs[] = { offsetof(vader_struct_vader_midir_InstrFieldSet_t, f_span) };
-const uint16_t vader_type_826_ptrs[] = { offsetof(vader_struct_vader_midir_InstrFnRef_t, f_type) };
-const uint16_t vader_type_826_refs[] = { offsetof(vader_struct_vader_midir_InstrFnRef_t, f_span), offsetof(vader_struct_vader_midir_InstrFnRef_t, f_fn_symbol) };
-const uint16_t vader_type_827_ptrs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_dst) };
-const uint16_t vader_type_827_strs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_name) };
-const uint16_t vader_type_827_refs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_span), offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_args) };
-const uint16_t vader_type_828_ptrs[] = { offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_env_type), offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_type) };
-const uint16_t vader_type_828_refs[] = { offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_span), offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_fn_symbol) };
-const uint16_t vader_type_829_refs[] = { offsetof(vader_struct_vader_midir_InstrMove_t, f_span) };
-const uint16_t vader_type_830_ptrs[] = { offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_type) };
-const uint16_t vader_type_830_refs[] = { offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_span) };
-const uint16_t vader_type_831_ptrs[] = { offsetof(vader_struct_vader_midir_InstrStructNew_t, f_type) };
-const uint16_t vader_type_831_refs[] = { offsetof(vader_struct_vader_midir_InstrStructNew_t, f_span), offsetof(vader_struct_vader_midir_InstrStructNew_t, f_fields) };
-const uint16_t vader_type_832_ptrs[] = { offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_check_type) };
-const uint16_t vader_type_832_refs[] = { offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_span) };
-const uint16_t vader_type_833_ptrs[] = { offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_type), offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_value_type) };
-const uint16_t vader_type_833_refs[] = { offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_span) };
-const uint16_t vader_type_834_ptrs[] = { offsetof(vader_struct_vader_midir_InstrUnOp_t, f_type) };
-const uint16_t vader_type_834_refs[] = { offsetof(vader_struct_vader_midir_InstrUnOp_t, f_span) };
-const uint16_t vader_type_835_ptrs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_dst), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_type) };
-const uint16_t vader_type_835_strs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_trait_name), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_method) };
-const uint16_t vader_type_835_refs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_span), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_args) };
-const uint16_t vader_type_836_refs[] = { offsetof(vader_struct_vader_midir_Liveness_t, f_live_in), offsetof(vader_struct_vader_midir_Liveness_t, f_live_out) };
-const uint16_t vader_type_837_ptrs[] = { offsetof(vader_struct_vader_midir_LoopFrame_t, f_label) };
-const uint16_t vader_type_838_ptrs[] = { offsetof(vader_struct_vader_midir_MutableBlock_t, f_terminator) };
-const uint16_t vader_type_838_refs[] = { offsetof(vader_struct_vader_midir_MutableBlock_t, f_instructions), offsetof(vader_struct_vader_midir_MutableBlock_t, f_span) };
-const uint16_t vader_type_840_refs[] = { offsetof(vader_struct_vader_midir_ProjectCtx_t, f_strings), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_string_index), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_fn_wrap), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_inline) };
-const uint16_t vader_type_841_refs[] = { offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_set), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_first_get), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_terminator_get) };
-const uint16_t vader_type_842_strs[] = { offsetof(vader_struct_vader_midir_ScopeFrame_t, f_kind) };
-const uint16_t vader_type_843_refs[] = { offsetof(vader_struct_vader_midir_TermBranch_t, f_span) };
-const uint16_t vader_type_844_refs[] = { offsetof(vader_struct_vader_midir_TermCondBranch_t, f_span) };
-const uint16_t vader_type_845_ptrs[] = { offsetof(vader_struct_vader_midir_TermReturn_t, f_value) };
-const uint16_t vader_type_845_refs[] = { offsetof(vader_struct_vader_midir_TermReturn_t, f_span) };
-const uint16_t vader_type_846_strs[] = { offsetof(vader_struct_vader_midir_TermUnreachable_t, f_reason) };
-const uint16_t vader_type_846_refs[] = { offsetof(vader_struct_vader_midir_TermUnreachable_t, f_span) };
-const uint16_t vader_type_847_refs[] = { offsetof(vader_struct_vader_parser_CommaList__Any_t, f_items) };
-const uint16_t vader_type_848_refs[] = { offsetof(vader_struct_vader_parser_CommaList__CallArg_t, f_items) };
-const uint16_t vader_type_849_refs[] = { offsetof(vader_struct_vader_parser_CommaList__ImportName_t, f_items) };
-const uint16_t vader_type_850_refs[] = { offsetof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t, f_items) };
-const uint16_t vader_type_852_ptrs[] = { offsetof(vader_struct_vader_parser_FnBodyTail_t, f_body) };
-const uint16_t vader_type_853_refs[] = { offsetof(vader_struct_vader_parser_FnSignature_t, f_params), offsetof(vader_struct_vader_parser_FnSignature_t, f_type_params) };
-const uint16_t vader_type_855_strs[] = { offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_name), offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_result) };
-const uint16_t vader_type_855_refs[] = { offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_args) };
-const uint16_t vader_type_856_strs[] = { offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name) };
-const uint16_t vader_type_856_refs[] = { offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name_span) };
-const uint16_t vader_type_858_refs[] = { offsetof(vader_struct_vader_parser_ParsedSource_t, f_program), offsetof(vader_struct_vader_parser_ParsedSource_t, f_tokens), offsetof(vader_struct_vader_parser_ParsedSource_t, f_errors), offsetof(vader_struct_vader_parser_ParsedSource_t, f_id_factory) };
-const uint16_t vader_type_859_ptrs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_shr_pending_half) };
-const uint16_t vader_type_859_strs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_file) };
-const uint16_t vader_type_859_refs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_tokens), offsetof(vader_struct_vader_parser_Parser_t, f_errors), offsetof(vader_struct_vader_parser_Parser_t, f_pending_decls) };
-const uint16_t vader_type_860_strs[] = { offsetof(vader_struct_vader_parser_StringLitInfo_t, f_text) };
-const uint16_t vader_type_860_refs[] = { offsetof(vader_struct_vader_parser_StringLitInfo_t, f_span) };
-const uint16_t vader_type_861_refs[] = { offsetof(vader_struct_vader_resolver_CollectedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_imports), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_import_paths), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_wildcards) };
-const uint16_t vader_type_862_strs[] = { offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_name), offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_folder) };
-const uint16_t vader_type_862_refs[] = { offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_files) };
-const uint16_t vader_type_863_strs[] = { offsetof(vader_struct_vader_resolver_FileWildcards_t, f_file) };
-const uint16_t vader_type_863_refs[] = { offsetof(vader_struct_vader_resolver_FileWildcards_t, f_paths), offsetof(vader_struct_vader_resolver_FileWildcards_t, f_excludes) };
-const uint16_t vader_type_864_strs[] = { offsetof(vader_struct_vader_resolver_FolderBucket_t, f_name) };
-const uint16_t vader_type_864_refs[] = { offsetof(vader_struct_vader_resolver_FolderBucket_t, f_first_decl_span), offsetof(vader_struct_vader_resolver_FolderBucket_t, f_files) };
-const uint16_t vader_type_865_ptrs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_imported_name) };
-const uint16_t vader_type_865_strs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_path), offsetof(vader_struct_vader_resolver_ImportInfo_t, f_local) };
-const uint16_t vader_type_865_refs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_binding_span) };
-const uint16_t vader_type_866_refs[] = { offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_symbol_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_namespace_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_missing) };
-const uint16_t vader_type_867_strs[] = { offsetof(vader_struct_vader_resolver_IncludePath_t, f_dir), offsetof(vader_struct_vader_resolver_IncludePath_t, f_prefix) };
-const uint16_t vader_type_868_refs[] = { offsetof(vader_struct_vader_resolver_LoadedModule_t, f_module), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_collected), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_node_id_factory), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_discarded_bodies) };
-const uint16_t vader_type_869_ptrs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_project_root) };
-const uint16_t vader_type_869_strs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_entry) };
-const uint16_t vader_type_869_refs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_modules), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_factory), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_diags) };
-const uint16_t vader_type_870_refs[] = { offsetof(vader_struct_vader_resolver_Manifest_t, f_include_paths) };
-const uint16_t vader_type_871_strs[] = { offsetof(vader_struct_vader_resolver_Module_t, f_id), offsetof(vader_struct_vader_resolver_Module_t, f_display_path), offsetof(vader_struct_vader_resolver_Module_t, f_module_name) };
-const uint16_t vader_type_871_refs[] = { offsetof(vader_struct_vader_resolver_Module_t, f_files) };
-const uint16_t vader_type_872_strs[] = { offsetof(vader_struct_vader_resolver_ResolveState_t, f_module_path) };
-const uint16_t vader_type_872_refs[] = { offsetof(vader_struct_vader_resolver_ResolveState_t, f_idents), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolveState_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolveState_t, f_diags), offsetof(vader_struct_vader_resolver_ResolveState_t, f_scope), offsetof(vader_struct_vader_resolver_ResolveState_t, f_factory), offsetof(vader_struct_vader_resolver_ResolveState_t, f_ambiguous) };
-const uint16_t vader_type_873_refs[] = { offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_top_level), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_diags) };
-const uint16_t vader_type_874_strs[] = { offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_path), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_display_path) };
-const uint16_t vader_type_874_refs[] = { offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_imports_to), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_decls), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_diags), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_deprecated_messages), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_member_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_private_members) };
-const uint16_t vader_type_875_refs[] = { offsetof(vader_struct_vader_resolver_Scope_t, f_frames) };
-const uint16_t vader_type_876_strs[] = { offsetof(vader_struct_vader_resolver_SourceFile_t, f_path), offsetof(vader_struct_vader_resolver_SourceFile_t, f_content) };
-const uint16_t vader_type_876_refs[] = { offsetof(vader_struct_vader_resolver_SourceFile_t, f_program), offsetof(vader_struct_vader_resolver_SourceFile_t, f_id_factory) };
-const uint16_t vader_type_877_strs[] = { offsetof(vader_struct_vader_resolver_StampCtx_t, f_file) };
-const uint16_t vader_type_878_refs[] = { offsetof(vader_struct_vader_resolver_Subst_t, f_entries) };
-const uint16_t vader_type_879_strs[] = { offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_module_id) };
-const uint16_t vader_type_879_refs[] = { offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_symbol) };
-const uint16_t vader_type_880_refs[] = { offsetof(vader_struct_vader_resolver_TargetSelectors_t, f_os) };
-const uint16_t vader_type_881_ptrs[] = { offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_defined_at) };
-const uint16_t vader_type_881_strs[] = { offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_name), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module_name) };
-const uint16_t vader_type_885_ptrs[] = { offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_else_ty) };
-const uint16_t vader_type_885_strs[] = { offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_field_key) };
-const uint16_t vader_type_886_refs[] = { offsetof(vader_struct_vader_typecheck_CheckResult_t, f_typed), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_impls), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_others), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_all_modules) };
-const uint16_t vader_type_887_strs[] = { offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name) };
-const uint16_t vader_type_887_refs[] = { offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name_span) };
-const uint16_t vader_type_888_ptrs[] = { offsetof(vader_struct_vader_typecheck_DivergentNarrow_t, f_prev) };
-const uint16_t vader_type_888_strs[] = { offsetof(vader_struct_vader_typecheck_DivergentNarrow_t, f_field_key) };
-const uint16_t vader_type_889_ptrs[] = { offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_binding), offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_label) };
-const uint16_t vader_type_890_ptrs[] = { offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_static_ty) };
-const uint16_t vader_type_890_strs[] = { offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_field_key) };
-const uint16_t vader_type_891_ptrs[] = { offsetof(vader_struct_vader_typecheck_FnContext_t, f_return_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_self_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_yield_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_inferred_return) };
-const uint16_t vader_type_892_ptrs[] = { offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_element) };
-const uint16_t vader_type_892_strs[] = { offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_name), offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_module) };
-const uint16_t vader_type_893_ptrs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_for_symbol) };
-const uint16_t vader_type_893_strs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_module) };
-const uint16_t vader_type_893_refs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_decl), offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_trait_symbol) };
-const uint16_t vader_type_894_ptrs[] = { offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_ty) };
-const uint16_t vader_type_895_refs[] = { offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_user_index), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_all) };
-const uint16_t vader_type_896_ptrs[] = { offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_then_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_else_ty) };
-const uint16_t vader_type_896_strs[] = { offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_field_key) };
-const uint16_t vader_type_897_ptrs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_trait_decl) };
-const uint16_t vader_type_897_strs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_other_kind) };
-const uint16_t vader_type_898_strs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name) };
-const uint16_t vader_type_898_refs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name_span), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_decorators), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_refs) };
-const uint16_t vader_type_899_ptrs[] = { offsetof(vader_struct_vader_typecheck_NarrowSlot_t, f_ty) };
-const uint16_t vader_type_900_ptrs[] = { offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_prev) };
-const uint16_t vader_type_900_strs[] = { offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_field_key) };
-const uint16_t vader_type_902_ptrs[] = { offsetof(vader_struct_vader_typecheck_Substitution_t, f_self_type) };
-const uint16_t vader_type_902_refs[] = { offsetof(vader_struct_vader_typecheck_Substitution_t, f_type_params) };
-const uint16_t vader_type_903_ptrs[] = { offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_import_targets), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_range_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_field_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_async_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_run_async_main_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_current_fn_ctx) };
-const uint16_t vader_type_903_refs[] = { offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_resolved), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_into_coercions), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_empty_array_inits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_param_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_type_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decl_owners), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_methods), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrowed_bindings), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrowed_fields), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_kill_gens), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_field_kill_gens), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_kinds), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_external_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_exports), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_export_params), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_imported_fn_overloads), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_iter_element_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_target_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_key_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_set_value_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_ufcs_receiver_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_field_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_implemented_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_traits_by_sym), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_trait_args), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_node_spans), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_generator_symbols), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_extern_symbols), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_let_type_aliases), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_init_callee), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_var_iterable), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_annotation), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_init_index), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_binding_scrutinee), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_const_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_bounded_dispatch_trait), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_trait_dispatches), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_overload_result_callees), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_stack), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_target_labels) };
-const uint16_t vader_type_904_refs[] = { offsetof(vader_struct_vader_typecheck_TypedProject_t, f_modules) };
-const uint16_t vader_type_905_ptrs[] = { offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_curried), offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_first_param) };
-const uint16_t vader_type_907_ptrs[] = { offsetof(vader_struct_vader_types_ArrayType_t, f_element) };
-const uint16_t vader_type_908_ptrs[] = { offsetof(vader_struct_vader_types_DistinctType_t, f_backing) };
-const uint16_t vader_type_908_refs[] = { offsetof(vader_struct_vader_types_DistinctType_t, f_symbol) };
-const uint16_t vader_type_909_strs[] = { offsetof(vader_struct_vader_types_EnumType_t, f_repr) };
-const uint16_t vader_type_909_refs[] = { offsetof(vader_struct_vader_types_EnumType_t, f_symbol), offsetof(vader_struct_vader_types_EnumType_t, f_indices) };
-const uint16_t vader_type_910_ptrs[] = { offsetof(vader_struct_vader_types_FnType_t, f_return_type) };
-const uint16_t vader_type_910_refs[] = { offsetof(vader_struct_vader_types_FnType_t, f_params), offsetof(vader_struct_vader_types_FnType_t, f_params_mutable) };
-const uint16_t vader_type_915_strs[] = { offsetof(vader_struct_vader_types_PrimitiveMeta_t, f_name) };
-const uint16_t vader_type_916_strs[] = { offsetof(vader_struct_vader_types_PrimitiveType_t, f_name) };
-const uint16_t vader_type_918_refs[] = { offsetof(vader_struct_vader_types_StructType_t, f_symbol), offsetof(vader_struct_vader_types_StructType_t, f_args) };
-const uint16_t vader_type_919_refs[] = { offsetof(vader_struct_vader_types_TraitType_t, f_symbol), offsetof(vader_struct_vader_types_TraitType_t, f_args) };
-const uint16_t vader_type_920_refs[] = { offsetof(vader_struct_vader_types_TupleType_t, f_elements) };
-const uint16_t vader_type_922_refs[] = { offsetof(vader_struct_vader_types_TypeParamType_t, f_symbol) };
-const uint16_t vader_type_923_refs[] = { offsetof(vader_struct_vader_types_UnionType_t, f_variants) };
-const uint16_t vader_type_925_refs[] = { offsetof(vader_struct_vader_vm_ArrayVal_t, f_elements) };
-const uint16_t vader_type_928_refs[] = { offsetof(vader_struct_vader_vm_DebugController_t, f_output_sink), offsetof(vader_struct_vader_vm_DebugController_t, f_breakpoints), offsetof(vader_struct_vader_vm_DebugController_t, f_on_pause) };
-const uint16_t vader_type_929_strs[] = { offsetof(vader_struct_vader_vm_ErrorVal_t, f_message) };
-const uint16_t vader_type_931_ptrs[] = { offsetof(vader_struct_vader_vm_FnVal_t, f_env) };
-const uint16_t vader_type_932_refs[] = { offsetof(vader_struct_vader_vm_Frame_t, f_slots), offsetof(vader_struct_vader_vm_Frame_t, f_stack), offsetof(vader_struct_vader_vm_Frame_t, f_payload), offsetof(vader_struct_vader_vm_Frame_t, f_tag), offsetof(vader_struct_vader_vm_Frame_t, f_slot_payload), offsetof(vader_struct_vader_vm_Frame_t, f_slot_tag), offsetof(vader_struct_vader_vm_Frame_t, f_defers) };
-const uint16_t vader_type_933_ptrs[] = { offsetof(vader_struct_vader_vm_HostOk_t, f_value) };
-const uint16_t vader_type_936_refs[] = { offsetof(vader_struct_vader_vm_LentArray_t, f_target) };
-const uint16_t vader_type_937_refs[] = { offsetof(vader_struct_vader_vm_LentStruct_t, f_target), offsetof(vader_struct_vader_vm_LentStruct_t, f_fields) };
-const uint16_t vader_type_939_refs[] = { offsetof(vader_struct_vader_vm_ObjVal_t, f_bytes), offsetof(vader_struct_vader_vm_ObjVal_t, f_slots) };
-const uint16_t vader_type_941_strs[] = { offsetof(vader_struct_vader_vm_PauseCtx_t, f_reason) };
-const uint16_t vader_type_941_refs[] = { offsetof(vader_struct_vader_vm_PauseCtx_t, f_frames) };
-const uint16_t vader_type_942_strs[] = { offsetof(vader_struct_vader_vm_PauseFrame_t, f_function_name), offsetof(vader_struct_vader_vm_PauseFrame_t, f_file) };
-const uint16_t vader_type_942_refs[] = { offsetof(vader_struct_vader_vm_PauseFrame_t, f_locals) };
-const uint16_t vader_type_943_strs[] = { offsetof(vader_struct_vader_vm_PauseVar_t, f_name), offsetof(vader_struct_vader_vm_PauseVar_t, f_value) };
-const uint16_t vader_type_943_refs[] = { offsetof(vader_struct_vader_vm_PauseVar_t, f_children) };
-const uint16_t vader_type_944_strs[] = { offsetof(vader_struct_vader_vm_StringVal_t, f_value) };
-const uint16_t vader_type_945_refs[] = { offsetof(vader_struct_vader_vm_StructVal_t, f_fields) };
-const uint16_t vader_type_946_strs[] = { offsetof(vader_struct_vader_vm_Trap_t, f_message) };
-const uint16_t vader_type_948_ptrs[] = { offsetof(vader_struct_vader_vm_ValueOk_t, f_value) };
-const uint16_t vader_type_949_refs[] = { offsetof(vader_struct_vader_vm_VmState_t, f_bc), offsetof(vader_struct_vader_vm_VmState_t, f_data_pool), offsetof(vader_struct_vader_vm_VmState_t, f_fn_narrow), offsetof(vader_struct_vader_vm_VmState_t, f_fn_index_by_name) };
+const uint16_t vader_type_298_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_index) };
+const uint16_t vader_type_299_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_index) };
+const uint16_t vader_type_300_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_index) };
+const uint16_t vader_type_301_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_index) };
+const uint16_t vader_type_302_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_index) };
+const uint16_t vader_type_303_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_index) };
+const uint16_t vader_type_304_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_index) };
+const uint16_t vader_type_305_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_index) };
+const uint16_t vader_type_306_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_index) };
+const uint16_t vader_type_307_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_index) };
+const uint16_t vader_type_308_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_index) };
+const uint16_t vader_type_309_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___null_t, f_index) };
+const uint16_t vader_type_310_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_index) };
+const uint16_t vader_type_311_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_index) };
+const uint16_t vader_type_312_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_index) };
+const uint16_t vader_type_313_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__Any_t, f_index) };
+const uint16_t vader_type_314_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) };
+const uint16_t vader_type_315_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_index) };
+const uint16_t vader_type_316_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_index) };
+const uint16_t vader_type_317_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
+const uint16_t vader_type_318_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_index) };
+const uint16_t vader_type_319_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) };
+const uint16_t vader_type_320_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_index) };
+const uint16_t vader_type_321_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_index) };
+const uint16_t vader_type_322_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_index) };
+const uint16_t vader_type_323_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_index) };
+const uint16_t vader_type_324_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_index) };
+const uint16_t vader_type_325_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_index) };
+const uint16_t vader_type_326_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_index) };
+const uint16_t vader_type_327_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnParam___t, f_index) };
+const uint16_t vader_type_328_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnType___t, f_index) };
+const uint16_t vader_type_329_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_index) };
+const uint16_t vader_type_330_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_index) };
+const uint16_t vader_type_331_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry_t, f_index) };
+const uint16_t vader_type_332_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod_t, f_index) };
+const uint16_t vader_type_333_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__InlineInfo_t, f_index) };
+const uint16_t vader_type_334_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_index) };
+const uint16_t vader_type_335_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_index) };
+const uint16_t vader_type_336_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_index) };
+const uint16_t vader_type_337_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_index) };
+const uint16_t vader_type_338_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_index) };
+const uint16_t vader_type_339_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_index) };
+const uint16_t vader_type_340_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_index) };
+const uint16_t vader_type_341_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_index) };
+const uint16_t vader_type_342_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t, f_index) };
+const uint16_t vader_type_343_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t, f_index) };
+const uint16_t vader_type_344_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_index) };
+const uint16_t vader_type_345_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t, f_index) };
+const uint16_t vader_type_346_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_index) };
+const uint16_t vader_type_347_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_index) };
+const uint16_t vader_type_348_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_index) };
+const uint16_t vader_type_349_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_index) };
+const uint16_t vader_type_350_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_index) };
+const uint16_t vader_type_351_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_index) };
+const uint16_t vader_type_352_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_index) };
+const uint16_t vader_type_353_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_index) };
+const uint16_t vader_type_354_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_index) };
+const uint16_t vader_type_355_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_index) };
+const uint16_t vader_type_356_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_index) };
+const uint16_t vader_type_357_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_index) };
+const uint16_t vader_type_358_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_index) };
+const uint16_t vader_type_359_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_index) };
+const uint16_t vader_type_360_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_index) };
+const uint16_t vader_type_361_refs[] = { offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_index) };
+const uint16_t vader_type_362_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_index) };
+const uint16_t vader_type_363_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
+const uint16_t vader_type_364_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_index) };
+const uint16_t vader_type_365_refs[] = { offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_index) };
+const uint16_t vader_type_366_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_index) };
+const uint16_t vader_type_367_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) };
+const uint16_t vader_type_368_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_index) };
+const uint16_t vader_type_369_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_index) };
+const uint16_t vader_type_370_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_index) };
+const uint16_t vader_type_371_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) };
+const uint16_t vader_type_372_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_index) };
+const uint16_t vader_type_373_refs[] = { offsetof(vader_struct_std_collections_MutableSet__i32_t, f_inner) };
+const uint16_t vader_type_374_refs[] = { offsetof(vader_struct_std_collections_MutableSet__i64_t, f_inner) };
+const uint16_t vader_type_375_refs[] = { offsetof(vader_struct_std_collections_MutableSet__string_t, f_inner) };
+const uint16_t vader_type_376_refs[] = { offsetof(vader_struct_std_collections_MutableSet__usize_t, f_inner) };
+const uint16_t vader_type_381_refs[] = { offsetof(vader_struct_std_core_SlowParts_t, f_d) };
+const uint16_t vader_type_383_strs[] = { offsetof(vader_struct_std_io_IOError_t, f_msg) };
+const uint16_t vader_type_384_strs[] = { offsetof(vader_struct_std_string_ParseError_t, f_msg) };
+const uint16_t vader_type_385_refs[] = { offsetof(vader_struct_std_string_StringChars_t, f_bytes) };
+const uint16_t vader_type_386_refs[] = { offsetof(vader_struct_std_string_builder_StringBuilder_t, f_parts) };
+const uint16_t vader_type_387_ptrs[] = { offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_element) };
+const uint16_t vader_type_387_refs[] = { offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_span) };
+const uint16_t vader_type_388_ptrs[] = { offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_condition), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_message) };
+const uint16_t vader_type_388_refs[] = { offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_span), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_decorators) };
+const uint16_t vader_type_389_ptrs[] = { offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_target), offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_value) };
+const uint16_t vader_type_389_refs[] = { offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_span) };
+const uint16_t vader_type_390_ptrs[] = { offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_inner) };
+const uint16_t vader_type_390_refs[] = { offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_span) };
+const uint16_t vader_type_391_ptrs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_left), offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_right) };
+const uint16_t vader_type_391_strs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_bind_as) };
+const uint16_t vader_type_391_refs[] = { offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_span) };
+const uint16_t vader_type_392_strs[] = { offsetof(vader_struct_toolchain_ast_BindingPattern_t, f_name) };
+const uint16_t vader_type_392_refs[] = { offsetof(vader_struct_toolchain_ast_BindingPattern_t, f_span) };
+const uint16_t vader_type_393_ptrs[] = { offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_trailing) };
+const uint16_t vader_type_393_refs[] = { offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_span), offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_stmts) };
+const uint16_t vader_type_394_refs[] = { offsetof(vader_struct_toolchain_ast_BoolLitExpr_t, f_span) };
+const uint16_t vader_type_395_ptrs[] = { offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_label) };
+const uint16_t vader_type_395_refs[] = { offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_span) };
+const uint16_t vader_type_396_ptrs[] = { offsetof(vader_struct_toolchain_ast_CallArg_t, f_name), offsetof(vader_struct_toolchain_ast_CallArg_t, f_value) };
+const uint16_t vader_type_396_refs[] = { offsetof(vader_struct_toolchain_ast_CallArg_t, f_span) };
+const uint16_t vader_type_397_ptrs[] = { offsetof(vader_struct_toolchain_ast_CallExpr_t, f_callee) };
+const uint16_t vader_type_397_refs[] = { offsetof(vader_struct_toolchain_ast_CallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_CallExpr_t, f_args) };
+const uint16_t vader_type_398_ptrs[] = { offsetof(vader_struct_toolchain_ast_CastExpr_t, f_target), offsetof(vader_struct_toolchain_ast_CastExpr_t, f_value) };
+const uint16_t vader_type_398_refs[] = { offsetof(vader_struct_toolchain_ast_CastExpr_t, f_span) };
+const uint16_t vader_type_399_refs[] = { offsetof(vader_struct_toolchain_ast_CharLitExpr_t, f_span) };
+const uint16_t vader_type_400_ptrs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_ty), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_value), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_comptime_body) };
+const uint16_t vader_type_400_strs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_name) };
+const uint16_t vader_type_400_refs[] = { offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_decorators) };
+const uint16_t vader_type_401_ptrs[] = { offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_label) };
+const uint16_t vader_type_401_refs[] = { offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_span) };
+const uint16_t vader_type_402_strs[] = { offsetof(vader_struct_toolchain_ast_Decorator_t, f_name) };
+const uint16_t vader_type_402_refs[] = { offsetof(vader_struct_toolchain_ast_Decorator_t, f_span), offsetof(vader_struct_toolchain_ast_Decorator_t, f_args) };
+const uint16_t vader_type_403_refs[] = { offsetof(vader_struct_toolchain_ast_DeferBlockBody_t, f_block) };
+const uint16_t vader_type_404_ptrs[] = { offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_body) };
+const uint16_t vader_type_404_refs[] = { offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_span) };
+const uint16_t vader_type_405_ptrs[] = { offsetof(vader_struct_toolchain_ast_DeferStmtBody_t, f_stmt) };
+const uint16_t vader_type_406_refs[] = { offsetof(vader_struct_toolchain_ast_DestructureImport_t, f_names) };
+const uint16_t vader_type_407_ptrs[] = { offsetof(vader_struct_toolchain_ast_DestructureVar_t, f_pattern) };
+const uint16_t vader_type_409_strs[] = { offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant) };
+const uint16_t vader_type_409_refs[] = { offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_span), offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant_span) };
+const uint16_t vader_type_410_ptrs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_repr) };
+const uint16_t vader_type_410_strs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name) };
+const uint16_t vader_type_410_refs[] = { offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_variants), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_decorators) };
+const uint16_t vader_type_411_ptrs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value), offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value_span) };
+const uint16_t vader_type_411_strs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_name) };
+const uint16_t vader_type_411_refs[] = { offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_span) };
+const uint16_t vader_type_412_strs[] = { offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_variant) };
+const uint16_t vader_type_412_refs[] = { offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_span) };
+const uint16_t vader_type_413_ptrs[] = { offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_expr) };
+const uint16_t vader_type_413_refs[] = { offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_span) };
+const uint16_t vader_type_414_ptrs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_target) };
+const uint16_t vader_type_414_strs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_field) };
+const uint16_t vader_type_414_refs[] = { offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_field_span) };
+const uint16_t vader_type_415_refs[] = { offsetof(vader_struct_toolchain_ast_FloatLitExpr_t, f_span) };
+const uint16_t vader_type_416_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_return_type), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_body) };
+const uint16_t vader_type_416_strs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_name) };
+const uint16_t vader_type_416_refs[] = { offsetof(vader_struct_toolchain_ast_FnDecl_t, f_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_decorators) };
+const uint16_t vader_type_417_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_ty), offsetof(vader_struct_toolchain_ast_FnParam_t, f_default_value) };
+const uint16_t vader_type_417_strs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_name) };
+const uint16_t vader_type_417_refs[] = { offsetof(vader_struct_toolchain_ast_FnParam_t, f_span), offsetof(vader_struct_toolchain_ast_FnParam_t, f_decorators) };
+const uint16_t vader_type_418_ptrs[] = { offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_return_type) };
+const uint16_t vader_type_418_refs[] = { offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params_mutable) };
+const uint16_t vader_type_419_ptrs[] = { offsetof(vader_struct_toolchain_ast_ForStmt_t, f_label), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_form) };
+const uint16_t vader_type_419_refs[] = { offsetof(vader_struct_toolchain_ast_ForStmt_t, f_span), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_body) };
+const uint16_t vader_type_420_ptrs[] = { offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_callee) };
+const uint16_t vader_type_420_refs[] = { offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_span), offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_type_args) };
+const uint16_t vader_type_421_strs[] = { offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_name) };
+const uint16_t vader_type_421_refs[] = { offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_span) };
+const uint16_t vader_type_422_refs[] = { offsetof(vader_struct_toolchain_ast_IfElseBlock_t, f_block) };
+const uint16_t vader_type_423_refs[] = { offsetof(vader_struct_toolchain_ast_IfElseIf_t, f_branch) };
+const uint16_t vader_type_424_ptrs[] = { offsetof(vader_struct_toolchain_ast_IfExpr_t, f_cond), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_else_branch) };
+const uint16_t vader_type_424_refs[] = { offsetof(vader_struct_toolchain_ast_IfExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_then_block) };
+const uint16_t vader_type_425_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_for_type) };
+const uint16_t vader_type_425_strs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_name) };
+const uint16_t vader_type_425_refs[] = { offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_name_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_args), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_members), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_decorators) };
+const uint16_t vader_type_426_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_binding) };
+const uint16_t vader_type_426_strs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_path) };
+const uint16_t vader_type_426_refs[] = { offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_decorators) };
+const uint16_t vader_type_427_ptrs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_alias) };
+const uint16_t vader_type_427_strs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_name) };
+const uint16_t vader_type_427_refs[] = { offsetof(vader_struct_toolchain_ast_ImportName_t, f_span) };
+const uint16_t vader_type_428_ptrs[] = { offsetof(vader_struct_toolchain_ast_InFor_t, f_loop_var), offsetof(vader_struct_toolchain_ast_InFor_t, f_iter) };
+const uint16_t vader_type_429_ptrs[] = { offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_target), offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_index) };
+const uint16_t vader_type_429_refs[] = { offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_span) };
+const uint16_t vader_type_431_refs[] = { offsetof(vader_struct_toolchain_ast_IntLitExpr_t, f_span) };
+const uint16_t vader_type_432_strs[] = { offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name) };
+const uint16_t vader_type_432_refs[] = { offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_args) };
+const uint16_t vader_type_433_ptrs[] = { offsetof(vader_struct_toolchain_ast_IsPattern_t, f_ty), offsetof(vader_struct_toolchain_ast_IsPattern_t, f_inner), offsetof(vader_struct_toolchain_ast_IsPattern_t, f_bind_as) };
+const uint16_t vader_type_433_refs[] = { offsetof(vader_struct_toolchain_ast_IsPattern_t, f_span) };
+const uint16_t vader_type_434_ptrs[] = { offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_return_type) };
+const uint16_t vader_type_434_refs[] = { offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_span), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_params), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_body) };
+const uint16_t vader_type_435_ptrs[] = { offsetof(vader_struct_toolchain_ast_LetStmt_t, f_binding), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_ty), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_value) };
+const uint16_t vader_type_435_refs[] = { offsetof(vader_struct_toolchain_ast_LetStmt_t, f_span) };
+const uint16_t vader_type_436_ptrs[] = { offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_value) };
+const uint16_t vader_type_436_refs[] = { offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_span) };
+const uint16_t vader_type_437_ptrs[] = { offsetof(vader_struct_toolchain_ast_MatchArm_t, f_pattern), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_guard), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_body) };
+const uint16_t vader_type_437_refs[] = { offsetof(vader_struct_toolchain_ast_MatchArm_t, f_span) };
+const uint16_t vader_type_438_ptrs[] = { offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_scrutinee) };
+const uint16_t vader_type_438_refs[] = { offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_span), offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_arms) };
+const uint16_t vader_type_439_strs[] = { offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name) };
+const uint16_t vader_type_439_refs[] = { offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name_span) };
+const uint16_t vader_type_440_ptrs[] = { offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_inner) };
+const uint16_t vader_type_440_refs[] = { offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_span) };
+const uint16_t vader_type_441_strs[] = { offsetof(vader_struct_toolchain_ast_NamedNamespaceImport_t, f_name) };
+const uint16_t vader_type_442_strs[] = { offsetof(vader_struct_toolchain_ast_NamedVar_t, f_name) };
+const uint16_t vader_type_442_refs[] = { offsetof(vader_struct_toolchain_ast_NamedVar_t, f_span) };
+const uint16_t vader_type_443_ptrs[] = { offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_left), offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_fallback) };
+const uint16_t vader_type_443_refs[] = { offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_span) };
+const uint16_t vader_type_444_refs[] = { offsetof(vader_struct_toolchain_ast_NullLitExpr_t, f_span) };
+const uint16_t vader_type_445_refs[] = { offsetof(vader_struct_toolchain_ast_OrPattern_t, f_span), offsetof(vader_struct_toolchain_ast_OrPattern_t, f_patterns) };
+const uint16_t vader_type_446_strs[] = { offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_name) };
+const uint16_t vader_type_446_refs[] = { offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_span) };
+const uint16_t vader_type_447_ptrs[] = { offsetof(vader_struct_toolchain_ast_PatternLiteral_t, f_value) };
+const uint16_t vader_type_448_ptrs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_module) };
+const uint16_t vader_type_448_strs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_file) };
+const uint16_t vader_type_448_refs[] = { offsetof(vader_struct_toolchain_ast_Program_t, f_span), offsetof(vader_struct_toolchain_ast_Program_t, f_decls) };
+const uint16_t vader_type_449_ptrs[] = { offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_lower), offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_upper) };
+const uint16_t vader_type_449_refs[] = { offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_span) };
+const uint16_t vader_type_450_ptrs[] = { offsetof(vader_struct_toolchain_ast_RangePattern_t, f_lower), offsetof(vader_struct_toolchain_ast_RangePattern_t, f_upper) };
+const uint16_t vader_type_450_refs[] = { offsetof(vader_struct_toolchain_ast_RangePattern_t, f_span) };
+const uint16_t vader_type_451_strs[] = { offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name) };
+const uint16_t vader_type_451_refs[] = { offsetof(vader_struct_toolchain_ast_RestBinding_t, f_span), offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name_span) };
+const uint16_t vader_type_452_ptrs[] = { offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_value) };
+const uint16_t vader_type_452_refs[] = { offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_span) };
+const uint16_t vader_type_453_refs[] = { offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_elements) };
+const uint16_t vader_type_454_strs[] = { offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name) };
+const uint16_t vader_type_454_refs[] = { offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name_span) };
+const uint16_t vader_type_455_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_parts) };
+const uint16_t vader_type_456_ptrs[] = { offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_expr) };
+const uint16_t vader_type_456_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_span) };
+const uint16_t vader_type_457_strs[] = { offsetof(vader_struct_toolchain_ast_StringLitText_t, f_value) };
+const uint16_t vader_type_457_refs[] = { offsetof(vader_struct_toolchain_ast_StringLitText_t, f_span) };
+const uint16_t vader_type_458_strs[] = { offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name) };
+const uint16_t vader_type_458_refs[] = { offsetof(vader_struct_toolchain_ast_StructDecl_t, f_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_fields), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_decorators) };
+const uint16_t vader_type_459_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_ty), offsetof(vader_struct_toolchain_ast_StructField_t, f_default_v) };
+const uint16_t vader_type_459_strs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_name) };
+const uint16_t vader_type_459_refs[] = { offsetof(vader_struct_toolchain_ast_StructField_t, f_span) };
+const uint16_t vader_type_460_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_type_name) };
+const uint16_t vader_type_460_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_items) };
+const uint16_t vader_type_461_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_value) };
+const uint16_t vader_type_461_strs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_name) };
+const uint16_t vader_type_461_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitField_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitField_t, f_name_span) };
+const uint16_t vader_type_462_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_expr) };
+const uint16_t vader_type_462_refs[] = { offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_span) };
+const uint16_t vader_type_463_refs[] = { offsetof(vader_struct_toolchain_ast_StructPattern_t, f_span), offsetof(vader_struct_toolchain_ast_StructPattern_t, f_fields) };
+const uint16_t vader_type_464_ptrs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_value) };
+const uint16_t vader_type_464_strs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_name) };
+const uint16_t vader_type_464_refs[] = { offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_span), offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_name_span) };
+const uint16_t vader_type_465_ptrs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_requires) };
+const uint16_t vader_type_465_strs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_name) };
+const uint16_t vader_type_465_refs[] = { offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_members), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_decorators) };
+const uint16_t vader_type_466_refs[] = { offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_elements) };
+const uint16_t vader_type_467_refs[] = { offsetof(vader_struct_toolchain_ast_TuplePattern_t, f_span), offsetof(vader_struct_toolchain_ast_TuplePattern_t, f_elements) };
+const uint16_t vader_type_468_ptrs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_aliased) };
+const uint16_t vader_type_468_strs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_name) };
+const uint16_t vader_type_468_refs[] = { offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_decorators) };
+const uint16_t vader_type_469_ptrs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_bound), offsetof(vader_struct_toolchain_ast_TypeParam_t, f_default_v) };
+const uint16_t vader_type_469_strs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_name) };
+const uint16_t vader_type_469_refs[] = { offsetof(vader_struct_toolchain_ast_TypeParam_t, f_span) };
+const uint16_t vader_type_470_ptrs[] = { offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_operand) };
+const uint16_t vader_type_470_refs[] = { offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_span) };
+const uint16_t vader_type_471_ptrs[] = { offsetof(vader_struct_toolchain_ast_WhileFor_t, f_cond) };
+const uint16_t vader_type_472_refs[] = { offsetof(vader_struct_toolchain_ast_WildcardBinding_t, f_span) };
+const uint16_t vader_type_474_refs[] = { offsetof(vader_struct_toolchain_ast_WildcardPattern_t, f_span) };
+const uint16_t vader_type_475_ptrs[] = { offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_value) };
+const uint16_t vader_type_475_refs[] = { offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_span) };
+const uint16_t vader_type_476_strs[] = { offsetof(vader_struct_toolchain_span_Position_t, f_file) };
+const uint16_t vader_type_477_refs[] = { offsetof(vader_struct_toolchain_span_Span_t, f_start), offsetof(vader_struct_toolchain_span_Span_t, f_end) };
+const uint16_t vader_type_478_strs[] = { offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_entry) };
+const uint16_t vader_type_478_refs[] = { offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_lower_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_module) };
+const uint16_t vader_type_479_refs[] = { offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_loaded), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typed), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_evaluated), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_resolver_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typecheck_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_comptime_diags) };
+const uint16_t vader_type_480_strs[] = { offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_entry) };
+const uint16_t vader_type_480_refs[] = { offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lowered), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lower_diags) };
+const uint16_t vader_type_492_strs[] = { offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_element_type_name) };
+const uint16_t vader_type_492_refs[] = { offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_elements) };
+const uint16_t vader_type_494_strs[] = { offsetof(vader_struct_vader_bytecode_BcExport_t, f_extern_name) };
+const uint16_t vader_type_495_strs[] = { offsetof(vader_struct_vader_bytecode_BcField_t, f_name) };
+const uint16_t vader_type_496_refs[] = { offsetof(vader_struct_vader_bytecode_BcFn_t, f_params) };
+const uint16_t vader_type_497_strs[] = { offsetof(vader_struct_vader_bytecode_BcFunction_t, f_name) };
+const uint16_t vader_type_497_refs[] = { offsetof(vader_struct_vader_bytecode_BcFunction_t, f_signature), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_locals), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_body), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_debug), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_jump_table) };
+const uint16_t vader_type_498_strs[] = { offsetof(vader_struct_vader_bytecode_BcImport_t, f_extern_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_mangled_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_header), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_library) };
+const uint16_t vader_type_498_refs[] = { offsetof(vader_struct_vader_bytecode_BcImport_t, f_signature) };
+const uint16_t vader_type_499_strs[] = { offsetof(vader_struct_vader_bytecode_BcLocal_t, f_name) };
+const uint16_t vader_type_500_refs[] = { offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_body), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_jump_table), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_debug) };
+const uint16_t vader_type_501_refs[] = { offsetof(vader_struct_vader_bytecode_BcPrimData_t, f_items) };
+const uint16_t vader_type_503_strs[] = { offsetof(vader_struct_vader_bytecode_BcRef_t, f_trait_name) };
+const uint16_t vader_type_504_refs[] = { offsetof(vader_struct_vader_bytecode_BcSignature_t, f_params), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_types), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_names), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_mutable), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_by_address) };
+const uint16_t vader_type_505_refs[] = { offsetof(vader_struct_vader_bytecode_BcStrData_t, f_values) };
+const uint16_t vader_type_506_strs[] = { offsetof(vader_struct_vader_bytecode_BcStruct_t, f_name), offsetof(vader_struct_vader_bytecode_BcStruct_t, f_c_name) };
+const uint16_t vader_type_506_refs[] = { offsetof(vader_struct_vader_bytecode_BcStruct_t, f_fields) };
+const uint16_t vader_type_507_refs[] = { offsetof(vader_struct_vader_bytecode_BcUnion_t, f_variants) };
+const uint16_t vader_type_508_strs[] = { offsetof(vader_struct_vader_bytecode_BcValArray_t, f_element_type_name) };
+const uint16_t vader_type_508_refs[] = { offsetof(vader_struct_vader_bytecode_BcValArray_t, f_elements) };
+const uint16_t vader_type_510_strs[] = { offsetof(vader_struct_vader_bytecode_BcValStr_t, f_value) };
+const uint16_t vader_type_511_refs[] = { offsetof(vader_struct_vader_bytecode_BcValStruct_t, f_fields) };
+const uint16_t vader_type_527_strs[] = { offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_name) };
+const uint16_t vader_type_527_refs[] = { offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_types), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_strings), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_data_pool), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_functions), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_imports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_exports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_impl_table), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_vtables) };
+const uint16_t vader_type_528_ptrs[] = { offsetof(vader_struct_vader_bytecode_CLayout_t, f_unknown_field) };
+const uint16_t vader_type_528_refs[] = { offsetof(vader_struct_vader_bytecode_CLayout_t, f_offsets) };
+const uint16_t vader_type_533_strs[] = { offsetof(vader_struct_vader_bytecode_Convert_t, f_from_name) };
+const uint16_t vader_type_535_strs[] = { offsetof(vader_struct_vader_bytecode_DebugPos_t, f_file) };
+const uint16_t vader_type_540_refs[] = { offsetof(vader_struct_vader_bytecode_EmitOptions_t, f_keep_mangles) };
+const uint16_t vader_type_541_refs[] = { offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_type_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_strings), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_string_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_functions), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_imports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_exports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types_by_fn) };
+const uint16_t vader_type_600_strs[] = { offsetof(vader_struct_vader_bytecode_ImplEntry_t, f_trait_name) };
+const uint16_t vader_type_620_ptrs[] = { offsetof(vader_struct_vader_bytecode_ReturnLit_t, f_value) };
+const uint16_t vader_type_651_strs[] = { offsetof(vader_struct_vader_bytecode_Unreachable_t, f_reason) };
+const uint16_t vader_type_652_strs[] = { offsetof(vader_struct_vader_bytecode_VirtualCall_t, f_vtable_key) };
+const uint16_t vader_type_654_strs[] = { offsetof(vader_struct_vader_bytecode_VtableRow_t, f_key) };
+const uint16_t vader_type_654_refs[] = { offsetof(vader_struct_vader_bytecode_VtableRow_t, f_entries) };
+const uint16_t vader_type_655_refs[] = { offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_break_targets) };
+const uint16_t vader_type_656_strs[] = { offsetof(vader_struct_vader_c_emit_CProgram_t, f_header), offsetof(vader_struct_vader_c_emit_CProgram_t, f_imports), offsetof(vader_struct_vader_c_emit_CProgram_t, f_globals) };
+const uint16_t vader_type_656_refs[] = { offsetof(vader_struct_vader_c_emit_CProgram_t, f_units), offsetof(vader_struct_vader_c_emit_CProgram_t, f_unit_names) };
+const uint16_t vader_type_657_strs[] = { offsetof(vader_struct_vader_c_emit_CoalesceResult_t, f_body) };
+const uint16_t vader_type_657_refs[] = { offsetof(vader_struct_vader_c_emit_CoalesceResult_t, f_types) };
+const uint16_t vader_type_658_strs[] = { offsetof(vader_struct_vader_c_emit_CopyLine_t, f_local) };
+const uint16_t vader_type_659_strs[] = { offsetof(vader_struct_vader_c_emit_DefLine_t, f_indent), offsetof(vader_struct_vader_c_emit_DefLine_t, f_expr) };
+const uint16_t vader_type_660_refs[] = { offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_module), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_struct_c_names), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_ids), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_table), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_may_alloc), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_internal_fns) };
+const uint16_t vader_type_661_strs[] = { offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_entry_mangled) };
+const uint16_t vader_type_661_refs[] = { offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_atom_universe) };
+const uint16_t vader_type_662_refs[] = { offsetof(vader_struct_vader_c_emit_FnState_t, f_ctx), offsetof(vader_struct_vader_c_emit_FnState_t, f_function), offsetof(vader_struct_vader_c_emit_FnState_t, f_out), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack), offsetof(vader_struct_vader_c_emit_FnState_t, f_tmp_types), offsetof(vader_struct_vader_c_emit_FnState_t, f_scopes), offsetof(vader_struct_vader_c_emit_FnState_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_break_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_resolved_arrays), offsetof(vader_struct_vader_c_emit_FnState_t, f_pinned_resolves), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack_storages) };
+const uint16_t vader_type_663_refs[] = { offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_fn_ref_type), offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_is_closure) };
+const uint16_t vader_type_665_strs[] = { offsetof(vader_struct_vader_c_emit_SlotFill_t, f_cty) };
+const uint16_t vader_type_667_strs[] = { offsetof(vader_struct_vader_c_emit_StackExpr_t, f_text) };
+const uint16_t vader_type_668_strs[] = { offsetof(vader_struct_vader_c_emit_StackLit_t, f_text) };
+const uint16_t vader_type_670_strs[] = { offsetof(vader_struct_vader_c_emit_StackStorage_t, f_cname), offsetof(vader_struct_vader_c_emit_StackStorage_t, f_storage) };
+const uint16_t vader_type_671_strs[] = { offsetof(vader_struct_vader_c_emit_StackTmp_t, f_name) };
+const uint16_t vader_type_672_refs[] = { offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ptr_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_str_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ref_offsets) };
+const uint16_t vader_type_673_strs[] = { offsetof(vader_struct_vader_comptime_ArrayValue_t, f_element_type_name) };
+const uint16_t vader_type_673_refs[] = { offsetof(vader_struct_vader_comptime_ArrayValue_t, f_elements) };
+const uint16_t vader_type_676_refs[] = { offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_typed), offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_bindings) };
+const uint16_t vader_type_677_refs[] = { offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_order), offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_cycle_diags) };
+const uint16_t vader_type_678_ptrs[] = { offsetof(vader_struct_vader_comptime_EvalResult_t, f_value), offsetof(vader_struct_vader_comptime_EvalResult_t, f_diag) };
+const uint16_t vader_type_679_refs[] = { offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_comptime_decls) };
+const uint16_t vader_type_680_refs[] = { offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_modules), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_baked_consts), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_exprs), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_instances), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_vm_required) };
+const uint16_t vader_type_681_strs[] = { offsetof(vader_struct_vader_comptime_FloatValue_t, f_type_name) };
+const uint16_t vader_type_682_strs[] = { offsetof(vader_struct_vader_comptime_GenericInstance_t, f_display_key) };
+const uint16_t vader_type_682_refs[] = { offsetof(vader_struct_vader_comptime_GenericInstance_t, f_symbol), offsetof(vader_struct_vader_comptime_GenericInstance_t, f_args) };
+const uint16_t vader_type_683_refs[] = { offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_by_key), offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_order) };
+const uint16_t vader_type_684_strs[] = { offsetof(vader_struct_vader_comptime_IntValue_t, f_type_name) };
+const uint16_t vader_type_685_ptrs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_decl), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_symbol), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_module) };
+const uint16_t vader_type_685_strs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_mangled) };
+const uint16_t vader_type_685_refs[] = { offsetof(vader_struct_vader_comptime_MonoEntry_t, f_subst), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_type_arguments) };
+const uint16_t vader_type_686_refs[] = { offsetof(vader_struct_vader_comptime_NodeRecord_t, f_decl), offsetof(vader_struct_vader_comptime_NodeRecord_t, f_dependency_ids) };
+const uint16_t vader_type_687_refs[] = { offsetof(vader_struct_vader_comptime_Nodes_t, f_by_id), offsetof(vader_struct_vader_comptime_Nodes_t, f_order), offsetof(vader_struct_vader_comptime_Nodes_t, f_by_symbol) };
+const uint16_t vader_type_689_strs[] = { offsetof(vader_struct_vader_comptime_StringValue_t, f_value) };
+const uint16_t vader_type_690_strs[] = { offsetof(vader_struct_vader_comptime_StructValue_t, f_type_name) };
+const uint16_t vader_type_690_refs[] = { offsetof(vader_struct_vader_comptime_StructValue_t, f_fields) };
+const uint16_t vader_type_691_ptrs[] = { offsetof(vader_struct_vader_comptime_TypeValue_t, f_value) };
+const uint16_t vader_type_692_ptrs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_decl_type) };
+const uint16_t vader_type_692_strs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_module_id), offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_callee_name) };
+const uint16_t vader_type_692_refs[] = { offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_span) };
+const uint16_t vader_type_694_strs[] = { offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_id), offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_message) };
+const uint16_t vader_type_695_strs[] = { offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_detail) };
+const uint16_t vader_type_695_refs[] = { offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_code), offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_primary) };
+const uint16_t vader_type_697_strs[] = { offsetof(vader_struct_vader_lexer_Lexer_t, f_src), offsetof(vader_struct_vader_lexer_Lexer_t, f_file) };
+const uint16_t vader_type_697_refs[] = { offsetof(vader_struct_vader_lexer_Lexer_t, f_bytes), offsetof(vader_struct_vader_lexer_Lexer_t, f_tokens), offsetof(vader_struct_vader_lexer_Lexer_t, f_errors), offsetof(vader_struct_vader_lexer_Lexer_t, f_interp_stack) };
+const uint16_t vader_type_698_ptrs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_value) };
+const uint16_t vader_type_698_strs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_text) };
+const uint16_t vader_type_698_refs[] = { offsetof(vader_struct_vader_lexer_Token_t, f_span) };
+const uint16_t vader_type_699_strs[] = { offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_element_type_name) };
+const uint16_t vader_type_699_refs[] = { offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_literal) };
+const uint16_t vader_type_700_refs[] = { offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_aliases), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_closures), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_escaped), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_bound) };
+const uint16_t vader_type_701_refs[] = { offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_by_mangle), offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_by_symid), offsetof(vader_struct_vader_lower_BcePurityCtx_t, f_memo) };
+const uint16_t vader_type_702_refs[] = { offsetof(vader_struct_vader_lower_BlockCtx_t, f_defers) };
+const uint16_t vader_type_703_ptrs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_element_type), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_pattern) };
+const uint16_t vader_type_703_strs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_binding_name) };
+const uint16_t vader_type_703_refs[] = { offsetof(vader_struct_vader_lower_BodyTemplate_t, f_binding_symbol), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_user_body) };
+const uint16_t vader_type_704_ptrs[] = { offsetof(vader_struct_vader_lower_BveCtx_t, f_usize_ty), offsetof(vader_struct_vader_lower_BveCtx_t, f_u8_ty) };
+const uint16_t vader_type_704_refs[] = { offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_len_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_at_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_candidates), offsetof(vader_struct_vader_lower_BveCtx_t, f_disq), offsetof(vader_struct_vader_lower_BveCtx_t, f_bound), offsetof(vader_struct_vader_lower_BveCtx_t, f_reassigned) };
+const uint16_t vader_type_705_ptrs[] = { offsetof(vader_struct_vader_lower_Capture_t, f_type) };
+const uint16_t vader_type_705_refs[] = { offsetof(vader_struct_vader_lower_Capture_t, f_symbol) };
+const uint16_t vader_type_706_ptrs[] = { offsetof(vader_struct_vader_lower_CellInit_t, f_value), offsetof(vader_struct_vader_lower_CellInit_t, f_slot_type) };
+const uint16_t vader_type_707_ptrs[] = { offsetof(vader_struct_vader_lower_ClosureAlias_t, f_env_type) };
+const uint16_t vader_type_707_refs[] = { offsetof(vader_struct_vader_lower_ClosureAlias_t, f_fn_sym) };
+const uint16_t vader_type_708_refs[] = { offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_captured_symbols), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_lambda_captures), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_defer_captures) };
+const uint16_t vader_type_709_strs[] = { offsetof(vader_struct_vader_lower_CollectCtx_t, f_self_mangle) };
+const uint16_t vader_type_709_refs[] = { offsetof(vader_struct_vader_lower_CollectCtx_t, f_param_ids), offsetof(vader_struct_vader_lower_CollectCtx_t, f_counts) };
+const uint16_t vader_type_710_ptrs[] = { offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_call_type) };
+const uint16_t vader_type_710_refs[] = { offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_fn_symbol) };
+const uint16_t vader_type_711_refs[] = { offsetof(vader_struct_vader_lower_EntryTypes_t, f_typed), offsetof(vader_struct_vader_lower_EntryTypes_t, f_subst) };
+const uint16_t vader_type_712_ptrs[] = { offsetof(vader_struct_vader_lower_FluentCombinator_t, f_receiver), offsetof(vader_struct_vader_lower_FluentCombinator_t, f_fn_arg) };
+const uint16_t vader_type_713_ptrs[] = { offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_return_type), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_lifted_context), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_gen_inline_sink) };
+const uint16_t vader_type_713_refs[] = { offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_project), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_entry), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_typed), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_subst), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_types), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_blocks), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_comptime_bindings), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_pending_awaits) };
+const uint16_t vader_type_714_ptrs[] = { offsetof(vader_struct_vader_lower_GenBuild_t, f_state_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_i32_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_yield_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_result_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_suspended_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_async_any_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_resume_erased_ty) };
+const uint16_t vader_type_714_refs[] = { offsetof(vader_struct_vader_lower_GenBuild_t, f_self_sym), offsetof(vader_struct_vader_lower_GenBuild_t, f_span), offsetof(vader_struct_vader_lower_GenBuild_t, f_states), offsetof(vader_struct_vader_lower_GenBuild_t, f_field_map), offsetof(vader_struct_vader_lower_GenBuild_t, f_fields), offsetof(vader_struct_vader_lower_GenBuild_t, f_loop_stack), offsetof(vader_struct_vader_lower_GenBuild_t, f_fn_ctx) };
+const uint16_t vader_type_715_ptrs[] = { offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_sym), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_expr), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_output_elem) };
+const uint16_t vader_type_715_refs[] = { offsetof(vader_struct_vader_lower_GenComboLayer_t, f_decl), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_subst), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_owner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_loopvar), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_inner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_prelude), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_extra_sources) };
+const uint16_t vader_type_716_ptrs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_element_type) };
+const uint16_t vader_type_716_strs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_binding_name) };
+const uint16_t vader_type_716_refs[] = { offsetof(vader_struct_vader_lower_GenInlineSink_t, f_binding_symbol), offsetof(vader_struct_vader_lower_GenInlineSink_t, f_body) };
+const uint16_t vader_type_717_refs[] = { offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_source), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_loopvar), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_prelude) };
+const uint16_t vader_type_718_refs[] = { offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_loopvar_span), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_prelude) };
+const uint16_t vader_type_719_strs[] = { offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_mangled), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_owner_module) };
+const uint16_t vader_type_719_refs[] = { offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_fn_symbol), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_type_args) };
+const uint16_t vader_type_720_refs[] = { offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_entry), offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_member) };
+const uint16_t vader_type_721_strs[] = { offsetof(vader_struct_vader_lower_ImplTraitMethod_t, f_trait_name), offsetof(vader_struct_vader_lower_ImplTraitMethod_t, f_method) };
+const uint16_t vader_type_722_ptrs[] = { offsetof(vader_struct_vader_lower_InlineInfo_t, f_body) };
+const uint16_t vader_type_722_refs[] = { offsetof(vader_struct_vader_lower_InlineInfo_t, f_params), offsetof(vader_struct_vader_lower_InlineInfo_t, f_use_counts) };
+const uint16_t vader_type_723_ptrs[] = { offsetof(vader_struct_vader_lower_IterChain_t, f_range_lower), offsetof(vader_struct_vader_lower_IterChain_t, f_range_upper), offsetof(vader_struct_vader_lower_IterChain_t, f_element_type), offsetof(vader_struct_vader_lower_IterChain_t, f_array_expr), offsetof(vader_struct_vader_lower_IterChain_t, f_source), offsetof(vader_struct_vader_lower_IterChain_t, f_gen_layer), offsetof(vader_struct_vader_lower_IterChain_t, f_iter_expr) };
+const uint16_t vader_type_723_refs[] = { offsetof(vader_struct_vader_lower_IterChain_t, f_span) };
+const uint16_t vader_type_724_ptrs[] = { offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_type) };
+const uint16_t vader_type_724_refs[] = { offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_symbol), offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_capture_fields) };
+const uint16_t vader_type_725_ptrs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_pattern) };
+const uint16_t vader_type_725_strs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_name) };
+const uint16_t vader_type_725_refs[] = { offsetof(vader_struct_vader_lower_LoopBinding_t, f_symbol) };
+const uint16_t vader_type_726_ptrs[] = { offsetof(vader_struct_vader_lower_LoopFrame_t, f_label) };
+const uint16_t vader_type_727_refs[] = { offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_evaluated), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_loaded), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_typed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_impls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_core_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_module_symbol_cache), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_comptime_value_by_symbol_id), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_local_symbol_indices), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_closures), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_synth_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_concat_fn_syms), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_concat_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_lambda_seq), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_mangled), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_fns), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_consts), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_const_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_impl_keys), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_struct_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_referenced_impl_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_virtually_dispatched_traits), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_constructed_struct_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_array_blanket_elems), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_pending_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_collected), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_processed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_diags) };
+const uint16_t vader_type_728_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_target) };
+const uint16_t vader_type_728_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_span) };
+const uint16_t vader_type_729_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_type) };
+const uint16_t vader_type_729_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_span), offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_elements) };
+const uint16_t vader_type_730_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_target), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_value) };
+const uint16_t vader_type_730_refs[] = { offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_span) };
+const uint16_t vader_type_731_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_hi) };
+const uint16_t vader_type_731_refs[] = { offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_span) };
+const uint16_t vader_type_732_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredAssign_t, f_target), offsetof(vader_struct_vader_lower_LoweredAssign_t, f_value) };
+const uint16_t vader_type_732_refs[] = { offsetof(vader_struct_vader_lower_LoweredAssign_t, f_span) };
+const uint16_t vader_type_733_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target_type), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_awaited) };
+const uint16_t vader_type_733_refs[] = { offsetof(vader_struct_vader_lower_LoweredAwait_t, f_span), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target) };
+const uint16_t vader_type_734_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBinary_t, f_type), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_left), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_right) };
+const uint16_t vader_type_734_refs[] = { offsetof(vader_struct_vader_lower_LoweredBinary_t, f_span) };
+const uint16_t vader_type_735_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBlock_t, f_type), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_trailing) };
+const uint16_t vader_type_735_refs[] = { offsetof(vader_struct_vader_lower_LoweredBlock_t, f_span), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_stmts) };
+const uint16_t vader_type_736_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_type) };
+const uint16_t vader_type_736_refs[] = { offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_span) };
+const uint16_t vader_type_737_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredBreak_t, f_label) };
+const uint16_t vader_type_737_refs[] = { offsetof(vader_struct_vader_lower_LoweredBreak_t, f_span) };
+const uint16_t vader_type_738_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCall_t, f_type), offsetof(vader_struct_vader_lower_LoweredCall_t, f_callee) };
+const uint16_t vader_type_738_refs[] = { offsetof(vader_struct_vader_lower_LoweredCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredCall_t, f_args) };
+const uint16_t vader_type_739_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCast_t, f_type), offsetof(vader_struct_vader_lower_LoweredCast_t, f_value) };
+const uint16_t vader_type_739_refs[] = { offsetof(vader_struct_vader_lower_LoweredCast_t, f_span) };
+const uint16_t vader_type_740_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_value_type) };
+const uint16_t vader_type_740_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_span) };
+const uint16_t vader_type_741_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value_type) };
+const uint16_t vader_type_741_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_span) };
+const uint16_t vader_type_742_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value_type) };
+const uint16_t vader_type_742_refs[] = { offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_span) };
+const uint16_t vader_type_743_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_type) };
+const uint16_t vader_type_743_refs[] = { offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_span) };
+const uint16_t vader_type_744_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_type), offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_value) };
+const uint16_t vader_type_744_strs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_mangled) };
+const uint16_t vader_type_744_refs[] = { offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_origin) };
+const uint16_t vader_type_745_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredContinue_t, f_label) };
+const uint16_t vader_type_745_refs[] = { offsetof(vader_struct_vader_lower_LoweredContinue_t, f_span) };
+const uint16_t vader_type_746_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_type) };
+const uint16_t vader_type_746_refs[] = { offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_span) };
+const uint16_t vader_type_747_refs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPopExec_t, f_span) };
+const uint16_t vader_type_748_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_thunk) };
+const uint16_t vader_type_748_refs[] = { offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_span) };
+const uint16_t vader_type_749_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_expr) };
+const uint16_t vader_type_749_refs[] = { offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_span) };
+const uint16_t vader_type_750_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_type), offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_target) };
+const uint16_t vader_type_750_strs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_field) };
+const uint16_t vader_type_750_refs[] = { offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_span) };
+const uint16_t vader_type_751_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_type) };
+const uint16_t vader_type_751_refs[] = { offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_span) };
+const uint16_t vader_type_752_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_return_type), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_body) };
+const uint16_t vader_type_752_strs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_mangled) };
+const uint16_t vader_type_752_refs[] = { offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_params), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_origin) };
+const uint16_t vader_type_753_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIdent_t, f_type) };
+const uint16_t vader_type_753_refs[] = { offsetof(vader_struct_vader_lower_LoweredIdent_t, f_span), offsetof(vader_struct_vader_lower_LoweredIdent_t, f_symbol) };
+const uint16_t vader_type_754_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIf_t, f_type), offsetof(vader_struct_vader_lower_LoweredIf_t, f_cond), offsetof(vader_struct_vader_lower_LoweredIf_t, f_else_block) };
+const uint16_t vader_type_754_refs[] = { offsetof(vader_struct_vader_lower_LoweredIf_t, f_span), offsetof(vader_struct_vader_lower_LoweredIf_t, f_then_block) };
+const uint16_t vader_type_755_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIndex_t, f_type), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_target), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_index) };
+const uint16_t vader_type_755_refs[] = { offsetof(vader_struct_vader_lower_LoweredIndex_t, f_span) };
+const uint16_t vader_type_756_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_type) };
+const uint16_t vader_type_756_refs[] = { offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_span) };
+const uint16_t vader_type_757_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_type) };
+const uint16_t vader_type_757_strs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_name) };
+const uint16_t vader_type_757_refs[] = { offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_args) };
+const uint16_t vader_type_758_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_type), offsetof(vader_struct_vader_lower_LoweredLet_t, f_value) };
+const uint16_t vader_type_758_strs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_name) };
+const uint16_t vader_type_758_refs[] = { offsetof(vader_struct_vader_lower_LoweredLet_t, f_span), offsetof(vader_struct_vader_lower_LoweredLet_t, f_symbol) };
+const uint16_t vader_type_759_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredLoop_t, f_label), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_cond) };
+const uint16_t vader_type_759_refs[] = { offsetof(vader_struct_vader_lower_LoweredLoop_t, f_span), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_body) };
+const uint16_t vader_type_760_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_type), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_env) };
+const uint16_t vader_type_760_refs[] = { offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_span), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_fn_symbol) };
+const uint16_t vader_type_761_strs[] = { offsetof(vader_struct_vader_lower_LoweredModule_t, f_module_id), offsetof(vader_struct_vader_lower_LoweredModule_t, f_display_path) };
+const uint16_t vader_type_761_refs[] = { offsetof(vader_struct_vader_lower_LoweredModule_t, f_decls) };
+const uint16_t vader_type_762_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_type) };
+const uint16_t vader_type_762_refs[] = { offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_span) };
+const uint16_t vader_type_763_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_type) };
+const uint16_t vader_type_763_strs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_name) };
+const uint16_t vader_type_763_refs[] = { offsetof(vader_struct_vader_lower_LoweredParam_t, f_symbol) };
+const uint16_t vader_type_764_strs[] = { offsetof(vader_struct_vader_lower_LoweredProject_t, f_entry) };
+const uint16_t vader_type_764_refs[] = { offsetof(vader_struct_vader_lower_LoweredProject_t, f_modules), offsetof(vader_struct_vader_lower_LoweredProject_t, f_vtable_entries), offsetof(vader_struct_vader_lower_LoweredProject_t, f_data_pool), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_fn_wrap), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_inline), offsetof(vader_struct_vader_lower_LoweredProject_t, f_trait_membership) };
+const uint16_t vader_type_765_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredReturn_t, f_value) };
+const uint16_t vader_type_765_refs[] = { offsetof(vader_struct_vader_lower_LoweredReturn_t, f_span) };
+const uint16_t vader_type_766_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_type) };
+const uint16_t vader_type_766_strs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_value) };
+const uint16_t vader_type_766_refs[] = { offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_span) };
+const uint16_t vader_type_767_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_hi) };
+const uint16_t vader_type_767_refs[] = { offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_span) };
+const uint16_t vader_type_768_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_mangled) };
+const uint16_t vader_type_768_refs[] = { offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_fields), offsetof(vader_struct_vader_lower_LoweredStructDecl_t, f_origin) };
+const uint16_t vader_type_769_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructField_t, f_type) };
+const uint16_t vader_type_769_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructField_t, f_name) };
+const uint16_t vader_type_770_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_type) };
+const uint16_t vader_type_770_refs[] = { offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_span), offsetof(vader_struct_vader_lower_LoweredStructLit_t, f_fields) };
+const uint16_t vader_type_771_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredStructLitField_t, f_value) };
+const uint16_t vader_type_771_strs[] = { offsetof(vader_struct_vader_lower_LoweredStructLitField_t, f_name) };
+const uint16_t vader_type_772_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_type), offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_value), offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_check_type) };
+const uint16_t vader_type_772_refs[] = { offsetof(vader_struct_vader_lower_LoweredTypeCheck_t, f_span) };
+const uint16_t vader_type_773_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_type), offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_value) };
+const uint16_t vader_type_773_refs[] = { offsetof(vader_struct_vader_lower_LoweredTypeConst_t, f_span) };
+const uint16_t vader_type_774_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredUnary_t, f_type), offsetof(vader_struct_vader_lower_LoweredUnary_t, f_operand) };
+const uint16_t vader_type_774_refs[] = { offsetof(vader_struct_vader_lower_LoweredUnary_t, f_span) };
+const uint16_t vader_type_775_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_type) };
+const uint16_t vader_type_775_strs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_reason) };
+const uint16_t vader_type_775_refs[] = { offsetof(vader_struct_vader_lower_LoweredUnreachable_t, f_span) };
+const uint16_t vader_type_776_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_type), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_receiver) };
+const uint16_t vader_type_776_strs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_trait_name), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_method) };
+const uint16_t vader_type_776_refs[] = { offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredVirtualCall_t, f_args) };
+const uint16_t vader_type_777_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_struct_type) };
+const uint16_t vader_type_777_strs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_trait_name), offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_method_name) };
+const uint16_t vader_type_777_refs[] = { offsetof(vader_struct_vader_lower_LoweredVtableEntry_t, f_fn_symbol) };
+const uint16_t vader_type_778_ptrs[] = { offsetof(vader_struct_vader_lower_LoweredYield_t, f_value) };
+const uint16_t vader_type_778_refs[] = { offsetof(vader_struct_vader_lower_LoweredYield_t, f_span) };
+const uint16_t vader_type_779_strs[] = { offsetof(vader_struct_vader_lower_OpTraitInfo_t, f_trait_name), offsetof(vader_struct_vader_lower_OpTraitInfo_t, f_method_name) };
+const uint16_t vader_type_780_strs[] = { offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_module_id), offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_key) };
+const uint16_t vader_type_780_refs[] = { offsetof(vader_struct_vader_lower_PendingFnInstance_t, f_decl) };
+const uint16_t vader_type_781_strs[] = { offsetof(vader_struct_vader_lower_PrimDataPoolEntry_t, f_element_type_name) };
+const uint16_t vader_type_781_refs[] = { offsetof(vader_struct_vader_lower_PrimDataPoolEntry_t, f_items) };
+const uint16_t vader_type_782_refs[] = { offsetof(vader_struct_vader_lower_StrDataPoolEntry_t, f_values) };
+const uint16_t vader_type_783_ptrs[] = { offsetof(vader_struct_vader_lower_TerminalPredCall_t, f_chain_arg), offsetof(vader_struct_vader_lower_TerminalPredCall_t, f_pred) };
+const uint16_t vader_type_784_refs[] = { offsetof(vader_struct_vader_lower_TransformCtx_t, f_index), offsetof(vader_struct_vader_lower_TransformCtx_t, f_param_map) };
+const uint16_t vader_type_785_refs[] = { offsetof(vader_struct_vader_lower_UfcsMember_t, f_symbol), offsetof(vader_struct_vader_lower_UfcsMember_t, f_arg_types) };
+const uint16_t vader_type_786_refs[] = { offsetof(vader_struct_vader_lower_WalkCtx_t, f_typed), offsetof(vader_struct_vader_lower_WalkCtx_t, f_symbol_index), offsetof(vader_struct_vader_lower_WalkCtx_t, f_analysis), offsetof(vader_struct_vader_lower_WalkCtx_t, f_empty_captures) };
+const uint16_t vader_type_787_ptrs[] = { offsetof(vader_struct_vader_lower_WrapResult_t, f_iter), offsetof(vader_struct_vader_lower_WrapResult_t, f_iter_type) };
+const uint16_t vader_type_788_refs[] = { offsetof(vader_struct_vader_midir_AnnotatedProject_t, f_project), offsetof(vader_struct_vader_midir_AnnotatedProject_t, f_stats) };
+const uint16_t vader_type_789_ptrs[] = { offsetof(vader_struct_vader_midir_BasicBlock_t, f_terminator) };
+const uint16_t vader_type_789_refs[] = { offsetof(vader_struct_vader_midir_BasicBlock_t, f_instructions), offsetof(vader_struct_vader_midir_BasicBlock_t, f_span) };
+const uint16_t vader_type_790_ptrs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_return_type) };
+const uint16_t vader_type_790_strs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_mangled), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_extern_name), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_c_header), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_c_library) };
+const uint16_t vader_type_790_refs[] = { offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_params), offsetof(vader_struct_vader_midir_CFGExternDecl_t, f_origin) };
+const uint16_t vader_type_791_ptrs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_return_type) };
+const uint16_t vader_type_791_strs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_mangled), offsetof(vader_struct_vader_midir_CFGFunction_t, f_extern_name) };
+const uint16_t vader_type_791_refs[] = { offsetof(vader_struct_vader_midir_CFGFunction_t, f_params), offsetof(vader_struct_vader_midir_CFGFunction_t, f_locals), offsetof(vader_struct_vader_midir_CFGFunction_t, f_blocks), offsetof(vader_struct_vader_midir_CFGFunction_t, f_origin) };
+const uint16_t vader_type_792_ptrs[] = { offsetof(vader_struct_vader_midir_CFGLocal_t, f_type), offsetof(vader_struct_vader_midir_CFGLocal_t, f_symbol) };
+const uint16_t vader_type_792_strs[] = { offsetof(vader_struct_vader_midir_CFGLocal_t, f_name) };
+const uint16_t vader_type_793_strs[] = { offsetof(vader_struct_vader_midir_CFGModule_t, f_module_id), offsetof(vader_struct_vader_midir_CFGModule_t, f_display_path) };
+const uint16_t vader_type_793_refs[] = { offsetof(vader_struct_vader_midir_CFGModule_t, f_functions), offsetof(vader_struct_vader_midir_CFGModule_t, f_externs), offsetof(vader_struct_vader_midir_CFGModule_t, f_struct_decls) };
+const uint16_t vader_type_794_ptrs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_type) };
+const uint16_t vader_type_794_strs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_name) };
+const uint16_t vader_type_794_refs[] = { offsetof(vader_struct_vader_midir_CFGParam_t, f_symbol) };
+const uint16_t vader_type_795_refs[] = { offsetof(vader_struct_vader_midir_CFGProject_t, f_modules), offsetof(vader_struct_vader_midir_CFGProject_t, f_vtable_entries), offsetof(vader_struct_vader_midir_CFGProject_t, f_strings), offsetof(vader_struct_vader_midir_CFGProject_t, f_data_pool), offsetof(vader_struct_vader_midir_CFGProject_t, f_trait_membership) };
+const uint16_t vader_type_796_strs[] = { offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_mangled) };
+const uint16_t vader_type_796_refs[] = { offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_fields), offsetof(vader_struct_vader_midir_CFGStructDecl_t, f_origin) };
+const uint16_t vader_type_797_ptrs[] = { offsetof(vader_struct_vader_midir_CFGStructField_t, f_type) };
+const uint16_t vader_type_797_strs[] = { offsetof(vader_struct_vader_midir_CFGStructField_t, f_name) };
+const uint16_t vader_type_804_refs[] = { offsetof(vader_struct_vader_midir_EscapeResult_t, f_escaping), offsetof(vader_struct_vader_midir_EscapeResult_t, f_alias_of), offsetof(vader_struct_vader_midir_EscapeResult_t, f_alias_from) };
+const uint16_t vader_type_806_ptrs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_return_type), offsetof(vader_struct_vader_midir_FnCtx_t, f_current) };
+const uint16_t vader_type_806_strs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_mangled) };
+const uint16_t vader_type_806_refs[] = { offsetof(vader_struct_vader_midir_FnCtx_t, f_project), offsetof(vader_struct_vader_midir_FnCtx_t, f_origin), offsetof(vader_struct_vader_midir_FnCtx_t, f_params), offsetof(vader_struct_vader_midir_FnCtx_t, f_locals), offsetof(vader_struct_vader_midir_FnCtx_t, f_local_by_sym_id), offsetof(vader_struct_vader_midir_FnCtx_t, f_blocks), offsetof(vader_struct_vader_midir_FnCtx_t, f_loop_stack) };
+const uint16_t vader_type_807_refs[] = { offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_fn_), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_pinned_types_bucket), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_slot), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_project), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_string_index_map), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_local_to_slot), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_preds), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_idom), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_ipostdom), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_loop_exit), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_scopes), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_pending), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_wrapped_loop_headers), offsetof(vader_struct_vader_midir_FnEmitCfg_t, f_hints) };
+const uint16_t vader_type_808_strs[] = { offsetof(vader_struct_vader_midir_FnMetadata_t, f_extern_name), offsetof(vader_struct_vader_midir_FnMetadata_t, f_c_library), offsetof(vader_struct_vader_midir_FnMetadata_t, f_c_header) };
+const uint16_t vader_type_809_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArrayGet_t, f_type) };
+const uint16_t vader_type_809_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayGet_t, f_span) };
+const uint16_t vader_type_810_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayLen_t, f_span) };
+const uint16_t vader_type_811_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_type) };
+const uint16_t vader_type_811_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_span), offsetof(vader_struct_vader_midir_InstrArrayNew_t, f_elements) };
+const uint16_t vader_type_812_refs[] = { offsetof(vader_struct_vader_midir_InstrArrayPush_t, f_span) };
+const uint16_t vader_type_813_refs[] = { offsetof(vader_struct_vader_midir_InstrArraySet_t, f_span) };
+const uint16_t vader_type_814_ptrs[] = { offsetof(vader_struct_vader_midir_InstrArraySlice_t, f_type) };
+const uint16_t vader_type_814_refs[] = { offsetof(vader_struct_vader_midir_InstrArraySlice_t, f_span) };
+const uint16_t vader_type_815_ptrs[] = { offsetof(vader_struct_vader_midir_InstrBinOp_t, f_type) };
+const uint16_t vader_type_815_refs[] = { offsetof(vader_struct_vader_midir_InstrBinOp_t, f_span) };
+const uint16_t vader_type_816_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCall_t, f_dst), offsetof(vader_struct_vader_midir_InstrCall_t, f_type) };
+const uint16_t vader_type_816_refs[] = { offsetof(vader_struct_vader_midir_InstrCall_t, f_span), offsetof(vader_struct_vader_midir_InstrCall_t, f_callee), offsetof(vader_struct_vader_midir_InstrCall_t, f_args) };
+const uint16_t vader_type_817_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_dst), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_fn_type), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_type) };
+const uint16_t vader_type_817_refs[] = { offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_span), offsetof(vader_struct_vader_midir_InstrCallIndirect_t, f_args) };
+const uint16_t vader_type_818_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCast_t, f_type) };
+const uint16_t vader_type_818_refs[] = { offsetof(vader_struct_vader_midir_InstrCast_t, f_span) };
+const uint16_t vader_type_819_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellGet_t, f_value_type) };
+const uint16_t vader_type_819_refs[] = { offsetof(vader_struct_vader_midir_InstrCellGet_t, f_span) };
+const uint16_t vader_type_820_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellNew_t, f_value_type) };
+const uint16_t vader_type_820_refs[] = { offsetof(vader_struct_vader_midir_InstrCellNew_t, f_span) };
+const uint16_t vader_type_821_ptrs[] = { offsetof(vader_struct_vader_midir_InstrCellSet_t, f_value_type) };
+const uint16_t vader_type_821_refs[] = { offsetof(vader_struct_vader_midir_InstrCellSet_t, f_span) };
+const uint16_t vader_type_822_ptrs[] = { offsetof(vader_struct_vader_midir_InstrConst_t, f_value), offsetof(vader_struct_vader_midir_InstrConst_t, f_type) };
+const uint16_t vader_type_822_refs[] = { offsetof(vader_struct_vader_midir_InstrConst_t, f_span) };
+const uint16_t vader_type_823_ptrs[] = { offsetof(vader_struct_vader_midir_InstrDataConst_t, f_type) };
+const uint16_t vader_type_823_refs[] = { offsetof(vader_struct_vader_midir_InstrDataConst_t, f_span) };
+const uint16_t vader_type_824_refs[] = { offsetof(vader_struct_vader_midir_InstrDeferPopExec_t, f_span) };
+const uint16_t vader_type_825_refs[] = { offsetof(vader_struct_vader_midir_InstrDeferPush_t, f_span) };
+const uint16_t vader_type_826_ptrs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_type) };
+const uint16_t vader_type_826_strs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_field) };
+const uint16_t vader_type_826_refs[] = { offsetof(vader_struct_vader_midir_InstrFieldGet_t, f_span) };
+const uint16_t vader_type_827_strs[] = { offsetof(vader_struct_vader_midir_InstrFieldSet_t, f_field) };
+const uint16_t vader_type_827_refs[] = { offsetof(vader_struct_vader_midir_InstrFieldSet_t, f_span) };
+const uint16_t vader_type_828_ptrs[] = { offsetof(vader_struct_vader_midir_InstrFnAddr_t, f_type) };
+const uint16_t vader_type_828_refs[] = { offsetof(vader_struct_vader_midir_InstrFnAddr_t, f_span), offsetof(vader_struct_vader_midir_InstrFnAddr_t, f_fn_symbol) };
+const uint16_t vader_type_829_ptrs[] = { offsetof(vader_struct_vader_midir_InstrFnRef_t, f_type) };
+const uint16_t vader_type_829_refs[] = { offsetof(vader_struct_vader_midir_InstrFnRef_t, f_span), offsetof(vader_struct_vader_midir_InstrFnRef_t, f_fn_symbol) };
+const uint16_t vader_type_830_ptrs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_dst) };
+const uint16_t vader_type_830_strs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_name) };
+const uint16_t vader_type_830_refs[] = { offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_span), offsetof(vader_struct_vader_midir_InstrIntrinsic_t, f_args) };
+const uint16_t vader_type_831_ptrs[] = { offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_env_type), offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_type) };
+const uint16_t vader_type_831_refs[] = { offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_span), offsetof(vader_struct_vader_midir_InstrMakeClosure_t, f_fn_symbol) };
+const uint16_t vader_type_832_refs[] = { offsetof(vader_struct_vader_midir_InstrMove_t, f_span) };
+const uint16_t vader_type_833_ptrs[] = { offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_type) };
+const uint16_t vader_type_833_refs[] = { offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_span) };
+const uint16_t vader_type_834_ptrs[] = { offsetof(vader_struct_vader_midir_InstrStructNew_t, f_type) };
+const uint16_t vader_type_834_refs[] = { offsetof(vader_struct_vader_midir_InstrStructNew_t, f_span), offsetof(vader_struct_vader_midir_InstrStructNew_t, f_fields) };
+const uint16_t vader_type_835_ptrs[] = { offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_check_type) };
+const uint16_t vader_type_835_refs[] = { offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_span) };
+const uint16_t vader_type_836_ptrs[] = { offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_type), offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_value_type) };
+const uint16_t vader_type_836_refs[] = { offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_span) };
+const uint16_t vader_type_837_ptrs[] = { offsetof(vader_struct_vader_midir_InstrUnOp_t, f_type) };
+const uint16_t vader_type_837_refs[] = { offsetof(vader_struct_vader_midir_InstrUnOp_t, f_span) };
+const uint16_t vader_type_838_ptrs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_dst), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_type) };
+const uint16_t vader_type_838_strs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_trait_name), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_method) };
+const uint16_t vader_type_838_refs[] = { offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_span), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_args) };
+const uint16_t vader_type_839_refs[] = { offsetof(vader_struct_vader_midir_Liveness_t, f_live_in), offsetof(vader_struct_vader_midir_Liveness_t, f_live_out) };
+const uint16_t vader_type_840_ptrs[] = { offsetof(vader_struct_vader_midir_LoopFrame_t, f_label) };
+const uint16_t vader_type_841_ptrs[] = { offsetof(vader_struct_vader_midir_MutableBlock_t, f_terminator) };
+const uint16_t vader_type_841_refs[] = { offsetof(vader_struct_vader_midir_MutableBlock_t, f_instructions), offsetof(vader_struct_vader_midir_MutableBlock_t, f_span) };
+const uint16_t vader_type_843_refs[] = { offsetof(vader_struct_vader_midir_ProjectCtx_t, f_strings), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_string_index), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_fn_wrap), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_inline), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_extern_callbacks) };
+const uint16_t vader_type_844_refs[] = { offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_set), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_first_get), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_terminator_get) };
+const uint16_t vader_type_845_strs[] = { offsetof(vader_struct_vader_midir_ScopeFrame_t, f_kind) };
+const uint16_t vader_type_846_refs[] = { offsetof(vader_struct_vader_midir_TermBranch_t, f_span) };
+const uint16_t vader_type_847_refs[] = { offsetof(vader_struct_vader_midir_TermCondBranch_t, f_span) };
+const uint16_t vader_type_848_ptrs[] = { offsetof(vader_struct_vader_midir_TermReturn_t, f_value) };
+const uint16_t vader_type_848_refs[] = { offsetof(vader_struct_vader_midir_TermReturn_t, f_span) };
+const uint16_t vader_type_849_strs[] = { offsetof(vader_struct_vader_midir_TermUnreachable_t, f_reason) };
+const uint16_t vader_type_849_refs[] = { offsetof(vader_struct_vader_midir_TermUnreachable_t, f_span) };
+const uint16_t vader_type_850_refs[] = { offsetof(vader_struct_vader_parser_CommaList__Any_t, f_items) };
+const uint16_t vader_type_851_refs[] = { offsetof(vader_struct_vader_parser_CommaList__CallArg_t, f_items) };
+const uint16_t vader_type_852_refs[] = { offsetof(vader_struct_vader_parser_CommaList__ImportName_t, f_items) };
+const uint16_t vader_type_853_refs[] = { offsetof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t, f_items) };
+const uint16_t vader_type_855_ptrs[] = { offsetof(vader_struct_vader_parser_FnBodyTail_t, f_body) };
+const uint16_t vader_type_856_refs[] = { offsetof(vader_struct_vader_parser_FnSignature_t, f_params), offsetof(vader_struct_vader_parser_FnSignature_t, f_type_params) };
+const uint16_t vader_type_858_strs[] = { offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_name), offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_result) };
+const uint16_t vader_type_858_refs[] = { offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_args) };
+const uint16_t vader_type_859_strs[] = { offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name) };
+const uint16_t vader_type_859_refs[] = { offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name_span) };
+const uint16_t vader_type_861_refs[] = { offsetof(vader_struct_vader_parser_ParsedSource_t, f_program), offsetof(vader_struct_vader_parser_ParsedSource_t, f_tokens), offsetof(vader_struct_vader_parser_ParsedSource_t, f_errors), offsetof(vader_struct_vader_parser_ParsedSource_t, f_id_factory) };
+const uint16_t vader_type_862_ptrs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_shr_pending_half) };
+const uint16_t vader_type_862_strs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_file) };
+const uint16_t vader_type_862_refs[] = { offsetof(vader_struct_vader_parser_Parser_t, f_tokens), offsetof(vader_struct_vader_parser_Parser_t, f_errors), offsetof(vader_struct_vader_parser_Parser_t, f_pending_decls) };
+const uint16_t vader_type_863_strs[] = { offsetof(vader_struct_vader_parser_StringLitInfo_t, f_text) };
+const uint16_t vader_type_863_refs[] = { offsetof(vader_struct_vader_parser_StringLitInfo_t, f_span) };
+const uint16_t vader_type_864_refs[] = { offsetof(vader_struct_vader_resolver_CollectedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_imports), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_import_paths), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_wildcards) };
+const uint16_t vader_type_865_strs[] = { offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_name), offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_folder) };
+const uint16_t vader_type_865_refs[] = { offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_files) };
+const uint16_t vader_type_866_strs[] = { offsetof(vader_struct_vader_resolver_FileWildcards_t, f_file) };
+const uint16_t vader_type_866_refs[] = { offsetof(vader_struct_vader_resolver_FileWildcards_t, f_paths), offsetof(vader_struct_vader_resolver_FileWildcards_t, f_excludes) };
+const uint16_t vader_type_867_strs[] = { offsetof(vader_struct_vader_resolver_FolderBucket_t, f_name) };
+const uint16_t vader_type_867_refs[] = { offsetof(vader_struct_vader_resolver_FolderBucket_t, f_first_decl_span), offsetof(vader_struct_vader_resolver_FolderBucket_t, f_files) };
+const uint16_t vader_type_868_ptrs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_imported_name) };
+const uint16_t vader_type_868_strs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_path), offsetof(vader_struct_vader_resolver_ImportInfo_t, f_local) };
+const uint16_t vader_type_868_refs[] = { offsetof(vader_struct_vader_resolver_ImportInfo_t, f_binding_span) };
+const uint16_t vader_type_869_refs[] = { offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_symbol_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_namespace_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_missing) };
+const uint16_t vader_type_870_strs[] = { offsetof(vader_struct_vader_resolver_IncludePath_t, f_dir), offsetof(vader_struct_vader_resolver_IncludePath_t, f_prefix) };
+const uint16_t vader_type_871_refs[] = { offsetof(vader_struct_vader_resolver_LoadedModule_t, f_module), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_collected), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_node_id_factory), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_discarded_bodies) };
+const uint16_t vader_type_872_ptrs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_project_root) };
+const uint16_t vader_type_872_strs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_entry) };
+const uint16_t vader_type_872_refs[] = { offsetof(vader_struct_vader_resolver_LoadedProject_t, f_modules), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_factory), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_diags) };
+const uint16_t vader_type_873_refs[] = { offsetof(vader_struct_vader_resolver_Manifest_t, f_include_paths) };
+const uint16_t vader_type_874_strs[] = { offsetof(vader_struct_vader_resolver_Module_t, f_id), offsetof(vader_struct_vader_resolver_Module_t, f_display_path), offsetof(vader_struct_vader_resolver_Module_t, f_module_name) };
+const uint16_t vader_type_874_refs[] = { offsetof(vader_struct_vader_resolver_Module_t, f_files) };
+const uint16_t vader_type_875_strs[] = { offsetof(vader_struct_vader_resolver_ResolveState_t, f_module_path) };
+const uint16_t vader_type_875_refs[] = { offsetof(vader_struct_vader_resolver_ResolveState_t, f_idents), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolveState_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolveState_t, f_diags), offsetof(vader_struct_vader_resolver_ResolveState_t, f_scope), offsetof(vader_struct_vader_resolver_ResolveState_t, f_factory), offsetof(vader_struct_vader_resolver_ResolveState_t, f_ambiguous) };
+const uint16_t vader_type_876_refs[] = { offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_top_level), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_diags) };
+const uint16_t vader_type_877_strs[] = { offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_path), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_display_path) };
+const uint16_t vader_type_877_refs[] = { offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_imports_to), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_decls), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_diags), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_deprecated_messages), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_member_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_private_members) };
+const uint16_t vader_type_878_refs[] = { offsetof(vader_struct_vader_resolver_Scope_t, f_frames) };
+const uint16_t vader_type_879_strs[] = { offsetof(vader_struct_vader_resolver_SourceFile_t, f_path), offsetof(vader_struct_vader_resolver_SourceFile_t, f_content) };
+const uint16_t vader_type_879_refs[] = { offsetof(vader_struct_vader_resolver_SourceFile_t, f_program), offsetof(vader_struct_vader_resolver_SourceFile_t, f_id_factory) };
+const uint16_t vader_type_880_strs[] = { offsetof(vader_struct_vader_resolver_StampCtx_t, f_file) };
+const uint16_t vader_type_881_refs[] = { offsetof(vader_struct_vader_resolver_Subst_t, f_entries) };
+const uint16_t vader_type_882_strs[] = { offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_module_id) };
+const uint16_t vader_type_882_refs[] = { offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_symbol) };
+const uint16_t vader_type_883_refs[] = { offsetof(vader_struct_vader_resolver_TargetSelectors_t, f_os) };
+const uint16_t vader_type_884_ptrs[] = { offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_defined_at) };
+const uint16_t vader_type_884_strs[] = { offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_name), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module_name) };
+const uint16_t vader_type_888_ptrs[] = { offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_else_ty) };
+const uint16_t vader_type_888_strs[] = { offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_field_key) };
+const uint16_t vader_type_889_refs[] = { offsetof(vader_struct_vader_typecheck_CheckResult_t, f_typed), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_impls), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_others), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_all_modules) };
+const uint16_t vader_type_890_strs[] = { offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name) };
+const uint16_t vader_type_890_refs[] = { offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name_span) };
+const uint16_t vader_type_891_ptrs[] = { offsetof(vader_struct_vader_typecheck_DivergentNarrow_t, f_prev) };
+const uint16_t vader_type_891_strs[] = { offsetof(vader_struct_vader_typecheck_DivergentNarrow_t, f_field_key) };
+const uint16_t vader_type_892_ptrs[] = { offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_binding), offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_label) };
+const uint16_t vader_type_893_ptrs[] = { offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_static_ty) };
+const uint16_t vader_type_893_strs[] = { offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_field_key) };
+const uint16_t vader_type_894_ptrs[] = { offsetof(vader_struct_vader_typecheck_FnContext_t, f_return_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_self_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_yield_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_inferred_return) };
+const uint16_t vader_type_895_ptrs[] = { offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_element) };
+const uint16_t vader_type_895_strs[] = { offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_name), offsetof(vader_struct_vader_typecheck_GenStateEntry_t, f_module) };
+const uint16_t vader_type_896_ptrs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_for_symbol) };
+const uint16_t vader_type_896_strs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_module) };
+const uint16_t vader_type_896_refs[] = { offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_decl), offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_trait_symbol) };
+const uint16_t vader_type_897_ptrs[] = { offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_ty) };
+const uint16_t vader_type_898_refs[] = { offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_user_index), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_all) };
+const uint16_t vader_type_899_ptrs[] = { offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_then_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_else_ty) };
+const uint16_t vader_type_899_strs[] = { offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_field_key) };
+const uint16_t vader_type_900_ptrs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_trait_decl) };
+const uint16_t vader_type_900_strs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_other_kind) };
+const uint16_t vader_type_901_strs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name) };
+const uint16_t vader_type_901_refs[] = { offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name_span), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_decorators), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_refs) };
+const uint16_t vader_type_902_ptrs[] = { offsetof(vader_struct_vader_typecheck_NarrowSlot_t, f_ty) };
+const uint16_t vader_type_903_ptrs[] = { offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_prev) };
+const uint16_t vader_type_903_strs[] = { offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_field_key) };
+const uint16_t vader_type_905_ptrs[] = { offsetof(vader_struct_vader_typecheck_Substitution_t, f_self_type) };
+const uint16_t vader_type_905_refs[] = { offsetof(vader_struct_vader_typecheck_Substitution_t, f_type_params) };
+const uint16_t vader_type_906_ptrs[] = { offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_import_targets), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_range_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_field_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_async_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_run_async_main_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_current_fn_ctx) };
+const uint16_t vader_type_906_refs[] = { offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_resolved), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_into_coercions), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_empty_array_inits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_param_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_type_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decl_owners), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_methods), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrowed_bindings), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrowed_fields), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_kill_gens), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_field_kill_gens), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_kinds), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_external_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_exports), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_export_params), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_imported_fn_overloads), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_iter_element_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_target_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_key_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_set_value_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_ufcs_receiver_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_field_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_implemented_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_traits_by_sym), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_trait_args), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_node_spans), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_generator_symbols), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_extern_symbols), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_let_type_aliases), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_init_callee), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_var_iterable), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_annotation), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_init_index), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow_binding_scrutinee), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_const_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_bounded_dispatch_trait), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_trait_dispatches), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_overload_result_callees), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_stack), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_target_labels) };
+const uint16_t vader_type_907_refs[] = { offsetof(vader_struct_vader_typecheck_TypedProject_t, f_modules) };
+const uint16_t vader_type_908_ptrs[] = { offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_curried), offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_first_param) };
+const uint16_t vader_type_910_ptrs[] = { offsetof(vader_struct_vader_types_ArrayType_t, f_element) };
+const uint16_t vader_type_911_ptrs[] = { offsetof(vader_struct_vader_types_DistinctType_t, f_backing) };
+const uint16_t vader_type_911_refs[] = { offsetof(vader_struct_vader_types_DistinctType_t, f_symbol) };
+const uint16_t vader_type_912_strs[] = { offsetof(vader_struct_vader_types_EnumType_t, f_repr) };
+const uint16_t vader_type_912_refs[] = { offsetof(vader_struct_vader_types_EnumType_t, f_symbol), offsetof(vader_struct_vader_types_EnumType_t, f_indices) };
+const uint16_t vader_type_913_ptrs[] = { offsetof(vader_struct_vader_types_FnType_t, f_return_type) };
+const uint16_t vader_type_913_refs[] = { offsetof(vader_struct_vader_types_FnType_t, f_params), offsetof(vader_struct_vader_types_FnType_t, f_params_mutable) };
+const uint16_t vader_type_918_strs[] = { offsetof(vader_struct_vader_types_PrimitiveMeta_t, f_name) };
+const uint16_t vader_type_919_strs[] = { offsetof(vader_struct_vader_types_PrimitiveType_t, f_name) };
+const uint16_t vader_type_921_refs[] = { offsetof(vader_struct_vader_types_StructType_t, f_symbol), offsetof(vader_struct_vader_types_StructType_t, f_args) };
+const uint16_t vader_type_922_refs[] = { offsetof(vader_struct_vader_types_TraitType_t, f_symbol), offsetof(vader_struct_vader_types_TraitType_t, f_args) };
+const uint16_t vader_type_923_refs[] = { offsetof(vader_struct_vader_types_TupleType_t, f_elements) };
+const uint16_t vader_type_925_refs[] = { offsetof(vader_struct_vader_types_TypeParamType_t, f_symbol) };
+const uint16_t vader_type_926_refs[] = { offsetof(vader_struct_vader_types_UnionType_t, f_variants) };
+const uint16_t vader_type_928_refs[] = { offsetof(vader_struct_vader_vm_ArrayVal_t, f_elements) };
+const uint16_t vader_type_931_refs[] = { offsetof(vader_struct_vader_vm_DebugController_t, f_output_sink), offsetof(vader_struct_vader_vm_DebugController_t, f_breakpoints), offsetof(vader_struct_vader_vm_DebugController_t, f_on_pause) };
+const uint16_t vader_type_932_strs[] = { offsetof(vader_struct_vader_vm_ErrorVal_t, f_message) };
+const uint16_t vader_type_934_ptrs[] = { offsetof(vader_struct_vader_vm_FnVal_t, f_env) };
+const uint16_t vader_type_935_refs[] = { offsetof(vader_struct_vader_vm_Frame_t, f_slots), offsetof(vader_struct_vader_vm_Frame_t, f_stack), offsetof(vader_struct_vader_vm_Frame_t, f_payload), offsetof(vader_struct_vader_vm_Frame_t, f_tag), offsetof(vader_struct_vader_vm_Frame_t, f_slot_payload), offsetof(vader_struct_vader_vm_Frame_t, f_slot_tag), offsetof(vader_struct_vader_vm_Frame_t, f_defers) };
+const uint16_t vader_type_936_ptrs[] = { offsetof(vader_struct_vader_vm_HostOk_t, f_value) };
+const uint16_t vader_type_939_refs[] = { offsetof(vader_struct_vader_vm_LentArray_t, f_target) };
+const uint16_t vader_type_940_refs[] = { offsetof(vader_struct_vader_vm_LentStruct_t, f_target), offsetof(vader_struct_vader_vm_LentStruct_t, f_fields) };
+const uint16_t vader_type_942_refs[] = { offsetof(vader_struct_vader_vm_ObjVal_t, f_bytes), offsetof(vader_struct_vader_vm_ObjVal_t, f_slots) };
+const uint16_t vader_type_944_strs[] = { offsetof(vader_struct_vader_vm_PauseCtx_t, f_reason) };
+const uint16_t vader_type_944_refs[] = { offsetof(vader_struct_vader_vm_PauseCtx_t, f_frames) };
+const uint16_t vader_type_945_strs[] = { offsetof(vader_struct_vader_vm_PauseFrame_t, f_function_name), offsetof(vader_struct_vader_vm_PauseFrame_t, f_file) };
+const uint16_t vader_type_945_refs[] = { offsetof(vader_struct_vader_vm_PauseFrame_t, f_locals) };
+const uint16_t vader_type_946_strs[] = { offsetof(vader_struct_vader_vm_PauseVar_t, f_name), offsetof(vader_struct_vader_vm_PauseVar_t, f_value) };
+const uint16_t vader_type_946_refs[] = { offsetof(vader_struct_vader_vm_PauseVar_t, f_children) };
+const uint16_t vader_type_947_strs[] = { offsetof(vader_struct_vader_vm_StringVal_t, f_value) };
+const uint16_t vader_type_948_refs[] = { offsetof(vader_struct_vader_vm_StructVal_t, f_fields) };
+const uint16_t vader_type_949_strs[] = { offsetof(vader_struct_vader_vm_Trap_t, f_message) };
+const uint16_t vader_type_951_ptrs[] = { offsetof(vader_struct_vader_vm_ValueOk_t, f_value) };
+const uint16_t vader_type_952_refs[] = { offsetof(vader_struct_vader_vm_VmState_t, f_bc), offsetof(vader_struct_vader_vm_VmState_t, f_data_pool), offsetof(vader_struct_vader_vm_VmState_t, f_fn_narrow), offsetof(vader_struct_vader_vm_VmState_t, f_fn_index_by_name) };
 
-const vader_type_info_t vader_type_info_table[1246] = {
+const vader_type_info_t vader_type_info_table[1249] = {
     [1] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_1_ptrs, 1, 0, NULL, 0, NULL },
     [2] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_2_ptrs, 1, 0, NULL, 0, NULL },
     [3] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
@@ -6308,662 +6332,665 @@ const vader_type_info_t vader_type_info_table[1246] = {
     [295] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t), NULL, 0, 0, NULL, 3, vader_type_295_refs },
     [296] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t), NULL, 0, 0, NULL, 3, vader_type_296_refs },
     [297] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t), NULL, 0, 0, NULL, 3, vader_type_297_refs },
-    [298] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t), NULL, 0, 0, NULL, 3, vader_type_298_refs },
-    [299] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t), NULL, 0, 0, NULL, 3, vader_type_299_refs },
-    [300] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__StructDecl_t), NULL, 0, 0, NULL, 3, vader_type_300_refs },
-    [301] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_301_refs },
-    [302] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t), NULL, 0, 0, NULL, 3, vader_type_302_refs },
-    [303] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t), NULL, 0, 0, NULL, 3, vader_type_303_refs },
-    [304] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t), NULL, 0, 0, NULL, 3, vader_type_304_refs },
-    [305] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), NULL, 0, 0, NULL, 3, vader_type_305_refs },
-    [306] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32_t), NULL, 0, 0, NULL, 3, vader_type_306_refs },
-    [307] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32___t), NULL, 0, 0, NULL, 3, vader_type_307_refs },
-    [308] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32___null_t), NULL, 0, 0, NULL, 3, vader_type_308_refs },
-    [309] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__string_t), NULL, 0, 0, NULL, 3, vader_type_309_refs },
-    [310] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__string___t), NULL, 0, 0, NULL, 3, vader_type_310_refs },
-    [311] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__usize_t), NULL, 0, 0, NULL, 3, vader_type_311_refs },
-    [312] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__Any_t), NULL, 0, 0, NULL, 3, vader_type_312_refs },
-    [313] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t), NULL, 0, 0, NULL, 3, vader_type_313_refs },
-    [314] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__bool_t), NULL, 0, 0, NULL, 3, vader_type_314_refs },
-    [315] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Any_t), NULL, 0, 0, NULL, 3, vader_type_315_refs },
-    [316] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_316_refs },
-    [317] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Any___t), NULL, 0, 0, NULL, 3, vader_type_317_refs },
-    [318] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t), NULL, 0, 0, NULL, 3, vader_type_318_refs },
-    [319] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t), NULL, 0, 0, NULL, 3, vader_type_319_refs },
-    [320] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__CFGModule_t), NULL, 0, 0, NULL, 3, vader_type_320_refs },
-    [321] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Capture___t), NULL, 0, 0, NULL, 3, vader_type_321_refs },
-    [322] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t), NULL, 0, 0, NULL, 3, vader_type_322_refs },
-    [323] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t), NULL, 0, 0, NULL, 3, vader_type_323_refs },
-    [324] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnDecl_t), NULL, 0, 0, NULL, 3, vader_type_324_refs },
-    [325] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnDecl___t), NULL, 0, 0, NULL, 3, vader_type_325_refs },
-    [326] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnParam___t), NULL, 0, 0, NULL, 3, vader_type_326_refs },
-    [327] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnType___t), NULL, 0, 0, NULL, 3, vader_type_327_refs },
-    [328] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t), NULL, 0, 0, NULL, 3, vader_type_328_refs },
-    [329] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__GenericInstance_t), NULL, 0, 0, NULL, 3, vader_type_329_refs },
-    [330] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ImplEntry_t), NULL, 0, 0, NULL, 3, vader_type_330_refs },
-    [331] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ImplMethod_t), NULL, 0, 0, NULL, 3, vader_type_331_refs },
-    [332] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__InlineInfo_t), NULL, 0, 0, NULL, 3, vader_type_332_refs },
-    [333] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t), NULL, 0, 0, NULL, 3, vader_type_333_refs },
-    [334] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoadedModule_t), NULL, 0, 0, NULL, 3, vader_type_334_refs },
-    [335] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t), NULL, 0, 0, NULL, 3, vader_type_335_refs },
-    [336] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t), NULL, 0, 0, NULL, 3, vader_type_336_refs },
-    [337] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredModule_t), NULL, 0, 0, NULL, 3, vader_type_337_refs },
-    [338] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t), NULL, 0, 0, NULL, 3, vader_type_338_refs },
-    [339] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t), NULL, 0, 0, NULL, 3, vader_type_339_refs },
-    [340] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t), NULL, 0, 0, NULL, 3, vader_type_340_refs },
-    [341] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t), NULL, 0, 0, NULL, 3, vader_type_341_refs },
-    [342] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t), NULL, 0, 0, NULL, 3, vader_type_342_refs },
-    [343] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t), NULL, 0, 0, NULL, 3, vader_type_343_refs },
-    [344] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t), NULL, 0, 0, NULL, 3, vader_type_344_refs },
-    [345] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t), NULL, 0, 0, NULL, 3, vader_type_345_refs },
-    [346] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t), NULL, 0, 0, NULL, 3, vader_type_346_refs },
-    [347] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t), NULL, 0, 0, NULL, 3, vader_type_347_refs },
-    [348] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t), NULL, 0, 0, NULL, 3, vader_type_348_refs },
-    [349] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Span_t), NULL, 0, 0, NULL, 3, vader_type_349_refs },
-    [350] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_350_refs },
-    [351] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Symbol___t), NULL, 0, 0, NULL, 3, vader_type_351_refs },
-    [352] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__TypedProgram_t), NULL, 0, 0, NULL, 3, vader_type_352_refs },
-    [353] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t), NULL, 0, 0, NULL, 3, vader_type_353_refs },
-    [354] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__bool_t), NULL, 0, 0, NULL, 3, vader_type_354_refs },
-    [355] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i32_t), NULL, 0, 0, NULL, 3, vader_type_355_refs },
-    [356] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i32___t), NULL, 0, 0, NULL, 3, vader_type_356_refs },
-    [357] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i64_t), NULL, 0, 0, NULL, 3, vader_type_357_refs },
-    [358] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__string_t), NULL, 0, 0, NULL, 3, vader_type_358_refs },
-    [359] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__string___t), NULL, 0, 0, NULL, 3, vader_type_359_refs },
-    [360] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__usize_t), NULL, 0, 0, NULL, 3, vader_type_360_refs },
-    [361] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__Any_t), NULL, 0, 0, NULL, 3, vader_type_361_refs },
-    [362] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_362_refs },
-    [363] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_363_refs },
-    [364] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__usize_t), NULL, 0, 0, NULL, 3, vader_type_364_refs },
-    [365] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__Any_t), NULL, 0, 0, NULL, 3, vader_type_365_refs },
-    [366] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_366_refs },
-    [367] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t), NULL, 0, 0, NULL, 3, vader_type_367_refs },
-    [368] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__Span_t), NULL, 0, 0, NULL, 3, vader_type_368_refs },
-    [369] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__bool_t), NULL, 0, 0, NULL, 3, vader_type_369_refs },
-    [370] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), NULL, 0, 0, NULL, 3, vader_type_370_refs },
-    [371] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__string_t), NULL, 0, 0, NULL, 3, vader_type_371_refs },
-    [372] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__i32_t), NULL, 0, 0, NULL, 1, vader_type_372_refs },
-    [373] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__i64_t), NULL, 0, 0, NULL, 1, vader_type_373_refs },
-    [374] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__string_t), NULL, 0, 0, NULL, 1, vader_type_374_refs },
-    [375] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [376] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Dec64_t), NULL, 0, 0, NULL, 0, NULL },
-    [377] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_DecimalParts_t), NULL, 0, 0, NULL, 0, NULL },
-    [378] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_FloatDec32_t), NULL, 0, 0, NULL, 0, NULL },
-    [379] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_SlowParts_t), NULL, 0, 0, NULL, 1, vader_type_379_refs },
-    [380] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__char_t), NULL, 0, 0, NULL, 0, NULL },
-    [381] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_io_IOError_t), NULL, 0, 1, vader_type_381_strs, 0, NULL },
-    [382] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_ParseError_t), NULL, 0, 1, vader_type_382_strs, 0, NULL },
-    [383] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_StringChars_t), NULL, 0, 0, NULL, 1, vader_type_383_refs },
-    [384] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_builder_StringBuilder_t), NULL, 0, 0, NULL, 1, vader_type_384_refs },
-    [385] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ArrayTypeExpr_t), vader_type_385_ptrs, 1, 0, NULL, 1, vader_type_385_refs },
-    [386] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AssertDecl_t), vader_type_386_ptrs, 2, 0, NULL, 2, vader_type_386_refs },
-    [387] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AssignStmt_t), vader_type_387_ptrs, 2, 0, NULL, 1, vader_type_387_refs },
-    [388] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AwaitExpr_t), vader_type_388_ptrs, 1, 0, NULL, 1, vader_type_388_refs },
-    [389] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BinaryExpr_t), vader_type_389_ptrs, 2, 1, vader_type_389_strs, 1, vader_type_389_refs },
-    [390] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BindingPattern_t), NULL, 0, 1, vader_type_390_strs, 1, vader_type_390_refs },
-    [391] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BlockExpr_t), vader_type_391_ptrs, 1, 0, NULL, 2, vader_type_391_refs },
-    [392] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BoolLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_392_refs },
-    [393] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BreakStmt_t), vader_type_393_ptrs, 1, 0, NULL, 1, vader_type_393_refs },
-    [394] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CallArg_t), vader_type_394_ptrs, 2, 0, NULL, 1, vader_type_394_refs },
-    [395] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CallExpr_t), vader_type_395_ptrs, 1, 0, NULL, 2, vader_type_395_refs },
-    [396] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CastExpr_t), vader_type_396_ptrs, 2, 0, NULL, 1, vader_type_396_refs },
-    [397] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CharLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_397_refs },
-    [398] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ConstDecl_t), vader_type_398_ptrs, 3, 1, vader_type_398_strs, 3, vader_type_398_refs },
-    [399] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ContinueStmt_t), vader_type_399_ptrs, 1, 0, NULL, 1, vader_type_399_refs },
-    [400] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_Decorator_t), NULL, 0, 1, vader_type_400_strs, 2, vader_type_400_refs },
-    [401] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferBlockBody_t), NULL, 0, 0, NULL, 1, vader_type_401_refs },
-    [402] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferStmt_t), vader_type_402_ptrs, 1, 0, NULL, 1, vader_type_402_refs },
-    [403] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferStmtBody_t), vader_type_403_ptrs, 1, 0, NULL, 0, NULL },
-    [404] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DestructureImport_t), NULL, 0, 0, NULL, 1, vader_type_404_refs },
-    [405] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DestructureVar_t), vader_type_405_ptrs, 1, 0, NULL, 0, NULL },
-    [406] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DiscardVar_t), NULL, 0, 0, NULL, 0, NULL },
-    [407] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DotVariantExpr_t), NULL, 0, 1, vader_type_407_strs, 2, vader_type_407_refs },
-    [408] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumDecl_t), vader_type_408_ptrs, 1, 1, vader_type_408_strs, 4, vader_type_408_refs },
-    [409] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumVariant_t), vader_type_409_ptrs, 2, 1, vader_type_409_strs, 1, vader_type_409_refs },
-    [410] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumVariantPattern_t), NULL, 0, 1, vader_type_410_strs, 1, vader_type_410_refs },
-    [411] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ExprStmt_t), vader_type_411_ptrs, 1, 0, NULL, 1, vader_type_411_refs },
-    [412] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FieldExpr_t), vader_type_412_ptrs, 1, 1, vader_type_412_strs, 2, vader_type_412_refs },
-    [413] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FloatLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_413_refs },
-    [414] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnDecl_t), vader_type_414_ptrs, 2, 1, vader_type_414_strs, 5, vader_type_414_refs },
-    [415] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnParam_t), vader_type_415_ptrs, 2, 1, vader_type_415_strs, 2, vader_type_415_refs },
-    [416] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnTypeExpr_t), vader_type_416_ptrs, 1, 0, NULL, 3, vader_type_416_refs },
-    [417] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ForStmt_t), vader_type_417_ptrs, 2, 0, NULL, 2, vader_type_417_refs },
-    [418] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_GenericInstExpr_t), vader_type_418_ptrs, 1, 0, NULL, 2, vader_type_418_refs },
-    [419] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IdentExpr_t), NULL, 0, 1, vader_type_419_strs, 1, vader_type_419_refs },
-    [420] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfElseBlock_t), NULL, 0, 0, NULL, 1, vader_type_420_refs },
-    [421] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfElseIf_t), NULL, 0, 0, NULL, 1, vader_type_421_refs },
-    [422] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfExpr_t), vader_type_422_ptrs, 2, 0, NULL, 2, vader_type_422_refs },
-    [423] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImplDecl_t), vader_type_423_ptrs, 1, 1, vader_type_423_strs, 6, vader_type_423_refs },
-    [424] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImportDecl_t), vader_type_424_ptrs, 1, 1, vader_type_424_strs, 2, vader_type_424_refs },
-    [425] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImportName_t), vader_type_425_ptrs, 1, 1, vader_type_425_strs, 1, vader_type_425_refs },
-    [426] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_InFor_t), vader_type_426_ptrs, 2, 0, NULL, 0, NULL },
-    [427] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IndexExpr_t), vader_type_427_ptrs, 2, 0, NULL, 1, vader_type_427_refs },
-    [428] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_InfiniteFor_t), NULL, 0, 0, NULL, 0, NULL },
-    [429] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IntLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_429_refs },
-    [430] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IntrinsicCallExpr_t), NULL, 0, 1, vader_type_430_strs, 3, vader_type_430_refs },
-    [431] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IsPattern_t), vader_type_431_ptrs, 3, 0, NULL, 1, vader_type_431_refs },
-    [432] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LambdaExpr_t), vader_type_432_ptrs, 1, 0, NULL, 3, vader_type_432_refs },
-    [433] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LetStmt_t), vader_type_433_ptrs, 3, 0, NULL, 1, vader_type_433_refs },
-    [434] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LiteralPattern_t), vader_type_434_ptrs, 1, 0, NULL, 1, vader_type_434_refs },
-    [435] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MatchArm_t), vader_type_435_ptrs, 3, 0, NULL, 1, vader_type_435_refs },
-    [436] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MatchExpr_t), vader_type_436_ptrs, 1, 0, NULL, 2, vader_type_436_refs },
-    [437] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ModuleDecl_t), NULL, 0, 1, vader_type_437_strs, 2, vader_type_437_refs },
-    [438] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MutableTypeExpr_t), vader_type_438_ptrs, 1, 0, NULL, 1, vader_type_438_refs },
-    [439] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NamedNamespaceImport_t), NULL, 0, 1, vader_type_439_strs, 0, NULL },
-    [440] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NamedVar_t), NULL, 0, 1, vader_type_440_strs, 1, vader_type_440_refs },
-    [441] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NullCoalesceExpr_t), vader_type_441_ptrs, 2, 0, NULL, 1, vader_type_441_refs },
-    [442] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NullLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_442_refs },
-    [443] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_OrPattern_t), NULL, 0, 0, NULL, 2, vader_type_443_refs },
-    [444] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_PatternBinding_t), NULL, 0, 1, vader_type_444_strs, 1, vader_type_444_refs },
-    [445] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_PatternLiteral_t), vader_type_445_ptrs, 1, 0, NULL, 0, NULL },
-    [446] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_Program_t), vader_type_446_ptrs, 1, 1, vader_type_446_strs, 2, vader_type_446_refs },
-    [447] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RangeExpr_t), vader_type_447_ptrs, 2, 0, NULL, 1, vader_type_447_refs },
-    [448] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RangePattern_t), vader_type_448_ptrs, 2, 0, NULL, 1, vader_type_448_refs },
-    [449] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RestBinding_t), NULL, 0, 1, vader_type_449_strs, 2, vader_type_449_refs },
-    [450] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ReturnStmt_t), vader_type_450_ptrs, 1, 0, NULL, 1, vader_type_450_refs },
-    [451] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_SeqLitExpr_t), NULL, 0, 0, NULL, 2, vader_type_451_refs },
-    [452] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_SimpleBinding_t), NULL, 0, 1, vader_type_452_strs, 2, vader_type_452_refs },
-    [453] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitExpr_t), NULL, 0, 0, NULL, 2, vader_type_453_refs },
-    [454] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitInterp_t), vader_type_454_ptrs, 1, 0, NULL, 1, vader_type_454_refs },
-    [455] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitText_t), NULL, 0, 1, vader_type_455_strs, 1, vader_type_455_refs },
-    [456] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructDecl_t), NULL, 0, 1, vader_type_456_strs, 5, vader_type_456_refs },
-    [457] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructField_t), vader_type_457_ptrs, 2, 1, vader_type_457_strs, 1, vader_type_457_refs },
-    [458] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitExpr_t), vader_type_458_ptrs, 1, 0, NULL, 2, vader_type_458_refs },
-    [459] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitField_t), vader_type_459_ptrs, 1, 1, vader_type_459_strs, 2, vader_type_459_refs },
-    [460] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitSpread_t), vader_type_460_ptrs, 1, 0, NULL, 1, vader_type_460_refs },
-    [461] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructPattern_t), NULL, 0, 0, NULL, 2, vader_type_461_refs },
-    [462] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructPatternField_t), vader_type_462_ptrs, 1, 1, vader_type_462_strs, 2, vader_type_462_refs },
-    [463] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TraitDecl_t), vader_type_463_ptrs, 1, 1, vader_type_463_strs, 5, vader_type_463_refs },
-    [464] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TupleBinding_t), NULL, 0, 0, NULL, 2, vader_type_464_refs },
-    [465] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TuplePattern_t), NULL, 0, 0, NULL, 2, vader_type_465_refs },
-    [466] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TypeAliasDecl_t), vader_type_466_ptrs, 1, 1, vader_type_466_strs, 4, vader_type_466_refs },
-    [467] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TypeParam_t), vader_type_467_ptrs, 2, 1, vader_type_467_strs, 1, vader_type_467_refs },
-    [468] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_UnaryExpr_t), vader_type_468_ptrs, 1, 0, NULL, 1, vader_type_468_refs },
-    [469] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WhileFor_t), vader_type_469_ptrs, 1, 0, NULL, 0, NULL },
-    [470] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardBinding_t), NULL, 0, 0, NULL, 1, vader_type_470_refs },
-    [471] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardImport_t), NULL, 0, 0, NULL, 0, NULL },
-    [472] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardPattern_t), NULL, 0, 0, NULL, 1, vader_type_472_refs },
-    [473] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_YieldStmt_t), vader_type_473_ptrs, 1, 0, NULL, 1, vader_type_473_refs },
-    [474] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_span_Position_t), NULL, 0, 1, vader_type_474_strs, 0, NULL },
-    [475] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_span_Span_t), NULL, 0, 0, NULL, 2, vader_type_475_refs },
-    [476] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_CfgBytecode_t), NULL, 0, 1, vader_type_476_strs, 3, vader_type_476_refs },
-    [477] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_EvaluatedPipeline_t), NULL, 0, 0, NULL, 6, vader_type_477_refs },
-    [478] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_LoweredEntry_t), NULL, 0, 1, vader_type_478_strs, 3, vader_type_478_refs },
-    [479] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayClear_t), NULL, 0, 0, NULL, 0, NULL },
-    [480] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayCopy_t), NULL, 0, 0, NULL, 0, NULL },
-    [481] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayGet_t), NULL, 0, 0, NULL, 0, NULL },
-    [482] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayLen_t), NULL, 0, 0, NULL, 0, NULL },
-    [483] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayNew_t), NULL, 0, 0, NULL, 0, NULL },
-    [484] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayPush_t), NULL, 0, 0, NULL, 0, NULL },
-    [485] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayPushAll_t), NULL, 0, 0, NULL, 0, NULL },
-    [486] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayRemoveLast_t), NULL, 0, 0, NULL, 0, NULL },
-    [487] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayRepeat_t), NULL, 0, 0, NULL, 0, NULL },
-    [488] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArraySet_t), NULL, 0, 0, NULL, 0, NULL },
-    [489] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArraySlice_t), NULL, 0, 0, NULL, 0, NULL },
-    [490] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcAggregateData_t), NULL, 0, 1, vader_type_490_strs, 1, vader_type_490_refs },
-    [491] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcArray_t), NULL, 0, 0, NULL, 0, NULL },
-    [492] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcExport_t), NULL, 0, 1, vader_type_492_strs, 0, NULL },
-    [493] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcField_t), NULL, 0, 1, vader_type_493_strs, 0, NULL },
-    [494] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcFn_t), NULL, 0, 0, NULL, 1, vader_type_494_refs },
-    [495] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcFunction_t), NULL, 0, 1, vader_type_495_strs, 5, vader_type_495_refs },
-    [496] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcImport_t), NULL, 0, 4, vader_type_496_strs, 1, vader_type_496_refs },
-    [497] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcLocal_t), NULL, 0, 1, vader_type_497_strs, 0, NULL },
-    [498] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t), NULL, 0, 0, NULL, 3, vader_type_498_refs },
-    [499] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPrimData_t), NULL, 0, 0, NULL, 1, vader_type_499_refs },
-    [500] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPrimitive_t), NULL, 0, 0, NULL, 0, NULL },
-    [501] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcRef_t), NULL, 0, 1, vader_type_501_strs, 0, NULL },
-    [502] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcSignature_t), NULL, 0, 0, NULL, 5, vader_type_502_refs },
-    [503] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcStrData_t), NULL, 0, 0, NULL, 1, vader_type_503_refs },
-    [504] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcStruct_t), NULL, 0, 2, vader_type_504_strs, 1, vader_type_504_refs },
-    [505] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcUnion_t), NULL, 0, 0, NULL, 1, vader_type_505_refs },
-    [506] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValArray_t), NULL, 0, 1, vader_type_506_strs, 1, vader_type_506_refs },
-    [507] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValPrim_t), NULL, 0, 0, NULL, 0, NULL },
-    [508] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValStr_t), NULL, 0, 1, vader_type_508_strs, 0, NULL },
-    [509] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValStruct_t), NULL, 0, 0, NULL, 1, vader_type_509_refs },
-    [510] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BitsToF32_t), NULL, 0, 0, NULL, 0, NULL },
-    [511] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BitsToF64_t), NULL, 0, 0, NULL, 0, NULL },
-    [512] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Block_t), NULL, 0, 0, NULL, 0, NULL },
-    [513] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolAnd_t), NULL, 0, 0, NULL, 0, NULL },
-    [514] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [515] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolEq_t), NULL, 0, 0, NULL, 0, NULL },
-    [516] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolNe_t), NULL, 0, 0, NULL, 0, NULL },
-    [517] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolNot_t), NULL, 0, 0, NULL, 0, NULL },
-    [518] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolOr_t), NULL, 0, 0, NULL, 0, NULL },
-    [519] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Box_t), NULL, 0, 0, NULL, 0, NULL },
-    [520] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Branch_t), NULL, 0, 0, NULL, 0, NULL },
-    [521] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BranchIf_t), NULL, 0, 0, NULL, 0, NULL },
-    [522] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferNew_t), NULL, 0, 0, NULL, 0, NULL },
-    [523] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferToString_t), NULL, 0, 0, NULL, 0, NULL },
-    [524] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferWriteString_t), NULL, 0, 0, NULL, 0, NULL },
-    [525] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BytecodeModule_t), NULL, 0, 1, vader_type_525_strs, 8, vader_type_525_refs },
-    [526] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CLayout_t), vader_type_526_ptrs, 1, 0, NULL, 1, vader_type_526_refs },
-    [527] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Call_t), NULL, 0, 0, NULL, 0, NULL },
-    [528] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CallImport_t), NULL, 0, 0, NULL, 0, NULL },
-    [529] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CallIndirect_t), NULL, 0, 0, NULL, 0, NULL },
-    [530] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CharConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [531] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Convert_t), NULL, 0, 1, vader_type_531_strs, 0, NULL },
-    [532] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DataConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [533] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DebugPos_t), NULL, 0, 1, vader_type_533_strs, 0, NULL },
-    [534] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DeferPopExec_t), NULL, 0, 0, NULL, 0, NULL },
-    [535] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DeferPush_t), NULL, 0, 0, NULL, 0, NULL },
-    [536] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Drop_t), NULL, 0, 0, NULL, 0, NULL },
-    [537] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Else_t), NULL, 0, 0, NULL, 0, NULL },
-    [538] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_EmitOptions_t), NULL, 0, 0, NULL, 1, vader_type_538_refs },
-    [539] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_EmitterCtx_t), NULL, 0, 0, NULL, 13, vader_type_539_refs },
-    [540] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_End_t), NULL, 0, 0, NULL, 0, NULL },
-    [541] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F32ToBits_t), NULL, 0, 0, NULL, 0, NULL },
-    [542] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Add_t), NULL, 0, 0, NULL, 0, NULL },
-    [543] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Const_t), NULL, 0, 0, NULL, 0, NULL },
-    [544] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [545] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Eq_t), NULL, 0, 0, NULL, 0, NULL },
-    [546] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Ge_t), NULL, 0, 0, NULL, 0, NULL },
-    [547] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Gt_t), NULL, 0, 0, NULL, 0, NULL },
-    [548] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Le_t), NULL, 0, 0, NULL, 0, NULL },
-    [549] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Lt_t), NULL, 0, 0, NULL, 0, NULL },
-    [550] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Mul_t), NULL, 0, 0, NULL, 0, NULL },
-    [551] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Ne_t), NULL, 0, 0, NULL, 0, NULL },
-    [552] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Neg_t), NULL, 0, 0, NULL, 0, NULL },
-    [553] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Sub_t), NULL, 0, 0, NULL, 0, NULL },
-    [554] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64ToBits_t), NULL, 0, 0, NULL, 0, NULL },
-    [555] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_FnAddr_t), NULL, 0, 0, NULL, 0, NULL },
-    [556] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_FnRef_t), NULL, 0, 0, NULL, 0, NULL },
-    [557] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Add_t), NULL, 0, 0, NULL, 0, NULL },
-    [558] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitAnd_t), NULL, 0, 0, NULL, 0, NULL },
-    [559] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitNot_t), NULL, 0, 0, NULL, 0, NULL },
-    [560] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitOr_t), NULL, 0, 0, NULL, 0, NULL },
-    [561] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitXor_t), NULL, 0, 0, NULL, 0, NULL },
-    [562] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Const_t), NULL, 0, 0, NULL, 0, NULL },
-    [563] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [564] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Eq_t), NULL, 0, 0, NULL, 0, NULL },
-    [565] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Ge_t), NULL, 0, 0, NULL, 0, NULL },
-    [566] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Gt_t), NULL, 0, 0, NULL, 0, NULL },
-    [567] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Le_t), NULL, 0, 0, NULL, 0, NULL },
-    [568] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Lt_t), NULL, 0, 0, NULL, 0, NULL },
-    [569] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Mod_t), NULL, 0, 0, NULL, 0, NULL },
-    [570] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Mul_t), NULL, 0, 0, NULL, 0, NULL },
-    [571] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Ne_t), NULL, 0, 0, NULL, 0, NULL },
-    [572] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Neg_t), NULL, 0, 0, NULL, 0, NULL },
-    [573] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Shl_t), NULL, 0, 0, NULL, 0, NULL },
-    [574] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Shr_t), NULL, 0, 0, NULL, 0, NULL },
-    [575] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32ShrU_t), NULL, 0, 0, NULL, 0, NULL },
-    [576] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Sub_t), NULL, 0, 0, NULL, 0, NULL },
-    [577] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Add_t), NULL, 0, 0, NULL, 0, NULL },
-    [578] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitAnd_t), NULL, 0, 0, NULL, 0, NULL },
-    [579] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitNot_t), NULL, 0, 0, NULL, 0, NULL },
-    [580] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitOr_t), NULL, 0, 0, NULL, 0, NULL },
-    [581] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitXor_t), NULL, 0, 0, NULL, 0, NULL },
-    [582] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Const_t), NULL, 0, 0, NULL, 0, NULL },
-    [583] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [584] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Eq_t), NULL, 0, 0, NULL, 0, NULL },
-    [585] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Ge_t), NULL, 0, 0, NULL, 0, NULL },
-    [586] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Gt_t), NULL, 0, 0, NULL, 0, NULL },
-    [587] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Le_t), NULL, 0, 0, NULL, 0, NULL },
-    [588] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Lt_t), NULL, 0, 0, NULL, 0, NULL },
-    [589] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Mod_t), NULL, 0, 0, NULL, 0, NULL },
-    [590] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Mul_t), NULL, 0, 0, NULL, 0, NULL },
-    [591] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Ne_t), NULL, 0, 0, NULL, 0, NULL },
-    [592] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Neg_t), NULL, 0, 0, NULL, 0, NULL },
-    [593] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Shl_t), NULL, 0, 0, NULL, 0, NULL },
-    [594] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Shr_t), NULL, 0, 0, NULL, 0, NULL },
-    [595] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64ShrU_t), NULL, 0, 0, NULL, 0, NULL },
-    [596] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Sub_t), NULL, 0, 0, NULL, 0, NULL },
-    [597] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_If_t), NULL, 0, 0, NULL, 0, NULL },
-    [598] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ImplEntry_t), NULL, 0, 1, vader_type_598_strs, 0, NULL },
-    [599] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadF64_t), NULL, 0, 0, NULL, 0, NULL },
-    [600] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadI32_t), NULL, 0, 0, NULL, 0, NULL },
-    [601] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadI64_t), NULL, 0, 0, NULL, 0, NULL },
-    [602] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotF64_t), NULL, 0, 0, NULL, 0, NULL },
-    [603] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotI32_t), NULL, 0, 0, NULL, 0, NULL },
-    [604] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotI64_t), NULL, 0, 0, NULL, 0, NULL },
-    [605] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadU8_t), NULL, 0, 0, NULL, 0, NULL },
-    [606] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalField_t), NULL, 0, 0, NULL, 0, NULL },
-    [607] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalGet_t), NULL, 0, 0, NULL, 0, NULL },
-    [608] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalSet_t), NULL, 0, 0, NULL, 0, NULL },
-    [609] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalTee_t), NULL, 0, 0, NULL, 0, NULL },
-    [610] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Loop_t), NULL, 0, 0, NULL, 0, NULL },
-    [611] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_MakeClosure_t), NULL, 0, 0, NULL, 0, NULL },
-    [612] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_MemoryCopy_t), NULL, 0, 0, NULL, 0, NULL },
-    [613] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_NullConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [614] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefCast_t), NULL, 0, 0, NULL, 0, NULL },
-    [615] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefEq_t), NULL, 0, 0, NULL, 0, NULL },
-    [616] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefNe_t), NULL, 0, 0, NULL, 0, NULL },
-    [617] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Return_t), NULL, 0, 0, NULL, 0, NULL },
-    [618] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ReturnLit_t), vader_type_618_ptrs, 1, 0, NULL, 0, NULL },
-    [619] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_SizeOfType_t), NULL, 0, 0, NULL, 0, NULL },
-    [620] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_SlotRange_t), NULL, 0, 0, NULL, 0, NULL },
-    [621] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreF64_t), NULL, 0, 0, NULL, 0, NULL },
-    [622] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreI32_t), NULL, 0, 0, NULL, 0, NULL },
-    [623] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreI64_t), NULL, 0, 0, NULL, 0, NULL },
-    [624] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotF64_t), NULL, 0, 0, NULL, 0, NULL },
-    [625] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotI32_t), NULL, 0, 0, NULL, 0, NULL },
-    [626] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotI64_t), NULL, 0, 0, NULL, 0, NULL },
-    [627] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreU8_t), NULL, 0, 0, NULL, 0, NULL },
-    [628] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [629] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringEq_t), NULL, 0, 0, NULL, 0, NULL },
-    [630] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringNe_t), NULL, 0, 0, NULL, 0, NULL },
-    [631] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringSliceCodepoints_t), NULL, 0, 0, NULL, 0, NULL },
-    [632] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructGet_t), NULL, 0, 0, NULL, 0, NULL },
-    [633] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructNew_t), NULL, 0, 0, NULL, 0, NULL },
-    [634] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructSet_t), NULL, 0, 0, NULL, 0, NULL },
-    [635] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_TypeCheck_t), NULL, 0, 0, NULL, 0, NULL },
-    [636] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_TypeConst_t), NULL, 0, 0, NULL, 0, NULL },
-    [637] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [638] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Ge_t), NULL, 0, 0, NULL, 0, NULL },
-    [639] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Gt_t), NULL, 0, 0, NULL, 0, NULL },
-    [640] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Le_t), NULL, 0, 0, NULL, 0, NULL },
-    [641] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Lt_t), NULL, 0, 0, NULL, 0, NULL },
-    [642] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Mod_t), NULL, 0, 0, NULL, 0, NULL },
-    [643] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [644] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Ge_t), NULL, 0, 0, NULL, 0, NULL },
-    [645] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Gt_t), NULL, 0, 0, NULL, 0, NULL },
-    [646] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Le_t), NULL, 0, 0, NULL, 0, NULL },
-    [647] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Lt_t), NULL, 0, 0, NULL, 0, NULL },
-    [648] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Mod_t), NULL, 0, 0, NULL, 0, NULL },
-    [649] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Unreachable_t), NULL, 0, 1, vader_type_649_strs, 0, NULL },
-    [650] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VirtualCall_t), NULL, 0, 1, vader_type_650_strs, 0, NULL },
-    [651] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VtableEntry_t), NULL, 0, 0, NULL, 0, NULL },
-    [652] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VtableRow_t), NULL, 0, 1, vader_type_652_strs, 1, vader_type_652_refs },
-    [653] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_BranchTargets_t), NULL, 0, 0, NULL, 2, vader_type_653_refs },
-    [654] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CProgram_t), NULL, 0, 3, vader_type_654_strs, 2, vader_type_654_refs },
-    [655] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CoalesceResult_t), NULL, 0, 1, vader_type_655_strs, 1, vader_type_655_refs },
-    [656] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CopyLine_t), NULL, 0, 1, vader_type_656_strs, 0, NULL },
-    [657] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_DefLine_t), NULL, 0, 2, vader_type_657_strs, 0, NULL },
-    [658] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_EmitCtx_t), NULL, 0, 0, NULL, 6, vader_type_658_refs },
-    [659] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_EmitOptions_t), NULL, 0, 1, vader_type_659_strs, 1, vader_type_659_refs },
-    [660] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_FnState_t), NULL, 0, 0, NULL, 11, vader_type_660_refs },
-    [661] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_FnValueUsage_t), NULL, 0, 0, NULL, 2, vader_type_661_refs },
-    [662] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_ScopeInfo_t), NULL, 0, 0, NULL, 0, NULL },
-    [663] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_SlotFill_t), NULL, 0, 1, vader_type_663_strs, 0, NULL },
-    [664] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_SlotToken_t), NULL, 0, 0, NULL, 0, NULL },
-    [665] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackExpr_t), NULL, 0, 1, vader_type_665_strs, 0, NULL },
-    [666] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackLit_t), NULL, 0, 1, vader_type_666_strs, 0, NULL },
-    [667] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackLocalRef_t), NULL, 0, 0, NULL, 0, NULL },
-    [668] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackStorage_t), NULL, 0, 2, vader_type_668_strs, 0, NULL },
-    [669] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackTmp_t), NULL, 0, 1, vader_type_669_strs, 0, NULL },
-    [670] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StructOffsets_t), NULL, 0, 0, NULL, 3, vader_type_670_refs },
-    [671] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ArrayValue_t), NULL, 0, 1, vader_type_671_strs, 1, vader_type_671_refs },
-    [672] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_BoolValue_t), NULL, 0, 0, NULL, 0, NULL },
-    [673] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_CharValue_t), NULL, 0, 0, NULL, 0, NULL },
-    [674] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ComptimeContext_t), NULL, 0, 0, NULL, 2, vader_type_674_refs },
-    [675] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ComptimeOrder_t), NULL, 0, 0, NULL, 2, vader_type_675_refs },
-    [676] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvalResult_t), vader_type_676_ptrs, 2, 0, NULL, 0, NULL },
-    [677] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvaluatedProgram_t), NULL, 0, 0, NULL, 2, vader_type_677_refs },
-    [678] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvaluatedProject_t), NULL, 0, 0, NULL, 6, vader_type_678_refs },
-    [679] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_FloatValue_t), NULL, 0, 1, vader_type_679_strs, 0, NULL },
-    [680] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_GenericInstance_t), NULL, 0, 1, vader_type_680_strs, 2, vader_type_680_refs },
-    [681] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_InstanceRegistry_t), NULL, 0, 0, NULL, 2, vader_type_681_refs },
-    [682] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_IntValue_t), NULL, 0, 1, vader_type_682_strs, 0, NULL },
-    [683] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_MonoEntry_t), vader_type_683_ptrs, 3, 1, vader_type_683_strs, 2, vader_type_683_refs },
-    [684] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_NodeRecord_t), NULL, 0, 0, NULL, 2, vader_type_684_refs },
-    [685] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_Nodes_t), NULL, 0, 0, NULL, 3, vader_type_685_refs },
-    [686] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_NullValue_t), NULL, 0, 0, NULL, 0, NULL },
-    [687] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_StringValue_t), NULL, 0, 1, vader_type_687_strs, 0, NULL },
-    [688] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_StructValue_t), NULL, 0, 1, vader_type_688_strs, 1, vader_type_688_refs },
-    [689] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_TypeValue_t), vader_type_689_ptrs, 1, 0, NULL, 0, NULL },
-    [690] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_VmRequiredDecl_t), vader_type_690_ptrs, 1, 2, vader_type_690_strs, 1, vader_type_690_refs },
-    [691] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_VoidValue_t), NULL, 0, 0, NULL, 0, NULL },
-    [692] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_diagnostics_CodeInfo_t), NULL, 0, 2, vader_type_692_strs, 0, NULL },
-    [693] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_diagnostics_Diagnostic_t), NULL, 0, 1, vader_type_693_strs, 2, vader_type_693_refs },
-    [694] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_InterpFrame_t), NULL, 0, 0, NULL, 0, NULL },
-    [695] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_Lexer_t), NULL, 0, 2, vader_type_695_strs, 4, vader_type_695_refs },
-    [696] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_Token_t), vader_type_696_ptrs, 1, 1, vader_type_696_strs, 1, vader_type_696_refs },
-    [697] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_AggregateDataPoolEntry_t), NULL, 0, 1, vader_type_697_strs, 1, vader_type_697_refs },
-    [698] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_AnalyzeCtx_t), NULL, 0, 0, NULL, 4, vader_type_698_refs },
-    [699] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BcePurityCtx_t), NULL, 0, 0, NULL, 3, vader_type_699_refs },
-    [700] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BlockCtx_t), NULL, 0, 0, NULL, 1, vader_type_700_refs },
-    [701] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BodyTemplate_t), vader_type_701_ptrs, 2, 1, vader_type_701_strs, 2, vader_type_701_refs },
-    [702] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BveCtx_t), vader_type_702_ptrs, 2, 0, NULL, 6, vader_type_702_refs },
-    [703] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_Capture_t), vader_type_703_ptrs, 1, 0, NULL, 1, vader_type_703_refs },
-    [704] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_CellInit_t), vader_type_704_ptrs, 2, 0, NULL, 0, NULL },
-    [705] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ClosureAlias_t), vader_type_705_ptrs, 1, 0, NULL, 1, vader_type_705_refs },
-    [706] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ClosureAnalysis_t), NULL, 0, 0, NULL, 3, vader_type_706_refs },
-    [707] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_CollectCtx_t), NULL, 0, 1, vader_type_707_strs, 2, vader_type_707_refs },
-    [708] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ConstFnWrap_t), vader_type_708_ptrs, 1, 0, NULL, 1, vader_type_708_refs },
-    [709] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_EntryTypes_t), NULL, 0, 0, NULL, 2, vader_type_709_refs },
-    [710] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_FluentCombinator_t), vader_type_710_ptrs, 2, 0, NULL, 0, NULL },
-    [711] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_FnLowerCtx_t), vader_type_711_ptrs, 3, 0, NULL, 8, vader_type_711_refs },
-    [712] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenBuild_t), vader_type_712_ptrs, 7, 0, NULL, 7, vader_type_712_refs },
-    [713] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenComboLayer_t), vader_type_713_ptrs, 3, 0, NULL, 7, vader_type_713_refs },
-    [714] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenInlineSink_t), vader_type_714_ptrs, 1, 1, vader_type_714_strs, 2, vader_type_714_refs },
-    [715] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenSourceBinding_t), NULL, 0, 0, NULL, 4, vader_type_715_refs },
-    [716] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenSourceLoop_t), NULL, 0, 0, NULL, 3, vader_type_716_refs },
-    [717] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenericFnInstance_t), NULL, 0, 2, vader_type_717_strs, 2, vader_type_717_refs },
-    [718] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ImplMemberMatch_t), NULL, 0, 0, NULL, 2, vader_type_718_refs },
-    [719] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ImplTraitMethod_t), NULL, 0, 2, vader_type_719_strs, 0, NULL },
-    [720] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_InlineInfo_t), vader_type_720_ptrs, 1, 0, NULL, 2, vader_type_720_refs },
-    [721] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_IterChain_t), vader_type_721_ptrs, 7, 0, NULL, 1, vader_type_721_refs },
-    [722] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LiftedFnContext_t), vader_type_722_ptrs, 1, 0, NULL, 2, vader_type_722_refs },
-    [723] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoopBinding_t), vader_type_723_ptrs, 1, 1, vader_type_723_strs, 1, vader_type_723_refs },
-    [724] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoopFrame_t), vader_type_724_ptrs, 1, 0, NULL, 0, NULL },
-    [725] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LowerProjectCtx_t), NULL, 0, 0, NULL, 31, vader_type_725_refs },
-    [726] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayLen_t), vader_type_726_ptrs, 2, 0, NULL, 1, vader_type_726_refs },
-    [727] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayLit_t), vader_type_727_ptrs, 1, 0, NULL, 2, vader_type_727_refs },
-    [728] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayPush_t), vader_type_728_ptrs, 3, 0, NULL, 1, vader_type_728_refs },
-    [729] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArraySlice_t), vader_type_729_ptrs, 4, 0, NULL, 1, vader_type_729_refs },
-    [730] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredAssign_t), vader_type_730_ptrs, 2, 0, NULL, 1, vader_type_730_refs },
-    [731] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredAwait_t), vader_type_731_ptrs, 2, 0, NULL, 2, vader_type_731_refs },
-    [732] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBinary_t), vader_type_732_ptrs, 3, 0, NULL, 1, vader_type_732_refs },
-    [733] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBlock_t), vader_type_733_ptrs, 2, 0, NULL, 2, vader_type_733_refs },
-    [734] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBoolLit_t), vader_type_734_ptrs, 1, 0, NULL, 1, vader_type_734_refs },
-    [735] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBreak_t), vader_type_735_ptrs, 1, 0, NULL, 1, vader_type_735_refs },
-    [736] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCall_t), vader_type_736_ptrs, 2, 0, NULL, 2, vader_type_736_refs },
-    [737] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCast_t), vader_type_737_ptrs, 2, 0, NULL, 1, vader_type_737_refs },
-    [738] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellGet_t), vader_type_738_ptrs, 3, 0, NULL, 1, vader_type_738_refs },
-    [739] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellNew_t), vader_type_739_ptrs, 3, 0, NULL, 1, vader_type_739_refs },
-    [740] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellSet_t), vader_type_740_ptrs, 3, 0, NULL, 1, vader_type_740_refs },
-    [741] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCharLit_t), vader_type_741_ptrs, 1, 0, NULL, 1, vader_type_741_refs },
-    [742] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredConstDecl_t), vader_type_742_ptrs, 2, 1, vader_type_742_strs, 1, vader_type_742_refs },
-    [743] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredContinue_t), vader_type_743_ptrs, 1, 0, NULL, 1, vader_type_743_refs },
-    [744] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDataConst_t), vader_type_744_ptrs, 1, 0, NULL, 1, vader_type_744_refs },
-    [745] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDeferPopExec_t), NULL, 0, 0, NULL, 1, vader_type_745_refs },
-    [746] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDeferPush_t), vader_type_746_ptrs, 1, 0, NULL, 1, vader_type_746_refs },
-    [747] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredExprStmt_t), vader_type_747_ptrs, 1, 0, NULL, 1, vader_type_747_refs },
-    [748] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFieldAccess_t), vader_type_748_ptrs, 2, 1, vader_type_748_strs, 1, vader_type_748_refs },
-    [749] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFloatLit_t), vader_type_749_ptrs, 1, 0, NULL, 1, vader_type_749_refs },
-    [750] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFnDecl_t), vader_type_750_ptrs, 2, 1, vader_type_750_strs, 2, vader_type_750_refs },
-    [751] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIdent_t), vader_type_751_ptrs, 1, 0, NULL, 2, vader_type_751_refs },
-    [752] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIf_t), vader_type_752_ptrs, 3, 0, NULL, 2, vader_type_752_refs },
-    [753] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIndex_t), vader_type_753_ptrs, 3, 0, NULL, 1, vader_type_753_refs },
-    [754] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIntLit_t), vader_type_754_ptrs, 1, 0, NULL, 1, vader_type_754_refs },
-    [755] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIntrinsicCall_t), vader_type_755_ptrs, 1, 1, vader_type_755_strs, 2, vader_type_755_refs },
-    [756] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredLet_t), vader_type_756_ptrs, 2, 1, vader_type_756_strs, 2, vader_type_756_refs },
-    [757] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredLoop_t), vader_type_757_ptrs, 2, 0, NULL, 2, vader_type_757_refs },
-    [758] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredMakeClosure_t), vader_type_758_ptrs, 2, 0, NULL, 2, vader_type_758_refs },
-    [759] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredModule_t), NULL, 0, 2, vader_type_759_strs, 1, vader_type_759_refs },
-    [760] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredNullLit_t), vader_type_760_ptrs, 1, 0, NULL, 1, vader_type_760_refs },
-    [761] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredParam_t), vader_type_761_ptrs, 1, 1, vader_type_761_strs, 1, vader_type_761_refs },
-    [762] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredProject_t), NULL, 0, 1, vader_type_762_strs, 6, vader_type_762_refs },
-    [763] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredReturn_t), vader_type_763_ptrs, 1, 0, NULL, 1, vader_type_763_refs },
-    [764] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStringLit_t), vader_type_764_ptrs, 1, 1, vader_type_764_strs, 1, vader_type_764_refs },
-    [765] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStringSlice_t), vader_type_765_ptrs, 4, 0, NULL, 1, vader_type_765_refs },
-    [766] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructDecl_t), NULL, 0, 1, vader_type_766_strs, 2, vader_type_766_refs },
-    [767] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructField_t), vader_type_767_ptrs, 1, 1, vader_type_767_strs, 0, NULL },
-    [768] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructLit_t), vader_type_768_ptrs, 1, 0, NULL, 2, vader_type_768_refs },
-    [769] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructLitField_t), vader_type_769_ptrs, 1, 1, vader_type_769_strs, 0, NULL },
-    [770] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredTypeCheck_t), vader_type_770_ptrs, 3, 0, NULL, 1, vader_type_770_refs },
-    [771] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredTypeConst_t), vader_type_771_ptrs, 2, 0, NULL, 1, vader_type_771_refs },
-    [772] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredUnary_t), vader_type_772_ptrs, 2, 0, NULL, 1, vader_type_772_refs },
-    [773] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredUnreachable_t), vader_type_773_ptrs, 1, 1, vader_type_773_strs, 1, vader_type_773_refs },
-    [774] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredVirtualCall_t), vader_type_774_ptrs, 2, 2, vader_type_774_strs, 2, vader_type_774_refs },
-    [775] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredVtableEntry_t), vader_type_775_ptrs, 1, 2, vader_type_775_strs, 1, vader_type_775_refs },
-    [776] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredYield_t), vader_type_776_ptrs, 1, 0, NULL, 1, vader_type_776_refs },
-    [777] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_OpTraitInfo_t), NULL, 0, 2, vader_type_777_strs, 0, NULL },
-    [778] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_PendingFnInstance_t), NULL, 0, 2, vader_type_778_strs, 1, vader_type_778_refs },
-    [779] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_PrimDataPoolEntry_t), NULL, 0, 1, vader_type_779_strs, 1, vader_type_779_refs },
-    [780] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_StrDataPoolEntry_t), NULL, 0, 0, NULL, 1, vader_type_780_refs },
-    [781] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_TerminalPredCall_t), vader_type_781_ptrs, 2, 0, NULL, 0, NULL },
-    [782] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_TransformCtx_t), NULL, 0, 0, NULL, 2, vader_type_782_refs },
-    [783] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_UfcsMember_t), NULL, 0, 0, NULL, 2, vader_type_783_refs },
-    [784] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_WalkCtx_t), NULL, 0, 0, NULL, 4, vader_type_784_refs },
-    [785] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_WrapResult_t), vader_type_785_ptrs, 2, 0, NULL, 0, NULL },
-    [786] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_AnnotatedProject_t), NULL, 0, 0, NULL, 2, vader_type_786_refs },
-    [787] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_BasicBlock_t), vader_type_787_ptrs, 1, 0, NULL, 2, vader_type_787_refs },
-    [788] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGExternDecl_t), vader_type_788_ptrs, 1, 4, vader_type_788_strs, 2, vader_type_788_refs },
-    [789] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGFunction_t), vader_type_789_ptrs, 1, 2, vader_type_789_strs, 4, vader_type_789_refs },
-    [790] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGLocal_t), vader_type_790_ptrs, 2, 1, vader_type_790_strs, 0, NULL },
-    [791] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGModule_t), NULL, 0, 2, vader_type_791_strs, 3, vader_type_791_refs },
-    [792] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGParam_t), vader_type_792_ptrs, 1, 1, vader_type_792_strs, 1, vader_type_792_refs },
-    [793] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGProject_t), NULL, 0, 0, NULL, 5, vader_type_793_refs },
-    [794] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGStructDecl_t), NULL, 0, 1, vader_type_794_strs, 2, vader_type_794_refs },
-    [795] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGStructField_t), vader_type_795_ptrs, 1, 1, vader_type_795_strs, 0, NULL },
-    [796] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstBool_t), NULL, 0, 0, NULL, 0, NULL },
-    [797] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstChar_t), NULL, 0, 0, NULL, 0, NULL },
-    [798] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstFloat_t), NULL, 0, 0, NULL, 0, NULL },
-    [799] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstInt_t), NULL, 0, 0, NULL, 0, NULL },
-    [800] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstNull_t), NULL, 0, 0, NULL, 0, NULL },
-    [801] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstString_t), NULL, 0, 0, NULL, 0, NULL },
-    [802] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_EscapeResult_t), NULL, 0, 0, NULL, 3, vader_type_802_refs },
-    [803] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_EscapeStats_t), NULL, 0, 0, NULL, 0, NULL },
-    [804] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnCtx_t), vader_type_804_ptrs, 2, 1, vader_type_804_strs, 7, vader_type_804_refs },
-    [805] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnEmitCfg_t), NULL, 0, 0, NULL, 14, vader_type_805_refs },
-    [806] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnMetadata_t), NULL, 0, 3, vader_type_806_strs, 0, NULL },
-    [807] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayGet_t), vader_type_807_ptrs, 1, 0, NULL, 1, vader_type_807_refs },
-    [808] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayLen_t), NULL, 0, 0, NULL, 1, vader_type_808_refs },
-    [809] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayNew_t), vader_type_809_ptrs, 1, 0, NULL, 2, vader_type_809_refs },
-    [810] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayPush_t), NULL, 0, 0, NULL, 1, vader_type_810_refs },
-    [811] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArraySet_t), NULL, 0, 0, NULL, 1, vader_type_811_refs },
-    [812] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArraySlice_t), vader_type_812_ptrs, 1, 0, NULL, 1, vader_type_812_refs },
-    [813] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrBinOp_t), vader_type_813_ptrs, 1, 0, NULL, 1, vader_type_813_refs },
-    [814] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCall_t), vader_type_814_ptrs, 2, 0, NULL, 3, vader_type_814_refs },
-    [815] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCallIndirect_t), vader_type_815_ptrs, 3, 0, NULL, 2, vader_type_815_refs },
-    [816] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCast_t), vader_type_816_ptrs, 1, 0, NULL, 1, vader_type_816_refs },
-    [817] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellGet_t), vader_type_817_ptrs, 1, 0, NULL, 1, vader_type_817_refs },
-    [818] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellNew_t), vader_type_818_ptrs, 1, 0, NULL, 1, vader_type_818_refs },
-    [819] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellSet_t), vader_type_819_ptrs, 1, 0, NULL, 1, vader_type_819_refs },
-    [820] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrConst_t), vader_type_820_ptrs, 2, 0, NULL, 1, vader_type_820_refs },
-    [821] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDataConst_t), vader_type_821_ptrs, 1, 0, NULL, 1, vader_type_821_refs },
-    [822] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDeferPopExec_t), NULL, 0, 0, NULL, 1, vader_type_822_refs },
-    [823] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDeferPush_t), NULL, 0, 0, NULL, 1, vader_type_823_refs },
-    [824] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFieldGet_t), vader_type_824_ptrs, 1, 1, vader_type_824_strs, 1, vader_type_824_refs },
-    [825] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFieldSet_t), NULL, 0, 1, vader_type_825_strs, 1, vader_type_825_refs },
-    [826] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFnRef_t), vader_type_826_ptrs, 1, 0, NULL, 2, vader_type_826_refs },
-    [827] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrIntrinsic_t), vader_type_827_ptrs, 1, 1, vader_type_827_strs, 2, vader_type_827_refs },
-    [828] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrMakeClosure_t), vader_type_828_ptrs, 2, 0, NULL, 2, vader_type_828_refs },
-    [829] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrMove_t), NULL, 0, 0, NULL, 1, vader_type_829_refs },
-    [830] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrStringSlice_t), vader_type_830_ptrs, 1, 0, NULL, 1, vader_type_830_refs },
-    [831] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrStructNew_t), vader_type_831_ptrs, 1, 0, NULL, 2, vader_type_831_refs },
-    [832] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrTypeCheck_t), vader_type_832_ptrs, 1, 0, NULL, 1, vader_type_832_refs },
-    [833] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrTypeConst_t), vader_type_833_ptrs, 2, 0, NULL, 1, vader_type_833_refs },
-    [834] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrUnOp_t), vader_type_834_ptrs, 1, 0, NULL, 1, vader_type_834_refs },
-    [835] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrVirtualCall_t), vader_type_835_ptrs, 2, 2, vader_type_835_strs, 2, vader_type_835_refs },
-    [836] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_Liveness_t), NULL, 0, 0, NULL, 2, vader_type_836_refs },
-    [837] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_LoopFrame_t), vader_type_837_ptrs, 1, 0, NULL, 0, NULL },
-    [838] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_MutableBlock_t), vader_type_838_ptrs, 1, 0, NULL, 2, vader_type_838_refs },
-    [839] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_PendingBranch_t), NULL, 0, 0, NULL, 0, NULL },
-    [840] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ProjectCtx_t), NULL, 0, 0, NULL, 4, vader_type_840_refs },
-    [841] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ScheduleHints_t), NULL, 0, 0, NULL, 3, vader_type_841_refs },
-    [842] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ScopeFrame_t), NULL, 0, 1, vader_type_842_strs, 0, NULL },
-    [843] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermBranch_t), NULL, 0, 0, NULL, 1, vader_type_843_refs },
-    [844] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermCondBranch_t), NULL, 0, 0, NULL, 1, vader_type_844_refs },
-    [845] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermReturn_t), vader_type_845_ptrs, 1, 0, NULL, 1, vader_type_845_refs },
-    [846] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermUnreachable_t), NULL, 0, 1, vader_type_846_strs, 1, vader_type_846_refs },
-    [847] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__Any_t), NULL, 0, 0, NULL, 1, vader_type_847_refs },
-    [848] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__CallArg_t), NULL, 0, 0, NULL, 1, vader_type_848_refs },
-    [849] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__ImportName_t), NULL, 0, 0, NULL, 1, vader_type_849_refs },
-    [850] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t), NULL, 0, 0, NULL, 1, vader_type_850_refs },
-    [851] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CompoundOpResult_t), NULL, 0, 0, NULL, 0, NULL },
-    [852] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_FnBodyTail_t), vader_type_852_ptrs, 1, 0, NULL, 0, NULL },
-    [853] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_FnSignature_t), NULL, 0, 0, NULL, 2, vader_type_853_refs },
-    [854] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_InfixOpDescr_t), NULL, 0, 0, NULL, 0, NULL },
-    [855] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_IntrinsicSpec_t), NULL, 0, 2, vader_type_855_strs, 1, vader_type_855_refs },
-    [856] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_ModuleHeader_t), NULL, 0, 1, vader_type_856_strs, 1, vader_type_856_refs },
-    [857] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_NodeIdFactory_t), NULL, 0, 0, NULL, 0, NULL },
-    [858] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_ParsedSource_t), NULL, 0, 0, NULL, 4, vader_type_858_refs },
-    [859] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_Parser_t), vader_type_859_ptrs, 1, 1, vader_type_859_strs, 3, vader_type_859_refs },
-    [860] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_StringLitInfo_t), NULL, 0, 1, vader_type_860_strs, 1, vader_type_860_refs },
-    [861] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_CollectedModule_t), NULL, 0, 0, NULL, 5, vader_type_861_refs },
-    [862] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_DiscoveredModule_t), NULL, 0, 2, vader_type_862_strs, 1, vader_type_862_refs },
-    [863] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_FileWildcards_t), NULL, 0, 1, vader_type_863_strs, 2, vader_type_863_refs },
-    [864] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_FolderBucket_t), NULL, 0, 1, vader_type_864_strs, 2, vader_type_864_refs },
-    [865] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ImportInfo_t), vader_type_865_ptrs, 1, 2, vader_type_865_strs, 1, vader_type_865_refs },
-    [866] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ImportTargetTable_t), NULL, 0, 0, NULL, 3, vader_type_866_refs },
-    [867] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_IncludePath_t), NULL, 0, 2, vader_type_867_strs, 0, NULL },
-    [868] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_LoadedModule_t), NULL, 0, 0, NULL, 4, vader_type_868_refs },
-    [869] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_LoadedProject_t), vader_type_869_ptrs, 1, 1, vader_type_869_strs, 3, vader_type_869_refs },
-    [870] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Manifest_t), NULL, 0, 0, NULL, 1, vader_type_870_refs },
-    [871] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Module_t), NULL, 0, 3, vader_type_871_strs, 1, vader_type_871_refs },
-    [872] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolveState_t), NULL, 0, 1, vader_type_872_strs, 8, vader_type_872_refs },
-    [873] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolvedFile_t), NULL, 0, 0, NULL, 6, vader_type_873_refs },
-    [874] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolvedModule_t), NULL, 0, 2, vader_type_874_strs, 13, vader_type_874_refs },
-    [875] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Scope_t), NULL, 0, 0, NULL, 1, vader_type_875_refs },
-    [876] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_SourceFile_t), NULL, 0, 2, vader_type_876_strs, 2, vader_type_876_refs },
-    [877] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_StampCtx_t), NULL, 0, 1, vader_type_877_strs, 0, NULL },
-    [878] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Subst_t), NULL, 0, 0, NULL, 1, vader_type_878_refs },
-    [879] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_SymbolTarget_t), NULL, 0, 1, vader_type_879_strs, 1, vader_type_879_refs },
-    [880] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_TargetSelectors_t), NULL, 0, 0, NULL, 1, vader_type_880_refs },
-    [881] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_symbol_Symbol_t), vader_type_881_ptrs, 1, 3, vader_type_881_strs, 0, NULL },
-    [882] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_symbol_SymbolFactory_t), NULL, 0, 0, NULL, 0, NULL },
-    [883] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_target_AllTargets_t), NULL, 0, 0, NULL, 0, NULL },
-    [884] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_target_Target_t), NULL, 0, 0, NULL, 0, NULL },
-    [885] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_BlockNarrow_t), vader_type_885_ptrs, 2, 1, vader_type_885_strs, 0, NULL },
-    [886] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_CheckResult_t), NULL, 0, 0, NULL, 4, vader_type_886_refs },
-    [887] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_DeadDecl_t), NULL, 0, 1, vader_type_887_strs, 1, vader_type_887_refs },
-    [888] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_DivergentNarrow_t), vader_type_888_ptrs, 1, 1, vader_type_888_strs, 0, NULL },
-    [889] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_EnclosingLoop_t), vader_type_889_ptrs, 2, 0, NULL, 0, NULL },
-    [890] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_FieldChainStatic_t), vader_type_890_ptrs, 1, 1, vader_type_890_strs, 0, NULL },
-    [891] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_FnContext_t), vader_type_891_ptrs, 4, 0, NULL, 0, NULL },
-    [892] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_GenStateEntry_t), vader_type_892_ptrs, 1, 2, vader_type_892_strs, 0, NULL },
-    [893] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplEntry_t), vader_type_893_ptrs, 1, 1, vader_type_893_strs, 2, vader_type_893_refs },
-    [894] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplMethod_t), vader_type_894_ptrs, 1, 0, NULL, 0, NULL },
-    [895] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplRegistry_t), NULL, 0, 0, NULL, 2, vader_type_895_refs },
-    [896] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_IsNarrow_t), vader_type_896_ptrs, 3, 1, vader_type_896_strs, 0, NULL },
-    [897] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NamedDeclLookup_t), vader_type_897_ptrs, 1, 1, vader_type_897_strs, 0, NULL },
-    [898] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NamedDeclRefs_t), NULL, 0, 1, vader_type_898_strs, 3, vader_type_898_refs },
-    [899] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NarrowSlot_t), vader_type_899_ptrs, 1, 0, NULL, 0, NULL },
-    [900] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_PushedNarrow_t), vader_type_900_ptrs, 1, 1, vader_type_900_strs, 0, NULL },
-    [901] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ReprRange_t), NULL, 0, 0, NULL, 0, NULL },
-    [902] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_Substitution_t), vader_type_902_ptrs, 1, 0, NULL, 1, vader_type_902_refs },
-    [903] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_TypedProgram_t), vader_type_903_ptrs, 6, 0, NULL, 48, vader_type_903_refs },
-    [904] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_TypedProject_t), NULL, 0, 0, NULL, 1, vader_type_904_refs },
-    [905] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_UfcsResult_t), vader_type_905_ptrs, 2, 0, NULL, 0, NULL },
-    [906] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_AnyType_t), NULL, 0, 0, NULL, 0, NULL },
-    [907] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_ArrayType_t), vader_type_907_ptrs, 1, 0, NULL, 0, NULL },
-    [908] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_DistinctType_t), vader_type_908_ptrs, 1, 0, NULL, 1, vader_type_908_refs },
-    [909] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_EnumType_t), NULL, 0, 1, vader_type_909_strs, 2, vader_type_909_refs },
-    [910] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FnType_t), vader_type_910_ptrs, 1, 0, NULL, 2, vader_type_910_refs },
-    [911] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeCharType_t), NULL, 0, 0, NULL, 0, NULL },
-    [912] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeFloatType_t), NULL, 0, 0, NULL, 0, NULL },
-    [913] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeIntType_t), NULL, 0, 0, NULL, 0, NULL },
-    [914] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_NeverType_t), NULL, 0, 0, NULL, 0, NULL },
-    [915] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_PrimitiveMeta_t), NULL, 0, 1, vader_type_915_strs, 0, NULL },
-    [916] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_PrimitiveType_t), NULL, 0, 1, vader_type_916_strs, 0, NULL },
-    [917] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_SelfType_t), NULL, 0, 0, NULL, 0, NULL },
-    [918] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_StructType_t), NULL, 0, 0, NULL, 2, vader_type_918_refs },
-    [919] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TraitType_t), NULL, 0, 0, NULL, 2, vader_type_919_refs },
-    [920] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TupleType_t), NULL, 0, 0, NULL, 1, vader_type_920_refs },
-    [921] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TypeMetaType_t), NULL, 0, 0, NULL, 0, NULL },
-    [922] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TypeParamType_t), NULL, 0, 0, NULL, 1, vader_type_922_refs },
-    [923] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_UnionType_t), NULL, 0, 0, NULL, 1, vader_type_923_refs },
-    [924] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_UnresolvedType_t), NULL, 0, 0, NULL, 0, NULL },
-    [925] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ArrayVal_t), NULL, 0, 0, NULL, 1, vader_type_925_refs },
-    [926] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_BoolVal_t), NULL, 0, 0, NULL, 0, NULL },
-    [927] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_CharVal_t), NULL, 0, 0, NULL, 0, NULL },
-    [928] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_DebugController_t), NULL, 0, 0, NULL, 3, vader_type_928_refs },
-    [929] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ErrorVal_t), NULL, 0, 1, vader_type_929_strs, 0, NULL },
-    [930] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_F64Val_t), NULL, 0, 0, NULL, 0, NULL },
-    [931] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_FnVal_t), vader_type_931_ptrs, 1, 0, NULL, 0, NULL },
-    [932] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Frame_t), NULL, 0, 0, NULL, 7, vader_type_932_refs },
-    [933] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_HostOk_t), vader_type_933_ptrs, 1, 0, NULL, 0, NULL },
-    [934] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_I32Val_t), NULL, 0, 0, NULL, 0, NULL },
-    [935] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_I64Val_t), NULL, 0, 0, NULL, 0, NULL },
-    [936] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_LentArray_t), NULL, 0, 0, NULL, 1, vader_type_936_refs },
-    [937] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_LentStruct_t), NULL, 0, 0, NULL, 2, vader_type_937_refs },
-    [938] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_NullVal_t), NULL, 0, 0, NULL, 0, NULL },
-    [939] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ObjVal_t), NULL, 0, 0, NULL, 2, vader_type_939_refs },
-    [940] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Ok_t), NULL, 0, 0, NULL, 0, NULL },
-    [941] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseCtx_t), NULL, 0, 1, vader_type_941_strs, 1, vader_type_941_refs },
-    [942] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseFrame_t), NULL, 0, 2, vader_type_942_strs, 1, vader_type_942_refs },
-    [943] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseVar_t), NULL, 0, 2, vader_type_943_strs, 1, vader_type_943_refs },
-    [944] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_StringVal_t), NULL, 0, 1, vader_type_944_strs, 0, NULL },
-    [945] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_StructVal_t), NULL, 0, 0, NULL, 1, vader_type_945_refs },
-    [946] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Trap_t), NULL, 0, 1, vader_type_946_strs, 0, NULL },
-    [947] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_TypeVal_t), NULL, 0, 0, NULL, 0, NULL },
-    [948] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ValueOk_t), vader_type_948_ptrs, 1, 0, NULL, 0, NULL },
-    [949] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_VmState_t), NULL, 0, 0, NULL, 4, vader_type_949_refs },
+    [298] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t), NULL, 0, 0, NULL, 3, vader_type_298_refs },
+    [299] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t), NULL, 0, 0, NULL, 3, vader_type_299_refs },
+    [300] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t), NULL, 0, 0, NULL, 3, vader_type_300_refs },
+    [301] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__StructDecl_t), NULL, 0, 0, NULL, 3, vader_type_301_refs },
+    [302] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_302_refs },
+    [303] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t), NULL, 0, 0, NULL, 3, vader_type_303_refs },
+    [304] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t), NULL, 0, 0, NULL, 3, vader_type_304_refs },
+    [305] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t), NULL, 0, 0, NULL, 3, vader_type_305_refs },
+    [306] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), NULL, 0, 0, NULL, 3, vader_type_306_refs },
+    [307] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32_t), NULL, 0, 0, NULL, 3, vader_type_307_refs },
+    [308] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32___t), NULL, 0, 0, NULL, 3, vader_type_308_refs },
+    [309] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32___null_t), NULL, 0, 0, NULL, 3, vader_type_309_refs },
+    [310] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__string_t), NULL, 0, 0, NULL, 3, vader_type_310_refs },
+    [311] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__string___t), NULL, 0, 0, NULL, 3, vader_type_311_refs },
+    [312] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__usize_t), NULL, 0, 0, NULL, 3, vader_type_312_refs },
+    [313] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__Any_t), NULL, 0, 0, NULL, 3, vader_type_313_refs },
+    [314] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t), NULL, 0, 0, NULL, 3, vader_type_314_refs },
+    [315] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i64__bool_t), NULL, 0, 0, NULL, 3, vader_type_315_refs },
+    [316] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Any_t), NULL, 0, 0, NULL, 3, vader_type_316_refs },
+    [317] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_317_refs },
+    [318] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Any___t), NULL, 0, 0, NULL, 3, vader_type_318_refs },
+    [319] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t), NULL, 0, 0, NULL, 3, vader_type_319_refs },
+    [320] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t), NULL, 0, 0, NULL, 3, vader_type_320_refs },
+    [321] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__CFGModule_t), NULL, 0, 0, NULL, 3, vader_type_321_refs },
+    [322] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Capture___t), NULL, 0, 0, NULL, 3, vader_type_322_refs },
+    [323] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t), NULL, 0, 0, NULL, 3, vader_type_323_refs },
+    [324] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t), NULL, 0, 0, NULL, 3, vader_type_324_refs },
+    [325] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnDecl_t), NULL, 0, 0, NULL, 3, vader_type_325_refs },
+    [326] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnDecl___t), NULL, 0, 0, NULL, 3, vader_type_326_refs },
+    [327] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnParam___t), NULL, 0, 0, NULL, 3, vader_type_327_refs },
+    [328] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__FnType___t), NULL, 0, 0, NULL, 3, vader_type_328_refs },
+    [329] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t), NULL, 0, 0, NULL, 3, vader_type_329_refs },
+    [330] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__GenericInstance_t), NULL, 0, 0, NULL, 3, vader_type_330_refs },
+    [331] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ImplEntry_t), NULL, 0, 0, NULL, 3, vader_type_331_refs },
+    [332] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__ImplMethod_t), NULL, 0, 0, NULL, 3, vader_type_332_refs },
+    [333] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__InlineInfo_t), NULL, 0, 0, NULL, 3, vader_type_333_refs },
+    [334] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t), NULL, 0, 0, NULL, 3, vader_type_334_refs },
+    [335] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoadedModule_t), NULL, 0, 0, NULL, 3, vader_type_335_refs },
+    [336] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t), NULL, 0, 0, NULL, 3, vader_type_336_refs },
+    [337] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t), NULL, 0, 0, NULL, 3, vader_type_337_refs },
+    [338] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__LoweredModule_t), NULL, 0, 0, NULL, 3, vader_type_338_refs },
+    [339] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t), NULL, 0, 0, NULL, 3, vader_type_339_refs },
+    [340] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t), NULL, 0, 0, NULL, 3, vader_type_340_refs },
+    [341] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t), NULL, 0, 0, NULL, 3, vader_type_341_refs },
+    [342] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnParam____t), NULL, 0, 0, NULL, 3, vader_type_342_refs },
+    [343] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnType____t), NULL, 0, 0, NULL, 3, vader_type_343_refs },
+    [344] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t), NULL, 0, 0, NULL, 3, vader_type_344_refs },
+    [345] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_____t), NULL, 0, 0, NULL, 3, vader_type_345_refs },
+    [346] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t), NULL, 0, 0, NULL, 3, vader_type_346_refs },
+    [347] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t), NULL, 0, 0, NULL, 3, vader_type_347_refs },
+    [348] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t), NULL, 0, 0, NULL, 3, vader_type_348_refs },
+    [349] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t), NULL, 0, 0, NULL, 3, vader_type_349_refs },
+    [350] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Span_t), NULL, 0, 0, NULL, 3, vader_type_350_refs },
+    [351] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_351_refs },
+    [352] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__Symbol___t), NULL, 0, 0, NULL, 3, vader_type_352_refs },
+    [353] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__TypedProgram_t), NULL, 0, 0, NULL, 3, vader_type_353_refs },
+    [354] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t), NULL, 0, 0, NULL, 3, vader_type_354_refs },
+    [355] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__bool_t), NULL, 0, 0, NULL, 3, vader_type_355_refs },
+    [356] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i32_t), NULL, 0, 0, NULL, 3, vader_type_356_refs },
+    [357] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i32___t), NULL, 0, 0, NULL, 3, vader_type_357_refs },
+    [358] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i64_t), NULL, 0, 0, NULL, 3, vader_type_358_refs },
+    [359] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__string_t), NULL, 0, 0, NULL, 3, vader_type_359_refs },
+    [360] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__string___t), NULL, 0, 0, NULL, 3, vader_type_360_refs },
+    [361] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__usize_t), NULL, 0, 0, NULL, 3, vader_type_361_refs },
+    [362] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__Any_t), NULL, 0, 0, NULL, 3, vader_type_362_refs },
+    [363] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_363_refs },
+    [364] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__Symbol_t), NULL, 0, 0, NULL, 3, vader_type_364_refs },
+    [365] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__u64__usize_t), NULL, 0, 0, NULL, 3, vader_type_365_refs },
+    [366] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__Any_t), NULL, 0, 0, NULL, 3, vader_type_366_refs },
+    [367] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t), NULL, 0, 0, NULL, 3, vader_type_367_refs },
+    [368] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t), NULL, 0, 0, NULL, 3, vader_type_368_refs },
+    [369] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__Span_t), NULL, 0, 0, NULL, 3, vader_type_369_refs },
+    [370] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__bool_t), NULL, 0, 0, NULL, 3, vader_type_370_refs },
+    [371] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), NULL, 0, 0, NULL, 3, vader_type_371_refs },
+    [372] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__usize__string_t), NULL, 0, 0, NULL, 3, vader_type_372_refs },
+    [373] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__i32_t), NULL, 0, 0, NULL, 1, vader_type_373_refs },
+    [374] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__i64_t), NULL, 0, 0, NULL, 1, vader_type_374_refs },
+    [375] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__string_t), NULL, 0, 0, NULL, 1, vader_type_375_refs },
+    [376] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableSet__usize_t), NULL, 0, 0, NULL, 1, vader_type_376_refs },
+    [377] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [378] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Dec64_t), NULL, 0, 0, NULL, 0, NULL },
+    [379] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_DecimalParts_t), NULL, 0, 0, NULL, 0, NULL },
+    [380] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_FloatDec32_t), NULL, 0, 0, NULL, 0, NULL },
+    [381] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_SlowParts_t), NULL, 0, 0, NULL, 1, vader_type_381_refs },
+    [382] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__char_t), NULL, 0, 0, NULL, 0, NULL },
+    [383] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_io_IOError_t), NULL, 0, 1, vader_type_383_strs, 0, NULL },
+    [384] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_ParseError_t), NULL, 0, 1, vader_type_384_strs, 0, NULL },
+    [385] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_StringChars_t), NULL, 0, 0, NULL, 1, vader_type_385_refs },
+    [386] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_builder_StringBuilder_t), NULL, 0, 0, NULL, 1, vader_type_386_refs },
+    [387] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ArrayTypeExpr_t), vader_type_387_ptrs, 1, 0, NULL, 1, vader_type_387_refs },
+    [388] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AssertDecl_t), vader_type_388_ptrs, 2, 0, NULL, 2, vader_type_388_refs },
+    [389] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AssignStmt_t), vader_type_389_ptrs, 2, 0, NULL, 1, vader_type_389_refs },
+    [390] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_AwaitExpr_t), vader_type_390_ptrs, 1, 0, NULL, 1, vader_type_390_refs },
+    [391] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BinaryExpr_t), vader_type_391_ptrs, 2, 1, vader_type_391_strs, 1, vader_type_391_refs },
+    [392] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BindingPattern_t), NULL, 0, 1, vader_type_392_strs, 1, vader_type_392_refs },
+    [393] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BlockExpr_t), vader_type_393_ptrs, 1, 0, NULL, 2, vader_type_393_refs },
+    [394] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BoolLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_394_refs },
+    [395] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_BreakStmt_t), vader_type_395_ptrs, 1, 0, NULL, 1, vader_type_395_refs },
+    [396] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CallArg_t), vader_type_396_ptrs, 2, 0, NULL, 1, vader_type_396_refs },
+    [397] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CallExpr_t), vader_type_397_ptrs, 1, 0, NULL, 2, vader_type_397_refs },
+    [398] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CastExpr_t), vader_type_398_ptrs, 2, 0, NULL, 1, vader_type_398_refs },
+    [399] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_CharLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_399_refs },
+    [400] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ConstDecl_t), vader_type_400_ptrs, 3, 1, vader_type_400_strs, 3, vader_type_400_refs },
+    [401] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ContinueStmt_t), vader_type_401_ptrs, 1, 0, NULL, 1, vader_type_401_refs },
+    [402] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_Decorator_t), NULL, 0, 1, vader_type_402_strs, 2, vader_type_402_refs },
+    [403] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferBlockBody_t), NULL, 0, 0, NULL, 1, vader_type_403_refs },
+    [404] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferStmt_t), vader_type_404_ptrs, 1, 0, NULL, 1, vader_type_404_refs },
+    [405] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DeferStmtBody_t), vader_type_405_ptrs, 1, 0, NULL, 0, NULL },
+    [406] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DestructureImport_t), NULL, 0, 0, NULL, 1, vader_type_406_refs },
+    [407] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DestructureVar_t), vader_type_407_ptrs, 1, 0, NULL, 0, NULL },
+    [408] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DiscardVar_t), NULL, 0, 0, NULL, 0, NULL },
+    [409] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_DotVariantExpr_t), NULL, 0, 1, vader_type_409_strs, 2, vader_type_409_refs },
+    [410] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumDecl_t), vader_type_410_ptrs, 1, 1, vader_type_410_strs, 4, vader_type_410_refs },
+    [411] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumVariant_t), vader_type_411_ptrs, 2, 1, vader_type_411_strs, 1, vader_type_411_refs },
+    [412] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_EnumVariantPattern_t), NULL, 0, 1, vader_type_412_strs, 1, vader_type_412_refs },
+    [413] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ExprStmt_t), vader_type_413_ptrs, 1, 0, NULL, 1, vader_type_413_refs },
+    [414] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FieldExpr_t), vader_type_414_ptrs, 1, 1, vader_type_414_strs, 2, vader_type_414_refs },
+    [415] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FloatLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_415_refs },
+    [416] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnDecl_t), vader_type_416_ptrs, 2, 1, vader_type_416_strs, 5, vader_type_416_refs },
+    [417] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnParam_t), vader_type_417_ptrs, 2, 1, vader_type_417_strs, 2, vader_type_417_refs },
+    [418] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_FnTypeExpr_t), vader_type_418_ptrs, 1, 0, NULL, 3, vader_type_418_refs },
+    [419] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ForStmt_t), vader_type_419_ptrs, 2, 0, NULL, 2, vader_type_419_refs },
+    [420] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_GenericInstExpr_t), vader_type_420_ptrs, 1, 0, NULL, 2, vader_type_420_refs },
+    [421] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IdentExpr_t), NULL, 0, 1, vader_type_421_strs, 1, vader_type_421_refs },
+    [422] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfElseBlock_t), NULL, 0, 0, NULL, 1, vader_type_422_refs },
+    [423] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfElseIf_t), NULL, 0, 0, NULL, 1, vader_type_423_refs },
+    [424] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IfExpr_t), vader_type_424_ptrs, 2, 0, NULL, 2, vader_type_424_refs },
+    [425] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImplDecl_t), vader_type_425_ptrs, 1, 1, vader_type_425_strs, 6, vader_type_425_refs },
+    [426] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImportDecl_t), vader_type_426_ptrs, 1, 1, vader_type_426_strs, 2, vader_type_426_refs },
+    [427] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ImportName_t), vader_type_427_ptrs, 1, 1, vader_type_427_strs, 1, vader_type_427_refs },
+    [428] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_InFor_t), vader_type_428_ptrs, 2, 0, NULL, 0, NULL },
+    [429] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IndexExpr_t), vader_type_429_ptrs, 2, 0, NULL, 1, vader_type_429_refs },
+    [430] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_InfiniteFor_t), NULL, 0, 0, NULL, 0, NULL },
+    [431] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IntLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_431_refs },
+    [432] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IntrinsicCallExpr_t), NULL, 0, 1, vader_type_432_strs, 3, vader_type_432_refs },
+    [433] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_IsPattern_t), vader_type_433_ptrs, 3, 0, NULL, 1, vader_type_433_refs },
+    [434] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LambdaExpr_t), vader_type_434_ptrs, 1, 0, NULL, 3, vader_type_434_refs },
+    [435] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LetStmt_t), vader_type_435_ptrs, 3, 0, NULL, 1, vader_type_435_refs },
+    [436] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_LiteralPattern_t), vader_type_436_ptrs, 1, 0, NULL, 1, vader_type_436_refs },
+    [437] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MatchArm_t), vader_type_437_ptrs, 3, 0, NULL, 1, vader_type_437_refs },
+    [438] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MatchExpr_t), vader_type_438_ptrs, 1, 0, NULL, 2, vader_type_438_refs },
+    [439] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ModuleDecl_t), NULL, 0, 1, vader_type_439_strs, 2, vader_type_439_refs },
+    [440] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_MutableTypeExpr_t), vader_type_440_ptrs, 1, 0, NULL, 1, vader_type_440_refs },
+    [441] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NamedNamespaceImport_t), NULL, 0, 1, vader_type_441_strs, 0, NULL },
+    [442] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NamedVar_t), NULL, 0, 1, vader_type_442_strs, 1, vader_type_442_refs },
+    [443] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NullCoalesceExpr_t), vader_type_443_ptrs, 2, 0, NULL, 1, vader_type_443_refs },
+    [444] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_NullLitExpr_t), NULL, 0, 0, NULL, 1, vader_type_444_refs },
+    [445] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_OrPattern_t), NULL, 0, 0, NULL, 2, vader_type_445_refs },
+    [446] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_PatternBinding_t), NULL, 0, 1, vader_type_446_strs, 1, vader_type_446_refs },
+    [447] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_PatternLiteral_t), vader_type_447_ptrs, 1, 0, NULL, 0, NULL },
+    [448] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_Program_t), vader_type_448_ptrs, 1, 1, vader_type_448_strs, 2, vader_type_448_refs },
+    [449] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RangeExpr_t), vader_type_449_ptrs, 2, 0, NULL, 1, vader_type_449_refs },
+    [450] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RangePattern_t), vader_type_450_ptrs, 2, 0, NULL, 1, vader_type_450_refs },
+    [451] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_RestBinding_t), NULL, 0, 1, vader_type_451_strs, 2, vader_type_451_refs },
+    [452] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_ReturnStmt_t), vader_type_452_ptrs, 1, 0, NULL, 1, vader_type_452_refs },
+    [453] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_SeqLitExpr_t), NULL, 0, 0, NULL, 2, vader_type_453_refs },
+    [454] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_SimpleBinding_t), NULL, 0, 1, vader_type_454_strs, 2, vader_type_454_refs },
+    [455] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitExpr_t), NULL, 0, 0, NULL, 2, vader_type_455_refs },
+    [456] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitInterp_t), vader_type_456_ptrs, 1, 0, NULL, 1, vader_type_456_refs },
+    [457] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StringLitText_t), NULL, 0, 1, vader_type_457_strs, 1, vader_type_457_refs },
+    [458] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructDecl_t), NULL, 0, 1, vader_type_458_strs, 5, vader_type_458_refs },
+    [459] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructField_t), vader_type_459_ptrs, 2, 1, vader_type_459_strs, 1, vader_type_459_refs },
+    [460] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitExpr_t), vader_type_460_ptrs, 1, 0, NULL, 2, vader_type_460_refs },
+    [461] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitField_t), vader_type_461_ptrs, 1, 1, vader_type_461_strs, 2, vader_type_461_refs },
+    [462] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructLitSpread_t), vader_type_462_ptrs, 1, 0, NULL, 1, vader_type_462_refs },
+    [463] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructPattern_t), NULL, 0, 0, NULL, 2, vader_type_463_refs },
+    [464] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_StructPatternField_t), vader_type_464_ptrs, 1, 1, vader_type_464_strs, 2, vader_type_464_refs },
+    [465] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TraitDecl_t), vader_type_465_ptrs, 1, 1, vader_type_465_strs, 5, vader_type_465_refs },
+    [466] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TupleBinding_t), NULL, 0, 0, NULL, 2, vader_type_466_refs },
+    [467] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TuplePattern_t), NULL, 0, 0, NULL, 2, vader_type_467_refs },
+    [468] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TypeAliasDecl_t), vader_type_468_ptrs, 1, 1, vader_type_468_strs, 4, vader_type_468_refs },
+    [469] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_TypeParam_t), vader_type_469_ptrs, 2, 1, vader_type_469_strs, 1, vader_type_469_refs },
+    [470] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_UnaryExpr_t), vader_type_470_ptrs, 1, 0, NULL, 1, vader_type_470_refs },
+    [471] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WhileFor_t), vader_type_471_ptrs, 1, 0, NULL, 0, NULL },
+    [472] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardBinding_t), NULL, 0, 0, NULL, 1, vader_type_472_refs },
+    [473] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardImport_t), NULL, 0, 0, NULL, 0, NULL },
+    [474] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_WildcardPattern_t), NULL, 0, 0, NULL, 1, vader_type_474_refs },
+    [475] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_ast_YieldStmt_t), vader_type_475_ptrs, 1, 0, NULL, 1, vader_type_475_refs },
+    [476] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_span_Position_t), NULL, 0, 1, vader_type_476_strs, 0, NULL },
+    [477] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_toolchain_span_Span_t), NULL, 0, 0, NULL, 2, vader_type_477_refs },
+    [478] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_CfgBytecode_t), NULL, 0, 1, vader_type_478_strs, 3, vader_type_478_refs },
+    [479] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_EvaluatedPipeline_t), NULL, 0, 0, NULL, 6, vader_type_479_refs },
+    [480] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bootstrap_LoweredEntry_t), NULL, 0, 1, vader_type_480_strs, 3, vader_type_480_refs },
+    [481] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayClear_t), NULL, 0, 0, NULL, 0, NULL },
+    [482] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayCopy_t), NULL, 0, 0, NULL, 0, NULL },
+    [483] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayGet_t), NULL, 0, 0, NULL, 0, NULL },
+    [484] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayLen_t), NULL, 0, 0, NULL, 0, NULL },
+    [485] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayNew_t), NULL, 0, 0, NULL, 0, NULL },
+    [486] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayPush_t), NULL, 0, 0, NULL, 0, NULL },
+    [487] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayPushAll_t), NULL, 0, 0, NULL, 0, NULL },
+    [488] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayRemoveLast_t), NULL, 0, 0, NULL, 0, NULL },
+    [489] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArrayRepeat_t), NULL, 0, 0, NULL, 0, NULL },
+    [490] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArraySet_t), NULL, 0, 0, NULL, 0, NULL },
+    [491] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ArraySlice_t), NULL, 0, 0, NULL, 0, NULL },
+    [492] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcAggregateData_t), NULL, 0, 1, vader_type_492_strs, 1, vader_type_492_refs },
+    [493] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcArray_t), NULL, 0, 0, NULL, 0, NULL },
+    [494] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcExport_t), NULL, 0, 1, vader_type_494_strs, 0, NULL },
+    [495] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcField_t), NULL, 0, 1, vader_type_495_strs, 0, NULL },
+    [496] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcFn_t), NULL, 0, 0, NULL, 1, vader_type_496_refs },
+    [497] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcFunction_t), NULL, 0, 1, vader_type_497_strs, 5, vader_type_497_refs },
+    [498] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcImport_t), NULL, 0, 4, vader_type_498_strs, 1, vader_type_498_refs },
+    [499] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcLocal_t), NULL, 0, 1, vader_type_499_strs, 0, NULL },
+    [500] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t), NULL, 0, 0, NULL, 3, vader_type_500_refs },
+    [501] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPrimData_t), NULL, 0, 0, NULL, 1, vader_type_501_refs },
+    [502] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcPrimitive_t), NULL, 0, 0, NULL, 0, NULL },
+    [503] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcRef_t), NULL, 0, 1, vader_type_503_strs, 0, NULL },
+    [504] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcSignature_t), NULL, 0, 0, NULL, 5, vader_type_504_refs },
+    [505] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcStrData_t), NULL, 0, 0, NULL, 1, vader_type_505_refs },
+    [506] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcStruct_t), NULL, 0, 2, vader_type_506_strs, 1, vader_type_506_refs },
+    [507] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcUnion_t), NULL, 0, 0, NULL, 1, vader_type_507_refs },
+    [508] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValArray_t), NULL, 0, 1, vader_type_508_strs, 1, vader_type_508_refs },
+    [509] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValPrim_t), NULL, 0, 0, NULL, 0, NULL },
+    [510] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValStr_t), NULL, 0, 1, vader_type_510_strs, 0, NULL },
+    [511] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BcValStruct_t), NULL, 0, 0, NULL, 1, vader_type_511_refs },
+    [512] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BitsToF32_t), NULL, 0, 0, NULL, 0, NULL },
+    [513] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BitsToF64_t), NULL, 0, 0, NULL, 0, NULL },
+    [514] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Block_t), NULL, 0, 0, NULL, 0, NULL },
+    [515] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolAnd_t), NULL, 0, 0, NULL, 0, NULL },
+    [516] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [517] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolEq_t), NULL, 0, 0, NULL, 0, NULL },
+    [518] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolNe_t), NULL, 0, 0, NULL, 0, NULL },
+    [519] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolNot_t), NULL, 0, 0, NULL, 0, NULL },
+    [520] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BoolOr_t), NULL, 0, 0, NULL, 0, NULL },
+    [521] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Box_t), NULL, 0, 0, NULL, 0, NULL },
+    [522] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Branch_t), NULL, 0, 0, NULL, 0, NULL },
+    [523] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BranchIf_t), NULL, 0, 0, NULL, 0, NULL },
+    [524] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferNew_t), NULL, 0, 0, NULL, 0, NULL },
+    [525] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferToString_t), NULL, 0, 0, NULL, 0, NULL },
+    [526] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BufferWriteString_t), NULL, 0, 0, NULL, 0, NULL },
+    [527] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_BytecodeModule_t), NULL, 0, 1, vader_type_527_strs, 8, vader_type_527_refs },
+    [528] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CLayout_t), vader_type_528_ptrs, 1, 0, NULL, 1, vader_type_528_refs },
+    [529] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Call_t), NULL, 0, 0, NULL, 0, NULL },
+    [530] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CallImport_t), NULL, 0, 0, NULL, 0, NULL },
+    [531] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CallIndirect_t), NULL, 0, 0, NULL, 0, NULL },
+    [532] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_CharConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [533] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Convert_t), NULL, 0, 1, vader_type_533_strs, 0, NULL },
+    [534] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DataConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [535] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DebugPos_t), NULL, 0, 1, vader_type_535_strs, 0, NULL },
+    [536] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DeferPopExec_t), NULL, 0, 0, NULL, 0, NULL },
+    [537] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_DeferPush_t), NULL, 0, 0, NULL, 0, NULL },
+    [538] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Drop_t), NULL, 0, 0, NULL, 0, NULL },
+    [539] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Else_t), NULL, 0, 0, NULL, 0, NULL },
+    [540] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_EmitOptions_t), NULL, 0, 0, NULL, 1, vader_type_540_refs },
+    [541] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_EmitterCtx_t), NULL, 0, 0, NULL, 13, vader_type_541_refs },
+    [542] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_End_t), NULL, 0, 0, NULL, 0, NULL },
+    [543] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F32ToBits_t), NULL, 0, 0, NULL, 0, NULL },
+    [544] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Add_t), NULL, 0, 0, NULL, 0, NULL },
+    [545] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Const_t), NULL, 0, 0, NULL, 0, NULL },
+    [546] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Div_t), NULL, 0, 0, NULL, 0, NULL },
+    [547] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Eq_t), NULL, 0, 0, NULL, 0, NULL },
+    [548] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Ge_t), NULL, 0, 0, NULL, 0, NULL },
+    [549] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Gt_t), NULL, 0, 0, NULL, 0, NULL },
+    [550] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Le_t), NULL, 0, 0, NULL, 0, NULL },
+    [551] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Lt_t), NULL, 0, 0, NULL, 0, NULL },
+    [552] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Mul_t), NULL, 0, 0, NULL, 0, NULL },
+    [553] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Ne_t), NULL, 0, 0, NULL, 0, NULL },
+    [554] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Neg_t), NULL, 0, 0, NULL, 0, NULL },
+    [555] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64Sub_t), NULL, 0, 0, NULL, 0, NULL },
+    [556] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_F64ToBits_t), NULL, 0, 0, NULL, 0, NULL },
+    [557] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_FnAddr_t), NULL, 0, 0, NULL, 0, NULL },
+    [558] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_FnRef_t), NULL, 0, 0, NULL, 0, NULL },
+    [559] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Add_t), NULL, 0, 0, NULL, 0, NULL },
+    [560] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitAnd_t), NULL, 0, 0, NULL, 0, NULL },
+    [561] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitNot_t), NULL, 0, 0, NULL, 0, NULL },
+    [562] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitOr_t), NULL, 0, 0, NULL, 0, NULL },
+    [563] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32BitXor_t), NULL, 0, 0, NULL, 0, NULL },
+    [564] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Const_t), NULL, 0, 0, NULL, 0, NULL },
+    [565] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Div_t), NULL, 0, 0, NULL, 0, NULL },
+    [566] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Eq_t), NULL, 0, 0, NULL, 0, NULL },
+    [567] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Ge_t), NULL, 0, 0, NULL, 0, NULL },
+    [568] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Gt_t), NULL, 0, 0, NULL, 0, NULL },
+    [569] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Le_t), NULL, 0, 0, NULL, 0, NULL },
+    [570] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Lt_t), NULL, 0, 0, NULL, 0, NULL },
+    [571] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Mod_t), NULL, 0, 0, NULL, 0, NULL },
+    [572] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Mul_t), NULL, 0, 0, NULL, 0, NULL },
+    [573] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Ne_t), NULL, 0, 0, NULL, 0, NULL },
+    [574] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Neg_t), NULL, 0, 0, NULL, 0, NULL },
+    [575] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Shl_t), NULL, 0, 0, NULL, 0, NULL },
+    [576] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Shr_t), NULL, 0, 0, NULL, 0, NULL },
+    [577] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32ShrU_t), NULL, 0, 0, NULL, 0, NULL },
+    [578] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I32Sub_t), NULL, 0, 0, NULL, 0, NULL },
+    [579] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Add_t), NULL, 0, 0, NULL, 0, NULL },
+    [580] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitAnd_t), NULL, 0, 0, NULL, 0, NULL },
+    [581] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitNot_t), NULL, 0, 0, NULL, 0, NULL },
+    [582] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitOr_t), NULL, 0, 0, NULL, 0, NULL },
+    [583] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64BitXor_t), NULL, 0, 0, NULL, 0, NULL },
+    [584] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Const_t), NULL, 0, 0, NULL, 0, NULL },
+    [585] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Div_t), NULL, 0, 0, NULL, 0, NULL },
+    [586] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Eq_t), NULL, 0, 0, NULL, 0, NULL },
+    [587] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Ge_t), NULL, 0, 0, NULL, 0, NULL },
+    [588] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Gt_t), NULL, 0, 0, NULL, 0, NULL },
+    [589] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Le_t), NULL, 0, 0, NULL, 0, NULL },
+    [590] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Lt_t), NULL, 0, 0, NULL, 0, NULL },
+    [591] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Mod_t), NULL, 0, 0, NULL, 0, NULL },
+    [592] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Mul_t), NULL, 0, 0, NULL, 0, NULL },
+    [593] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Ne_t), NULL, 0, 0, NULL, 0, NULL },
+    [594] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Neg_t), NULL, 0, 0, NULL, 0, NULL },
+    [595] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Shl_t), NULL, 0, 0, NULL, 0, NULL },
+    [596] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Shr_t), NULL, 0, 0, NULL, 0, NULL },
+    [597] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64ShrU_t), NULL, 0, 0, NULL, 0, NULL },
+    [598] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_I64Sub_t), NULL, 0, 0, NULL, 0, NULL },
+    [599] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_If_t), NULL, 0, 0, NULL, 0, NULL },
+    [600] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ImplEntry_t), NULL, 0, 1, vader_type_600_strs, 0, NULL },
+    [601] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadF64_t), NULL, 0, 0, NULL, 0, NULL },
+    [602] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadI32_t), NULL, 0, 0, NULL, 0, NULL },
+    [603] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadI64_t), NULL, 0, 0, NULL, 0, NULL },
+    [604] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotF64_t), NULL, 0, 0, NULL, 0, NULL },
+    [605] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotI32_t), NULL, 0, 0, NULL, 0, NULL },
+    [606] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadSlotI64_t), NULL, 0, 0, NULL, 0, NULL },
+    [607] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LoadU8_t), NULL, 0, 0, NULL, 0, NULL },
+    [608] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalField_t), NULL, 0, 0, NULL, 0, NULL },
+    [609] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalGet_t), NULL, 0, 0, NULL, 0, NULL },
+    [610] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalSet_t), NULL, 0, 0, NULL, 0, NULL },
+    [611] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_LocalTee_t), NULL, 0, 0, NULL, 0, NULL },
+    [612] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Loop_t), NULL, 0, 0, NULL, 0, NULL },
+    [613] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_MakeClosure_t), NULL, 0, 0, NULL, 0, NULL },
+    [614] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_MemoryCopy_t), NULL, 0, 0, NULL, 0, NULL },
+    [615] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_NullConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [616] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefCast_t), NULL, 0, 0, NULL, 0, NULL },
+    [617] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefEq_t), NULL, 0, 0, NULL, 0, NULL },
+    [618] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_RefNe_t), NULL, 0, 0, NULL, 0, NULL },
+    [619] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Return_t), NULL, 0, 0, NULL, 0, NULL },
+    [620] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_ReturnLit_t), vader_type_620_ptrs, 1, 0, NULL, 0, NULL },
+    [621] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_SizeOfType_t), NULL, 0, 0, NULL, 0, NULL },
+    [622] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_SlotRange_t), NULL, 0, 0, NULL, 0, NULL },
+    [623] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreF64_t), NULL, 0, 0, NULL, 0, NULL },
+    [624] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreI32_t), NULL, 0, 0, NULL, 0, NULL },
+    [625] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreI64_t), NULL, 0, 0, NULL, 0, NULL },
+    [626] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotF64_t), NULL, 0, 0, NULL, 0, NULL },
+    [627] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotI32_t), NULL, 0, 0, NULL, 0, NULL },
+    [628] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreSlotI64_t), NULL, 0, 0, NULL, 0, NULL },
+    [629] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StoreU8_t), NULL, 0, 0, NULL, 0, NULL },
+    [630] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [631] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringEq_t), NULL, 0, 0, NULL, 0, NULL },
+    [632] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringNe_t), NULL, 0, 0, NULL, 0, NULL },
+    [633] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StringSliceCodepoints_t), NULL, 0, 0, NULL, 0, NULL },
+    [634] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructGet_t), NULL, 0, 0, NULL, 0, NULL },
+    [635] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructNew_t), NULL, 0, 0, NULL, 0, NULL },
+    [636] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_StructSet_t), NULL, 0, 0, NULL, 0, NULL },
+    [637] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_TypeCheck_t), NULL, 0, 0, NULL, 0, NULL },
+    [638] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_TypeConst_t), NULL, 0, 0, NULL, 0, NULL },
+    [639] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Div_t), NULL, 0, 0, NULL, 0, NULL },
+    [640] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Ge_t), NULL, 0, 0, NULL, 0, NULL },
+    [641] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Gt_t), NULL, 0, 0, NULL, 0, NULL },
+    [642] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Le_t), NULL, 0, 0, NULL, 0, NULL },
+    [643] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Lt_t), NULL, 0, 0, NULL, 0, NULL },
+    [644] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U32Mod_t), NULL, 0, 0, NULL, 0, NULL },
+    [645] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Div_t), NULL, 0, 0, NULL, 0, NULL },
+    [646] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Ge_t), NULL, 0, 0, NULL, 0, NULL },
+    [647] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Gt_t), NULL, 0, 0, NULL, 0, NULL },
+    [648] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Le_t), NULL, 0, 0, NULL, 0, NULL },
+    [649] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Lt_t), NULL, 0, 0, NULL, 0, NULL },
+    [650] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_U64Mod_t), NULL, 0, 0, NULL, 0, NULL },
+    [651] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_Unreachable_t), NULL, 0, 1, vader_type_651_strs, 0, NULL },
+    [652] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VirtualCall_t), NULL, 0, 1, vader_type_652_strs, 0, NULL },
+    [653] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VtableEntry_t), NULL, 0, 0, NULL, 0, NULL },
+    [654] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_bytecode_VtableRow_t), NULL, 0, 1, vader_type_654_strs, 1, vader_type_654_refs },
+    [655] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_BranchTargets_t), NULL, 0, 0, NULL, 2, vader_type_655_refs },
+    [656] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CProgram_t), NULL, 0, 3, vader_type_656_strs, 2, vader_type_656_refs },
+    [657] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CoalesceResult_t), NULL, 0, 1, vader_type_657_strs, 1, vader_type_657_refs },
+    [658] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_CopyLine_t), NULL, 0, 1, vader_type_658_strs, 0, NULL },
+    [659] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_DefLine_t), NULL, 0, 2, vader_type_659_strs, 0, NULL },
+    [660] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_EmitCtx_t), NULL, 0, 0, NULL, 6, vader_type_660_refs },
+    [661] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_EmitOptions_t), NULL, 0, 1, vader_type_661_strs, 1, vader_type_661_refs },
+    [662] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_FnState_t), NULL, 0, 0, NULL, 11, vader_type_662_refs },
+    [663] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_FnValueUsage_t), NULL, 0, 0, NULL, 2, vader_type_663_refs },
+    [664] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_ScopeInfo_t), NULL, 0, 0, NULL, 0, NULL },
+    [665] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_SlotFill_t), NULL, 0, 1, vader_type_665_strs, 0, NULL },
+    [666] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_SlotToken_t), NULL, 0, 0, NULL, 0, NULL },
+    [667] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackExpr_t), NULL, 0, 1, vader_type_667_strs, 0, NULL },
+    [668] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackLit_t), NULL, 0, 1, vader_type_668_strs, 0, NULL },
+    [669] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackLocalRef_t), NULL, 0, 0, NULL, 0, NULL },
+    [670] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackStorage_t), NULL, 0, 2, vader_type_670_strs, 0, NULL },
+    [671] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StackTmp_t), NULL, 0, 1, vader_type_671_strs, 0, NULL },
+    [672] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_c_emit_StructOffsets_t), NULL, 0, 0, NULL, 3, vader_type_672_refs },
+    [673] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ArrayValue_t), NULL, 0, 1, vader_type_673_strs, 1, vader_type_673_refs },
+    [674] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_BoolValue_t), NULL, 0, 0, NULL, 0, NULL },
+    [675] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_CharValue_t), NULL, 0, 0, NULL, 0, NULL },
+    [676] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ComptimeContext_t), NULL, 0, 0, NULL, 2, vader_type_676_refs },
+    [677] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_ComptimeOrder_t), NULL, 0, 0, NULL, 2, vader_type_677_refs },
+    [678] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvalResult_t), vader_type_678_ptrs, 2, 0, NULL, 0, NULL },
+    [679] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvaluatedProgram_t), NULL, 0, 0, NULL, 2, vader_type_679_refs },
+    [680] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_EvaluatedProject_t), NULL, 0, 0, NULL, 6, vader_type_680_refs },
+    [681] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_FloatValue_t), NULL, 0, 1, vader_type_681_strs, 0, NULL },
+    [682] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_GenericInstance_t), NULL, 0, 1, vader_type_682_strs, 2, vader_type_682_refs },
+    [683] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_InstanceRegistry_t), NULL, 0, 0, NULL, 2, vader_type_683_refs },
+    [684] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_IntValue_t), NULL, 0, 1, vader_type_684_strs, 0, NULL },
+    [685] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_MonoEntry_t), vader_type_685_ptrs, 3, 1, vader_type_685_strs, 2, vader_type_685_refs },
+    [686] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_NodeRecord_t), NULL, 0, 0, NULL, 2, vader_type_686_refs },
+    [687] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_Nodes_t), NULL, 0, 0, NULL, 3, vader_type_687_refs },
+    [688] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_NullValue_t), NULL, 0, 0, NULL, 0, NULL },
+    [689] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_StringValue_t), NULL, 0, 1, vader_type_689_strs, 0, NULL },
+    [690] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_StructValue_t), NULL, 0, 1, vader_type_690_strs, 1, vader_type_690_refs },
+    [691] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_TypeValue_t), vader_type_691_ptrs, 1, 0, NULL, 0, NULL },
+    [692] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_VmRequiredDecl_t), vader_type_692_ptrs, 1, 2, vader_type_692_strs, 1, vader_type_692_refs },
+    [693] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_comptime_VoidValue_t), NULL, 0, 0, NULL, 0, NULL },
+    [694] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_diagnostics_CodeInfo_t), NULL, 0, 2, vader_type_694_strs, 0, NULL },
+    [695] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_diagnostics_Diagnostic_t), NULL, 0, 1, vader_type_695_strs, 2, vader_type_695_refs },
+    [696] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_InterpFrame_t), NULL, 0, 0, NULL, 0, NULL },
+    [697] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_Lexer_t), NULL, 0, 2, vader_type_697_strs, 4, vader_type_697_refs },
+    [698] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lexer_Token_t), vader_type_698_ptrs, 1, 1, vader_type_698_strs, 1, vader_type_698_refs },
+    [699] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_AggregateDataPoolEntry_t), NULL, 0, 1, vader_type_699_strs, 1, vader_type_699_refs },
+    [700] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_AnalyzeCtx_t), NULL, 0, 0, NULL, 4, vader_type_700_refs },
+    [701] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BcePurityCtx_t), NULL, 0, 0, NULL, 3, vader_type_701_refs },
+    [702] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BlockCtx_t), NULL, 0, 0, NULL, 1, vader_type_702_refs },
+    [703] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BodyTemplate_t), vader_type_703_ptrs, 2, 1, vader_type_703_strs, 2, vader_type_703_refs },
+    [704] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_BveCtx_t), vader_type_704_ptrs, 2, 0, NULL, 6, vader_type_704_refs },
+    [705] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_Capture_t), vader_type_705_ptrs, 1, 0, NULL, 1, vader_type_705_refs },
+    [706] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_CellInit_t), vader_type_706_ptrs, 2, 0, NULL, 0, NULL },
+    [707] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ClosureAlias_t), vader_type_707_ptrs, 1, 0, NULL, 1, vader_type_707_refs },
+    [708] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ClosureAnalysis_t), NULL, 0, 0, NULL, 3, vader_type_708_refs },
+    [709] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_CollectCtx_t), NULL, 0, 1, vader_type_709_strs, 2, vader_type_709_refs },
+    [710] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ConstFnWrap_t), vader_type_710_ptrs, 1, 0, NULL, 1, vader_type_710_refs },
+    [711] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_EntryTypes_t), NULL, 0, 0, NULL, 2, vader_type_711_refs },
+    [712] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_FluentCombinator_t), vader_type_712_ptrs, 2, 0, NULL, 0, NULL },
+    [713] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_FnLowerCtx_t), vader_type_713_ptrs, 3, 0, NULL, 8, vader_type_713_refs },
+    [714] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenBuild_t), vader_type_714_ptrs, 7, 0, NULL, 7, vader_type_714_refs },
+    [715] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenComboLayer_t), vader_type_715_ptrs, 3, 0, NULL, 7, vader_type_715_refs },
+    [716] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenInlineSink_t), vader_type_716_ptrs, 1, 1, vader_type_716_strs, 2, vader_type_716_refs },
+    [717] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenSourceBinding_t), NULL, 0, 0, NULL, 4, vader_type_717_refs },
+    [718] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenSourceLoop_t), NULL, 0, 0, NULL, 3, vader_type_718_refs },
+    [719] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_GenericFnInstance_t), NULL, 0, 2, vader_type_719_strs, 2, vader_type_719_refs },
+    [720] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ImplMemberMatch_t), NULL, 0, 0, NULL, 2, vader_type_720_refs },
+    [721] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_ImplTraitMethod_t), NULL, 0, 2, vader_type_721_strs, 0, NULL },
+    [722] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_InlineInfo_t), vader_type_722_ptrs, 1, 0, NULL, 2, vader_type_722_refs },
+    [723] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_IterChain_t), vader_type_723_ptrs, 7, 0, NULL, 1, vader_type_723_refs },
+    [724] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LiftedFnContext_t), vader_type_724_ptrs, 1, 0, NULL, 2, vader_type_724_refs },
+    [725] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoopBinding_t), vader_type_725_ptrs, 1, 1, vader_type_725_strs, 1, vader_type_725_refs },
+    [726] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoopFrame_t), vader_type_726_ptrs, 1, 0, NULL, 0, NULL },
+    [727] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LowerProjectCtx_t), NULL, 0, 0, NULL, 31, vader_type_727_refs },
+    [728] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayLen_t), vader_type_728_ptrs, 2, 0, NULL, 1, vader_type_728_refs },
+    [729] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayLit_t), vader_type_729_ptrs, 1, 0, NULL, 2, vader_type_729_refs },
+    [730] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArrayPush_t), vader_type_730_ptrs, 3, 0, NULL, 1, vader_type_730_refs },
+    [731] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredArraySlice_t), vader_type_731_ptrs, 4, 0, NULL, 1, vader_type_731_refs },
+    [732] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredAssign_t), vader_type_732_ptrs, 2, 0, NULL, 1, vader_type_732_refs },
+    [733] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredAwait_t), vader_type_733_ptrs, 2, 0, NULL, 2, vader_type_733_refs },
+    [734] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBinary_t), vader_type_734_ptrs, 3, 0, NULL, 1, vader_type_734_refs },
+    [735] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBlock_t), vader_type_735_ptrs, 2, 0, NULL, 2, vader_type_735_refs },
+    [736] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBoolLit_t), vader_type_736_ptrs, 1, 0, NULL, 1, vader_type_736_refs },
+    [737] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredBreak_t), vader_type_737_ptrs, 1, 0, NULL, 1, vader_type_737_refs },
+    [738] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCall_t), vader_type_738_ptrs, 2, 0, NULL, 2, vader_type_738_refs },
+    [739] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCast_t), vader_type_739_ptrs, 2, 0, NULL, 1, vader_type_739_refs },
+    [740] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellGet_t), vader_type_740_ptrs, 3, 0, NULL, 1, vader_type_740_refs },
+    [741] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellNew_t), vader_type_741_ptrs, 3, 0, NULL, 1, vader_type_741_refs },
+    [742] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCellSet_t), vader_type_742_ptrs, 3, 0, NULL, 1, vader_type_742_refs },
+    [743] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredCharLit_t), vader_type_743_ptrs, 1, 0, NULL, 1, vader_type_743_refs },
+    [744] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredConstDecl_t), vader_type_744_ptrs, 2, 1, vader_type_744_strs, 1, vader_type_744_refs },
+    [745] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredContinue_t), vader_type_745_ptrs, 1, 0, NULL, 1, vader_type_745_refs },
+    [746] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDataConst_t), vader_type_746_ptrs, 1, 0, NULL, 1, vader_type_746_refs },
+    [747] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDeferPopExec_t), NULL, 0, 0, NULL, 1, vader_type_747_refs },
+    [748] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredDeferPush_t), vader_type_748_ptrs, 1, 0, NULL, 1, vader_type_748_refs },
+    [749] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredExprStmt_t), vader_type_749_ptrs, 1, 0, NULL, 1, vader_type_749_refs },
+    [750] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFieldAccess_t), vader_type_750_ptrs, 2, 1, vader_type_750_strs, 1, vader_type_750_refs },
+    [751] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFloatLit_t), vader_type_751_ptrs, 1, 0, NULL, 1, vader_type_751_refs },
+    [752] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredFnDecl_t), vader_type_752_ptrs, 2, 1, vader_type_752_strs, 2, vader_type_752_refs },
+    [753] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIdent_t), vader_type_753_ptrs, 1, 0, NULL, 2, vader_type_753_refs },
+    [754] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIf_t), vader_type_754_ptrs, 3, 0, NULL, 2, vader_type_754_refs },
+    [755] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIndex_t), vader_type_755_ptrs, 3, 0, NULL, 1, vader_type_755_refs },
+    [756] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIntLit_t), vader_type_756_ptrs, 1, 0, NULL, 1, vader_type_756_refs },
+    [757] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredIntrinsicCall_t), vader_type_757_ptrs, 1, 1, vader_type_757_strs, 2, vader_type_757_refs },
+    [758] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredLet_t), vader_type_758_ptrs, 2, 1, vader_type_758_strs, 2, vader_type_758_refs },
+    [759] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredLoop_t), vader_type_759_ptrs, 2, 0, NULL, 2, vader_type_759_refs },
+    [760] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredMakeClosure_t), vader_type_760_ptrs, 2, 0, NULL, 2, vader_type_760_refs },
+    [761] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredModule_t), NULL, 0, 2, vader_type_761_strs, 1, vader_type_761_refs },
+    [762] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredNullLit_t), vader_type_762_ptrs, 1, 0, NULL, 1, vader_type_762_refs },
+    [763] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredParam_t), vader_type_763_ptrs, 1, 1, vader_type_763_strs, 1, vader_type_763_refs },
+    [764] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredProject_t), NULL, 0, 1, vader_type_764_strs, 6, vader_type_764_refs },
+    [765] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredReturn_t), vader_type_765_ptrs, 1, 0, NULL, 1, vader_type_765_refs },
+    [766] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStringLit_t), vader_type_766_ptrs, 1, 1, vader_type_766_strs, 1, vader_type_766_refs },
+    [767] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStringSlice_t), vader_type_767_ptrs, 4, 0, NULL, 1, vader_type_767_refs },
+    [768] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructDecl_t), NULL, 0, 1, vader_type_768_strs, 2, vader_type_768_refs },
+    [769] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructField_t), vader_type_769_ptrs, 1, 1, vader_type_769_strs, 0, NULL },
+    [770] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructLit_t), vader_type_770_ptrs, 1, 0, NULL, 2, vader_type_770_refs },
+    [771] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredStructLitField_t), vader_type_771_ptrs, 1, 1, vader_type_771_strs, 0, NULL },
+    [772] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredTypeCheck_t), vader_type_772_ptrs, 3, 0, NULL, 1, vader_type_772_refs },
+    [773] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredTypeConst_t), vader_type_773_ptrs, 2, 0, NULL, 1, vader_type_773_refs },
+    [774] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredUnary_t), vader_type_774_ptrs, 2, 0, NULL, 1, vader_type_774_refs },
+    [775] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredUnreachable_t), vader_type_775_ptrs, 1, 1, vader_type_775_strs, 1, vader_type_775_refs },
+    [776] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredVirtualCall_t), vader_type_776_ptrs, 2, 2, vader_type_776_strs, 2, vader_type_776_refs },
+    [777] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredVtableEntry_t), vader_type_777_ptrs, 1, 2, vader_type_777_strs, 1, vader_type_777_refs },
+    [778] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LoweredYield_t), vader_type_778_ptrs, 1, 0, NULL, 1, vader_type_778_refs },
+    [779] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_OpTraitInfo_t), NULL, 0, 2, vader_type_779_strs, 0, NULL },
+    [780] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_PendingFnInstance_t), NULL, 0, 2, vader_type_780_strs, 1, vader_type_780_refs },
+    [781] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_PrimDataPoolEntry_t), NULL, 0, 1, vader_type_781_strs, 1, vader_type_781_refs },
+    [782] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_StrDataPoolEntry_t), NULL, 0, 0, NULL, 1, vader_type_782_refs },
+    [783] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_TerminalPredCall_t), vader_type_783_ptrs, 2, 0, NULL, 0, NULL },
+    [784] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_TransformCtx_t), NULL, 0, 0, NULL, 2, vader_type_784_refs },
+    [785] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_UfcsMember_t), NULL, 0, 0, NULL, 2, vader_type_785_refs },
+    [786] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_WalkCtx_t), NULL, 0, 0, NULL, 4, vader_type_786_refs },
+    [787] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_WrapResult_t), vader_type_787_ptrs, 2, 0, NULL, 0, NULL },
+    [788] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_AnnotatedProject_t), NULL, 0, 0, NULL, 2, vader_type_788_refs },
+    [789] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_BasicBlock_t), vader_type_789_ptrs, 1, 0, NULL, 2, vader_type_789_refs },
+    [790] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGExternDecl_t), vader_type_790_ptrs, 1, 4, vader_type_790_strs, 2, vader_type_790_refs },
+    [791] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGFunction_t), vader_type_791_ptrs, 1, 2, vader_type_791_strs, 4, vader_type_791_refs },
+    [792] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGLocal_t), vader_type_792_ptrs, 2, 1, vader_type_792_strs, 0, NULL },
+    [793] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGModule_t), NULL, 0, 2, vader_type_793_strs, 3, vader_type_793_refs },
+    [794] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGParam_t), vader_type_794_ptrs, 1, 1, vader_type_794_strs, 1, vader_type_794_refs },
+    [795] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGProject_t), NULL, 0, 0, NULL, 5, vader_type_795_refs },
+    [796] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGStructDecl_t), NULL, 0, 1, vader_type_796_strs, 2, vader_type_796_refs },
+    [797] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_CFGStructField_t), vader_type_797_ptrs, 1, 1, vader_type_797_strs, 0, NULL },
+    [798] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstBool_t), NULL, 0, 0, NULL, 0, NULL },
+    [799] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstChar_t), NULL, 0, 0, NULL, 0, NULL },
+    [800] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstFloat_t), NULL, 0, 0, NULL, 0, NULL },
+    [801] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstInt_t), NULL, 0, 0, NULL, 0, NULL },
+    [802] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstNull_t), NULL, 0, 0, NULL, 0, NULL },
+    [803] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ConstString_t), NULL, 0, 0, NULL, 0, NULL },
+    [804] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_EscapeResult_t), NULL, 0, 0, NULL, 3, vader_type_804_refs },
+    [805] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_EscapeStats_t), NULL, 0, 0, NULL, 0, NULL },
+    [806] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnCtx_t), vader_type_806_ptrs, 2, 1, vader_type_806_strs, 7, vader_type_806_refs },
+    [807] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnEmitCfg_t), NULL, 0, 0, NULL, 14, vader_type_807_refs },
+    [808] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_FnMetadata_t), NULL, 0, 3, vader_type_808_strs, 0, NULL },
+    [809] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayGet_t), vader_type_809_ptrs, 1, 0, NULL, 1, vader_type_809_refs },
+    [810] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayLen_t), NULL, 0, 0, NULL, 1, vader_type_810_refs },
+    [811] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayNew_t), vader_type_811_ptrs, 1, 0, NULL, 2, vader_type_811_refs },
+    [812] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArrayPush_t), NULL, 0, 0, NULL, 1, vader_type_812_refs },
+    [813] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArraySet_t), NULL, 0, 0, NULL, 1, vader_type_813_refs },
+    [814] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrArraySlice_t), vader_type_814_ptrs, 1, 0, NULL, 1, vader_type_814_refs },
+    [815] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrBinOp_t), vader_type_815_ptrs, 1, 0, NULL, 1, vader_type_815_refs },
+    [816] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCall_t), vader_type_816_ptrs, 2, 0, NULL, 3, vader_type_816_refs },
+    [817] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCallIndirect_t), vader_type_817_ptrs, 3, 0, NULL, 2, vader_type_817_refs },
+    [818] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCast_t), vader_type_818_ptrs, 1, 0, NULL, 1, vader_type_818_refs },
+    [819] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellGet_t), vader_type_819_ptrs, 1, 0, NULL, 1, vader_type_819_refs },
+    [820] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellNew_t), vader_type_820_ptrs, 1, 0, NULL, 1, vader_type_820_refs },
+    [821] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrCellSet_t), vader_type_821_ptrs, 1, 0, NULL, 1, vader_type_821_refs },
+    [822] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrConst_t), vader_type_822_ptrs, 2, 0, NULL, 1, vader_type_822_refs },
+    [823] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDataConst_t), vader_type_823_ptrs, 1, 0, NULL, 1, vader_type_823_refs },
+    [824] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDeferPopExec_t), NULL, 0, 0, NULL, 1, vader_type_824_refs },
+    [825] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrDeferPush_t), NULL, 0, 0, NULL, 1, vader_type_825_refs },
+    [826] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFieldGet_t), vader_type_826_ptrs, 1, 1, vader_type_826_strs, 1, vader_type_826_refs },
+    [827] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFieldSet_t), NULL, 0, 1, vader_type_827_strs, 1, vader_type_827_refs },
+    [828] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFnAddr_t), vader_type_828_ptrs, 1, 0, NULL, 2, vader_type_828_refs },
+    [829] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrFnRef_t), vader_type_829_ptrs, 1, 0, NULL, 2, vader_type_829_refs },
+    [830] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrIntrinsic_t), vader_type_830_ptrs, 1, 1, vader_type_830_strs, 2, vader_type_830_refs },
+    [831] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrMakeClosure_t), vader_type_831_ptrs, 2, 0, NULL, 2, vader_type_831_refs },
+    [832] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrMove_t), NULL, 0, 0, NULL, 1, vader_type_832_refs },
+    [833] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrStringSlice_t), vader_type_833_ptrs, 1, 0, NULL, 1, vader_type_833_refs },
+    [834] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrStructNew_t), vader_type_834_ptrs, 1, 0, NULL, 2, vader_type_834_refs },
+    [835] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrTypeCheck_t), vader_type_835_ptrs, 1, 0, NULL, 1, vader_type_835_refs },
+    [836] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrTypeConst_t), vader_type_836_ptrs, 2, 0, NULL, 1, vader_type_836_refs },
+    [837] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrUnOp_t), vader_type_837_ptrs, 1, 0, NULL, 1, vader_type_837_refs },
+    [838] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_InstrVirtualCall_t), vader_type_838_ptrs, 2, 2, vader_type_838_strs, 2, vader_type_838_refs },
+    [839] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_Liveness_t), NULL, 0, 0, NULL, 2, vader_type_839_refs },
+    [840] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_LoopFrame_t), vader_type_840_ptrs, 1, 0, NULL, 0, NULL },
+    [841] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_MutableBlock_t), vader_type_841_ptrs, 1, 0, NULL, 2, vader_type_841_refs },
+    [842] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_PendingBranch_t), NULL, 0, 0, NULL, 0, NULL },
+    [843] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ProjectCtx_t), NULL, 0, 0, NULL, 5, vader_type_843_refs },
+    [844] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ScheduleHints_t), NULL, 0, 0, NULL, 3, vader_type_844_refs },
+    [845] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_ScopeFrame_t), NULL, 0, 1, vader_type_845_strs, 0, NULL },
+    [846] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermBranch_t), NULL, 0, 0, NULL, 1, vader_type_846_refs },
+    [847] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermCondBranch_t), NULL, 0, 0, NULL, 1, vader_type_847_refs },
+    [848] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermReturn_t), vader_type_848_ptrs, 1, 0, NULL, 1, vader_type_848_refs },
+    [849] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_midir_TermUnreachable_t), NULL, 0, 1, vader_type_849_strs, 1, vader_type_849_refs },
+    [850] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__Any_t), NULL, 0, 0, NULL, 1, vader_type_850_refs },
+    [851] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__CallArg_t), NULL, 0, 0, NULL, 1, vader_type_851_refs },
+    [852] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__ImportName_t), NULL, 0, 0, NULL, 1, vader_type_852_refs },
+    [853] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t), NULL, 0, 0, NULL, 1, vader_type_853_refs },
+    [854] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_CompoundOpResult_t), NULL, 0, 0, NULL, 0, NULL },
+    [855] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_FnBodyTail_t), vader_type_855_ptrs, 1, 0, NULL, 0, NULL },
+    [856] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_FnSignature_t), NULL, 0, 0, NULL, 2, vader_type_856_refs },
+    [857] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_InfixOpDescr_t), NULL, 0, 0, NULL, 0, NULL },
+    [858] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_IntrinsicSpec_t), NULL, 0, 2, vader_type_858_strs, 1, vader_type_858_refs },
+    [859] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_ModuleHeader_t), NULL, 0, 1, vader_type_859_strs, 1, vader_type_859_refs },
+    [860] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_NodeIdFactory_t), NULL, 0, 0, NULL, 0, NULL },
+    [861] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_ParsedSource_t), NULL, 0, 0, NULL, 4, vader_type_861_refs },
+    [862] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_Parser_t), vader_type_862_ptrs, 1, 1, vader_type_862_strs, 3, vader_type_862_refs },
+    [863] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_parser_StringLitInfo_t), NULL, 0, 1, vader_type_863_strs, 1, vader_type_863_refs },
+    [864] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_CollectedModule_t), NULL, 0, 0, NULL, 5, vader_type_864_refs },
+    [865] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_DiscoveredModule_t), NULL, 0, 2, vader_type_865_strs, 1, vader_type_865_refs },
+    [866] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_FileWildcards_t), NULL, 0, 1, vader_type_866_strs, 2, vader_type_866_refs },
+    [867] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_FolderBucket_t), NULL, 0, 1, vader_type_867_strs, 2, vader_type_867_refs },
+    [868] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ImportInfo_t), vader_type_868_ptrs, 1, 2, vader_type_868_strs, 1, vader_type_868_refs },
+    [869] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ImportTargetTable_t), NULL, 0, 0, NULL, 3, vader_type_869_refs },
+    [870] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_IncludePath_t), NULL, 0, 2, vader_type_870_strs, 0, NULL },
+    [871] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_LoadedModule_t), NULL, 0, 0, NULL, 4, vader_type_871_refs },
+    [872] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_LoadedProject_t), vader_type_872_ptrs, 1, 1, vader_type_872_strs, 3, vader_type_872_refs },
+    [873] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Manifest_t), NULL, 0, 0, NULL, 1, vader_type_873_refs },
+    [874] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Module_t), NULL, 0, 3, vader_type_874_strs, 1, vader_type_874_refs },
+    [875] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolveState_t), NULL, 0, 1, vader_type_875_strs, 8, vader_type_875_refs },
+    [876] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolvedFile_t), NULL, 0, 0, NULL, 6, vader_type_876_refs },
+    [877] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_ResolvedModule_t), NULL, 0, 2, vader_type_877_strs, 13, vader_type_877_refs },
+    [878] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Scope_t), NULL, 0, 0, NULL, 1, vader_type_878_refs },
+    [879] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_SourceFile_t), NULL, 0, 2, vader_type_879_strs, 2, vader_type_879_refs },
+    [880] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_StampCtx_t), NULL, 0, 1, vader_type_880_strs, 0, NULL },
+    [881] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_Subst_t), NULL, 0, 0, NULL, 1, vader_type_881_refs },
+    [882] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_SymbolTarget_t), NULL, 0, 1, vader_type_882_strs, 1, vader_type_882_refs },
+    [883] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_TargetSelectors_t), NULL, 0, 0, NULL, 1, vader_type_883_refs },
+    [884] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_symbol_Symbol_t), vader_type_884_ptrs, 1, 3, vader_type_884_strs, 0, NULL },
+    [885] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_resolver_symbol_SymbolFactory_t), NULL, 0, 0, NULL, 0, NULL },
+    [886] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_target_AllTargets_t), NULL, 0, 0, NULL, 0, NULL },
+    [887] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_target_Target_t), NULL, 0, 0, NULL, 0, NULL },
+    [888] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_BlockNarrow_t), vader_type_888_ptrs, 2, 1, vader_type_888_strs, 0, NULL },
+    [889] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_CheckResult_t), NULL, 0, 0, NULL, 4, vader_type_889_refs },
+    [890] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_DeadDecl_t), NULL, 0, 1, vader_type_890_strs, 1, vader_type_890_refs },
+    [891] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_DivergentNarrow_t), vader_type_891_ptrs, 1, 1, vader_type_891_strs, 0, NULL },
+    [892] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_EnclosingLoop_t), vader_type_892_ptrs, 2, 0, NULL, 0, NULL },
+    [893] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_FieldChainStatic_t), vader_type_893_ptrs, 1, 1, vader_type_893_strs, 0, NULL },
+    [894] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_FnContext_t), vader_type_894_ptrs, 4, 0, NULL, 0, NULL },
+    [895] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_GenStateEntry_t), vader_type_895_ptrs, 1, 2, vader_type_895_strs, 0, NULL },
+    [896] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplEntry_t), vader_type_896_ptrs, 1, 1, vader_type_896_strs, 2, vader_type_896_refs },
+    [897] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplMethod_t), vader_type_897_ptrs, 1, 0, NULL, 0, NULL },
+    [898] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ImplRegistry_t), NULL, 0, 0, NULL, 2, vader_type_898_refs },
+    [899] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_IsNarrow_t), vader_type_899_ptrs, 3, 1, vader_type_899_strs, 0, NULL },
+    [900] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NamedDeclLookup_t), vader_type_900_ptrs, 1, 1, vader_type_900_strs, 0, NULL },
+    [901] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NamedDeclRefs_t), NULL, 0, 1, vader_type_901_strs, 3, vader_type_901_refs },
+    [902] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_NarrowSlot_t), vader_type_902_ptrs, 1, 0, NULL, 0, NULL },
+    [903] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_PushedNarrow_t), vader_type_903_ptrs, 1, 1, vader_type_903_strs, 0, NULL },
+    [904] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_ReprRange_t), NULL, 0, 0, NULL, 0, NULL },
+    [905] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_Substitution_t), vader_type_905_ptrs, 1, 0, NULL, 1, vader_type_905_refs },
+    [906] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_TypedProgram_t), vader_type_906_ptrs, 6, 0, NULL, 48, vader_type_906_refs },
+    [907] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_TypedProject_t), NULL, 0, 0, NULL, 1, vader_type_907_refs },
+    [908] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_typecheck_UfcsResult_t), vader_type_908_ptrs, 2, 0, NULL, 0, NULL },
+    [909] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_AnyType_t), NULL, 0, 0, NULL, 0, NULL },
+    [910] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_ArrayType_t), vader_type_910_ptrs, 1, 0, NULL, 0, NULL },
+    [911] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_DistinctType_t), vader_type_911_ptrs, 1, 0, NULL, 1, vader_type_911_refs },
+    [912] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_EnumType_t), NULL, 0, 1, vader_type_912_strs, 2, vader_type_912_refs },
+    [913] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FnType_t), vader_type_913_ptrs, 1, 0, NULL, 2, vader_type_913_refs },
+    [914] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeCharType_t), NULL, 0, 0, NULL, 0, NULL },
+    [915] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeFloatType_t), NULL, 0, 0, NULL, 0, NULL },
+    [916] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_FreeIntType_t), NULL, 0, 0, NULL, 0, NULL },
+    [917] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_NeverType_t), NULL, 0, 0, NULL, 0, NULL },
+    [918] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_PrimitiveMeta_t), NULL, 0, 1, vader_type_918_strs, 0, NULL },
+    [919] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_PrimitiveType_t), NULL, 0, 1, vader_type_919_strs, 0, NULL },
+    [920] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_SelfType_t), NULL, 0, 0, NULL, 0, NULL },
+    [921] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_StructType_t), NULL, 0, 0, NULL, 2, vader_type_921_refs },
+    [922] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TraitType_t), NULL, 0, 0, NULL, 2, vader_type_922_refs },
+    [923] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TupleType_t), NULL, 0, 0, NULL, 1, vader_type_923_refs },
+    [924] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TypeMetaType_t), NULL, 0, 0, NULL, 0, NULL },
+    [925] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_TypeParamType_t), NULL, 0, 0, NULL, 1, vader_type_925_refs },
+    [926] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_UnionType_t), NULL, 0, 0, NULL, 1, vader_type_926_refs },
+    [927] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_types_UnresolvedType_t), NULL, 0, 0, NULL, 0, NULL },
+    [928] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ArrayVal_t), NULL, 0, 0, NULL, 1, vader_type_928_refs },
+    [929] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_BoolVal_t), NULL, 0, 0, NULL, 0, NULL },
+    [930] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_CharVal_t), NULL, 0, 0, NULL, 0, NULL },
+    [931] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_DebugController_t), NULL, 0, 0, NULL, 3, vader_type_931_refs },
+    [932] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ErrorVal_t), NULL, 0, 1, vader_type_932_strs, 0, NULL },
+    [933] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_F64Val_t), NULL, 0, 0, NULL, 0, NULL },
+    [934] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_FnVal_t), vader_type_934_ptrs, 1, 0, NULL, 0, NULL },
+    [935] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Frame_t), NULL, 0, 0, NULL, 7, vader_type_935_refs },
+    [936] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_HostOk_t), vader_type_936_ptrs, 1, 0, NULL, 0, NULL },
+    [937] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_I32Val_t), NULL, 0, 0, NULL, 0, NULL },
+    [938] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_I64Val_t), NULL, 0, 0, NULL, 0, NULL },
+    [939] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_LentArray_t), NULL, 0, 0, NULL, 1, vader_type_939_refs },
+    [940] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_LentStruct_t), NULL, 0, 0, NULL, 2, vader_type_940_refs },
+    [941] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_NullVal_t), NULL, 0, 0, NULL, 0, NULL },
+    [942] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ObjVal_t), NULL, 0, 0, NULL, 2, vader_type_942_refs },
+    [943] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Ok_t), NULL, 0, 0, NULL, 0, NULL },
+    [944] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseCtx_t), NULL, 0, 1, vader_type_944_strs, 1, vader_type_944_refs },
+    [945] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseFrame_t), NULL, 0, 2, vader_type_945_strs, 1, vader_type_945_refs },
+    [946] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_PauseVar_t), NULL, 0, 2, vader_type_946_strs, 1, vader_type_946_refs },
+    [947] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_StringVal_t), NULL, 0, 1, vader_type_947_strs, 0, NULL },
+    [948] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_StructVal_t), NULL, 0, 0, NULL, 1, vader_type_948_refs },
+    [949] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_Trap_t), NULL, 0, 1, vader_type_949_strs, 0, NULL },
+    [950] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_TypeVal_t), NULL, 0, 0, NULL, 0, NULL },
+    [951] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ValueOk_t), vader_type_951_ptrs, 1, 0, NULL, 0, NULL },
+    [952] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_VmState_t), NULL, 0, 0, NULL, 4, vader_type_952_refs },
 };
-const size_t vader_type_info_count = 1246;
+const size_t vader_type_info_count = 1249;
 
-const size_t vader_type_size[1246] = {
+const size_t vader_type_size[1249] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 16u,
@@ -8210,5 +8237,8 @@ const size_t vader_type_size[1246] = {
     [1243] = 16u,
     [1244] = 16u,
     [1245] = 16u,
+    [1246] = 16u,
+    [1247] = 16u,
+    [1248] = 16u,
 };
 

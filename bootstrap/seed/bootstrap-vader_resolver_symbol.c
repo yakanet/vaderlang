@@ -2,49 +2,49 @@
 
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     if (l0 == INT32_C(0)) {
-        return 1568u;
+        return 1575u;
     }
     if (l0 == INT32_C(1)) {
-        return 2098u;
+        return 2108u;
     }
     if (l0 == INT32_C(2)) {
-        return 1454u;
+        return 1461u;
     }
     if (l0 == INT32_C(3)) {
-        return 2148u;
+        return 2158u;
     }
     if (l0 == INT32_C(4)) {
-        return 1674u;
-    }
-    if (l0 == INT32_C(5)) {
-        return 2167u;
-    }
-    if (l0 == INT32_C(6)) {
-        return 1375u;
-    }
-    if (l0 == INT32_C(7)) {
         return 1682u;
     }
+    if (l0 == INT32_C(5)) {
+        return 2177u;
+    }
+    if (l0 == INT32_C(6)) {
+        return 1382u;
+    }
+    if (l0 == INT32_C(7)) {
+        return 1690u;
+    }
     if (l0 == INT32_C(8)) {
-        return 1899u;
+        return 1909u;
     }
     if (l0 == INT32_C(9)) {
-        return 2168u;
+        return 2178u;
     }
     if (l0 == INT32_C(10)) {
-        return 1787u;
+        return 1795u;
     }
     if (l0 == INT32_C(11)) {
-        return 1235u;
+        return 1241u;
     }
     if (l0 == INT32_C(12)) {
-        return 1284u;
+        return 1290u;
     }
     if (l0 == INT32_C(13)) {
-        return 1283u;
+        return 1289u;
     }
     if (l0 == INT32_C(14)) {
-        return 2117u;
+        return 2127u;
     }
     vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
 }
@@ -62,7 +62,7 @@ void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_
     ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next = l8;
     VADER_WRITE_BARRIER((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0);
     vader_struct_vader_resolver_symbol_Symbol_t* _a0_obj = (vader_struct_vader_resolver_symbol_Symbol_t*) vader_gc_alloc(sizeof(vader_struct_vader_resolver_symbol_Symbol_t));
-    vader_obj_header_init(_a0_obj, 881u);
+    vader_obj_header_init(_a0_obj, 884u);
     _a0_obj->f_id = l7;
     _a0_obj->f_kind = l1;
     _a0_obj->f_name = l2;

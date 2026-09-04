@@ -167,7 +167,7 @@ static void vader_lexer_consume_digits(void* l0, int32_t l1, void* l2) {
                     }
                     if (l9) {
                         l10 = vader_lexer_error_span(l0, l2);
-                        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2252u);
+                        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2262u);
                     } else {
                     }
                     l3 = true;
@@ -188,7 +188,7 @@ static void vader_lexer_consume_digits(void* l0, int32_t l1, void* l2) {
     }
     if (l3) {
         l10 = vader_lexer_error_span(l0, l2);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2252u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2262u);
     } else {
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -231,14 +231,14 @@ void* vader_lexer_empty_file_span(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 474u);
+    vader_obj_header_init(_a0_obj, 476u);
     _a0_obj->f_file = l0;
     _a0_obj->f_offset = (size_t) (int64_t) INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l1 = (void*) _a0_obj;
     vader_struct_toolchain_span_Span_t* _a1_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a1_obj, 475u);
+    vader_obj_header_init(_a1_obj, 477u);
     _a1_obj->f_start = l1;
     _a1_obj->f_end = l1;
     t0 = (void*) _a1_obj;
@@ -254,7 +254,7 @@ static void* vader_lexer_error_span(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     l2 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 475u);
+    vader_obj_header_init(_a0_obj, 477u);
     _a0_obj->f_start = l1;
     _a0_obj->f_end = l2;
     t0 = (void*) _a0_obj;
@@ -275,7 +275,7 @@ static void vader_lexer_flush_string_part(void* l0, void* l1, void* l2, bool l3)
     l4 = std_string_builder_StringBuilder_Display_to_string(l1);
     l5 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 475u);
+    vader_obj_header_init(_a0_obj, 477u);
     _a0_obj->f_start = l2;
     _a0_obj->f_end = l5;
     l5 = (void*) _a0_obj;
@@ -322,7 +322,7 @@ static void vader_lexer_handle_newline(void* l0) {
     }
     l1 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 475u);
+    vader_obj_header_init(_a0_obj, 477u);
     _a0_obj->f_start = l1;
     _a0_obj->f_end = l1;
     l1 = (void*) _a0_obj;
@@ -358,247 +358,247 @@ static bool vader_lexer_is_ident_start(uint32_t l0) {
 
 vader_string_t vader_lexer_kind_name(uint8_t l0) {
     if (l0 == INT32_C(2)) {
-        return 1663u;
+        return 1671u;
     }
     if (l0 == INT32_C(3)) {
-        return 1704u;
+        return 1712u;
     }
     if (l0 == INT32_C(4)) {
-        return 1567u;
+        return 1574u;
     }
     if (l0 == INT32_C(5)) {
-        return 1338u;
+        return 1345u;
     }
     if (l0 == INT32_C(6)) {
-        return 2095u;
+        return 2105u;
     }
     if (l0 == INT32_C(7)) {
-        return 2097u;
+        return 2107u;
     }
     if (l0 == INT32_C(8)) {
-        return 2096u;
+        return 2106u;
     }
     if (l0 == INT32_C(9)) {
-        return 1711u;
+        return 1719u;
     }
     if (l0 == INT32_C(10)) {
-        return 1710u;
+        return 1718u;
     }
     if (l0 == INT32_C(11)) {
-        return 1753u;
-    }
-    if (l0 == INT32_C(12)) {
-        return 1764u;
-    }
-    if (l0 == INT32_C(13)) {
-        return 1765u;
-    }
-    if (l0 == INT32_C(14)) {
-        return 1756u;
-    }
-    if (l0 == INT32_C(15)) {
-        return 1750u;
-    }
-    if (l0 == INT32_C(16)) {
-        return 1755u;
-    }
-    if (l0 == INT32_C(17)) {
-        return 1749u;
-    }
-    if (l0 == INT32_C(18)) {
-        return 1760u;
-    }
-    if (l0 == INT32_C(19)) {
-        return 1759u;
-    }
-    if (l0 == INT32_C(20)) {
-        return 1754u;
-    }
-    if (l0 == INT32_C(21)) {
-        return 1758u;
-    }
-    if (l0 == INT32_C(22)) {
-        return 1762u;
-    }
-    if (l0 == INT32_C(23)) {
-        return 1767u;
-    }
-    if (l0 == INT32_C(24)) {
-        return 1744u;
-    }
-    if (l0 == INT32_C(25)) {
-        return 1748u;
-    }
-    if (l0 == INT32_C(26)) {
-        return 1745u;
-    }
-    if (l0 == INT32_C(27)) {
-        return 1747u;
-    }
-    if (l0 == INT32_C(28)) {
-        return 1757u;
-    }
-    if (l0 == INT32_C(29)) {
-        return 1743u;
-    }
-    if (l0 == INT32_C(30)) {
-        return 1751u;
-    }
-    if (l0 == INT32_C(31)) {
-        return 1766u;
-    }
-    if (l0 == INT32_C(32)) {
-        return 1752u;
-    }
-    if (l0 == INT32_C(33)) {
         return 1761u;
     }
-    if (l0 == INT32_C(34)) {
-        return 1763u;
-    }
-    if (l0 == INT32_C(35)) {
-        return 1746u;
-    }
-    if (l0 == INT32_C(36)) {
-        return 1907u;
-    }
-    if (l0 == INT32_C(37)) {
-        return 1834u;
-    }
-    if (l0 == INT32_C(38)) {
-        return 2000u;
-    }
-    if (l0 == INT32_C(39)) {
-        return 1984u;
-    }
-    if (l0 == INT32_C(40)) {
-        return 1904u;
-    }
-    if (l0 == INT32_C(41)) {
-        return 1161u;
-    }
-    if (l0 == INT32_C(42)) {
-        return 1906u;
-    }
-    if (l0 == INT32_C(43)) {
-        return 1329u;
-    }
-    if (l0 == INT32_C(44)) {
-        return 2142u;
-    }
-    if (l0 == INT32_C(45)) {
-        return 1972u;
-    }
-    if (l0 == INT32_C(46)) {
-        return 1976u;
-    }
-    if (l0 == INT32_C(47)) {
-        return 1459u;
-    }
-    if (l0 == INT32_C(48)) {
-        return 1860u;
-    }
-    if (l0 == INT32_C(49)) {
-        return 1802u;
-    }
-    if (l0 == INT32_C(50)) {
-        return 1803u;
-    }
-    if (l0 == INT32_C(51)) {
-        return 1608u;
-    }
-    if (l0 == INT32_C(52)) {
-        return 1609u;
-    }
-    if (l0 == INT32_C(53)) {
-        return 1168u;
-    }
-    if (l0 == INT32_C(54)) {
-        return 1891u;
-    }
-    if (l0 == INT32_C(56)) {
-        return 1916u;
-    }
-    if (l0 == INT32_C(55)) {
-        return 1233u;
-    }
-    if (l0 == INT32_C(57)) {
-        return 1222u;
-    }
-    if (l0 == INT32_C(58)) {
-        return 1908u;
-    }
-    if (l0 == INT32_C(59)) {
-        return 1835u;
-    }
-    if (l0 == INT32_C(60)) {
-        return 2001u;
-    }
-    if (l0 == INT32_C(61)) {
-        return 1985u;
-    }
-    if (l0 == INT32_C(62)) {
-        return 1905u;
-    }
-    if (l0 == INT32_C(63)) {
-        return 1406u;
-    }
-    if (l0 == INT32_C(64)) {
-        return 1407u;
-    }
-    if (l0 == INT32_C(65)) {
-        return 1918u;
-    }
-    if (l0 == INT32_C(66)) {
-        return 1919u;
-    }
-    if (l0 == INT32_C(67)) {
-        return 1427u;
-    }
-    if (l0 == INT32_C(68)) {
-        return 1219u;
-    }
-    if (l0 == INT32_C(69)) {
-        return 1533u;
-    }
-    if (l0 == INT32_C(70)) {
-        return 1228u;
-    }
-    if (l0 == INT32_C(71)) {
-        return 1425u;
-    }
-    if (l0 == INT32_C(72)) {
-        return 1801u;
-    }
-    if (l0 == INT32_C(73)) {
-        return 1958u;
-    }
-    if (l0 == INT32_C(74)) {
+    if (l0 == INT32_C(12)) {
         return 1772u;
     }
-    if (l0 == INT32_C(75)) {
-        return 1922u;
+    if (l0 == INT32_C(13)) {
+        return 1773u;
     }
-    if (l0 == INT32_C(76)) {
+    if (l0 == INT32_C(14)) {
+        return 1764u;
+    }
+    if (l0 == INT32_C(15)) {
+        return 1758u;
+    }
+    if (l0 == INT32_C(16)) {
+        return 1763u;
+    }
+    if (l0 == INT32_C(17)) {
+        return 1757u;
+    }
+    if (l0 == INT32_C(18)) {
+        return 1768u;
+    }
+    if (l0 == INT32_C(19)) {
+        return 1767u;
+    }
+    if (l0 == INT32_C(20)) {
+        return 1762u;
+    }
+    if (l0 == INT32_C(21)) {
+        return 1766u;
+    }
+    if (l0 == INT32_C(22)) {
+        return 1770u;
+    }
+    if (l0 == INT32_C(23)) {
+        return 1775u;
+    }
+    if (l0 == INT32_C(24)) {
+        return 1752u;
+    }
+    if (l0 == INT32_C(25)) {
+        return 1756u;
+    }
+    if (l0 == INT32_C(26)) {
+        return 1753u;
+    }
+    if (l0 == INT32_C(27)) {
+        return 1755u;
+    }
+    if (l0 == INT32_C(28)) {
+        return 1765u;
+    }
+    if (l0 == INT32_C(29)) {
+        return 1751u;
+    }
+    if (l0 == INT32_C(30)) {
+        return 1759u;
+    }
+    if (l0 == INT32_C(31)) {
+        return 1774u;
+    }
+    if (l0 == INT32_C(32)) {
+        return 1760u;
+    }
+    if (l0 == INT32_C(33)) {
+        return 1769u;
+    }
+    if (l0 == INT32_C(34)) {
         return 1771u;
     }
+    if (l0 == INT32_C(35)) {
+        return 1754u;
+    }
+    if (l0 == INT32_C(36)) {
+        return 1917u;
+    }
+    if (l0 == INT32_C(37)) {
+        return 1844u;
+    }
+    if (l0 == INT32_C(38)) {
+        return 2010u;
+    }
+    if (l0 == INT32_C(39)) {
+        return 1994u;
+    }
+    if (l0 == INT32_C(40)) {
+        return 1914u;
+    }
+    if (l0 == INT32_C(41)) {
+        return 1166u;
+    }
+    if (l0 == INT32_C(42)) {
+        return 1916u;
+    }
+    if (l0 == INT32_C(43)) {
+        return 1336u;
+    }
+    if (l0 == INT32_C(44)) {
+        return 2152u;
+    }
+    if (l0 == INT32_C(45)) {
+        return 1982u;
+    }
+    if (l0 == INT32_C(46)) {
+        return 1986u;
+    }
+    if (l0 == INT32_C(47)) {
+        return 1466u;
+    }
+    if (l0 == INT32_C(48)) {
+        return 1870u;
+    }
+    if (l0 == INT32_C(49)) {
+        return 1810u;
+    }
+    if (l0 == INT32_C(50)) {
+        return 1811u;
+    }
+    if (l0 == INT32_C(51)) {
+        return 1616u;
+    }
+    if (l0 == INT32_C(52)) {
+        return 1617u;
+    }
+    if (l0 == INT32_C(53)) {
+        return 1173u;
+    }
+    if (l0 == INT32_C(54)) {
+        return 1901u;
+    }
+    if (l0 == INT32_C(56)) {
+        return 1926u;
+    }
+    if (l0 == INT32_C(55)) {
+        return 1239u;
+    }
+    if (l0 == INT32_C(57)) {
+        return 1228u;
+    }
+    if (l0 == INT32_C(58)) {
+        return 1918u;
+    }
+    if (l0 == INT32_C(59)) {
+        return 1845u;
+    }
+    if (l0 == INT32_C(60)) {
+        return 2011u;
+    }
+    if (l0 == INT32_C(61)) {
+        return 1995u;
+    }
+    if (l0 == INT32_C(62)) {
+        return 1915u;
+    }
+    if (l0 == INT32_C(63)) {
+        return 1413u;
+    }
+    if (l0 == INT32_C(64)) {
+        return 1414u;
+    }
+    if (l0 == INT32_C(65)) {
+        return 1928u;
+    }
+    if (l0 == INT32_C(66)) {
+        return 1929u;
+    }
+    if (l0 == INT32_C(67)) {
+        return 1434u;
+    }
+    if (l0 == INT32_C(68)) {
+        return 1225u;
+    }
+    if (l0 == INT32_C(69)) {
+        return 1540u;
+    }
+    if (l0 == INT32_C(70)) {
+        return 1234u;
+    }
+    if (l0 == INT32_C(71)) {
+        return 1432u;
+    }
+    if (l0 == INT32_C(72)) {
+        return 1809u;
+    }
+    if (l0 == INT32_C(73)) {
+        return 1968u;
+    }
+    if (l0 == INT32_C(74)) {
+        return 1780u;
+    }
+    if (l0 == INT32_C(75)) {
+        return 1932u;
+    }
+    if (l0 == INT32_C(76)) {
+        return 1779u;
+    }
     if (l0 == INT32_C(77)) {
-        return 1921u;
+        return 1931u;
     }
     if (l0 == INT32_C(78)) {
-        return 1353u;
+        return 1360u;
     }
     if (l0 == INT32_C(79)) {
-        return 1426u;
+        return 1433u;
     }
     if (l0 == INT32_C(80)) {
-        return 1352u;
+        return 1359u;
     }
     if (l0 == INT32_C(1)) {
-        return 1863u;
+        return 1873u;
     }
     if (l0 == INT32_C(0)) {
-        return 1458u;
+        return 1465u;
     }
     vader_unreachable("unreachable return in vader_lexer$kind_name");
 }
@@ -692,7 +692,7 @@ static void vader_lexer_lex_char(void* l0) {
     if (t0 == 39u) {
         vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1340u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1347u);
         l2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_bytes;
         l3 = ((vader_struct_toolchain_span_Position_t*) l1)->f_offset;
         l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -714,7 +714,7 @@ static void vader_lexer_lex_char(void* l0) {
         if (l9 != l10) {
             l11 = (uint8_t) (int32_t) INT32_C(4);
             l12 = vader_lexer_error_span(l0, l1);
-            l13 = 1341u;
+            l13 = 1348u;
             vader_lexer_push_error(l0, l11, l12, l13);
             {
                 loop_85: {
@@ -774,7 +774,7 @@ static void vader_lexer_lex_char(void* l0) {
     }
     if (l7) {
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 2275u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 2285u);
         l2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_bytes;
         l3 = ((vader_struct_toolchain_span_Position_t*) l1)->f_offset;
         l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -798,7 +798,7 @@ static void vader_lexer_lex_char(void* l0) {
     if (l9 != l10) {
         l11 = (uint8_t) (int32_t) INT32_C(4);
         l12 = vader_lexer_error_span(l0, l1);
-        l13 = 1341u;
+        l13 = 1348u;
         vader_lexer_push_error(l0, l11, l12, l13);
         {
             loop_272: {
@@ -874,7 +874,7 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
     t0 = vader_lexer_at_end(l0);
     if (t0) {
         l3 = vader_lexer_error_span(l0, l2);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1690u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1698u);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
     l4 = vader_lexer_peek(l0);
@@ -911,13 +911,13 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
             l3 = vader_lexer_error_span(l0, l2);
             t2 = std_core_utf8_encode(l4);
             l6 = vader_host_std_core_bytes_to_string(t2);
-            l6 = concat_3(1463u, l6, 132u);
+            l6 = concat_3(1470u, l6, 132u);
             vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, l6);
             { uint32_t __vret = (uint32_t) (int32_t) ((int32_t) (uint32_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
         }
         l7 = (uint8_t) (int32_t) INT32_C(3);
         l8 = vader_lexer_error_span(l0, l2);
-        l6 = 2261u;
+        l6 = 2271u;
         t2 = std_core_utf8_encode(l4);
         l9 = vader_host_std_core_bytes_to_string(t2);
         l10 = concat_2(l6, l9);
@@ -932,12 +932,12 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
     }
     if (l4 == 39u) {
         l3 = vader_lexer_error_span(l0, l2);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1464u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1471u);
         { uint32_t __vret = (uint32_t) (int32_t) ((int32_t) (uint32_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l7 = (uint8_t) (int32_t) INT32_C(3);
     l8 = vader_lexer_error_span(l0, l2);
-    l6 = 2261u;
+    l6 = 2271u;
     t2 = std_core_utf8_encode(l4);
     l9 = vader_host_std_core_bytes_to_string(t2);
     l10 = concat_2(l6, l9);
@@ -1053,7 +1053,7 @@ static void vader_lexer_lex_number(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
         if (t1 == l6) {
             l7 = vader_lexer_error_span(l0, l1);
-            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1487u);
+            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1494u);
         } else {
         }
     } else {
@@ -1096,7 +1096,7 @@ static void vader_lexer_lex_number(void* l0) {
             t2 = std_char_is_digit(t0);
             if (!(t2)) {
                 l7 = vader_lexer_error_span(l0, l1);
-                vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1492u);
+                vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1499u);
             } else {
             }
             vader_lexer_consume_digits(l0, INT32_C(10), l1);
@@ -1151,13 +1151,13 @@ static void vader_lexer_lex_number(void* l0) {
         t3 = (void*) _a1_arr;
         l10 = vader_host_std_core_bytes_to_string(t3);
         l7 = vader_lexer_error_span(l0, l1);
-        l10 = concat_3(2184u, l10, 978u);
+        l10 = concat_3(2194u, l10, 981u);
         vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, l10);
     } else {
     }
     l7 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a2_obj, 475u);
+    vader_obj_header_init(_a2_obj, 477u);
     _a2_obj->f_start = l1;
     _a2_obj->f_end = l7;
     l7 = (void*) _a2_obj;
@@ -1185,7 +1185,7 @@ static void vader_lexer_lex_number(void* l0) {
             vader_lexer_emit(l0, l7);
             { vader_gc_top = gc_frame.prev; return; }
         }
-        if (l12.tag == 382u) {
+        if (l12.tag == 384u) {
             l13 = vader_box_f64(162u, 0.0);
             ((vader_struct_vader_lexer_Token_t*) l7)->f_value = l13;
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
@@ -1202,9 +1202,9 @@ static void vader_lexer_lex_number(void* l0) {
         vader_lexer_emit(l0, l7);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    if (l12.tag == 382u) {
+    if (l12.tag == 384u) {
         l1 = vader_lexer_error_span(l0, l1);
-        l9 = concat_3(923u, l9, 946u);
+        l9 = concat_3(925u, l9, 948u);
         vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(10), l1, l9);
         ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(169u, INT64_C(0));
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
@@ -1246,7 +1246,7 @@ static void vader_lexer_lex_one(void* l0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     l1 = vader_lexer_top_interp(l0);
-    if (l1.tag == 694u) {
+    if (l1.tag == 696u) {
         t1 = vader_lexer_peek(l0);
         if (t1 == 125u) {
             t2 = l1.payload.obj;
@@ -1258,7 +1258,7 @@ static void vader_lexer_lex_one(void* l0) {
         if (l2) {
             l3 = vader_lexer_position_here(l0);
             vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
-            vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(10), 2414u, l3);
+            vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(10), 2424u, l3);
             t2 = l1.payload.obj;
             l2 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_triple;
             vader_lexer_pop_interp(l0);
@@ -1661,7 +1661,7 @@ static void vader_lexer_lex_string(void* l0, bool l1) {
     l8 = vader_host_std_core_bytes_to_string(t1);
     l5 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a1_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a1_obj, 475u);
+    vader_obj_header_init(_a1_obj, 477u);
     _a1_obj->f_start = l2;
     _a1_obj->f_end = l5;
     l2 = (void*) _a1_obj;
@@ -1713,7 +1713,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 165u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 384u);
+    vader_obj_header_init(_a1_obj, 386u);
     _a1_obj->f_parts = t0;
     l4 = (void*) _a1_obj;
     l5 = false;
@@ -1758,7 +1758,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     }
                     l12 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a2_obj, 475u);
+                    vader_obj_header_init(_a2_obj, 477u);
                     _a2_obj->f_start = l10;
                     _a2_obj->f_end = l12;
                     l13 = (void*) _a2_obj;
@@ -1774,7 +1774,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                 if (l15) {
                     l16 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a3_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a3_obj, 475u);
+                    vader_obj_header_init(_a3_obj, 477u);
                     _a3_obj->f_start = l3;
                     _a3_obj->f_end = l16;
                     l17 = (void*) _a3_obj;
@@ -1782,7 +1782,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_flush_string_part(l0, l4, l3, l5);
                     l18 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a4_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a4_obj, 475u);
+                    vader_obj_header_init(_a4_obj, 477u);
                     _a4_obj->f_start = l18;
                     _a4_obj->f_end = l18;
                     l19 = (void*) _a4_obj;
@@ -1807,7 +1807,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(2));
                     l24 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a5_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a5_obj, 475u);
+                    vader_obj_header_init(_a5_obj, 477u);
                     _a5_obj->f_start = l23;
                     _a5_obj->f_end = l24;
                     l25 = (void*) _a5_obj;
@@ -1815,7 +1815,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_emit(l0, l26);
                     l27 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_interp_stack;
                     vader_struct_vader_lexer_InterpFrame_t* _a6_obj = (vader_struct_vader_lexer_InterpFrame_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_InterpFrame_t));
-                    vader_obj_header_init(_a6_obj, 694u);
+                    vader_obj_header_init(_a6_obj, 696u);
                     _a6_obj->f_brace_depth = INT32_C(0);
                     _a6_obj->f_triple = l1;
                     l28 = (void*) _a6_obj;
@@ -1839,7 +1839,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
                     l32 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a7_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a7_obj, 475u);
+                    vader_obj_header_init(_a7_obj, 477u);
                     _a7_obj->f_start = l31;
                     _a7_obj->f_end = l32;
                     l33 = (void*) _a7_obj;
@@ -1848,7 +1848,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_lex_ident(l0);
                     l35 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a8_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a8_obj, 475u);
+                    vader_obj_header_init(_a8_obj, 477u);
                     _a8_obj->f_start = l35;
                     _a8_obj->f_end = l35;
                     l36 = (void*) _a8_obj;
@@ -1858,7 +1858,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_array_t* _a9_arr = vader_array_new(8u, 0u, 0u, 165u);
                     t0 = (void*) _a9_arr;
                     vader_struct_std_string_builder_StringBuilder_t* _a10_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-                    vader_obj_header_init(_a10_obj, 384u);
+                    vader_obj_header_init(_a10_obj, 386u);
                     _a10_obj->f_parts = t0;
                     l4 = (void*) _a10_obj;
                     l5 = false;
@@ -1887,7 +1887,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     }
     l10 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a11_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a11_obj, 475u);
+    vader_obj_header_init(_a11_obj, 477u);
     _a11_obj->f_start = l3;
     _a11_obj->f_end = l10;
     l10 = (void*) _a11_obj;
@@ -1895,7 +1895,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     vader_lexer_flush_string_part(l0, l4, l3, l5);
     l3 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a12_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a12_obj, 475u);
+    vader_obj_header_init(_a12_obj, 477u);
     _a12_obj->f_start = l3;
     _a12_obj->f_end = l3;
     l3 = (void*) _a12_obj;
@@ -1931,7 +1931,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     t0 = vader_lexer_peek(l0);
     if (t0 != 123u) {
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(8), l2, 1469u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(8), l2, 1476u);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
@@ -1951,7 +1951,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
                 if ((t2 < INT32_C(0))) {
                     l5 = (uint8_t) (int32_t) INT32_C(8);
                     l2 = vader_lexer_error_span(l0, l1);
-                    l6 = 1728u;
+                    l6 = 1736u;
                     vader_lexer_push_error(l0, l5, l2, l6);
                     {
                         loop_59: {
@@ -2004,7 +2004,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
             if (l19) {
                 l21 = (uint8_t) (int32_t) INT32_C(8);
                 l22 = vader_lexer_error_span(l0, l1);
-                l23 = 1349u;
+                l23 = 1356u;
                 vader_lexer_push_error(l0, l21, l22, l23);
                 { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
             }
@@ -2038,7 +2038,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
             if ((l24 > l33)) {
                 l34 = (uint8_t) (int32_t) INT32_C(8);
                 l35 = vader_lexer_error_span(l0, l1);
-                l36 = 1350u;
+                l36 = 1357u;
                 vader_lexer_push_error(l0, l34, l35, l36);
                 { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
             }
@@ -2047,7 +2047,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     }
     l5 = (uint8_t) (int32_t) INT32_C(8);
     l2 = vader_lexer_error_span(l0, l1);
-    l6 = 1728u;
+    l6 = 1736u;
     vader_lexer_push_error(l0, l5, l2, l6);
     {
         loop_252: {
@@ -2094,7 +2094,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     if (l19) {
         l21 = (uint8_t) (int32_t) INT32_C(8);
         l22 = vader_lexer_error_span(l0, l1);
-        l23 = 1349u;
+        l23 = 1356u;
         vader_lexer_push_error(l0, l21, l22, l23);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
@@ -2128,7 +2128,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     if ((l24 > l33)) {
         l34 = (uint8_t) (int32_t) INT32_C(8);
         l35 = vader_lexer_error_span(l0, l1);
-        l36 = 1350u;
+        l36 = 1357u;
         vader_lexer_push_error(l0, l34, l35, l36);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
@@ -2137,79 +2137,79 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
 }
 
 static uint8_t vader_lexer_lookup_keyword(vader_string_t l0) {
-    if (l0 == 1568u) {
+    if (l0 == 1575u) {
         return (uint8_t) (int32_t) INT32_C(11);
     }
-    if (l0 == 2098u) {
+    if (l0 == 2108u) {
         return (uint8_t) (int32_t) INT32_C(12);
     }
-    if (l0 == 2148u) {
+    if (l0 == 2158u) {
         return (uint8_t) (int32_t) INT32_C(13);
     }
-    if (l0 == 1676u) {
+    if (l0 == 1684u) {
         return (uint8_t) (int32_t) INT32_C(14);
     }
-    if (l0 == 1454u) {
+    if (l0 == 1461u) {
         return (uint8_t) (int32_t) INT32_C(15);
     }
-    if (l0 == 1665u) {
+    if (l0 == 1673u) {
         return (uint8_t) (int32_t) INT32_C(16);
     }
-    if (l0 == 1442u) {
+    if (l0 == 1449u) {
         return (uint8_t) (int32_t) INT32_C(17);
     }
-    if (l0 == 1811u) {
+    if (l0 == 1819u) {
         return (uint8_t) (int32_t) INT32_C(18);
     }
-    if (l0 == 1731u) {
+    if (l0 == 1739u) {
         return (uint8_t) (int32_t) INT32_C(19);
     }
-    if (l0 == 1574u) {
+    if (l0 == 1582u) {
         return (uint8_t) (int32_t) INT32_C(20);
     }
-    if (l0 == 1687u) {
+    if (l0 == 1695u) {
         return (uint8_t) (int32_t) INT32_C(21);
     }
-    if (l0 == 1946u) {
+    if (l0 == 1956u) {
         return (uint8_t) (int32_t) INT32_C(22);
     }
-    if (l0 == 2402u) {
+    if (l0 == 2412u) {
         return (uint8_t) (int32_t) INT32_C(23);
     }
-    if (l0 == 1230u) {
+    if (l0 == 1236u) {
         return (uint8_t) (int32_t) INT32_C(24);
     }
-    if (l0 == 1415u) {
+    if (l0 == 1422u) {
         return (uint8_t) (int32_t) INT32_C(25);
     }
-    if (l0 == 1260u) {
+    if (l0 == 1266u) {
         return (uint8_t) (int32_t) INT32_C(26);
     }
-    if (l0 == 1394u) {
+    if (l0 == 1401u) {
         return (uint8_t) (int32_t) INT32_C(27);
     }
-    if (l0 == 1677u) {
+    if (l0 == 1685u) {
         return (uint8_t) (int32_t) INT32_C(28);
     }
-    if (l0 == 1220u) {
+    if (l0 == 1226u) {
         return (uint8_t) (int32_t) INT32_C(29);
     }
-    if (l0 == 1493u) {
+    if (l0 == 1500u) {
         return (uint8_t) (int32_t) INT32_C(30);
     }
-    if (l0 == 2154u) {
+    if (l0 == 2164u) {
         return (uint8_t) (int32_t) INT32_C(31);
     }
-    if (l0 == 1532u) {
+    if (l0 == 1539u) {
         return (uint8_t) (int32_t) INT32_C(32);
     }
-    if (l0 == 1876u) {
+    if (l0 == 1886u) {
         return (uint8_t) (int32_t) INT32_C(33);
     }
-    if (l0 == 1967u) {
+    if (l0 == 1977u) {
         return (uint8_t) (int32_t) INT32_C(34);
     }
-    if (l0 == 1375u) {
+    if (l0 == 1382u) {
         return (uint8_t) (int32_t) INT32_C(35);
     }
     return (uint8_t) (int32_t) INT32_C(2);
@@ -2222,7 +2222,7 @@ void* vader_lexer_make_token(uint8_t l0, vader_string_t l1, void* l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_struct_vader_lexer_Token_t* _a0_obj = (vader_struct_vader_lexer_Token_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_Token_t));
-    vader_obj_header_init(_a0_obj, 696u);
+    vader_obj_header_init(_a0_obj, 698u);
     _a0_obj->f_kind = l0;
     _a0_obj->f_text = l1;
     _a0_obj->f_span = l2;
@@ -2243,14 +2243,14 @@ static void* vader_lexer_new_lexer(vader_string_t l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_bytes(l0);
-    vader_array_t* _a0_arr = vader_array_new(53u, 0u, 13u, 696u);
+    vader_array_t* _a0_arr = vader_array_new(53u, 0u, 13u, 698u);
     l3 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(51u, 0u, 13u, 693u);
+    vader_array_t* _a1_arr = vader_array_new(51u, 0u, 13u, 695u);
     l4 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(52u, 0u, 13u, 694u);
+    vader_array_t* _a2_arr = vader_array_new(52u, 0u, 13u, 696u);
     l5 = (void*) _a2_arr;
     vader_struct_vader_lexer_Lexer_t* _a3_obj = (vader_struct_vader_lexer_Lexer_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_Lexer_t));
-    vader_obj_header_init(_a3_obj, 695u);
+    vader_obj_header_init(_a3_obj, 697u);
     _a3_obj->f_src = l0;
     _a3_obj->f_bytes = l2;
     _a3_obj->f_file = l1;
@@ -2381,7 +2381,7 @@ static void* vader_lexer_position_here(void* l0) {
     l3 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
     l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 474u);
+    vader_obj_header_init(_a0_obj, 476u);
     _a0_obj->f_file = l1;
     _a0_obj->f_offset = l2;
     _a0_obj->f_line = l3;
@@ -2413,7 +2413,7 @@ static void vader_lexer_push_simple(void* l0, uint8_t l1, vader_string_t l2, voi
     vader_gc_top = &gc_frame;
     l4 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 475u);
+    vader_obj_header_init(_a0_obj, 477u);
     _a0_obj->f_start = l3;
     _a0_obj->f_end = l4;
     l4 = (void*) _a0_obj;
@@ -2736,7 +2736,7 @@ void* vader_lexer_tokenize(vader_string_t l0, vader_string_t l1) {
     }
     l4 = vader_lexer_position_here(l2);
     vader_struct_toolchain_span_Span_t* _a3_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a3_obj, 475u);
+    vader_obj_header_init(_a3_obj, 477u);
     _a3_obj->f_start = l4;
     _a3_obj->f_end = l4;
     l4 = (void*) _a3_obj;
@@ -2839,15 +2839,15 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     if (l3) {
         l4 = vader_lexer_peek_at(l0, (size_t) (int64_t) INT64_C(2));
         if (l4 == 60u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(65), 418u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(65), 419u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         if (l4 == 61u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(66), 419u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(66), 420u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         if (l4 == 46u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(67), 416u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(67), 417u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l4 = 61u;
@@ -2859,7 +2859,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l3) {
             l6 = (uint8_t) (int32_t) INT32_C(47);
-            l7 = 520u;
+            l7 = 521u;
             t0 = vader_lexer_emit_and_advance(l0, l6, l7);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2885,7 +2885,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l14) {
             l16 = (uint8_t) (int32_t) INT32_C(50);
-            l17 = 505u;
+            l17 = 506u;
             t0 = vader_lexer_emit_and_advance(l0, l16, l17);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2898,7 +2898,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l19) {
             l21 = (uint8_t) (int32_t) INT32_C(52);
-            l22 = 523u;
+            l22 = 524u;
             t0 = vader_lexer_emit_and_advance(l0, l21, l22);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2924,7 +2924,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l29) {
             l31 = (uint8_t) (int32_t) INT32_C(54);
-            l32 = 2413u;
+            l32 = 2423u;
             t0 = vader_lexer_emit_and_advance(l0, l31, l32);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2937,7 +2937,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l34) {
             l36 = (uint8_t) (int32_t) INT32_C(56);
-            l37 = 527u;
+            l37 = 528u;
             t0 = vader_lexer_emit_and_advance(l0, l36, l37);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2950,7 +2950,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l39) {
             l41 = (uint8_t) (int32_t) INT32_C(45);
-            l42 = 504u;
+            l42 = 505u;
             t0 = vader_lexer_emit_and_advance(l0, l41, l42);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2963,7 +2963,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l44) {
             l46 = (uint8_t) (int32_t) INT32_C(46);
-            l47 = 524u;
+            l47 = 525u;
             t0 = vader_lexer_emit_and_advance(l0, l46, l47);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2976,7 +2976,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l49) {
             l51 = (uint8_t) (int32_t) INT32_C(68);
-            l52 = 394u;
+            l52 = 395u;
             t0 = vader_lexer_emit_and_advance(l0, l51, l52);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -2989,7 +2989,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l54) {
             l56 = (uint8_t) (int32_t) INT32_C(69);
-            l57 = 521u;
+            l57 = 522u;
             t0 = vader_lexer_emit_and_advance(l0, l56, l57);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3002,7 +3002,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l59) {
             l61 = (uint8_t) (int32_t) INT32_C(63);
-            l62 = 496u;
+            l62 = 497u;
             t0 = vader_lexer_emit_and_advance(l0, l61, l62);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3015,7 +3015,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l64) {
             l66 = (uint8_t) (int32_t) INT32_C(64);
-            l67 = 498u;
+            l67 = 499u;
             t0 = vader_lexer_emit_and_advance(l0, l66, l67);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3028,7 +3028,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l69) {
             l71 = (uint8_t) (int32_t) INT32_C(58);
-            l72 = 370u;
+            l72 = 371u;
             t0 = vader_lexer_emit_and_advance(l0, l71, l72);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3041,7 +3041,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l74) {
             l76 = (uint8_t) (int32_t) INT32_C(59);
-            l77 = 393u;
+            l77 = 394u;
             t0 = vader_lexer_emit_and_advance(l0, l76, l77);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3054,7 +3054,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l79) {
             l81 = (uint8_t) (int32_t) INT32_C(60);
-            l82 = 368u;
+            l82 = 369u;
             t0 = vader_lexer_emit_and_advance(l0, l81, l82);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3067,7 +3067,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         }
         if (l84) {
             l86 = (uint8_t) (int32_t) INT32_C(61);
-            l87 = 450u;
+            l87 = 451u;
             t0 = vader_lexer_emit_and_advance(l0, l86, l87);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3087,28 +3087,28 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l93 = 43u;
         if (l1 == l93) {
             l94 = (uint8_t) (int32_t) INT32_C(36);
-            l95 = 369u;
+            l95 = 370u;
             t0 = vader_lexer_emit_and_advance(l0, l94, l95);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l96 = 45u;
         if (l1 == l96) {
             l97 = (uint8_t) (int32_t) INT32_C(37);
-            l98 = 390u;
+            l98 = 391u;
             t0 = vader_lexer_emit_and_advance(l0, l97, l98);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l99 = 42u;
         if (l1 == l99) {
             l100 = (uint8_t) (int32_t) INT32_C(38);
-            l101 = 359u;
+            l101 = 360u;
             t0 = vader_lexer_emit_and_advance(l0, l100, l101);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l102 = 47u;
         if (l1 == l102) {
             l103 = (uint8_t) (int32_t) INT32_C(39);
-            l104 = 437u;
+            l104 = 438u;
             t0 = vader_lexer_emit_and_advance(l0, l103, l104);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3129,35 +3129,35 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l111 = 124u;
         if (l1 == l111) {
             l112 = (uint8_t) (int32_t) INT32_C(42);
-            l113 = 2412u;
+            l113 = 2422u;
             t0 = vader_lexer_emit_and_advance(l0, l112, l113);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l114 = 94u;
         if (l1 == l114) {
             l115 = (uint8_t) (int32_t) INT32_C(43);
-            l116 = 862u;
+            l116 = 864u;
             t0 = vader_lexer_emit_and_advance(l0, l115, l116);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l117 = 126u;
         if (l1 == l117) {
             l118 = (uint8_t) (int32_t) INT32_C(44);
-            l119 = 2419u;
+            l119 = 2429u;
             t0 = vader_lexer_emit_and_advance(l0, l118, l119);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l120 = 60u;
         if (l1 == l120) {
             l121 = (uint8_t) (int32_t) INT32_C(49);
-            l122 = 503u;
+            l122 = 504u;
             t0 = vader_lexer_emit_and_advance(l0, l121, l122);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l123 = 62u;
         if (l1 == l123) {
             l124 = (uint8_t) (int32_t) INT32_C(51);
-            l125 = 522u;
+            l125 = 523u;
             t0 = vader_lexer_emit_and_advance(l0, l124, l125);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3171,14 +3171,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l129 = 61u;
         if (l1 == l129) {
             l130 = (uint8_t) (int32_t) INT32_C(57);
-            l131 = 519u;
+            l131 = 520u;
             t0 = vader_lexer_emit_and_advance(l0, l130, l131);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l132 = 64u;
         if (l1 == l132) {
             l133 = (uint8_t) (int32_t) INT32_C(70);
-            l134 = 528u;
+            l134 = 529u;
             t0 = vader_lexer_emit_and_advance(l0, l133, l134);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3192,21 +3192,21 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l138 = 58u;
         if (l1 == l138) {
             l139 = (uint8_t) (int32_t) INT32_C(80);
-            l140 = 469u;
+            l140 = 470u;
             t0 = vader_lexer_emit_and_advance(l0, l139, l140);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l141 = 44u;
         if (l1 == l141) {
             l142 = (uint8_t) (int32_t) INT32_C(78);
-            l143 = 372u;
+            l143 = 373u;
             t0 = vader_lexer_emit_and_advance(l0, l142, l143);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l144 = 46u;
         if (l1 == l144) {
             l145 = (uint8_t) (int32_t) INT32_C(79);
-            l146 = 415u;
+            l146 = 416u;
             t0 = vader_lexer_emit_and_advance(l0, l145, l146);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3236,7 +3236,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l160;
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
             l161 = (uint8_t) (int32_t) INT32_C(74);
-            l162 = 845u;
+            l162 = 847u;
             vader_lexer_push_simple(l0, l161, l162, l156);
             { vader_gc_top = gc_frame.prev; return true; }
         }
@@ -3276,14 +3276,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             } else {
             }
             l181 = (uint8_t) (int32_t) INT32_C(75);
-            l182 = 848u;
+            l182 = 850u;
             vader_lexer_push_simple(l0, l181, l182, l174);
             { vader_gc_top = gc_frame.prev; return true; }
         }
         l183 = 123u;
         if (l1 == l183) {
             l184 = vader_lexer_top_interp(l0);
-            if (l184.tag == 694u) {
+            if (l184.tag == 696u) {
                 l185 = l184.payload.obj;
                 t1 = l184.payload.obj;
                 l186 = ((vader_struct_vader_lexer_InterpFrame_t*) t1)->f_brace_depth;
@@ -3294,14 +3294,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             } else {
             }
             l189 = (uint8_t) (int32_t) INT32_C(76);
-            l190 = 2405u;
+            l190 = 2415u;
             t0 = vader_lexer_emit_and_advance(l0, l189, l190);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l191 = 125u;
         if (l1 == l191) {
             l192 = vader_lexer_top_interp(l0);
-            if (l192.tag == 694u) {
+            if (l192.tag == 696u) {
                 t1 = l192.payload.obj;
                 l193 = ((vader_struct_vader_lexer_InterpFrame_t*) t1)->f_brace_depth;
                 l194 = INT32_C(0);
@@ -3318,7 +3318,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             } else {
             }
             l199 = (uint8_t) (int32_t) INT32_C(77);
-            l200 = 2414u;
+            l200 = 2424u;
             t0 = vader_lexer_emit_and_advance(l0, l199, l200);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -3333,7 +3333,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l3) {
         l6 = (uint8_t) (int32_t) INT32_C(47);
-        l7 = 520u;
+        l7 = 521u;
         t0 = vader_lexer_emit_and_advance(l0, l6, l7);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3359,7 +3359,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l14) {
         l16 = (uint8_t) (int32_t) INT32_C(50);
-        l17 = 505u;
+        l17 = 506u;
         t0 = vader_lexer_emit_and_advance(l0, l16, l17);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3372,7 +3372,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l19) {
         l21 = (uint8_t) (int32_t) INT32_C(52);
-        l22 = 523u;
+        l22 = 524u;
         t0 = vader_lexer_emit_and_advance(l0, l21, l22);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3398,7 +3398,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l29) {
         l31 = (uint8_t) (int32_t) INT32_C(54);
-        l32 = 2413u;
+        l32 = 2423u;
         t0 = vader_lexer_emit_and_advance(l0, l31, l32);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3411,7 +3411,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l34) {
         l36 = (uint8_t) (int32_t) INT32_C(56);
-        l37 = 527u;
+        l37 = 528u;
         t0 = vader_lexer_emit_and_advance(l0, l36, l37);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3424,7 +3424,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l39) {
         l41 = (uint8_t) (int32_t) INT32_C(45);
-        l42 = 504u;
+        l42 = 505u;
         t0 = vader_lexer_emit_and_advance(l0, l41, l42);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3437,7 +3437,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l44) {
         l46 = (uint8_t) (int32_t) INT32_C(46);
-        l47 = 524u;
+        l47 = 525u;
         t0 = vader_lexer_emit_and_advance(l0, l46, l47);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3450,7 +3450,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l49) {
         l51 = (uint8_t) (int32_t) INT32_C(68);
-        l52 = 394u;
+        l52 = 395u;
         t0 = vader_lexer_emit_and_advance(l0, l51, l52);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3463,7 +3463,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l54) {
         l56 = (uint8_t) (int32_t) INT32_C(69);
-        l57 = 521u;
+        l57 = 522u;
         t0 = vader_lexer_emit_and_advance(l0, l56, l57);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3476,7 +3476,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l59) {
         l61 = (uint8_t) (int32_t) INT32_C(63);
-        l62 = 496u;
+        l62 = 497u;
         t0 = vader_lexer_emit_and_advance(l0, l61, l62);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3489,7 +3489,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l64) {
         l66 = (uint8_t) (int32_t) INT32_C(64);
-        l67 = 498u;
+        l67 = 499u;
         t0 = vader_lexer_emit_and_advance(l0, l66, l67);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3502,7 +3502,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l69) {
         l71 = (uint8_t) (int32_t) INT32_C(58);
-        l72 = 370u;
+        l72 = 371u;
         t0 = vader_lexer_emit_and_advance(l0, l71, l72);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3515,7 +3515,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l74) {
         l76 = (uint8_t) (int32_t) INT32_C(59);
-        l77 = 393u;
+        l77 = 394u;
         t0 = vader_lexer_emit_and_advance(l0, l76, l77);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3528,7 +3528,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l79) {
         l81 = (uint8_t) (int32_t) INT32_C(60);
-        l82 = 368u;
+        l82 = 369u;
         t0 = vader_lexer_emit_and_advance(l0, l81, l82);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3541,7 +3541,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     }
     if (l84) {
         l86 = (uint8_t) (int32_t) INT32_C(61);
-        l87 = 450u;
+        l87 = 451u;
         t0 = vader_lexer_emit_and_advance(l0, l86, l87);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3561,28 +3561,28 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     l93 = 43u;
     if (l1 == l93) {
         l94 = (uint8_t) (int32_t) INT32_C(36);
-        l95 = 369u;
+        l95 = 370u;
         t0 = vader_lexer_emit_and_advance(l0, l94, l95);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l96 = 45u;
     if (l1 == l96) {
         l97 = (uint8_t) (int32_t) INT32_C(37);
-        l98 = 390u;
+        l98 = 391u;
         t0 = vader_lexer_emit_and_advance(l0, l97, l98);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l99 = 42u;
     if (l1 == l99) {
         l100 = (uint8_t) (int32_t) INT32_C(38);
-        l101 = 359u;
+        l101 = 360u;
         t0 = vader_lexer_emit_and_advance(l0, l100, l101);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l102 = 47u;
     if (l1 == l102) {
         l103 = (uint8_t) (int32_t) INT32_C(39);
-        l104 = 437u;
+        l104 = 438u;
         t0 = vader_lexer_emit_and_advance(l0, l103, l104);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3603,35 +3603,35 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     l111 = 124u;
     if (l1 == l111) {
         l112 = (uint8_t) (int32_t) INT32_C(42);
-        l113 = 2412u;
+        l113 = 2422u;
         t0 = vader_lexer_emit_and_advance(l0, l112, l113);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l114 = 94u;
     if (l1 == l114) {
         l115 = (uint8_t) (int32_t) INT32_C(43);
-        l116 = 862u;
+        l116 = 864u;
         t0 = vader_lexer_emit_and_advance(l0, l115, l116);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l117 = 126u;
     if (l1 == l117) {
         l118 = (uint8_t) (int32_t) INT32_C(44);
-        l119 = 2419u;
+        l119 = 2429u;
         t0 = vader_lexer_emit_and_advance(l0, l118, l119);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l120 = 60u;
     if (l1 == l120) {
         l121 = (uint8_t) (int32_t) INT32_C(49);
-        l122 = 503u;
+        l122 = 504u;
         t0 = vader_lexer_emit_and_advance(l0, l121, l122);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l123 = 62u;
     if (l1 == l123) {
         l124 = (uint8_t) (int32_t) INT32_C(51);
-        l125 = 522u;
+        l125 = 523u;
         t0 = vader_lexer_emit_and_advance(l0, l124, l125);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3645,14 +3645,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     l129 = 61u;
     if (l1 == l129) {
         l130 = (uint8_t) (int32_t) INT32_C(57);
-        l131 = 519u;
+        l131 = 520u;
         t0 = vader_lexer_emit_and_advance(l0, l130, l131);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l132 = 64u;
     if (l1 == l132) {
         l133 = (uint8_t) (int32_t) INT32_C(70);
-        l134 = 528u;
+        l134 = 529u;
         t0 = vader_lexer_emit_and_advance(l0, l133, l134);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3666,21 +3666,21 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     l138 = 58u;
     if (l1 == l138) {
         l139 = (uint8_t) (int32_t) INT32_C(80);
-        l140 = 469u;
+        l140 = 470u;
         t0 = vader_lexer_emit_and_advance(l0, l139, l140);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l141 = 44u;
     if (l1 == l141) {
         l142 = (uint8_t) (int32_t) INT32_C(78);
-        l143 = 372u;
+        l143 = 373u;
         t0 = vader_lexer_emit_and_advance(l0, l142, l143);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l144 = 46u;
     if (l1 == l144) {
         l145 = (uint8_t) (int32_t) INT32_C(79);
-        l146 = 415u;
+        l146 = 416u;
         t0 = vader_lexer_emit_and_advance(l0, l145, l146);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3710,7 +3710,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l160;
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         l161 = (uint8_t) (int32_t) INT32_C(74);
-        l162 = 845u;
+        l162 = 847u;
         vader_lexer_push_simple(l0, l161, l162, l156);
         { vader_gc_top = gc_frame.prev; return true; }
     }
@@ -3750,14 +3750,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         } else {
         }
         l181 = (uint8_t) (int32_t) INT32_C(75);
-        l182 = 848u;
+        l182 = 850u;
         vader_lexer_push_simple(l0, l181, l182, l174);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     l183 = 123u;
     if (l1 == l183) {
         l184 = vader_lexer_top_interp(l0);
-        if (l184.tag == 694u) {
+        if (l184.tag == 696u) {
             l185 = l184.payload.obj;
             t1 = l184.payload.obj;
             l186 = ((vader_struct_vader_lexer_InterpFrame_t*) t1)->f_brace_depth;
@@ -3768,14 +3768,14 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         } else {
         }
         l189 = (uint8_t) (int32_t) INT32_C(76);
-        l190 = 2405u;
+        l190 = 2415u;
         t0 = vader_lexer_emit_and_advance(l0, l189, l190);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l191 = 125u;
     if (l1 == l191) {
         l192 = vader_lexer_top_interp(l0);
-        if (l192.tag == 694u) {
+        if (l192.tag == 696u) {
             t1 = l192.payload.obj;
             l193 = ((vader_struct_vader_lexer_InterpFrame_t*) t1)->f_brace_depth;
             l194 = INT32_C(0);
@@ -3792,7 +3792,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         } else {
         }
         l199 = (uint8_t) (int32_t) INT32_C(77);
-        l200 = 2414u;
+        l200 = 2424u;
         t0 = vader_lexer_emit_and_advance(l0, l199, l200);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }

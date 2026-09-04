@@ -13,7 +13,7 @@ static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) 
 static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
 static inline void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 11u, 171u); }
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) { return vader_string_hash(a0); }
-static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 165u, 381u); if (r.tag == 381u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 381u); e->f_msg = r.payload.s; return vader_box_obj(381u, e); } return r; }
+static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 165u, 383u); if (r.tag == 383u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 383u); e->f_msg = r.payload.s; return vader_box_obj(383u, e); } return r; }
 static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(165u, (int64_t) vader_atom_intern(r, strlen(r))); vader_cstr_free_for(a0, c0); return out; }
 static inline uint8_t vader_host_std_target_current_os(void) { return vader_current_os(); }
 static inline uint8_t vader_host_std_target_current_arch(void) { return vader_current_arch(); }

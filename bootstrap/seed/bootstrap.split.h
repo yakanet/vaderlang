@@ -125,6 +125,7 @@ typedef struct vader_struct_std_collections_MutableMap__i32__MutableMap_string__
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t;
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t;
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t;
+typedef struct vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t;
 typedef struct vader_struct_std_collections_MutableMap__i32__NarrowSlot_t vader_struct_std_collections_MutableMap__i32__NarrowSlot_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__ResolvedModule_t vader_struct_std_collections_MutableMap__i32__ResolvedModule_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__StructDecl_t vader_struct_std_collections_MutableMap__i32__StructDecl_t;
@@ -202,6 +203,7 @@ typedef struct vader_struct_std_collections_MutableMap__usize__string_t vader_st
 typedef struct vader_struct_std_collections_MutableSet__i32_t vader_struct_std_collections_MutableSet__i32_t;
 typedef struct vader_struct_std_collections_MutableSet__i64_t vader_struct_std_collections_MutableSet__i64_t;
 typedef struct vader_struct_std_collections_MutableSet__string_t vader_struct_std_collections_MutableSet__string_t;
+typedef struct vader_struct_std_collections_MutableSet__usize_t vader_struct_std_collections_MutableSet__usize_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_core_Dec64_t vader_struct_std_core_Dec64_t;
 typedef struct vader_struct_std_core_DecimalParts_t vader_struct_std_core_DecimalParts_t;
@@ -653,6 +655,7 @@ typedef struct vader_struct_vader_midir_InstrDeferPopExec_t vader_struct_vader_m
 typedef struct vader_struct_vader_midir_InstrDeferPush_t vader_struct_vader_midir_InstrDeferPush_t;
 typedef struct vader_struct_vader_midir_InstrFieldGet_t vader_struct_vader_midir_InstrFieldGet_t;
 typedef struct vader_struct_vader_midir_InstrFieldSet_t vader_struct_vader_midir_InstrFieldSet_t;
+typedef struct vader_struct_vader_midir_InstrFnAddr_t vader_struct_vader_midir_InstrFnAddr_t;
 typedef struct vader_struct_vader_midir_InstrFnRef_t vader_struct_vader_midir_InstrFnRef_t;
 typedef struct vader_struct_vader_midir_InstrIntrinsic_t vader_struct_vader_midir_InstrIntrinsic_t;
 typedef struct vader_struct_vader_midir_InstrMakeClosure_t vader_struct_vader_midir_InstrMakeClosure_t;
@@ -1408,6 +1411,15 @@ struct vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t {
     size_t f_size;
     size_t f_tombs;
 };
+struct vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    size_t f_mask;
+    size_t f_size;
+    size_t f_tombs;
+};
 struct vader_struct_std_collections_MutableMap__i32__NarrowSlot_t {
     vader_obj_header_t header;
     void* f_ekeys;
@@ -2083,6 +2095,10 @@ struct vader_struct_std_collections_MutableSet__i64_t {
     void* f_inner;
 };
 struct vader_struct_std_collections_MutableSet__string_t {
+    vader_obj_header_t header;
+    void* f_inner;
+};
+struct vader_struct_std_collections_MutableSet__usize_t {
     vader_obj_header_t header;
     void* f_inner;
 };
@@ -4679,6 +4695,13 @@ struct vader_struct_vader_midir_InstrFieldSet_t {
     int32_t f_value;
     bool f_barrierless;
 };
+struct vader_struct_vader_midir_InstrFnAddr_t {
+    vader_obj_header_t header;
+    void* f_span;
+    int32_t f_dst;
+    void* f_fn_symbol;
+    vader_box_t f_type;
+};
 struct vader_struct_vader_midir_InstrFnRef_t {
     vader_obj_header_t header;
     void* f_span;
@@ -4786,6 +4809,7 @@ struct vader_struct_vader_midir_ProjectCtx_t {
     void* f_string_index;
     void* f_const_fn_wrap;
     void* f_const_inline;
+    void* f_extern_callbacks;
 };
 struct vader_struct_vader_midir_ScheduleHints_t {
     vader_obj_header_t header;
@@ -5575,6 +5599,7 @@ vader_box_t std_collections_get__usize__string(void* l0, size_t l1);
 bool std_collections_contains_key__i32__bool(void* l0, int32_t l1);
 bool std_collections_contains_key__i64__bool(void* l0, int64_t l1);
 bool std_collections_contains_key__string__bool(void* l0, vader_string_t l1);
+bool std_collections_contains_key__usize__bool(void* l0, size_t l1);
 bool std_collections_remove__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall(void* l0, int32_t l1);
 bool std_collections_remove__i32__NarrowSlot(void* l0, int32_t l1);
 bool std_collections_remove__i32__bool(void* l0, int32_t l1);
@@ -5588,6 +5613,7 @@ void* std_collections_values__u64__Symbol(void* l0);
 bool std_collections_add__i32(void* l0, int32_t l1);
 bool std_collections_add__i64(void* l0, int64_t l1);
 bool std_collections_add__string(void* l0, vader_string_t l1);
+bool std_collections_add__usize(void* l0, size_t l1);
 vader_string_t std_string_trim_suffix(vader_string_t l0, vader_string_t l1);
 vader_string_t std_string_replace_chars_where(vader_string_t l0, void* l1, vader_string_t l2);
 ptrdiff_t std_string_last_index_of(vader_string_t l0, uint32_t l1, ptrdiff_t l2);
@@ -5818,6 +5844,7 @@ void* std_sort_sort__string(void* l0, void* l1);
 void* std_sort_sort__usize(void* l0, void* l1);
 vader_string_t std_tty_yellow(vader_string_t l0);
 vader_string_t std_tty_red(vader_string_t l0);
+bool toolchain_ast_decorators_have(void* l0, vader_string_t l1);
 bool toolchain_ast_type_expr_marks_mutable(vader_box_t l0);
 vader_box_t toolchain_ast_strip_mut_marker(vader_box_t l0);
 void* toolchain_ast_collect_bitor_variants(vader_box_t l0);
@@ -6015,7 +6042,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2421u
+#define VADER_COMPTIME_ATOM_COUNT 2431u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
