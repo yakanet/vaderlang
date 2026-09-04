@@ -520,6 +520,68 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
     }
 }
 
+/// Check the field types of a `@c_struct` mirror that is about to cross to C.
+///
+/// The shim copies a mirror one field at a time into a real C struct, so every
+/// field needs a C representation of its own: an unmarshalled scalar, an enum
+/// (which crosses as its repr), or another mirror. Nothing else has one, and
+/// nothing downstream notices — a `string` field hands C the atom ID and an
+/// array field the Vader array header, both through a cast `cc` accepts. The
+/// value is wrong at run time and no build ever says so, which is why this is
+/// a typecheck gate rather than something left to the C compiler.
+///
+/// The diagnostic points at the PARAMETER, not the field: the mirror may be
+/// declared in another module, and a span from there would be attributed to
+/// this file. The detail names the field instead.
+///
+/// @param t      the mirror type reached from the parameter; a non-struct is a
+///               no-op, so callers need not narrow first.
+/// @param span   the parameter — where the struct crosses.
+/// @param typed  the module, for `struct_decls` and `struct_field_types`.
+/// @param seen   struct symbol ids already walked, so a cycle terminates.
+/// @param diags  accumulator for T3050.
+validate_mirror_fields :: fn(
+    t: Type,
+    span: Span,
+    typed: TypedProgram,
+    seen: MutableSet<i32>!,
+    diags: Diagnostic[]!,
+) -> void {
+    if t !is StructType {
+        return
+    }
+    if t.symbol.id in seen {
+        return
+    }
+    seen.add(t.symbol.id)
+    sd :: typed.struct_decls[t.symbol.id] ?? return
+    fmap :: typed.struct_field_types[t.symbol.id] ?? return
+    for f in sd.fields {
+        fty :: fmap[f.name] ?? continue
+        if fty is StructType as nested {
+            if mirrors_a_c_struct(nested, typed) {
+                validate_mirror_fields(nested, span, typed, seen, diags)
+            } else {
+                diags.push(typecheck_error(
+                    .InvalidExternDecl, span,
+                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct — a struct member needs its own `@c_struct` naming the C type it mirrors",
+                ))
+            }
+            continue
+        }
+        // An enum crosses as its repr, which the shim assigns like any integer.
+        if fty is EnumType {
+            continue
+        }
+        if !is_unmarshalled_scalar(fty, false) {
+            diags.push(typecheck_error(
+                .InvalidExternDecl, span,
+                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation: `${display_type(fty)}` — a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
+            ))
+        }
+    }
+}
+
 validate_extern :: fn(
     decl: AST.FnDecl,
     params: Type[],
@@ -568,6 +630,7 @@ validate_extern :: fn(
         // guess a layout instead.
         if mirrors_a_c_struct(pt, typed) {
             if param_has_c_pointer(decl.params[i]) {
+                validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
                 continue
             }
             diags.push(
@@ -575,6 +638,23 @@ validate_extern :: fn(
                     .InvalidExternDecl,
                     decl.params[i].span,
                     "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
+                ),
+            )
+            continue
+        }
+        // `@c_pointer` spills the argument to a stack temporary and hands over
+        // its address. That only means something for a value C can receive a
+        // pointer TO: a scalar, or a mirror (handled above). On anything else
+        // the shim takes the address of the Vader representation — a `string`
+        // parameter would pass a `const char**` aimed at an atom ID, an array
+        // one a pointer to the array header — and the `(void*)` cast the shim
+        // emits hides the mismatch from `cc`.
+        if param_has_c_pointer(decl.params[i]) && !is_unmarshalled_scalar(pt, false) {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` — a `string` and an array already cross as pointers, so drop the decorator",
                 ),
             )
             continue
