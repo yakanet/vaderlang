@@ -288,6 +288,7 @@ const C_PARITY = new Set<string>([
   // callback, so a wrong address crashes instead of passing quietly.
   "extern_callback",
   "extern_callback_slot",
+  "extern_lend_across_callback",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

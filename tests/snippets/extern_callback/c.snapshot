@@ -94,6 +94,7 @@ static int32_t snippet_main(void) {
     l0 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l1 = (size_t) (int64_t) INT64_C(0);
     t0 = (void*) &snippet_double_it;
+    vader_ffi_callback_escaped = 1;
     t1 = vader_host_snippet_call_twice(t0);
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);

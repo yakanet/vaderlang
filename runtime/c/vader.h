@@ -486,9 +486,13 @@ vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* fram
 
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
- * call: no Vader allocation runs inside a foreign call, so nothing can move the
- * buffer, but the view must never outlive the call nothing Vader owns may
- * outlive a foreign call.
+ * call, and must never outlive it: nothing Vader owns may.
+ *
+ * A callback makes a foreign call a safepoint — C re-enters Vader, Vader
+ * allocates, and the collector can evacuate the buffer while C still holds this
+ * pointer. So once any Vader function address has crossed into C
+ * (`vader_ffi_callback_escaped`), `vader_array_bytes` tenures the buffer into
+ * the non-moving old generation before handing it out.
  *
  * `len` is a BYTE count, not an element count. An empty array yields
  * `{ NULL, 0 }`. */
@@ -509,6 +513,11 @@ typedef struct {
  * A BOXED- or REF-kind array traps: the typechecker rejects one at the ABI
  * boundary, so reaching here means a compiler bug. */
 vader_slice_t vader_array_bytes(vader_array_t* a);
+
+/* Set the first time a Vader function's address is handed to C. Read by
+ * `vader_array_bytes` to decide whether a lend must be secured against a
+ * collection; written by the `fn.addr` the C emitter issues. */
+extern uint8_t vader_ffi_callback_escaped;
 
 /* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */
 static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag, vader_atom_t owner) {
@@ -1136,6 +1145,16 @@ extern vader_gc_frame_t* vader_gc_top;
     vader_gc_frame_t __frame = { vader_gc_top, 1u, 0u, __roots };                \
     vader_gc_top = &__frame
 #define VADER_GC_POP() (vader_gc_top = __frame.prev)
+
+/* Push a frame holding N RAW roots — `void*` slots whose pointee is a heap
+ * object, the shape `vader_gc_scan_raw` walks. Named rather than fixed like
+ * `VADER_GC_PUSH1` so several can nest and the emitter need not know the frame's
+ * layout; the trailing fields are left to C's partial initialisation, which is
+ * the contract `vader_gc_frame_t` is extended under. */
+#define VADER_GC_PUSH_RAW(frame, roots, n)                                       \
+    vader_gc_frame_t frame = { vader_gc_top, 0u, (uint32_t)(n), NULL, (roots) }; \
+    vader_gc_top = &frame
+#define VADER_GC_POP_FRAME(frame) (vader_gc_top = (frame).prev)
 
 /* ----------------------------------------------------------------- fn */
 

@@ -185,6 +185,12 @@ static vader_old_region_t* g_old_large_free = NULL;   /* freed large regions, be
  * carries 0 (never equal to g_mark_value). `vader_old_alloc` stamps live=this. */
 static uint8_t g_mark_value = 1u;
 
+/* Set the first time a Vader function's ADDRESS is handed to C (`fn.addr`).
+ * Until then no foreign callee can re-enter Vader, so no foreign call is a
+ * safepoint and nothing lent to one can move. It never clears: once C holds the
+ * address it may call it at any later point, through any other function. */
+uint8_t vader_ffi_callback_escaped = 0u;
+
 /* Gray worklist — objects whose slots still need scanning. Reused by both
  * cycles: minor pushes freshly-promoted old objects (to forward their young
  * refs); major pushes freshly-marked old objects (to mark their children). */
@@ -1817,6 +1823,22 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object — the trace never visits it, so any inner dynamic
  * ref would be missed and freed under your feet. */
+/* Copy a young object into the non-moving old gen and forward the original to
+ * it. Returns NULL when the old reservation is at its cap — the caller decides
+ * what that means. The caller also PUBLISHES the copy: a collection gray-pushes
+ * it, an out-of-cycle tenure marks its card. */
+static void* vader_gc_promote(void* obj, vader_obj_header_t* hdr, size_t bytes, uint8_t age) {
+    void* dst = vader_old_alloc(bytes);
+    if (dst == NULL) return NULL;
+    memcpy(dst, obj, bytes);
+    hdr->forward = dst;                              /* source forwards to promoted */
+    vader_obj_header_t* dh = (vader_obj_header_t*) dst;
+    dh->forward = NULL;                              /* the memcpy carried the source's */
+    dh->age  = age;
+    dh->mark = g_mark_value;                         /* live in the current old epoch */
+    return dst;
+}
+
 /* Definition of the guard declared above. Kept out of the hot path's body so
  * the fast case is a single load-and-test the branch predictor never misses. */
 static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index) {
@@ -1870,14 +1892,8 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
      * young.to — the retry path in vader_gc_alloc escalates to a major (whose
      * sweep frees old room) and traps only at the true cap. */
     if (hdr->age + 1u >= VADER_TENURE_AGE) {
-        void* dst = vader_old_alloc(bytes);
+        void* dst = vader_gc_promote(obj, hdr, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
-            memcpy(dst, obj, bytes);
-            hdr->forward = dst;                          /* source forwards to promoted */
-            vader_obj_header_t* dh = (vader_obj_header_t*) dst;
-            dh->forward = NULL;
-            dh->age  = (uint8_t)(hdr->age + 1u);
-            dh->mark = g_mark_value;                     /* live in the current old epoch */
             g_total_copied += bytes;
             vader_gray_push((char*) dst);                /* scan its slots for young refs */
             return dst;
@@ -2774,6 +2790,40 @@ static void vader_array_resolve_buf(vader_array_t* a) {
     }
 }
 
+/* Force a young object into the NON-MOVING old generation so a pointer into it
+ * survives a foreign call, leaving a forwarding pointer behind.
+ *
+ * NOT a pin — the object MOVES, and safety rests entirely on every reader
+ * re-resolving through `forward`. The array data buffer is such a reader
+ * (`vader_array_resolve_buf` runs at every site that touches `buf->slots`); an
+ * object Vader holds directly is NOT, because the caller's own local would keep
+ * addressing the evacuated copy until the next minor rewrote it, and every write
+ * in between would be lost. Those root the pointer across the call instead.
+ *
+ * Tenuring is permanent: the old generation is non-moving, so the object never
+ * returns to young and only a major reclaims it. That is why the caller gates on
+ * `vader_ffi_callback_escaped` rather than doing this on every lend.
+ *
+ * Returns the tenured address, or the original when the old generation is at its
+ * cap — a lend that could not be secured, which is the pre-existing hazard and
+ * not a new one. */
+static void* vader_gc_force_tenure(void* obj) {
+    if (!vader_in_young_from(obj)) return obj;   /* old or immortal: already still */
+    vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+    if (hdr->forward != NULL) return hdr->forward;
+    size_t bytes = vader_gc_obj_size(obj, hdr->type_index);
+    if (bytes == 0) return obj;
+    void* dst = vader_gc_promote(obj, hdr, bytes, VADER_TENURE_AGE);
+    if (dst == NULL) return obj;
+    /* No cycle is running to trace the copy, so mark its card: the next minor
+     * scans it for old->young edges. The buffers this tenures today are
+     * scalar-element (`vader_array_bytes` traps on BOXED and REF above), so it
+     * finds none — the mark is what keeps the helper correct for a caller that
+     * tenures something with reference slots. */
+    VADER_WRITE_BARRIER(dst);
+    return dst;
+}
+
 /* Lend an array's raw bytes to a foreign callee — see the contract in vader.h. */
 vader_slice_t vader_array_bytes(vader_array_t* a) {
     vader_slice_t s = { NULL, 0 };
@@ -2795,6 +2845,14 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
     if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED
         || a->buf->element_kind == VADER_ARRAY_KIND_REF) {
         vader_trap("vader_array_bytes: array of refs cannot cross the C ABI");
+    }
+    /* C holds this pointer for the whole call. If a Vader function address has
+     * ever crossed into C, any foreign call can re-enter and collect, so the
+     * buffer has to stop moving; other headers sharing it pick the new address
+     * up through `vader_array_resolve_buf`. Until one has, no callee can call
+     * back and the lend costs what it always did. */
+    if (vader_ffi_callback_escaped) {
+        a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
     }
     size_t esz = vader_array_element_size(a->buf->element_kind);
     s.ptr = (const uint8_t*) a->buf->slots + a->offset * esz;

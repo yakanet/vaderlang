@@ -778,9 +778,11 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
     return decl.name
 }
 
-/// C-ABI type whitelist : primitives + `string`. `void` allowed only in
-/// return position (the caller passes `allow_void = true` for return types).
-/// `null` is rejected everywhere — it's not a marshallable value.
+/// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two
+/// union shapes (a nullable foreign pointer anywhere, `string | null` as a
+/// result); a primitive-element array as an argument; and a FUNCTION TYPE as an
+/// argument — a callback. `void` is allowed in return position only, `null`
+/// nowhere. Each arm below states its own reason.
 is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
     // @partial: primitives (`string` included, itself a PrimitiveType) and
     // primitive-element arrays cross the C ABI; every other aggregate / ref /

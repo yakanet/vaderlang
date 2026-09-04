@@ -1455,6 +1455,12 @@ emit_fn_addr :: fn(s: FnState!, op: vm.FnAddr) -> void {
     // `vader_fn_static_N` carries a real object header whose `forward` IS NULL.
     name :: fresh_tmp(s, .Pointer)
     line(s, "${name} = (void*) &${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
+    // From here on C can call back into Vader, so a foreign call is a safepoint
+    // and anything lent to one can move under it. This is the ONLY way a Vader
+    // address reaches C, which is what makes the flag exact rather than a guess:
+    // a program that never reaches this line pays nothing for the lend guard in
+    // `vader_array_bytes`.
+    line(s, "vader_ffi_callback_escaped = 1;")
     push_tmp(s, name, .Pointer)
 }
 

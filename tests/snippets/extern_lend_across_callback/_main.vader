@@ -1,0 +1,49 @@
+// The two shapes a shim hands out are secured differently, and this pins both.
+//
+// A lent ARRAY gives C a pointer into Vader memory, so the buffer is tenured out
+// of the moving generation for the call. A MIRROR never gives C a Vader address
+// — the shim marshals into its own stack temporary — so what is secured is the
+// pointer the shim writes BACK through, rooted so the collector rewrites it.
+//
+// `collect()` in the callbacks makes this deterministic. Left to arena pressure
+// the array case needs about a hundred allocating callbacks to show itself.
+
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+// `<stdlib.h>` is pulled in by the `abs` declaration below, which is what makes
+// `div_t` a complete type where the shim needs it.
+@c_struct("div_t")
+Div :: struct { quot: i32, rem: i32 }
+
+churn :: fn(x: i32) -> void {
+    collect()
+}
+
+@extern lend_set_cb :: fn(cb: fn(i32) -> void) -> void
+@extern lend_fill_array :: fn(q: i32[]!, n: usize) -> void
+@extern lend_fill_div :: fn(@c_pointer d: Div!) -> void
+
+@c_header("<stdlib.h>")
+@extern("abs") c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 {
+    lend_set_cb(churn)
+
+    xs: i32[]! = [5, 3, 9, 1, 7, 2, 8, 4]
+    lend_fill_array(xs, 8)
+    ok := true
+    for i in 0..<8 {
+        if xs[i] != 1000 + i {
+            ok = false
+        }
+    }
+    println("array=${ok}")
+
+    d :: Div { .quot = 1, .rem = 2 }
+    lend_fill_div(d)
+    println("mirror=${d.quot} ${d.rem} abs=${c_abs(-5)}")
+    return 0
+}

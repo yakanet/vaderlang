@@ -627,12 +627,14 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     lines: string[]! = []
     free_lines: string[]! = []
     after_lines: string[]! = []
+    write_back_roots: string[]! = []
+    write_backs: string[]! = []
     for j in 0..<sig.params.len() {
         if is_abi_array(types, sig.param_types[j]) {
-            // Lent for the duration of the call only : no Vader allocation runs
-            // inside a foreign call, so the GC cannot move the buffer under it.
-            // `vader_array_bytes` owns the three cases (GC forward, borrowed
-            // view, materialised buf) — see its contract in `vader.h`.
+            // Lent for the duration of the call. A callback makes that call a
+            // safepoint, so `vader_array_bytes` tenures the buffer out of the
+            // moving generation first — it owns that and the three lend cases
+            // (GC forward, borrowed view, materialised buf); contract in `vader.h`.
             lines.push("vader_slice_t s${j} = vader_array_bytes((vader_array_t*) a${j});")
             // `ptr` is `const void*` ; only a mutable slot needs the cast away.
             // `.len` is deliberately unused : the callee's length, if any, is a
@@ -667,6 +669,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             )
             if param_is_mutable(sig, j) {
                 // And it travels back after the call (see `after_lines` below).
+                write_back_roots.push("&a${j}")
                 push_member_copies(
                     types, bc_struct_fields(types, sig.param_types[j]),
                     "p${j}", "((${vader_ty}*) a${j})", false, after_lines, 0,
@@ -694,6 +697,21 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         } else {
             call_args.push("a${j}")
         }
+    }
+    // C never receives a mirror's Vader address — it gets `&p{j}`, the shim's own
+    // temporary. What can move is the object `a{j}` addresses, which the shim
+    // writes back through after the call. Rooting it lets the collector rewrite
+    // it, and carries any nested child with it: the parent's own ref slot is
+    // updated in the same pass. A lent ARRAY is the other shape and is secured
+    // in `vader_array_bytes` instead, because there C holds the address itself.
+    if write_back_roots.len() > 0 {
+        lines.push("void** __wb_roots[${write_back_roots.len()}] = { ${write_back_roots.join(", ")} };")
+        lines.push("VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, ${write_back_roots.len()});")
+        // Popped first, before the write-back that needs the rewritten pointer.
+        write_backs.push_all(after_lines)
+        after_lines.clear()
+        after_lines.push("VADER_GC_POP_FRAME(__wb_frame);")
+        after_lines.push_all(write_backs)
     }
     call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
     if sig.result == ValType.Void {
