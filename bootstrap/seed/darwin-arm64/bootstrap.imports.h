@@ -32,7 +32,6 @@ static inline int32_t vader_host_system_posix_sys_access(vader_string_t a0, int3
 static inline bool vader_host_std_tty_raw_mode_begin(void) { return vader_terminal_raw_begin(); }
 static inline void vader_host_std_tty_raw_mode_end(void) { vader_terminal_raw_end(); }
 static inline int32_t vader_host_std_tty_columns(void) { return vader_terminal_columns(); }
-static inline vader_string_t vader_host_std_tty_read_keys(int32_t a0) { return vader_terminal_read_keys(a0); }
 static inline bool vader_host_std_tty_is_tty(int32_t a0) { return vader_is_tty(a0); }
 static inline size_t vader_host_vader_vm_ffi_open(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }
 static inline size_t vader_host_vader_vm_ffi_symbol(size_t a0, vader_string_t a1) { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }
