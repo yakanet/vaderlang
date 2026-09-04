@@ -39,6 +39,13 @@ main :: fn() -> i32 {
     }
     println("module=${SEEN.len()}")
 
+    // `remove_last` on a module-level array had the VM half of the same defect:
+    // the pop landed on the throwaway header and the array kept its element.
+    SEEN.push("x")
+    SEEN.push("y")
+    popped :: SEEN.remove_last()
+    println("popped=${popped ?? "<null>"} left=${SEEN.len()}")
+
     // A clear must not disturb a genuine slice view of the same elements.
     src: i32[]! = [1, 2, 3, 4, 5]
     view :: src[1..<3]

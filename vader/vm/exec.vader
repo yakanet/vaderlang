@@ -1622,6 +1622,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     frame.tag[frame.sp - 1] = StackTag.Null
                 } else {
                     last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
+                    // Shrink the SHARED backing when this array owns the tail —
+                    // same rule as `array.clear` below, and as the native
+                    // `vader_array_remove_last`. `data.const` hands out a fresh
+                    // header over the pool entry's `elements`, so a length
+                    // written only on the header is lost for a module-level
+                    // array: the next read rebuilds it from `elements.len()`.
+                    if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                        array_unwrap.elements.remove_last()
+                    }
                     array_unwrap.length = array_unwrap.length - 1
                     push_val(frame, frame.sp - 1, last)
                 }

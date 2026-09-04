@@ -16,8 +16,13 @@ string 0 "local="
 string 1 "\n"
 string 2 "step "
 string 3 "module="
-string 4 "view="
-string 5 " src="
+string 4 "x"
+string 5 "y"
+string 6 "<null>"
+string 7 "popped="
+string 8 " left="
+string 9 "view="
+string 10 " src="
 data 0 mut str
 import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
@@ -33,8 +38,9 @@ fn 0 snippet$main () -> i32
   local $cast_20 u64
   local $call_24 string
   local $cast_37 i64
-  local $cast_72 usize
-  local __buf_6 ref
+  local __coalesce_6 any
+  local $cast_104 usize
+  local __buf_10 ref
   array.new 12 0   ; i32[][]
   local.set 0   ; local
   i32.const 0
@@ -175,6 +181,67 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.get 5   ; $call_24
   call 7   ; std_io$write
+  data.const 0 10   ; pool[0] : string[]
+  string.const 4   ; "x"
+  array.push 2   ; string[]
+  data.const 0 10   ; pool[0] : string[]
+  string.const 5   ; "y"
+  array.push 2   ; string[]
+  data.const 0 10   ; pool[0] : string[]
+  array.remove_last
+  local.tee 7   ; __coalesce_6
+  type_check 0   ; null
+  if $L8 void
+    string.const 6   ; "<null>"
+    local.set 5   ; $call_24
+  else
+    local.get 7   ; __coalesce_6
+    ref.cast 2   ; -> string
+    local.set 5   ; $call_24
+  end $L8
+  local.get 5   ; $call_24
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; __off_1
+  i64.const 33
+  local.get 3   ; __off_1
+  i64.add
+  call 2   ; std_core$new_byte_buffer
+  local.set 0   ; local
+  i64.const 0
+  local.set 3   ; __off_1
+  local.get 0   ; local
+  local.get 3   ; __off_1
+  string.const 7   ; "popped="
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; local
+  local.get 3   ; __off_1
+  local.get 5   ; $call_24
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; local
+  local.get 3   ; __off_1
+  string.const 8   ; " left="
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  data.const 0 10   ; pool[0] : string[]
+  array.len
+  usize.to_i64
+  local.set 4   ; $cast_20
+  local.get 0   ; local
+  local.get 3   ; __off_1
+  local.get 4   ; $cast_20
+  call 6   ; std_core$write_unsigned
+  local.set 3   ; __off_1
+  local.get 0   ; local
+  local.get 3   ; __off_1
+  call 3   ; std_core$finish_buffer
+  string.const 1   ; "\n"
+  call 1   ; concat_2
+  local.set 5   ; $call_24
+  i32.const 0
+  local.get 5   ; $call_24
+  call 7   ; std_io$write
   i32.const 1
   i32.const 2
   i32.const 3
@@ -187,48 +254,48 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   i32.const 3
   i32.to_i64
-  local.set 7   ; $cast_72
+  local.set 8   ; $cast_104
   local.get 0   ; local
   local.get 3   ; __off_1
-  local.get 7   ; $cast_72
+  local.get 8   ; $cast_104
   array.slice 12   ; i32[][]
   local.set 2   ; __buf_0
   local.get 0   ; local
   array.clear
   i64.const 50
   call 2   ; std_core$new_byte_buffer
-  local.set 8   ; __buf_6
+  local.set 9   ; __buf_10
   i64.const 0
   local.set 3   ; __off_1
-  local.get 8   ; __buf_6
+  local.get 9   ; __buf_10
   local.get 3   ; __off_1
-  string.const 4   ; "view="
+  string.const 9   ; "view="
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   array.len
   usize.to_i64
   local.set 4   ; $cast_20
-  local.get 8   ; __buf_6
+  local.get 9   ; __buf_10
   local.get 3   ; __off_1
   local.get 4   ; $cast_20
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
-  local.get 8   ; __buf_6
+  local.get 9   ; __buf_10
   local.get 3   ; __off_1
-  string.const 5   ; " src="
+  string.const 10   ; " src="
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; local
   array.len
   usize.to_i64
   local.set 4   ; $cast_20
-  local.get 8   ; __buf_6
+  local.get 9   ; __buf_10
   local.get 3   ; __off_1
   local.get 4   ; $cast_20
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
-  local.get 8   ; __buf_6
+  local.get 9   ; __buf_10
   local.get 3   ; __off_1
   call 3   ; std_core$finish_buffer
   string.const 1   ; "\n"
