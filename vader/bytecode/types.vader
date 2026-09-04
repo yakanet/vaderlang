@@ -504,15 +504,6 @@ export BcPrimitive :: struct {
 export BcField :: struct {
     name: string
     type_index: i32
-    /// Width of the C field this mirrors, from `@c_size(N, .Os)` resolved to the
-    /// build target. `-1` when the field carries none — it is then checked
-    /// against the C field exactly. `0` means the field does NOT exist on this
-    /// system and is skipped entirely.
-    c_size: i64 = -1
-    /// The field declared `@c_size` for other systems but none for this one.
-    /// Reported by the typechecker where the struct crosses; carried here so the
-    /// emitter never silently checks a system nobody described.
-    c_size_missing: bool = false
 }
 
 /// Concrete struct, post-monomorphization. Field order is significant

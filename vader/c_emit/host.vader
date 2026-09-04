@@ -92,9 +92,9 @@ MirrorDirection :: enum(u8) {
 
 /// The direction each mirrored struct crosses in, keyed by type index.
 ///
-/// Only `@c_size`-annotated fields consult this: an unannotated field is checked
-/// exactly whichever way it travels. A struct absent from the result never
-/// crosses at all.
+/// It decides the width assert's operator: `<=` where C writes (the copy widens
+/// into the Vader field and cannot lose anything), `==` where C reads. A struct
+/// absent from the result never crosses at all.
 ///
 /// @param module  the bytecode module whose imports are scanned.
 mirror_directions :: fn(module: BytecodeModule) -> MutableMap<i32, MirrorDirection> {
@@ -218,11 +218,6 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
             // reads it back with the Vader layout on both sides. What must hold
             // is the WIDTH of each field, asserted below — the copy must not
             // truncate.
-            if f.c_size == 0 {
-                // `@c_size(0, …)`: the field does not exist on this system, so
-                // there is nothing to compare and nothing to copy.
-                continue
-            }
             // `<=` only where C WRITES: the shim copies out of the C field, and
             // a wider Vader field receives an extension. Where C READS, the copy
             // runs the other way and a wider Vader field would be truncated, so
@@ -232,22 +227,9 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
                 .CWrites        -> "<="
                 .CReads | .Both -> "=="
             }
-            if f.c_size > 0 {
-                // The declared width is pinned to the C field, so a header that
-                // widens it fails the build instead of passing unnoticed — which
-                // is what a bare `<=` would have done. The second line keeps the
-                // copy lossless.
-                out.push(
-                    "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) == ${f.c_size}, \"${t.c_name}.${cf} width\");",
-                )
-                out.push(
-                    "_Static_assert(${f.c_size} ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf} fits\");",
-                )
-            } else {
-                out.push(
-                    "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
-                )
-            }
+            out.push(
+                "_Static_assert(sizeof(((${t.c_name}*) 0)->${cf}) ${fits} sizeof(((${vt}*) 0)->f_${f.name}), \"${t.c_name}.${cf}\");",
+            )
             sign :: signedness_assert(types, f, t.c_name, cf)
             if sign != null {
                 out.push(sign)
@@ -602,20 +584,12 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             if !param_is_mutable(sig, j) {
                 // Read direction: C reads what Vader holds, so fill first.
                 for f in bc_struct_fields(types, sig.param_types[j]) {
-                    // `@c_size(0, …)`: the C type has no such member on this
-                    // system, so naming it would not even compile.
-                    if f.c_size == 0 {
-                        continue
-                    }
                     lines.push("p${j}.${c_field_name(f)} = ((${vader_ty}*) a${j})->f_${f.name};")
                 }
             } else {
                 // Write direction: the callee fills `p`, and it travels back
                 // after the call (see `after_lines` below).
                 for f in bc_struct_fields(types, sig.param_types[j]) {
-                    if f.c_size == 0 {
-                        continue
-                    }
                     after_lines.push("((${vader_ty}*) a${j})->f_${f.name} = p${j}.${c_field_name(f)};")
                 }
             }

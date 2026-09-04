@@ -320,11 +320,10 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
         if t is BcStruct as s {
             new_fields: BcField[]! = []
             for f in s.fields {
-                // Carried over explicitly, like the import branch: a rebuild that
-                // drops them turns a pinned `@c_size` back into an exact check.
+                // Field by field, so a field ADDED to `BcField` is a compile
+                // error here rather than a value silently lost in a rebuild.
                 new_fields.push(BcField {
                     .name = f.name, .type_index = remap_idx(remap, f.type_index),
-                    .c_size = f.c_size, .c_size_missing = f.c_size_missing,
                 })
             }
             remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .c_name = s.c_name, .symbol_id = s.symbol_id })

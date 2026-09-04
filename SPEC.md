@@ -2521,7 +2521,6 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
-| `@c_size(N, .System)` | a field of a `@c_struct` | The width the C field has on that system; `0` when it does not exist there. `N` is one of `0`, `1`, `2`, `4`, `8` (`P1034`), and the Vader field must match the C field's signedness. Repeatable, one per system. A field with none is checked against the C field exactly; a field that names other systems but not the one being built is `T3080`. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit — see §12 |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2642,55 +2641,34 @@ distance matches. A drifting declaration then fails the build.
 trampoline and cannot build a C struct at run time. Such a declaration is native
 only; an array of scalars crosses on both backends instead.
 
-### `@c_size` — a mirror that spans systems
+### A mirrored field's width
 
-A mirrored field is checked against the C one **by width**, exactly, because the
-shim copies field by field and a mismatch would truncate or sign-extend in
-silence. That exactness is what forces one mirror per system as soon as a width
-diverges — and `mode_t` is 2 bytes on Darwin, 4 on Linux.
+A mirrored field is checked against the C one **by width**, and the operator
+depends on which way the copy runs. Where C **writes** through the pointer, the
+check is `sizeof(C field) <= sizeof(Vader field)`: a narrower C field extends
+into the wider Vader one and cannot lose anything. Where C **reads**, the copy
+runs the other way and a wider Vader field would truncate, so exactness is the
+only safe reading.
 
-`@c_size(N, .System)` states the width C has there, and lets the Vader field be
-the wider of the two:
+The width comes from the **Vader field's own type**. Nothing is declared: `cc`
+reads both sides and the check is a `_Static_assert` in the emitted C, so a
+header that changes a width fails the build instead of passing unnoticed. The
+signedness is pinned the same way — only the width may differ between the two,
+because the shim copies with C's own conversion while the interpreter reads the
+block back using the Vader field's signedness.
 
-```vader
-@c_struct("struct stat")
-Stat :: struct {
-    @c_size(2, .Darwin)
-    @c_size(4, .Linux)
-    st_mode: u32,
-}
-```
-
-`cc` then checks two things: that the C field really is `N` bytes on this system,
-and that `N` fits the Vader field. So a header that changes a width fails the
-build instead of passing unnoticed.
-
-**`N` must be `0`, `1`, `2`, `4` or `8`** (`P1034` otherwise) — the width of a C
-scalar, which is all a mirror field may be. The interpreter lays a mirrored block
-out from these widths and uses each as the field's ALIGNMENT, so a width of 3
-would describe no ABI at all.
-
-**`@c_size(0, .System)`** says the field does not exist there. It is then skipped
-entirely — no assertion, no copy — while staying readable from Vader, where it
-holds its default.
-
-**The Vader field must carry the same SIGNEDNESS as the C one.** Only the width
-may differ. The shim copies with C's own conversion, which uses the C field's
-signedness, while the interpreter reads the block back using the Vader field's —
-so a `u64` mirror over an `int32_t` would read `-1` as `4294967295` under the
-interpreter and as `-1` natively. `cc` checks this alongside the widths, so the
-two can never disagree.
-
-**A field with no `@c_size` is checked exactly**, which is the safe default: a
-bare field may simply mean the annotation for this system was forgotten.
-
-**A field that declares widths for other systems but not this one is `T3080`**,
-reported where the struct crosses rather than where it is declared — a mirror
-written for another system must not fail every build that merely has it in
-scope. The message names the field and asks for its width, or `0`.
+That `<=` is what lets ONE mirror span systems whose widths differ:
+`suseconds_t` is 4 bytes on Darwin and 8 on Linux, and an `i64` field covers
+both without naming either.
 
 A mirror stays **partial**: declaring two fields of a 144-byte `struct stat`
 copies those two and ignores the rest, nested members included.
+
+> A field decorator `@c_size(N, .System)` used to state the C width per system.
+> It was removed: it carried an OS axis and no ARCHITECTURE axis, while a C
+> struct's layout differs between arches of one system — `st_mode` sits at
+> offset 24 on linux-x86_64 and 16 on linux-arm64 — so no single annotated
+> mirror could be correct for both. `T3080` and `P1034` retired with it.
 
 ### Allowed signature types
 

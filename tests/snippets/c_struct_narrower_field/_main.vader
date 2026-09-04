@@ -3,17 +3,18 @@ module "snippet"
 import "std/io"
 
 // `struct timeval` is flat and its second member changes width: `suseconds_t` is
-// 4 bytes on Darwin against 8 on Linux. The Vader field is the wider of the two
-// and `@c_size` states what C actually has, which `cc` then checks.
+// 4 bytes on Darwin against 8 on Linux, mirrored here by the wider `i64`.
+//
+// That difference is the subject. `gettimeofday` WRITES through the pointer, so
+// the emitted assert is `sizeof(C field) <= sizeof(Vader field)` — a C field
+// narrower than the Vader one extends into it and cannot lose anything, which is
+// what makes one mirror correct on both systems without stating either width.
 //
 // The mirror is EXHAUSTIVE, which is what lets the interpreter lay the block out
-// itself — it computes the offsets from these widths, and the emitted
-// `_Static_assert`s pin that computation to what `cc` produces.
+// itself from the Vader field types, pinned to `cc`'s own layout by those asserts.
 @c_struct("struct timeval")
 TimeVal :: struct {
-    tv_sec: i64,
-    @c_size(4, .Darwin)
-    @c_size(8, .Linux)
+    tv_sec:  i64,
     tv_usec: i64,
 }
 

@@ -68,25 +68,19 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
 
 /// The width a mirrored field occupies in the C struct.
 ///
-/// `@c_size` wins when present — the C field may be narrower than the Vader one
-/// that receives it (`mode_t` is 2 bytes on Darwin against a `u32` mirror). With
-/// no annotation the two are the same width, which is what the emitter asserts.
+/// Read from the VADER field's own type, which is what the emitted
+/// `_Static_assert` pins against the C field — so a mirror whose C field has a
+/// different width fails the native build rather than laying out wrongly here.
 ///
 /// The SIGNEDNESS is not carried here. The interpreter takes it from the Vader
-/// field, so a narrowed field must carry the same signedness as the C one it
-/// mirrors — `vader/c_emit/host.vader::signedness_assert` is what holds the two
-/// together.
+/// field, and `vader/c_emit/host.vader::signedness_assert` is what holds that
+/// agreement to the C side.
 ///
 /// @param f      the field.
 /// @param types  the module type table, to size the field's own type.
-/// @return       the width in bytes, `0` for a field absent on this system, and
-///               `null` when the field's type carries no width. `0` and `null`
-///               must not be conflated: the first is declared, the second is a
-///               mirror nothing can lay out.
+/// @return       the width in bytes, or `null` when the field's type carries
+///               none — a mirror nothing can lay out.
 export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
-    if f.c_size >= 0 {
-        return f.c_size
-    }
     v :: c_field_val_type(f, types)
     if v == null {
         return null
@@ -100,10 +94,7 @@ export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
 /// rounded up to the STRICTEST alignment among them, which is what produces the
 /// trailing padding.
 ///
-/// A field of width `0` (`@c_size(0, …)`, absent on this system) takes no room
-/// and keeps the offset it would have had, so callers can index by position. A
-/// field whose width is UNDERIVABLE is a different matter and lands in
-/// `unknown_field` — see `CLayout`.
+/// A field whose width is UNDERIVABLE lands in `unknown_field` — see `CLayout`.
 ///
 /// @param fields  the mirror's fields, in declaration order.
 /// @param types   the module type table.
@@ -119,10 +110,6 @@ export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout {
             if unknown == null {
                 unknown = f.name
             }
-            offsets.push(at)
-            continue
-        }
-        if w == 0 {
             offsets.push(at)
             continue
         }

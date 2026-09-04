@@ -1218,50 +1218,6 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
-/// Whether `n` is a width a C scalar can have — and therefore an alignment
-/// `c_struct_layout` can use.
-///
-/// @param n  the declared width in bytes.
-is_c_scalar_width :: fn(n: u64) -> bool = n == 0 || n == 1 || n == 2 || n == 4 || n == 8
-
-/// Read one `@c_size(N, .Os)` on a struct field.
-///
-/// `N` is the width the C field has on that system, `0` meaning it does not
-/// exist there. Both arguments are required and neither is optional: a lone
-/// width would not say which system it describes.
-///
-/// @param d  the decorator, already parsed.
-/// @return   the selector, or `null` when the shape is wrong (diagnosed here).
-parse_c_size :: fn(p: Parser!, d: Decorator) -> CSizeSelector | null {
-    if d.args.len() != 2 {
-        p.error(.DecoratorArgumentCount, d.span,
-            "`@c_size` takes a width and a system : `@c_size(4, .Linux)`")
-        return null
-    }
-    width :: d.args[0]
-    if width !is IntLitExpr {
-        p.error(.DecoratorArgumentForm, width.span,
-            "`@c_size`'s first argument is the width in bytes")
-        return null
-    }
-    os :: d.args[1]
-    if os !is DotVariantExpr {
-        p.error(.DecoratorArgumentForm, os.span,
-            "`@c_size`'s second argument names a system, written `.Linux`, `.Darwin`, "
-                + "`.Windows`, `.Wasi` or `.Browser`")
-        return null
-    }
-    // `c_struct_layout` uses the width AS the field's alignment, which only holds
-    // for a power-of-two scalar size — this is what guarantees it.
-    if !is_c_scalar_width(width.value) {
-        p.error(.DecoratorArgumentValue, width.span,
-            "`@c_size` takes 0, 1, 2, 4 or 8 — `0` when the field does not exist "
-                + "on that system, otherwise the width of a C scalar")
-        return null
-    }
-    return CSizeSelector { .span = d.span, .bytes = width.value, .os = os.variant }
-}
-
 parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.reject_target_decorator(decorators, "a struct")
     p.advance()  // `struct`
@@ -1275,19 +1231,12 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
         // decorator is rejected here — `@internal` is the only field decorator.
         field_decos :: p.parse_decorators()
         field_visibility: Visibility = .Public
-        field_c_sizes: CSizeSelector[]! = []
         for d in field_decos {
             if d.name == "internal" {
                 field_visibility = .Private
-            } else if d.name == "c_size" {
-                sel :: p.parse_c_size(d)
-                if sel !is null {
-                    field_c_sizes.push(sel)
-                }
             } else {
                 p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@${d.name}` does not apply to a struct field ; only `@internal` and "
-                        + "`@c_size` do")
+                    "`@${d.name}` does not apply to a struct field ; only `@internal` does")
             }
         }
         start :: p.peek()
@@ -1305,7 +1254,6 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
             .ty         = ftype,
             .visibility = field_visibility,
             .default    = fdefault,
-            .c_sizes    = field_c_sizes,
         })
         if !p.check(.RBrace) {
             p.match_kind(.Comma)

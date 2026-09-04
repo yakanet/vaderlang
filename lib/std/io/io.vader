@@ -518,13 +518,12 @@ exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVAL
 @target
 export is_dir :: fn(path: string) -> bool
 
-// `opendir` rather than a `struct stat` mirror. The mirror had to state the
-// layout of `struct stat`, which differs between ARCHES of one system: on Linux
-// `st_mode` is at offset 24 on x86_64 and at 16 on arm64, so `LinuxStat` was
-// right on one and read `st_uid` on the other — silently, under the VM, where
-// the block is laid out from the declared widths. `@c_size` selects by OS and
-// has no arch axis, so no single mirror could be correct. Opening the directory
-// asks the same question and has no layout at all.
+// `opendir` rather than a `struct stat` mirror. A mirror implies the layout of
+// `struct stat`, which differs between ARCHES of one system: on Linux `st_mode`
+// is at offset 24 on x86_64 and at 16 on arm64, so one mirror was right on one
+// arch and read `st_uid` on the other — silently, under the VM, which lays the
+// block out from the mirror. No single mirror can be correct for both. Opening
+// the directory asks the same question and has no layout at all.
 @target(.Linux, .Darwin)
 is_dir :: fn(path: string) -> bool {
     d :: sys_opendir(path)

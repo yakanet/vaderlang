@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/c_struct_c_size
+## tests/snippets/c_struct_narrower_field
 
 ## generic instances
   Into<Target>

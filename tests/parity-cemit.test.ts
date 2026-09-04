@@ -279,12 +279,6 @@ const C_PARITY = new Set<string>([
   // the snippet's `helper.c`, so it also pins that the synthesised prototype
   // agrees with the address the shim actually passes.
   "c_struct_layout",
-  // The same machinery with a NARROWED field: `div_t.quot` is an `int` behind an
-  // `i64` mirror, so the emitted asserts take the `<=` (C writes) branch and the
-  // signedness pin has a real width difference to straddle. Its `.virt` also
-  // carries the `@4` markers, which is what pins that the text form round-trips
-  // a declared width — the interpreter lays its block out from those.
-  "c_size_narrowed",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

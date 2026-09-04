@@ -62,10 +62,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return 1
     }
     // `--target` is parsed ONCE, for every stage. The resolver filters `@target`
-    // bodies AND `@c_size` widths by it (`target_select.vader`), so a front-end
-    // dump that ignored it rendered for THIS machine -- which is why the
-    // committed snapshots, generated for `SNAPSHOT_TARGET`, disagreed with a
-    // host whose OS the mirror does not annotate.
+    // bodies by it (`target_select.vader`), so a front-end dump that ignored it
+    // rendered for THIS machine -- which is why the committed snapshots,
+    // generated for `SNAPSHOT_TARGET`, disagreed with another host.
     target_arg :: parsed.string_flag("target", "")
     target :: parse_dump_target(target_arg)
     if target is TargetParseError as e {

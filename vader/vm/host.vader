@@ -581,9 +581,9 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             }
             layout :: bc.c_struct_layout(fields, types)
             // Every offset from that field on is arithmetic the C compiler never
-            // agreed to. No advice in the message: `@c_size` overrides the WIDTH
-            // only, so annotating a non-scalar field would silence this and trap
-            // one step later in `read_i64` instead.
+            // agreed to. A mirror field must be a C scalar; nothing in the
+            // language can widen that, which is why the message states the shape
+            // rather than offering a remedy.
             if layout.unknown_field != null {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} mirrors a C struct whose field `${layout.unknown_field}` is not a C scalar and cannot be laid out" }
             }

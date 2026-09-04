@@ -119,7 +119,9 @@ export TypecheckCode :: enum(u8) {
     ImmutableValueIntoMutableSlot,      // T3077
     MethodOnlyBehindNamespaceAlias,     // T3078
     InvalidParameterDecorator,          // T3079
-    CSizeMissesTarget,                  // T3080
+    // T3080 (CSizeMissesTarget) retired : `@c_size` is gone from the language.
+    // A mirror field's width now comes from its Vader type, pinned to the C one
+    // by the `_Static_assert` the emitter derives.
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -155,7 +157,8 @@ export ParserCode :: enum(u8) {
     MutabilityMarkerOnName,                 // P1031
     DecoratorArgumentCount,                 // P1032
     DecoratorArgumentForm,                  // P1033
-    DecoratorArgumentValue,                 // P1034
+    // P1034 (DecoratorArgumentValue) retired : its only site bounded
+    // `@c_size`'s width, and `@c_size` is gone from the language.
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -336,7 +339,6 @@ export parser_info :: fn(c: ParserCode) = match c {
     .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
     .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
     .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
-    .DecoratorArgumentValue             -> CodeInfo { .id = "P1034", .message = "decorator argument is out of range" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
@@ -510,7 +512,6 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
     .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
-    .CSizeMissesTarget                  -> CodeInfo { .id = "T3080", .message = "`@c_size` describes no width for this target" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

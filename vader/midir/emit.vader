@@ -142,11 +142,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
         fields: BcField[]! = []
         for f in s.fields {
             type_index :: intern_type(f.type, ctx)
-            [width, missing] :: c_size_of(s.origin, f.name)
-            fields.push(BcField {
-                .name = f.name, .type_index = type_index,
-                .c_size = width, .c_size_missing = missing,
-            })
+            fields.push(BcField { .name = f.name, .type_index = type_index })
         }
         ctx.types[usize(idx)] = BcStruct {
             .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
@@ -162,41 +158,12 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     fields: BcField[]! = []
     for f in s.fields {
         type_index :: intern_type(f.type, ctx)
-        [width, missing] :: c_size_of(s.origin, f.name)
-        fields.push(BcField {
-            .name = f.name, .type_index = type_index,
-            .c_size = width, .c_size_missing = missing,
-        })
+        fields.push(BcField { .name = f.name, .type_index = type_index })
     }
     ctx.types[usize(new_index)] = BcStruct {
         .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
     }
     ctx.type_key[s.mangled] = new_index
-}
-
-/// The `@c_size` a field resolved to, and whether its target was left out.
-///
-/// Read off the origin AST for the same reason `c_struct_of` is: the widths only
-/// exist there, and no intervening pass has a place to carry them.
-///
-/// @param origin  the monomorphisation's originating declaration.
-/// @param name    the field's name.
-/// @return        `[width, missing]` — width `-1` when unannotated.
-c_size_of :: fn(origin: MonoEntry, name: string) -> [i64, bool] {
-    d :: origin.decl
-    if d !is StructDecl {
-        return [-1, false]
-    }
-    for f in d.fields {
-        if f.name != name {
-            continue
-        }
-        if f.c_sizes.len() > 0 {
-            return [i64(f.c_sizes[0].bytes), false]
-        }
-        return [-1, f.c_size_missing]
-    }
-    return [-1, false]
 }
 
 /// The C type named by `@c_struct("struct timespec")` on the origin struct

@@ -462,29 +462,6 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
     return ""
 }
 
-/// Fields whose `@c_size` annotations skip the target being built.
-///
-/// `target_select` empties a field's `c_sizes` when none matches and sets
-/// `c_size_missing`, which is what separates "written for another system" from
-/// "never annotated" — the latter is checked exactly and is fine.
-///
-/// @param t      the mirrored struct type.
-/// @param typed  the module, for `struct_decls`.
-/// @return       the offending field names, in declaration order.
-c_size_gaps :: fn(t: Type, typed: TypedProgram) -> string[] {
-    out: string[]! = []
-    if t !is StructType {
-        return out
-    }
-    sd :: typed.struct_decls[t.symbol.id] ?? return out
-    for f in sd.fields {
-        if f.c_size_missing {
-            out.push(f.name)
-        }
-    }
-    return out
-}
-
 /// Whether the declaration names the header that owns its prototype.
 ///
 /// @param d  the `@extern` declaration.
@@ -590,20 +567,6 @@ validate_extern :: fn(
         // — an undeclared struct has no C spelling to declare and would have to
         // guess a layout instead.
         if mirrors_a_c_struct(pt, typed) {
-            // Reported HERE, where the struct actually crosses, and not on the
-            // declaration: a mirror written for another system would otherwise
-            // fail every build that merely has it in scope.
-            for missing in c_size_gaps(pt, typed) {
-                diags.push(
-                    typecheck_error(
-                        .CSizeMissesTarget,
-                        decl.params[i].span,
-                        "`${display_type(pt)}.${missing}` declares `@c_size` for other systems "
-                            + "but none for this one — add the width it has here, or `0` when the "
-                            + "field does not exist",
-                    ),
-                )
-            }
             if param_has_c_pointer(decl.params[i]) {
                 continue
             }
