@@ -1,0 +1,32 @@
+module "snippet"
+
+import "std/io"
+
+// A PREFIX mirror: `struct timeval` has two members and this names one.
+//
+// `tv_sec` is `time_t`, 8 bytes on every system the toolchain targets, so the
+// width assert holds exactly. `tv_usec` is deliberately ABSENT — `suseconds_t`
+// is 4 bytes on Darwin against 8 on Linux, and a mirror pins each field's width
+// EXACTLY. A type whose width differs between systems takes one mirror per
+// system, the way `stat` does; it cannot be covered by declaring the wider one.
+//
+// Exactness is what the interpreter needs: it lays the block out from these very
+// widths and hands its address to the real callee, so a Vader field wider than
+// its C member would shift everything after it under `vader run` — invisibly,
+// since the interpreter reads its own block back.
+@c_struct("struct timeval")
+TimeVal :: struct {
+    tv_sec: i64,
+}
+
+@c_header("<sys/time.h>")
+@extern("gettimeofday")
+sys_gettimeofday :: fn(@c_pointer tv: TimeVal!, tz: CPointer | null) -> i32
+
+main :: fn() -> i32 {
+    tv :: TimeVal { .tv_sec = 0 }
+    rc :: sys_gettimeofday(tv, null)
+    println("rc=${rc}")
+    println("epoch=${tv.tv_sec > 1_600_000_000}")
+    return 0
+}

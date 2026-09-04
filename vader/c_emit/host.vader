@@ -68,7 +68,7 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // than what the library declares, so the field-by-field copy cannot
     // truncate. `cc` IS the consumer: the check is spent entirely at build
     // time, and nothing reads it at run time.
-    asserts :: c_struct_layout_asserts(ctx.module.types, mirror_directions(ctx.module))
+    asserts :: c_struct_layout_asserts(ctx.module.types)
     if asserts.len() > 0 {
         out.append("// `@c_struct` layout — checked against the real headers.\n")
         for a in asserts { out.append("${a}\n") }
@@ -76,64 +76,6 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
     for s in shims { out.append("${s}\n") }
     out.append("\n")
-}
-
-/// Which way a mirrored struct's fields are copied, across a module's imports.
-MirrorDirection :: enum(u8) {
-    /// `@c_pointer st: T!` — IN-OUT. The shim fills the C struct on the way in
-    /// and copies back on the way out, because `!` grants mutation without
-    /// saying the value is meaningless on entry (`poll` reads `events` and
-    /// writes `revents`). The `<=` names the leg that decides the operator: what
-    /// the callee wrote lands in a Vader field at least as wide, so it cannot be
-    /// truncated. The inward leg is the reverse and is exact by construction —
-    /// the same field, read then written.
-    CWrites,
-    /// `@c_pointer req: T` — the shim copies INTO the C struct before the call,
-    /// so a wider Vader field would be truncated on the way.
-    CReads,
-    /// Both, which leaves only exactness.
-    Both,
-}
-
-/// The direction each mirrored struct crosses in, keyed by type index.
-///
-/// It decides the width assert's operator: `<=` where C writes (the copy widens
-/// into the Vader field and cannot lose anything), `==` where C reads. A struct
-/// absent from the result never crosses at all.
-///
-/// @param module  the bytecode module whose imports are scanned.
-mirror_directions :: fn(module: BytecodeModule) -> MutableMap<i32, MirrorDirection> {
-    out :: MutableMap<i32, MirrorDirection> {}
-    for imp in module.imports {
-        if !imp.is_extern {
-            continue
-        }
-        for j in 0..<imp.signature.params.len() {
-            // A `.virt` re-read carries no `param_types`; nothing is detected and
-            // nothing is asserted, which degrades to unchecked rather than wrong.
-            if j >= imp.signature.param_types.len() {
-                continue
-            }
-            ti :: imp.signature.param_types[j]
-            if mirrored_c_struct(module.types, ti) == "" {
-                continue
-            }
-            here :: if param_is_mutable(imp.signature, j) {
-                MirrorDirection.CWrites
-            } else {
-                MirrorDirection.CReads
-            }
-            seen :: out[ti]
-            if seen is MirrorDirection as prev {
-                if prev != here {
-                    out[ti] = .Both
-                }
-            } else {
-                out[ti] = here
-            }
-        }
-    }
-    return out
 }
 
 /// `_Static_assert` pinning a mirrored field's SIGNEDNESS to the C field's, or
@@ -222,12 +164,11 @@ push_member_copies :: fn(
 /// @param c_name     the OUTERMOST C type — every path is rooted there.
 /// @param c_prefix   the member path reached so far, `""` at the top.
 /// @param vader_ty   the Vader C type name holding `fields`.
-/// @param fits       `<=` or `==`, from the crossing direction.
 /// @param out        accumulator for the assert lines.
 /// @param depth      guards a malformed self-referential mirror.
 push_leaf_asserts :: fn(
     types: BcType[], fields: BcField[], c_name: string, c_prefix: string,
-    vader_ty: string, fits: string, out: string[]!, depth: i32,
+    vader_ty: string, out: string[]!, depth: i32,
 ) -> void {
     if depth >= NEST_CAP {
         return
@@ -238,12 +179,12 @@ push_leaf_asserts :: fn(
         if nested != null {
             push_leaf_asserts(
                 types, nested.fields, c_name, "${cf}.",
-                struct_c_name(nested.name), fits, out, depth + 1,
+                struct_c_name(nested.name), out, depth + 1,
             )
             continue
         }
         out.push(
-            "_Static_assert(sizeof(((${c_name}*) 0)->${cf}) ${fits} sizeof(((${vader_ty}*) 0)->f_${f.name}), \"${c_name}.${cf}\");",
+            "_Static_assert(sizeof(((${c_name}*) 0)->${cf}) == sizeof(((${vader_ty}*) 0)->f_${f.name}), \"${c_name}.${cf}\");",
         )
         sign :: signedness_assert(types, f, c_name, cf)
         if sign != null {
@@ -267,7 +208,7 @@ push_leaf_asserts :: fn(
 ///
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.
-c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirection>) -> string[] {
+c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
     out: string[]! = []
     for type_index in 0..<types.len() {
         t :: types[type_index]
@@ -285,31 +226,29 @@ c_struct_layout_asserts :: fn(types: BcType[], dirs: MutableMap<i32, MirrorDirec
         // real one, so a divergence fails the native build and names the field
         // rather than letting the interpreter write at a wrong offset.
         layout :: c_struct_layout(t.fields, types)
-        // A mirror may describe only a PREFIX: the members past the last
-        // declared one are unreachable in `struct stat`, whose `timespec`s have
-        // no nameable path. So the computed size must merely FIT, and the C type
-        // must in turn fit the block the interpreter allocates.
+        // A mirror may describe only a PREFIX — the trailing members of a
+        // `struct stat` are rarely worth naming. So the computed size must
+        // merely FIT, and the C type must in turn fit the block the interpreter
+        // allocates.
         out.push(
             "_Static_assert(${layout.size} <= sizeof(${t.c_name}), \"${t.c_name} prefix\");",
         )
         out.push(
             "_Static_assert(sizeof(${t.c_name}) <= ${MIRROR_BLOCK_FLOOR}, \"${t.c_name} fits the interpreter block\");",
         )
-        // No offset assertion: a Vader offset and a C one never meet. The shim
-        // declares its OWN C struct and copies member by member BY NAME, so `cc`
-        // resolves the real offset; the VM lays the block out and reads it back
-        // with the Vader layout on both sides. What must hold is the WIDTH of
-        // each LEAF — the copy must not truncate.
+        // No offset assertion: the shim declares its OWN C struct and copies
+        // member by member BY NAME, so `cc` resolves both offsets itself and a
+        // Vader offset never meets a C one there.
         //
-        // `<=` only where C WRITES: the shim copies out of the C field, and a
-        // wider Vader field receives an extension. Where C READS, the copy runs
-        // the other way and a wider Vader field would be truncated, so exactness
-        // is the only safe reading.
-        fits :: match dirs[i32(type_index)] ?? MirrorDirection.Both {
-            .CWrites        -> "<="
-            .CReads | .Both -> "=="
-        }
-        push_leaf_asserts(types, t.fields, t.c_name, "", vt, fits, out, 0)
+        // The VM has no such luxury — it lays the block out from these very
+        // widths and hands its address to the real callee. That is why each leaf
+        // is pinned EXACTLY rather than merely fitting: an exact width makes the
+        // interpreter's offsets provably C's across the declared prefix. A wider
+        // Vader field would shift every field after it under `vader run` alone,
+        // and since the interpreter reads its own block back, nothing on the
+        // Vader side could see it. A type whose width differs between systems
+        // takes one mirror per system, the way `stat` does.
+        push_leaf_asserts(types, t.fields, t.c_name, "", vt, out, 0)
     }
     return out
 }

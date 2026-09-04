@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/c_struct_narrower_field
+## tests/snippets/c_struct_prefix_mirror
 
 ## generic instances
   Into<Target>

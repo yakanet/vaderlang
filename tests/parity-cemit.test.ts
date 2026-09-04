@@ -279,6 +279,7 @@ const C_PARITY = new Set<string>([
   // the snippet's `helper.c`, so it also pins that the synthesised prototype
   // agrees with the address the shim actually passes.
   "c_struct_layout",
+  "c_struct_prefix_mirror",
   // A C CALLBACK: what must cross is `&snippet_double_it`, the function's own
   // symbol, and not the `vader_fn_t` a fn value would be. Oracle 1 pins that
   // line in `c.snapshot`; the `vm.snapshot` holds what the NATIVE binary

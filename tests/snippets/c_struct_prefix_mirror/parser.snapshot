@@ -28,15 +28,6 @@
           },
           "visibility": "public",
           "default": null
-        },
-        {
-          "name": "tv_usec",
-          "type": {
-            "kind": "IdentExpr",
-            "name": "i64"
-          },
-          "visibility": "public",
-          "default": null
         }
       ],
       "decorators": [
@@ -169,14 +160,6 @@
                     "kind": "IntLitExpr",
                     "value": "0n"
                   }
-                },
-                {
-                  "kind": "field",
-                  "name": "tv_usec",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
                 }
               ]
             }
@@ -280,70 +263,6 @@
                           "right": {
                             "kind": "IntLitExpr",
                             "value": "1600000000n"
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "println"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "usec_in_range="
-                      },
-                      {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "BinaryExpr",
-                          "op": "and",
-                          "left": {
-                            "kind": "BinaryExpr",
-                            "op": "gte",
-                            "left": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "tv"
-                              },
-                              "field": "tv_usec"
-                            },
-                            "right": {
-                              "kind": "IntLitExpr",
-                              "value": "0n"
-                            }
-                          },
-                          "right": {
-                            "kind": "BinaryExpr",
-                            "op": "lt",
-                            "left": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "tv"
-                              },
-                              "field": "tv_usec"
-                            },
-                            "right": {
-                              "kind": "IntLitExpr",
-                              "value": "1000000n"
-                            }
                           }
                         }
                       }

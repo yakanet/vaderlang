@@ -55,7 +55,7 @@ async function virtForHost(name: string, mainPath: string, pinned: string): Prom
 
 /// Snippets whose `@extern` targets a symbol no Windows DLL exports, so the VM
 /// cannot resolve it even though the native build links it statically.
-const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_narrower_field"]);
+const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_prefix_mirror"]);
 
 // Snippets where Vader's self-emitted bytecode INTENTIONALLY diverges from
 // the TS snapshot (mode-a GATE A : concrete devirt instead of erased

@@ -1,14 +1,13 @@
 # Lower
 
 ## snippet
-  struct snippet$TimeVal { tv_sec: i64, tv_usec: i64 }
+  struct snippet$TimeVal { tv_sec: i64 }
   fn snippet$sys_gettimeofday(tv: TimeVal!, tz: CPointer | null) -> i32
     <extern / signature only>
   fn snippet$main() -> i32
     let tv: TimeVal! =
       TimeVal! {
         tv_sec: int(0) :i64
-        tv_usec: int(0) :i64
       }
     let rc: i32 =
       call :i32
@@ -130,74 +129,6 @@
                     __buf_2 :Buffer
                   arg1:
                     __off_3 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_4: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(19) :usize
-              let __off_5: usize = int(0) :usize
-              assign
-                target:
-                  __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_4 :Buffer
-                    arg1:
-                      __off_5 :usize
-                    arg2:
-                      "usec_in_range=" :string
-              assign
-                target:
-                  __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_4 :Buffer
-                    arg1:
-                      __off_5 :usize
-                    arg2:
-                      and :bool
-                        l:
-                          gte :bool
-                            l:
-                              .tv_usec :i64
-                                tv :TimeVal!
-                            r:
-                              int(0) :i64
-                        r:
-                          lt :bool
-                            l:
-                              .tv_usec :i64
-                                tv :TimeVal!
-                            r:
-                              int(1000000) :i64
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
           arg1:
             "\n" :string
     return int(0) :i32

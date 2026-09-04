@@ -2662,20 +2662,21 @@ meet.
 declared field widths, passes its address, and reads it back when the parameter
 carries `!`. What differs from native is WHERE the offsets come from: `cc` reads
 the header, the interpreter computes them from the Vader field types. So a field
-declared WIDER than its C member — the very thing the `<=` below licenses —
-places every following field at a different offset under `vader run` than in a
-built binary, and the interpreter reads its own block back consistently, so
-nothing on the Vader side can see it. Only the C callee does. `vader test` and
-`@comptime` run on the VM; pin a mirror that must span systems with a native run.
+declared WIDER than its C member would place every following field at a
+different offset under `vader run` than in a built binary — which is exactly why
+the width check below is exact rather than merely fitting.
 
 ### A mirrored field's width
 
-A mirrored field is checked against the C one **by width**, and the operator
-depends on which way the copy runs. Where C **writes** through the pointer, the
-check is `sizeof(C field) <= sizeof(Vader field)`: a narrower C field extends
-into the wider Vader one and cannot lose anything. Where C **reads**, the copy
-runs the other way and a wider Vader field would truncate, so exactness is the
-only safe reading.
+A mirrored field is checked against the C one **by width**, and the check is
+**exact**: `sizeof(C field) == sizeof(Vader field)`, whichever way the copy runs.
+
+Exactness is what the interpreter needs. The native shim could tolerate a wider
+Vader field where C writes — the copy would extend rather than truncate — but the
+VM lays its block out from these very widths and hands its address to the real
+callee, so one field wider than its C member shifts every field after it. The
+interpreter then reads its own block back consistently and nothing on the Vader
+side can see the difference; only the C callee does.
 
 The width comes from the **Vader field's own type**. Nothing is declared: `cc`
 reads both sides and the check is a `_Static_assert` in the emitted C, so a
@@ -2684,9 +2685,10 @@ signedness is pinned the same way — only the width may differ between the two,
 because the shim copies with C's own conversion while the interpreter reads the
 block back using the Vader field's signedness.
 
-That `<=` is what lets ONE mirror span systems whose widths differ:
-`suseconds_t` is 4 bytes on Darwin and 8 on Linux, and an `i64` field covers
-both without naming either.
+A type whose width differs between systems therefore takes **one mirror per
+system**, selected the way `stat` is: a mirror and an `@extern` for each, chosen
+by `@target` at the call. `suseconds_t` — 4 bytes on Darwin, 8 on Linux — cannot
+be covered by declaring the wider one.
 
 A mirror stays **partial**: declaring two fields of a 144-byte `struct stat`
 copies those two and ignores the rest.
