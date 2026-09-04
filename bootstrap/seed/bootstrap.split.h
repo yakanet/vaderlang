@@ -2885,6 +2885,7 @@ struct vader_struct_vader_bytecode_BcImport_t {
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
+    bool f_is_c_read;
 };
 struct vader_struct_vader_bytecode_BcLocal_t {
     vader_obj_header_t header;
@@ -4416,6 +4417,7 @@ struct vader_struct_vader_midir_CFGExternDecl_t {
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
+    bool f_is_c_read;
 };
 struct vader_struct_vader_midir_CFGFunction_t {
     vader_obj_header_t header;
@@ -4539,6 +4541,7 @@ struct vader_struct_vader_midir_FnMetadata_t {
     vader_obj_header_t header;
     vader_string_t f_extern_name;
     bool f_is_extern;
+    bool f_is_c_read;
     bool f_is_exported;
     vader_string_t f_c_library;
     vader_string_t f_c_header;
@@ -5794,11 +5797,11 @@ bool vader_bytecode_is_integer_val(uint8_t l0);
 vader_string_t vader_bytecode_primitive_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 int32_t vader_bytecode_struct_type_index(void* l0, vader_string_t l1);
 vader_box_t vader_bytecode_nested_mirror(void* l0, void* l1);
+vader_box_t vader_bytecode_c_field_val_type(void* l0, void* l1);
 uint8_t vader_bytecode_array_kind_of(vader_box_t l0, void* l1);
 vader_string_t vader_bytecode_bc_type_key(void* l0, int32_t l1);
 vader_string_t vader_bytecode_val_type_name(uint8_t l0);
 bool vader_bytecode_is_unsigned_display(vader_string_t l0);
-vader_box_t vader_bytecode_c_field_val_type(void* l0, void* l1);
 bool vader_bytecode_is_unsigned_val(uint8_t l0);
 bool vader_bytecode_is_float_val(uint8_t l0);
 bool vader_bytecode_is_ref_only_element(vader_box_t l0, void* l1);
@@ -6033,7 +6036,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2435u
+#define VADER_COMPTIME_ATOM_COUNT 2455u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
