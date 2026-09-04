@@ -46,6 +46,10 @@ const SNIPPETS = [
   "implicit_dot_variant",
   "not_paren",
   "precedence_parens",
+  // A PARAMETER decorator: `@c_pointer` was silently dropped by the formatter,
+  // and the typechecker REQUIRES it where a `@c_struct` crosses — so formatting
+  // this file used to stop it compiling. The AST round-trip is what catches it.
+  "c_struct_layout",
 ];
 
 // Structural AST via the Vader CLI. `dump --stage=ast` elides spans and

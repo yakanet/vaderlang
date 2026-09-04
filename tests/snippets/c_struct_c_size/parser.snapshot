@@ -72,7 +72,13 @@
             }
           },
           "defaultValue": null,
-          "variadic": false
+          "variadic": false,
+          "decorators": [
+            {
+              "name": "c_pointer",
+              "args": []
+            }
+          ]
         },
         {
           "name": "tz",
