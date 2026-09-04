@@ -109,8 +109,10 @@ write_split_files :: fn(out: string, prog: CProgram) -> i32 {
 // returns null when an error-severity diagnostic blocks the build, so the
 // caller emits nothing and exits non-zero.
 emit_c_program :: fn(file: string, header_name: string) -> CProgram | null {
-    b :: prepare_cfg_bytecode(file)
-    if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
+    le := lower_to_entry(file)
+    // BEFORE the back end — see `cfg_bytecode_from`.
+    if !flush_build_diags(le.pre_diags, le.lower_diags) { return null }
+    b :: cfg_bytecode_from(le, file)
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
@@ -180,7 +182,7 @@ lower_to_entry :: fn(file: string) -> LoweredEntry {
     }
 }
 
-/// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
+/// Result of `cfg_bytecode_from` — the canonical bytecode module plus
 /// the bits the caller still needs for diagnostics + entry resolution.
 CfgBytecode :: struct {
     entry:       string
@@ -192,8 +194,11 @@ CfgBytecode :: struct {
 // Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path (the
 // canonical bytecode the bytecode stage, the C stage, and TS all share).
 // Const-fold is deliberately NOT run (matches `dump --stage=bytecode`).
-prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
-    le :: lower_to_entry(file)
+// Takes the ALREADY-LOWERED entry rather than lowering itself, so the caller can
+// refuse a front-end error BEFORE the back end runs. It cannot cope with a
+// malformed AST: a declaration that failed to parse leaves a local with no type,
+// and `midir/emit` panics on it instead of the error being reported.
+cfg_bytecode_from :: fn(le: LoweredEntry!, file: string) -> CfgBytecode {
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)

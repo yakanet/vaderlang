@@ -1095,7 +1095,8 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFieldGet as fg {
-        target_type :: ctx.fn_.locals[usize(fg.target)].type
+        target_local :: ctx.fn_.locals[usize(fg.target)]
+        target_type :: target_local.type
         type_index :: intern_type(target_type, ctx.project)
         // Remember whether the scheduler elided our receiver get BEFORE
         // emitting it ; if it did, the tail op belongs to the producer
@@ -1105,7 +1106,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, fg.target, fg.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
         if field_slot == null {
-            panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
+            panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` (local ${fg.target} `${target_local.name}`) in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
         // No such struct field at emit time — the upstream pass produced a
         // field access that isn't a real load. The classic source is a
