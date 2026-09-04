@@ -1,0 +1,65 @@
+// `@c_read` — read a C struct at a foreign address into a Vader mirror.
+//
+// An `@extern` marshals a Vader value INTO C. This is the other direction, and
+// the one nothing could express: a callee hands back a pointer to a struct IT
+// owns, and Vader has to read named members out of it. `readdir`, `getaddrinfo`
+// and `localeconv` all have that shape.
+//
+// The projection has no C symbol behind it. It copies member by member BY NAME,
+// which is what makes `cc` resolve every offset from the real header — the
+// alternative being a hand-transcribed `offsetof`, which no tool can refute and
+// which differs per system.
+//
+// `gmtime` at epoch 0 is 1970-01-01 00:00:00 UTC everywhere, and `decimal_point`
+// is "." in the "C" locale a program starts in, so both are fixed answers.
+
+module "snippet"
+
+import "std/io"
+
+TimeT :: i64
+
+@c_struct("struct tm")
+Tm :: struct {
+    tm_year: i32
+    tm_mon:  i32
+    tm_mday: i32
+    tm_hour: i32
+}
+
+/// `struct lconv` is mirrored for ONE member; the rest are ignored, as a mirror
+/// may be a prefix. `decimal_point` is a `char*`, which a `string` field reads by
+/// interning — the one field shape with no width assert, since a C string and an
+/// atom id have no reason to be the same size.
+@c_struct("struct lconv")
+Lconv :: struct {
+    decimal_point: string
+}
+
+@c_header("<time.h>")
+@c_read
+read_tm :: fn(src: CPointer, @c_pointer out: Tm!) -> void
+
+@c_header("<locale.h>")
+@c_read
+read_lconv :: fn(src: CPointer, @c_pointer out: Lconv!) -> void
+
+@c_header("<time.h>")
+@extern("gmtime") sys_gmtime :: fn(@c_pointer t: TimeT) -> CPointer | null
+
+@c_header("<locale.h>")
+@extern("localeconv") sys_localeconv :: fn() -> CPointer | null
+
+main :: fn() -> i32 {
+    epoch :: TimeT(0)
+    p :: sys_gmtime(epoch) ?? return 1
+    tm :: Tm { .tm_year = -1, .tm_mon = -1, .tm_mday = -1, .tm_hour = -1 }
+    read_tm(p, tm)
+    println("year=${tm.tm_year + 1900} mon=${tm.tm_mon + 1} mday=${tm.tm_mday} hour=${tm.tm_hour}")
+
+    lc :: sys_localeconv() ?? return 1
+    conv :: Lconv { .decimal_point = "" }
+    read_lconv(lc, conv)
+    println("decimal_point=[${conv.decimal_point}]")
+    return 0
+}

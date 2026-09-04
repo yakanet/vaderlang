@@ -1,0 +1,14 @@
+// `@c_read` without `@c_header` — T3050.
+//
+// The projection dereferences the C type, so that type has to be in scope where
+// the shim does it. An `@extern` gets it from the header its prototype needs;
+// a projection names no symbol, so nothing else would bring it in.
+module "snippet"
+
+@c_struct("struct tm")
+Tm :: struct { tm_year: i32 }
+
+@c_read
+read_tm :: fn(src: CPointer, @c_pointer out: Tm!) -> void
+
+main :: fn() -> i32 { return 0 }

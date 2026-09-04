@@ -66,7 +66,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
 }
 
 /// Whether `t` is the opaque foreign pointer `CPointer`.
-is_c_pointer :: fn(t: Type) -> bool {
+export is_c_pointer :: fn(t: Type) -> bool {
     if t is PrimitiveType as p {
         return p.name == "CPointer"
     }

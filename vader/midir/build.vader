@@ -263,6 +263,8 @@ bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
 FnMetadata :: struct {
     extern_name: string
     is_extern:   bool
+    /// `@c_read` — a PROJECTION, not a call. See `BcImport.is_c_read`.
+    is_c_read:   bool
     is_exported: bool
     /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
     /// or `""`. The linker does not need it — it resolves against what is on the
@@ -284,12 +286,23 @@ import "toolchain/span"
 fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false
+    is_c_read := false
     is_exported := false
     c_header := ""
     c_library := ""
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
         is_extern = decorators_have(fn_decl.decorators, "extern")
+        // A projection routes through the import table like an `@extern` — that
+        // is what puts a shim in front of it — but names no C symbol. Its
+        // `extern_name` stays the MANGLED name: the `.virt` import line is
+        // whitespace-positional, so an empty field there would shift every
+        // attribute after it. `is_c_read` is the discriminator; nothing resolves
+        // that name.
+        is_c_read = decorators_have(fn_decl.decorators, "c_read")
+        if is_c_read {
+            is_extern = true
+        }
         is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
         c_library = extern_library_name(fn_decl)
@@ -297,6 +310,7 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
+        .is_c_read   = is_c_read,
         .is_exported = is_exported,
         .c_header    = c_header,
         .c_library   = c_library,
@@ -395,6 +409,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .is_extern   = meta.is_extern,
         .c_header    = meta.c_header,
         .c_library   = meta.c_library,
+        .is_c_read   = meta.is_c_read,
     }
 }
 

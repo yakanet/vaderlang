@@ -57,6 +57,14 @@ async function virtForHost(name: string, mainPath: string, pinned: string): Prom
 /// cannot resolve it even though the native build links it statically.
 const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_prefix_mirror"]);
 
+/// Snippets that are native-only BY CONSTRUCTION, not by platform. A `@c_read`
+/// projection reads a C struct at the layout `cc` computed, which the
+/// interpreter has no access to, so it traps naming itself — the correct
+/// behaviour, and not something a shared `vm.snapshot` can hold beside the
+/// native output. The `helperCFiles` skip below covers the same case for
+/// snippets that happen to carry a helper; this is for those that do not.
+const VM_NATIVE_ONLY = new Set(["c_read_projection"]);
+
 // Snippets where Vader's self-emitted bytecode INTENTIONALLY diverges from
 // the TS snapshot (mode-a GATE A : concrete devirt instead of erased
 // `virtual.call`) AND is more correct — TS's erased form returns the wrong
@@ -328,6 +336,10 @@ for (const s of scenarios) {
   // Native-only snippets — `@extern` user imports trap in the Vader VM
   // for the same reason they trap in the TS VM (no host-fn registry).
   if (s.helperCFiles.length > 0) {
+    test.skip(`vader-vm: ${s.name}`, () => {});
+    continue;
+  }
+  if (VM_NATIVE_ONLY.has(s.name)) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
   }
