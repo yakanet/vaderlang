@@ -355,13 +355,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // ---- std/tty + std/env ----------------------------------------------
     // Raw mode from the VM is the same call the native binary makes: the VM is
     // itself a native binary, so these are its own intrinsics. It matters because
-    // `vader test` runs every @test on the VM — a prompt test that could not
-    // reach the terminal here would be untestable.
-    .TtyRawModeBegin -> { return HostOk { .value = BoolVal { .value = raw_mode_begin() } } }
-    .TtyRawModeEnd -> {
-        raw_mode_end()
-        return HostOk { .value = zero_value() }
-    }
     // Both re-enter the same host the compiled compiler binds to: an `Os` / `Arch`
     // ordinal rides in an i32 slot like any enum.
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
@@ -1139,7 +1132,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .TargetCurrentOs | .TargetCurrentArch -> true
     // Raw mode mutates the terminal and reads keystrokes; the width is whatever
     // the window happens to be. Nothing here bakes reproducibly.
-    .TtyRawModeBegin | .TtyRawModeEnd -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true

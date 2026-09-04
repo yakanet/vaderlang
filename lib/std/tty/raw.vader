@@ -35,11 +35,99 @@ import "system/windows"
 /// @return `true` when raw mode is now installed, `false` when stdin is not an
 ///         interactive terminal — in which case NOTHING was changed and the
 ///         caller must fall back rather than read keys.
-@intrinsic export raw_mode_begin :: fn() -> bool
+///
+/// ⚠️ On POSIX this goes through `cfmakeraw`, which also clears `OPOST`: a bare
+/// `\n` no longer returns the carriage, so anything printed between `begin` and
+/// `end` must write `\r\n` itself.
+@target
+export raw_mode_begin :: fn() -> bool {
+    // No terminal to put in raw mode — `wasi-wasm32` and `browser-wasm32`.
+    return false
+}
 
 /// Restore the terminal state saved by `raw_mode_begin`. A no-op when raw mode
 /// is not installed, so an unpaired call is harmless.
-@intrinsic export raw_mode_end :: fn() -> void
+@target
+export raw_mode_end :: fn() -> void {}
+
+/// The state to restore, and whether there is one.
+///
+/// Module-scope, which a module-const's `!` marker is what grants. The saved
+/// state is OPAQUE — bytes only C interprets — which is what lets a `termios`
+/// cross without Vader knowing its shape: it differs between systems (`c_line`
+/// is Linux-only) and its `c_cc` is an array.
+SAVED_TERMIOS: u8[]!: [0] * TERMIOS_BYTES
+SAVED_CONSOLE_MODE: u32[]!: [0]
+RAW_ACTIVE: bool[]!: [false]
+
+@target(.Linux, .Darwin)
+raw_mode_begin :: fn() -> bool {
+    if RAW_ACTIVE[0] {
+        return true
+    }
+    if sys_isatty(0) == 0 {
+        return false
+    }
+    if sys_tcgetattr(0, SAVED_TERMIOS) != 0 {
+        return false
+    }
+    work: u8[]! = [0] * TERMIOS_BYTES
+    if sys_tcgetattr(0, work) != 0 {
+        return false
+    }
+    sys_cfmakeraw(work)
+    if sys_tcsetattr(0, TCSAFLUSH, work) != 0 {
+        return false
+    }
+    RAW_ACTIVE[0] = true
+    return true
+}
+
+@target(.Linux, .Darwin)
+raw_mode_end :: fn() -> void {
+    if !RAW_ACTIVE[0] {
+        return
+    }
+    _ :: sys_tcsetattr(0, TCSAFLUSH, SAVED_TERMIOS)
+    RAW_ACTIVE[0] = false
+}
+
+@target(.Windows)
+raw_mode_begin :: fn() -> bool {
+    if RAW_ACTIVE[0] {
+        return true
+    }
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    if h == INVALID_HANDLE {
+        return false
+    }
+    mode: u32[]! = [0]
+    // Fails on a pipe or a redirected file — exactly when there is no console to
+    // put in raw mode. Reported rather than pretended.
+    if !get_console_mode(h, mode) {
+        return false
+    }
+    SAVED_CONSOLE_MODE[0] = mode[0]
+    off :: ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT
+    raw :: (mode[0] & ~off) | ENABLE_VIRTUAL_TERMINAL_INPUT
+    if !set_console_mode(h, raw) {
+        return false
+    }
+    RAW_ACTIVE[0] = true
+    return true
+}
+
+@target(.Windows)
+raw_mode_end :: fn() -> void {
+    if !RAW_ACTIVE[0] {
+        return
+    }
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    if h != INVALID_HANDLE {
+        _ :: set_console_mode(h, SAVED_CONSOLE_MODE[0])
+    }
+    RAW_ACTIVE[0] = false
+}
 
 /// Terminal width in columns, or 0 when it cannot be determined — not a
 /// terminal, or the query failed. A caller that needs a number anyway should

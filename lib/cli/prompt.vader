@@ -75,6 +75,14 @@ KeyReader :: struct {
 
 new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 
+/// One line, terminated the way a raw-mode terminal needs.
+///
+/// `raw_mode_begin` goes through `cfmakeraw`, which clears `OPOST`: a bare `\n`
+/// advances a row without returning the carriage, so every line printed between
+/// `begin` and `end` has to say `\r` itself. `println` is only safe once the
+/// terminal is restored.
+raw_line :: fn(s: string) -> void = print("${s}\r\n")
+
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
@@ -170,7 +178,7 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
     for {
         erase(drawn)
         frame :: render_select(question, options, cursor, render_width())
-        println(frame)
+        raw_line(frame)
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -245,7 +253,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
     drawn := 0
     for {
         erase(drawn)
-        println(render_multiselect(question, options, checked, cursor, render_width()))
+        raw_line(render_multiselect(question, options, checked, cursor, render_width()))
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -298,16 +306,16 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
     for {
         press :: next_press(reader)
         if press is PromptError as e {
-            println("")
+            raw_line("")
             return e
         }
         answer :: confirm_answer(press, default_yes)
         if answer is bool as decided {
-            println(if decided { "yes" } else { "no" })
+            raw_line(if decided { "yes" } else { "no" })
             return decided
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            println("")
+            raw_line("")
             return cancelled()
         }
     }
@@ -362,15 +370,15 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
         print(render_text(question, typed, default_value, render_width()))
         press :: next_press(reader)
         if press is PromptError as e {
-            println("")
+            raw_line("")
             return e
         }
         if press.key == Key.Enter {
-            println("")
+            raw_line("")
             return if typed == "" { default_value } else { typed }
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            println("")
+            raw_line("")
             return cancelled()
         }
         if press.key == Key.Backspace {

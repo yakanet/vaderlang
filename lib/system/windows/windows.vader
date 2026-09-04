@@ -220,6 +220,14 @@ export ScreenBufferInfo :: struct {
 @extern("kernel32", "GetConsoleScreenBufferInfo")
 export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBufferInfo!) -> bool
 
+/// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
+/// translation of Ctrl-C into a signal — plus the one it turns on, so escape
+/// sequences arrive as bytes.
+export ENABLE_PROCESSED_INPUT: u32 : 0x0001
+export ENABLE_LINE_INPUT: u32 : 0x0002
+export ENABLE_ECHO_INPUT: u32 : 0x0004
+export ENABLE_VIRTUAL_TERMINAL_INPUT: u32 : 0x0200
+
 /// Bit enabling ANSI escape interpretation on a console output handle. Only with
 /// it set do escapes render rather than print literally.
 export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004

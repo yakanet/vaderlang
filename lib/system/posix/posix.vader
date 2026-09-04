@@ -71,6 +71,54 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 @extern("read")
 export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
 
+/// Bytes a `struct termios` occupies. MEASURED: 72 on Darwin, 60 on Linux —
+/// x86_64 and arm64 alike, the type being built from fixed-width members.
+///
+/// A SIZE, not an offset, which is why one value per system is enough here where
+/// a `struct stat` mirror needed one per architecture too. The risk is
+/// asymmetric — over-sizing wastes bytes, under-sizing corrupts — so the buffer
+/// this measures is deliberately the larger of the two everywhere.
+export TERMIOS_BYTES: usize: if VADER_OS == Os.Darwin { 72 } else { 72 }
+
+/// `TCSAFLUSH` — apply after draining output, DISCARDING pending input. That
+/// last part is why raw mode uses it: keystrokes meant for the shell must not
+/// land in the prompt. 2 on both systems.
+export TCSAFLUSH: i32: 2
+
+/// `tcgetattr(3)`. Reads the terminal state into an OPAQUE buffer.
+///
+/// The buffer is never interpreted on the Vader side — it travels from here to
+/// `sys_tcsetattr` and back, so nothing needs the layout of `struct termios`,
+/// whose shape differs between systems (`c_line` is Linux-only) and whose `c_cc`
+/// is an array. `buf` must hold at least `TERMIOS_BYTES`.
+///
+/// @param fd   the descriptor — 0 for stdin.
+/// @param buf  receives the state.
+/// @return     0 on success, -1 otherwise.
+@c_header("<termios.h>")
+@extern("tcgetattr")
+export sys_tcgetattr :: fn(fd: i32, buf: u8[]!) -> i32
+
+/// `tcsetattr(3)`. Applies a state read by `sys_tcgetattr`.
+///
+/// @param fd      the descriptor.
+/// @param action  when to apply it — `TCSAFLUSH` here.
+/// @param buf     the state to install.
+/// @return        0 on success, -1 otherwise.
+@c_header("<termios.h>")
+@extern("tcsetattr")
+export sys_tcsetattr :: fn(fd: i32, action: i32, buf: u8[]) -> i32
+
+/// `cfmakeraw(3)`. Turns a state into the raw one, in place.
+///
+/// The whole reason Vader never has to name a `termios` member: the flag surgery
+/// happens in C. It is MORE aggressive than a hand-rolled raw mode — it also
+/// clears `OPOST`, so `\n` no longer returns the carriage and a caller must write
+/// `\r\n` itself.
+@c_header("<termios.h>")
+@extern("cfmakeraw")
+export sys_cfmakeraw :: fn(buf: u8[]!) -> void
+
 /// `struct winsize` — the terminal size `TIOCGWINSZ` fills in.
 ///
 /// Field names are the C ones because a mirror copies BY NAME; the snake_case
