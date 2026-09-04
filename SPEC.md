@@ -2566,7 +2566,7 @@ The v1 `@load` is **replaced by `import`**.
 @extern("env", "console_log") log :: fn(p: i32, n: i32) -> void // C symbol: console_log
 ```
 
-The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). The **first** of two arguments is the WASM module hint (`"env"` by convention) — ignored by the C-emit, consumed by future WASM-emit. Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
+The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). The **first** of two arguments names WHERE the symbol comes from. The VM `dlopen`s it, so `@extern("z", "compress2")` reaches `libz` under `vader run`; the C-emit DROPS it and the symbol resolves through the ordinary link line, so it never becomes a `-l`. A library that shadows a libc symbol therefore gives the two backends different functions from one source — name the library only when the VM needs it, and link it with `--ldflags`. A future WASM-emit consumes it as the import module (`"env"` by convention). Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
 
 `@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
 
@@ -2578,6 +2578,8 @@ Nothing in a Vader signature can say which — `write(fd: i32)` passes by value
 and `localtime(t: TimeT)` does not — so the fact is annotated, on the parameter:
 
 ```vader
+TimeT :: i64
+
 @extern("localtime")
 localtime :: fn(@c_pointer t: TimeT) -> CPointer
 ```
@@ -2589,6 +2591,14 @@ longer.
 `@c_pointer` takes **no argument**: the direction is already carried by the `!`
 on the type. Without one the callee only reads through the pointer and the
 declaration emits `const T*`; with one it writes through it and emits `T*`.
+
+**A SCALAR out-parameter is not expressible today.** The `!` that would ask for
+one is `T3075` — `i32` has no interior to mutate — so a scalar `@c_pointer` is
+always read-only, and what C writes into the shim's temporary is discarded with
+it, silently. Lend a **one-element array** instead: `written: u32[]!` reads back
+on both backends, and is what `WriteFile`'s `lpNumberOfBytesWritten` uses in
+`lib/system/windows`. Every `T*` out-param — `getsockname`'s `socklen_t*`,
+`sqlite3_open`'s `sqlite3**` — takes that shape.
 
 It is accepted **only on an `@extern` declaration** — on a fn Vader compiles a
 body for, an address has no meaning. Any other decorator on a parameter, an
@@ -2611,6 +2621,13 @@ The two are exclusive **per symbol**: with `@c_header`, no prototype is emitted,
 and `cc` checks every argument against the real declaration. That is what caught
 a `uint32_t*` passed where Win32 wants `LPDWORD`.
 
+**It is the only check that the declaration matches the real function.** A bare
+`@extern` synthesises its prototype FROM the Vader signature, so the two agree by
+construction and nothing compares them to the header: declaring `isatty` as
+`fn(fd: i64) -> i64` compiles, links against the real `int isatty(int)`, and
+misreads the ABI at run time. Reach for `@c_header` by default, not only to
+settle a conflict — 53 of this tree's 56 externs carry one.
+
 Only **system** headers work today: the driver puts the runtime directory on the
 include path and nothing else, so `@c_header("\"my_header.h\"")` does not resolve.
 
@@ -2632,14 +2649,24 @@ computes every offset from the actual header and checks every field's type —
 nothing here assumes a layout. `!` picks the direction: without it C reads what
 Vader holds, with it the shim copies back what C wrote.
 
-The emitted C also carries `_Static_assert` lines pinning the mirror to the C
-type: its alignment fits `VADER_GC_ALIGN`, its size FITS the Vader field region
-(containment, not equality — the region is padded to 8), and every field-to-field
-distance matches. A drifting declaration then fails the build.
+The emitted C also carries `_Static_assert` lines, and they pin WIDTHS, never
+offsets: each mirrored field against the C field of that name, each field's
+signedness, and two bounds on the struct — the interpreter's computed block fits
+inside `sizeof(C)` (so a mirror may be a PREFIX), and `sizeof(C)` fits the 4 KiB
+block the interpreter reserves. A drifting header then fails the build. There is
+no alignment assert and no field-to-field distance assert: the shim copies by
+NAME and `cc` resolves both offsets itself, so a Vader offset and a C one never
+meet.
 
-**The VM refuses a `@c_struct` argument** — it calls through one generic
-trampoline and cannot build a C struct at run time. Such a declaration is native
-only; an array of scalars crosses on both backends instead.
+**The VM runs a `@c_struct` argument.** It builds the block itself from the
+declared field widths, passes its address, and reads it back when the parameter
+carries `!`. What differs from native is WHERE the offsets come from: `cc` reads
+the header, the interpreter computes them from the Vader field types. So a field
+declared WIDER than its C member — the very thing the `<=` below licenses —
+places every following field at a different offset under `vader run` than in a
+built binary, and the interpreter reads its own block back consistently, so
+nothing on the Vader side can see it. Only the C callee does. `vader test` and
+`@comptime` run on the VM; pin a mirror that must span systems with a native run.
 
 ### A mirrored field's width
 
@@ -2662,13 +2689,46 @@ That `<=` is what lets ONE mirror span systems whose widths differ:
 both without naming either.
 
 A mirror stays **partial**: declaring two fields of a 144-byte `struct stat`
-copies those two and ignores the rest, nested members included.
+copies those two and ignores the rest.
+
+A member that is itself a struct takes a **nested mirror** — a field whose type
+is another `@c_struct`. C holds it inline; Vader holds it BY POINTER, and the
+shim descends the C path (`.srWindow.Right`) while dereferencing the Vader one,
+so the two layouts still never meet. Nesting is capped at 16 deep.
+
+```vader
+@c_struct("SMALL_RECT")
+SmallRect :: struct { Left: i16, Top: i16, Right: i16, Bottom: i16 }
+
+@c_struct("CONSOLE_SCREEN_BUFFER_INFO")
+ScreenBufferInfo :: struct { srWindow: SmallRect }
+```
 
 > A field decorator `@c_size(N, .System)` used to state the C width per system.
 > It was removed: it carried an OS axis and no ARCHITECTURE axis, while a C
 > struct's layout differs between arches of one system — `st_mode` sits at
 > offset 24 on linux-x86_64 and 16 on linux-arm64 — so no single annotated
-> mirror could be correct for both. `T3080` and `P1034` retired with it.
+> mirror could be correct for both. `P1034` retired with it, and `T3080` was
+> reused for the callback shape rule below.
+
+### The opaque buffer — when there is no mirror to write
+
+A C struct whose members Vader never reads can cross as a **lent `u8[]!` nobody
+interprets**: reserve its size, hand it over, hand the same array back. `termios`
+in `lib/system/posix` does exactly that — `tcgetattr` fills it, `cfmakeraw`
+rewrites it, `tcsetattr` applies it, and no Vader code ever looks inside.
+
+It is the LAST resort, because **nothing about it is checked**. A mirror pins
+every field's width and signedness against the real header at build time; a
+buffer pins nothing. Its size is a constant a human transcribed, and the callee
+writes `sizeof(struct …)` bytes into it whatever that constant says — so a size
+taken too LOW is an out-of-bounds write that no diagnostic, no assert and no
+backend will report. Take it from the LARGEST system in scope and say so at the
+declaration: over-reserving wastes bytes, under-reserving corrupts.
+
+Reach for it only when a mirror cannot exist — the struct has no member Vader
+needs to name, or its layout has no stable public shape. Whenever a field has a
+name, mirror it.
 
 ### Allowed signature types
 
@@ -2703,7 +2763,7 @@ Plus, on top of the scalars:
 | a **nullable string** (`string \| null`) | RESULT only | how a callee says "absent" rather than "empty"; the atom is borrowed, as above |
 | **`isize(p)` / `usize(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a pointer-width integer is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
-| a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; native backend only |
+| a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; both backends, with the offset caveat noted there |
 
 | a **function type** | ARGUMENT only | a callback — see below; native backend only |
 
@@ -2741,8 +2801,11 @@ than running. Build it instead.
 parameter reaches C through a shim that marshals — `string` becomes a
 `const char*`, an array becomes its data pointer — but C calls a callback
 DIRECTLY, with no shim anywhere. So a callback signature admits only the types
-that need no marshalling: the numeric scalars, `bool`, `char`, and `void` as a
-return. `string` and arrays are `T3050` inside one.
+that need no marshalling: the numeric scalars, `bool`, `char`, **`CPointer`**,
+distinct types over any of those, and `void` as a return. `string` and arrays are
+`T3050` inside one. `CPointer` is what makes the C comparator shape reachable —
+`qsort`'s `int (*)(const void *, const void *)` is written
+`fn(CPointer, CPointer) -> i32`.
 
 A function type is rejected as a RETURN: a C function handing back code Vader
 would call has no representation here.
@@ -2757,34 +2820,26 @@ not one.
 For each user `@extern` the compiler emits one forward declaration at the top of the generated `.c`, then a per-call shim that the bytecode's `call.import` jumps to:
 
 ```c
-// Forward declaration — resolved by the linker.
+// Forward declaration — emitted only WITHOUT `@c_header`; the header owns the
+// prototype when there is one.
 extern int32_t add_i32(int32_t, int32_t);
-extern size_t strlen(const char*);
 
-// Shim — bridges the Vader-side ABI to the foreign signature.
-static int32_t vader_import_0(int32_t a0, int32_t a1) {
+// Shim — bridges the Vader-side ABI to the foreign signature. One per `@extern`,
+// named after the declaration's mangled name.
+static int32_t vader_host_snippet_add_i32(int32_t a0, int32_t a1) {
     return add_i32(a0, a1);
 }
-static size_t vader_import_1(vader_string_t a0) {
-    // Stack-allocated NUL copy for strings < 4 KiB; heap fallback above.
-    char _b0[a0.len < 4096 ? a0.len + 1 : 1];
-    const char* c0;
-    if (a0.len < 4096) {
-        if (a0.len > 0) memcpy(_b0, a0.ptr, a0.len);
-        _b0[a0.len] = 0;
-        c0 = _b0;
-    } else {
-        c0 = vader_string_to_cstr(a0);  // malloc'd
-    }
+static size_t vader_host_snippet_c_strlen(vader_string_t a0) {
+    const char* c0 = vader_string_to_cstr(a0);
     size_t r = strlen(c0);
-    if (a0.len >= 4096) vader_cstr_free(c0);
+    vader_cstr_free_for(a0, c0);
     return r;
 }
 ```
 
-The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee: the buffer is valid only during the call and freed (or discarded with the stack frame) on return.
+The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee: the buffer is valid only during the call and released on return. A callee that RETAINS the pointer reads freed memory afterwards, and nothing diagnoses it.
 
-Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`) are `T3050` — the linker would resolve both calls to the same prototype, masking ABI mismatches.
+Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`) are `T3050` — the synthesised prototypes would disagree while the linker resolved both calls to one function. **`@c_header` on BOTH lifts it**, because neither synthesises a prototype and `cc` checks each call against the real one. That is what makes a varargs symbol bindable: one `@extern` per argument shape, each checked against the header.
 
 ### Linking
 
@@ -2796,7 +2851,9 @@ vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" pro
 
 ### VM behaviour
 
-The VM resolves `@extern` user imports against a **host registry** keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered host handler; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
+The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps with the library it looked in.
+
+The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` or `string` result. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function.
 
 C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 
@@ -2806,7 +2863,7 @@ When the WASM emitter lands (see §17 *Compilation Targets*), `@extern` will add
 - 2-arg form `@extern("env", "console_log") log` → `(import "env" "console_log" (func …))`
 - 1-arg / 0-arg form defaults the module to `"env"`.
 
-The C-emit will continue to ignore the module hint. The same `@extern` decl compiles for both targets.
+The C-emit will continue to drop that first string; the VM will continue to `dlopen` it. The same `@extern` decl compiles for every target — only the binding mechanism differs.
 
 ### `@export` — exposing a function
 

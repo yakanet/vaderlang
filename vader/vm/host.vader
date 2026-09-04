@@ -491,11 +491,14 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
 /// and calling through a trampoline.
 ///
-/// What is covered: integer, `bool` and pointer-width parameters, plus AT MOST
-/// ONE lent array of integer elements, of any width the target spells. Everything
-/// else — a floating parameter, a `string`, a second array — traps naming the
-/// reason, because calling with a mis-marshalled frame would corrupt the stack
-/// instead of failing.
+/// What is covered: integer, `bool` and pointer-width parameters, `f64`,
+/// `string`, any number of lent arrays of integer elements of any width the
+/// target spells, and `@c_struct` mirrors — up to eight arguments. Everything
+/// else traps naming the reason, because calling with a mis-marshalled frame
+/// would corrupt the stack instead of failing: a `char` or `f32` parameter, a
+/// call mixing floating and integer arguments, more than two floating ones, an
+/// `f32` or `string` result, and a callback (the interpreter has no address for
+/// a Vader function).
 ///
 /// The library is `BcImport.c_library` when the declaration names one, else the
 /// running process — which covers libc and anything linked into the binary.
