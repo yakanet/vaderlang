@@ -81,11 +81,82 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
 /// @return       the width in bytes, or `null` when the field's type carries
 ///               none — a mirror nothing can lay out.
 export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
-    v :: c_field_val_type(f, types)
-    if v == null {
+    return c_field_width_at(f, types, 0)
+}
+
+/// A mirror nested inside another, or `null` when the field is not one.
+///
+/// A field whose type is itself a `@c_struct` mirrors a C struct member. The C
+/// side has it INLINE; Vader holds a pointer to a separate object, which is why
+/// nothing here may ever `memcpy` — the shim copies member by member and the
+/// interpreter serialises field by field.
+///
+/// @param f      the field.
+/// @param types  the module type table.
+export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null {
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
         return null
     }
-    return i64(size_of_val_type(v))
+    t :: types[usize(f.type_index)]
+    if t is BcStruct as st {
+        if st.c_name != "" {
+            return st
+        }
+    }
+    return null
+}
+
+/// How deep a mirror may nest.
+///
+/// A C struct cannot contain itself by value, so a well-formed mirror bottoms
+/// out. The cap is what keeps a MALFORMED one — a Vader struct naming itself —
+/// from recursing forever rather than reporting.
+export NEST_CAP :: 16
+
+c_field_width_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
+    v :: c_field_val_type(f, types)
+    if v != null {
+        return i64(size_of_val_type(v))
+    }
+    if depth >= NEST_CAP {
+        return null
+    }
+    nested :: nested_mirror(f, types)
+    if nested == null {
+        return null
+    }
+    inner :: c_struct_layout_at(nested.fields, types, depth + 1)
+    if inner.unknown_field != null {
+        return null
+    }
+    return inner.size
+}
+
+/// The alignment a mirrored field imposes: its own width for a scalar, the
+/// strictest of its members for a nested mirror.
+c_field_align_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
+    v :: c_field_val_type(f, types)
+    if v != null {
+        return i64(size_of_val_type(v))
+    }
+    if depth >= NEST_CAP {
+        return null
+    }
+    nested :: nested_mirror(f, types)
+    if nested == null {
+        return null
+    }
+    strictest: i64 = 1
+    for inner_f in nested.fields {
+        a :: c_field_align_at(inner_f, types, depth + 1)
+        if a == null {
+            return null
+        }
+        if a > strictest {
+            strictest = a
+        }
+    }
+    return strictest
 }
 
 /// Lay a mirrored struct out the way a C compiler would.
@@ -99,13 +170,17 @@ export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
 /// @param fields  the mirror's fields, in declaration order.
 /// @param types   the module type table.
 /// @return        the offsets, the total size, and the first underivable field.
-export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout {
+export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout =
+    c_struct_layout_at(fields, types, 0)
+
+c_struct_layout_at :: fn(fields: BcField[], types: BcType[], depth: i32) -> CLayout {
     offsets: i64[]! = []
     at: i64 = 0
     strictest: i64 = 1
     unknown: string | null = null
     for f in fields {
-        w :: c_field_width(f, types)
+        w :: c_field_width_at(f, types, depth)
+        align_opt :: c_field_align_at(f, types, depth)
         if w == null {
             if unknown == null {
                 unknown = f.name
@@ -113,11 +188,17 @@ export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout {
             offsets.push(at)
             continue
         }
-        // A mirror field can only be a C SCALAR, and every ABI we target aligns a
-        // scalar on its own size — which is what lets the width stand in for the
-        // alignment here. It stops holding for a composite member, whose size and
-        // alignment differ (`struct { char a; int b; }` is 8 wide, 4 aligned).
-        align :: w
+        if align_opt == null {
+            if unknown == null {
+                unknown = f.name
+            }
+            offsets.push(at)
+            continue
+        }
+        // Size and alignment are separate facts: `struct { char a; int b; }` is
+        // 8 wide and 4 aligned. They coincide for a scalar, which is why the
+        // helpers split only where a nested mirror makes them diverge.
+        align :: align_opt
         if align > strictest {
             strictest = align
         }
