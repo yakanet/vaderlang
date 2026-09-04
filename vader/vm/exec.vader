@@ -1633,10 +1633,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                // Reset to a fresh empty backing : the VM tracks logical length
-                // via `elements.len()` on push, so reusing the old backing would
-                // resurrect cleared elements on the next push.
-                array_unwrap.elements = []
+                // Clear the SHARED backing when this array owns it, the way the
+                // native runtime shrinks `buf->length` in `vader_array_clear`.
+                // `data.const` hands out a FRESH header over the pool entry's
+                // `elements`, which is how a module-level array is reached, so
+                // rebinding the field here would leave that array untouched —
+                // `push` mutates the shared backing and would still see three
+                // elements after a `clear`. Emptying it in place keeps
+                // `elements.len()` as the logical length, so nothing resurfaces
+                // on the next push. A genuine slice view (offset != 0, or a
+                // shorter prefix) detaches instead and keeps its isolation.
+                if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                    array_unwrap.elements.clear()
+                } else {
+                    array_unwrap.elements = []
+                }
                 array_unwrap.offset = 0
                 array_unwrap.length = 0
                 frame.sp = frame.sp - 1

@@ -1,0 +1,48 @@
+// `clear()` then refill, twice over — a local array and a module-level one.
+//
+// Both had the same defect from opposite ends. Natively `vader_array_clear`
+// reset the array's length without shrinking the BUFFER's, so the next `push`
+// read the array as a slice view and detached into a capacity-DOUBLED buffer:
+// the backing store doubled on every clear, and 200 passes exhausted the heap.
+// `remove_last` carries the identical rule and had already been fixed; `clear`
+// had not.
+//
+// On the VM the module-level case failed the other way. `data.const` hands out a
+// fresh header sharing the pool entry's `elements`, so rebinding that field
+// cleared a copy: `push` kept mutating the shared backing and the array never
+// emptied. The local case worked, which is what kept it hidden.
+//
+// The counts below are the subject. `SEEN` cycles 129 pushes then clears, so
+// 5000 passes leave 5000 - 38 * 129 = 98.
+
+module "snippet"
+
+import "std/io"
+
+SEEN: string[]!: []
+
+main :: fn() -> i32 {
+    local: i32[]! = []
+    for i in 0..<200 {
+        local.push(i)
+        if local.len() > 4 {
+            local.clear()
+        }
+    }
+    println("local=${local.len()}")
+
+    for i in 0..<5000 {
+        SEEN.push("step ${i}")
+        if SEEN.len() > 128 {
+            SEEN.clear()
+        }
+    }
+    println("module=${SEEN.len()}")
+
+    // A clear must not disturb a genuine slice view of the same elements.
+    src: i32[]! = [1, 2, 3, 4, 5]
+    view :: src[1..<3]
+    src.clear()
+    println("view=${view.len()} src=${src.len()}")
+    return 0
+}

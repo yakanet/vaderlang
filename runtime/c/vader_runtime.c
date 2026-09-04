@@ -3170,6 +3170,17 @@ void vader_array_clear(vader_array_t* a) {
         vader_trap("cannot clear a borrowed `const u8[]` byte view");
     }
     a = vader_array_resolve(a);
+    vader_array_resolve_buf(a);
+    /* Shrink the BUFFER alongside the array when this array owns the tail —
+     * same rule, and the same reason, as `vader_array_remove_last` above. Left
+     * out, `offset + length < buf->length` makes the next `vader_array_push`
+     * read the array as a slice view and detach into a fresh capacity-DOUBLED
+     * buffer, so a clear + refill loop doubles the backing store on every pass.
+     * A genuine view (offset != 0, or a shorter prefix) does not match and
+     * keeps its isolation. */
+    if (a->offset == 0 && a->offset + a->length == a->buf->length) {
+        a->buf->length = 0;
+    }
     a->length = 0;
 }
 
