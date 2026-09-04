@@ -119,7 +119,6 @@ typedef struct vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___L
 typedef struct vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__LoweredIdent_t vader_struct_std_collections_MutableMap__i32__LoweredIdent_t;
-typedef struct vader_struct_std_collections_MutableMap__i32__MirrorDirection_t vader_struct_std_collections_MutableMap__i32__MirrorDirection_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t;
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t;
 typedef struct vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t;
@@ -1349,15 +1348,6 @@ struct vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t {
     size_t f_tombs;
 };
 struct vader_struct_std_collections_MutableMap__i32__LoweredIdent_t {
-    vader_obj_header_t header;
-    void* f_ekeys;
-    void* f_evals;
-    void* f_index;
-    size_t f_mask;
-    size_t f_size;
-    size_t f_tombs;
-};
-struct vader_struct_std_collections_MutableMap__i32__MirrorDirection_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -5515,8 +5505,8 @@ vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2)
 vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6);
 vader_string_t concat_6(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5);
-vader_string_t concat_15(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8, vader_string_t l9, vader_string_t l10, vader_string_t l11, vader_string_t l12, vader_string_t l13, vader_string_t l14);
 vader_string_t concat_9(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8);
+vader_string_t concat_13(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8, vader_string_t l9, vader_string_t l10, vader_string_t l11, vader_string_t l12);
 vader_string_t concat_11(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8, vader_string_t l9, vader_string_t l10);
 vader_string_t concat_8(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7);
 vader_string_t concat_10(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8, vader_string_t l9);
@@ -5803,13 +5793,13 @@ bool vader_bytecode_is_64_bit_int_val(uint8_t l0);
 bool vader_bytecode_is_integer_val(uint8_t l0);
 vader_string_t vader_bytecode_primitive_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 int32_t vader_bytecode_struct_type_index(void* l0, vader_string_t l1);
-vader_box_t vader_bytecode_c_field_width(void* l0, void* l1);
-vader_box_t vader_bytecode_c_field_val_type(void* l0, void* l1);
-bool vader_bytecode_is_unsigned_val(uint8_t l0);
+vader_box_t vader_bytecode_nested_mirror(void* l0, void* l1);
 uint8_t vader_bytecode_array_kind_of(vader_box_t l0, void* l1);
 vader_string_t vader_bytecode_bc_type_key(void* l0, int32_t l1);
 vader_string_t vader_bytecode_val_type_name(uint8_t l0);
 bool vader_bytecode_is_unsigned_display(vader_string_t l0);
+vader_box_t vader_bytecode_c_field_val_type(void* l0, void* l1);
+bool vader_bytecode_is_unsigned_val(uint8_t l0);
 bool vader_bytecode_is_float_val(uint8_t l0);
 bool vader_bytecode_is_ref_only_element(vader_box_t l0, void* l1);
 vader_box_t vader_bytecode_binary_op_for(uint8_t l0, uint8_t l1);
@@ -5818,6 +5808,7 @@ vader_box_t vader_bytecode_slot_load_op_for(uint8_t l0, bool l1);
 vader_box_t vader_bytecode_slot_store_op_for(uint8_t l0, bool l1);
 vader_box_t vader_bytecode_convert_target_of(uint8_t l0);
 int32_t vader_bytecode_intern_cell_type(vader_box_t l0, void* l1);
+vader_box_t vader_bytecode_c_field_width(void* l0, void* l1);
 void* vader_c_emit_emit_c_split(void* l0, void* l1, vader_string_t l2);
 bool __lambda_vader_c_emit_0(void* l0, int32_t l1, int32_t l2);
 bool __lambda_vader_c_emit_2(void* l0, vader_string_t l1, vader_string_t l2);
@@ -6042,7 +6033,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2428u
+#define VADER_COMPTIME_ATOM_COUNT 2435u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
