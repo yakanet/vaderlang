@@ -312,6 +312,13 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         // declaration.
         out.append("extern ${storage_qualifier(data_entry_mutable(ctx.module.data_pool[i]))}vader_array_t vader_data_${i};\n")
     }
+    // The permanent GC frame rooting the mutable module-consts. Defined beside the
+    // data pool, installed by `main`, which is in another unit.
+    if mutable_pool_indices(ctx.module.data_pool).len() > 0 {
+        out.append("extern vader_array_t* vader_global_const_arrays[];\n")
+        out.append("extern void* vader_global_const_objs[];\n")
+        out.append("extern vader_gc_frame_t vader_global_const_frame;\n")
+    }
     out.append("extern const vader_atom_entry_t vader_atom_comptime_table[];\n")
     out.append("extern const size_t vader_type_size[];\n")
     out.append("\n")

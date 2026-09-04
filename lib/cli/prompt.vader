@@ -79,7 +79,7 @@ new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
         burst :: TTY.read_keys(64)
-        if burst == "" {
+        if burst == null {
             return input_closed()
         }
         reader.pending = decode_burst(burst)

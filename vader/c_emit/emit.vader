@@ -502,7 +502,10 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     if indices.len() == 0 {
         return
     }
-    out.append("static vader_array_t* vader_global_const_arrays[] = {")
+    // `main` installs the frame, and under `--split` `main` lives in a different
+    // unit from the data pool — so `static` here leaves it undeclared there.
+    link :: linkage_prefix(ctx.split)
+    out.append("${link}vader_array_t* vader_global_const_arrays[] = {")
     for k in 0..<indices.len() {
         if k > 0 { out.append(",") }
         out.append(" &vader_data_${indices[k]}")
@@ -517,13 +520,13 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // this one is stale — still valid memory, so scanning it is safe ; it just
     // retains whatever the initial slots held.
     objs :: boxed_pool_objects(ctx.module.data_pool, indices)
-    out.append("static void* vader_global_const_objs[] = {")
+    out.append("${link}void* vader_global_const_objs[] = {")
     for k in 0..<objs.len() {
         if k > 0 { out.append(",") }
         out.append(" ${objs[k]}")
     }
     out.append(" };\n")
-    out.append("static vader_gc_frame_t vader_global_const_frame = ")
+    out.append("${link}vader_gc_frame_t vader_global_const_frame = ")
     out.append("{ NULL, 0u, 0u, NULL, NULL, ${objs.len()}u, vader_global_const_objs };\n")
 }
 

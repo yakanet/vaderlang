@@ -71,6 +71,14 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 @extern("read")
 export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
 
+/// `isatty(3)`. Whether `fd` refers to a terminal.
+///
+/// @param fd  the descriptor — 1 for stdout, 2 for stderr.
+/// @return    1 when it is a terminal, 0 otherwise.
+@c_header("<unistd.h>")
+@extern("isatty")
+export sys_isatty :: fn(fd: i32) -> i32
+
 /// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
 ///
 /// Linux reads the running binary's path from `/proc/self/exe`.

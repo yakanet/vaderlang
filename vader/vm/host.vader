@@ -369,11 +369,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = zero_value() }
     }
     .TtyColumns -> { return HostOk { .value = I32Val { .value = columns() } } }
-    .TtyReadKeys -> {
-        max :: read_i32(stack[arg_base], at_pc, "read_keys max")
-        if max is Trap { return max }
-        return HostOk { .value = StringVal { .value = read_keys(max.value) } }
-    }
     // Both re-enter the same host the compiled compiler binds to: an `Os` / `Arch`
     // ordinal rides in an i32 slot like any enum.
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
@@ -1091,7 +1086,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .TargetCurrentOs | .TargetCurrentArch -> true
     // Raw mode mutates the terminal and reads keystrokes; the width is whatever
     // the window happens to be. Nothing here bakes reproducibly.
-    .TtyRawModeBegin | .TtyRawModeEnd | .TtyColumns | .TtyReadKeys -> true
+    .TtyRawModeBegin | .TtyRawModeEnd | .TtyColumns -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true

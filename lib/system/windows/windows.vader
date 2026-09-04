@@ -188,6 +188,24 @@ export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
 
+/// Bit enabling ANSI escape interpretation on a console output handle. Only with
+/// it set do escapes render rather than print literally.
+export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
+
+/// `GetConsoleMode`. False when the handle is not a console — which is also how
+/// a caller tests for one, a redirected stream having no mode to read.
+///
+/// @param mode  receives the current mode; a one-element array so it reads back.
+@c_header("<windows.h>")
+@extern("kernel32", "GetConsoleMode")
+export get_console_mode :: fn(h: Handle, mode: u32[]!) -> bool
+
+/// `SetConsoleMode`. False on failure — an old console refusing a mode bit it
+/// does not know, which is what tells a caller ANSI is unavailable.
+@c_header("<windows.h>")
+@extern("kernel32", "SetConsoleMode")
+export set_console_mode :: fn(h: Handle, mode: u32) -> bool
+
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
 /// short of `count` has reached end of file.
 ///

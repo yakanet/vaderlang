@@ -16,6 +16,9 @@
 
 module "std/tty"
 
+import "system/posix"
+import "system/windows"
+
 /// Put stdin in raw mode: keys arrive as they are pressed, with no echo and no
 /// line editing.
 ///
@@ -55,5 +58,77 @@ module "std/tty"
 /// `std/io::read_stdin` on the same input.
 ///
 /// @param max  ceiling on the bytes returned; values above 64 are clamped.
-/// @return     the bytes read, or `""` at end of input.
-@intrinsic export read_keys :: fn(max: i32) -> string
+/// @return     the bytes read — never empty, since a successful read yields at
+///             least one byte — or `null` at end of input, on a read failure,
+///             and on a target with no terminal.
+@target
+export read_keys :: fn(max: i32) -> string | null {
+    // No terminal to read from — `wasi-wasm32` and `browser-wasm32`. Same answer
+    // as end of input, which every caller already handles.
+    return null
+}
+
+/// Bytes to read at most, whatever the caller asked for. A key press is a few
+/// bytes — an arrow is three — and the ceiling keeps the stack buffer bounded.
+KEYS_MAX: i32 : 64
+
+/// Attempts before giving up on a read that returns nothing.
+///
+/// The C original retried on `EINTR` alone, which needs `errno`. It cannot fire
+/// here: the runtime installs no signal handler, and `SIGWINCH`'s default
+/// disposition is to be ignored, which does not interrupt a blocking `read`. A
+/// bounded retry covers a handler a program installed itself without spinning on
+/// a real error.
+READ_ATTEMPTS :: 3
+
+@target(.Linux, .Darwin)
+read_keys :: fn(max: i32) -> string | null {
+    n :: clamp_keys(max)
+    if n == 0 {
+        return null
+    }
+    buf: u8[]! = [0] * usize(n)
+    for _ in 0..<READ_ATTEMPTS {
+        got :: sys_read(0, buf, usize(n))
+        if got > 0 {
+            return buf[0..<usize(got)].bytes_to_string()
+        }
+        if got == 0 {
+            return null
+        }
+    }
+    return null
+}
+
+@target(.Windows)
+read_keys :: fn(max: i32) -> string | null {
+    n :: clamp_keys(max)
+    if n == 0 {
+        return null
+    }
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    if h == INVALID_HANDLE {
+        return null
+    }
+    buf: u8[]! = [0] * usize(n)
+    got: u32[]! = [0]
+    if !read_file(h, buf, u32(n), got, null) {
+        return null
+    }
+    // A synchronous read returning true with zero bytes has reached end of file.
+    if got[0] == 0 {
+        return null
+    }
+    return buf[0..<usize(got[0])].bytes_to_string()
+}
+
+/// The read size: the caller's ask, floored at 0 and capped at `KEYS_MAX`.
+clamp_keys :: fn(max: i32) -> i32 {
+    if max <= 0 {
+        return 0
+    }
+    if max > KEYS_MAX {
+        return KEYS_MAX
+    }
+    return max
+}
