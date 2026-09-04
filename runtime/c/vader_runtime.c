@@ -3511,32 +3511,9 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 
 /* ----------------------------------------------------------------- terminal / env
  *
- * `vader_is_tty` backs `std/tty::is_tty`. It reports whether `stream` (0 =
- * stdout, 1 = stderr) is an interactive terminal that will render ANSI escapes;
- * on Windows it also enables virtual-terminal processing on first probe (and
- * reports false on a console too old for it, so callers fall back to plain
- * text). The result is cached per stream for the process lifetime — Vader has
- * no module-scope run-once, so the memo lives here. `vader_get_env` backs
- * `std/env::get_env`: it boxes the variable's value as a string (str_tag) or
- * returns a null box when the variable is unset.
+ * `vader_get_env` backs `std/env::get_env`: it boxes the variable's value as a
+ * string (str_tag) or returns a null box when the variable is unset.
  */
-#if defined(_WIN32)
-#  ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#    define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
-#  endif
-/* True iff the Windows console behind `f` is interactive AND virtual-terminal
- * processing can be enabled on it — only then do ANSI escapes render rather
- * than print literally. Idempotent: re-enabling VT on an already-VT console is
- * a no-op, and the per-stream cache means it runs at most once. */
-static int vader_win_console_supports_ansi(FILE* f) {
-    if (!_isatty(_fileno(f))) return 0;
-    HANDLE h = (HANDLE) _get_osfhandle(_fileno(f));
-    if (h == INVALID_HANDLE_VALUE) return 0;
-    DWORD mode = 0;
-    if (!GetConsoleMode(h, &mode)) return 0;
-    return SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) ? 1 : 0;
-}
-#endif
 
 /* Ordinals must match `std/target::Os`, declaration order. An unsupported
  * platform is a build error rather than a guess: the OS set is closed, and a
@@ -3572,19 +3549,6 @@ int32_t vader_current_arch(void) {
 #endif
 }
 
-vader_bool_t vader_is_tty(int32_t stream) {
-    /* Index by Stream tag: Stdout = 0, Stderr = 1. */
-    static int cache[2] = { -1, -1 };
-    int i = (stream == 1) ? 1 : 0;
-    if (cache[i] < 0) {
-#if defined(_WIN32)
-        cache[i] = vader_win_console_supports_ansi(i == 1 ? stderr : stdout);
-#else
-        cache[i] = isatty(i == 1 ? STDERR_FILENO : STDOUT_FILENO) ? 1 : 0;
-#endif
-    }
-    return cache[i] != 0;
-}
 
 
 /* ----------------------------------------------------------------- raw terminal
@@ -3685,34 +3649,6 @@ int32_t vader_terminal_columns(void) {
 #endif
 }
 
-/* Blocks for the FIRST byte, then returns whatever else is already queued, up to
- * `max`. Reads the raw descriptor rather than `fread` — stdio buffering and raw
- * mode fight, and the "exactly n bytes" contract of a framed read is the wrong
- * shape for keys. Returns "" on EOF or error, which the caller reads as "no more
- * input" and unwinds. */
-vader_string_t vader_terminal_read_keys(int32_t max) {
-    if (max <= 0) return vader_string_new("", 0);
-    if (max > 64) max = 64;
-    char buf[64];
-#if defined(_WIN32)
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return vader_string_new("", 0);
-    DWORD got = 0;
-    if (!ReadFile(h, buf, (DWORD) max, &got, NULL) || got == 0) {
-        return vader_string_new("", 0);
-    }
-    return vader_string_new(buf, (size_t) got);
-#else
-    for (;;) {
-        ssize_t got = read(STDIN_FILENO, buf, (size_t) max);
-        if (got > 0) return vader_string_new(buf, (size_t) got);
-        /* A signal that raw mode did not suppress (SIGWINCH on a resize) can cut
-         * the read short; that is not the end of input, so wait again. */
-        if (got < 0 && errno == EINTR) continue;
-        return vader_string_new("", 0);
-    }
-#endif
-}
 
 /* ----------------------------------------------------------------- process
  *

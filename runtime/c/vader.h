@@ -1186,13 +1186,8 @@ vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
                               uint32_t str_type, uint32_t err_tag);
 
 /* ----------------------------------------------------------------- terminal / env
- * `vader_is_tty` reports whether `stream` (0 = stdout, 1 = stderr) is an
- * interactive terminal whose ANSI escapes will render; on Windows it enables
- * virtual-terminal processing on first probe (false when the console is too old
- * for it). Cached per stream for the process lifetime (Vader has no module-scope
- * run-once, so the memo lives here). Backs `std/tty::is_tty`. `vader_get_env`
- * reads an environment variable and boxes the value as a string (str_tag), or
- * returns a null box when unset; backs `std/env::get_env`. */
+ * `vader_get_env` reads an environment variable and boxes the value as a string
+ * (str_tag), or returns a null box when unset; backs `std/env::get_env`. */
 /*
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
  * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
@@ -1209,7 +1204,6 @@ int32_t        vader_current_os(void);
 /* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
-vader_bool_t   vader_is_tty(int32_t stream);
 
 /* ----------------------------------------------------------------- raw terminal
  * Interactive-prompt primitives backing `std/tty`'s raw mode — what a selectable
@@ -1234,7 +1228,6 @@ vader_bool_t   vader_is_tty(int32_t stream);
 vader_bool_t   vader_terminal_raw_begin(void);
 void           vader_terminal_raw_end(void);
 int32_t        vader_terminal_columns(void);
-vader_string_t vader_terminal_read_keys(int32_t max);
 
 /* ----------------------------------------------------------------- process
  * Non-blocking subprocess primitives backing `std/process::spawn_async`.
