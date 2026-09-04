@@ -269,6 +269,8 @@ vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
 }
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+    vader_gc_top = &vader_global_const_frame;
+    vader_atom_roots_register(vader_global_const_arrays, 1u);
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     void* __args = (void*) vader_runtime_argv(argc, argv, 8u, 165u);
