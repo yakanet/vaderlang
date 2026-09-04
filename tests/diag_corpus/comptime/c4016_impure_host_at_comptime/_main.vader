@@ -1,4 +1,4 @@
-// A `@comptime` const that reaches an impure INTRINSIC host (here `is_tty`, via
+// A `@comptime` const that reaches an impure INTRINSIC host (here `columns`, via
 // the VM-backed comptime pass) is refused with C4016 : running it at build time
 // would bake a non-reproducible value and break the byte-identical bootstrap.
 //
@@ -14,7 +14,7 @@ import "std/tty"
 export INTERACTIVE_AT_BUILD :: read_tty()
 
 read_tty :: fn() -> string {
-    if is_tty() { return "tty" }
+    if columns() > 0 { return "tty" }
     return "pipe"
 }
 

@@ -353,12 +353,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = StringVal { .value = spawn_take_stderr(h.value) } }
     }
     // ---- std/tty + std/env ----------------------------------------------
-    .TtyIsTty -> {
-        tag :: read_i32(stack[arg_base], at_pc, "is_tty stream")
-        if tag is Trap { return tag }
-        stream :: if tag.value == 1 { Stream.Stderr } else { Stream.Stdout }
-        return HostOk { .value = BoolVal { .value = is_tty(stream) } }
-    }
     // Raw mode from the VM is the same call the native binary makes: the VM is
     // itself a native binary, so these are its own intrinsics. It matters because
     // `vader test` runs every @test on the VM — a prompt test that could not
@@ -1077,7 +1071,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .FfiOpen | .FfiSymbol | .FfiCall -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
-    .TtyIsTty -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
     // emit of the same source would differ. That is exactly what `seed.sh check`

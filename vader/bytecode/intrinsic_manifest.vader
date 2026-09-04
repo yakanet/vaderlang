@@ -121,7 +121,7 @@ export IntrinsicId :: enum(u8) {
     // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
     ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
-    TtyIsTty, AbortPanic,
+    AbortPanic,
     // std/target — the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
     TargetCurrentOs, TargetCurrentArch,
@@ -176,7 +176,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_process$spawn_take_stdout"       { return .ProcessSpawnTakeStdout }
     if mangled == r"std_process$spawn_take_stderr"       { return .ProcessSpawnTakeStderr }
 
-    if mangled == r"std_tty$is_tty"                      { return .TtyIsTty }
     if mangled == r"std_tty$raw_mode_begin"              { return .TtyRawModeBegin }
     if mangled == r"std_tty$raw_mode_end"                { return .TtyRawModeEnd }
     if mangled == r"std_tty$columns"                     { return .TtyColumns }
