@@ -537,7 +537,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
         return io_err_shim(head, "vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u", types)
     }
-    .IoPollStdin -> { return "${head} { return vader_poll_stdin(a0); }" }
 
     // std/string internals + std/core string intrinsics.
     .ByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
@@ -651,15 +650,18 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // the RIGHT value for an unnamed member, but it is a defined one, and
             // a wrong answer beats undefined behaviour.
             lines.push("${mirror} p${j} = {0};")
-            if !param_is_mutable(sig, j) {
-                // Read direction: C reads what Vader holds, so fill first.
-                push_member_copies(
-                    types, bc_struct_fields(types, sig.param_types[j]),
-                    "p${j}", "((${vader_ty}*) a${j})", true, lines, 0,
-                )
-            } else {
-                // Write direction: the callee fills `p`, and it travels back
-                // after the call (see `after_lines` below).
+            // Filled BEFORE the call either way. `!` grants mutation; it does not
+            // say the value is meaningless on entry, and a C parameter is often
+            // IN-OUT — `poll` reads `fd` and `events` to decide what to watch and
+            // writes `revents`. Filling a pure-out parameter costs one copy the
+            // callee overwrites; NOT filling an in-out one hands C a zeroed struct,
+            // which is what made `poll` watch nothing.
+            push_member_copies(
+                types, bc_struct_fields(types, sig.param_types[j]),
+                "p${j}", "((${vader_ty}*) a${j})", true, lines, 0,
+            )
+            if param_is_mutable(sig, j) {
+                // And it travels back after the call (see `after_lines` below).
                 push_member_copies(
                     types, bc_struct_fields(types, sig.param_types[j]),
                     "p${j}", "((${vader_ty}*) a${j})", false, after_lines, 0,

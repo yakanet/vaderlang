@@ -415,9 +415,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if message is Trap { return message }
         return Trap { .message = "vader: panic — ${message.value}" }
     }
-    // Hosts served natively (C shims) but not by the VM, plus non-intrinsics —
-    // grouped so a new IntrinsicId variant still trips T3013 here.
-    .IoPollStdin | .NotIntrinsic -> {}
+    // Non-intrinsics. Kept as an arm rather than a wildcard so a new
+    // `IntrinsicId` variant still trips T3013 here.
+    .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
@@ -1117,7 +1117,7 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 // `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
 // reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoReadDir | .IoPollStdin -> true
+    .IoReadDir -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.

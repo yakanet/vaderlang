@@ -220,6 +220,28 @@ export ScreenBufferInfo :: struct {
 @extern("kernel32", "GetConsoleScreenBufferInfo")
 export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBufferInfo!) -> bool
 
+/// `PeekNamedPipe`. Reports how many bytes are readable WITHOUT consuming them.
+///
+/// It works on an anonymous pipe too, despite the name — which is what makes it
+/// the console-less way to ask "is there input". False when the handle is not a
+/// pipe (a console, a redirected file) or the peer closed it; a caller reads that
+/// as "go ahead and read", never as "idle".
+///
+/// @param buf        always null here: we ask for the COUNT, not the bytes.
+/// @param read       always null, for the same reason.
+/// @param available  receives the byte count; a one-element array so it reads back.
+/// @param message    always null: only a message-mode pipe uses it.
+@c_header("<windows.h>")
+@extern("kernel32", "PeekNamedPipe")
+export peek_named_pipe :: fn(h: Handle, buf: CPointer | null, size: u32,
+                             read: CPointer | null, available: u32[]!,
+                             message: CPointer | null) -> bool
+
+/// `Sleep`. Milliseconds, and it is the only wait Win32 offers without a handle.
+@c_header("<windows.h>")
+@extern("kernel32", "Sleep")
+export sleep_ms :: fn(ms: u32) -> void
+
 /// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
 /// translation of Ctrl-C into a signal — plus the one it turns on, so escape
 /// sequences arrive as bytes.

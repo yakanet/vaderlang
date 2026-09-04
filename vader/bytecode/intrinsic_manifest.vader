@@ -107,7 +107,6 @@ export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/io
     IoReadDir,
-    IoPollStdin,
     // std/core string + bytes
     ByteLen, ByteAt,
     Bytes, BytesToString, StringIndexAt, StringHash,
@@ -148,7 +147,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
     if mangled == r"vader_vm$ffi_call"                    { return .FfiCall }
     if mangled == r"std_io$read_dir"                     { return .IoReadDir }
-    if mangled == r"std_io$poll_stdin"                   { return .IoPollStdin }
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
     if mangled == r"std_core$byte_at"                    { return .ByteAt }

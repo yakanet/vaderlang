@@ -71,6 +71,32 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 @extern("read")
 export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
 
+/// `struct pollfd` — one descriptor and what to watch it for.
+///
+/// Field names are the C ones because a mirror copies BY NAME.
+@c_struct("struct pollfd")
+export Pollfd :: struct {
+    fd:      i32
+    events:  i16
+    revents: i16
+}
+
+/// `POLLIN` — data is available to read. 1 on both systems.
+export POLLIN: i16: 1
+
+/// `poll(2)` on a SINGLE descriptor.
+///
+/// `poll` takes an array; one element crosses as its address, which is the same
+/// thing to C. A caller watching several would need the array form.
+///
+/// @param fds         the descriptor to watch; `revents` is filled in.
+/// @param nfds        always 1 here.
+/// @param timeout_ms  milliseconds, negative to block.
+/// @return            how many descriptors are ready, 0 on timeout, -1 on error.
+@c_header("<poll.h>")
+@extern("poll")
+export sys_poll_one :: fn(@c_pointer fds: Pollfd!, nfds: u64, timeout_ms: i32) -> i32
+
 /// Bytes a `struct termios` occupies. MEASURED: 72 on Darwin, 60 on Linux —
 /// x86_64 and arm64 alike, the type being built from fixed-width members.
 ///

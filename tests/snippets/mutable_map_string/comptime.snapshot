@@ -3,6 +3,7 @@
 ## tests/snippets/mutable_map_string
 
 ## generic instances
+  ArrayOps<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -32,7 +33,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  ArrayOps<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>

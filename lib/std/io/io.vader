@@ -236,7 +236,59 @@ read_stdin :: fn(n: usize) -> string | IOError {
 /// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
 /// @return            `true` if a subsequent `read_stdin` won't block on the
 ///                    first byte (data ready, or EOF/hangup pending).
-@intrinsic export poll_stdin :: fn(timeout_ms: i32) -> bool
+@target
+export poll_stdin :: fn(timeout_ms: i32) -> bool {
+    // No descriptor to poll — `wasi-wasm32` and `browser-wasm32`. Reporting ready
+    // lets the read attempt observe the real state, and never spins.
+    return true
+}
+
+@target(.Linux, .Darwin)
+poll_stdin :: fn(timeout_ms: i32) -> bool {
+    fds :: Pollfd { .fd = 0, .events = POLLIN, .revents = 0 }
+    // A negative result (`EINTR`, say) reads as "nothing pending": the caller
+    // then proceeds to flush, which is harmless.
+    return sys_poll_one(fds, 1, timeout_ms) > 0
+}
+
+/// How long a Windows poll waits between peeks.
+///
+/// `PeekNamedPipe` answers instantly, so the timeout is emulated in slices. This
+/// loop runs once per input burst, never per byte.
+POLL_SLICE_MS: u32 : 5
+
+@target(.Windows)
+poll_stdin :: fn(timeout_ms: i32) -> bool {
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    if h == INVALID_HANDLE {
+        return true
+    }
+    waited: i32 = 0
+    for {
+        avail: u32[]! = [0]
+        // False means not a pipe (console, redirected file) or the peer closed
+        // it. Ready, so the next read proceeds or observes EOF — never a false
+        // "idle" that could spin.
+        if !peek_named_pipe(h, null, 0, null, avail, null) {
+            return true
+        }
+        if avail[0] > 0 {
+            return true
+        }
+        if timeout_ms >= 0 && waited >= timeout_ms {
+            return false
+        }
+        slice := POLL_SLICE_MS
+        if timeout_ms >= 0 {
+            remaining :: u32(timeout_ms - waited)
+            if remaining < slice {
+                slice = remaining
+            }
+        }
+        sleep_ms(slice)
+        waited += i32(slice)
+    }
+}
 
 /// Read a file fully into a fresh owned byte array. Lossless for arbitrary
 /// binary — the bytes are taken verbatim, no UTF-8 reinterpretation. This is
