@@ -1988,6 +1988,14 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * Same write-barrier rule as `vader_gc_scan_box`. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
+    /* Membership BEFORE the header read. `vader_gc_forward` guards this way and
+     * this function did not: its fast path read `hdr->forward` on whatever the
+     * slot held. A slot holding a non-heap address then had those eight bytes
+     * read as a forwarding pointer and written back — for a `.text` address
+     * (`fn.addr`) that is machine code, never NULL, so the callback pointer was
+     * replaced by an instruction encoding and the next call jumped to it. An
+     * immortal or an off-heap pointer is not ours to move. */
+    if (!vader_in_young_from(*slot) && !vader_in_old(*slot)) return;
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
     if (hdr->forward != NULL) { *slot = hdr->forward; }
     else { *slot = vader_gc_forward(*slot, hdr->type_index); }
