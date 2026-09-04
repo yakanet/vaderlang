@@ -107,6 +107,7 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
     match ins {
         is InstrConst             -> { return null }
         is InstrFnRef             -> { return null }
+        is InstrFnAddr            -> { return null }
         is InstrDataConst         -> { return null }
         is InstrTypeConst         -> { return null }
         is InstrMove         as i -> { return i.src }

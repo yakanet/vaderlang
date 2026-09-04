@@ -217,10 +217,9 @@ export FnRef :: struct { function_index: i32, type_id: i32 }
 /// Native only: the interpreter holds a function as a bytecode index and has no
 /// machine code to address, so `vader/vm/exec` traps on this op.
 ///
-/// ⚠️ NOTHING EMITS IT YET. Reserved the way an unemitted diagnostic code is
-/// (`diagnostics/codes.vader`): the format, the DCE walk, the native emit and the
-/// linkage promotion are wired, and `midir` does not build it. A fn-typed
-/// `@extern` parameter is refused at typecheck until it does.
+/// Built by `midir/build::build_extern_args` for a callback argument, and only
+/// for one that NAMES a function: a closure has no address of its own, which
+/// `typecheck/call::reject_indirect_callbacks` enforces.
 export FnAddr :: struct { function_index: i32 }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`

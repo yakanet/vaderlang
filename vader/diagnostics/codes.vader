@@ -119,9 +119,9 @@ export TypecheckCode :: enum(u8) {
     ImmutableValueIntoMutableSlot,      // T3077
     MethodOnlyBehindNamespaceAlias,     // T3078
     InvalidParameterDecorator,          // T3079
-    // T3080 (CSizeMissesTarget) retired : `@c_size` is gone from the language.
-    // A mirror field's width now comes from its Vader type, pinned to the C one
-    // by the `_Static_assert` the emitter derives.
+    // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
+    // here rather than carrying a hole, per §12.
+    CallbackNotDirectFn,                // T3080
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -512,6 +512,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
     .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
+    .CallbackNotDirectFn                -> CodeInfo { .id = "T3080", .message = "callback argument must name a function directly" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

@@ -570,9 +570,9 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     lent_structs: LentStruct[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
-        // See `bytecode/op::FnAddr`. Unreachable while a fn-typed `@extern`
-        // parameter is refused at typecheck; kept so the day it is admitted, the
-        // interpreter says so rather than passing a meaningless word.
+        // Unreachable in practice — `exec` traps on `fn.addr` before the value
+        // could reach here — but a `.virt` read from elsewhere need not have
+        // come through that path. See `bytecode/op::FnAddr`.
         if v is FnVal {
             return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a callback, and the interpreter has no address for a Vader function" }
         }

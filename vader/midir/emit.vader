@@ -1080,6 +1080,17 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_result(ctx, pos, fr.dst, fr.span)
         return
     }
+    if ins is InstrFnAddr as fa {
+        fn_idx_opt :: ctx.project.function_index_by_symbol_id[fa.fn_symbol.id]
+        if fn_idx_opt is i32 as fn_idx {
+            push_emit(ctx, FnAddr { .function_index = fn_idx }, fa.span)
+        } else {
+            // Same materialisation-gap class as the InstrFnRef arm above.
+            panic("midir/emit: unresolved fn-addr '${fa.fn_symbol.name}' (id=${fa.fn_symbol.id}) — callback target was never materialised")
+        }
+        emit_result(ctx, pos, fa.dst, fa.span)
+        return
+    }
     if ins is InstrVirtualCall as vc {
         for ai in 0..<vc.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, vc.args[ai], vc.span) }

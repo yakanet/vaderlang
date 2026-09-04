@@ -177,6 +177,7 @@ export Instruction ::
     | InstrCall
     | InstrCallIndirect
     | InstrFnRef
+    | InstrFnAddr
     | InstrVirtualCall
     | InstrFieldGet
     | InstrFieldSet
@@ -272,6 +273,18 @@ export InstrFnRef :: struct {
     dst:       LocalId
     fn_symbol: Symbol
     type:      Type                     // the fn type
+}
+
+/// A function's ADDRESS, for a C callback. Lowers to bytecode `fn.addr`.
+///
+/// Distinct from `InstrFnRef`, which builds a callable Vader value; see
+/// `bytecode/op::FnAddr` for why the two cannot be the same thing. Built only
+/// by `build_call` for an argument in a callback position of an `@extern`.
+export InstrFnAddr :: struct {
+    span:      Span
+    dst:       LocalId
+    fn_symbol: Symbol
+    type:      Type                     // the fn type, as written at the site
 }
 
 /// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.

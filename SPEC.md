@@ -2705,11 +2705,52 @@ Plus, on top of the scalars:
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; native backend only |
 
-Anything else (a plain struct, a fn-typed param, a trait, a type-param) is
-`T3050`. Future iterations may add:
+| a **function type** | ARGUMENT only | a callback — see below; native backend only |
+
+Anything else (a plain struct, a trait, a type-param) is `T3050`. Future
+iterations may add:
 - opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix B)
 - struct passing BY VALUE
-- callbacks (C → Vader function pointers)
+
+### Callbacks
+
+A parameter may be a **function type** — a C callback. What crosses is the
+function's ADDRESS, so every part of its signature has to cross too: C calls it
+with those very types.
+
+```vader
+double_it :: fn(x: i32) -> i32 = x * 2
+
+@extern call_twice :: fn(f: fn(i32) -> i32) -> i32
+
+call_twice(double_it)                 // ok
+call_twice((x: i32) -> x * 2)         // T3080
+```
+
+**The argument must NAME a function.** A lambda or a closure is a value whose
+code takes a leading environment and boxed arguments, so a foreign callee calling
+it would jump into the wrong ABI; only a named function's own emitted symbol
+carries the native signature. The type is right in both cases — this is a shape
+rule, which is why it has a diagnostic of its own (`T3080`).
+
+**A callback is NATIVE-ONLY.** Under the interpreter a function is a bytecode
+index with no machine code to address, so a program that passes one traps rather
+than running. Build it instead.
+
+**A callback's own signature is narrower than an `@extern`'s.** An `@extern`
+parameter reaches C through a shim that marshals — `string` becomes a
+`const char*`, an array becomes its data pointer — but C calls a callback
+DIRECTLY, with no shim anywhere. So a callback signature admits only the types
+that need no marshalling: the numeric scalars, `bool`, `char`, and `void` as a
+return. `string` and arrays are `T3050` inside one.
+
+A function type is rejected as a RETURN: a C function handing back code Vader
+would call has no representation here.
+
+The name must be reachable WITHOUT a namespace alias: `H.double_it` is `T3080`
+today, because the check resolves an identifier and an alias-qualified name is
+not one.
+
 
 ### Native target — code generation
 

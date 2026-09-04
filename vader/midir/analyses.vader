@@ -66,6 +66,7 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
     match ins {
         is InstrConst        -> {}
         is InstrFnRef        -> {}
+        is InstrFnAddr       -> {}
         is InstrMove         as i -> { visit(i.src) }
         is InstrBinOp        as i -> {
             visit(i.lhs)
@@ -545,6 +546,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrCellGet           -> { return ins.dst }
         is InstrMakeClosure       -> { return ins.dst }
         is InstrFnRef             -> { return ins.dst }
+        is InstrFnAddr            -> { return ins.dst }
         is InstrDataConst         -> { return ins.dst }
         is InstrCall              -> { return ins.dst }
         is InstrCallIndirect      -> { return ins.dst }

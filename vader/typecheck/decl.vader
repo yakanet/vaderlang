@@ -735,12 +735,59 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             }
             return is_extern_abi_element(a.element)
         }
-        // A fn type is among the rejected: it would reach the shim as a
-        // `vader_fn_t` whose `code` takes a leading `env` and boxed arguments,
-        // and the foreign callee would jump into that. `bytecode/op::FnAddr` is
-        // the shape a callback needs and nothing produces it yet.
+        is FnType as f        -> {
+            // A CALLBACK, in parameter position only. What crosses is the
+            // function's ADDRESS (`bytecode/op::FnAddr`), so every part of its
+            // signature has to cross too — C will call it with those very types.
+            //
+            // A return is rejected: a C function handing back code Vader would
+            // call has no representation here.
+            if is_return {
+                return false
+            }
+            // A callback's own signature is NARROWER than an extern's. An
+            // `@extern` parameter gets a shim that marshals — `string` becomes a
+            // `const char*`, an array becomes its data pointer — but C calls a
+            // callback DIRECTLY, with no shim anywhere. So only the types that
+            // need no marshalling may appear in one; a `string` parameter would
+            // hand the Vader body a `const char*` where it expects an atom id.
+            if !is_unmarshalled_scalar(f.return_type, true) {
+                return false
+            }
+            for pt in f.params {
+                if !is_unmarshalled_scalar(pt, false) {
+                    return false
+                }
+            }
+            return true
+        }
         _                     -> { return false }
     }
+}
+
+/// Whether `t` crosses the C boundary with no marshalling at all.
+///
+/// The subset a CALLBACK signature may use: C calls it directly, so every type
+/// in it has to have the same representation on both sides. `string` and arrays
+/// are excluded — an `@extern` parameter gets them through a shim that converts,
+/// and a callback has no shim.
+///
+/// @param t          the candidate type.
+/// @param is_return  whether it sits in return position (`void` is allowed there).
+is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
+    if t is DistinctType as d {
+        return is_unmarshalled_scalar(d.backing, is_return)
+    }
+    if t is UnresolvedType {
+        return true
+    }
+    if t !is PrimitiveType {
+        return false
+    }
+    if t.name == "void"   { return is_return }
+    if t.name == "string" { return false }
+    if t.name == "null"   { return false }
+    return true
 }
 
 /// True when `t` is `string | null` — the shape a C function returning a
