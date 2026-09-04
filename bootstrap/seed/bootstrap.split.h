@@ -56,7 +56,6 @@ typedef struct vader_struct___Tuple_i32_Union_i32_null__4a877297_t vader_struct_
 typedef struct vader_struct___Tuple_i32_bool_cd1657f9_t vader_struct___Tuple_i32_bool_cd1657f9_t;
 typedef struct vader_struct___Tuple_i32_i32_3103e027_t vader_struct___Tuple_i32_i32_3103e027_t;
 typedef struct vader_struct___Tuple_i32_string_d0b3dcb6_t vader_struct___Tuple_i32_string_d0b3dcb6_t;
-typedef struct vader_struct___Tuple_i64_bool_e1f30c91_t vader_struct___Tuple_i64_bool_e1f30c91_t;
 typedef struct vader_struct___Tuple_string_Array_i32__4ea60c40_t vader_struct___Tuple_string_Array_i32__4ea60c40_t;
 typedef struct vader_struct___Tuple_string_Array_string__55ab4b78_t vader_struct___Tuple_string_Array_string__55ab4b78_t;
 typedef struct vader_struct___Tuple_string_i32_4ccf6d4f_t vader_struct___Tuple_string_i32_4ccf6d4f_t;
@@ -221,7 +220,6 @@ typedef struct vader_struct_toolchain_ast_BindingPattern_t vader_struct_toolchai
 typedef struct vader_struct_toolchain_ast_BlockExpr_t vader_struct_toolchain_ast_BlockExpr_t;
 typedef struct vader_struct_toolchain_ast_BoolLitExpr_t vader_struct_toolchain_ast_BoolLitExpr_t;
 typedef struct vader_struct_toolchain_ast_BreakStmt_t vader_struct_toolchain_ast_BreakStmt_t;
-typedef struct vader_struct_toolchain_ast_CSizeSelector_t vader_struct_toolchain_ast_CSizeSelector_t;
 typedef struct vader_struct_toolchain_ast_CallArg_t vader_struct_toolchain_ast_CallArg_t;
 typedef struct vader_struct_toolchain_ast_CallExpr_t vader_struct_toolchain_ast_CallExpr_t;
 typedef struct vader_struct_toolchain_ast_CastExpr_t vader_struct_toolchain_ast_CastExpr_t;
@@ -1017,11 +1015,6 @@ struct vader_struct___Tuple_i32_string_d0b3dcb6_t {
     vader_obj_header_t header;
     int32_t f__0;
     vader_string_t f__1;
-};
-struct vader_struct___Tuple_i64_bool_e1f30c91_t {
-    vader_obj_header_t header;
-    int64_t f__0;
-    bool f__1;
 };
 struct vader_struct___Tuple_string_Array_i32__4ea60c40_t {
     vader_obj_header_t header;
@@ -2194,12 +2187,6 @@ struct vader_struct_toolchain_ast_BreakStmt_t {
     size_t f_id;
     vader_box_t f_label;
 };
-struct vader_struct_toolchain_ast_CSizeSelector_t {
-    vader_obj_header_t header;
-    void* f_span;
-    uint64_t f_bytes;
-    vader_string_t f_os;
-};
 struct vader_struct_toolchain_ast_CallArg_t {
     vader_obj_header_t header;
     void* f_span;
@@ -2654,8 +2641,6 @@ struct vader_struct_toolchain_ast_StructField_t {
     vader_box_t f_ty;
     uint8_t f_visibility;
     vader_box_t f_default_v;
-    void* f_c_sizes;
-    bool f_c_size_missing;
 };
 struct vader_struct_toolchain_ast_StructLitExpr_t {
     vader_obj_header_t header;
@@ -2863,8 +2848,6 @@ struct vader_struct_vader_bytecode_BcField_t {
     vader_obj_header_t header;
     vader_string_t f_name;
     int32_t f_type_index;
-    int64_t f_c_size;
-    bool f_c_size_missing;
 };
 struct vader_struct_vader_bytecode_BcFn_t {
     vader_obj_header_t header;
@@ -5989,7 +5972,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2431u
+#define VADER_COMPTIME_ATOM_COUNT 2413u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
