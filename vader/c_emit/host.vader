@@ -647,7 +647,12 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // decides, so an optional per-field `@c_name` slots in there alone.
             mirror :: mirrored_c_struct(types, sig.param_types[j])
             vader_ty :: struct_c_name(bc_struct_name(types, sig.param_types[j]))
-            lines.push("${mirror} p${j};")
+            // ZERO-INITIALISED. A mirror may be a PREFIX, and where C READS the
+            // members it does not name are still passed to the callee — from the
+            // stack, uninitialised, if this is left bare. Zero is not necessarily
+            // the RIGHT value for an unnamed member, but it is a defined one, and
+            // a wrong answer beats undefined behaviour.
+            lines.push("${mirror} p${j} = {0};")
             if !param_is_mutable(sig, j) {
                 // Read direction: C reads what Vader holds, so fill first.
                 push_member_copies(

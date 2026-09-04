@@ -87,7 +87,7 @@ _Static_assert(sizeof(((div_t*) 0)->rem) <= sizeof(((vader_struct_snippet_Div_t*
 _Static_assert((((__typeof__(((div_t*) 0)->rem)) -1) < 0) == 1, "div_t.rem signedness");
 
 static int32_t vader_host_snippet_c_abs(int32_t a0) { return abs(a0); }
-static void vader_host_snippet_fill_div(void* a0, int32_t a1, int32_t a2) { div_t p0; fill_div(&p0, a1, a2); ((vader_struct_snippet_Div_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Div_t*) a0)->f_rem = p0.rem; return; }
+static void vader_host_snippet_fill_div(void* a0, int32_t a1, int32_t a2) { div_t p0 = {0}; fill_div(&p0, a1, a2); ((vader_struct_snippet_Div_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Div_t*) a0)->f_rem = p0.rem; return; }
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 9u, 8u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
