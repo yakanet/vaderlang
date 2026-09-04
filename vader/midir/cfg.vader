@@ -284,7 +284,9 @@ export InstrFnAddr :: struct {
     span:      Span
     dst:       LocalId
     fn_symbol: Symbol
-    type:      Type                     // the fn type, as written at the site
+    /// The callee's signature as written at the site. Informational — it feeds
+    /// the dump only. `dst` is typed `TY_CPOINTER`, not this.
+    type:      Type
 }
 
 /// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.

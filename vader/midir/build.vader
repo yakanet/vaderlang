@@ -824,7 +824,12 @@ build_extern_args :: fn(
         if a.symbol.kind != SymbolKind.Fn {
             panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function — typecheck should have refused it (T3080)")
         }
-        dst :: fresh_tmp(fn_ctx, "fn_addr", a.type)
+        // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
+        // a fn-typed slot is a `ValType.Ref` — which `c_emit` puts in the frame's
+        // `raw[]`, where `vader_gc_scan_raw` dereferences it as an object header
+        // with no heap-membership check. `emit_fn_addr` makes the same choice for
+        // the temp; a slot is the other half of it.
+        dst :: fresh_tmp(fn_ctx, "fn_addr", TY_CPOINTER)
         emit(fn_ctx, InstrFnAddr {
             .dst = dst, .fn_symbol = a.symbol, .type = a.type, .span = a.span,
         })

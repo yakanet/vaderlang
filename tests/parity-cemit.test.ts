@@ -285,6 +285,7 @@ const C_PARITY = new Set<string>([
   // prints, which is what makes Oracle 2 discriminate — `helper.c` calls the
   // callback, so a wrong address crashes instead of passing quietly.
   "extern_callback",
+  "extern_callback_slot",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
