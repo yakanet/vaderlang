@@ -42,9 +42,9 @@ Every newly allocated diagnostic code gets one — see `.claude/CLAUDE.md`
 if it contains a code you didn't intend, an earlier phase fired first and
 the fixture is testing something else.
 
-Pre-MVP, codes may be renumbered or reused. When that happens the fixture
-directory, the `<phase>_info` message and the snapshot all move in the
-same commit.
+Codes may be renumbered or reused while nothing outside this repo consumes
+them. When that happens the fixture directory, the `<phase>_info` message and
+the snapshot all move in the same commit.
 
 ## Coverage
 

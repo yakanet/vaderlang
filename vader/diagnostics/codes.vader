@@ -18,8 +18,8 @@
 // a `<phase>_error(.Variant, ...)` call site is reserved-for-future, not dead
 // — it keeps its wire ID for when the check ships.
 //
-// PRE-MVP : IDs are NOT frozen. Nothing outside this repo consumes them, so a
-// code may be renumbered, reused, or given a new meaning — see `.claude/CLAUDE.md`
+// IDs are NOT frozen. Nothing outside this repo consumes them, so a code may be
+// renumbered, reused, or given a new meaning — see `.claude/CLAUDE.md`
 // §12. The constraint is per-commit, not forever : one meaning per ID at a time,
 // and the `<phase>_info` message, the `tests/diag_corpus/` fixture and the
 // committed snapshots move together. The retirement comments below are kept as
@@ -42,8 +42,8 @@ export LexerCode :: enum(u8) {
     IntegerLiteralOverflow,                 // L0011
 }
 
-// Typecheck-pass codes. New codes are appended ; retired IDs may be reused
-// pre-MVP (see the file header).
+// Typecheck-pass codes. New codes are appended ; retired IDs may be reused —
+// see the file header for the condition.
 export TypecheckCode :: enum(u8) {
     TypeMismatch,                       // T3001
     ExpectedKnownType,                  // T3002
@@ -242,8 +242,8 @@ export LowerCode :: enum(u8) {
     ComptimeForNotUnrollable,               // M5010
 }
 
-// `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are
-// free to reuse pre-MVP (see the file header).
+// `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
+// to reuse — see the file header for the condition.
 export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
     UnreachableCode,                        // W0002

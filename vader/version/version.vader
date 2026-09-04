@@ -4,7 +4,7 @@
 
 module "vader/version"
 
-export CLI_VERSION :: "0.0.0-pre-mvp"
+export CLI_VERSION :: "0.1.0"
 
 export BYTECODE_VERSION_MAJOR :: 0
 export BYTECODE_VERSION_MINOR :: 1
