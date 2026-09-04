@@ -13,6 +13,7 @@
 
 module "vader/c_emit"
 
+import "std/collections"
 import "std/string"
 import "std/string_builder"
 import "vader/bytecode"
@@ -68,7 +69,7 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // than what the library declares, so the field-by-field copy cannot
     // truncate. `cc` IS the consumer: the check is spent entirely at build
     // time, and nothing reads it at run time.
-    asserts :: c_struct_layout_asserts(ctx.module.types)
+    asserts :: c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module))
     if asserts.len() > 0 {
         out.append("// `@c_struct` layout — checked against the real headers.\n")
         for a in asserts { out.append("${a}\n") }
@@ -76,6 +77,53 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
     for s in shims { out.append("${s}\n") }
     out.append("\n")
+}
+
+/// Type indices of mirrors that appear as a nested MEMBER of another mirror.
+///
+/// A nested mirror never crosses on its own: C holds it inline inside its
+/// parent, and both the shim and the interpreter reach it through the parent's
+/// block. Its leaves are already pinned by the parent's asserts, under the C
+/// path that actually exists (`srWindow.Right`).
+///
+/// @param types  the module type table.
+/// @return       the set of nested member type indices.
+nested_member_mirrors :: fn(types: BcType[]) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    for t in types {
+        if t !is BcStruct {
+            continue
+        }
+        if t.c_name == "" {
+            continue
+        }
+        for f in t.fields {
+            if nested_mirror(f, types) != null {
+                out.add(f.type_index)
+            }
+        }
+    }
+    return out
+}
+
+/// Type indices of mirrors an `@extern` names as a PARAMETER — the ones that
+/// actually cross.
+///
+/// @param module  the bytecode module whose imports are scanned.
+/// @return        the set of parameter mirror type indices.
+crossing_mirrors :: fn(module: BytecodeModule) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    for imp in module.imports {
+        if !imp.is_extern {
+            continue
+        }
+        for ti in imp.signature.param_types {
+            if mirrored_c_struct(module.types, ti) != "" {
+                out.add(ti)
+            }
+        }
+    }
+    return out
 }
 
 /// `_Static_assert` pinning a mirrored field's SIGNEDNESS to the C field's, or
@@ -208,8 +256,9 @@ push_leaf_asserts :: fn(
 ///
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.
-c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
+c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> string[] {
     out: string[]! = []
+    nested :: nested_member_mirrors(types)
     for type_index in 0..<types.len() {
         t :: types[type_index]
         if t !is BcStruct {
@@ -219,6 +268,18 @@ c_struct_layout_asserts :: fn(types: BcType[]) -> string[] {
             continue
         }
         if t.fields.len() == 0 {
+            continue
+        }
+        // A mirror reached ONLY as a nested member gets no block of its own. It
+        // never crosses: the parent's asserts already pin its leaves under the
+        // real C path, and the interpreter inlines it into the parent's block
+        // rather than laying one out for it. Emitting one anyway adds a
+        // `prefix` bound on a block nothing builds, which can reject a
+        // perfectly good declaration while naming a type the user put in no
+        // signature. A mirror that is BOTH nested and a parameter keeps its
+        // block — and so does every mirror when `crossing` comes back empty,
+        // which is the safe way for this to degrade.
+        if i32(type_index) in nested && !(i32(type_index) in crossing) {
             continue
         }
         vt :: struct_c_name(t.name)
