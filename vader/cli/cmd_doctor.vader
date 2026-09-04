@@ -161,7 +161,7 @@ check_cc :: fn(cc: string) -> Check {
     if resolved == null {
         // Naming one that IS there turns a dead end into a next step — a user who
         // passed `--cc` at all is the one who needs it most, since the host
-        // default (`driver::default_cc`) is what they overrode.
+        // default (`pipeline::default_cc`) is what they overrode.
         fallback :: first_available(CC_CANDIDATES)
         if fallback == "" {
             tried :: CC_CANDIDATES.join(", ")
@@ -190,7 +190,7 @@ check_cc :: fn(cc: string) -> Check {
 /// C compilers to name when the requested one is missing, most conventional
 /// first.
 ///
-/// Both names a build could reasonably want, whichever host it runs on, since a
+/// Every name a build could reasonably want, whichever host it runs on, since a
 /// user reaching this list has already overridden the host default. MSVC's `cl` is
 /// deliberately absent — `build.ps1` states it is not supported, so naming it
 /// would send someone down a path the toolchain does not take.

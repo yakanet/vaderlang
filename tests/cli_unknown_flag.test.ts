@@ -169,12 +169,8 @@ test("help is generated per action, not one flat string", async () => {
   const perAction = await runCli(["help", "build"], undefined, MEDIUM_BUILD);
   expect(perAction.exit).toBe(0);
   expect(perAction.stdout).toContain("-o, --out=<path>");
-  // A flag's declared default is surfaced rather than described in prose — and
-  // `--cc`'s is resolved on the HOST, so the help states what this machine would
-  // actually invoke rather than a name Windows does not have.
-  expect(perAction.stdout).toContain(
-    process.platform === "win32" ? "(default: gcc)" : "(default: cc)",
-  );
+  // A flag's declared default is surfaced rather than described in prose.
+  expect(perAction.stdout).toContain("(default: cc, or gcc on Windows)");
   // The overview stays an overview: it points at this view instead of inlining
   // every flag of every action.
   expect(overview.stdout).not.toContain("--ldflags");

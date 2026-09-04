@@ -217,7 +217,7 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 
 ```sh
 vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c
-vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (CC env var is a fallback)
+vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`CC` is read by the bootstrap scripts only)
 ```
 
 **Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:

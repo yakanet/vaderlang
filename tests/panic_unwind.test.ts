@@ -17,7 +17,7 @@ const SNIPPET = "tests/snippets/panic_runs_defers/_main.vader";
 const EXPECTED_STDOUT = "reserve inventory\ncharging 500\nrefund 500\nrelease hold\n";
 
 // The compiler the CLI would invoke on THIS host, mirroring
-// `vader/cli/driver.vader::default_cc`. Probing `cc` on Windows skipped the native
+// `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
 // half on the platform that most needs it — and did not even skip cleanly, since
 // `spawn` THROWS on a missing program rather than exiting non-zero.
 const HOST_CC = process.platform === "win32" ? "gcc" : "cc";

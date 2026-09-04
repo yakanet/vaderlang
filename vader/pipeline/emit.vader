@@ -196,6 +196,14 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 
 // ---- native output --------------------------------------------------------
 
+/// The C compiler to invoke when nothing names one, resolved on the HOST.
+///
+/// `cc` is the POSIX-guaranteed name; Windows has none. Keyed on the host and not
+/// on the build target: it names a program to spawn HERE, so a cross build has to
+/// name its own — `--cc=x86_64-w64-mingw32-gcc` on the command line, `ctx.cc` from
+/// a driver.
+export default_cc :: fn() -> string = if current_os() == Os.Windows { "gcc" } else { "cc" }
+
 /// Write `c` beside `out` and link it into a native binary.
 ///
 /// The single link path: every caller that produces a native binary goes
