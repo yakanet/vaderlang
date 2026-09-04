@@ -1224,30 +1224,6 @@ int32_t        vader_current_os(void);
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
 
-/* ----------------------------------------------------------------- raw terminal
- * Interactive-prompt primitives backing `std/tty`'s raw mode — what a selectable
- * list needs and line-oriented stdin cannot give.
- *
- * `raw_mode_begin` puts stdin in raw mode: no echo, no line buffering, and
- * **no signal generation** — so Ctrl-C arrives as the byte 0x03 for the caller to
- * handle rather than killing the process with the terminal left unusable. It
- * returns false when stdin is not an interactive terminal, in which case nothing
- * was changed. Idempotent; the original state is saved on the first successful
- * call and `raw_mode_end` restores it. A caller MUST pair them — `defer` is the
- * Vader-side way, and it covers the panic path too since `vader_trap` runs
- * pending defers before aborting.
- *
- * `terminal_read_keys` blocks for the first byte then returns everything already
- * queued, up to `max`. That is what makes a lone ESC distinguishable from the
- * start of an arrow sequence without any timing. It reads the raw descriptor,
- * NOT `fread` — do not mix it with a stdio read on one stream.
- *
- * `terminal_columns` reports the terminal width, or 0 when it cannot be
- * determined (not a terminal, or the query failed). */
-vader_bool_t   vader_terminal_raw_begin(void);
-void           vader_terminal_raw_end(void);
-int32_t        vader_terminal_columns(void);
-
 /* ----------------------------------------------------------------- process
  * Non-blocking subprocess primitives backing `std/process::spawn_async`.
  * `spawn_start` launches a child and returns a handle (>= 0) into the runtime
