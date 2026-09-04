@@ -105,6 +105,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
             callee: i32 = -1
             if op is Call as c { callee = c.function_index }
             if op is FnRef as fr { callee = fr.function_index }
+            if op is FnAddr as fa { callee = fa.function_index }
             if op is MakeClosure as mc { callee = mc.function_index }
             if callee < 0 { continue }
             if reachable[callee] is bool { continue }
@@ -196,6 +197,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
             }
             if op is FnRef as fr {
                 fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)], .type_id = fr.type_id }
+            }
+            if op is FnAddr as fa {
+                fn_.body[bj] = FnAddr { .function_index = remap[usize(fa.function_index)] }
             }
             if op is MakeClosure as mc {
                 fn_.body[bj] = MakeClosure {

@@ -1252,6 +1252,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
+            is bc.FnAddr -> {
+                // See `bytecode/op::FnAddr` — no compiled code to address here.
+                return Trap {
+                    .message = "fn.addr at pc=${frame.pc}: the interpreter has no address for a Vader function",
+                }
+            }
             is bc.MakeClosure -> {
                 index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "make_closure")
                 if index_check is Trap { return index_check }

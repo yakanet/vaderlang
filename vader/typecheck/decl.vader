@@ -735,6 +735,10 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             }
             return is_extern_abi_element(a.element)
         }
+        // A fn type is among the rejected: it would reach the shim as a
+        // `vader_fn_t` whose `code` takes a leading `env` and boxed arguments,
+        // and the foreign callee would jump into that. `bytecode/op::FnAddr` is
+        // the shape a callback needs and nothing produces it yet.
         _                     -> { return false }
     }
 }

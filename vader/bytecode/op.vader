@@ -165,6 +165,7 @@ export Op :: Unreachable
     | ArrayCopy
     | ArrayRemoveLast
     | ArrayClear
+    | FnAddr
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -205,6 +206,22 @@ export Call :: struct { function_index: i32 }
 /// a local. Sprint 4 (b4) addition ; the resulting `FnVal.env` is
 /// always `null` — closures with captured state come from `MakeClosure`.
 export FnRef :: struct { function_index: i32, type_id: i32 }
+
+/// Push the address of `function_index`'s own compiled symbol — not a `FnVal`.
+///
+/// The shape a C callback needs. `FnRef` pushes a `vader_fn_t { code, env }`
+/// whose `code` takes a leading `env` and boxed arguments (the erased ABI), so a
+/// foreign callee calling it jumps into the wrong ABI; the function's own emitted
+/// symbol carries the native signature.
+///
+/// Native only: the interpreter holds a function as a bytecode index and has no
+/// machine code to address, so `vader/vm/exec` traps on this op.
+///
+/// ⚠️ NOTHING EMITS IT YET. Reserved the way an unemitted diagnostic code is
+/// (`diagnostics/codes.vader`): the format, the DCE walk, the native emit and the
+/// linkage promotion are wired, and `midir` does not build it. A fn-typed
+/// `@extern` parameter is refused at typecheck until it does.
+export FnAddr :: struct { function_index: i32 }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`
 /// carrying the captured cells) and push a `FnVal { function_index, env }`.

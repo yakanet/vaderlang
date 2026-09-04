@@ -570,6 +570,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     lent_structs: LentStruct[]! = []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
+        // See `bytecode/op::FnAddr`. Unreachable while a fn-typed `@extern`
+        // parameter is refused at typecheck; kept so the day it is admitted, the
+        // interpreter says so rather than passing a meaningless word.
+        if v is FnVal {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a callback, and the interpreter has no address for a Vader function" }
+        }
         // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
         // carries that decorator too, and that branch reads a SCALAR. The shim
         // declares a real C struct and marshals by field name; nothing here can

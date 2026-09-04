@@ -685,6 +685,7 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is CallIndirect             -> out.append("call.indirect ${op.type_id}")
         is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
         is FnRef                    -> out.append("fn.ref ${op.function_index} ${op.type_id}")
+        is FnAddr                   -> out.append("fn.addr ${op.function_index}")
         is MakeClosure              -> out.append("make_closure ${op.function_index} ${op.env_type_id}")
         is If                       -> out.append("if")
         is Else                     -> out.append("else")
@@ -872,6 +873,7 @@ annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, o
     if op is ArraySlice as a   { return "${type_label(module, a.type_id)}[]" }
     if op is CallIndirect as c { return type_label(module, c.type_id) }
     if op is FnRef as f        { return fn_label(module, f.function_index) }
+    if op is FnAddr as f       { return fn_label(module, f.function_index) }
     if op is MakeClosure as m  { return fn_label(module, m.function_index) }
     if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
     return ""

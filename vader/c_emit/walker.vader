@@ -208,7 +208,7 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.LoadU8                                                                  { return true }
     if op is vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.StoreU8                                                              { return true }
     if op is vm.I32Const | vm.I64Const | vm.F64Const | vm.BoolConst | vm.CharConst                                             { return true }
-    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef                            { return true }
+    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef | vm.FnAddr                 { return true }
     if op is vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Neg                                             { return true }
     if op is vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg                                             { return true }
     if op is vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg                                                         { return true }
@@ -295,7 +295,7 @@ key_mentions_local :: fn(k: string, slot: i32) -> bool {
 op_allocates :: fn(op: vm.Op) -> bool = match op {
     is vm.StructNew as sn -> !sn.stack
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.FnAddr | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
 /// One C function definition : `static <sig> { <body> }`. Walks the
@@ -595,6 +595,7 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.CallIndirect          -> emit_call_indirect(s, op)
         is vm.VirtualCall           -> emit_virtual_call(s, op)
         is vm.FnRef                 -> emit_fn_ref(s, op)
+        is vm.FnAddr                -> emit_fn_addr(s, op)
         is vm.MakeClosure           -> emit_make_closure(s, op)
         is vm.If                    -> emit_if_open(s)
         is vm.Else                  -> emit_else(s)
@@ -1417,8 +1418,8 @@ pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
     return args
 }
 
-/// The C name of a function's trampoline family, keyed by the function's own
-/// MANGLED name rather than its index in the module table.
+/// A function's C identity, keyed by its own MANGLED name rather than its index
+/// in the module table.
 ///
 /// An index is a rank, and a rank shifts: a function reached by one target only
 /// renumbers every trampoline behind it, so modules whose code is identical
@@ -1427,10 +1428,10 @@ pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
 ///
 /// @param fns    the module's function table.
 /// @param index  the function's index in it.
-/// @return       the sanitised mangled name, or the index when out of range.
-tramp_key :: fn(fns: BcFunction[], index: i32) -> string {
+/// @return       the sanitised mangled name.
+fn_symbol_name :: fn(fns: BcFunction[], index: i32) -> string {
     if index < 0 || usize(index) >= fns.len() {
-        return "${index}"
+        panic("c_emit: op names function ${index}, which the module table does not hold")
     }
     return sanitise(fns[usize(index)].name)
 }
@@ -1439,8 +1440,22 @@ tramp_key :: fn(fns: BcFunction[], index: i32) -> string {
 /// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
 emit_fn_ref :: fn(s: FnState!, op: vm.FnRef) -> void {
     name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) &vader_fn_static_${tramp_key(s.ctx.module.functions, op.function_index)};")
+    line(s, "${name} = (void*) &vader_fn_static_${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
     push_tmp(s, name, .Ref)
+}
+
+/// `fn.addr` — the function's own symbol, not `&vader_fn_static_N`. See
+/// `bytecode/op::FnAddr` for why the two differ.
+emit_fn_addr :: fn(s: FnState!, op: vm.FnAddr) -> void {
+    // `.Pointer`, NOT `.Ref` — the difference is a GC root. A `.Ref` temp lands
+    // in the frame's `raw[]`, and `vader_gc_scan_raw` reads its pointee's header
+    // without checking the pointee is on the heap. A function's address is in
+    // `.text`, so `hdr->forward` would be machine code — never NULL — and the
+    // collector would overwrite the slot. `fn.ref` gets away with `.Ref` because
+    // `vader_fn_static_N` carries a real object header whose `forward` IS NULL.
+    name :: fresh_tmp(s, .Pointer)
+    line(s, "${name} = (void*) &${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
+    push_tmp(s, name, .Pointer)
 }
 
 /// `make_closure` — pop the captured env (a boxed struct), heap-allocate a
@@ -1453,7 +1468,7 @@ emit_make_closure :: fn(s: FnState!, op: vm.MakeClosure) -> void {
     fn_obj :: aux(s, "closure")
     line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));")
     line(s, "vader_obj_header_init(${fn_obj}, ${op.env_type_id}u);")
-    line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${tramp_key(s.ctx.module.functions, op.function_index)};")
+    line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
     env_ptr :: obj_ptr_of(env)
     line(s, "${fn_obj}->env = ${env_ptr};")
     name :: fresh_tmp(s, .Ref)
@@ -1620,8 +1635,8 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         if usage.fn_ref_type[i] >= 0 {
             sig :: fns[i].signature
             head :: tramp_head(sig.params.len())
-            out.append("vader_box_t vader_fn_tramp_${tramp_key(fns, i32(i))}(${head});\n")
-            out.append("extern vader_fn_t vader_fn_static_${tramp_key(fns, i32(i))};\n")
+            out.append("vader_box_t vader_fn_tramp_${fn_symbol_name(fns, i32(i))}(${head});\n")
+            out.append("extern vader_fn_t vader_fn_static_${fn_symbol_name(fns, i32(i))};\n")
         }
     }
     for i in 0..<fns.len() {
@@ -1630,7 +1645,7 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             sig :: fns[i].signature
             tail :: i32(sig.params.len()) - 1
             head :: tramp_head(usize(tail))
-            out.append("vader_box_t vader_fn_lift_${tramp_key(fns, i32(i))}(${head});\n")
+            out.append("vader_box_t vader_fn_lift_${fn_symbol_name(fns, i32(i))}(${head});\n")
         }
     }
     out.append("\n")

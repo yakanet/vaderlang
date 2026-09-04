@@ -271,10 +271,13 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
 
 /// Index of the function `op` refers to, or `-1` when it refers to none.
 /// `fn.ref` counts: the reference itself crosses units even though the call
-/// through it does not.
+/// through it does not. `fn.addr` counts for a stronger reason — it emits
+/// `&<symbol>`, so a unit taking the address of a function defined in another
+/// one needs that function to keep external linkage or the link fails.
 callee_index_of :: fn(op: Op) -> i32 {
-    if op is Call as c  { return c.function_index }
-    if op is FnRef as f { return f.function_index }
+    if op is Call as c   { return c.function_index }
+    if op is FnRef as f  { return f.function_index }
+    if op is FnAddr as f { return f.function_index }
     return -1
 }
 
