@@ -71,6 +71,34 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 @extern("read")
 export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
 
+/// `struct winsize` — the terminal size `TIOCGWINSZ` fills in.
+///
+/// Field names are the C ones because a mirror copies BY NAME; the snake_case
+/// rule does not reach across the boundary.
+@c_struct("struct winsize")
+export Winsize :: struct {
+    ws_row:    u16
+    ws_col:    u16
+    ws_xpixel: u16
+    ws_ypixel: u16
+}
+
+/// `TIOCGWINSZ`. A macro, and its value is not portable — it encodes the
+/// direction and the payload size, which differ between the two ioctl schemes.
+export TIOCGWINSZ: u64: if VADER_OS == Os.Darwin { 0x4008_7468 } else { 0x5413 }
+
+/// `ioctl(2)` for `TIOCGWINSZ`. 0 on success, -1 otherwise.
+///
+/// `ioctl` is variadic; `@c_header` brings the real prototype, so the shim's
+/// three-argument call is ordinary C rather than a redeclaration.
+///
+/// @param fd       the descriptor to ask about — 1 for stdout.
+/// @param request  always `TIOCGWINSZ` here.
+/// @param ws       receives the size.
+@c_header("<sys/ioctl.h>")
+@extern("ioctl")
+export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer ws: Winsize!) -> i32
+
 /// `isatty(3)`. Whether `fd` refers to a terminal.
 ///
 /// @param fd  the descriptor — 1 for stdout, 2 for stderr.

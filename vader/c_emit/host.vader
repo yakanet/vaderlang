@@ -578,7 +578,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // std/tty + std/env. `get_env` boxes the value as a string (or null box).
     .TtyRawModeBegin -> { return "${head} { return vader_terminal_raw_begin(); }" }
     .TtyRawModeEnd   -> { return "${head} { vader_terminal_raw_end(); }" }
-    .TtyColumns      -> { return "${head} { return vader_terminal_columns(); }" }
     // An `Os` is an ordinal in an i32 slot, so the runtime's return needs no
     // boxing — the coupling to the enum's declaration order is stated in
     // `vader.h` and in `std/target`.

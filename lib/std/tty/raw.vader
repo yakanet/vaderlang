@@ -44,7 +44,42 @@ import "system/windows"
 /// Terminal width in columns, or 0 when it cannot be determined — not a
 /// terminal, or the query failed. A caller that needs a number anyway should
 /// pick its own default rather than treat 0 as a width.
-@intrinsic export columns :: fn() -> i32
+@target
+export columns :: fn() -> i32 {
+    // No terminal to measure — `wasi-wasm32` and `browser-wasm32`. `0` is the
+    // documented "cannot be determined", which every caller already handles.
+    return 0
+}
+
+@target(.Linux, .Darwin)
+columns :: fn() -> i32 {
+    ws :: Winsize { .ws_row = 0, .ws_col = 0, .ws_xpixel = 0, .ws_ypixel = 0 }
+    if sys_ioctl_winsize(1, TIOCGWINSZ, ws) != 0 {
+        return 0
+    }
+    return i32(ws.ws_col)
+}
+
+@target(.Windows)
+columns :: fn() -> i32 {
+    h :: get_std_handle(STD_OUTPUT_HANDLE)
+    if h == INVALID_HANDLE {
+        return 0
+    }
+    info :: ScreenBufferInfo {
+        .dwSize              = Coord { .X = 0, .Y = 0 },
+        .dwCursorPosition    = Coord { .X = 0, .Y = 0 },
+        .wAttributes         = 0,
+        .srWindow            = SmallRect { .Left = 0, .Top = 0, .Right = 0, .Bottom = 0 },
+        .dwMaximumWindowSize = Coord { .X = 0, .Y = 0 },
+    }
+    if !get_console_screen_buffer_info(h, info) {
+        return 0
+    }
+    // The rectangle is INCLUSIVE, hence the `+ 1`.
+    width :: i32(info.srWindow.Right) - i32(info.srWindow.Left) + 1
+    return if width > 0 { width } else { 0 }
+}
 
 /// Read the keys pressed so far, blocking until there is at least one.
 ///

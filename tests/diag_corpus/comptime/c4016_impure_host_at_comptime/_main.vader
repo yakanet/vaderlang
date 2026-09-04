@@ -1,4 +1,4 @@
-// A `@comptime` const that reaches an impure INTRINSIC host (here `columns`, via
+// A `@comptime` const that reaches an impure INTRINSIC host (here `current_os`, via
 // the VM-backed comptime pass) is refused with C4016 : running it at build time
 // would bake a non-reproducible value and break the byte-identical bootstrap.
 //
@@ -8,14 +8,17 @@
 // is checked by `bootstrap/verify.sh`.
 module "snippet"
 
-import "std/tty"
+import "std/target"
 
 @comptime
 export INTERACTIVE_AT_BUILD :: read_tty()
 
+// `current_os` will never leave the intrinsics: it answers for the machine the
+// COMPILER runs on, and baking that would make a macOS emit differ from a Linux
+// one for the same source — which `seed.sh check` compares byte for byte.
 read_tty :: fn() -> string {
-    if columns() > 0 { return "tty" }
-    return "pipe"
+    if current_os() == Os.Darwin { return "mac" }
+    return "other"
 }
 
 main :: fn() -> i32 {

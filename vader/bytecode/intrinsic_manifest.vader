@@ -126,7 +126,7 @@ export IntrinsicId :: enum(u8) {
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
     TargetCurrentOs, TargetCurrentArch,
     // std/tty raw mode — what `cli/prompt` reads keys through
-    TtyRawModeBegin, TtyRawModeEnd, TtyColumns,
+    TtyRawModeBegin, TtyRawModeEnd,
     // vader/vm — dynamic foreign calls, the VM's answer to `@extern`. NOT in
     // `std/`: they amount to running arbitrary native code.
     FfiOpen, FfiSymbol, FfiCall,
@@ -178,7 +178,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
 
     if mangled == r"std_tty$raw_mode_begin"              { return .TtyRawModeBegin }
     if mangled == r"std_tty$raw_mode_end"                { return .TtyRawModeEnd }
-    if mangled == r"std_tty$columns"                     { return .TtyColumns }
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
     if mangled == r"std_abort$panic"                     { return .AbortPanic }

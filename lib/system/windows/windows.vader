@@ -188,6 +188,38 @@ export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
 
+/// `COORD` — a console cell position or size.
+///
+/// Field names are the C ones because a mirror copies BY NAME; the snake_case
+/// rule does not reach across the boundary.
+@c_struct("COORD")
+export Coord :: struct { X: i16, Y: i16 }
+
+/// `SMALL_RECT` — an inclusive rectangle of console cells.
+@c_struct("SMALL_RECT")
+export SmallRect :: struct { Left: i16, Top: i16, Right: i16, Bottom: i16 }
+
+/// `CONSOLE_SCREEN_BUFFER_INFO`. Mirrored WHOLE rather than as a prefix: every
+/// member but `wAttributes` is itself a struct, so a prefix would have to stop
+/// before the one that matters.
+@c_struct("CONSOLE_SCREEN_BUFFER_INFO")
+export ScreenBufferInfo :: struct {
+    dwSize:              Coord
+    dwCursorPosition:    Coord
+    wAttributes:         u16
+    srWindow:            SmallRect
+    dwMaximumWindowSize: Coord
+}
+
+/// `GetConsoleScreenBufferInfo`. False when the handle is not a console.
+///
+/// `srWindow` is the VISIBLE window, which is what a width should be measured
+/// from: the buffer (`dwSize`) is often far wider, and wrapping follows what is
+/// on screen.
+@c_header("<windows.h>")
+@extern("kernel32", "GetConsoleScreenBufferInfo")
+export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBufferInfo!) -> bool
+
 /// Bit enabling ANSI escape interpretation on a console output handle. Only with
 /// it set do escapes render rather than print literally.
 export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
