@@ -205,6 +205,7 @@ typedef struct vader_struct_std_collections_MutableSet__string_t vader_struct_st
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_core_Dec64_t vader_struct_std_core_Dec64_t;
 typedef struct vader_struct_std_core_DecimalParts_t vader_struct_std_core_DecimalParts_t;
+typedef struct vader_struct_std_core_FloatDec32_t vader_struct_std_core_FloatDec32_t;
 typedef struct vader_struct_std_core_SlowParts_t vader_struct_std_core_SlowParts_t;
 typedef struct vader_struct_std_core_Yield__char_t vader_struct_std_core_Yield__char_t;
 typedef struct vader_struct_std_io_IOError_t vader_struct_std_io_IOError_t;
@@ -2098,6 +2099,11 @@ struct vader_struct_std_core_DecimalParts_t {
     int32_t f_q;
     bool f_negative;
     bool f_too_many_digits;
+};
+struct vader_struct_std_core_FloatDec32_t {
+    vader_obj_header_t header;
+    uint32_t f_mantissa;
+    int32_t f_exp;
 };
 struct vader_struct_std_core_SlowParts_t {
     vader_obj_header_t header;
@@ -5497,6 +5503,21 @@ vader_box_t std_core_parse_f64(vader_string_t l0);
 bool std_core____Contains_contains__string(void* l0, vader_string_t l1);
 bool std_core____Contains_contains__i32(void* l0, int32_t l1);
 bool std_core____Contains_contains__ValType(void* l0, uint8_t l1);
+vader_string_t std_core_i8_Display_to_string(int8_t l0);
+vader_string_t std_core_i16_Display_to_string(int16_t l0);
+vader_string_t std_core_i32_Display_to_string(int32_t l0);
+vader_string_t std_core_i64_Display_to_string(int64_t l0);
+vader_string_t std_core_isize_Display_to_string(ptrdiff_t l0);
+vader_string_t std_core_u8_Display_to_string(uint8_t l0);
+vader_string_t std_core_u16_Display_to_string(uint16_t l0);
+vader_string_t std_core_u32_Display_to_string(uint32_t l0);
+vader_string_t std_core_u64_Display_to_string(uint64_t l0);
+vader_string_t std_core_usize_Display_to_string(size_t l0);
+vader_string_t std_core_bool_Display_to_string(bool l0);
+vader_string_t std_core_char_Display_to_string(uint32_t l0);
+vader_string_t std_core_string_Display_to_string(vader_string_t l0);
+vader_string_t std_core_f32_Display_to_string(float l0);
+vader_string_t std_core_f64_Display_to_string(double l0);
 vader_string_t std_core_format_unsigned(uint64_t l0);
 vader_string_t std_core_format_f64(double l0);
 void* std_core_filled__MutableSet_i32_(size_t l0, void* l1);
@@ -5781,6 +5802,7 @@ void* toolchain_span_empty_span(void);
 bool toolchain_span_has_source_position(void* l0);
 uint64_t toolchain_span_Span_Hash_hash(void* l0);
 bool toolchain_span_Span_Equals_equals(void* l0, void* l1);
+vader_string_t toolchain_span_Span_Display_to_string(void* l0);
 void* std_sort_sort__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType(void* l0, void* l1);
 void* std_sort_sort__Diagnostic(void* l0, void* l1);
 void* std_sort_sort__GenericInstance(void* l0, void* l1);
@@ -5870,6 +5892,19 @@ bool __lambda_vader_vm_0(void* l0, int64_t l1, int64_t l2);
 bool __lambda_vader_vm_2(void* l0, int64_t l1, int64_t l2);
 bool __lambda_vader_vm_4(void* l0, vader_string_t l1, vader_string_t l2);
 bool __lambda_vader_vm_6(void* l0, vader_string_t l1, vader_string_t l2);
+vader_string_t vader_vm_I32Val_Display_to_string(void* l0);
+vader_string_t vader_vm_F64Val_Display_to_string(void* l0);
+vader_string_t vader_vm_I64Val_Display_to_string(void* l0);
+vader_string_t vader_vm_StringVal_Display_to_string(void* l0);
+vader_string_t vader_vm_FnVal_Display_to_string(void* l0);
+vader_string_t vader_vm_NullVal_Display_to_string(void* l0);
+vader_string_t vader_vm_BoolVal_Display_to_string(void* l0);
+vader_string_t vader_vm_CharVal_Display_to_string(void* l0);
+vader_string_t vader_vm_ErrorVal_Display_to_string(void* l0);
+vader_string_t vader_vm_TypeVal_Display_to_string(void* l0);
+vader_string_t vader_vm_ObjVal_Display_to_string(void* l0);
+vader_string_t vader_vm_StructVal_Display_to_string(void* l0);
+vader_string_t vader_vm_ArrayVal_Display_to_string(void* l0);
 void std_abort_todo(vader_string_t l0);
 void std_abort_unreachable(vader_string_t l0);
 bool std_char_is_digit(uint32_t l0);
@@ -5970,9 +6005,12 @@ vader_box_t vader_fn_lift___lambda_vader_vm_2(void* env, vader_box_t a0, vader_b
 vader_box_t vader_fn_lift___lambda_vader_vm_4(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_box_t a1);
 
+
+/* ----------------------------------------------- vtable forwards */
+vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2413u
+#define VADER_COMPTIME_ATOM_COUNT 2415u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -5985,6 +6023,8 @@ extern const vader_array_t vader_data_7;
 extern const vader_array_t vader_data_8;
 extern const vader_array_t vader_data_9;
 extern const vader_array_t vader_data_10;
+extern const vader_array_t vader_data_11;
+extern const vader_array_t vader_data_12;
 extern const vader_atom_entry_t vader_atom_comptime_table[];
 extern const size_t vader_type_size[];
 
