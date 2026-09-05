@@ -892,3 +892,32 @@ The fix is the B1 inline representation the runtime already has
 T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants
 the same treatment. Once it lands, the reserved members go back to being what
 they are and the `__typeof__` cast can narrow or go.
+
+## A bare identifier in a `match` pattern BINDS — it does not compare
+
+    K: i32: 7
+    match 99 {
+        K -> "matched K"      // taken, for every value
+        _ -> "fell through"
+    }
+    → matched K
+
+`K` is a binding pattern that shadows the constant, so the arm is irrefutable and
+every later arm is dead. It compiles clean. The only hint is `W0007 K is never
+used`, which does not appear at all once the constant has another user — which is
+exactly the case for a table of named platform codes.
+
+Found writing `std/io::last_io_error`, where a `match` over `ENOENT` / `EACCES` /
+`EISDIR` classified all three as the first arm. The codes were right and the
+classification silently was not; both bodies are `if` chains now, with the reason
+written beside them.
+
+Rust hit the same shape and answered with a lint (`bindings_with_variant_name`,
+deny-by-default) plus the convention that a const pattern is a PATH. Options
+here, roughly in order of cost:
+  - warn when a binding pattern's name resolves to a module-level constant in
+    scope — the narrow, high-value case, and what actually bit;
+  - require a leading `.` or a qualified path for a value pattern, making a bare
+    name unambiguously a binding (a syntax change, SPEC §"Patterns");
+  - leave it, and rely on `_` never being reached being caught by T3013 — which
+    it is NOT here, since the first arm covers everything.

@@ -16,12 +16,131 @@ import "system/windows"
 /// `write_file_bytes`, `read_line`, `read_stdin`, `read_dir` and the
 /// string wrappers). Narrow with `is IOError` ; widen to `Error` for a
 /// trait-typed slot.
+/// What went wrong, classified so a caller can branch on it without
+/// transcribing platform numbers.
+///
+/// A raw `errno` is not portable — `EAGAIN` is 35 on Darwin and 11 on Linux —
+/// and Windows has no `errno` at all, only `GetLastError` with its own
+/// numbering. This is the shared vocabulary; `IOError.code` keeps the raw value
+/// for the cases it does not cover.
+export IOErrorKind :: enum(u8) {
+    /// The failure carried no code, or one this does not classify. Read `code`.
+    Other
+    NotFound
+    PermissionDenied
+    /// Interrupted by a signal — the caller may retry.
+    Interrupted
+    AlreadyExists
+    NotADirectory
+    IsADirectory
+    /// The operation would block on a non-blocking handle.
+    WouldBlock
+    BrokenPipe
+    NoSpace
+    InvalidInput
+    DirectoryNotEmpty
+    BadHandle
+}
+
 export IOError :: struct {
     /// Short human-readable diagnostic ("file not found", "EOF", …).
     msg: string
+    /// Portable classification. `.Other` when the failure had no platform code
+    /// — an end-of-input, a ceiling this library imposes — or when the code is
+    /// one `IOErrorKind` does not name.
+    kind: IOErrorKind = .Other
+    /// The raw platform value: `errno` on POSIX, `GetLastError` on Windows.
+    /// Zero when the failure did not come from a system call. NOT portable —
+    /// branch on `kind`, and read this only to report or to test something
+    /// `kind` does not cover.
+    code: i32 = 0
 }
 
 IOError implements Error -> self.msg
+
+/// A short human-readable phrase for `kind`, or `""` for `.Other`.
+///
+/// This is what makes `IOError.msg` accurate rather than vague: the caller
+/// supplies a fallback for the case the platform gave no code, and the reason
+/// itself comes from the classification.
+///
+/// @param kind  the classification to describe.
+/// @return      e.g. `"file not found"` ; `""` when there is nothing to add.
+export describe_io_error_kind :: fn(kind: IOErrorKind) -> string = match kind {
+    .NotFound          -> "file not found"
+    .PermissionDenied  -> "permission denied"
+    .Interrupted       -> "interrupted"
+    .AlreadyExists     -> "already exists"
+    .NotADirectory     -> "not a directory"
+    .IsADirectory      -> "is a directory"
+    .WouldBlock        -> "would block"
+    .BrokenPipe        -> "broken pipe"
+    .NoSpace           -> "no space left on device"
+    .InvalidInput      -> "invalid argument"
+    .DirectoryNotEmpty -> "directory not empty"
+    .BadHandle         -> "bad file descriptor"
+    .Other             -> ""
+}
+
+/// The failure the LAST system call reported, wrapped as an `IOError`.
+///
+/// ⚠️ Call it immediately after the failing call. It reads the platform's
+/// last-error slot — `errno` on POSIX, `GetLastError` on Windows — and any
+/// intervening system call may have replaced it. In particular, do not close a
+/// handle first: `fclose` and `CloseHandle` both overwrite it.
+///
+/// @param msg  fallback diagnostic, used only when the platform gave a code this
+///             library does not classify. A recognised code names itself.
+/// @return     the reason, its portable classification, and the raw code.
+@target
+export last_io_error :: fn(msg: string) -> IOError
+
+@target(.Linux, .Darwin)
+last_io_error :: fn(msg: string) -> IOError {
+    e :: sys_last_errno()
+    // An `if` chain, NOT a `match`: a bare identifier in a pattern is a BINDING,
+    // so `match e { ENOENT -> … }` binds `e` to the name `ENOENT` and takes the
+    // first arm for every value. It compiles, and the only hint is a W0007 on a
+    // constant that has other users anyway.
+    kind := IOErrorKind.Other
+    if e == ENOENT    { kind = .NotFound }
+    if e == EPERM     { kind = .PermissionDenied }
+    if e == EACCES    { kind = .PermissionDenied }
+    if e == EINTR     { kind = .Interrupted }
+    if e == EEXIST    { kind = .AlreadyExists }
+    if e == ENOTDIR   { kind = .NotADirectory }
+    if e == EISDIR    { kind = .IsADirectory }
+    if e == EAGAIN    { kind = .WouldBlock }
+    if e == EPIPE     { kind = .BrokenPipe }
+    if e == ENOSPC    { kind = .NoSpace }
+    if e == EINVAL    { kind = .InvalidInput }
+    if e == ENOTEMPTY { kind = .DirectoryNotEmpty }
+    if e == EBADF     { kind = .BadHandle }
+    reason :: describe_io_error_kind(kind)
+    return IOError {
+        .msg = if reason == "" { msg } else { reason }, .kind = kind, .code = e,
+    }
+}
+
+@target(.Windows)
+last_io_error :: fn(msg: string) -> IOError {
+    e :: get_last_error()
+    // An `if` chain for the same reason as the POSIX body above.
+    kind := IOErrorKind.Other
+    if e == ERROR_FILE_NOT_FOUND { kind = .NotFound }
+    if e == ERROR_PATH_NOT_FOUND { kind = .NotFound }
+    if e == ERROR_ACCESS_DENIED  { kind = .PermissionDenied }
+    if e == ERROR_INVALID_HANDLE { kind = .BadHandle }
+    if e == ERROR_FILE_EXISTS    { kind = .AlreadyExists }
+    if e == ERROR_ALREADY_EXISTS { kind = .AlreadyExists }
+    if e == ERROR_BROKEN_PIPE    { kind = .BrokenPipe }
+    if e == ERROR_DISK_FULL      { kind = .NoSpace }
+    if e == ERROR_DIR_NOT_EMPTY  { kind = .DirectoryNotEmpty }
+    reason :: describe_io_error_kind(kind)
+    return IOError {
+        .msg = if reason == "" { msg } else { reason }, .kind = kind, .code = i32(e),
+    }
+}
 
 /// A standard output stream. Used by the `print` / `println` / `eprint` /
 /// `eprintln` wrappers below to pick a target, and exported so terminal-aware
@@ -317,7 +436,7 @@ export read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError
 read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     f :: sys_fopen(path, "rb")
     if f == null {
-        return IOError { .msg = "file not found" }
+        return last_io_error("cannot open file")
     }
     // Read to end of file in chunks rather than sizing it first: `fseek` +
     // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
@@ -342,10 +461,11 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
             // not say which. Without this, an openable-but-unreadable path -- a
             // DIRECTORY, where `fopen` succeeds and `fread` fails EISDIR --
             // came back as an empty SUCCESS.
-            failed :: sys_ferror(f) != 0
+            // Read the error BEFORE closing: `fclose` overwrites `errno`.
+            err :: if sys_ferror(f) != 0 { last_io_error("read failed") } else { null }
             sys_fclose(f)
-            if failed {
-                return IOError { .msg = "read failed" }
+            if err != null {
+                return err
             }
             return out
         }
@@ -425,17 +545,19 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     }
     f :: sys_fopen(path, "wb")
     if f == null {
-        return IOError { .msg = "open failed" }
+        return last_io_error("open failed")
     }
     if content.len() > 0 {
         n :: sys_fwrite(content, 1, content.len(), f)
         if n != content.len() {
+            // Before `fclose`, which overwrites `errno`.
+            err :: last_io_error("short write")
             sys_fclose(f)
-            return IOError { .msg = "short write" }
+            return err
         }
     }
     if sys_fclose(f) != 0 {
-        return IOError { .msg = "close failed" }
+        return last_io_error("close failed")
     }
     return null
 }
@@ -551,7 +673,7 @@ export remove_file :: fn(path: string) -> null | IOError
 @target(.Linux, .Darwin)
 remove_file :: fn(path: string) -> null | IOError {
     if sys_unlink(path) != 0 {
-        return IOError { .msg = "cannot remove file" }
+        return last_io_error("cannot remove file")
     }
     return null
 }
@@ -911,6 +1033,34 @@ import "std/testing"
     assert(!is_dir(file), "a regular file is not")
     assert(exists(file), "and the probe is really there")
     assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
+}
+
+@test test_a_failed_read_carries_why :: fn() -> void {
+    // Every `fopen` failure used to answer "file not found", whatever the
+    // reason. A missing path is the one classification every platform agrees
+    // on — POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
+    missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
+    if missing is IOError as e {
+        assert_eq(e.kind, IOErrorKind.NotFound)
+        assert(e.code != 0, "the raw platform code came through too")
+    } else {
+        assert(false, "reading a missing path must fail")
+    }
+
+    // A ceiling this library imposes is not a system failure, so it carries no
+    // code and stays `.Other`.
+    file :: "${temp_dir()}/vader_kind_probe"
+    wrote :: write_file_string(file, "0123456789")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    too_big :: read_file_bytes(file, 4)
+    if too_big is IOError as e {
+        assert_eq(e.kind, IOErrorKind.Other)
+        assert_eq(e.code, 0)
+    } else {
+        assert(false, "a read past the ceiling must fail")
+    }
 }
 
 @test test_read_file_bytes_honours_its_ceiling :: fn() -> void {

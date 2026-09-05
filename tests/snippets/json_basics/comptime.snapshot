@@ -45,6 +45,11 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Yield<char>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Async<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -75,10 +80,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Yield<char>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -88,7 +89,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Async<T>
   Range<char>
   Range<i32>
   Range<usize>

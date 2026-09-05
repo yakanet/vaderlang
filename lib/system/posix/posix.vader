@@ -44,6 +44,41 @@ export sys_opendir :: fn(path: string) -> CPointer | null
 @extern("closedir")
 export sys_closedir :: fn(dir: CPointer) -> i32
 
+/// `errno` values `std/io` classifies.
+///
+/// The low numbers are fixed by history and identical on Darwin and Linux; the
+/// ones that are not say so on their own line. A raw `errno` is a PLATFORM
+/// value — compare against these, never against a literal.
+export EPERM: i32: 1
+export ENOENT: i32: 2
+export EINTR: i32: 4
+export EIO: i32: 5
+export EBADF: i32: 9
+export EACCES: i32: 13
+export EEXIST: i32: 17
+export ENOTDIR: i32: 20
+export EISDIR: i32: 21
+export EINVAL: i32: 22
+export ENOSPC: i32: 28
+export EPIPE: i32: 32
+/// Diverges: 35 on Darwin, 11 on Linux — where `EDEADLK` sits on the other.
+export EAGAIN: i32: if VADER_OS == Os.Darwin { 35 } else { 11 }
+/// Diverges: 66 on Darwin, 39 on Linux.
+export ENOTEMPTY: i32: if VADER_OS == Os.Darwin { 66 } else { 39 }
+
+/// The calling thread's `errno`, as the LAST foreign call left it.
+///
+/// `errno` is a macro, not a symbol — `*__error()` on Darwin,
+/// `*__errno_location()` on glibc — so no `@extern` can name it directly and the
+/// runtime reads it for us.
+///
+/// ⚠️ Read it IMMEDIATELY after the call that failed. Any foreign call in
+/// between may overwrite it, this one included once it has returned.
+///
+/// @return the raw platform value ; 0 when nothing has failed.
+@extern("vader_last_errno")
+export sys_last_errno :: fn() -> i32
+
 /// What KIND of thing `path` is, via `stat(2)`.
 ///
 /// `struct stat` is NOT mirrorable — not "ambiguous between arches", genuinely

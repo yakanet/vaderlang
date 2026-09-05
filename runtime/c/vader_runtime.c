@@ -3437,6 +3437,21 @@ void* vader_ptr_at(const void* base, size_t i) {
     return ((void* const*) base)[i];
 }
 
+/* The calling thread's `errno`.
+ *
+ * Here because `errno` is a MACRO, not a symbol — `*__error()` on Darwin,
+ * `*__errno_location()` on glibc — so no `@extern` can name it. Same escape as
+ * the struct-member accessors below: `cc` resolves what Vader cannot, and the
+ * result crosses as a plain value.
+ * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`. */
+#if !defined(_WIN32)
+#include <errno.h>
+VADER_HOST_EXPORT
+int32_t vader_last_errno(void) {
+    return (int32_t) errno;
+}
+#endif
+
 /* What KIND of thing `path` is. Ordinals must match
  * `lib/system/posix/posix.vader`'s `PATH_*` constants.
  *

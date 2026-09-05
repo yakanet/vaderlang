@@ -88,6 +88,28 @@ export get_file_attributes :: fn(path: u16[]) -> u32
 @extern("kernel32", "DeleteFileW")
 export delete_file :: fn(path: u16[]) -> i32
 
+/// `GetLastError`. The calling thread's last Win32 error code.
+///
+/// ⚠️ Read it IMMEDIATELY after the call that failed — any Win32 call in
+/// between may overwrite it.
+///
+/// @return the raw Win32 code ; 0 when nothing has failed.
+@c_header("<windows.h>")
+@extern("GetLastError")
+export get_last_error :: fn() -> u32
+
+/// Win32 error codes `std/io` classifies. Unlike `errno` these are stable
+/// across Windows versions, so they are plain literals.
+export ERROR_FILE_NOT_FOUND: u32: 2
+export ERROR_PATH_NOT_FOUND: u32: 3
+export ERROR_ACCESS_DENIED: u32: 5
+export ERROR_INVALID_HANDLE: u32: 6
+export ERROR_FILE_EXISTS: u32: 80
+export ERROR_BROKEN_PIPE: u32: 109
+export ERROR_DISK_FULL: u32: 112
+export ERROR_DIR_NOT_EMPTY: u32: 145
+export ERROR_ALREADY_EXISTS: u32: 183
+
 /// `WriteFile`. False on failure — the caller reads `GetLastError`.
 ///
 /// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
