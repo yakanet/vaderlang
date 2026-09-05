@@ -1093,7 +1093,8 @@ try_free_fn_ufcs_with_first :: fn(
     }
     // The importED half is scoped to the CALL SITE's file, not the module: two
     // files of one module import different things (SPEC §"Modules").
-    for ft in imported_overloads_in(typed, file, name) {
+    for imported in imported_overloads_in(typed, file, name) {
+        ft :: imported.ty
         if ft.params.len() == 0 {
             continue
         }
@@ -1101,8 +1102,10 @@ try_free_fn_ufcs_with_first :: fn(
         spec :: overload_specificity(target_ty, ft.params[0])
         if spec > best_spec {
             best = UfcsResult {
-                .curried = curried, .first_param = ft.params[0],
+                .curried = curried,
+                .first_param = ft.params[0],
                 .self_mutable = param_mutable_at(ft, 0),
+                .decl = imported.decl,
             }
             best_spec = spec
         }
@@ -1151,8 +1154,8 @@ export ufcs_methods_for :: fn(target_ty: Type, file: string, typed: TypedProgram
             if seen[name] != null {
                 continue
             }
-            for ft in fts {
-                curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
+            for candidate in fts {
+                curried :: try_curry_receiver(candidate.ty, target_ty, typed) ?? continue
                 seen[name] = true
                 out.push(UfcsMethod { .name = name, .curried = curried })
                 break

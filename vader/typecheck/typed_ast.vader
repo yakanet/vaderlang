@@ -47,7 +47,19 @@ export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Sy
 /// @return       that file's name → overloads table, or null.
 export imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
-) -> MutableMap<string, FnType[]!> | null = typed.imported_fn_overloads[file]
+) -> MutableMap<string, ImportedFn[]!> | null = typed.imported_fn_overloads[file]
+
+/// One fn a file's wildcard imports put in unqualified scope.
+///
+/// The type alone was enough while every consumer only needed a signature. The
+/// DECLARATION is what carries parameter names and default values, and without
+/// it a UFCS call to an imported fn could not fill a defaulted argument — the
+/// only table that could answer held types.
+export ImportedFn :: struct {
+    ty: FnType
+    /// Null when the providing module produced no `FnDecl` for the symbol.
+    decl: AST.FnDecl | null = null
+}
 
 /// Imported fn overloads named `name` that are in scope in `file`. Empty when
 /// the file imports nothing that provides the name, which is exactly what makes
@@ -57,7 +69,7 @@ export imported_overloads_table_in :: fn(
 /// @param file   the source file the call site sits in.
 /// @param name   the fn name being dispatched.
 /// @return       the candidate signatures, in the order they were imported.
-export imported_overloads_in :: fn(typed: TypedProgram, file: string, name: string) -> FnType[] {
+export imported_overloads_in :: fn(typed: TypedProgram, file: string, name: string) -> ImportedFn[] {
     table :: imported_overloads_table_in(typed, file) ?? return []
     return table[name] ?? []
 }
@@ -286,7 +298,7 @@ export TypedProgram :: struct {
     /// the `<clone>:` form a materialised trait-default body carries — so the
     /// map holds two entries per file, both pointing at the same table. Counting
     /// its entries does not count the module's files.
-    imported_fn_overloads: MutableMap<string, MutableMap<string, FnType[]!>!>
+    imported_fn_overloads: MutableMap<string, MutableMap<string, ImportedFn[]!>!>
 
     /// `display_type(for_ty) → element` for every `X implements
     /// Iterator<T>` impl reached during type-checking. Consumed by
@@ -324,12 +336,12 @@ export TypedProgram :: struct {
     /// `FieldExpr.id → the declaration the UFCS dispatch actually chose`, for
     /// every dispatch whose winner has one reachable.
     ///
-    /// `try_free_fn_ufcs_with_first` ranks the candidates and picks; without
-    /// this the pick was thrown away and `ufcs_method_params` re-derived it from
-    /// the receiver type, which is a second answer to a question already
-    /// answered. It also could not be re-derived at all for an IMPORTED fn —
-    /// the imported table carries types, not declarations — so a UFCS call
-    /// omitting a defaulted argument got T3003 instead of the default.
+    /// `try_free_fn_ufcs_with_first` ranks the candidates and picks; the pick
+    /// used to be thrown away and re-derived from the receiver type further
+    /// down, which is a second answer to a question already answered — and one
+    /// that could not be given at all for an IMPORTED fn until the imported
+    /// table started carrying declarations, so a UFCS call omitting a defaulted
+    /// argument got T3003 instead of the default.
     ufcs_chosen_decls: MutableMap<usize, AST.FnDecl>
 
     /// `"${TypeBaseName}::${methodName}" → trait names that all
@@ -552,7 +564,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,
-    .imported_fn_overloads = MutableMap<string, MutableMap<string, FnType[]!>!> {},
+    .imported_fn_overloads = MutableMap<string, MutableMap<string, ImportedFn[]!>!> {},
     .iter_element_types = MutableMap<string, Type> {},
     .index_target_types = MutableMap<string, Type> {},
     .index_key_types = MutableMap<string, Type> {},

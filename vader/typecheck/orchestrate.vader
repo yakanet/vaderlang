@@ -1579,12 +1579,12 @@ populate_imported_fn_overloads :: fn(
 // materialised trait-default body carries (`resolver/substitute_body.vader`):
 // such a body has no file of its own, and the names it may use are the ones its
 // impl's file can see. Maps hold references, so the alias costs one entry.
-file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, FnType[]!>! {
+file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, ImportedFn[]!>! {
     existing :: typed.imported_fn_overloads[file]
     if existing !is null {
         return existing
     }
-    table :: MutableMap<string, FnType[]!> {}
+    table :: MutableMap<string, ImportedFn[]!> {}
     typed.imported_fn_overloads[file] = table
     typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
     return table
@@ -1602,7 +1602,12 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
         }
         local :: symbol_by_id(sym_id, entry_typed) ?? continue
         where :: local.defined_at ?? continue
-        push_overload(file_overload_table(entry_typed, where.start.file), local.name, ty)
+        // A renamed import binds the same declaration under a new local name,
+        // so the decl travels with it exactly as a wildcard's does.
+        push_overload(
+            file_overload_table(entry_typed, where.start.file), local.name,
+            ImportedFn { .ty = ty, .decl = entry_typed.fn_decls[st.symbol.id] },
+        )
     }
 }
 
@@ -1619,7 +1624,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
 push_module_exported_fns :: fn(
     from: TypedProgram,
     into: TypedProgram!,
-    table: MutableMap<string, FnType[]!>!,
+    table: MutableMap<string, ImportedFn[]!>!,
     excluded: string[],
 ) -> void {
     if from.resolved.path == into.resolved.path {
@@ -1638,7 +1643,12 @@ push_module_exported_fns :: fn(
             ty :: from.decl_types[sym.id] ?? continue
             if ty is FnType as ft {
                 if name !in excluded {
-                    push_overload(table, name, ft)
+                    // The DECL travels with the type: it is what carries
+                    // parameter names and defaults, which a UFCS call site in
+                    // the importing module has no other way to reach.
+                    push_overload(table, name, ImportedFn {
+                        .ty = ft, .decl = from.fn_decls[sym.id],
+                    })
                 }
                 into.external_types[sym.id] = ft
             }
@@ -1661,13 +1671,13 @@ push_module_exported_fns :: fn(
     }
 }
 
-push_overload :: fn(table: MutableMap<string, FnType[]!>!, name: string, ft: FnType) -> void {
+push_overload :: fn(table: MutableMap<string, ImportedFn[]!>!, name: string, ft: ImportedFn) -> void {
     bucket :: table[name]
     if bucket is null {
         table[name] = [ft]
     } else {
         for i in 0..<bucket.len() {
-            if type_list_equals(bucket[i].params, ft.params) {
+            if type_list_equals(bucket[i].ty.params, ft.ty.params) {
                 bucket[i] = ft
                 table[name] = bucket
                 return

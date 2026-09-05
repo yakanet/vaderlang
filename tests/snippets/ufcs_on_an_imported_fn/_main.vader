@@ -1,0 +1,34 @@
+// A UFCS call to a fn from another module, omitting its defaulted argument.
+//
+// The dispatch has to keep the declaration it picked: the imported table used to
+// carry signatures only, so nothing at the call site could see that a parameter
+// had a default, and the arity check reported T3003 on a call that was fine.
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    path :: "${temp_dir()}/vader_ufcs_import_probe"
+    wrote :: write_file_string(path, "0123456789")
+    if wrote is IOError as e {
+        println("setup failed: ${e.msg}")
+        return 1
+    }
+    // Defaulted: the ceiling comes from the declaration, in the other module.
+    r :: path.read_file_string()
+    if r is string as s {
+        println("defaulted: ${s.len()} bytes")
+    }
+    // Explicit, then named — both through the same dispatch.
+    if path.read_file_string(4) is IOError as e {
+        println("bound 4:   ${e.msg}")
+    }
+    if path.read_file_string(max_bytes = 4) is IOError as e {
+        println("named 4:   ${e.msg}")
+    }
+    removed :: remove_file(path)
+    if removed is IOError as e {
+        println("cleanup failed: ${e.msg}")
+    }
+    return 0
+}

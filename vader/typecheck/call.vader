@@ -185,9 +185,9 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
             return ft
         }
     }
-    fts :: imported_overloads_in(typed, callee.span.start.file, callee.name)
-    if fts.len() > 0 {
-        return fts[0]
+    imported :: imported_overloads_in(typed, callee.span.start.file, callee.name)
+    if imported.len() > 0 {
+        return imported[0].ty
     }
     return null
 }
@@ -204,7 +204,9 @@ collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgra
         }
     }
     // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
-    out.push_all(imported_overloads_in(typed, file, name))
+    for imported in imported_overloads_in(typed, file, name) {
+        out.push(imported.ty)
+    }
     return out
 }
 
@@ -445,10 +447,6 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         if chosen is AST.FnDecl as fd {
             return ufcs_tail_params(fd)
         }
-        dispatched_first :: typed.ufcs_receiver_types[fe.id]
-        if dispatched_first != null {
-            return ufcs_method_params(fe.field, dispatched_first, callee_ty, typed)
-        }
         // Otherwise a namespace member call (`mod.foo(...)`) : reach the
         // export's declared params so named args + defaults fill, same as the
         // IdentExpr path above.
@@ -500,23 +498,8 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
     return fallback
 }
 
-// UFCS dispatch curries away the receiver (`self`), so the call's `callee_ty`
-// has one fewer param than the method's decl. Return the method decl's params
-// minus `self`, for the free fn named `method` whose first param is the one the
-// dispatch retained.
-//
-// `dispatched_first_param` is NOT the receiver's type: `field.vader` stores the
-// chosen fn's own first param there (`ufcs_receiver_types[e.id] =
-// free_ufcs.first_param` — see the field's doc, "the param that got curried
-// away"). So the test below identifies the candidate the typer already picked,
-// rather than re-deciding which receiver fits: for that candidate the two types
-// are the same one and it matches outright, which is exactly the intent. Don't
-// read it as a receiver-fits check and try to align it with
-// `field.vader::receiver_fits_first_param` — the two answer different questions,
-// and the wider routes that one accepts (trait widening, `T[]` → `Iterator<T>`,
-// the TypeParam wildcard) are already reflected in what was stored.
-// A UFCS method's parameters as the CALL SITE writes them — the declaration's,
-// minus the receiver it curried away.
+// A UFCS method's parameters as the CALL SITE writes them: the declaration's,
+// minus the receiver the dispatch curried away.
 ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     if fd.params.len() == 0 {
         return null
@@ -528,30 +511,6 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     return tail
 }
 
-ufcs_method_params :: fn(
-    method: string, dispatched_first_param: Type, callee_ty: FnType, typed: TypedProgram,
-) -> AST.FnParam[] | null {
-    bucket :: typed.resolved.fn_overloads[method] ?? return null
-    for sym in bucket {
-        decl :: typed.fn_decls[sym.id]
-        if decl is AST.FnDecl as fd {
-            if fd.params.len() != callee_ty.params.len() + 1 {
-                continue
-            }
-            ft :: typed.decl_types[sym.id]
-            if ft is FnType as f {
-                if f.params.len() > 0 && is_assignable(dispatched_first_param, f.params[0]) {
-                    tail: AST.FnParam![]! = []
-                    for i in 1..<fd.params.len() {
-                        tail.push(fd.params[i])
-                    }
-                    return tail
-                }
-            }
-        }
-    }
-    return null
-}
 
 
 /// T3069 for every type-param of `callee_ty` that nothing at this call site

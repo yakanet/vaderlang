@@ -927,39 +927,3 @@ Three ways out, and the choice is a real one:
 
 `std/io::read_file_string` carries a literal default with a comment pinning it to
 `READ_LIMIT_DEFAULT`; that duplication goes away when this is fixed.
-
-## A UFCS call to an IMPORTED fn does not fill default parameters
-
-    // in std/io
-    export read_file_string :: fn(path: string, max_bytes: usize = 16 * 1024 * 1024) -> ...
-
-    read_file_string(p)     // fine
-    p.read_file_string()    // T3003 wrong number of arguments: expected 1, got 0
-
-NOT a general UFCS-vs-defaults bug — that combination works. A same-module fn
-with a struct, array or `string` receiver and a trailing default is filled
-correctly through `x.f()`. Only crossing a module breaks it, which is why it took
-`std/io` growing its first defaulted export to surface.
-
-The chain: `normalize_call_args` is the only thing that fills a default, and it
-needs the callee's `AST.FnParam[]`. `callee_param_decls` gets them from
-`ufcs_method_params`, which reads `typed.resolved.fn_overloads[method]` then
-`typed.fn_decls[sym.id]`. For an imported fn there is no `FnDecl` to reach:
-`imported_fn_overloads` (`typed_ast.vader:289`) is keyed file → name →
-**`FnType[]`**, types only, no declaration, so no parameter names and no default
-expressions. `callee_param_decls`' own doc already says it returns null for
-"imported overloads". With no params, no normalisation runs, and the positional
-arity check downstream reports T3003.
-
-Adding the import redirect `lookup_callee_fn_decl` uses does NOT fix it —
-verified; the bucket entry is not the problem, the missing decl table is.
-
-The nearest existing mechanism is `namespace_export_decls` (mod_id → name →
-FnDecl), but `orchestrate.vader:550` builds it only for `namespace_targets` —
-aliased imports — and its own comment notes it is single-valued and would have to
-become bucket-valued to survive overloads. Extending it to every
-wildcard-imported module of every file is a real cost decision, not a one-liner.
-
-Dormant today: the tree has three functions with default parameters
-(`std/tty::is_tty`, `std/io::read_file_string`, `typecheck::dead_exports`) and
-none is called through UFCS across a module.
