@@ -81,6 +81,8 @@ export CFGExternDecl :: struct {
     c_header:    string
     /// See `FnMetadata.c_library`.
     c_library:   string
+    /// See `BcImport.c_variadic_fixed`.
+    c_variadic_fixed: i32 = -1
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

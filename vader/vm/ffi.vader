@@ -45,11 +45,16 @@ module "vader/vm"
 /// @param fn_ptr  the address from `ffi_symbol`.
 /// @param desc    the class of the result, then of each argument.
 /// @param frame   the argument slots plus their data; receives the result.
+/// @param nfixed  how many of the callee's parameters are FIXED when it is
+///                variadic, `-1` when it is not. Only the real prototype knows,
+///                so `@c_variadic(N)` declares it — and a variadic callee called
+///                through a non-variadic cast reads its variadic arguments from
+///                the wrong place on darwin-arm64, silently.
 /// @return        the interned string for a `string`-returning callee, the empty
 ///                string otherwise — an atom id cannot travel through the frame,
 ///                since nothing on the Vader side can turn one back into a
 ///                `string`.
-@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!) -> string
+@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!, nfixed: i64) -> string
 
 // ---- tests ----------------------------------------------------------------
 
@@ -88,7 +93,7 @@ import "std/testing"
     frame: u8[]! = []
     push_little_endian(frame, 8, 8)
     frame.push_all([104, 101, 108, 108, 111, 0])
-    ffi_call(sym, desc, frame)
+    ffi_call(sym, desc, frame, -1)
     assert_eq(read_little_endian(frame, 0, 8, false), 5)
 }
 
@@ -102,7 +107,7 @@ import "std/testing"
     frame: u8[]! = []
     push_little_endian(frame, 8 + 3, 8)
     frame.push_all([0, 0, 0, 104, 105, 0])
-    ffi_call(sym, desc, frame)
+    ffi_call(sym, desc, frame, -1)
     assert_eq(read_little_endian(frame, 0, 8, false), 2)
 }
 
@@ -119,7 +124,7 @@ import "std/testing"
     push_little_endian(frame, 65, 8)
     push_little_endian(frame, 4, 8)
     frame.push_all([1, 2, 3, 4])
-    ffi_call(sym, desc, frame)
+    ffi_call(sym, desc, frame, -1)
     assert_eq(i64(frame[24]), 65)
     assert_eq(i64(frame[27]), 65)
 }
@@ -135,7 +140,7 @@ import "std/testing"
     push_little_endian(frame, 27, 8)
     push_little_endian(frame, 3, 8)
     frame.push_all([0, 0, 0, 7, 8, 9])
-    ffi_call(sym, desc, frame)
+    ffi_call(sym, desc, frame, -1)
     assert_eq(i64(frame[24]), 7)
     assert_eq(i64(frame[26]), 9)
 }
@@ -148,6 +153,6 @@ import "std/testing"
     desc: u8[] = [2, 2]
     frame: u8[]! = []
     push_little_endian(frame, i64(4.0.to_bits()), 8)
-    ffi_call(sym, desc, frame)
+    ffi_call(sym, desc, frame, -1)
     assert_eq(u64(read_little_endian(frame, 0, 8, false)).from_bits(), 2.0)
 }

@@ -263,6 +263,8 @@ bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
 FnMetadata :: struct {
     extern_name: string
     is_extern:   bool
+    /// See `BcImport.c_variadic_fixed`.
+    c_variadic_fixed: i32
     is_exported: bool
     /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
     /// or `""`. The linker does not need it — it resolves against what is on the
@@ -287,12 +289,14 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     is_exported := false
     c_header := ""
     c_library := ""
+    c_variadic_fixed: i32 = -1
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
         is_extern = decorators_have(fn_decl.decorators, "extern")
         is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
         c_library = extern_library_name(fn_decl)
+        c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
     }
     return FnMetadata {
         .extern_name = extern_name,
@@ -300,7 +304,23 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
         .is_exported = is_exported,
         .c_header    = c_header,
         .c_library   = c_library,
+        .c_variadic_fixed = c_variadic_fixed,
     }
+}
+
+/// The fixed-argument count a `@c_variadic(N)` declares, or `-1`.
+///
+/// @param decorators  the declaration's decorators.
+c_variadic_fixed_of :: fn(decorators: Decorator[]) -> i32 {
+    for d in decorators {
+        if d.name == "c_variadic" && d.args.len() == 1 {
+            a :: d.args[0]
+            if a is IntLitExpr {
+                return i32(a.value)
+            }
+        }
+    }
+    return -1
 }
 
 /// The library named by a 2-argument `@extern`, or `""`.
@@ -395,6 +415,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .is_extern   = meta.is_extern,
         .c_header    = meta.c_header,
         .c_library   = meta.c_library,
+        .c_variadic_fixed = meta.c_variadic_fixed,
     }
 }
 

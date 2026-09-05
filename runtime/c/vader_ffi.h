@@ -222,6 +222,62 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
     default: break;                                                                    \
     }
 
+/* Variadic dispatch, one entry per FIXED-argument count.
+ *
+ * A variadic callee cannot be called through a non-variadic prototype. On
+ * x86-64 the two happen to agree — variadic arguments travel in the same
+ * registers — which is why this went unnoticed on Linux. On darwin-arm64 they
+ * do NOT: variadic arguments go on the STACK, so a cast to
+ * `(int64_t (*)(int64_t, int64_t, int64_t))` puts the third argument in `x2`
+ * while the callee's `va_arg` reads an uninitialised stack word. `ioctl(fd,
+ * TIOCGWINSZ, &ws)` had the kernel write eight bytes to that stale address and
+ * report success; `open(path, flags, mode)` created files with mode 0.
+ *
+ * The fixed count cannot be derived from the argument count — only the callee's
+ * real prototype knows it — so it is declared, by `@c_variadic(N)`.
+ *
+ * One function per fixed count rather than one macro: the cast has to name the
+ * fixed parameters, and C has no way to build a prototype from a count. */
+static int64_t vader_ffi_call_va(void* fn, const int64_t* args, size_t nargs,
+                                 size_t nfixed) {
+    size_t nvar = nargs - nfixed;
+    if (nfixed > nargs || nvar > 3) {
+        vader_trap("vader_ffi: a variadic call needs 0..3 variadic arguments");
+    }
+    switch (nfixed) {
+    case 1: {
+        typedef int64_t (*f1_t)(int64_t, ...);
+        switch (nvar) {
+        case 0: return ((f1_t) fn)(args[0]);
+        case 1: return ((f1_t) fn)(args[0], args[1]);
+        case 2: return ((f1_t) fn)(args[0], args[1], args[2]);
+        default: return ((f1_t) fn)(args[0], args[1], args[2], args[3]);
+        }
+    }
+    case 2: {
+        typedef int64_t (*f2_t)(int64_t, int64_t, ...);
+        switch (nvar) {
+        case 0: return ((f2_t) fn)(args[0], args[1]);
+        case 1: return ((f2_t) fn)(args[0], args[1], args[2]);
+        case 2: return ((f2_t) fn)(args[0], args[1], args[2], args[3]);
+        default: return ((f2_t) fn)(args[0], args[1], args[2], args[3], args[4]);
+        }
+    }
+    case 3: {
+        typedef int64_t (*f3_t)(int64_t, int64_t, int64_t, ...);
+        switch (nvar) {
+        case 0: return ((f3_t) fn)(args[0], args[1], args[2]);
+        case 1: return ((f3_t) fn)(args[0], args[1], args[2], args[3]);
+        case 2: return ((f3_t) fn)(args[0], args[1], args[2], args[3], args[4]);
+        default: return ((f3_t) fn)(args[0], args[1], args[2], args[3], args[4], args[5]);
+        }
+    }
+    default: break;
+    }
+    vader_trap("vader_ffi: a variadic call needs 1..3 fixed arguments");
+    return 0;
+}
+
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
     VADER_FFI_DISPATCH(int64_t)
     vader_trap("vader_ffi: more than 8 arguments in a foreign call");
@@ -244,6 +300,11 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
  * whereas a returned `vader_string_t` IS a Vader string. Every other shape
  * returns `VADER_ATOM_EMPTY`, which callers ignore. */
 vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
+    return vader_ffi_call_n(fn, desc, frame, -1);
+}
+
+vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
+                                int64_t nfixed) {
     vader_slice_t        dview = vader_array_bytes(desc);
     vader_slice_t        fview;
     const unsigned char* cls;
@@ -293,7 +354,13 @@ vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* fram
      * A MIX needs one form per combination of classes — the point at which
      * fabricating the call (libffi, or a thunk) starts to pay. */
     if (nreal == 0) {
-        int64_t r = vader_ffi_call_int(fn, words, nargs);
+        /* `nfixed >= 0` means the callee is VARIADIC and that many of its
+         * parameters are fixed — declared, because only the real prototype knows
+         * where the fixed ones end. The cast has to be variadic too: see
+         * `vader_ffi_call_va`. */
+        int64_t r = nfixed >= 0
+            ? vader_ffi_call_va(fn, words, nargs, (size_t) nfixed)
+            : vader_ffi_call_int(fn, words, nargs);
         if (cls[0] == VADER_FFI_F64) {
             vader_trap("vader_ffi: floating result from an integer call shape");
         }

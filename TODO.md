@@ -872,3 +872,23 @@ Two things to carry into that decision:
   prototype is variadic, so a compiler-side check would cover the native path
   and not the one that is actually broken. Same shape as `@c_header` being our
   only ABI check with nothing requiring it.
+
+## 5 — a mirror field that is a nullable pointer
+
+`CPointer | null` is refused as a `@c_struct` field and should not be. It is the
+one union with a flat C shape — a bare `void*`, which is exactly what a struct
+member holding an optional pointer is — but the emitted field is a 16-byte
+`vader_box_t`, so the width assert catches it and the gate refuses it first.
+
+Deferred 2026-09-05. The workaround in `lib/system/windows` is a `usize` for
+every RESERVED member (`lpSecurityDescriptor`, `STARTUPINFOA`'s four pointers),
+which occupies the right eight bytes and stays zero, plus a `__typeof__`
+conversion in the shim's assignment. That is sound while every leaf carries both
+a width and an offset `_Static_assert` — but it means a member that genuinely
+holds a pointer the caller sets cannot be mirrored at all.
+
+The fix is the B1 inline representation the runtime already has
+(`vader_b1_to_box` / `vader_box_to_b1`, `runtime/c/vader.h`): a `T | null` where
+T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants
+the same treatment. Once it lands, the reserved members go back to being what
+they are and the `__typeof__` cast can narrow or go.

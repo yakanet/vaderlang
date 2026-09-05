@@ -329,7 +329,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             if b is Trap { return b }
             frame.push(u8(b.value))
         }
-        ffi_call(usize(ptr.value), desc, frame)
+        ffi_call(usize(ptr.value), desc, frame, -1)
         // `frame` is a COPY, and it carries BOTH what the callee wrote into a
         // lent area and the result itself — so it has to travel back whole.
         for i in 0..<frame_arr.length {
@@ -627,7 +627,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         push_little_endian(frame, 0, 8)
     }
 
-    returned :: ffi_call(sym, desc, frame)
+    returned :: ffi_call(sym, desc, frame, i64(info.c_variadic_fixed))
 
     // What C wrote into a lent array has to travel back: the frame is a FLAT
     // COPY of the boxed elements, so without this a mutable lend —

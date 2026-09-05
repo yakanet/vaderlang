@@ -604,7 +604,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // shim casts back to `void*` at the boundary.
     .FfiOpen -> { return "${head} { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }" }
     .FfiSymbol -> { return "${head} { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }" }
-    .FfiCall -> { return "${head} { return vader_ffi_call((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2); }" }
+    .FfiCall -> { return "${head} { return vader_ffi_call_n((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2, a3); }" }
     .TargetCurrentOs -> { return "${head} { return vader_current_os(); }" }
     .TargetCurrentArch -> { return "${head} { return vader_current_arch(); }" }
 

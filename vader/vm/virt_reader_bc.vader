@@ -506,6 +506,7 @@ parse_import_decl_bc :: fn(
     // Read by scanning rather than by position, so adding a third one later does
     // not silently shift the others.
     c_header := ""
+    c_variadic_fixed: i32 = -1
     result_type: i32 = 0
     param_types: i32[]! = []
     param_mutable: bool[]! = []
@@ -514,6 +515,12 @@ parse_import_decl_bc :: fn(
         attr :: parts[i]
         if attr.starts_with("header=") {
             c_header = attr.trim_prefix("header=")
+        }
+        if attr.starts_with("variadic=") {
+            parsed :: parse_int_in_base(attr.trim_prefix("variadic="), 10)
+            if parsed !is ParseError {
+                c_variadic_fixed = i32(parsed)
+            }
         }
         if attr.starts_with("result_type=") {
             parsed :: parse_int_in_base(attr.trim_prefix("result_type="), 10)
@@ -573,6 +580,7 @@ parse_import_decl_bc :: fn(
         .is_extern    = is_extern,
         .c_library    = c_library,
         .c_header     = c_header,
+        .c_variadic_fixed = c_variadic_fixed,
     })
     return null
 }
