@@ -1412,7 +1412,7 @@ vader_box_t vader_types_primitive_meta(vader_string_t l0) {
     vader_string_t t0;
     int64_t t1;
     vader_box_t t2;
-    l1 = (void*) &vader_data_12;
+    l1 = (void*) &vader_data_10;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l2 = ((vader_array_t*) l1)->length;
@@ -1457,7 +1457,7 @@ vader_string_t vader_types_resolve_primitive_alias(vader_string_t l0) {
     vader_box_t t0;
     vader_string_t t1;
     int64_t t2;
-    l1 = (void*) &vader_data_13;
+    l1 = (void*) &vader_data_11;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l2 = ((vader_array_t*) l1)->length;

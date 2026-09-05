@@ -32,20 +32,20 @@ static bool std_tty_is_tty(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = std_tty_tty_slot(l0);
-    t0 = (void*) &vader_data_10;
+    t0 = (void*) &vader_data_8;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l1 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l1];
     if ((t1 >= INT32_C(0))) {
-        t0 = (void*) &vader_data_10;
+        t0 = (void*) &vader_data_8;
         vader_array_t* _a1_slotarr = ((vader_array_t*) t0);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
         if ((size_t) l1 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l1];
         { bool __vret = t1 != INT32_C(0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = (void*) &vader_data_10;
+    t0 = (void*) &vader_data_8;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) l1 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -74,14 +74,14 @@ static bool std_tty_is_tty(int32_t l0) {
     l2 = (uint32_t) (int32_t) t3;
     t2 = vader_host_system_windows_set_console_mode(l3, l2);
     if (t2) {
-        t0 = (void*) &vader_data_10;
+        t0 = (void*) &vader_data_8;
         vader_array_t* _a5_slotarr = ((vader_array_t*) t0);
         if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
         if ((size_t) l1 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
         ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l1] = (int32_t) INT32_C(1);
     } else {
     }
-    t0 = (void*) &vader_data_10;
+    t0 = (void*) &vader_data_8;
     vader_array_t* _a6_slotarr = ((vader_array_t*) t0);
     if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
     if ((size_t) l1 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }

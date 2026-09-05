@@ -11602,7 +11602,7 @@ static bool vader_c_emit_is_abi_nullable_string(void* l0, int32_t l1) {
 static bool vader_c_emit_is_c_reserved(vader_string_t l0) {
     void* t0;
     bool t1;
-    t0 = (void*) &vader_data_9;
+    t0 = (void*) &vader_data_7;
     t1 = std_core____Contains_contains__string(t0, l0);
     return t1;
 }

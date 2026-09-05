@@ -30,7 +30,7 @@ static bool std_tty_is_tty(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = std_tty_tty_slot(l0);
-    t0 = (void*) &vader_data_10;
+    t0 = (void*) &vader_data_8;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l1 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -41,7 +41,7 @@ static bool std_tty_is_tty(int32_t l0) {
         } else {
             l2 = INT32_C(1);
         }
-        l3 = (void*) &vader_data_10;
+        l3 = (void*) &vader_data_8;
         t1 = vader_host_system_posix_sys_isatty(l2);
         if (t1 != INT32_C(0)) {
             l2 = INT32_C(1);
@@ -54,7 +54,7 @@ static bool std_tty_is_tty(int32_t l0) {
         ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l1] = (int32_t) l2;
     } else {
     }
-    t0 = (void*) &vader_data_10;
+    t0 = (void*) &vader_data_8;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) l1 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }

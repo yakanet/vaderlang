@@ -1352,7 +1352,7 @@ static void* vader_resolver_builtin_type_names(void) {
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 167u);
     l0 = (void*) _a0_arr;
-    l1 = (void*) &vader_data_12;
+    l1 = (void*) &vader_data_10;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
@@ -1371,7 +1371,7 @@ static void* vader_resolver_builtin_type_names(void) {
             }
         }
     }
-    l1 = (void*) &vader_data_13;
+    l1 = (void*) &vader_data_11;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
@@ -1394,7 +1394,7 @@ static void* vader_resolver_builtin_type_names(void) {
             }
         }
     }
-    l1 = (void*) &vader_data_8;
+    l1 = (void*) &vader_data_6;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {

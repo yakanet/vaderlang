@@ -452,14 +452,14 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     int32_t l2, l11, l13, l14;
     uint64_t l3, l5, l7, l8, l9, l10, l17, l18, l20, l21, l22;
     bool l4, l6, l12, l19, l23;
-    void* l15 = NULL;
-    size_t l16;
+    size_t l15;
+    void* l16 = NULL;
     int64_t t0;
-    uint64_t t1;
-    bool t2;
-    int32_t t3;
-    void* t4 = NULL;
-    void** gc_raw_roots[2] = { &l15, &t4 };
+    void* t1 = NULL;
+    uint64_t t2;
+    bool t3;
+    int32_t t4;
+    void** gc_raw_roots[2] = { &l16, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l1 == INT64_C(0)) {
@@ -489,29 +489,31 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         l14 = std_core_pow5bits(l13);
         l14 = ((INT32_C(125) + l14) - INT32_C(1));
         l14 = ((-(l2) + l13) + l14);
-        l15 = (void*) &vader_data_1;
         t0 = ((int64_t) (int32_t) l13);
-        l16 = (size_t) (int64_t) t0;
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l15);
+        l15 = (size_t) (int64_t) t0;
+        t0 = (INT64_C(2) * l15);
+        l15 = (size_t) (int64_t) t0;
+        t1 = (void*) &vader_data_1;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) t1);
         if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-        if ((size_t) l16 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l16];
+        if ((size_t) l15 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l15];
         l8 = (uint64_t) (int64_t) t0;
-        l15 = (void*) &vader_data_2;
-        t0 = ((int64_t) (int32_t) l13);
-        l16 = (size_t) (int64_t) t0;
-        vader_array_t* _a1_slotarr = ((vader_array_t*) l15);
+        l16 = (void*) &vader_data_1;
+        t0 = (l15 + INT64_C(1));
+        l15 = (size_t) (int64_t) t0;
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l16);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-        if ((size_t) l16 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-        t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l16];
+        if ((size_t) l15 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l15];
         l9 = (uint64_t) (int64_t) t0;
-        l15 = std_core_mul_shift_all_64(l3, l8, l9, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__2;
+        l16 = std_core_mul_shift_all_64(l3, l8, l9, l14, l7);
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__2;
         if ((l13 <= INT32_C(21))) {
-            t1 = vader_div_u64(l5, INT64_C(5));
-            t0 = (t1 * INT64_C(5));
+            t2 = vader_div_u64(l5, INT64_C(5));
+            t0 = (t2 * INT64_C(5));
             l17 = (uint64_t) (int64_t) t0;
             if ((l5 - l17) == INT64_C(0)) {
                 l12 = std_core_multiple_of_power_of_5(l5, l13);
@@ -519,8 +521,8 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                 if (l4) {
                     l6 = std_core_multiple_of_power_of_5((uint64_t) (int64_t) ((l5 - INT64_C(1)) - l7), l13);
                 } else {
-                    t2 = std_core_multiple_of_power_of_5((uint64_t) (int64_t) (l5 + INT64_C(2)), l13);
-                    l17 = std_core_b2u(t2);
+                    t3 = std_core_multiple_of_power_of_5((uint64_t) (int64_t) (l5 + INT64_C(2)), l13);
+                    l17 = std_core_b2u(t3);
                     t0 = (l9 - l17);
                     l9 = (uint64_t) (int64_t) t0;
                 }
@@ -533,29 +535,31 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         l13 = (l13 - l14);
         l11 = (l13 + l2);
         l2 = (-(l2) - l13);
-        t3 = std_core_pow5bits(l2);
-        l14 = (t3 - INT32_C(125));
+        t4 = std_core_pow5bits(l2);
+        l14 = (t4 - INT32_C(125));
         l14 = (l13 - l14);
-        l15 = (void*) &vader_data_3;
         t0 = ((int64_t) (int32_t) l2);
-        l16 = (size_t) (int64_t) t0;
-        vader_array_t* _a2_slotarr = ((vader_array_t*) l15);
+        l15 = (size_t) (int64_t) t0;
+        t0 = (INT64_C(2) * l15);
+        l15 = (size_t) (int64_t) t0;
+        t1 = (void*) &vader_data_2;
+        vader_array_t* _a2_slotarr = ((vader_array_t*) t1);
         if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-        if ((size_t) l16 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-        t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l16];
+        if ((size_t) l15 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l15];
         l17 = (uint64_t) (int64_t) t0;
-        l15 = (void*) &vader_data_4;
-        t0 = ((int64_t) (int32_t) l2);
-        l16 = (size_t) (int64_t) t0;
-        vader_array_t* _a3_slotarr = ((vader_array_t*) l15);
+        l16 = (void*) &vader_data_2;
+        t0 = (l15 + INT64_C(1));
+        l15 = (size_t) (int64_t) t0;
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l16);
         if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
-        if ((size_t) l16 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-        t0 = ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l16];
+        if ((size_t) l15 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l15];
         l18 = (uint64_t) (int64_t) t0;
-        l15 = std_core_mul_shift_all_64(l3, l17, l18, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l15)->f__2;
+        l16 = std_core_mul_shift_all_64(l3, l17, l18, l14, l7);
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__2;
         if ((l13 <= INT32_C(1))) {
             l12 = true;
             if (l4) {
@@ -580,7 +584,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     }
     if (l19) {
         {
-            loop_283: {
+            loop_289: {
                 l5 = vader_div_u64(l9, INT64_C(10));
                 l7 = vader_div_u64(l10, INT64_C(10));
                 if ((l5 <= l7)) {
@@ -611,13 +615,13 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                     l9 = l5;
                     l10 = l7;
                     l2 = (l2 + INT32_C(1));
-                    goto loop_283;
+                    goto loop_289;
                 }
             }
         }
         if (l6) {
             {
-                loop_359: {
+                loop_365: {
                     l5 = vader_div_u64(l10, INT64_C(10));
                     t0 = (l5 * INT64_C(10));
                     l7 = (uint64_t) (int64_t) t0;
@@ -640,7 +644,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                         l9 = l17;
                         l10 = l5;
                         l2 = (l2 + INT32_C(1));
-                        goto loop_359;
+                        goto loop_365;
                     }
                 }
             }
@@ -652,8 +656,8 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
             l12 = false;
         }
         if (l12) {
-            t1 = vader_mod_u64(l8, INT64_C(2));
-            l12 = t1 == INT64_C(0);
+            t2 = vader_mod_u64(l8, INT64_C(2));
+            l12 = t2 == INT64_C(0);
         } else {
             l12 = false;
         }
@@ -695,7 +699,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         } else {
         }
         {
-            loop_525: {
+            loop_531: {
                 l5 = vader_div_u64(l9, INT64_C(10));
                 l7 = vader_div_u64(l10, INT64_C(10));
                 if ((l5 <= l7)) {
@@ -708,7 +712,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                     l9 = l5;
                     l10 = l7;
                     l2 = (l2 + INT32_C(1));
-                    goto loop_525;
+                    goto loop_531;
                 }
             }
         }
@@ -726,8 +730,8 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     vader_obj_header_init(_a4_obj, 381u);
     _a4_obj->f_mantissa = l3;
     _a4_obj->f_exp = l2;
-    t4 = (void*) _a4_obj;
-    { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = (void*) _a4_obj;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -758,7 +762,7 @@ static void* std_core_digits_of(uint64_t l0) {
     {
         loop_13: {
             if (l2 != INT64_C(0)) {
-                l3 = (void*) &vader_data_7;
+                l3 = (void*) &vader_data_5;
                 t1 = vader_mod_u64(l2, INT64_C(10));
                 t2 = ((int64_t) (uint64_t) t1);
                 l4 = (size_t) (int64_t) t2;
@@ -1813,7 +1817,7 @@ static uint32_t std_core_mul_pow5_div_pow2(uint32_t l0, int32_t l1, int32_t l2) 
     uint64_t l5;
     int64_t t0;
     uint32_t t1;
-    l3 = (void*) &vader_data_6;
+    l3 = (void*) &vader_data_4;
     t0 = ((int64_t) (int32_t) l1);
     l4 = (size_t) (int64_t) t0;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
@@ -1831,7 +1835,7 @@ static uint32_t std_core_mul_pow5_inv_div_pow2(uint32_t l0, int32_t l1, int32_t 
     uint64_t l5;
     int64_t t0;
     uint32_t t1;
-    l3 = (void*) &vader_data_5;
+    l3 = (void*) &vader_data_3;
     t0 = ((int64_t) (int32_t) l1);
     l4 = (size_t) (int64_t) t0;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l3);

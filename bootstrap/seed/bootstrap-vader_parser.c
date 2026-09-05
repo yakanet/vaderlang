@@ -1449,7 +1449,7 @@ vader_box_t vader_parser_intrinsic_spec(vader_string_t l0) {
     vader_string_t t0;
     int64_t t1;
     vader_box_t t2;
-    l1 = (void*) &vader_data_11;
+    l1 = (void*) &vader_data_9;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l2 = ((vader_array_t*) l1)->length;
