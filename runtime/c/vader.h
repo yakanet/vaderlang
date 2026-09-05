@@ -1204,9 +1204,6 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-/* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
- * Idempotent; a finished or unknown handle is a no-op. */
-void vader_spawn_kill(vader_i64_t handle);
 /* ----------------------------------------------------------------- target
  *
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
@@ -1225,23 +1222,26 @@ int32_t        vader_current_os(void);
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
 
-/* ----------------------------------------------------------------- process
- * Non-blocking subprocess primitives backing `std/process::spawn_async`.
- * `spawn_start` launches a child and returns a handle (>= 0) into the runtime
- * child table, or -1 on failure. `spawn_poll` drains its pipes + reaps without
- * blocking, returning VADER_SPAWN_RUNNING while alive, else the exit status
- * (>= 0) or a negative sentinel. `spawn_take_stdout/_stderr` intern the
- * captured output once done (stderr take frees the slot). The blocking
- * `std/process::spawn` is `block_on(spawn_async(...))` over these. */
+/* ----------------------------------------------------------------- I/O */
 
-#define VADER_SPAWN_LAUNCH_FAIL (-1)
-#define VADER_SPAWN_SIGNALED    (-2)
-#define VADER_SPAWN_RUNNING     (-1)  /* poll: still alive (context distinguishes from LAUNCH_FAIL) */
+/* ----------------------------------------------------------------- target
+ *
+ * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
+ * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
+ * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
+ * both sides; reorder the Vader enum and this must move with it.
+ *
+ * This is NOT the compilation target. `VADER_OS` answers that, is baked at build
+ * time, and is what `@target` selects on. This one is resolved at runtime, which
+ * is why a program that manipulates its own environment — resolving a path,
+ * choosing a separator — must use it: a seed emitted on one platform and
+ * compiled on another would otherwise carry the wrong answer.
+ */
+int32_t        vader_current_os(void);
+/* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
+ * same reason, as `vader_current_os` above. */
+int32_t        vader_current_arch(void);
 
-vader_i64_t    vader_spawn_start(vader_array_t* argv);
-vader_i32_t    vader_spawn_poll(vader_i64_t handle);
-vader_string_t vader_spawn_take_stdout(vader_i64_t handle);
-vader_string_t vader_spawn_take_stderr(vader_i64_t handle);
 
 /* ----------------------------------------------------------------- string */
 
