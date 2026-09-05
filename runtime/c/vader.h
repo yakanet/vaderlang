@@ -1208,7 +1208,7 @@ void vader_defer_pop_exec(uint32_t count);
  * Idempotent; a finished or unknown handle is a no-op. */
 void vader_spawn_kill(vader_i64_t handle);
 /* ----------------------------------------------------------------- target
-/*
+ *
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
  * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
  * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on

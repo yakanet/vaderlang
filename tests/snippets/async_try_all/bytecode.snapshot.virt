@@ -36,11 +36,11 @@ type 33 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
 type 34 union 0,9
 type 35 struct std_async$All__Any___i32 { children:36,results:37 }
 type 36 array 13
-type 37 struct std_collections$MutableMap__usize__Any { ekeys:41,evals:26,index:40,mask:18,size:18,tombs:18 }
+type 37 struct std_collections$MutableMap__usize__Any { ekeys:40,evals:26,index:39,mask:18,size:18,tombs:18 }
 type 38 primitive isize
-type 39 union 23,0
-type 40 array 6
-type 41 array 18
+type 39 array 6
+type 40 array 18
+type 41 union 23,0
 type 42 array 5
 type 43 union 29,9
 type 44 ref _
@@ -651,11 +651,11 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           local.get 21   ; $call_128
           array.new 42 2   ; ref Async[][]
           local.set 22   ; $arr_129
-          array.new 41 0   ; usize[][]
+          array.new 40 0   ; usize[][]
           local.set 23   ; $arr_130
           array.new 26 0   ; ref[][]
           local.set 24   ; $arr_131
-          array.new 40 0   ; i32[][]
+          array.new 39 0   ; i32[][]
           local.set 25   ; $arr_132
           local.get 23   ; $arr_130
           local.get 24   ; $arr_131
@@ -787,11 +787,11 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           local.get 36   ; $call_190
           array.new 42 3   ; ref Async[][]
           local.set 37   ; $arr_191
-          array.new 41 0   ; usize[][]
+          array.new 40 0   ; usize[][]
           local.set 38   ; $arr_192
           array.new 26 0   ; ref[][]
           local.set 39   ; $arr_193
-          array.new 40 0   ; i32[][]
+          array.new 39 0   ; i32[][]
           local.set 40   ; $arr_194
           local.get 38   ; $arr_192
           local.get 39   ; $arr_193
@@ -1391,7 +1391,7 @@ fn 24 std_collections$ensure_index__usize__Any (ref) -> void
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 40 0   ; i32[][]
+    array.new 39 0   ; i32[][]
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1433,7 +1433,7 @@ fn 25 std_collections$rehash__usize__Any (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 40 0   ; i32[][]
+  array.new 39 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0

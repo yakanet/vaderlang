@@ -293,6 +293,121 @@ export peek_named_pipe :: fn(h: Handle, buf: CPointer | null, size: u32,
 @extern("kernel32", "Sleep")
 export sleep_ms :: fn(ms: u32) -> void
 
+// ---- subprocess ------------------------------------------------------------
+
+/// `STARTF_USESTDHANDLES` — `hStdInput` / `hStdOutput` / `hStdError` are used.
+export STARTF_USESTDHANDLES: u32 : 0x0100
+
+/// `WAIT_OBJECT_0` — the object is signalled, i.e. the process has exited.
+export WAIT_OBJECT_0: u32 : 0
+
+/// `SECURITY_ATTRIBUTES`, mirrored for the two members a pipe needs.
+///
+/// `lpSecurityDescriptor` is skipped and the shim zero-fills it, which is the
+/// NULL the call wants. `bInheritHandle` is what lets the child receive the
+/// write ends.
+@c_struct("SECURITY_ATTRIBUTES")
+export SecurityAttributes :: struct {
+    nLength:        u32
+    bInheritHandle: i32
+}
+
+/// `STARTUPINFOA`, mirrored for the members a redirected child needs.
+///
+/// The rest are zero-filled by the shim, which is what `CreateProcess` expects
+/// of a plain console child. `cb` must be `sizeof(STARTUPINFOA)` — 104 on
+/// x86_64 — and is the one member the callee validates.
+@c_struct("STARTUPINFOA")
+export StartupInfo :: struct {
+    cb:         u32
+    dwFlags:    u32
+    hStdInput:  Handle
+    hStdOutput: Handle
+    hStdError:  Handle
+}
+
+/// `PROCESS_INFORMATION` — what `CreateProcess` hands back.
+@c_struct("PROCESS_INFORMATION")
+export ProcessInformation :: struct {
+    hProcess:    Handle
+    hThread:     Handle
+    dwProcessId: u32
+    dwThreadId:  u32
+}
+
+/// `CreatePipe`.
+///
+/// The two ends are separate `HANDLE*` out-parameters, not one struct, so each
+/// is its own one-word buffer. Read the handle back with `ptr_at`.
+///
+/// @param read_end   a one-word buffer receiving the read end.
+/// @param write_end  a one-word buffer receiving the write end.
+/// @param attrs      a `SecurityAttributes` with `bInheritHandle` set.
+/// @param size       suggested buffer size; 0 for the default.
+@c_header("<windows.h>")
+@extern("kernel32", "CreatePipe")
+export create_pipe :: fn(read_end: usize[]!, write_end: usize[]!,
+                         @c_pointer attrs: SecurityAttributes, size: u32) -> bool
+
+/// The `i`-th pointer-sized word of a lent buffer, as a handle.
+///
+/// `CPointer` cannot be built from an integer (T3010) and a lent array yields
+/// integers, so a HANDLE an out-parameter wrote is otherwise unreachable.
+///
+/// @param base  the buffer the callee filled.
+/// @param i     the word index.
+@extern("vader_ptr_at")
+export ptr_at :: fn(base: usize[], i: usize) -> Handle
+
+/// `CreateProcessA`. Launches `command_line`, inheriting the handles named in
+/// `startup`.
+///
+/// The ANSI form: the argument vector is one command line by then, and the wide
+/// form would need it widened for nothing the child can see.
+///
+/// @param application   null — the program is the first word of the line.
+/// @param command_line  the whole command line, which the callee MODIFIES.
+/// @param proc_attrs    null.
+/// @param thread_attrs  null.
+/// @param inherit       true, so the child receives the pipe ends.
+/// @param flags         0.
+/// @param environment   null — inherit the parent's.
+/// @param directory     null — inherit the parent's.
+/// @param startup       the redirected handles.
+/// @param info          filled with the child's handles and ids.
+@c_header("<windows.h>")
+@extern("kernel32", "CreateProcessA")
+export create_process :: fn(application: CPointer | null, command_line: u8[]!,
+                            proc_attrs: CPointer | null, thread_attrs: CPointer | null,
+                            inherit: bool, flags: u32,
+                            environment: CPointer | null, directory: CPointer | null,
+                            @c_pointer startup: StartupInfo,
+                            @c_pointer info: ProcessInformation!) -> bool
+
+/// `WaitForSingleObject`. `WAIT_OBJECT_0` once the process has exited.
+///
+/// @param h           the process handle.
+/// @param timeout_ms  0 to poll without waiting.
+@c_header("<windows.h>")
+@extern("kernel32", "WaitForSingleObject")
+export wait_for_single_object :: fn(h: Handle, timeout_ms: u32) -> u32
+
+/// `GetExitCodeProcess`.
+///
+/// @param h     the process handle.
+/// @param code  a one-element array receiving the status.
+@c_header("<windows.h>")
+@extern("kernel32", "GetExitCodeProcess")
+export get_exit_code_process :: fn(h: Handle, code: u32[]!) -> bool
+
+/// `TerminateProcess`.
+///
+/// @param h     the process handle.
+/// @param code  the exit status to report for the killed child.
+@c_header("<windows.h>")
+@extern("kernel32", "TerminateProcess")
+export terminate_process :: fn(h: Handle, code: u32) -> bool
+
 /// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
 /// translation of Ctrl-C into a signal — plus the one it turns on, so escape
 /// sequences arrive as bytes.

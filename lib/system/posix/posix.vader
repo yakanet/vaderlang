@@ -111,6 +111,133 @@ export Pollfd :: struct {
     revents: i16
 }
 
+// ---- subprocess -----------------------------------------------------------
+//
+// `posix_spawn` rather than `fork` + `exec`: forking a process that owns a GC
+// heap duplicates it, and everything between the fork and the exec runs in that
+// copy. `posix_spawn` hands the whole sequence to the C library.
+
+/// Bytes to reserve for a `posix_spawn_file_actions_t`.
+///
+/// An OPAQUE buffer — Vader never looks inside, the `spawn_file_actions_*` calls
+/// fill it. Nothing checks this number, so it is taken HIGH: the real size is 8
+/// on Darwin (one pointer) and 80 on glibc.
+///
+/// ⚠️ Do NOT narrow this to what one system reports.
+export SPAWN_ACTIONS_BYTES: usize: 128
+
+/// `WNOHANG` — return immediately rather than waiting. 1 on both systems.
+export WNOHANG: i32: 1
+
+/// `SIGKILL`. 9 on both systems.
+export SIGKILL: i32: 9
+
+/// `pipe(2)`. Fills `fds` with the read end then the write end.
+///
+/// @param fds  a two-element array the call writes into.
+/// @return     0 on success, -1 on failure.
+@c_header("<unistd.h>")
+@extern("pipe")
+export sys_pipe :: fn(fds: i32[]!) -> i32
+
+/// `close(2)`.
+///
+/// @param fd  the descriptor to close.
+@c_header("<unistd.h>")
+@extern("close")
+export sys_close :: fn(fd: i32) -> i32
+
+/// `posix_spawn_file_actions_init(3)`.
+///
+/// @param actions  `SPAWN_ACTIONS_BYTES` of scratch.
+@c_header("<spawn.h>")
+@extern("posix_spawn_file_actions_init")
+export sys_spawn_actions_init :: fn(actions: u8[]!) -> i32
+
+/// `posix_spawn_file_actions_destroy(3)`. Pairs with the init.
+///
+/// @param actions  the buffer the init filled.
+@c_header("<spawn.h>")
+@extern("posix_spawn_file_actions_destroy")
+export sys_spawn_actions_destroy :: fn(actions: u8[]!) -> i32
+
+/// `posix_spawn_file_actions_addclose(3)` — close `fd` in the child.
+///
+/// @param actions  the actions buffer.
+/// @param fd       the descriptor to close after the fork.
+@c_header("<spawn.h>")
+@extern("posix_spawn_file_actions_addclose")
+export sys_spawn_actions_addclose :: fn(actions: u8[]!, fd: i32) -> i32
+
+/// `posix_spawn_file_actions_adddup2(3)` — `dup2(fd, newfd)` in the child.
+///
+/// @param actions  the actions buffer.
+/// @param fd       the source descriptor.
+/// @param newfd    where it lands in the child.
+@c_header("<spawn.h>")
+@extern("posix_spawn_file_actions_adddup2")
+export sys_spawn_actions_adddup2 :: fn(actions: u8[]!, fd: i32, newfd: i32) -> i32
+
+/// `posix_spawnp(3)` — launch `file`, resolved through `PATH`.
+///
+/// @param pid      a one-element array receiving the child's pid.
+/// @param file     the program name.
+/// @param actions  the file actions, or an empty buffer for none.
+/// @param attrp    null — no spawn attributes are used.
+/// @param argv     a NULL-terminated vector of `char*`, as `usize` words.
+/// @param envp     `sys_environ()`.
+/// @return         0 on success, an errno value otherwise.
+@c_header("<spawn.h>")
+@extern("posix_spawnp")
+export sys_posix_spawnp :: fn(pid: i32[]!, file: string, actions: u8[]!,
+                              attrp: CPointer | null, argv: usize[], envp: CPointer) -> i32
+
+/// `waitpid(2)`.
+///
+/// @param pid      the child to wait for.
+/// @param status   a one-element array receiving the raw wait status.
+/// @param options  `WNOHANG` to poll rather than block.
+/// @return         the pid when it changed state, 0 under `WNOHANG` while it
+///                 still runs, -1 on error.
+@c_header("<sys/wait.h>")
+@extern("waitpid")
+export sys_waitpid :: fn(pid: i32, status: i32[]!, options: i32) -> i32
+
+/// `kill(2)`.
+///
+/// @param pid  the process to signal.
+/// @param sig  the signal number.
+@c_header("<signal.h>")
+@extern("kill")
+export sys_kill :: fn(pid: i32, sig: i32) -> i32
+
+/// `strdup(3)` — a heap copy of `s`, owned by the caller.
+///
+/// Used to build the `char**` a spawn wants: a `usize[]` of these lends as one.
+///
+/// @param s  the string to copy.
+/// @return   a `char*` the caller frees with `sys_free`.
+@c_header("<string.h>")
+@extern("strdup")
+export sys_strdup :: fn(s: string) -> CPointer
+
+/// `free(3)`. Releases what `sys_strdup` returned.
+///
+/// @param p  the pointer to release.
+@c_header("<stdlib.h>")
+@extern("free")
+export sys_free :: fn(p: CPointer) -> void
+
+/// The process environment, for `sys_posix_spawnp`.
+///
+/// `environ` is a VARIABLE and the FFI calls functions, so the runtime names it.
+/// Passing null instead gives the child an EMPTY environment — no `PATH`, which
+/// every spawned tool needs.
+///
+/// @return  the parent's `char**` environment.
+@extern("vader_environ")
+export sys_environ :: fn() -> CPointer
+
 /// `POLLIN` — data is available to read. 1 on both systems.
 export POLLIN: i16: 1
 

@@ -17,6 +17,34 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<i32[]>
+  Iterator<T[]>
+  Iterator<char>
+  Iterator<i32>
+  Iterator<[usize, string]>
+  Iterator<[usize, T]>
+  Iterator<[T, U]>
+  Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -47,8 +75,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  IndexSet<I, T>
-  Contains<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -58,32 +84,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Iterator<i32[]>
-  Iterator<T[]>
-  Iterator<char>
-  Iterator<i32>
-  Iterator<[usize, string]>
-  Iterator<[usize, T]>
-  Iterator<[T, U]>
-  Iterator<[K, V]>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<U>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<U>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   Yield<char>
   Yield<T>
   Yield<T>

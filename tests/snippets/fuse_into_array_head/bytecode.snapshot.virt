@@ -11,8 +11,8 @@ type 8 primitive u8
 type 9 array 8
 type 10 primitive void
 type 11 primitive isize
-type 12 fn (1) -> 1
-type 13 array 1
+type 12 array 1
+type 13 fn (1) -> 1
 string 0 "sum="
 string 1 " drain="
 string 2 " d0="
@@ -53,13 +53,13 @@ fn 2 snippet$main () -> i32
   local $call_75 string
   i32.const 0
   local.set 0   ; total
-  fn.ref 0 12   ; snippet$triple
+  fn.ref 0 13   ; snippet$triple
   local.set 1   ; f
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 13 4   ; i32[][]
+  array.new 12 4   ; i32[][]
   local.tee 2   ; __fuse_arr_0
   array.len
   local.set 3   ; __fuse_len_1
@@ -75,7 +75,7 @@ fn 2 snippet$main () -> i32
         local.get 4   ; __fuse_i_2
         load_slot_i32
         local.get 1   ; f
-        call.indirect 12   ; fn
+        call.indirect 13   ; fn
         local.tee 5   ; x
         call 1   ; snippet$keep_hi
         if $L3 void
@@ -96,13 +96,13 @@ fn 2 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  array.new 13 0   ; i32[][]
+  array.new 12 0   ; i32[][]
   local.set 2   ; __fuse_arr_0
-  fn.ref 0 12   ; snippet$triple
+  fn.ref 0 13   ; snippet$triple
   local.set 7   ; f
   i32.const 10
   i32.const 20
-  array.new 13 2   ; i32[][]
+  array.new 12 2   ; i32[][]
   local.tee 8   ; __fuse_arr_5
   array.len
   local.set 3   ; __fuse_len_1
@@ -118,7 +118,7 @@ fn 2 snippet$main () -> i32
         local.get 4   ; __fuse_i_2
         load_slot_i32
         local.get 7   ; f
-        call.indirect 12   ; fn
+        call.indirect 13   ; fn
         local.set 5   ; x
         local.get 2   ; __fuse_arr_0
         local.get 5   ; x

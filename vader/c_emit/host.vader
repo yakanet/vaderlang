@@ -566,14 +566,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .SchedArm  -> { return "${head} { vader_sched_arm(a0); }" }
     .SchedPark -> { return "${head} { return vader_sched_park(); }" }
 
-    // std/process — non-blocking subprocess. `argv` (a0) is a boxed `[string]` ;
-    // the handle (a0) is a bare i64.
-    .ProcessSpawnStart      -> { return "${head} { return vader_spawn_start((vader_array_t*) a0); }" }
-    .ProcessSpawnPoll       -> { return "${head} { return vader_spawn_poll(a0); }" }
-    .ProcessSpawnKill       -> { return "${head} { vader_spawn_kill(a0); }" }
-    .ProcessSpawnTakeStdout -> { return "${head} { return vader_spawn_take_stdout(a0); }" }
-    .ProcessSpawnTakeStderr -> { return "${head} { return vader_spawn_take_stderr(a0); }" }
-
     // std/tty + std/env. `get_env` boxes the value as a string (or null box).
     // An `Os` is an ordinal in an i32 slot, so the runtime's return needs no
     // boxing — the coupling to the enum's declaration order is stated in

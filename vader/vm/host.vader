@@ -287,46 +287,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if deadline > sched_state[0] { sched_state[0] = deadline }
         return HostOk { .value = I32Val { .value = 0 } }
     }
-    // ---- std/math --------------------------------------------------------
-    // ---- std/io fallible file ops ---------------------------------------
-    // `read_file` / `write_file` are gone — `read_file_string` /
-    // `write_file_string` are now pure-Vader wrappers over the byte
-    // intrinsics below, so the VM executes their bytecode directly (which
-    // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
-    // dedicated host arm.
-    // ---- std/process spawn (non-blocking) -------------------------------
-    .ProcessSpawnStart -> {
-        argv :: read_array(stack[arg_base], at_pc, "spawn_start argv")
-        if argv is Trap { return argv }
-        argv_strings: string[]! = []
-        for i in 0..<argv.length {
-            element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_start argv element")
-            if element is Trap { return element }
-            argv_strings.push(element.value)
-        }
-        return HostOk { .value = I64Val { .value = spawn_start(argv_strings) } }
-    }
-    .ProcessSpawnKill -> {
-        handle :: read_i64(stack[arg_base], at_pc, "spawn_kill handle")
-        if handle is Trap { return handle }
-        spawn_kill(handle.value)
-        return HostOk { .value = zero_value() }
-    }
-    .ProcessSpawnPoll -> {
-        h :: read_i64(stack[arg_base], at_pc, "spawn_poll handle")
-        if h is Trap { return h }
-        return HostOk { .value = I32Val { .value = spawn_poll(h.value) } }
-    }
-    .ProcessSpawnTakeStdout -> {
-        h :: read_i64(stack[arg_base], at_pc, "spawn_take_stdout handle")
-        if h is Trap { return h }
-        return HostOk { .value = StringVal { .value = spawn_take_stdout(h.value) } }
-    }
-    .ProcessSpawnTakeStderr -> {
-        h :: read_i64(stack[arg_base], at_pc, "spawn_take_stderr handle")
-        if h is Trap { return h }
-        return HostOk { .value = StringVal { .value = spawn_take_stderr(h.value) } }
-    }
     // ---- std/tty + std/env ----------------------------------------------
     // Raw mode from the VM is the same call the native binary makes: the VM is
     // itself a native binary, so these are its own intrinsics. It matters because
@@ -1110,8 +1070,6 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.
     .FfiOpen | .FfiSymbol | .FfiCall -> true
-    .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
-        | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
     // emit of the same source would differ. That is exactly what `seed.sh check`

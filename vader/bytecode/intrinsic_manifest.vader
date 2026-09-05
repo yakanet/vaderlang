@@ -116,7 +116,6 @@ export IntrinsicId :: enum(u8) {
     // std/runtime — cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
     // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
-    ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
     AbortPanic,
     // std/target — the OS the process is RUNNING on, not the one it was built
@@ -164,11 +163,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$sched_arm"               { return .SchedArm }
     if mangled == r"std_runtime$sched_park"              { return .SchedPark }
 
-    if mangled == r"std_process$spawn_start"             { return .ProcessSpawnStart }
-    if mangled == r"std_process$spawn_kill"                { return .ProcessSpawnKill }
-    if mangled == r"std_process$spawn_poll"              { return .ProcessSpawnPoll }
-    if mangled == r"std_process$spawn_take_stdout"       { return .ProcessSpawnTakeStdout }
-    if mangled == r"std_process$spawn_take_stderr"       { return .ProcessSpawnTakeStderr }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }

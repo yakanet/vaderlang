@@ -3406,6 +3406,37 @@ static void vader_ensure_stdio_binary(void) {
 #endif
 }
 
+/* The process environment, as `posix_spawnp` wants it.
+ *
+ * `environ` is a VARIABLE, not a function, and the FFI calls functions — so this
+ * is the accessor that names it. Passing NULL instead would hand the child an
+ * EMPTY environment, which is not what a subprocess inherits and would strip
+ * PATH from everything the build spawns.
+ *
+ * `VADER_HOST_EXPORT` for the reason at the accessors below: the interpreter
+ * resolves it by name at run time. */
+#if !defined(_WIN32)
+VADER_HOST_EXPORT
+char** vader_environ(void) {
+    return environ;
+}
+#endif
+
+/* The `i`-th pointer-sized word at `base`.
+ *
+ * For an out-parameter a callee fills with a HANDLE — `CreatePipe` writes two —
+ * where the Vader side lends a buffer and has no way to read a pointer back out
+ * of it: `CPointer` cannot be built from an integer (T3010), and a lent array
+ * yields integers.
+ *
+ * @param base  the lent buffer.
+ * @param i     the word index.
+ */
+VADER_HOST_EXPORT
+void* vader_ptr_at(const void* base, size_t i) {
+    return ((void* const*) base)[i];
+}
+
 /* ------------------------------------------------- directory-entry accessors
  *
  * Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
