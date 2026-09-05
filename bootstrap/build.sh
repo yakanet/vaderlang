@@ -148,26 +148,42 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-if [ ! -d "bootstrap/seed/$HOST_TARGET" ]; then
+# A host the seed does not name by triple builds from its OS SIBLING. What lands
+# in a per-target directory is chosen by `@target`, whose granularity is the OS
+# and never the arch, so every arch of one OS emits the same bytes —
+# `seed/windows-x86_64` and `seed/windows-arm64` were byte-identical, which is
+# why `seed.sh::SEED_TARGETS` seeds one arch per OS. Only an OS with no slice at
+# all is unbuildable.
+SEED_TARGET="$HOST_TARGET"
+if [ ! -d "bootstrap/seed/$SEED_TARGET" ]; then
+    SEED_TARGET=""
+    for d in bootstrap/seed/"${HOST_TARGET%%-*}"-*/; do
+        [ -d "$d" ] || continue
+        SEED_TARGET="$(basename "$d")"
+        break
+    done
+fi
+if [ -z "$SEED_TARGET" ]; then
     printf 'bootstrap/build.sh: no seed for %s -- seeded targets:' "$HOST_TARGET" >&2
     for d in bootstrap/seed/*/; do printf ' %s' "$(basename "$d")" >&2; done
     printf '\n' >&2
     exit 1
+fi
+if [ "$SEED_TARGET" != "$HOST_TARGET" ]; then
+    printf 'bootstrap/build.sh: no seed for %s — building stage0 from its OS sibling %s\n' \
+        "$HOST_TARGET" "$SEED_TARGET" >&2
 fi
 # `bootstrap-<module>.c`, flat, is shared by every target; a unit the targets
 # disagreed on lives in `seed/<target>/` instead. So the host's set is the flat
 # shared list plus ONE directory — nothing else is compiled, and a stale unit
 # from another target cannot be picked up by a glob.
 seed_shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null || true)
-seed_host=$(ls bootstrap/seed/"$HOST_TARGET"/*.c 2>/dev/null || true)
+seed_host=$(ls bootstrap/seed/"$SEED_TARGET"/*.c 2>/dev/null || true)
 # Two include roots, target first: the per-target directory owns
 # `bootstrap.imports.h`, and the seed root owns the shared `bootstrap.split.h`
 # that every unit — including the ones now sitting in a target directory —
 # includes by bare name.
-seed_includes="-Ibootstrap/seed"
-if [ -d "bootstrap/seed/$HOST_TARGET" ]; then
-    seed_includes="-Ibootstrap/seed/$HOST_TARGET -Ibootstrap/seed"
-fi
+seed_includes="-Ibootstrap/seed/$SEED_TARGET -Ibootstrap/seed"
 if [ -z "$seed_shared" ]; then
     echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
     exit 1

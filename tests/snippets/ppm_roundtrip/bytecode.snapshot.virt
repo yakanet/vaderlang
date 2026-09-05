@@ -34,35 +34,36 @@ string 7 "decode failed"
 string 8 "OK"
 string 9 "MISMATCH"
 string 10 "TMPDIR"
-string 11 "/tmp"
-string 12 "path contains a NUL byte"
-string 13 "wb"
-string 14 "open failed"
-string 15 "short write"
-string 16 "close failed"
-string 17 "rb"
-string 18 "file not found"
-string 19 "read failed"
-string 20 "file too large"
-string 21 "ppm: maxval must be in 1..=65535, got "
-string 22 "ppm: pixels is "
-string 23 " bytes, expected "
-string 24 "P6\n"
-string 25 " "
-string 26 "ppm: not a P6 stream (bad magic)"
-string 27 "ppm: missing or invalid width"
-string 28 "ppm: missing or invalid height"
-string 29 "ppm: missing or invalid maxval"
-string 30 "ppm: missing whitespace after maxval"
-string 31 "ppm: raster is "
-string 32 "8-bit"
-string 33 "16-bit"
-string 34 "Ppm "
-string 35 "x"
-string 36 " maxval="
-string 37 " ("
-string 38 " bytes, "
-string 39 ")"
+string 11 ""
+string 12 "/tmp"
+string 13 "path contains a NUL byte"
+string 14 "wb"
+string 15 "open failed"
+string 16 "short write"
+string 17 "close failed"
+string 18 "rb"
+string 19 "file not found"
+string 20 "read failed"
+string 21 "file too large"
+string 22 "ppm: maxval must be in 1..=65535, got "
+string 23 "ppm: pixels is "
+string 24 " bytes, expected "
+string 25 "P6\n"
+string 26 " "
+string 27 "ppm: not a P6 stream (bad magic)"
+string 28 "ppm: missing or invalid width"
+string 29 "ppm: missing or invalid height"
+string 30 "ppm: missing or invalid maxval"
+string 31 "ppm: missing whitespace after maxval"
+string 32 "ppm: raster is "
+string 33 "8-bit"
+string 34 "16-bit"
+string 35 "Ppm "
+string 36 "x"
+string 37 " maxval="
+string 38 " ("
+string 39 " bytes, "
+string 40 ")"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 param_mutable=0 param_by_address= (ref) -> string
@@ -513,21 +514,27 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
 end
 
 fn 7 std_io$temp_dir () -> string
+  local env string
   local __coalesce_0 any
-  local if_res string
   string.const 10   ; "TMPDIR"
   call.import 4   ; std_env$get_env
-  local.tee 0   ; __coalesce_0
+  local.tee 1   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
-    string.const 11   ; "/tmp"
-    local.set 1   ; if_res
+    string.const 11   ; ""
+    local.set 0   ; env
   else
-    local.get 0   ; __coalesce_0
+    local.get 1   ; __coalesce_0
     ref.cast 2   ; -> string
-    local.set 1   ; if_res
+    local.set 0   ; env
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; env
+  string.const 11   ; ""
+  string.eq
+  if $L1 void
+    return.lit string.const 12   ; "/tmp"
+  end $L1
+  local.get 0   ; env
   call 11   ; std_io$without_trailing_sep
   return
 end
@@ -556,7 +563,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
         i32.const 0
         i32.eq
         if $L3 void
-          string.const 12   ; "path contains a NUL byte"
+          string.const 13   ; "path contains a NUL byte"
           struct.new 11   ; std_io$IOError
           return
         end $L3
@@ -570,12 +577,12 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     end $L1
   end $L0
   local.get 0   ; arg 0
-  string.const 13   ; "wb"
+  string.const 14   ; "wb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 4   ; f
   type_check 0   ; null
   if $L4 void
-    string.const 14   ; "open failed"
+    string.const 15   ; "open failed"
     struct.new 11   ; std_io$IOError
     return
   end $L4
@@ -607,7 +614,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
       ref.cast 22   ; -> pointer
       call.import 8   ; system_posix$sys_fclose
       drop
-      string.const 15   ; "short write"
+      string.const 16   ; "short write"
       struct.new 11   ; std_io$IOError
       return
     end $L6
@@ -621,7 +628,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     local.get 7   ; $k_37
     i32.ne
     if $L7 void
-      string.const 16   ; "close failed"
+      string.const 17   ; "close failed"
       struct.new 11   ; std_io$IOError
       return
     end $L7
@@ -639,7 +646,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   local.get 7   ; $k_37
   i32.ne
   if $L8 void
-    string.const 16   ; "close failed"
+    string.const 17   ; "close failed"
     struct.new 11   ; std_io$IOError
     return
   end $L8
@@ -660,12 +667,12 @@ fn 9 std_io$read_file_bytes (string) -> any
   local $len_27 usize
   local failed bool
   local.get 0   ; arg 0
-  string.const 17   ; "rb"
+  string.const 18   ; "rb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
-    string.const 18   ; "file not found"
+    string.const 19   ; "file not found"
     struct.new 11   ; std_io$IOError
     return
   end $L0
@@ -681,7 +688,7 @@ fn 9 std_io$read_file_bytes (string) -> any
   block $L1 void
     loop $L2 void
       local.get 4   ; _
-      i64.const 65536
+      i64.const 4096
       u64.lt
       if $L3 void
         local.get 3   ; chunk
@@ -728,7 +735,7 @@ fn 9 std_io$read_file_bytes (string) -> any
           drop
           local.get 10   ; failed
           if $L6 void
-            string.const 19   ; "read failed"
+            string.const 20   ; "read failed"
             struct.new 11   ; std_io$IOError
             return
           end $L6
@@ -748,7 +755,7 @@ fn 9 std_io$read_file_bytes (string) -> any
   ref.cast 22   ; -> pointer
   call.import 8   ; system_posix$sys_fclose
   drop
-  string.const 20   ; "file too large"
+  string.const 21   ; "file too large"
   struct.new 11   ; std_io$IOError
   return
 end
@@ -963,7 +970,7 @@ fn 14 images_ppm$encode (ref) -> any
     local.set 3   ; __off_1
     local.get 2   ; __buf_0
     local.get 3   ; __off_1
-    string.const 21   ; "ppm: maxval must be in 1..=65535, got "
+    string.const 22   ; "ppm: maxval must be in 1..=65535, got "
     call 5   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.field 0 13 2   ; arg 0.maxval
@@ -1013,7 +1020,7 @@ fn 14 images_ppm$encode (ref) -> any
     local.set 5   ; $cast_26
     local.get 2   ; __buf_0
     local.get 5   ; $cast_26
-    string.const 22   ; "ppm: pixels is "
+    string.const 23   ; "ppm: pixels is "
     call 5   ; std_core$write_string_at
     local.set 5   ; $cast_26
     local.field 0 13 3   ; arg 0.pixels
@@ -1027,7 +1034,7 @@ fn 14 images_ppm$encode (ref) -> any
     local.set 5   ; $cast_26
     local.get 2   ; __buf_0
     local.get 5   ; $cast_26
-    string.const 23   ; " bytes, expected "
+    string.const 24   ; " bytes, expected "
     call 5   ; std_core$write_string_at
     local.set 5   ; $cast_26
     local.get 3   ; __off_1
@@ -1051,7 +1058,7 @@ fn 14 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 24   ; "P6\n"
+  string.const 25   ; "P6\n"
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 13 0   ; arg 0.width
@@ -1065,7 +1072,7 @@ fn 14 images_ppm$encode (ref) -> any
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  string.const 25   ; " "
+  string.const 26   ; " "
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.field 0 13 1   ; arg 0.height
@@ -1174,7 +1181,7 @@ fn 15 images_ppm$decode (ref) -> any
   end $L1
   local.get 1   ; or_res
   if $L2 void
-    string.const 26   ; "ppm: not a P6 stream (bad magic)"
+    string.const 27   ; "ppm: not a P6 stream (bad magic)"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L2
@@ -1190,7 +1197,7 @@ fn 15 images_ppm$decode (ref) -> any
   ref.cast 3   ; -> bool
   bool.not
   if $L3 void
-    string.const 27   ; "ppm: missing or invalid width"
+    string.const 28   ; "ppm: missing or invalid width"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L3
@@ -1209,7 +1216,7 @@ fn 15 images_ppm$decode (ref) -> any
   ref.cast 3   ; -> bool
   bool.not
   if $L4 void
-    string.const 28   ; "ppm: missing or invalid height"
+    string.const 29   ; "ppm: missing or invalid height"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L4
@@ -1228,7 +1235,7 @@ fn 15 images_ppm$decode (ref) -> any
   ref.cast 3   ; -> bool
   bool.not
   if $L5 void
-    string.const 29   ; "ppm: missing or invalid maxval"
+    string.const 30   ; "ppm: missing or invalid maxval"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L5
@@ -1255,7 +1262,7 @@ fn 15 images_ppm$decode (ref) -> any
     local.set 2   ; p0
     local.get 6   ; __buf_0
     local.get 2   ; p0
-    string.const 21   ; "ppm: maxval must be in 1..=65535, got "
+    string.const 22   ; "ppm: maxval must be in 1..=65535, got "
     call 5   ; std_core$write_string_at
     local.set 2   ; p0
     local.field 5 18 0   ; mv.value
@@ -1299,7 +1306,7 @@ fn 15 images_ppm$decode (ref) -> any
   end $L8
   local.get 1   ; or_res
   if $L9 void
-    string.const 30   ; "ppm: missing whitespace after maxval"
+    string.const 31   ; "ppm: missing whitespace after maxval"
     struct.new 15   ; images_ppm$PpmError
     return
   end $L9
@@ -1343,7 +1350,7 @@ fn 15 images_ppm$decode (ref) -> any
     local.set 10   ; $cast_87
     local.get 6   ; __buf_0
     local.get 10   ; $cast_87
-    string.const 31   ; "ppm: raster is "
+    string.const 32   ; "ppm: raster is "
     call 5   ; std_core$write_string_at
     local.set 10   ; $cast_87
     local.get 9   ; $cast_85
@@ -1356,7 +1363,7 @@ fn 15 images_ppm$decode (ref) -> any
     local.set 10   ; $cast_87
     local.get 6   ; __buf_0
     local.get 10   ; $cast_87
-    string.const 23   ; " bytes, expected "
+    string.const 24   ; " bytes, expected "
     call 5   ; std_core$write_string_at
     local.set 10   ; $cast_87
     local.get 8   ; $len_67
@@ -1671,10 +1678,10 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L0 void
-    string.const 32   ; "8-bit"
+    string.const 33   ; "8-bit"
     local.set 1   ; depth
   else
-    string.const 33   ; "16-bit"
+    string.const 34   ; "16-bit"
     local.set 1   ; depth
   end $L0
   local.get 1   ; depth
@@ -1689,7 +1696,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 34   ; "Ppm "
+  string.const 35   ; "Ppm "
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 0   ; arg 0.width
@@ -1703,7 +1710,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 35   ; "x"
+  string.const 36   ; "x"
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 1   ; arg 0.height
@@ -1717,7 +1724,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 36   ; " maxval="
+  string.const 37   ; " maxval="
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 2   ; arg 0.maxval
@@ -1731,7 +1738,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 37   ; " ("
+  string.const 38   ; " ("
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.field 0 13 3   ; arg 0.pixels
@@ -1745,7 +1752,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 38   ; " bytes, "
+  string.const 39   ; " bytes, "
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
@@ -1755,7 +1762,7 @@ fn 22 images_ppm$Ppm$Display$to_string (ref) -> string
   local.set 2   ; $call_10
   local.get 3   ; __buf_1
   local.get 2   ; $call_10
-  string.const 39   ; ")"
+  string.const 40   ; ")"
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
   local.get 3   ; __buf_1

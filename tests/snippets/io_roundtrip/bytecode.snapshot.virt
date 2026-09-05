@@ -26,15 +26,16 @@ string 5 "read failed"
 string 6 "true"
 string 7 "false"
 string 8 "TMPDIR"
-string 9 "/tmp"
-string 10 "path contains a NUL byte"
-string 11 "wb"
-string 12 "open failed"
-string 13 "short write"
-string 14 "close failed"
-string 15 "rb"
-string 16 "file not found"
-string 17 "file too large"
+string 9 ""
+string 10 "/tmp"
+string 11 "path contains a NUL byte"
+string 12 "wb"
+string 13 "open failed"
+string 14 "short write"
+string 15 "close failed"
+string 16 "rb"
+string 17 "file not found"
+string 18 "file too large"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
@@ -200,21 +201,27 @@ fn 5 std_core$write_bool (ref,usize,bool) -> usize
 end
 
 fn 6 std_io$temp_dir () -> string
+  local env string
   local __coalesce_0 any
-  local if_res string
   string.const 8   ; "TMPDIR"
   call.import 4   ; std_env$get_env
-  local.tee 0   ; __coalesce_0
+  local.tee 1   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
-    string.const 9   ; "/tmp"
-    local.set 1   ; if_res
+    string.const 9   ; ""
+    local.set 0   ; env
   else
-    local.get 0   ; __coalesce_0
+    local.get 1   ; __coalesce_0
     ref.cast 2   ; -> string
-    local.set 1   ; if_res
+    local.set 0   ; env
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; env
+  string.const 9   ; ""
+  string.eq
+  if $L1 void
+    return.lit string.const 10   ; "/tmp"
+  end $L1
+  local.get 0   ; env
   call 11   ; std_io$without_trailing_sep
   return
 end
@@ -434,7 +441,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
         i32.const 0
         i32.eq
         if $L3 void
-          string.const 10   ; "path contains a NUL byte"
+          string.const 11   ; "path contains a NUL byte"
           struct.new 10   ; std_io$IOError
           return
         end $L3
@@ -448,12 +455,12 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     end $L1
   end $L0
   local.get 0   ; arg 0
-  string.const 11   ; "wb"
+  string.const 12   ; "wb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 4   ; f
   type_check 0   ; null
   if $L4 void
-    string.const 12   ; "open failed"
+    string.const 13   ; "open failed"
     struct.new 10   ; std_io$IOError
     return
   end $L4
@@ -485,7 +492,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
       ref.cast 16   ; -> pointer
       call.import 8   ; system_posix$sys_fclose
       drop
-      string.const 13   ; "short write"
+      string.const 14   ; "short write"
       struct.new 10   ; std_io$IOError
       return
     end $L6
@@ -499,7 +506,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
     local.get 7   ; $k_37
     i32.ne
     if $L7 void
-      string.const 14   ; "close failed"
+      string.const 15   ; "close failed"
       struct.new 10   ; std_io$IOError
       return
     end $L7
@@ -517,7 +524,7 @@ fn 12 std_io$write_file_bytes (string,ref) -> any
   local.get 7   ; $k_37
   i32.ne
   if $L8 void
-    string.const 14   ; "close failed"
+    string.const 15   ; "close failed"
     struct.new 10   ; std_io$IOError
     return
   end $L8
@@ -538,12 +545,12 @@ fn 13 std_io$read_file_bytes (string) -> any
   local $len_27 usize
   local failed bool
   local.get 0   ; arg 0
-  string.const 15   ; "rb"
+  string.const 16   ; "rb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
-    string.const 16   ; "file not found"
+    string.const 17   ; "file not found"
     struct.new 10   ; std_io$IOError
     return
   end $L0
@@ -559,7 +566,7 @@ fn 13 std_io$read_file_bytes (string) -> any
   block $L1 void
     loop $L2 void
       local.get 4   ; _
-      i64.const 65536
+      i64.const 4096
       u64.lt
       if $L3 void
         local.get 3   ; chunk
@@ -626,7 +633,7 @@ fn 13 std_io$read_file_bytes (string) -> any
   ref.cast 16   ; -> pointer
   call.import 8   ; system_posix$sys_fclose
   drop
-  string.const 17   ; "file too large"
+  string.const 18   ; "file too large"
   struct.new 10   ; std_io$IOError
   return
 end

@@ -3437,6 +3437,24 @@ void* vader_ptr_at(const void* base, size_t i) {
     return ((void* const*) base)[i];
 }
 
+/* What KIND of thing `path` is: 0 missing, 1 regular file, 2 directory, 3 other.
+ *
+ * Here rather than in Vader because `struct stat`'s layout differs between the
+ * arches of one system, so no `@c_struct` mirror can be right for both. Returns
+ * a code rather than the raw mode so no `S_IF*` constant crosses the boundary.
+ * `lib/system/posix/posix.vader::sys_path_kind` is the Vader side. */
+#if !defined(_WIN32)
+#include <sys/stat.h>
+VADER_HOST_EXPORT
+int32_t vader_path_kind(const char* path) {
+    struct stat st;
+    if (stat(path, &st) != 0) return 0;
+    if (S_ISREG(st.st_mode))  return 1;
+    if (S_ISDIR(st.st_mode))  return 2;
+    return 3;
+}
+#endif
+
 /* ------------------------------------------------- directory-entry accessors
  *
  * Reading a NAMED member of a C struct is the one step a Vader FFI call cannot

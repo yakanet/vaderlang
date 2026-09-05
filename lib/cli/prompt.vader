@@ -75,13 +75,20 @@ KeyReader :: struct {
 
 new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 
-/// One line, terminated the way a raw-mode terminal needs.
+/// A frame, terminated the way a raw-mode terminal needs.
 ///
 /// `raw_mode_begin` goes through `cfmakeraw`, which clears `OPOST`: a bare `\n`
 /// advances a row without returning the carriage, so every line printed between
 /// `begin` and `end` has to say `\r` itself. `println` is only safe once the
 /// terminal is restored.
-raw_line :: fn(s: string) -> void = print("${s}\r\n")
+///
+/// `s` may be several lines — the renderers return a whole frame joined on
+/// `\n`, and terminating only the LAST line left the select and multiselect
+/// menus climbing a staircase to the right.
+raw_line :: fn(s: string) -> void = print(raw_terminated(s))
+
+// Split out so a test can see it — `raw_line` itself only prints.
+raw_terminated :: fn(s: string) -> string = "${s.replace_all("\n", "\r\n")}\r\n"
 
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
@@ -415,6 +422,15 @@ import "std/testing"
     assert_eq(lines.len(), usize(3))
     assert(lines[1].starts_with("  alpha"), "an unselected row has no pointer")
     assert(lines[2].starts_with("> beta"), "the cursor row does")
+}
+
+@test test_raw_termination_returns_the_carriage_on_every_line :: fn() -> void {
+    // `cfmakeraw` clears `OPOST`, so a frame whose INTERIOR separators are bare
+    // `\n` climbs a staircase to the right — only its last line came back.
+    frame :: render_select("Pick one", ["alpha", "beta"], 1, 80)
+    out :: raw_terminated(frame)
+    assert_eq(out.split("\r\n").len(), usize(4))
+    assert(!("\n" in out.replace_all("\r\n", "")), "no bare newline survives")
 }
 
 @test test_multiselect_frame_shows_boxes :: fn() -> void {

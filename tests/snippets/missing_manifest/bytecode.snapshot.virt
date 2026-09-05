@@ -326,7 +326,7 @@ fn 9 std_io$read_file_bytes (string) -> any
   block $L1 void
     loop $L2 void
       local.get 4   ; _
-      i64.const 65536
+      i64.const 4096
       u64.lt
       if $L3 void
         local.get 3   ; chunk

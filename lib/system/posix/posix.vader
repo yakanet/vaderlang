@@ -48,6 +48,26 @@ export sys_opendir :: fn(path: string) -> CPointer | null
 @extern("closedir")
 export sys_closedir :: fn(dir: CPointer) -> i32
 
+/// What KIND of thing `path` is: 0 missing, 1 regular file, 2 directory, 3 other.
+///
+/// `stat` answers it, and its layout cannot be mirrored — `st_mode` sits at
+/// offset 24 on linux-x86_64 and 16 on linux-arm64, so no single mirror is right
+/// for both and the offset assert would refuse either. The runtime reads it and
+/// hands back a small code, so no `S_IF*` constant has to be transcribed here.
+///
+/// `sys_opendir` is NOT a substitute: it needs READ permission where `stat`
+/// needs only traverse rights on the parent, so a directory with mode 0111
+/// answers "not a directory".
+///
+/// @param path  the path to classify.
+@extern("vader_path_kind")
+export sys_path_kind :: fn(path: string) -> i32
+
+/// `sys_path_kind`'s answers.
+export PATH_MISSING: i32: 0
+export PATH_REGULAR: i32: 1
+export PATH_DIRECTORY: i32: 2
+
 /// `readdir(3)`. The next entry, or null at the end of the directory.
 ///
 /// The `struct dirent` it returns is owned and REUSED by the C library: read the

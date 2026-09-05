@@ -367,10 +367,15 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     return IOError { .msg = "file too large" }
 }
 
-// 64 KiB per `fread`, and a ceiling on the number of rounds so a stream that
-// never ends cannot spin forever. Together they cap a read at 4 GiB.
+// 64 KiB per read, and a ceiling on the number of rounds so a stream that never
+// ends cannot spin forever. Together they cap a read at 256 MiB.
+//
+// The ceiling has to stay under what the process can actually hold, or it never
+// fires: at 4 GiB, `read_file_bytes("/dev/zero")` filled the heap and died on a
+// GC trap — `vader_young_grow: object + live set exceeds young cap` — instead of
+// returning the "file too large" this loop already had waiting for it.
 READ_CHUNK: usize : 64 * 1024
-MAX_CHUNKS: usize : 65536
+MAX_CHUNKS: usize : 4096
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
@@ -570,26 +575,23 @@ exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
 exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVALID_FILE_ATTRIBUTES
 
 /// True iff `path` exists AND is a directory. Errors collapse to `false`.
+///
+/// Read permission on the directory is NOT required — traverse rights on its
+/// parent are enough, which is what `stat` asks for.
+///
 /// @param path  filesystem path to probe.
-/// @return      `true` iff `path` is an accessible directory.
+/// @return      `true` iff `path` names a directory.
 @target
 export is_dir :: fn(path: string) -> bool
 
-// `opendir` rather than a `struct stat` mirror. A mirror implies the layout of
-// `struct stat`, which differs between ARCHES of one system: on Linux `st_mode`
-// is at offset 24 on x86_64 and at 16 on arm64, so one mirror was right on one
-// arch and read `st_uid` on the other — silently, under the VM, which lays the
-// block out from the mirror. No single mirror can be correct for both. Opening
-// the directory asks the same question and has no layout at all.
+// Through the runtime rather than a `struct stat` mirror. A mirror implies the
+// layout of `struct stat`, which differs between ARCHES of one system: on Linux
+// `st_mode` is at offset 24 on x86_64 and at 16 on arm64, so one mirror was
+// right on one arch and read `st_uid` on the other — silently, under the VM,
+// which lays the block out from the mirror. No single mirror can be correct for
+// both, so the runtime reads the field and hands back a small code.
 @target(.Linux, .Darwin)
-is_dir :: fn(path: string) -> bool {
-    d :: sys_opendir(path)
-    if d == null {
-        return false
-    }
-    sys_closedir(d)
-    return true
-}
+is_dir :: fn(path: string) -> bool = sys_path_kind(path) == PATH_DIRECTORY
 
 @target(.Windows)
 is_dir :: fn(path: string) -> bool {
@@ -756,7 +758,17 @@ up_to_nul :: fn(buf: u8[]) -> string {
 export temp_dir :: fn() -> string
 
 @target(.Linux, .Darwin)
-temp_dir :: fn() -> string = without_trailing_sep(get_env("TMPDIR") ?? "/tmp")
+temp_dir :: fn() -> string {
+    // `??` fires on null alone, and `get_env` reports a SET-BUT-EMPTY variable
+    // as `""` — a distinction it documents and keeps. `TMPDIR=` then produced an
+    // empty temp dir, and the build driver joined its probe paths onto it and
+    // wrote them at the filesystem ROOT.
+    env :: get_env("TMPDIR") ?? ""
+    if env == "" {
+        return "/tmp"
+    }
+    return without_trailing_sep(env)
+}
 
 @target(.Windows)
 temp_dir :: fn() -> string {

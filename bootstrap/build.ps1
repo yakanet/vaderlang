@@ -51,13 +51,28 @@ New-Item -ItemType Directory -Force build | Out-Null
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
 $hostTarget = "windows-$hostArch"
 $seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g.c','bootstrap-*.c' -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
-$seedIncDir = Join-Path (Join-Path $PWD 'bootstrap\seed') $hostTarget
-$seedHost = @(Get-ChildItem -Path $seedIncDir -Filter '*.c' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 $seedRoot = Join-Path $PWD 'bootstrap\seed'
-if (-not (Test-Path $seedIncDir)) {
+
+# A host the seed does not name by triple builds from its OS SIBLING. What lands
+# in a per-target directory is chosen by `@target`, whose granularity is the OS
+# and never the arch, so every arch of one OS emits the same bytes --
+# `seed\windows-x86_64` and `seed\windows-arm64` were byte-identical, which is
+# why `seed.sh::SEED_TARGETS` seeds one arch per OS. Only an OS with no slice at
+# all is unbuildable.
+$seedTarget = $hostTarget
+if (-not (Test-Path (Join-Path $seedRoot $seedTarget))) {
+    $seedTarget = @(Get-ChildItem -Path $seedRoot -Directory -Filter 'windows-*' |
+                    Sort-Object Name | ForEach-Object { $_.Name })[0]
+}
+if (-not $seedTarget) {
     $seeded = (Get-ChildItem -Path $seedRoot -Directory | ForEach-Object { $_.Name }) -join ' '
     throw "no seed for $hostTarget -- seeded targets: $seeded"
 }
+if ($seedTarget -ne $hostTarget) {
+    Write-Host "no seed for $hostTarget -- building stage0 from its OS sibling $seedTarget"
+}
+$seedIncDir = Join-Path $seedRoot $seedTarget
+$seedHost = @(Get-ChildItem -Path $seedIncDir -Filter '*.c' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 $seedInc = @($seedIncDir, $seedRoot)
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
