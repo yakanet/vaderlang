@@ -93,7 +93,7 @@ _Static_assert(sizeof(((div_t*) 0)->rem) == sizeof(((vader_struct_snippet_Pair_t
 _Static_assert(__builtin_offsetof(div_t, rem) == 4, "div_t.rem offset");
 _Static_assert((((__typeof__(((div_t*) 0)->rem)) -1) < 0) == 1, "div_t.rem signedness");
 
-static void* vader_host_snippet_zero_pair(void* a0, int32_t a1, size_t a2) { div_t p0 = {0}; p0.quot = ((vader_struct_snippet_Pair_t*) a0)->f_quot; p0.rem = ((vader_struct_snippet_Pair_t*) a0)->f_rem; void** __wb_roots[1] = { &a0 }; VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1); void* r = memset(&p0, a1, a2); VADER_GC_POP_FRAME(__wb_frame); ((vader_struct_snippet_Pair_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Pair_t*) a0)->f_rem = p0.rem; return r; }
+static void* vader_host_snippet_zero_pair(void* a0, int32_t a1, size_t a2) { div_t p0 = {0}; p0.quot = (__typeof__(p0.quot)) ((vader_struct_snippet_Pair_t*) a0)->f_quot; p0.rem = (__typeof__(p0.rem)) ((vader_struct_snippet_Pair_t*) a0)->f_rem; void** __wb_roots[1] = { &a0 }; VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1); void* r = memset(&p0, a1, a2); VADER_GC_POP_FRAME(__wb_frame); ((vader_struct_snippet_Pair_t*) a0)->f_quot = (__typeof__(((vader_struct_snippet_Pair_t*) a0)->f_quot)) p0.quot; ((vader_struct_snippet_Pair_t*) a0)->f_rem = (__typeof__(((vader_struct_snippet_Pair_t*) a0)->f_rem)) p0.rem; return r; }
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static vader_string_t vader_host_std_core_bytes_to_string(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
 static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 10u, 11u); }

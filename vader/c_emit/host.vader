@@ -190,10 +190,22 @@ push_member_copies :: fn(
             push_member_copies(types, nested.fields, cf, inner, into_c, out, depth + 1)
             continue
         }
+        // Converted, not assigned raw. A member a mirror only needs to RESERVE
+        // SPACE for — `STARTUPINFOA` has eleven before `dwFlags`, four of them
+        // pointers — has no Vader type that is both writable and the right
+        // shape: `CPointer` has no constructible value, `CPointer | null` is a
+        // 16-byte box, and a plain word will not assign to an `LPSTR`. A machine
+        // word converts.
+        //
+        // This cannot hide a LAYOUT error, and only became safe when it stopped
+        // being able to: every leaf now carries both a width and an OFFSET
+        // `_Static_assert`. What it still allows is a member declared as a word
+        // where a pointer was meant — which, for a member reserved and never
+        // read, is the intent.
         if into_c {
-            out.push("${cf} = ${v_expr}->f_${f.name};")
+            out.push("${cf} = (__typeof__(${cf})) ${v_expr}->f_${f.name};")
         } else {
-            out.push("${v_expr}->f_${f.name} = ${cf};")
+            out.push("${v_expr}->f_${f.name} = (__typeof__(${v_expr}->f_${f.name})) ${cf};")
         }
     }
 }

@@ -360,7 +360,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
         return -1
     }
     // Inheritable ends, so the child receives the write halves.
-    sa :: SecurityAttributes { .nLength = 24, .bInheritHandle = 1 }
+    sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
     out_r: usize[]! = [0]
     out_w: usize[]! = [0]
     err_r: usize[]! = [0]
@@ -385,7 +385,11 @@ spawn_start :: fn(argv: string[]) -> i64 {
     set_handle_information(err_read, HANDLE_FLAG_INHERIT, 0)
 
     si :: StartupInfo {
-        .cb = 104, .dwFlags = STARTF_USESTDHANDLES,
+        .cb = 104, .lpReserved = 0, .lpDesktop = 0, .lpTitle = 0,
+        .dwX = 0, .dwY = 0, .dwXSize = 0, .dwYSize = 0,
+        .dwXCountChars = 0, .dwYCountChars = 0, .dwFillAttribute = 0,
+        .dwFlags = STARTF_USESTDHANDLES,
+        .wShowWindow = 0, .cbReserved2 = 0, .lpReserved2 = 0,
         .hStdInput = get_std_handle(STD_INPUT_HANDLE),
         .hStdOutput = out_write, .hStdError = err_write,
     }

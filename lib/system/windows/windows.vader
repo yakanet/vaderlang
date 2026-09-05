@@ -303,27 +303,54 @@ export WAIT_OBJECT_0: u32 : 0
 
 /// `SECURITY_ATTRIBUTES`, mirrored for the two members a pipe needs.
 ///
-/// `lpSecurityDescriptor` is skipped and the shim zero-fills it, which is the
-/// NULL the call wants. `bInheritHandle` is what lets the child receive the
-/// write ends.
+/// EVERY member, in order — not a prefix of the useful ones. The interpreter
+/// lays a mirror out from its DECLARED fields alone, at natural alignment from
+/// zero, so skipping `lpSecurityDescriptor` put `bInheritHandle` at 4 where C
+/// has it at 16: the callee read a zero, made the pipe non-inheritable, and
+/// reported success. Native was unaffected — the shim copies by name — which is
+/// exactly what kept it invisible. The offset `_Static_assert` catches it now.
+///
+/// `lpSecurityDescriptor` is a `usize` because it is RESERVED, never read: it
+/// only has to occupy its eight bytes and stay zero, which is the NULL the call
+/// wants.
 @c_struct("SECURITY_ATTRIBUTES")
 export SecurityAttributes :: struct {
-    nLength:        u32
-    bInheritHandle: i32
+    nLength:              u32
+    lpSecurityDescriptor: usize
+    bInheritHandle:       i32
 }
 
 /// `STARTUPINFOA`, mirrored for the members a redirected child needs.
 ///
-/// The rest are zero-filled by the shim, which is what `CreateProcess` expects
-/// of a plain console child. `cb` must be `sizeof(STARTUPINFOA)` — 104 on
-/// x86_64 — and is the one member the callee validates.
+/// EVERY member up to `hStdError`, for the reason spelled out on
+/// `SecurityAttributes` — eleven precede `dwFlags` in the real struct, and
+/// naming only the useful ones put every one of them at the wrong offset in the
+/// interpreter's block.
+///
+/// The reserved ones are machine words that stay zero, which is what
+/// `CreateProcess` expects of a plain console child. `cb` must be
+/// `sizeof(STARTUPINFOA)` — 104 on x86_64 — and is the one member the callee
+/// validates.
 @c_struct("STARTUPINFOA")
 export StartupInfo :: struct {
-    cb:         u32
-    dwFlags:    u32
-    hStdInput:  Handle
-    hStdOutput: Handle
-    hStdError:  Handle
+    cb:              u32
+    lpReserved:      usize
+    lpDesktop:       usize
+    lpTitle:         usize
+    dwX:             u32
+    dwY:             u32
+    dwXSize:         u32
+    dwYSize:         u32
+    dwXCountChars:   u32
+    dwYCountChars:   u32
+    dwFillAttribute: u32
+    dwFlags:         u32
+    wShowWindow:     u16
+    cbReserved2:     u16
+    lpReserved2:     usize
+    hStdInput:       Handle
+    hStdOutput:      Handle
+    hStdError:       Handle
 }
 
 /// `PROCESS_INFORMATION` — what `CreateProcess` hands back.
