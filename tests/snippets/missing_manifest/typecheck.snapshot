@@ -5,8 +5,9 @@
   FnDecl         describe             :: fn(string) -> string
   FnDecl         main                 :: fn() -> i32
   expr 12:10    CallExpr       :: IOError | string
-  expr 12:10    IdentExpr      :: fn(string) -> IOError | string
+  expr 12:10    IdentExpr      :: fn(string, usize) -> IOError | string
   expr 12:27    IdentExpr      :: string
+  expr 12:33    IdentExpr      :: usize
   expr 13:13    IdentExpr      :: IOError!
   expr 13:30    StringLitExpr  :: string
   expr 13:45    CallExpr       :: string
@@ -19,8 +20,9 @@
   expr 13:8     IdentExpr      :: IOError | string
   expr 14:12    StringLitExpr  :: string
   expr 18:10    CallExpr       :: IOError | string
-  expr 18:10    IdentExpr      :: fn(string) -> IOError | string
+  expr 18:10    IdentExpr      :: fn(string, usize) -> IOError | string
   expr 18:27    IdentExpr      :: string
+  expr 18:33    IdentExpr      :: usize
   expr 19:13    IdentExpr      :: IOError!
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool

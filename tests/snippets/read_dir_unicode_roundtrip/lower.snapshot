@@ -136,7 +136,7 @@
               is IOError! :bool
                 call :IOError | u8[]
                   callee:
-                    read_file_bytes :fn(string) -> IOError | u8[]
+                    read_file_bytes :fn(string, usize) -> IOError | u8[]
                   arg0:
                     call :string
                       callee:
@@ -149,6 +149,8 @@
                         "/" :string
                       arg2:
                         e :string
+                  arg1:
+                    int(268435456) :usize
         assign
           target:
             __for_i_2 :usize

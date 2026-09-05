@@ -261,7 +261,7 @@ export sweep_generated :: fn(dir: string) -> usize {
         if !path.ends_with(".vader") {
             continue
         }
-        content :: read_file_string(path)
+        content :: read_file_string(path, READ_LIMIT_DEFAULT)
         if content is IOError {
             continue
         }

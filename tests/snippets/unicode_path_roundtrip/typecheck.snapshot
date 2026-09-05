@@ -20,8 +20,9 @@
   expr 14:9     CallExpr       :: void
   expr 14:9     IdentExpr      :: fn(T) -> void
   expr 17:18    CallExpr       :: IOError | u8[]
-  expr 17:18    IdentExpr      :: fn(string) -> IOError | u8[]
+  expr 17:18    IdentExpr      :: fn(string, usize) -> IOError | u8[]
   expr 17:34    IdentExpr      :: string
+  expr 17:40    IdentExpr      :: usize
   expr 18:21    IdentExpr      :: Error
   expr 18:5     IfExpr         :: void
   expr 18:8     BinaryExpr     :: bool

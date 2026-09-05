@@ -9,13 +9,13 @@ module "snippet"
 import "std/io"
 
 describe :: fn(path: string) -> string {
-    r :: read_file_string(path)
+    r :: read_file_string(path, READ_LIMIT_DEFAULT)
     if r is IOError { return "unreadable (${r.message()} / ${r.msg})" }
     return "ok"
 }
 
 catch_all :: fn(path: string) -> string {
-    r :: read_file_string(path)
+    r :: read_file_string(path, READ_LIMIT_DEFAULT)
     if r is IOError {
         e: Error = r
         return "caught by trait: ${e.message()}"

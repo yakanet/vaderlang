@@ -56,9 +56,11 @@
     let read_back: IOError | u8[] =
       call :IOError | u8[]
         callee:
-          read_file_bytes :fn(string) -> IOError | u8[]
+          read_file_bytes :fn(string, usize) -> IOError | u8[]
         arg0:
           path :string
+        arg1:
+          int(268435456) :usize
     if :void
       cond:
         is Error :bool

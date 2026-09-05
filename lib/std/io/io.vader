@@ -297,14 +297,24 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 /// Read a file fully into a fresh owned byte array. Lossless for arbitrary
 /// binary — the bytes are taken verbatim, no UTF-8 reinterpretation. This is
 /// the canonical file-read primitive ; `read_file_string` decodes on top.
-/// @param path  filesystem path (absolute or cwd-relative).
-/// @return      the file's raw bytes.
-/// @error       `IOError` if the file can't be opened or read.
+///
+/// `max_bytes` is the caller's ceiling, and it is REQUIRED. The size cannot be
+/// taken up front and trusted — `fseek(SEEK_END)` reports 0 for a character
+/// device and a pipe has no size at all — so the read is a loop, and a loop
+/// over a stream that never ends has to be bounded by something. Making the
+/// bound the caller's says whose policy it is: the one place that knows what it
+/// is reading. Pass `READ_LIMIT_DEFAULT` when there is no better figure.
+///
+/// @param path       filesystem path (absolute or cwd-relative).
+/// @param max_bytes  refuse once this many bytes have accumulated.
+/// @return           the file's raw bytes.
+/// @error            `IOError` if the file can't be opened or read, or if it
+///                   passes `max_bytes` — `"file too large"`.
 @target
-export read_file_bytes :: fn(path: string) -> u8[] | IOError
+export read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError
 
 @target(.Linux, .Darwin)
-read_file_bytes :: fn(path: string) -> u8[] | IOError {
+read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     f :: sys_fopen(path, "rb")
     if f == null {
         return IOError { .msg = "file not found" }
@@ -314,10 +324,18 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     // anything that is not a regular file.
     out: u8[]! = []
     chunk: u8[]! = [0] * READ_CHUNK
-    for out.len() <= MAX_READ_BYTES {
+    for {
         n :: sys_fread(chunk, 1, chunk.len(), f)
         if n > 0 {
             out.push_all(chunk[0..<n])
+        }
+        // Checked after every chunk, INCLUDING the one that hits end of file:
+        // as a loop condition it only ran between chunks, so any file shorter
+        // than `READ_CHUNK` was never measured and a `max_bytes` under 64 KiB
+        // did nothing at all.
+        if out.len() > max_bytes {
+            sys_fclose(f)
+            return IOError { .msg = "file too large" }
         }
         if n < chunk.len() {
             // A short `fread` is end of file OR an error; the count alone does
@@ -332,15 +350,13 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
             return out
         }
     }
-    sys_fclose(f)
-    return IOError { .msg = "file too large" }
 }
 
 /// Windows reads through `CreateFileW`, not the CRT: only the `W` entry points
 /// take a real UTF-16 path, and `ReadFile` reports a failure the CRT would have
 /// folded into a short read.
 @target(.Windows)
-read_file_bytes :: fn(path: string) -> u8[] | IOError {
+read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
     // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
@@ -350,7 +366,7 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     out: u8[]! = []
     chunk: u8[]! = [0] * READ_CHUNK
     got: u32[]! = [0]
-    for out.len() <= MAX_READ_BYTES {
+    for {
         if !read_file(h, chunk, u32(chunk.len()), got, null) {
             close_handle(h)
             return IOError { .msg = "read failed" }
@@ -359,6 +375,11 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
         if n > 0 {
             out.push_all(chunk[0..<n])
         }
+        // After every chunk, end-of-file one included — see the POSIX body.
+        if out.len() > max_bytes {
+            close_handle(h)
+            return IOError { .msg = "file too large" }
+        }
         // A synchronous read short of the request has reached end of file --
         // and unlike the CRT path, a genuine ERROR took the branch above.
         if n < chunk.len() {
@@ -366,17 +387,18 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
             return out
         }
     }
-    close_handle(h)
-    return IOError { .msg = "file too large" }
 }
 
-// 64 KiB per read, and a total the accumulated bytes may not pass so a stream
-// that never ends cannot spin forever.
-//
-// The cap has to stay under what the process can hold, or it never fires: the
-// heap fills and the GC traps before the "file too large" above can be returned.
+// 64 KiB per read.
 READ_CHUNK: usize : 64 * 1024
-MAX_READ_BYTES: usize : 256 * 1024 * 1024
+
+/// A ceiling for `read_file_bytes` when the caller has no figure of its own.
+///
+/// It is a policy number, not a fact about files: 256 MiB is well under what a
+/// process can hold, which is the property that matters — a bound the heap
+/// reaches first never fires, and the GC traps before the refusal can be
+/// returned. Name your own when you know what you are reading.
+export READ_LIMIT_DEFAULT: usize: 256 * 1024 * 1024
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
@@ -539,11 +561,14 @@ remove_file :: fn(path: string) -> null | IOError {
 
 /// Read a file fully into a UTF-8 string — a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
-/// @param path  filesystem path (absolute or cwd-relative).
-/// @return      file contents as a UTF-8 string.
-/// @error       `IOError` if the file can't be opened or read.
-export read_file_string :: fn(path: string) -> string | IOError {
-    r :: read_file_bytes(path)
+/// @param path       filesystem path (absolute or cwd-relative).
+/// @param max_bytes  refuse once this many bytes have accumulated ; see
+///                   `read_file_bytes`. `READ_LIMIT_DEFAULT` when unsure.
+/// @return           file contents as a UTF-8 string.
+/// @error            `IOError` if the file can't be opened or read, or if it
+///                   passes `max_bytes`.
+export read_file_string :: fn(path: string, max_bytes: usize) -> string | IOError {
+    r :: read_file_bytes(path, max_bytes)
     if r is IOError { return r }
     return r.bytes_to_string()
 }
@@ -881,6 +906,18 @@ import "std/testing"
     assert(!is_dir(file), "a regular file is not")
     assert(exists(file), "and the probe is really there")
     assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
+}
+
+@test test_read_file_bytes_honours_its_ceiling :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_limit_probe"
+    wrote :: write_file_string(file, "0123456789")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    // The ceiling is inclusive, and it is measured after the chunk that reaches
+    // end of file — as a loop condition it never saw a file under `READ_CHUNK`.
+    assert(read_file_bytes(file, 10) !is IOError, "exactly at the ceiling is fine")
+    assert(read_file_bytes(file, 9) is IOError, "one byte past it is refused")
 }
 
 // `read_file_bytes` on an endless stream is not tested here: `vader test` runs

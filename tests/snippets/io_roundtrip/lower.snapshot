@@ -80,9 +80,11 @@
     let contents: IOError | string =
       call :IOError | string
         callee:
-          read_file_string :fn(string) -> IOError | string
+          read_file_string :fn(string, usize) -> IOError | string
         arg0:
           path :string
+        arg1:
+          int(268435456) :usize
     block :void
       ~>
         if :void

@@ -409,7 +409,7 @@ ingest_module :: fn(
 read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> string {
     buffered :: overlay[path]
     if buffered != null { return buffered }
-    disk :: read_file_string(path)
+    disk :: read_file_string(path, READ_LIMIT_DEFAULT)
     if disk is string { return disk }
     return ""
 }

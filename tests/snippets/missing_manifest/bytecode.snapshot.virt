@@ -22,8 +22,8 @@ string 5 "/no/such/manifest.toml"
 string 6 "\n"
 string 7 "rb"
 string 8 "file not found"
-string 9 "read failed"
-string 10 "file too large"
+string 9 "file too large"
+string 10 "read failed"
 import 0 byte_len std_core$byte_len result_type=3 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=6 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> ref
@@ -39,9 +39,10 @@ export main 2
 
 fn 0 snippet$describe (string) -> string
   local r any
-  local $field_6 string
-  local $field_9 string
+  local $field_7 string
+  local $field_10 string
   local.get 0   ; arg 0
+  i64.const 268435456
   call 7   ; std_io$read_file_string
   local.tee 1   ; r
   type_check 9   ; std_io$IOError
@@ -50,16 +51,16 @@ fn 0 snippet$describe (string) -> string
     ref.cast 9   ; -> std_io$IOError
     struct.get 9 0   ; std_io$IOError.msg
     ref.cast 1   ; -> string
-    local.set 2   ; $field_6
+    local.set 2   ; $field_7
     local.get 1   ; r
     ref.cast 9   ; -> std_io$IOError
     struct.get 9 0   ; std_io$IOError.msg
     ref.cast 1   ; -> string
-    local.set 3   ; $field_9
+    local.set 3   ; $field_10
     string.const 0   ; "unreadable ("
-    local.get 2   ; $field_6
+    local.get 2   ; $field_7
     string.const 1   ; " / "
-    local.get 3   ; $field_9
+    local.get 3   ; $field_10
     string.const 2   ; ")"
     call 3   ; concat_5
     return
@@ -69,8 +70,9 @@ end
 
 fn 1 snippet$catch_all (string) -> string
   local r any
-  local $vcall_7 string
+  local $vcall_8 string
   local.get 0   ; arg 0
+  i64.const 268435456
   call 7   ; std_io$read_file_string
   local.tee 1   ; r
   type_check 9   ; std_io$IOError
@@ -78,9 +80,9 @@ fn 1 snippet$catch_all (string) -> string
     local.get 1   ; r
     ref.cast 9   ; -> std_io$IOError
     virtual.call 1 Error.message
-    local.set 2   ; $vcall_7
+    local.set 2   ; $vcall_8
     string.const 4   ; "caught by trait: "
-    local.get 2   ; $vcall_7
+    local.get 2   ; $vcall_8
     call 4   ; concat_2
     return
   end $L0
@@ -217,18 +219,19 @@ fn 6 std_core$finish_buffer (ref,usize) -> string
   return
 end
 
-fn 7 std_io$read_file_string (string) -> any
+fn 7 std_io$read_file_string (string,usize) -> any
   local r any
   local.get 0   ; arg 0
+  local.get 1   ; arg 1
   call 9   ; std_io$read_file_bytes
-  local.tee 1   ; r
+  local.tee 2   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
-    local.get 1   ; r
+    local.get 2   ; r
     ref.cast 9   ; -> std_io$IOError
     return
   end $L0
-  local.get 1   ; r
+  local.get 2   ; r
   ref.cast 6   ; -> u8[]
   call.import 1   ; std_core$bytes_to_string
   box 1   ; -> string
@@ -293,20 +296,20 @@ fn 8 std_io$write (i32,string) -> void
   return
 end
 
-fn 9 std_io$read_file_bytes (string) -> any
+fn 9 std_io$read_file_bytes (string,usize) -> any
   local f any
   local out ref
   local chunk ref
-  local $len_18 usize
-  local $cast_19 pointer
+  local $len_16 usize
+  local $cast_17 pointer
   local n usize
-  local $slice_25 ref
-  local $len_26 usize
+  local $slice_23 ref
+  local $len_30 usize
   local failed bool
   local.get 0   ; arg 0
   string.const 7   ; "rb"
   call.import 5   ; system_posix$sys_fopen
-  local.tee 1   ; f
+  local.tee 2   ; f
   type_check 0   ; null
   if $L0 void
     string.const 8   ; "file not found"
@@ -314,80 +317,80 @@ fn 9 std_io$read_file_bytes (string) -> any
     return
   end $L0
   array.new 6 0   ; u8[][]
-  local.set 2   ; out
+  local.set 3   ; out
   i32.const 0
   array.new 6 1   ; u8[][]
   i64.const 65536
   array.repeat
-  local.set 3   ; chunk
+  local.set 4   ; chunk
   block $L1 void
     loop $L2 void
-      local.get 2   ; out
+      local.get 4   ; chunk
       array.len
-      i64.const 268435456
-      u64.le
+      local.set 5   ; $len_16
+      local.get 2   ; f
+      ref.cast 13   ; -> pointer
+      local.set 6   ; $cast_17
+      local.get 4   ; chunk
+      i64.const 1
+      local.get 5   ; $len_16
+      local.get 6   ; $cast_17
+      call.import 7   ; system_posix$sys_fread
+      local.tee 7   ; n
+      i64.const 0
+      u64.gt
       if $L3 void
-        local.get 3   ; chunk
-        array.len
-        local.set 4   ; $len_18
-        local.get 1   ; f
-        ref.cast 13   ; -> pointer
-        local.set 5   ; $cast_19
-        local.get 3   ; chunk
-        i64.const 1
-        local.get 4   ; $len_18
-        local.get 5   ; $cast_19
-        call.import 7   ; system_posix$sys_fread
-        local.tee 6   ; n
+        local.get 4   ; chunk
         i64.const 0
-        u64.gt
-        if $L4 void
-          local.get 3   ; chunk
-          i64.const 0
-          local.get 6   ; n
-          array.slice 6   ; u8[][]
-          local.set 7   ; $slice_25
-          local.get 2   ; out
-          local.get 7   ; $slice_25
-          array.push_all
-        else
-        end $L4
-        local.get 3   ; chunk
+        local.get 7   ; n
+        array.slice 6   ; u8[][]
+        local.set 8   ; $slice_23
+        local.get 3   ; out
+        local.get 8   ; $slice_23
+        array.push_all
+      else
+      end $L3
+      local.get 3   ; out
+      array.len
+      local.get 1   ; arg 1
+      u64.gt
+      if $L4 void
+      else
+        local.get 4   ; chunk
         array.len
-        local.set 8   ; $len_26
-        local.get 6   ; n
-        local.get 8   ; $len_26
+        local.set 9   ; $len_30
+        local.get 7   ; n
+        local.get 9   ; $len_30
         u64.lt
         if $L5 void
-          local.get 1   ; f
+          local.get 2   ; f
           ref.cast 13   ; -> pointer
           call.import 4   ; system_posix$sys_ferror
           i32.const 0
           i32.ne
-          local.set 9   ; failed
-          local.get 1   ; f
+          local.set 10   ; failed
+          local.get 2   ; f
           ref.cast 13   ; -> pointer
           call.import 6   ; system_posix$sys_fclose
           drop
-          local.get 9   ; failed
+          local.get 10   ; failed
           if $L6 void
-            string.const 9   ; "read failed"
+            string.const 10   ; "read failed"
             struct.new 9   ; std_io$IOError
             return
           end $L6
-          local.get 2   ; out
+          local.get 3   ; out
           return
         end $L5
         br $L2
-      else
-      end $L3
+      end $L4
     end $L2
   end $L1
-  local.get 1   ; f
+  local.get 2   ; f
   ref.cast 13   ; -> pointer
   call.import 6   ; system_posix$sys_fclose
   drop
-  string.const 10   ; "file too large"
+  string.const 9   ; "file too large"
   struct.new 9   ; std_io$IOError
   return
 end

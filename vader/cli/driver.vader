@@ -203,12 +203,12 @@ export compiler_source_root :: fn(root: string) -> string {
 /// @param driver_path  the project's `build.vader`.
 /// @return             a key that changes when either input does.
 driver_input_key :: fn(driver_path: string) -> string {
-    src :: read_file_string(driver_path)
+    src :: read_file_string(driver_path, READ_LIMIT_DEFAULT)
     driver_hash :: match src {
         is string as text -> text.hash()
         is IOError        -> 0
     }
-    exe :: read_file_bytes(current_executable_location())
+    exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT)
     compiler_hash :: match exe {
         is u8[] as bytes -> sha256(bytes)
         is IOError       -> ""
@@ -228,7 +228,7 @@ driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
     if linked_binary(binary) == null {
         return false
     }
-    recorded :: read_file_string(stamp)
+    recorded :: read_file_string(stamp, READ_LIMIT_DEFAULT)
     if recorded is IOError {
         return false
     }
@@ -291,7 +291,7 @@ export driver_entry_path :: fn(root: string) -> string =
 /// @error       H6001 when no `build` fn is declared ; H6002 when one is declared
 ///              with a signature the generated entry cannot call.
 export validate_driver :: fn(path: string) -> Diagnostic | null {
-    source :: match read_file_string(path) {
+    source :: match read_file_string(path, READ_LIMIT_DEFAULT) {
         is string as s -> s
         is IOError     -> ""
     }

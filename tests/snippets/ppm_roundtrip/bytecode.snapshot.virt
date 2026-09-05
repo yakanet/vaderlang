@@ -41,8 +41,8 @@ string 14 "short write"
 string 15 "close failed"
 string 16 "rb"
 string 17 "file not found"
-string 18 "read failed"
-string 19 "file too large"
+string 18 "file too large"
+string 19 "read failed"
 string 20 ""
 string 21 "/tmp"
 string 22 "ppm: maxval must be in 1..=65535, got "
@@ -93,8 +93,8 @@ fn 0 snippet$main () -> i32
   local and_res bool
   local __for_hi_0 usize
   local i usize
-  local $idx_101 u8
   local $idx_102 u8
+  local $idx_103 u8
   call 7   ; std_io$temp_dir
   string.const 0   ; "/vader_ppm_roundtrip.ppm"
   call 1   ; concat_2
@@ -158,6 +158,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L1
   local.get 0   ; path
+  i64.const 268435456
   call 9   ; std_io$read_file_bytes
   local.tee 2   ; enc
   type_check 23   ; ref Error
@@ -254,14 +255,14 @@ fn 0 snippet$main () -> i32
         local.get 8   ; i
         array.get 8   ; u8[][]
         ref.cast 7   ; -> u8
-        local.set 9   ; $idx_101
+        local.set 9   ; $idx_102
         local.get 1   ; px
         local.get 8   ; i
         array.get 8   ; u8[][]
         ref.cast 7   ; -> u8
-        local.set 10   ; $idx_102
-        local.get 9   ; $idx_101
-        local.get 10   ; $idx_102
+        local.set 10   ; $idx_103
+        local.get 9   ; $idx_102
+        local.get 10   ; $idx_103
         i32.ne
         if $L10 void
           bool.const false
@@ -636,20 +637,20 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   return
 end
 
-fn 9 std_io$read_file_bytes (string) -> any
+fn 9 std_io$read_file_bytes (string,usize) -> any
   local f any
   local out ref
   local chunk ref
-  local $len_18 usize
-  local $cast_19 pointer
+  local $len_16 usize
+  local $cast_17 pointer
   local n usize
-  local $slice_25 ref
-  local $len_26 usize
+  local $slice_23 ref
+  local $len_30 usize
   local failed bool
   local.get 0   ; arg 0
   string.const 16   ; "rb"
   call.import 7   ; system_posix$sys_fopen
-  local.tee 1   ; f
+  local.tee 2   ; f
   type_check 0   ; null
   if $L0 void
     string.const 17   ; "file not found"
@@ -657,80 +658,80 @@ fn 9 std_io$read_file_bytes (string) -> any
     return
   end $L0
   array.new 8 0   ; u8[][]
-  local.set 2   ; out
+  local.set 3   ; out
   i32.const 0
   array.new 8 1   ; u8[][]
   i64.const 65536
   array.repeat
-  local.set 3   ; chunk
+  local.set 4   ; chunk
   block $L1 void
     loop $L2 void
-      local.get 2   ; out
+      local.get 4   ; chunk
       array.len
-      i64.const 268435456
-      u64.le
+      local.set 5   ; $len_16
+      local.get 2   ; f
+      ref.cast 22   ; -> pointer
+      local.set 6   ; $cast_17
+      local.get 4   ; chunk
+      i64.const 1
+      local.get 5   ; $len_16
+      local.get 6   ; $cast_17
+      call.import 9   ; system_posix$sys_fread
+      local.tee 7   ; n
+      i64.const 0
+      u64.gt
       if $L3 void
-        local.get 3   ; chunk
-        array.len
-        local.set 4   ; $len_18
-        local.get 1   ; f
-        ref.cast 22   ; -> pointer
-        local.set 5   ; $cast_19
-        local.get 3   ; chunk
-        i64.const 1
-        local.get 4   ; $len_18
-        local.get 5   ; $cast_19
-        call.import 9   ; system_posix$sys_fread
-        local.tee 6   ; n
+        local.get 4   ; chunk
         i64.const 0
-        u64.gt
-        if $L4 void
-          local.get 3   ; chunk
-          i64.const 0
-          local.get 6   ; n
-          array.slice 8   ; u8[][]
-          local.set 7   ; $slice_25
-          local.get 2   ; out
-          local.get 7   ; $slice_25
-          array.push_all
-        else
-        end $L4
-        local.get 3   ; chunk
+        local.get 7   ; n
+        array.slice 8   ; u8[][]
+        local.set 8   ; $slice_23
+        local.get 3   ; out
+        local.get 8   ; $slice_23
+        array.push_all
+      else
+      end $L3
+      local.get 3   ; out
+      array.len
+      local.get 1   ; arg 1
+      u64.gt
+      if $L4 void
+      else
+        local.get 4   ; chunk
         array.len
-        local.set 8   ; $len_26
-        local.get 6   ; n
-        local.get 8   ; $len_26
+        local.set 9   ; $len_30
+        local.get 7   ; n
+        local.get 9   ; $len_30
         u64.lt
         if $L5 void
-          local.get 1   ; f
+          local.get 2   ; f
           ref.cast 22   ; -> pointer
           call.import 6   ; system_posix$sys_ferror
           i32.const 0
           i32.ne
-          local.set 9   ; failed
-          local.get 1   ; f
+          local.set 10   ; failed
+          local.get 2   ; f
           ref.cast 22   ; -> pointer
           call.import 8   ; system_posix$sys_fclose
           drop
-          local.get 9   ; failed
+          local.get 10   ; failed
           if $L6 void
-            string.const 18   ; "read failed"
+            string.const 19   ; "read failed"
             struct.new 11   ; std_io$IOError
             return
           end $L6
-          local.get 2   ; out
+          local.get 3   ; out
           return
         end $L5
         br $L2
-      else
-      end $L3
+      end $L4
     end $L2
   end $L1
-  local.get 1   ; f
+  local.get 2   ; f
   ref.cast 22   ; -> pointer
   call.import 8   ; system_posix$sys_fclose
   drop
-  string.const 19   ; "file too large"
+  string.const 18   ; "file too large"
   struct.new 11   ; std_io$IOError
   return
 end

@@ -14,7 +14,7 @@ main :: fn() -> i32 {
         println("write failed: ${written.message()}")
         return 1
     }
-    read_back :: read_file_bytes(path)
+    read_back :: read_file_bytes(path, READ_LIMIT_DEFAULT)
     if read_back is Error {
         println("read failed: ${read_back.message()}")
         return 1

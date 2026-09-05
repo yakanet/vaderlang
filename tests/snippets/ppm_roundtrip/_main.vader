@@ -21,7 +21,7 @@ main :: fn() -> i32 {
         println("write failed: ${wr.message()} path=[${path}]")
         return 1
     }
-    raw :: read_file_bytes(path)
+    raw :: read_file_bytes(path, READ_LIMIT_DEFAULT)
     if raw is Error {
         println("read failed: ${raw.message()}")
         return 1

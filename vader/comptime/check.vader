@@ -242,7 +242,7 @@ read_relative_file :: fn(raw_path: string, source_dir: string) -> string | null 
     } else {
         "${source_dir}/${raw_path}"
     }
-    result :: read_file_string(abs)
+    result :: read_file_string(abs, READ_LIMIT_DEFAULT)
     if result is string as s { return s }
     return null
 }
