@@ -5,10 +5,18 @@
 Accepted (2026-09-06). Amends [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) —
 its measurements, not its decision. Investigation only ; no code changed.
 
-⚠️ **Corrected the same day, in place: the write-barrier count below was WRONG and 0014's
-was right.** See "The correction, and how the instrument lied" at the end. The measured
-13 % ceiling is unaffected — it was obtained by deleting code and rebuilding, not by
-counting.
+⚠️ **Corrected the same day, in place, twice.** The write-barrier count below was WRONG
+and 0014's was right — see "The correction, and how the instrument lied" at the end. And
+**every static count over `exec_entry`, in this record and in 0014, is DOUBLE**: the C
+emitter tail-duplicates the whole loop body into both branches of `if is_comptime`
+(`exec.vader:1062`), so the region holds two copies of the dispatch. Per copy: 470 forward
+tests, 244 barriers, ~97 `gc_alloc`, and 146 arms — which is exactly 0014's "real 145
+arms". Measured ratios are unaffected (they compare two builds of the same shape); only
+the counts are.
+
+The measured 13 % ceiling stands — it was obtained by deleting code and rebuilding, not by
+counting. Full audit, with the levers this record's own lever now ranks behind:
+[`.claude/plans/2026-09-06-vm-runtime-audit.md`].
 
 ## Context
 
@@ -93,7 +101,11 @@ partly-stripped one (430 ms against 400) — code layout, dissolved by moving to
 medians of 9, but it sets the bar: distinguishing a real 13 % from layout luck
 needs the differenced-iteration instrument, not a wall-clock reading.
 
-The remaining 87 % is not in the dispatch. 0014's fourth hypothesis was measured
+The remaining 87 % is not in the dispatch — it is in boxing (15 % of a real compile's
+allocations, 53 % of a trivial one, from `peek_val`/`push_val` on `ArrayGet` / `ArraySet` /
+`Convert` / `Return`), in a GC shadow frame built for `stack_ensure` on every push
+(−11/−13 %), and in calls (13 to 25 ops each). The audit ranks this record's own lever
+FIFTH of seven. 0014's fourth hypothesis was measured
 in a standalone prototype rather than in situ, which left the question open; it is
 now closed the same way, twice independently. `cc -O3` canonicalises the 147
 source-level `if` tests into switches and lowers them to a **three-level

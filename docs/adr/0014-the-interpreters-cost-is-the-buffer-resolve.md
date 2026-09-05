@@ -10,7 +10,16 @@ speed, the lever this record files as its main one is measured at ~13 %, and the
 `gc_alloc` count below does not reproduce (195, not 786). The write-barrier count
 here is CORRECT — 0015 first disputed it and was itself wrong. The fourth
 hypothesis below is confirmed and then some: the dispatch is a jump table, ~1 cycle
-of a 22-35 cycle op, so the chain is never walked at all.
+of a 22-35 cycle op, so the chain is never walked at all. The FOURTH is confirmed too,
+by the allocation counter this record wanted: a `u8` local costs exactly 2 allocations
+per iteration, one per `local.set`, ceiling −19.3 %.
+
+⚠️ **Every static count below is DOUBLE.** The C emitter tail-duplicates the whole loop
+body into both branches of `if is_comptime`, so "292 arms" is 146 per copy — which is
+this record's own "real 145 arms" — and the resolve / barrier / alloc figures halve the
+same way. De-duplicating it measures **+22 %**, i.e. worse: the duplication is a
+specialisation that pays. Full audit:
+[`.claude/plans/2026-09-06-vm-runtime-audit.md`].
 
 ## Context
 
