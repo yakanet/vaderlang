@@ -758,10 +758,17 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         lines.push("return out;")
     } else if sig.result == ValType.String {
         // A C string comes back BORROWED: interned into the atom table, never
-        // freed. That is the default the FFI plan settles on — its worst case is
-        // a leak on the C side, never a corruption — and it is right for the
-        // library-owned pointers (`getenv`, `strerror`) this unblocks. An
-        // `@owned` form, zero-copy through `vader_atom_intern_take`, comes next.
+        // freed. Not a stopgap — it is the CORRECT semantics for a pointer the
+        // library owns (`getenv`, `strerror`, a struct member), which is what
+        // every such callee in this tree returns, and its worst case elsewhere
+        // is a leak on the C side rather than a corruption.
+        //
+        // A callee that hands over memory is bound to return `CPointer` and
+        // freed explicitly through its own deallocator — `curl_free`,
+        // `sqlite3_free` — because ownership is not one bit but a function name.
+        // An `@owned` marker was designed and dropped for that reason; it would
+        // also have been the only claim on this boundary that `cc` could not
+        // check.
         //
         // NULL interns as the empty string: a bare `string` carries no null
         // variant. A callee that must distinguish absent from empty is declared
