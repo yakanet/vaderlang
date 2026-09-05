@@ -321,6 +321,17 @@ export TypedProgram :: struct {
     /// signature for display.
     ufcs_receiver_types: MutableMap<usize, Type>
 
+    /// `FieldExpr.id → the declaration the UFCS dispatch actually chose`, for
+    /// every dispatch whose winner has one reachable.
+    ///
+    /// `try_free_fn_ufcs_with_first` ranks the candidates and picks; without
+    /// this the pick was thrown away and `ufcs_method_params` re-derived it from
+    /// the receiver type, which is a second answer to a question already
+    /// answered. It also could not be re-derived at all for an IMPORTED fn —
+    /// the imported table carries types, not declarations — so a UFCS call
+    /// omitting a defaulted argument got T3003 instead of the default.
+    ufcs_chosen_decls: MutableMap<usize, AST.FnDecl>
+
     /// `"${TypeBaseName}::${methodName}" → trait names that all
     /// provide the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
@@ -547,6 +558,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .index_key_types = MutableMap<string, Type> {},
     .index_set_value_types = MutableMap<string, Type> {},
     .ufcs_receiver_types = MutableMap<usize, Type> {},
+    .ufcs_chosen_decls = MutableMap<usize, AST.FnDecl> {},
     .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]!> {},

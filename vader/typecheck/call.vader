@@ -437,6 +437,14 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
     if c.callee is AST.FieldExpr as fe {
         // Genuine UFCS dispatch (the dispatched fn's own first param was stashed
         // when the FieldExpr was typed) curries away `self`.
+        // The pick itself, when the dispatch could keep it: its params minus the
+        // receiver, which is what lines up with the curried callee type. Beats
+        // re-deriving the winner from the receiver type — the same answer, and
+        // one the imported half cannot give at all.
+        chosen :: typed.ufcs_chosen_decls[fe.id]
+        if chosen is AST.FnDecl as fd {
+            return ufcs_tail_params(fd)
+        }
         dispatched_first :: typed.ufcs_receiver_types[fe.id]
         if dispatched_first != null {
             return ufcs_method_params(fe.field, dispatched_first, callee_ty, typed)
@@ -507,6 +515,19 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
 // `field.vader::receiver_fits_first_param` — the two answer different questions,
 // and the wider routes that one accepts (trait widening, `T[]` → `Iterator<T>`,
 // the TypeParam wildcard) are already reflected in what was stored.
+// A UFCS method's parameters as the CALL SITE writes them — the declaration's,
+// minus the receiver it curried away.
+ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
+    if fd.params.len() == 0 {
+        return null
+    }
+    tail: AST.FnParam![]! = []
+    for i in 1..<fd.params.len() {
+        tail.push(fd.params[i])
+    }
+    return tail
+}
+
 ufcs_method_params :: fn(
     method: string, dispatched_first_param: Type, callee_ty: FnType, typed: TypedProgram,
 ) -> AST.FnParam[] | null {
