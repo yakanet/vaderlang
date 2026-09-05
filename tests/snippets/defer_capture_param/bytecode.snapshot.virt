@@ -37,7 +37,6 @@ fn 0 snippet$log_at_exit (string,i64) -> void
   local label any
   local code any
   local $cell_get_10 string
-  local __block_1 void
   local.get 0   ; arg 0
   struct.new 15   ; $Cell_string
   local.set 2   ; label
@@ -61,7 +60,6 @@ fn 0 snippet$log_at_exit (string,i64) -> void
   local.get 4   ; $cell_get_10
   call 11   ; std_io$write
   defer.pop_exec 1
-  local.get 5   ; __block_1
   return
 end
 
@@ -72,7 +70,6 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local __off_2 usize
   local $cell_get_16 i64
   local $call_20 string
-  local __block_3 void
   local.get 0   ; arg 0
   struct.new 18   ; $Cell_Struct#snippet.Counter<>
   local.set 2   ; counter
@@ -111,7 +108,6 @@ fn 1 snippet$bump_at_exit (ref,i64) -> void
   local.get 7   ; $call_20
   call 11   ; std_io$write
   defer.pop_exec 1
-  local.get 8   ; __block_3
   return
 end
 

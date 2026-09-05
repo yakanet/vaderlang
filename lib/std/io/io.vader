@@ -875,14 +875,12 @@ import "std/testing"
     file :: "${temp_dir()}/vader_is_dir_probe"
     wrote :: write_file_string(file, "x")
     assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
 
     assert(is_dir(temp_dir()), "the temp dir is a directory")
     assert(!is_dir(file), "a regular file is not")
     assert(exists(file), "and the probe is really there")
     assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
-
-    removed :: remove_file(file)
-    assert(removed !is IOError, "the probe was cleaned up")
 }
 
 // `read_file_bytes` on an endless stream is not tested here: `vader test` runs

@@ -912,25 +912,27 @@ out of `try_free_fn_ufcs_with_first` is what closes it.
 Do NOT close it by checking the arguments when the callee is unresolved: that
 would refuse a lambda passed to an ordinary Vader fn, which is legal.
 
-## `defer` on a call that returns a value corrupts the return slot
+## A `defer` whose thunk captures an enclosing variable erases the whole call
 
-A `defer` whose expression is a call that yields a value leaves that value on
-the stack, and it lands where the return value belongs. In a `void` function
-under the VM:
+The lambda is never entered — not the deferred statement, the WHOLE body — and
+nothing is reported. Both backends, identically, so it is a lowering or DCE bug
+and not a VM divergence.
 
-    @test test_defer_on_a_value_returning_call :: fn() -> void {
-        p :: "${temp_dir()}/probe"
-        w :: write_file_string(p, "x")
-        assert(!(w is IOError), "written")
-        defer remove_file(p)
-        assert(exists(p), "still there inside the body")
+    defer_captures :: fn(p: string) -> void {
+        g :: fn() -> void {
+            defer println("E deferred, p=${p}")
+            println("E body")
+        }
+        g()
     }
-    → return from main at pc=22: expected i32, got null
+    → prints nothing at all
 
-Binding the result first (`r :: remove_file(p)`) is not a workaround — the point
-of the `defer` is that it runs on the way out. Discarding the value in plain
-statement position is fine; only the deferred form breaks, so the drop is
-missing on the path that splices the deferred call in.
+The discriminating pair: a lambda whose BODY captures `p` while the defer does
+not runs correctly, both lines. Move the capture into the deferred thunk and the
+call vanishes. So it is the thunk's capture set — `closure_analysis.vader:214`
+walks a `DeferStmt` into its own scope and records `defer_captures` keyed by
+`capture_key(path, defer_stmt.id)` — that turns the enclosing call into
+something DCE or lowering drops.
 
-Found while pinning the `is_dir` regression, which is why that test cleans up
-with a trailing call instead of a `defer`.
+Serious: on the native backend this is a silent wrong-code bug, not a trap.
+Found while fixing the void-trailing defer bug (`tests/snippets/defer_in_void_fn`).

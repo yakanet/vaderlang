@@ -20,23 +20,20 @@
     block :void
       defer.push
         LoweredMakeClosure
-      let __block_2: void =
-        call :void
-          callee:
-            write :fn(Stream, string) -> void
-          arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "nested" :string
-              arg1:
-                "\n" :string
+      call :void
+        callee:
+          write :fn(Stream, string) -> void
+        arg0:
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "nested" :string
+            arg1:
+              "\n" :string
       defer.pop_exec 1
-      ~>
-        __block_2 :void
     block :void
       defer.pop_exec 1
       return int(0) :i32

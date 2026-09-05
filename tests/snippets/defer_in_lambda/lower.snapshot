@@ -135,23 +135,20 @@
       LoweredMakeClosure
     defer.push
       LoweredMakeClosure
-    let __block_2: void =
-      call :void
-        callee:
-          write :fn(Stream, string) -> void
-        arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "lambda body" :string
-            arg1:
-              "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "lambda body" :string
+          arg1:
+            "\n" :string
     defer.pop_exec 2
-    ~>
-      __block_2 :void
   struct __defer_env_snippet_9 { cap_0: ? }
   fn __defer_snippet_8(__env_0: __defer_env_snippet_9!) -> void
     call :void

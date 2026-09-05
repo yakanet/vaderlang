@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/defer_in_void_fn
+  StructDecl     Err                  :: Err!
+  FnDecl         fallible             :: fn(i32) -> Err | null
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         value_trailing       :: fn() -> i32
+  FnDecl         void_trailing        :: fn() -> void
+  expr 15:11    CallExpr       :: void
+  expr 15:11    IdentExpr      :: fn(T) -> void
+  expr 15:19    StringLitExpr  :: string
+  expr 16:13    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 22:11    CallExpr       :: void
+  expr 22:11    IdentExpr      :: fn(T) -> void
+  expr 22:19    StringLitExpr  :: string
+  expr 23:5     CallExpr       :: Err | null
+  expr 23:5     IdentExpr      :: fn(i32) -> Err | null
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn() -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:20    CallExpr       :: i32
+  expr 29:20    IdentExpr      :: fn() -> i32
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
