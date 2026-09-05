@@ -26,18 +26,18 @@ string 6 "removed="
 string 7 "true"
 string 8 "false"
 string 9 "TMPDIR"
-string 10 ""
-string 11 "/tmp"
-string 12 "path contains a NUL byte"
-string 13 "wb"
-string 14 "open failed"
-string 15 "short write"
-string 16 "close failed"
-string 17 "rb"
-string 18 "file not found"
-string 19 "read failed"
-string 20 "file too large"
-string 21 "cannot remove file"
+string 10 "path contains a NUL byte"
+string 11 "wb"
+string 12 "open failed"
+string 13 "short write"
+string 14 "close failed"
+string 15 "rb"
+string 16 "file not found"
+string 17 "read failed"
+string 18 "file too large"
+string 19 "cannot remove file"
+string 20 ""
+string 21 "/tmp"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
@@ -53,7 +53,7 @@ import 11 extern access system_posix$sys_access header=<unistd.h> result_type=1 
 import 12 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
 impl 5 ByteAccess
 impl 10 Error
-vtable Error.message 10 14
+vtable Error.message 10 15
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -222,11 +222,11 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 3   ; std_core$finish_buffer
@@ -235,14 +235,14 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 15   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 16   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 16   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -251,7 +251,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 18   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -278,28 +278,9 @@ fn 5 std_core$write_bool (ref,usize,bool) -> usize
 end
 
 fn 6 std_io$temp_dir () -> string
-  local env string
-  local __coalesce_0 any
   string.const 9   ; "TMPDIR"
   call.import 4   ; std_env$get_env
-  local.tee 1   ; __coalesce_0
-  type_check 0   ; null
-  if $L0 void
-    string.const 10   ; ""
-    local.set 0   ; env
-  else
-    local.get 1   ; __coalesce_0
-    ref.cast 2   ; -> string
-    local.set 0   ; env
-  end $L0
-  local.get 0   ; env
-  string.const 10   ; ""
-  string.eq
-  if $L1 void
-    return.lit string.const 11   ; "/tmp"
-  end $L1
-  local.get 0   ; env
-  call 12   ; std_io$without_trailing_sep
+  call 12   ; std_io$temp_dir_of
   return
 end
 
@@ -327,7 +308,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
         i32.const 0
         i32.eq
         if $L3 void
-          string.const 12   ; "path contains a NUL byte"
+          string.const 10   ; "path contains a NUL byte"
           struct.new 10   ; std_io$IOError
           return
         end $L3
@@ -341,12 +322,12 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     end $L1
   end $L0
   local.get 0   ; arg 0
-  string.const 13   ; "wb"
+  string.const 11   ; "wb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 4   ; f
   type_check 0   ; null
   if $L4 void
-    string.const 14   ; "open failed"
+    string.const 12   ; "open failed"
     struct.new 10   ; std_io$IOError
     return
   end $L4
@@ -378,7 +359,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
       ref.cast 15   ; -> pointer
       call.import 8   ; system_posix$sys_fclose
       drop
-      string.const 15   ; "short write"
+      string.const 13   ; "short write"
       struct.new 10   ; std_io$IOError
       return
     end $L6
@@ -392,7 +373,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     local.get 7   ; $k_37
     i32.ne
     if $L7 void
-      string.const 16   ; "close failed"
+      string.const 14   ; "close failed"
       struct.new 10   ; std_io$IOError
       return
     end $L7
@@ -410,7 +391,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   local.get 7   ; $k_37
   i32.ne
   if $L8 void
-    string.const 16   ; "close failed"
+    string.const 14   ; "close failed"
     struct.new 10   ; std_io$IOError
     return
   end $L8
@@ -423,20 +404,19 @@ fn 8 std_io$read_file_bytes (string) -> any
   local f any
   local out ref
   local chunk ref
-  local _ usize
-  local $len_19 usize
-  local $cast_20 pointer
+  local $len_18 usize
+  local $cast_19 pointer
   local n usize
-  local $slice_26 ref
-  local $len_27 usize
+  local $slice_25 ref
+  local $len_26 usize
   local failed bool
   local.get 0   ; arg 0
-  string.const 17   ; "rb"
+  string.const 15   ; "rb"
   call.import 7   ; system_posix$sys_fopen
   local.tee 1   ; f
   type_check 0   ; null
   if $L0 void
-    string.const 18   ; "file not found"
+    string.const 16   ; "file not found"
     struct.new 10   ; std_io$IOError
     return
   end $L0
@@ -447,44 +427,43 @@ fn 8 std_io$read_file_bytes (string) -> any
   i64.const 65536
   array.repeat
   local.set 3   ; chunk
-  i64.const 0
-  local.set 4   ; _
   block $L1 void
     loop $L2 void
-      local.get 4   ; _
-      i64.const 4096
-      u64.lt
+      local.get 2   ; out
+      array.len
+      i64.const 268435456
+      u64.le
       if $L3 void
         local.get 3   ; chunk
         array.len
-        local.set 5   ; $len_19
+        local.set 4   ; $len_18
         local.get 1   ; f
         ref.cast 15   ; -> pointer
-        local.set 6   ; $cast_20
+        local.set 5   ; $cast_19
         local.get 3   ; chunk
         i64.const 1
-        local.get 5   ; $len_19
-        local.get 6   ; $cast_20
+        local.get 4   ; $len_18
+        local.get 5   ; $cast_19
         call.import 9   ; system_posix$sys_fread
-        local.tee 7   ; n
+        local.tee 6   ; n
         i64.const 0
         u64.gt
         if $L4 void
           local.get 3   ; chunk
           i64.const 0
-          local.get 7   ; n
+          local.get 6   ; n
           array.slice 7   ; u8[][]
-          local.set 8   ; $slice_26
+          local.set 7   ; $slice_25
           local.get 2   ; out
-          local.get 8   ; $slice_26
+          local.get 7   ; $slice_25
           array.push_all
         else
         end $L4
         local.get 3   ; chunk
         array.len
-        local.set 9   ; $len_27
-        local.get 7   ; n
-        local.get 9   ; $len_27
+        local.set 8   ; $len_26
+        local.get 6   ; n
+        local.get 8   ; $len_26
         u64.lt
         if $L5 void
           local.get 1   ; f
@@ -492,24 +471,20 @@ fn 8 std_io$read_file_bytes (string) -> any
           call.import 6   ; system_posix$sys_ferror
           i32.const 0
           i32.ne
-          local.set 10   ; failed
+          local.set 9   ; failed
           local.get 1   ; f
           ref.cast 15   ; -> pointer
           call.import 8   ; system_posix$sys_fclose
           drop
-          local.get 10   ; failed
+          local.get 9   ; failed
           if $L6 void
-            string.const 19   ; "read failed"
+            string.const 17   ; "read failed"
             struct.new 10   ; std_io$IOError
             return
           end $L6
           local.get 2   ; out
           return
         end $L5
-        local.get 4   ; _
-        i64.const 1
-        i64.add
-        local.set 4   ; _
         br $L2
       else
       end $L3
@@ -519,7 +494,7 @@ fn 8 std_io$read_file_bytes (string) -> any
   ref.cast 15   ; -> pointer
   call.import 8   ; system_posix$sys_fclose
   drop
-  string.const 20   ; "file too large"
+  string.const 18   ; "file too large"
   struct.new 10   ; std_io$IOError
   return
 end
@@ -539,7 +514,7 @@ fn 10 std_io$remove_file (string) -> any
   i32.const 0
   i32.ne
   if $L0 void
-    string.const 21   ; "cannot remove file"
+    string.const 19   ; "cannot remove file"
     struct.new 10   ; std_io$IOError
     return
   end $L0
@@ -606,7 +581,52 @@ fn 11 std_io$write (i32,string) -> void
   return
 end
 
-fn 12 std_io$without_trailing_sep (string) -> string
+fn 12 std_io$temp_dir_of (any) -> string
+  local e string
+  local __coalesce_0 any
+  local.get 0   ; arg 0
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    string.const 20   ; ""
+    local.set 1   ; e
+  else
+    local.get 2   ; __coalesce_0
+    ref.cast 2   ; -> string
+    local.set 1   ; e
+  end $L0
+  local.get 1   ; e
+  string.const 20   ; ""
+  string.eq
+  if $L1 void
+    return.lit string.const 21   ; "/tmp"
+  end $L1
+  local.get 1   ; e
+  call 14   ; std_io$without_trailing_sep
+  return
+end
+
+fn 13 std_io$write_bytes (i32,ref,usize) -> i32
+  local fd i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 5   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 14 std_io$without_trailing_sep (string) -> string
   local b ref
   local trailing usize
   local __for_hi_0 usize
@@ -701,46 +721,26 @@ fn 12 std_io$without_trailing_sep (string) -> string
   return
 end
 
-fn 13 std_io$write_bytes (i32,ref,usize) -> i32
-  local fd i32
-  local.get 0   ; arg 0
-  i32.const 0
-  i32.eq
-  if $L0 void
-    i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
-  end $L0
-  local.get 3   ; fd
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
-  isize.to_i32
-  return
-end
-
-fn 14 std_io$IOError$Error$message (ref) -> string
+fn 15 std_io$IOError$Error$message (ref) -> string
   local.field 0 10 0   ; arg 0.msg
   ref.cast 2   ; -> string
   return
 end
 
-fn 15 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 16 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 17 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 18 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

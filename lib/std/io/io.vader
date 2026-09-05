@@ -311,7 +311,7 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     // anything that is not a regular file.
     out: u8[]! = []
     chunk: u8[]! = [0] * READ_CHUNK
-    for _ in 0..<MAX_CHUNKS {
+    for out.len() <= MAX_READ_BYTES {
         n :: sys_fread(chunk, 1, chunk.len(), f)
         if n > 0 {
             out.push_all(chunk[0..<n])
@@ -347,7 +347,7 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     out: u8[]! = []
     chunk: u8[]! = [0] * READ_CHUNK
     got: u32[]! = [0]
-    for _ in 0..<MAX_CHUNKS {
+    for out.len() <= MAX_READ_BYTES {
         if !read_file(h, chunk, u32(chunk.len()), got, null) {
             close_handle(h)
             return IOError { .msg = "read failed" }
@@ -367,15 +367,13 @@ read_file_bytes :: fn(path: string) -> u8[] | IOError {
     return IOError { .msg = "file too large" }
 }
 
-// 64 KiB per read, and a ceiling on the number of rounds so a stream that never
-// ends cannot spin forever. Together they cap a read at 256 MiB.
+// 64 KiB per read, and a total the accumulated bytes may not pass so a stream
+// that never ends cannot spin forever.
 //
-// The ceiling has to stay under what the process can actually hold, or it never
-// fires: at 4 GiB, `read_file_bytes("/dev/zero")` filled the heap and died on a
-// GC trap — `vader_young_grow: object + live set exceeds young cap` — instead of
-// returning the "file too large" this loop already had waiting for it.
+// The cap has to stay under what the process can hold, or it never fires: the
+// heap fills and the GC traps before the "file too large" above can be returned.
 READ_CHUNK: usize : 64 * 1024
-MAX_CHUNKS: usize : 4096
+MAX_READ_BYTES: usize : 256 * 1024 * 1024
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
@@ -584,12 +582,8 @@ exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVAL
 @target
 export is_dir :: fn(path: string) -> bool
 
-// Through the runtime rather than a `struct stat` mirror. A mirror implies the
-// layout of `struct stat`, which differs between ARCHES of one system: on Linux
-// `st_mode` is at offset 24 on x86_64 and at 16 on arm64, so one mirror was
-// right on one arch and read `st_uid` on the other — silently, under the VM,
-// which lays the block out from the mirror. No single mirror can be correct for
-// both, so the runtime reads the field and hands back a small code.
+// Through the runtime rather than a `struct stat` mirror — see
+// `lib/system/posix/posix.vader::sys_path_kind` for why no mirror can express it.
 @target(.Linux, .Darwin)
 is_dir :: fn(path: string) -> bool = sys_path_kind(path) == PATH_DIRECTORY
 
@@ -758,16 +752,20 @@ up_to_nul :: fn(buf: u8[]) -> string {
 export temp_dir :: fn() -> string
 
 @target(.Linux, .Darwin)
-temp_dir :: fn() -> string {
-    // `??` fires on null alone, and `get_env` reports a SET-BUT-EMPTY variable
-    // as `""` — a distinction it documents and keeps. `TMPDIR=` then produced an
-    // empty temp dir, and the build driver joined its probe paths onto it and
-    // wrote them at the filesystem ROOT.
-    env :: get_env("TMPDIR") ?? ""
-    if env == "" {
+temp_dir :: fn() -> string = temp_dir_of(get_env("TMPDIR"))
+
+// The decision, split out from the environment so a test can reach it.
+//
+// `??` fires on null alone, and `get_env` reports a SET-BUT-EMPTY variable as
+// `""` — a distinction it documents and keeps. `TMPDIR=` then produced an empty
+// temp dir, and the build driver joined its probe paths onto it and wrote them
+// at the filesystem ROOT.
+temp_dir_of :: fn(env: string | null) -> string {
+    e :: env ?? ""
+    if e == "" {
         return "/tmp"
     }
-    return without_trailing_sep(env)
+    return without_trailing_sep(e)
 }
 
 @target(.Windows)
@@ -858,3 +856,32 @@ without_trailing_sep :: fn(p: string) -> string {
     }
     return b[0..<(b.len() - trailing)].bytes_to_string()
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_temp_dir_falls_back_when_the_variable_is_empty :: fn() -> void {
+    assert_eq(temp_dir_of(null), "/tmp")
+    assert_eq(temp_dir_of(""), "/tmp")
+    assert_eq(temp_dir_of("/var/folders/xx"), "/var/folders/xx")
+    assert_eq(temp_dir_of("/var/folders/xx/"), "/var/folders/xx")
+}
+
+@test test_is_dir_separates_a_directory_from_a_file :: fn() -> void {
+    file :: "${temp_dir()}/vader_is_dir_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+
+    assert(is_dir(temp_dir()), "the temp dir is a directory")
+    assert(!is_dir(file), "a regular file is not")
+    assert(exists(file), "and the probe is really there")
+    assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
+
+    removed :: remove_file(file)
+    assert(removed !is IOError, "the probe was cleaned up")
+}
+
+// `read_file_bytes` on an endless stream is not tested here: `vader test` runs
+// the VM, where 256 MiB of `u8` exceeds `VADER_GC_YOUNG_MAX` before the chunk
+// loop can reach its ceiling.

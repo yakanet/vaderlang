@@ -21,6 +21,7 @@
   Timeout<T>
   Timeout<T>
   Timeout<T>
+  Into<Target>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -53,7 +54,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Into<Target>
   Add<Rhs, Out>
   MutableSet<i32>
   MutableSet<usize>

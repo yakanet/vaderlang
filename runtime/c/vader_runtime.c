@@ -3437,12 +3437,13 @@ void* vader_ptr_at(const void* base, size_t i) {
     return ((void* const*) base)[i];
 }
 
-/* What KIND of thing `path` is: 0 missing, 1 regular file, 2 directory, 3 other.
+/* What KIND of thing `path` is. Ordinals must match
+ * `lib/system/posix/posix.vader`'s `PATH_*` constants.
  *
- * Here rather than in Vader because `struct stat`'s layout differs between the
- * arches of one system, so no `@c_struct` mirror can be right for both. Returns
- * a code rather than the raw mode so no `S_IF*` constant crosses the boundary.
- * `lib/system/posix/posix.vader::sys_path_kind` is the Vader side. */
+ * Here rather than in Vader because `struct stat` is not mirrorable at all: a
+ * mirror is only valid as a contiguous leading prefix, `st_mode` leads on no
+ * arch, and the arches disagree on field order.
+ * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`. */
 #if !defined(_WIN32)
 #include <sys/stat.h>
 VADER_HOST_EXPORT

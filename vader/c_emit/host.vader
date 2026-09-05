@@ -276,9 +276,10 @@ push_leaf_asserts :: fn(
 /// on the way in or out. Naming a field the C type does not have fails the build
 /// here too, which is the other half of the check.
 ///
-/// A mirror may therefore be PARTIAL: declaring `st_dev` and `st_mode` of a
-/// `struct stat` copies those two and ignores the rest, which is what makes a
-/// struct with nested members usable at all.
+/// A mirror may therefore be SHORT — it stops early and ignores the members
+/// after it, which is what makes a struct with nested members usable at all.
+/// It may not be SPARSE: the offset assert below pins each field to
+/// `__builtin_offsetof`, so skipping a member is refused.
 ///
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.

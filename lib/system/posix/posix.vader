@@ -25,15 +25,11 @@ export CLOCK_REALTIME :: 0
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
 export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
 
-/// The bits of `st_mode` carrying the file type. POSIX fixes the value, and
 /// `opendir(3)`. NULL when `path` is not a directory, does not exist, or
 /// cannot be searched.
 ///
-/// This is how POSIX answers "is it a directory" without a `struct stat`
-/// mirror. `struct stat`'s layout differs BETWEEN ARCHES of the same system --
-/// on Linux `st_mode` sits at 24 on x86_64 and at 16 on arm64 -- and a Vader
-/// mirror can match one or the other, never both. Asking `opendir` removes the
-/// question.
+/// It answers "is this a directory" only for a directory the caller can READ —
+/// `sys_path_kind` is what `std/io::is_dir` asks, and says why.
 ///
 /// @param path  the directory to open.
 /// @return      a `DIR*`, or null.
@@ -48,25 +44,37 @@ export sys_opendir :: fn(path: string) -> CPointer | null
 @extern("closedir")
 export sys_closedir :: fn(dir: CPointer) -> i32
 
-/// What KIND of thing `path` is: 0 missing, 1 regular file, 2 directory, 3 other.
+/// What KIND of thing `path` is, via `stat(2)`.
 ///
-/// `stat` answers it, and its layout cannot be mirrored — `st_mode` sits at
-/// offset 24 on linux-x86_64 and 16 on linux-arm64, so no single mirror is right
-/// for both and the offset assert would refuse either. The runtime reads it and
-/// hands back a small code, so no `S_IF*` constant has to be transcribed here.
+/// `struct stat` is NOT mirrorable — not "ambiguous between arches", genuinely
+/// inexpressible. A mirror is pinned field by field to `__builtin_offsetof`, so
+/// it is only valid as a contiguous LEADING prefix ; `st_mode` leads on neither
+/// arch (offset 24 on linux-x86_64, 16 on linux-arm64), and the two arches also
+/// disagree on field ORDER, which no width or arch axis could express. So the
+/// runtime resolves the member and hands back an ordinal.
+/// See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`.
 ///
 /// `sys_opendir` is NOT a substitute: it needs READ permission where `stat`
 /// needs only traverse rights on the parent, so a directory with mode 0111
 /// answers "not a directory".
 ///
+/// An `enum` would name the answer set better, but `@extern` cannot carry one
+/// (T3050) — and a Vader wrapper here would give this module a BODY, which the
+/// seed refuses: `system/posix` would then emit a unit on POSIX targets and none
+/// on Windows, and `--seed-targets` requires one module set for every target.
+/// Hence four constants and a declaration-only module.
+///
 /// @param path  the path to classify.
+/// @return      `PATH_MISSING` when `stat` fails, for any reason.
 @extern("vader_path_kind")
 export sys_path_kind :: fn(path: string) -> i32
 
-/// `sys_path_kind`'s answers.
+/// The four answers `sys_path_kind` gives. Values must match `vader_path_kind`.
 export PATH_MISSING: i32: 0
 export PATH_REGULAR: i32: 1
 export PATH_DIRECTORY: i32: 2
+/// Device, FIFO, socket — anything with no size to speak of.
+export PATH_OTHER: i32: 3
 
 /// `readdir(3)`. The next entry, or null at the end of the directory.
 ///

@@ -297,12 +297,11 @@ fn 9 std_io$read_file_bytes (string) -> any
   local f any
   local out ref
   local chunk ref
-  local _ usize
-  local $len_19 usize
-  local $cast_20 pointer
+  local $len_18 usize
+  local $cast_19 pointer
   local n usize
-  local $slice_26 ref
-  local $len_27 usize
+  local $slice_25 ref
+  local $len_26 usize
   local failed bool
   local.get 0   ; arg 0
   string.const 7   ; "rb"
@@ -321,44 +320,43 @@ fn 9 std_io$read_file_bytes (string) -> any
   i64.const 65536
   array.repeat
   local.set 3   ; chunk
-  i64.const 0
-  local.set 4   ; _
   block $L1 void
     loop $L2 void
-      local.get 4   ; _
-      i64.const 4096
-      u64.lt
+      local.get 2   ; out
+      array.len
+      i64.const 268435456
+      u64.le
       if $L3 void
         local.get 3   ; chunk
         array.len
-        local.set 5   ; $len_19
+        local.set 4   ; $len_18
         local.get 1   ; f
         ref.cast 13   ; -> pointer
-        local.set 6   ; $cast_20
+        local.set 5   ; $cast_19
         local.get 3   ; chunk
         i64.const 1
-        local.get 5   ; $len_19
-        local.get 6   ; $cast_20
+        local.get 4   ; $len_18
+        local.get 5   ; $cast_19
         call.import 7   ; system_posix$sys_fread
-        local.tee 7   ; n
+        local.tee 6   ; n
         i64.const 0
         u64.gt
         if $L4 void
           local.get 3   ; chunk
           i64.const 0
-          local.get 7   ; n
+          local.get 6   ; n
           array.slice 6   ; u8[][]
-          local.set 8   ; $slice_26
+          local.set 7   ; $slice_25
           local.get 2   ; out
-          local.get 8   ; $slice_26
+          local.get 7   ; $slice_25
           array.push_all
         else
         end $L4
         local.get 3   ; chunk
         array.len
-        local.set 9   ; $len_27
-        local.get 7   ; n
-        local.get 9   ; $len_27
+        local.set 8   ; $len_26
+        local.get 6   ; n
+        local.get 8   ; $len_26
         u64.lt
         if $L5 void
           local.get 1   ; f
@@ -366,12 +364,12 @@ fn 9 std_io$read_file_bytes (string) -> any
           call.import 4   ; system_posix$sys_ferror
           i32.const 0
           i32.ne
-          local.set 10   ; failed
+          local.set 9   ; failed
           local.get 1   ; f
           ref.cast 13   ; -> pointer
           call.import 6   ; system_posix$sys_fclose
           drop
-          local.get 10   ; failed
+          local.get 9   ; failed
           if $L6 void
             string.const 9   ; "read failed"
             struct.new 9   ; std_io$IOError
@@ -380,10 +378,6 @@ fn 9 std_io$read_file_bytes (string) -> any
           local.get 2   ; out
           return
         end $L5
-        local.get 4   ; _
-        i64.const 1
-        i64.add
-        local.set 4   ; _
         br $L2
       else
       end $L3

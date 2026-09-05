@@ -16,6 +16,8 @@
 
 module "std/tty"
 
+import "std/io"
+import "std/string"
 import "system/posix"
 import "system/windows"
 
@@ -37,8 +39,8 @@ import "system/windows"
 ///         caller must fall back rather than read keys.
 ///
 /// ⚠️ On POSIX this goes through `cfmakeraw`, which also clears `OPOST`: a bare
-/// `\n` no longer returns the carriage, so anything printed between `begin` and
-/// `end` must write `\r\n` itself.
+/// `\n` no longer returns the carriage. Print through `raw_print` between
+/// `begin` and `end` — `println` is only safe once the terminal is restored.
 @target
 export raw_mode_begin :: fn() -> bool {
     // No terminal to put in raw mode — `wasi-wasm32` and `browser-wasm32`.
@@ -254,4 +256,26 @@ clamp_keys :: fn(max: i32) -> i32 {
         return KEYS_MAX
     }
     return max
+}
+
+/// Print `s` the way a raw-mode terminal needs, terminated.
+///
+/// `raw_mode_begin` clears `OPOST` on POSIX, so a bare `\n` advances a row
+/// without returning the carriage. `s` may be several lines — terminating only
+/// the last one leaves the rest climbing a staircase to the right.
+///
+/// @param s  one line, or a whole frame joined on `\n`.
+export raw_print :: fn(s: string) -> void = print(raw_terminated(s))
+
+// Split out so a test can see it — `raw_print` itself only prints.
+raw_terminated :: fn(s: string) -> string = "${s.replace_all("\n", "\r\n")}\r\n"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_raw_termination_returns_the_carriage_on_every_line :: fn() -> void {
+    out :: raw_terminated("a\nb\nc")
+    assert_eq(out, "a\r\nb\r\nc\r\n")
+    assert(!("\n" in out.replace_all("\r\n", "")), "no bare newline survives")
 }

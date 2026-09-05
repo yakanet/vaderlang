@@ -52,11 +52,12 @@ SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 # portable, and it makes every `@target` group answer for a case that cannot be
 # written yet — a write syscall needs `fd_write` and an iovec array on WASI, and
 # has no meaning at all in a browser. They come back with the WASM emitter.
-# One arch per OS: what lands in a per-target directory is chosen by `@target`,
+# One arch per OS. What lands in a per-target directory is chosen by `@target`,
 # whose granularity is the OS and never the arch, so a second arch of the same OS
-# emits the same bytes and needs no seed of its own — `bootstrap/build.sh` and
-# `build.ps1` fall back to the OS sibling, and say so. Cross-compiling to the
-# others stays available through `--target`; only the seed is narrower.
+# emits the same bytes and needs no seed of its own: `bootstrap/build.sh` and
+# `build.ps1` fall back to the OS sibling, and say so on the way past. Adding an
+# arch here would store a second copy of bytes that are already committed.
+# Cross-compiling stays available through `--target`; only the seed is narrower.
 SEED_TARGETS="darwin-arm64,linux-x86_64,windows-x86_64"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty

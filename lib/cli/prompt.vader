@@ -75,21 +75,6 @@ KeyReader :: struct {
 
 new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 
-/// A frame, terminated the way a raw-mode terminal needs.
-///
-/// `raw_mode_begin` goes through `cfmakeraw`, which clears `OPOST`: a bare `\n`
-/// advances a row without returning the carriage, so every line printed between
-/// `begin` and `end` has to say `\r` itself. `println` is only safe once the
-/// terminal is restored.
-///
-/// `s` may be several lines — the renderers return a whole frame joined on
-/// `\n`, and terminating only the LAST line left the select and multiselect
-/// menus climbing a staircase to the right.
-raw_line :: fn(s: string) -> void = print(raw_terminated(s))
-
-// Split out so a test can see it — `raw_line` itself only prints.
-raw_terminated :: fn(s: string) -> string = "${s.replace_all("\n", "\r\n")}\r\n"
-
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
@@ -185,7 +170,7 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
     for {
         erase(drawn)
         frame :: render_select(question, options, cursor, render_width())
-        raw_line(frame)
+        TTY.raw_print(frame)
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -260,7 +245,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
     drawn := 0
     for {
         erase(drawn)
-        raw_line(render_multiselect(question, options, checked, cursor, render_width()))
+        TTY.raw_print(render_multiselect(question, options, checked, cursor, render_width()))
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -313,16 +298,16 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
     for {
         press :: next_press(reader)
         if press is PromptError as e {
-            raw_line("")
+            TTY.raw_print("")
             return e
         }
         answer :: confirm_answer(press, default_yes)
         if answer is bool as decided {
-            raw_line(if decided { "yes" } else { "no" })
+            TTY.raw_print(if decided { "yes" } else { "no" })
             return decided
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            raw_line("")
+            TTY.raw_print("")
             return cancelled()
         }
     }
@@ -377,15 +362,15 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
         print(render_text(question, typed, default_value, render_width()))
         press :: next_press(reader)
         if press is PromptError as e {
-            raw_line("")
+            TTY.raw_print("")
             return e
         }
         if press.key == Key.Enter {
-            raw_line("")
+            TTY.raw_print("")
             return if typed == "" { default_value } else { typed }
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            raw_line("")
+            TTY.raw_print("")
             return cancelled()
         }
         if press.key == Key.Backspace {
@@ -422,15 +407,6 @@ import "std/testing"
     assert_eq(lines.len(), usize(3))
     assert(lines[1].starts_with("  alpha"), "an unselected row has no pointer")
     assert(lines[2].starts_with("> beta"), "the cursor row does")
-}
-
-@test test_raw_termination_returns_the_carriage_on_every_line :: fn() -> void {
-    // `cfmakeraw` clears `OPOST`, so a frame whose INTERIOR separators are bare
-    // `\n` climbs a staircase to the right — only its last line came back.
-    frame :: render_select("Pick one", ["alpha", "beta"], 1, 80)
-    out :: raw_terminated(frame)
-    assert_eq(out.split("\r\n").len(), usize(4))
-    assert(!("\n" in out.replace_all("\r\n", "")), "no bare newline survives")
 }
 
 @test test_multiselect_frame_shows_boxes :: fn() -> void {

@@ -148,12 +148,9 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-# A host the seed does not name by triple builds from its OS SIBLING. What lands
-# in a per-target directory is chosen by `@target`, whose granularity is the OS
-# and never the arch, so every arch of one OS emits the same bytes —
-# `seed/windows-x86_64` and `seed/windows-arm64` were byte-identical, which is
-# why `seed.sh::SEED_TARGETS` seeds one arch per OS. Only an OS with no slice at
-# all is unbuildable.
+# A host the seed does not name by triple builds from its OS SIBLING — the
+# per-target units are chosen by `@target`, whose granularity is the OS and never
+# the arch. `bootstrap/seed.sh::SEED_TARGETS` owns that rule.
 SEED_TARGET="$HOST_TARGET"
 if [ ! -d "bootstrap/seed/$SEED_TARGET" ]; then
     SEED_TARGET=""

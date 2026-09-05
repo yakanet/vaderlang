@@ -911,3 +911,26 @@ out of `try_free_fn_ufcs_with_first` is what closes it.
 
 Do NOT close it by checking the arguments when the callee is unresolved: that
 would refuse a lambda passed to an ordinary Vader fn, which is legal.
+
+## `defer` on a call that returns a value corrupts the return slot
+
+A `defer` whose expression is a call that yields a value leaves that value on
+the stack, and it lands where the return value belongs. In a `void` function
+under the VM:
+
+    @test test_defer_on_a_value_returning_call :: fn() -> void {
+        p :: "${temp_dir()}/probe"
+        w :: write_file_string(p, "x")
+        assert(!(w is IOError), "written")
+        defer remove_file(p)
+        assert(exists(p), "still there inside the body")
+    }
+    → return from main at pc=22: expected i32, got null
+
+Binding the result first (`r :: remove_file(p)`) is not a workaround — the point
+of the `defer` is that it runs on the way out. Discarding the value in plain
+statement position is fine; only the deferred form breaks, so the drop is
+missing on the path that splices the deferred call in.
+
+Found while pinning the `is_dir` regression, which is why that test cleans up
+with a trailing call instead of a `defer`.
