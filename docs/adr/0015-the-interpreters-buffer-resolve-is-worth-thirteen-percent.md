@@ -1,9 +1,14 @@
-# 0015 — The interpreter's buffer resolve is worth 13 %, and three of 0014's counts do not reproduce
+# 0015 — The interpreter's buffer resolve is worth 13 %
 
 ## Status
 
 Accepted (2026-09-06). Amends [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) —
 its measurements, not its decision. Investigation only ; no code changed.
+
+⚠️ **Corrected the same day, in place: the write-barrier count below was WRONG and 0014's
+was right.** See "The correction, and how the instrument lied" at the end. The measured
+13 % ceiling is unaffected — it was obtained by deleting code and rebuilding, not by
+counting.
 
 ## Context
 
@@ -12,29 +17,31 @@ cross-pass change to `bce_block_unsafe`'s granularity. Before spending that, the
 question worth asking is what the fix would actually buy — a figure 0014 does not
 give, having deliberately refused to extrapolate its 9 × from array loops.
 
-Re-measuring produced the ceiling, and along the way three of 0014's static
-counts turned out not to reproduce.
+Re-measuring produced the ceiling, and along the way one of 0014's static counts
+turned out not to reproduce.
 
 ## What was measured
 
-**Three of the static counts are wrong.** Same instrument 0014 used — a count over
+**One static count does not reproduce.** Same instrument 0014 used — a count over
 the emitted `--release` C, region `vader_vm_exec_entry`, 23 257 lines:
 
 | | 0014 | measured |
 |---|---|---|
 | buffer resolves | 963 | 945 |
 | bounds checks | 966 | 945 |
-| write barriers | 489 | **12** |
+| write barriers | 489 | **488** ✅ 0014 was right |
 | `gc_alloc` | 786 | **195** |
 
-The first two are close enough to be a region boundary drawn differently. The
-other two are not, and neither figure was recoverable: not over the whole
-`vader_vm` TU (1253 / 1267 / 1227 / 28), and not under any neighbouring pattern
-tried (`vader_ref_box`, `vader_obj_header_init`, `vader_box_obj`, ref loads).
-**No write barrier exists anywhere in the tree's emitted C** — the only guarded
-stores are 12 `vader_array_ref_store`. This matters because 0014's "15-20 machine
-operations per interpreted instruction" counted a barrier as a third of the
-preamble.
+The first three are 0014's, confirmed — the resolve and bounds figures differ by a
+region boundary drawn differently, and the barrier count is exact. Only `gc_alloc`
+does not reproduce, and it was not recoverable: not over the whole `vader_vm` TU
+(1253 / 1267 / 1227), and not under any neighbouring pattern tried
+(`vader_ref_box`, `vader_obj_header_init`, `vader_box_obj`, ref loads), nor under
+any uppercase or macro spelling.
+
+So 0014's "15-20 machine operations per interpreted instruction" stands: with 488
+barriers over 945 accesses, roughly every second access carries one, and the
+barrier is a real third of the preamble.
 
 **23 ns per VM operation is one workload's figure, not the interpreter's speed.**
 Exact op counts, from a temporary counter in the dispatch (20.0 ops per iteration,
@@ -86,7 +93,47 @@ partly-stripped one (430 ms against 400) — code layout, dissolved by moving to
 medians of 9, but it sets the bar: distinguishing a real 13 % from layout luck
 needs the differenced-iteration instrument, not a wall-clock reading.
 
-Not verified in situ: 0014's fourth hypothesis, the if-chain against a `switch`,
-measured 1.00 × in a standalone prototype over the real arms. That prototype was
-not the emitted dispatch. If the resolve is 13 %, the remaining 87 % is still
-unaccounted for, and the chain is where the next look belongs.
+The remaining 87 % is not in the dispatch. 0014's fourth hypothesis was measured
+in a standalone prototype rather than in situ, which left the question open; it is
+now closed the same way, twice independently. `cc -O3` canonicalises the 147
+source-level `if` tests into switches and lowers them to a **three-level
+jump-table cascade** — `sub` / `cmp` / `ldrh` / `br`, six indirect branches in
+`exec_entry`, the 145 `Op` tags being dense over 707-851 with no gaps. Dispatch
+costs roughly **1 cycle of a 22-35 cycle op**, and degrading it deliberately
+(`-fno-jump-tables`, a 7-deep binary search) costs only +2.0 c/op. The chain is
+never walked, so 0014's "19 comparisons" and its rebuttal are both moot.
+
+The one lever there is arm ORDER: LLVM cuts the cascade at 64 comparisons, so arms
+1-64 pay one indirect branch and 129-147 pay three. A frequency-sorted order
+measures **−1.8 %**, two-sided (an anti-optimal order is +2 to +5 %) and monotone
+across three workloads. Pure source reordering, no semantic risk — and the 20
+hottest ops fit in the first 64.
+
+Where the 87 % actually is: the arms' own work, and CALLS. A call+return costs
+**~80 ns at its cheapest and ~165 ns for an 8-local callee — 13 to 25 ops'
+worth** — which every measurement in this record missed by using call-free loops.
+
+## The correction, and how the instrument lied
+
+This record first claimed **12** write barriers and that **no write barrier exists
+anywhere in the tree's emitted C**. Both are false. The real count in `exec_entry`
+is **488**, and **1302** across the emitted tree.
+
+The cause is worth more than the number. The barrier is a MACRO,
+`VADER_WRITE_BARRIER` (`runtime/c/vader.h:1025`), and the search that produced the
+12 was `vader_[a-z_]*barrier[a-z_]*` — **lower-case only**. It matched nothing, and
+"matched nothing" was read as "there are none" rather than as "the pattern is
+wrong". The 12 came from a different construct entirely (`vader_array_ref_store`,
+the guarded ref stores), which is a real thing but not the barrier.
+
+That is the same failure this project has recorded twice before: an absent trace
+taken as evidence of absence. 0014's own closing note says the deterministic
+instruments are what settled its four wrong hypotheses — a static count is only
+deterministic once the pattern is known to match SOMETHING. A count of zero is a
+result that has to be earned, by finding the construct first and counting second.
+
+**What survives unchanged:** the 13 % ceiling, the 7.8 / 9.5 ns/op figures, the
+`stack_grow` reallocation hazard, and the two-field concentration. None of them
+was derived from the barrier count — the ceiling in particular was measured by
+deleting 945 forward tests and rebuilding, which does not care how many barriers
+sit beside them.

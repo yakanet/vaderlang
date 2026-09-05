@@ -5,10 +5,12 @@
 Accepted (2026-09-05). Investigation only — no code changed.
 
 **Amended by [0015](0015-the-interpreters-buffer-resolve-is-worth-thirteen-percent.md)
-(2026-09-06)**: three of the static counts below do not reproduce (write barriers
-and `gc_alloc` above all), the 23 ns/op is one workload's figure rather than the
-interpreter's speed, and the lever this record files as its main one is measured
-at ~13 %. The reasoning here stands; the numbers are superseded there.
+(2026-09-06)**: the 23 ns/op is one workload's figure rather than the interpreter's
+speed, the lever this record files as its main one is measured at ~13 %, and the
+`gc_alloc` count below does not reproduce (195, not 786). The write-barrier count
+here is CORRECT — 0015 first disputed it and was itself wrong. The fourth
+hypothesis below is confirmed and then some: the dispatch is a jump table, ~1 cycle
+of a 22-35 cycle op, so the chain is never walked at all.
 
 ## Context
 
