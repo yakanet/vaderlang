@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <windows.h>
 
+// User @extern foreign symbols — resolved by the linker.
+extern const char* vader_find_data_name(const void*);
+
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
 static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) { return vader_string_byte_at(a0, a1); }
 static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
 static inline void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 11u, 172u); }
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) { return vader_string_hash(a0); }
-static inline vader_box_t vader_host_std_io_read_dir(vader_string_t a0) { vader_box_t r = vader_read_dir(a0, 8u, 166u, 385u); if (r.tag == 385u) { vader_struct_std_io_IOError_t* e = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t)); vader_obj_header_init(e, 385u); e->f_msg = r.payload.s; return vader_box_obj(385u, e); } return r; }
 static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); const char* r = getenv(c0); vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(166u, (int64_t) vader_atom_intern(r, strlen(r))); vader_cstr_free_for(a0, c0); return out; }
 static inline uint8_t vader_host_std_target_current_os(void) { return vader_current_os(); }
 static inline uint8_t vader_host_std_target_current_arch(void) { return vader_current_arch(); }
@@ -22,6 +24,10 @@ static inline bool vader_host_system_windows_write_file(void* a0, void* a1, uint
 static inline int32_t vader_host_system_windows_multi_byte_to_wide_char(uint32_t a0, uint32_t a1, vader_string_t a2, int32_t a3, void* a4, int32_t a5) { const char* c2 = vader_string_to_cstr(a2); vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4); int32_t r = MultiByteToWideChar(a0, a1, c2, a3, (void*) s4.ptr, a5); vader_cstr_free_for(a2, c2); return r; }
 static inline int32_t vader_host_system_windows_wide_char_to_multi_byte(uint32_t a0, uint32_t a1, void* a2, int32_t a3, void* a4, int32_t a5, vader_box_t a6, vader_box_t a7) { vader_slice_t s2 = vader_array_bytes((vader_array_t*) a2); vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4); void* p6 = (a6.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a6.payload.i; void* p7 = (a7.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a7.payload.i; return WideCharToMultiByte(a0, a1, s2.ptr, a3, (void*) s4.ptr, a5, p6, p7); }
 static inline void* vader_host_system_windows_create_file_w(void* a0, uint32_t a1, uint32_t a2, vader_box_t a3, uint32_t a4, uint32_t a5, vader_box_t a6) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); void* p3 = (a3.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a3.payload.i; void* p6 = (a6.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a6.payload.i; return CreateFileW(s0.ptr, a1, a2, p3, a4, a5, p6); }
+static inline void* vader_host_system_windows_find_first_file(void* a0, void* a1) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return FindFirstFileW(s0.ptr, (void*) s1.ptr); }
+static inline bool vader_host_system_windows_find_next_file(void* a0, void* a1) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return FindNextFileW(a0, (void*) s1.ptr); }
+static inline bool vader_host_system_windows_find_close(void* a0) { return FindClose(a0); }
+static inline vader_string_t vader_host_system_windows_find_data_name(void* a0) { vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0); const char* r = vader_find_data_name(s0.ptr); vader_string_t out = r == NULL ? vader_atom_intern("", 0) : vader_atom_intern(r, strlen(r)); return out; }
 static inline bool vader_host_system_windows_get_console_mode(void* a0, void* a1) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return GetConsoleMode(a0, (void*) s1.ptr); }
 static inline bool vader_host_system_windows_set_console_mode(void* a0, uint32_t a1) { return SetConsoleMode(a0, a1); }
 static inline bool vader_host_system_windows_read_file(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); vader_slice_t s3 = vader_array_bytes((vader_array_t*) a3); void* p4 = (a4.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a4.payload.i; return ReadFile(a0, (void*) s1.ptr, a2, (void*) s3.ptr, p4); }
