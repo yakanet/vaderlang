@@ -359,6 +359,22 @@ export create_pipe :: fn(read_end: usize[]!, write_end: usize[]!,
 @extern("vader_ptr_at")
 export ptr_at :: fn(base: usize[], i: usize) -> Handle
 
+/// `HANDLE_FLAG_INHERIT`.
+export HANDLE_FLAG_INHERIT: u32 : 1
+
+/// `SetHandleInformation`. Used to CLEAR the inherit flag on a pipe's read end.
+///
+/// The pipe is created inheritable so the child receives its write end; without
+/// this the child — and every sibling launched after it — also receives the READ
+/// ends, which are the parent's alone.
+///
+/// @param h      the handle to adjust.
+/// @param mask   which flags to touch, `HANDLE_FLAG_INHERIT` here.
+/// @param flags  their new value; 0 to clear.
+@c_header("<windows.h>")
+@extern("kernel32", "SetHandleInformation")
+export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
+
 /// `CreateProcessA`. Launches `command_line`, inheriting the handles named in
 /// `startup`.
 ///

@@ -88,7 +88,9 @@ const size_t vader_type_size[14] = {
 _Static_assert(8 <= sizeof(div_t), "div_t prefix");
 _Static_assert(sizeof(div_t) <= 4096, "div_t fits the interpreter block");
 _Static_assert(sizeof(((div_t*) 0)->quot) == sizeof(((vader_struct_snippet_Pair_t*) 0)->f_quot), "div_t.quot");
+_Static_assert(__builtin_offsetof(div_t, quot) == 0, "div_t.quot offset");
 _Static_assert(sizeof(((div_t*) 0)->rem) == sizeof(((vader_struct_snippet_Pair_t*) 0)->f_rem), "div_t.rem");
+_Static_assert(__builtin_offsetof(div_t, rem) == 4, "div_t.rem offset");
 _Static_assert((((__typeof__(((div_t*) 0)->rem)) -1) < 0) == 1, "div_t.rem signedness");
 
 static void* vader_host_snippet_zero_pair(void* a0, int32_t a1, size_t a2) { div_t p0 = {0}; p0.quot = ((vader_struct_snippet_Pair_t*) a0)->f_quot; p0.rem = ((vader_struct_snippet_Pair_t*) a0)->f_rem; void** __wb_roots[1] = { &a0 }; VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1); void* r = memset(&p0, a1, a2); VADER_GC_POP_FRAME(__wb_frame); ((vader_struct_snippet_Pair_t*) a0)->f_quot = p0.quot; ((vader_struct_snippet_Pair_t*) a0)->f_rem = p0.rem; return r; }

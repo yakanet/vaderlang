@@ -212,27 +212,41 @@ push_member_copies :: fn(
 /// @param c_name     the OUTERMOST C type — every path is rooted there.
 /// @param c_prefix   the member path reached so far, `""` at the top.
 /// @param vader_ty   the Vader C type name holding `fields`.
+/// @param base       this level's byte offset inside the INTERPRETER's block.
 /// @param out        accumulator for the assert lines.
 /// @param depth      guards a malformed self-referential mirror.
 push_leaf_asserts :: fn(
     types: BcType[], fields: BcField[], c_name: string, c_prefix: string,
-    vader_ty: string, out: string[]!, depth: i32,
+    vader_ty: string, base: i64, out: string[]!, depth: i32,
 ) -> void {
     if depth >= NEST_CAP {
         return
     }
-    for f in fields {
+    layout :: c_struct_layout(fields, types)
+    for i in 0..<fields.len() {
+        f :: fields[i]
         cf :: "${c_prefix}${c_field_name(f)}"
+        at :: base + layout.offsets[i]
         nested :: nested_mirror(f, types)
         if nested != null {
             push_leaf_asserts(
                 types, nested.fields, c_name, "${cf}.",
-                struct_c_name(nested.name), out, depth + 1,
+                struct_c_name(nested.name), at, out, depth + 1,
             )
             continue
         }
         out.push(
             "_Static_assert(sizeof(((${c_name}*) 0)->${cf}) == sizeof(((${vader_ty}*) 0)->f_${f.name}), \"${c_name}.${cf}\");",
+        )
+        // The OFFSET, which is the interpreter's whole exposure. It builds its
+        // block from the declared fields at natural alignment from zero and
+        // hands the address to the real callee, so its layout equals C's only
+        // while the mirror stays a contiguous LEADING prefix — skip a member,
+        // or nest a partial one, and every field after it lands somewhere else.
+        // Widths alone do not catch that: they were all correct in the two
+        // mirrors this found.
+        out.push(
+            "_Static_assert(__builtin_offsetof(${c_name}, ${cf}) == ${at}, \"${c_name}.${cf} offset\");",
         )
         sign :: signedness_assert(types, f, c_name, cf)
         if sign != null {
@@ -309,7 +323,7 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> str
         // and since the interpreter reads its own block back, nothing on the
         // Vader side could see it. A type whose width differs between systems
         // takes one mirror per system, the way `stat` does.
-        push_leaf_asserts(types, t.fields, t.c_name, "", vt, out, 0)
+        push_leaf_asserts(types, t.fields, t.c_name, "", vt, 0, out, 0)
     }
     return out
 }
