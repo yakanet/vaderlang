@@ -120,8 +120,9 @@ export Pollfd :: struct {
 /// Bytes to reserve for a `posix_spawn_file_actions_t`.
 ///
 /// An OPAQUE buffer — Vader never looks inside, the `spawn_file_actions_*` calls
-/// fill it. Nothing checks this number, so it is taken HIGH: the real size is 8
-/// on Darwin (one pointer) and 80 on glibc.
+/// fill it. Nothing checks this number, so it is taken HIGH: MEASURED at 8 on
+/// Darwin (the type is a bare `void*`) and 80 on glibc — the same on x86_64,
+/// aarch64 and musl.
 ///
 /// ⚠️ Do NOT narrow this to what one system reports.
 export SPAWN_ACTIONS_BYTES: usize: 128
@@ -247,7 +248,12 @@ export POLLIN: i16: 1
 /// thing to C. A caller watching several would need the array form.
 ///
 /// @param fds         the descriptor to watch; `revents` is filled in.
-/// @param nfds        always 1 here.
+/// @param nfds        always 1 here. `nfds_t` is 4 bytes on Darwin and 8 on
+///                    Linux, and neither is spellable per target — passing the
+///                    wider one is ABI-correct on both, since an `unsigned int`
+///                    argument travels in the low half of its register and 1
+///                    fits either way. It would not be, for a count that used
+///                    the upper bits.
 /// @param timeout_ms  milliseconds, negative to block.
 /// @return            how many descriptors are ready, 0 on timeout, -1 on error.
 @c_header("<poll.h>")

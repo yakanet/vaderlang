@@ -325,8 +325,16 @@ for (const s of scenarios) {
     }, { timeout: MEDIUM_BUILD });
     continue;
   }
-  // Native-only snippets — `@extern` user imports trap in the Vader VM
-  // for the same reason they trap in the TS VM (no host-fn registry).
+  // A snippet with a `helper.c` defines its OWN foreign symbols, which live in
+  // the compiled binary and nowhere the interpreter can reach: it resolves an
+  // `@extern` by `dlsym` against the RUNNING PROCESS, so it finds libc and the
+  // Vader runtime and not a symbol linked into some other executable.
+  //
+  // The reason used to be that `@extern` traps on the VM outright, for want of a
+  // host registry. This branch gave it one — `dispatch_extern` — so a snippet
+  // whose externs are libc (`c_pointer_as_word`, `c_struct_prefix_mirror`) runs
+  // on both backends. Only the ones that supply their own C are skipped, and
+  // that is now the whole of the reason.
   if (s.helperCFiles.length > 0) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
