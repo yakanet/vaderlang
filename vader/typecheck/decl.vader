@@ -248,9 +248,7 @@ declare_fn :: fn(
     if decl.name == "main" {
         check_main_signature(decl, params, return_type, diags)
     }
-    if has_c_read_decorator(decl.decorators) {
-        validate_c_read(decl, params, return_type, typed, diags)
-    } else if has_extern_decorator(decl.decorators) {
+    if has_extern_decorator(decl.decorators) {
         validate_extern(decl, params, return_type, typed, diags)
     } else {
         // `validate_extern` checks them for an `@extern`; every other fn has to
@@ -272,7 +270,7 @@ declare_fn :: fn(
     // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
     if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
         decl.decorators,
-    ) && !has_target_decorator(decl.decorators) && !has_c_read_decorator(decl.decorators) {
+    ) && !has_target_decorator(decl.decorators) {
         diags.push(
             typecheck_error(
                 .BodylessFnMustBeIntrinsic,
@@ -282,109 +280,6 @@ declare_fn :: fn(
         )
     }
     check_public_fn_visibility(decl, params, return_type, diags)
-}
-
-/// Whether `t` is `string`.
-is_string_type :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p {
-        return p.name == "string"
-    }
-    return false
-}
-
-/// Whether the declaration is a `@c_read` PROJECTION.
-///
-/// @param decorators  the declaration's decorators.
-has_c_read_decorator :: fn(decorators: AST.Decorator[]) -> bool {
-    for d in decorators {
-        if d.name == "c_read" {
-            return true
-        }
-    }
-    return false
-}
-
-/// Check a `@c_read` projection — a bodyless fn that reads a C struct at a
-/// foreign address into a Vader mirror.
-///
-/// It calls nothing, so its shape is fixed rather than open like an `@extern`'s:
-/// `fn(src: CPointer, @c_pointer out: <mirror>!) -> void`. The shim copies
-/// member by member BY NAME from `*src`, which is what makes `cc` resolve every
-/// offset — the reason this exists rather than a raw byte read at a hand-written
-/// offset.
-///
-/// `@c_header` is REQUIRED: without the header the C type is not in scope where
-/// the shim dereferences it, and there is no symbol whose prototype could bring
-/// it in.
-///
-/// @param decl         the projection.
-/// @param params       its resolved parameter types.
-/// @param return_type  its resolved return type.
-/// @param typed        the module, for the mirror lookup.
-/// @param diags        accumulator for T3050 / T3079.
-validate_c_read :: fn(
-    decl: AST.FnDecl,
-    params: Type[],
-    return_type: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-) -> void {
-    if decl.body !is null {
-        diags.push(typecheck_error(
-            .ExternMustNotHaveBody, decl.body.span,
-            "`@c_read` fn `${decl.name}` cannot have a body — it reads memory, it calls nothing",
-        ))
-    }
-    if !declares_c_header(decl) {
-        diags.push(typecheck_error(
-            .InvalidExternDecl, decl.span,
-            "`@c_read` needs `@c_header` — the C type has to be in scope where the projection dereferences it, and no prototype brings it in",
-        ))
-    }
-    returns_void :: if return_type is PrimitiveType as rp { rp.name == "void" } else { false }
-    if !returns_void {
-        ret_span: Span = decl.span
-        if decl.return_type !is null {
-            ret_span = decl.return_type.span
-        }
-        diags.push(typecheck_error(
-            .InvalidExternDecl, ret_span,
-            "`@c_read` returns `void` — it fills its `out` parameter, got `${display_type(return_type)}`",
-        ))
-    }
-    if params.len() != 2 {
-        diags.push(typecheck_error(
-            .InvalidExternDecl, decl.span,
-            "`@c_read` takes exactly two parameters, `(src: CPointer, @c_pointer out: T!)` — got ${params.len()}",
-        ))
-        return
-    }
-    if !is_c_pointer(params[0]) {
-        diags.push(typecheck_error(
-            .InvalidExternDecl, decl.params[0].span,
-            "`@c_read`'s first parameter is the foreign address, so it must be `CPointer`, got `${display_type(params[0])}`",
-        ))
-    }
-    if !mirrors_a_c_struct(params[1], typed) {
-        diags.push(typecheck_error(
-            .InvalidExternDecl, decl.params[1].span,
-            "`@c_read` fills a `@c_struct` mirror, got `${display_type(params[1])}`",
-        ))
-        return
-    }
-    if !param_has_c_pointer(decl.params[1]) {
-        diags.push(typecheck_error(
-            .InvalidParameterDecorator, decl.params[1].span,
-            "`@c_read`'s `out` crosses as an address — mark it `@c_pointer`",
-        ))
-    }
-    if !params_mutable_of(decl.params)[1] {
-        diags.push(typecheck_error(
-            .InvalidParameterDecorator, decl.params[1].span,
-            "`@c_read` writes into `out` — mark it `!`",
-        ))
-    }
-    validate_mirror_fields(params[1], decl.params[1].span, typed, MutableSet<i32> {}, true, diags)
 }
 
 has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
@@ -644,18 +539,12 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
 /// @param span   the parameter — where the struct crosses.
 /// @param typed  the module, for `struct_decls` and `struct_field_types`.
 /// @param seen   struct symbol ids already walked, so a cycle terminates.
-/// @param reads  true for a `@c_read` projection, which admits a `string` field
-///               over a `char[]` member. That marshalling only exists in the
-///               C-to-Vader direction — the shim interns what it finds — and a
-///               `string` field on a mirror that crosses the other way would
-///               hand C the atom ID.
 /// @param diags  accumulator for T3050.
 validate_mirror_fields :: fn(
     t: Type,
     span: Span,
     typed: TypedProgram,
     seen: MutableSet<i32>!,
-    reads: bool,
     diags: Diagnostic[]!,
 ) -> void {
     if t !is StructType {
@@ -671,7 +560,7 @@ validate_mirror_fields :: fn(
         fty :: fmap[f.name] ?? continue
         if fty is StructType as nested {
             if mirrors_a_c_struct(nested, typed) {
-                validate_mirror_fields(nested, span, typed, seen, reads, diags)
+                validate_mirror_fields(nested, span, typed, seen, diags)
             } else {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
@@ -682,9 +571,6 @@ validate_mirror_fields :: fn(
         }
         // An enum crosses as its repr, which the shim assigns like any integer.
         if fty is EnumType {
-            continue
-        }
-        if reads && is_string_type(fty) {
             continue
         }
         if !is_unmarshalled_scalar(fty, false) {
@@ -744,7 +630,7 @@ validate_extern :: fn(
         // guess a layout instead.
         if mirrors_a_c_struct(pt, typed) {
             if param_has_c_pointer(decl.params[i]) {
-                validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, false, diags)
+                validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
                 continue
             }
             diags.push(

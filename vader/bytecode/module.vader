@@ -111,12 +111,6 @@ export BcImport :: struct {
     /// Library to open before resolving the symbol, or `""` for the default
     /// scope. See `FnMetadata.c_library` — the VM needs it, the linker does not.
     c_library: string = ""
-    /// A `@c_read` PROJECTION rather than a call: there is no C symbol behind
-    /// it, and `extern_name` is empty. Its first parameter is a foreign address
-    /// and its second a `@c_struct` mirror the shim fills from that address,
-    /// member by member BY NAME — so `cc` resolves every offset and a member
-    /// this tree names wrongly fails the build.
-    is_c_read: bool = false
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

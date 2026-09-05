@@ -315,9 +315,6 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // the signature — `parse_signature_bc` reads the return type to the end
         // of the line, so a trailing field lands inside it.
         header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
-        // The projection marker. Same reason as the two above: read back without
-        // it, a `@c_read` import becomes a call to a symbol that does not exist.
-        c_read :: if imp.is_c_read { "c_read " } else { "" }
         // The result's TYPE index, not just its `ValType`. `write_signature`
         // renders a union as `any`, so a `string | null` result read back from a
         // `.virt` looked like a plain word — and the FFI then returned the atom
@@ -351,7 +348,7 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         } else {
             ""
         }
-        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${c_read}${header}${rt}${pt}${pm}${pa}")
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${header}${rt}${pt}${pm}${pa}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }

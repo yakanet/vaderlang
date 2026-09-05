@@ -47,15 +47,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
     empty_debug: (DebugPos | null)[]! = []
     empty_jump_table: i32[]! = []
     empty_locals: BcLocal[]! = []
-    ctx.functions.push(BcFunction {
-        .name = cfg_fn.mangled,
-        .is_main = cfg_fn.origin.is_main,
-        .signature = signature,
-        .locals = empty_locals,
-        .body = empty_body,
-        .debug = empty_debug,
-        .jump_table = empty_jump_table,
-    })
+    ctx.functions.push(BcFunction { .name = cfg_fn.mangled, .is_main = cfg_fn.origin.is_main, .signature = signature, .locals = empty_locals, .body = empty_body, .debug = empty_debug, .jump_table = empty_jump_table })
     if cfg_fn.origin.symbol is Symbol as sym {
         ctx.function_index_by_symbol_id[sym.id] = function_index
     }
@@ -110,15 +102,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
     // lower, so there is nothing for the intervening passes to carry it on.
     signature :: with_by_address(base, ext.origin)
     import_index :: i32(ctx.imports.len())
-    ctx.imports.push(BcImport {
-        .extern_name = ext.extern_name,
-        .mangled_name = ext.mangled,
-        .signature = signature,
-        .is_extern = ext.is_extern,
-        .c_header = ext.c_header,
-        .c_library = ext.c_library,
-        .is_c_read = ext.is_c_read,
-    })
+    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern, .c_header = ext.c_header, .c_library = ext.c_library })
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
@@ -158,10 +142,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
         fields: BcField[]! = []
         for f in s.fields {
             type_index :: intern_type(f.type, ctx)
-            fields.push(BcField {
-                .name = f.name,
-                .type_index = type_index,
-             })
+            fields.push(BcField { .name = f.name, .type_index = type_index })
         }
         ctx.types[usize(idx)] = BcStruct {
             .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
@@ -177,16 +158,10 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     fields: BcField[]! = []
     for f in s.fields {
         type_index :: intern_type(f.type, ctx)
-        fields.push(BcField {
-            .name = f.name,
-            .type_index = type_index
-        })
+        fields.push(BcField { .name = f.name, .type_index = type_index })
     }
     ctx.types[usize(new_index)] = BcStruct {
-        .name = s.mangled,
-        .fields = fields,
-        .c_name = c_struct_of(s.origin),
-        .symbol_id = sym_id,
+        .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
     }
     ctx.type_key[s.mangled] = new_index
 }
@@ -248,13 +223,9 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
         return sig
     }
     return BcSignature {
-        .params = sig.params,
-        .result = sig.result,
-        .param_types = sig.param_types,
-        .result_type = sig.result_type,
-        .param_names = sig.param_names,
-        .param_mutable = sig.param_mutable,
-        .param_by_address = flags,
+        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
+        .result_type = sig.result_type, .param_names = sig.param_names,
+        .param_mutable = sig.param_mutable, .param_by_address = flags,
     }
 }
 
@@ -302,13 +273,8 @@ is_mutable_slot :: fn(t: Type) -> bool = match t {
 /// (Vader structs are by-value). Collapses the identical field-by-field rebuild
 /// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
 with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction! = BcFunction {
-    .name = f.name,
-    .is_main = f.is_main,
-    .signature = f.signature,
-    .locals = f.locals,
-    .body = out.body,
-    .debug = out.debug,
-    .jump_table = out.jump_table,
+    .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals,
+    .body = out.body, .debug = out.debug, .jump_table = out.jump_table,
 }
 
 /// Top-level entry — translate a `CFGProject` into a `BytecodeModule`.
@@ -472,21 +438,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // but-unused `@intrinsic` member (pruned above) never false-positives ;
         // only hosts that actually survive into the emitted bytecode are
         // validated. `@extern` imports are link-resolved and exempt.
-        for imp in ctx.imports {
-            assert_host_import_wired(imp.mangled_name, imp.is_extern)
-        }
+        for imp in ctx.imports { assert_host_import_wired(imp.mangled_name, imp.is_extern) }
     }
-    return BytecodeModule {
-        .name = module_name,
-        .types = ctx.types,
-        .strings = ctx.strings,
-        .data_pool = cfg.data_pool,
-        .functions = ctx.functions,
-        .imports = ctx.imports,
-        .exports = ctx.exports,
-        .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx),
-        .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx)
-    }
+    return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
 }
 
 /// Resolve a vtable entry's target fn symbol to its (post-prune) function
@@ -498,13 +452,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
 /// to the id path. Mirror of `emit_call`'s InstrCall resolution order.
 resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
     fi_mangle_opt :: ctx.function_index_by_mangle[fn_symbol.name]
-    if fi_mangle_opt is i32 as fi {
-        return fi
-    }
+    if fi_mangle_opt is i32 as fi { return fi }
     fi_opt :: ctx.function_index_by_symbol_id[fn_symbol.id]
-    if fi_opt is i32 as fi2 {
-        return fi2
-    }
+    if fi_opt is i32 as fi2 { return fi2 }
     return -1
 }
 
@@ -520,27 +470,19 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
     used_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
-            if op is VirtualCall as v {
-                used_keys[v.vtable_key] = true
-            }
+            if op is VirtualCall as v { used_keys[v.vtable_key] = true }
         }
     }
     rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> {}
     out: VtableRow[]! = []
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
-        if used_keys[key] !is bool {
-            continue
-        }
+        if used_keys[key] !is bool { continue }
         fn_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
-        if fn_idx < 0 {
-            continue
-        }
+        if fn_idx < 0 { continue }
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
-        if receiver_slot !is i32 {
-            continue
-        }
+        if receiver_slot !is i32 { continue }
         // NO `is BcStruct` guard here, unlike the impl table: a vtable dispatches
         // on any receiver shape — `i32 implements Display` pins a `BcPrimitive`
         // slot — and requiring a struct drops those rows into a runtime
@@ -548,17 +490,11 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         receiver_idx :: receiver_slot
         existing :: rows_by_key[key]
         if existing is usize as ei {
-            out[ei].entries.push(BcVtableEntry {
-                .receiver_type_index = receiver_idx,
-                .fn_index = fn_idx,
-            })
+            out[ei].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
             new_idx :: out.len()
             entries_arr: BcVtableEntry[]! = []
-            entries_arr.push(BcVtableEntry {
-                .receiver_type_index = receiver_idx,
-                .fn_index = fn_idx,
-            })
+            entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
             out.push(VtableRow { .key = key, .entries = entries_arr })
             rows_by_key[key] = new_idx
         }
@@ -580,19 +516,13 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
         // Into<Foo>` rejected by typecheck, so Foo is dropped entirely).
         key_str :: type_intern_key(entry.struct_type)
         existing :: ctx.type_key[key_str]
-        if existing !is i32 {
-            continue
-        }
+        if existing !is i32 { continue }
         type_index :: existing
         if usize(type_index) < ctx.types.len() {
-            if ctx.types[usize(type_index)] !is BcStruct {
-                continue
-            }
+            if ctx.types[usize(type_index)] !is BcStruct { continue }
         }
         key :: "${type_index}|${entry.trait_name}"
-        if seen[key] is bool {
-            continue
-        }
+        if seen[key] is bool { continue }
         seen[key] = true
         out.push(BcImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
     }
@@ -607,14 +537,9 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
             traits :: membership[st.symbol_id] ?? continue
             for tr in traits {
                 key :: "${i}|${tr}"
-                if seen[key] is bool {
-                    continue
-                }
+                if seen[key] is bool { continue }
                 seen[key] = true
-                out.push(BcImplEntry {
-                    .struct_type_index = i32(i),
-                    .trait_name = tr
-                })
+                out.push(BcImplEntry { .struct_type_index = i32(i), .trait_name = tr })
             }
         }
     }

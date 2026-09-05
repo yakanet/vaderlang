@@ -81,8 +81,6 @@ export CFGExternDecl :: struct {
     c_header:    string
     /// See `FnMetadata.c_library`.
     c_library:   string
-    /// A `@c_read` projection — no C symbol, see `BcImport.is_c_read`.
-    is_c_read:   bool = false
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

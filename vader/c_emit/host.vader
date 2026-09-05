@@ -192,17 +192,9 @@ push_member_copies :: fn(
         }
         if into_c {
             out.push("${cf} = ${v_expr}->f_${f.name};")
-            continue
+        } else {
+            out.push("${v_expr}->f_${f.name} = ${cf};")
         }
-        // A `string` field stands over a `char[]` member — the one shape whose
-        // two sides are not the same bytes. Interning is the copy, and it only
-        // exists in this direction: typecheck rejects a `string` field on a
-        // mirror that crosses the other way, where it would hand C an atom ID.
-        if (c_field_val_type(f, types) ?? ValType.Void) == ValType.String {
-            out.push("${v_expr}->f_${f.name} = vader_atom_intern(${cf}, strlen(${cf}));")
-            continue
-        }
-        out.push("${v_expr}->f_${f.name} = ${cf};")
     }
 }
 
@@ -237,12 +229,6 @@ push_leaf_asserts :: fn(
                 types, nested.fields, c_name, "${cf}.",
                 struct_c_name(nested.name), out, depth + 1,
             )
-            continue
-        }
-        // A `string` field is exempt: the C member is a `char[N]` and the Vader
-        // one an atom id, so their sizes have no reason to agree. The
-        // `strlen` in the copy is what makes `cc` refuse a non-char member.
-        if (c_field_val_type(f, types) ?? ValType.Void) == ValType.String {
             continue
         }
         out.push(
@@ -617,53 +603,10 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
 
-    // `@c_read` — a projection, not a call: read the C struct at the address
-    // instead of forwarding to a symbol. Tested BEFORE the `@extern` tail, which
-    // it rides through the import table to get a shim at all.
-    if imp.is_c_read { return c_read_shim(imp, head, types) }
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.
     if imp.is_extern { return user_extern_shim(imp, head, types) }
     return "${head} { vader_trap(\"unbound import: ${m}\"); }"
-}
-
-// ---- @c_read projection ----------------------------------------------------
-
-/// Emit a `@c_read` projection: copy the C struct at `a0` into the mirror `a1`,
-/// member by member BY NAME.
-///
-/// This is `push_member_copies`' C-READS direction with a different root — the
-/// C side is `(*p)` rather than a shim-local temporary — which is what lets `cc`
-/// resolve every offset from the real header. Nothing here names an offset, a
-/// size or a padding rule, and that is the whole point: the alternative is a
-/// hand-transcribed `offsetof` that no tool can refute.
-///
-/// A `string` field is the one member shape with no width assert: it stands over
-/// a `char[]`, whose size is the array's and not a pointer's. `strlen` is what
-/// makes `cc` reject a member that is not a char array.
-///
-/// @param imp    the projection import.
-/// @param head   the shim's C signature.
-/// @param types  the module type table.
-/// @return       the shim's C source.
-c_read_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
-    sig :: imp.signature
-    if sig.param_types.len() < 2 {
-        return "${head} { vader_trap(\"c_read: signature lost its parameter types\"); }"
-    }
-    mirror :: mirrored_c_struct(types, sig.param_types[1])
-    if mirror == "" {
-        return "${head} { vader_trap(\"c_read: parameter 1 is not a `@c_struct` mirror\"); }"
-    }
-    vader_ty :: struct_c_name(bc_struct_name(types, sig.param_types[1]))
-    lines: string[]! = []
-    lines.push("const ${mirror}* p = (const ${mirror}*) a0;")
-    push_member_copies(
-        types, bc_struct_fields(types, sig.param_types[1]),
-        "(*p)", "((${vader_ty}*) a1)", false, lines, 0,
-    )
-    lines.push("return;")
-    return "${head} { ${lines.join(" ")} }"
 }
 
 // ---- @extern forwarding ---------------------------------------------------

@@ -531,15 +531,6 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
-    // A `@c_read` projection names no symbol — it dereferences an address and
-    // reads a C struct laid out by the C compiler, which the interpreter does not
-    // have. Refused by NAME rather than falling through to `dlsym`, which would
-    // report a missing symbol and send the reader looking for a library.
-    if info.is_c_read {
-        return Trap {
-            .message = "`@c_read` projection `${info.mangled_name}` at pc=${at_pc}: reading a C struct needs the layout `cc` computes, which the interpreter has no access to — build it",
-        }
-    }
     // The declared library, or the default scope. `GetStdHandle` lives in
     // `kernel32.dll`, which the running process exports nothing of.
     lib :: ffi_open(info.c_library)

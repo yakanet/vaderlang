@@ -132,7 +132,6 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
                 .signature = remap_signature(imp.signature, remap),
                 .is_extern = imp.is_extern,
                 .c_header = imp.c_header,
-                .is_c_read = imp.is_c_read,
                 .c_library = imp.c_library,
             },
         )

@@ -65,10 +65,10 @@ export sys_readdir :: fn(dir: CPointer) -> CPointer | null
 /// of a C struct. `d_name` sits at a different offset on every system, and only
 /// `cc` can resolve it — from the real header, at the accessor in the runtime.
 ///
-/// A `@c_read` projection would express this too, and more generally, but only
-/// natively: the interpreter has no C layout. It can CALL a C function, which is
-/// why this stays a call. `read_dir` therefore runs on both backends, which the
-/// stdlib has to.
+/// It has to be a CALL, not a read of the struct: the interpreter has no C
+/// layout, but it resolves an `@extern` by name out of the running process the
+/// way it reaches libc. That is what keeps `read_dir` working on both backends,
+/// which anything in the stdlib has to.
 ///
 /// The returned bytes belong to the C library and die at the next `sys_readdir`;
 /// the shim interns them before then.

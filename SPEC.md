@@ -2713,45 +2713,6 @@ ScreenBufferInfo :: struct { srWindow: SmallRect }
 > mirror could be correct for both. `P1034` retired with it, and `T3080` was
 > reused for the callback shape rule below.
 
-### `@c_read` — reading a C struct the CALLEE owns
-
-`@c_pointer` sends a Vader value into C. The other direction has its own shape: a
-callee returns a pointer to a struct **it** owns, and Vader has to read named
-members out of it — `readdir`, `getaddrinfo`, `localeconv`.
-
-A `@c_read` declaration is a **projection**, not a call. It has no body and names
-no C symbol; it copies the struct at an address into a mirror.
-
-```vader
-@c_struct("struct tm")
-Tm :: struct { tm_year: i32, tm_mon: i32 }
-
-@c_header("<time.h>")
-@c_read
-read_tm :: fn(src: CPointer, @c_pointer out: Tm!) -> void
-
-@c_header("<time.h>")
-@extern("gmtime") sys_gmtime :: fn(@c_pointer t: TimeT) -> CPointer | null
-```
-
-The shape is fixed, unlike an `@extern`'s: exactly `fn(src: CPointer,
-@c_pointer out: T!) -> void`, `T` a mirror. `@c_header` is **required** — the
-projection dereferences the C type, and no prototype brings it in.
-
-The copy runs member by member BY NAME, so `cc` resolves every offset from the
-real header and a mistyped member fails the build naming it. That is the point:
-the alternative is reading raw bytes at a hand-transcribed `offsetof`, which
-differs per system and which no tool can refute.
-
-**A `string` field is admitted here and only here.** It stands over a `char[]` or
-`char*` member and is INTERNED — the one field shape whose two sides are not the
-same bytes, hence the one with no width assert. `strlen` in the emitted copy is
-what makes `cc` reject a member that is not a C string. On a mirror crossing the
-other way a `string` field stays `T3050`: it would hand C the atom ID.
-
-**Native only.** The interpreter has no access to the layout `cc` computes, so a
-projection traps under `vader run` naming itself.
-
 ### The opaque buffer — when there is no mirror to write
 
 A C struct whose members Vader never reads can cross as a **lent `u8[]!` nobody
