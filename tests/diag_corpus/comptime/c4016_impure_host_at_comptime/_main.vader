@@ -1,11 +1,12 @@
-// A `@comptime` const that reaches an impure INTRINSIC host (here `current_os`, via
-// the VM-backed comptime pass) is refused with C4016 : running it at build time
-// would bake a non-reproducible value and break the byte-identical bootstrap.
+// A `@comptime` const that asks what machine the COMPILER is running on — here
+// `current_os` — is refused with C4016.
 //
-// The gate judges an intrinsic by IDENTITY, which is why it can tell a pure host
-// from an impure one. An `@extern` is known only by its symbol name and is NOT
-// refused — reproducibility is then the caller's business, and this tree's own
-// is checked by `bootstrap/verify.sh`.
+// Not because it is impure. Reading the clock or the environment at build time
+// is allowed and is the program author's call; a build stamp is an ordinary
+// thing to want. This is refused for a different reason: baking it makes the
+// same SOURCE emit differently depending on who built it, which no author asked
+// for and none can see. This tree's own byte-identical bootstrap is checked
+// where it belongs, by `bootstrap/verify.sh`.
 module "snippet"
 
 import "std/target"

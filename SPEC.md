@@ -151,17 +151,21 @@ Code in `@comptime` context can:
 - ✅ read project files (via `@file(path)` — see §14)
 - ✅ write debug output to `stdout` (`println`) — a side effect that never enters
   the baked value, so it cannot affect reproducibility
-- ❌ read `ENV` / `args`, the clock, the filesystem (beyond `@file`), stdin, or
-  spawn a subprocess **through an `@intrinsic` host** — those are known to the
-  compiler by identity, so it refuses them (`C4016`) rather than baking a
-  non-reproducible value.
-- ⚠️ An **`@extern`** call is NOT refused. The compiler knows a foreign symbol
-  only by its name, so it cannot tell `sqrt` from `rand` — and refusing the class
-  refused the pure ones too. Baking `now()` into a build stamp is a legitimate
-  thing for a program to do; what it costs is reproducibility, which the caller
-  owns. The compiler holds itself to a stricter rule than the language:
-  `bootstrap/verify.sh` checks `stage1 == stage2` on every PR, so an impure call
-  reaching a `@comptime` block in the compiler's own tree fails CI.
+- ✅ read the clock, the environment, the filesystem or a subprocess. Baking
+  `now()` into a build stamp is an ordinary thing for a program to want. What it
+  costs is reproducibility, and that is the program author's call to make — the
+  language does not take it away.
+- ❌ ask what machine the COMPILER is running on: `current_os` / `current_arch`,
+  the scheduler's clock, and the dynamic FFI (`ffi_open` / `ffi_symbol` /
+  `ffi_call`, which resolves a symbol out of a library chosen at build time).
+  Refused with `C4016`. These are a different thing from an impure value: baking
+  one makes the same SOURCE emit differently depending on who built it, which no
+  author asked for and none can see.
+- The compiler holds ITSELF to a stricter rule than the language, and checks it
+  directly rather than by forbidding: `bootstrap/verify.sh` compares stage1 to
+  stage2 byte for byte on every PR, so a non-reproducible `@comptime` inside the
+  compiler's own tree fails CI. That is where this tree's guarantee lives — not
+  in a restriction on everyone else's programs.
 
 ---
 

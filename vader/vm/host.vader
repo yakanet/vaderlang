@@ -115,13 +115,19 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
     }
     id :: bc.intrinsic_id_for(info.mangled_name)
-    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
-    // / terminal) read or mutate state outside the program. Running one during a
-    // `@comptime` evaluation would bake a non-reproducible result and silently
-    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
-    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
-    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
-    // for debug) keep running.
+    // Comptime gate. It is NARROW on purpose, and narrower than it once was.
+    //
+    // Baking a non-reproducible value is the program author's business: a build
+    // stamp is an ordinary thing to want, and Vader is not going to forbid it to
+    // protect one program's invariant. THIS compiler's byte-identical bootstrap
+    // is checked where it belongs, by `bootstrap/verify.sh` comparing stage1 to
+    // stage2 — not by refusing every user a clock.
+    //
+    // An `@extern` never reaches here at all: `dispatch_extern` returned above.
+    // So the clock, the environment, the filesystem and the subprocess table are
+    // all reachable from a `@comptime` block, and that is the intent. What is
+    // left refused answers for the MACHINE THE COMPILER RUNS ON — see
+    // `is_impure_host`.
     if is_comptime && is_impure_host(id) {
         return impure_comptime_trap(info.mangled_name)
     }
@@ -1068,9 +1074,10 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
 // drift.
 IMPURE_COMPTIME_MARKER :: "is impure and cannot run at comptime"
 
-// Build the Trap for an impure host reached during `@comptime` evaluation.
+// Build the Trap for a host reached during `@comptime` evaluation that answers
+// for the machine the COMPILER is running on.
 impure_comptime_trap :: fn(mangled: string) -> HostCallResult =
-    Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER} — @comptime evaluation must be reproducible" }
+    Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER} — it answers for the machine the compiler runs on, so baking it would make the same source emit differently per builder" }
 
 /// Report whether a Trap message came from the comptime impurity gate.
 /// Used by `comptime_vm/resolve.vader` to pick C4016 over C4002.
@@ -1079,25 +1086,32 @@ impure_comptime_trap :: fn(mangled: string) -> HostCallResult =
 export is_impure_comptime_trap_message :: fn(message: string) -> bool =
     IMPURE_COMPTIME_MARKER in message
 
-// Classify a host by comptime purity. Impure hosts read or mutate the outside
-// world (clock, environment, stdin, subprocess, terminal) and so bake
-// non-reproducibly.
+// Which hosts a `@comptime` block may NOT reach.
 //
-// The FILESYSTEM left this list with `read_dir`, which is Vader over `@extern`
-// now rather than a host. It is NOT therefore refused: `dispatch_extern` runs
-// before this gate and takes no `is_comptime`, so any `@extern` is reachable
-// from a `@comptime` block — a door `@extern` already held open, which
-// `read_dir` now stands in. Exhaustive over `IntrinsicId` so a newly added host
-// must be classified here (T3013) rather than silently defaulting to servable.
+// The question is NOT purity. Reading the clock or the environment at build time
+// bakes a non-reproducible value, and that is the program author's call — a
+// build stamp is an ordinary thing to want. Most of what this list used to hold
+// left it when `std/io`, `std/time`, `std/env`, `std/tty` and `std/process`
+// became Vader over `@extern`, and `dispatch_extern` returns before this gate,
+// so none of them is refused any more. That is the intent, not an oversight.
 //
-// `println` inside a `@comptime` block stays legal: writing to stdout does not
-// change the baked value, and `write` is ordinary Vader now — it reaches
-// `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
-// reason.
+// What stays refused answers for THE MACHINE THE COMPILER IS RUNNING ON. Baking
+// one of those does not make a program non-reproducible — it makes the same
+// SOURCE emit differently depending on who built it, which is a different thing
+// and is not the author's call to make.
+//
+// This compiler's own byte-identical bootstrap is checked by
+// `bootstrap/verify.sh`, comparing stage1 to stage2. That is the guarantee; this
+// list is not it.
+//
+// Exhaustive over `IntrinsicId` so a newly added host must be classified here
+// (T3013) rather than silently defaulting to servable.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    // Running arbitrary native code is impure by construction, and this is
-    // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
-    // a build that dlopen'd a library would not be reproducible.
+    // The DYNAMIC ffi — resolving a symbol by name out of a library chosen at
+    // build time. Refused because what it reaches depends on the builder's
+    // machine, the same reason as `current_os` below. A DECLARED `@extern` is
+    // not refused and never reached this gate: it is checked against a real
+    // prototype and names what it calls.
     .FfiOpen | .FfiSymbol | .FfiCall -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
