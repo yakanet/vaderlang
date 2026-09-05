@@ -20,10 +20,10 @@
   expr 16:22    CallExpr       :: void
   expr 16:22    IdentExpr      :: fn(T) -> void
   expr 16:30    StringLitExpr  :: string
-  expr 697:64   IdentExpr      :: usize
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: string
   expr 6:16     IdentExpr      :: fn() -> string
+  expr 701:64   IdentExpr      :: usize
   expr 9:23     IdentExpr      :: string
   expr 9:29     StringLitExpr  :: string
   expr 9:5      CallExpr       :: IOError | null

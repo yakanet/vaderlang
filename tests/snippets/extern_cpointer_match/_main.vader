@@ -12,6 +12,11 @@
 // `fopen` and `fclose` are libc, so this runs on BOTH backends — which is the
 // whole point: the bug is a divergence, and only a snippet the interpreter also
 // executes can pin it.
+//
+// The file it opens is one it WRITES first. Opening `/etc/hosts` made the
+// positive arm depend on a POSIX path: on Windows `fopen` returned NULL, the
+// snippet took the null arm, and a test for the pointer arm quietly stopped
+// testing anything.
 
 module "snippet"
 
@@ -26,7 +31,13 @@ c_fopen :: fn(path: string, mode: string) -> CPointer | null
 c_fclose :: fn(f: CPointer) -> i32
 
 main :: fn() -> i32 {
-    r :: c_fopen("/etc/hosts", "rb")
+    path :: "${temp_dir()}/vader_cpointer_probe"
+    wrote :: write_file_string(path, "x")
+    if wrote is IOError as e {
+        println("setup failed: ${e.msg}")
+        return 1
+    }
+    r :: c_fopen(path, "rb")
     match r {
         is CPointer as p -> {
             println("matched CPointer")
@@ -36,7 +47,7 @@ main :: fn() -> i32 {
     }
     println("after match")
 
-    missing :: c_fopen("/no/such/path/at/all", "rb")
+    missing :: c_fopen("${temp_dir()}/vader_no_such_probe_at_all", "rb")
     match missing {
         is CPointer as p -> {
             println("unexpectedly opened")
@@ -44,5 +55,6 @@ main :: fn() -> i32 {
         }
         is null -> println("matched null")
     }
+    remove_file(path)
     return 0
 }

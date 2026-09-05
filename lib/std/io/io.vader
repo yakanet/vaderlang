@@ -481,15 +481,17 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
     // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
     if isize(h) == INVALID_HANDLE {
-        return IOError { .msg = "file not found" }
+        return last_io_error("file not found")
     }
     out: u8[]! = []
     chunk: u8[]! = [0] * READ_CHUNK
     got: u32[]! = [0]
     for {
         if !read_file(h, chunk, u32(chunk.len()), got, null) {
+            // Before `CloseHandle`, which overwrites the last-error slot.
+            err :: last_io_error("read failed")
             close_handle(h)
-            return IOError { .msg = "read failed" }
+            return err
         }
         n :: usize(got[0])
         if n > 0 {
@@ -582,18 +584,20 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     h :: create_file_w(to_wide(path), GENERIC_WRITE, FILE_SHARE_READ, null,
                        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
     if isize(h) == INVALID_HANDLE {
-        return IOError { .msg = "open failed" }
+        return last_io_error("open failed")
     }
     if content.len() > 0 {
         // See `write_bytes` on why the count is taken and ignored.
         written: u32[]! = [0]
         if !write_file(h, content, u32(content.len()), written, null) {
+            // Before `CloseHandle`, which overwrites the last-error slot.
+            err :: last_io_error("short write")
             close_handle(h)
-            return IOError { .msg = "short write" }
+            return err
         }
     }
     if !close_handle(h) {
-        return IOError { .msg = "close failed" }
+        return last_io_error("close failed")
     }
     return null
 }
@@ -681,7 +685,7 @@ remove_file :: fn(path: string) -> null | IOError {
 @target(.Windows)
 remove_file :: fn(path: string) -> null | IOError {
     if delete_file(to_wide(path)) == 0 {
-        return IOError { .msg = "cannot remove file" }
+        return last_io_error("cannot remove file")
     }
     return null
 }

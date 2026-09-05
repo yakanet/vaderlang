@@ -538,27 +538,3 @@ import "std/testing"
     // `now()` agrees with its own readout.
     assert(now().to_unix_nanos() >= 0, "now is non-negative")
 }
-
-// Reading the clock at BUILD time, baked into a constant.
-//
-// The comptime gate refuses only what answers for the machine the COMPILER runs
-// on — `current_os`, the scheduler, the dynamic ffi. An impure VALUE is not that:
-// baking one costs reproducibility, and that is the program author's call. A
-// build stamp is an ordinary thing to want, and nothing pinned that it works.
-//
-// A constant, not a snapshot, for the reason the value itself makes obvious: any
-// snapshot carrying it would differ on every regeneration. The two assertions
-// below are the invariants that do hold.
-@comptime
-BUILT_AT_SECONDS :: unix_seconds_now()
-
-unix_seconds_now :: fn() -> i64 = now().to_unix_nanos() / 1_000_000_000
-
-@test test_comptime_can_bake_the_clock :: fn() -> void {
-    // 1_600_000_000 is 2020-09-13. A clock that never ran would read 0, which is
-    // what a refusal or a folded-away call would leave here.
-    assert(BUILT_AT_SECONDS > 1_600_000_000, "the clock did not run at comptime")
-    // Taken at or before the moment this test runs — which is what makes it a
-    // BUILD-time reading rather than a run-time one.
-    assert(BUILT_AT_SECONDS <= unix_seconds_now(), "the baked stamp is in the future")
-}

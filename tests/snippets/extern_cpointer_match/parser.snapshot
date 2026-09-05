@@ -153,6 +153,143 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
+              "name": "path"
+            },
+            "type": null,
+            "value": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "temp_dir"
+                    },
+                    "args": []
+                  }
+                },
+                {
+                  "kind": "text",
+                  "value": "/vader_cpointer_probe"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "wrote"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "write_file_string"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "path"
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "x"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "is",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "wrote"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "IOError"
+                },
+                "bindAs": "e"
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "setup failed: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "e"
+                                  },
+                                  "field": "msg"
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "1n"
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
               "name": "r"
             },
             "type": null,
@@ -166,13 +303,8 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "/etc/hosts"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "path"
                   },
                   "spread": false
                 },
@@ -343,8 +475,19 @@
                     "kind": "StringLitExpr",
                     "parts": [
                       {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "temp_dir"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
                         "kind": "text",
-                        "value": "/no/such/path/at/all"
+                        "value": "/vader_no_such_probe_at_all"
                       }
                     ]
                   },
@@ -467,6 +610,26 @@
                       }
                     ]
                   }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "remove_file"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "path"
+                  },
+                  "spread": false
                 }
               ]
             }

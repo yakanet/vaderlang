@@ -123,7 +123,7 @@ cc_link_parallel() {
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
     case "$(uname -s)" in
-      Linux) unit_ldflags="$unit_ldflags -Wl,--no-as-needed" ;;
+      Linux) unit_ldflags="$unit_ldflags -Wl,--no-as-needed -rdynamic" ;;
     esac
     "$CC_ABS" $unit_ldflags -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
 }

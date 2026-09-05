@@ -106,14 +106,14 @@ static int32_t snippet_main(void) {
     vader_string_t* gc_atom_roots[2] = { &l5, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 27 "tests/snippets/c_struct_prefix_mirror/_main.vader"
+#line 30 "tests/snippets/c_struct_prefix_mirror/_main.vader"
     vader_struct_snippet_TimeVal_t* _a0_obj = (vader_struct_snippet_TimeVal_t*) vader_gc_alloc(sizeof(vader_struct_snippet_TimeVal_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_tv_sec = INT64_C(0);
     l0 = (void*) _a0_obj;
-#line 28 "tests/snippets/c_struct_prefix_mirror/_main.vader"
+#line 31 "tests/snippets/c_struct_prefix_mirror/_main.vader"
     l1 = vader_host_snippet_sys_gettimeofday(l0, vader_box_obj(0u, NULL));
-#line 29 "tests/snippets/c_struct_prefix_mirror/_main.vader"
+#line 32 "tests/snippets/c_struct_prefix_mirror/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(23));
     l3 = (size_t) (int64_t) INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 1u);
@@ -123,7 +123,7 @@ static int32_t snippet_main(void) {
 #line 235 "lib/std/io/io.vader"
     l5 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l5);
-#line 30 "tests/snippets/c_struct_prefix_mirror/_main.vader"
+#line 33 "tests/snippets/c_struct_prefix_mirror/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(11));
     l3 = (size_t) (int64_t) INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 3u);
@@ -134,7 +134,7 @@ static int32_t snippet_main(void) {
 #line 235 "lib/std/io/io.vader"
     l5 = concat_2(t0, 2u);
     std_io_write(INT32_C(0), l5);
-#line 31 "tests/snippets/c_struct_prefix_mirror/_main.vader"
+#line 34 "tests/snippets/c_struct_prefix_mirror/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }

@@ -137,6 +137,17 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> stri
 export push_math_library :: fn(argv: string[]!) -> void {
     if VADER_OS == Os.Linux {
         argv.push("-Wl,--no-as-needed")
+        // And EXPORT the executable's own symbols, or the interpreter cannot
+        // reach them. An `@extern` naming a `runtime/c/` accessor —
+        // `vader_path_kind`, `vader_last_errno`, `vader_dirent_name` — is
+        // resolved at the call by `dlsym` on the running process, and on ELF a
+        // symbol only enters `.dynsym` when the link asks for it.
+        //
+        // Nothing else in the tree needed this, which is why it went unnoticed:
+        // Mach-O exports every global by default and mingw has `dllexport` in
+        // `VADER_HOST_EXPORT`, so macOS and Windows both answered. Linux said
+        // `symbol not found` at run time — an FFI error, for a link problem.
+        argv.push("-rdynamic")
     }
     argv.push("-lm")
 }

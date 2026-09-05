@@ -921,3 +921,34 @@ here, roughly in order of cost:
     name unambiguously a binding (a syntax change, SPEC §"Patterns");
   - leave it, and rely on `_` never being reached being caught by T3013 — which
     it is NOT here, since the first arm covers everything.
+
+## A cross-target `@comptime` that reaches a `@target` body dies silently
+
+Dumping for one target from a host that is not it, where the closure holds a
+`@comptime` value calling a `@target`-split extern:
+
+    vader dump --stage=bytecode --target=linux-x86_64 <snippet>   # run on Windows
+    → no output at all, no diagnostic, exit 0
+
+A `@comptime` is folded on the machine the COMPILER runs on. The `@target` body
+it reaches is the one selected for the TARGET. So the host evaluates a call to
+`clock_gettime`, which Windows cannot resolve, and the evaluation takes the whole
+dump down without a word.
+
+Found because `std/time` briefly carried `@comptime BUILT_AT_SECONDS ::
+unix_seconds_now()`. `lib/random` imports `std/time`, so `std_random` and
+`ufcs_primitive_literal` — two snippets that never mention the clock — produced
+zero bytes on Windows CI while every other snippet dumped normally. Correlation
+verified on the guest: the two snippets pulling `std/time` gave 0 lines, two that
+do not gave 7 and 925. The constant is gone; the hole is not.
+
+Same family as the pinned-target-vs-host divergence that had Windows running the
+LINUX `temp_dir()` body.
+
+Two things to fix, and the first matters more:
+  - **the silence.** An FFI resolution failure during comptime folding must be a
+    diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is
+    what made this take a guest reproduction to find. Sibling of M5007.
+  - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a
+    `@target` body when host ≠ target, or select the HOST's body for the folding
+    (which changes what gets baked, and needs deciding rather than assuming).

@@ -4,8 +4,11 @@ import "std/io"
 
 // A PREFIX mirror: `struct timeval` has two members and this names one.
 //
-// `tv_sec` is `time_t`, 8 bytes on every system the toolchain targets, so the
-// width assert holds exactly. `tv_usec` is deliberately ABSENT — `suseconds_t`
+// `tv_sec` is `time_t`, 8 bytes on POSIX, so the width assert holds exactly
+// THERE. Not on Windows: mingw declares it `long`, which is 32 bits on Win64, so
+// this very mirror fails its own assert — which is the rule below doing its job,
+// not a defect. The snippet is POSIX-only for that reason, and the test lists
+// say so. `tv_usec` is deliberately ABSENT — `suseconds_t`
 // is 4 bytes on Darwin against 8 on Linux, and a mirror pins each field's width
 // EXACTLY. A type whose width differs between systems takes one mirror per
 // system, the way `stat` does; it cannot be covered by declaring the wider one.

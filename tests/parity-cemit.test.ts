@@ -294,10 +294,27 @@ const C_PARITY = new Set<string>([
   "extern_lend_across_callback",
 ]);
 
-const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
+/// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.
+///
+/// `c_struct_prefix_mirror` mirrors `struct timeval.tv_sec` as 8 bytes, which is
+/// `time_t` on POSIX and `long` — 32 bits — under mingw on Win64. Its own
+/// `_Static_assert` catches that, correctly: a type whose width differs between
+/// systems takes one mirror per system, and this one is the POSIX mirror.
+/// `tests/vader_vm.test.ts` excludes it from the VM half for its own reason.
+const C_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_prefix_mirror"]);
+
+const allowed = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
+
+// What actually runs here. The allowlist check below deliberately reads
+// `allowed`, not this: its job is to catch a name in `C_PARITY` that matches no
+// snippet — a typo, or a renamed directory — and a platform skip must not look
+// like one.
+const scenarios = allowed.filter(
+  (s) => !(process.platform === "win32" && C_PARITY_UNAVAILABLE_WIN32.has(s.name)),
+);
 
 test("c-emit: allowlist resolves to real snippets", () => {
-  expect(scenarios.length).toBe(C_PARITY.size);
+  expect(allowed.length).toBe(C_PARITY.size);
 });
 
 for (const s of scenarios) {

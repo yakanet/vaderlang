@@ -9,199 +9,288 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive u8
 type 8 array 7
 type 9 primitive void
-type 10 primitive isize
-string 0 "/etc/hosts"
-string 1 "rb"
-string 2 "matched CPointer"
+type 10 union 11,0
+type 11 struct std_io$IOError { msg:2,kind:7,code:1 }
+type 12 union 0,2
+type 13 primitive isize
+string 0 "/vader_cpointer_probe"
+string 1 "x"
+string 2 "setup failed: "
 string 3 "\n"
-string 4 "matched null"
-string 5 "after match"
-string 6 "/no/such/path/at/all"
-string 7 "unexpectedly opened"
+string 4 "rb"
+string 5 "matched CPointer"
+string 6 "matched null"
+string 7 "after match"
+string 8 "/vader_no_such_probe_at_all"
+string 9 "unexpectedly opened"
+string 10 "TMPDIR"
+string 11 "cannot remove file"
+string 12 ""
+string 13 "/tmp"
+string 14 "path contains a NUL byte"
+string 15 "wb"
+string 16 "open failed"
+string 17 "short write"
+string 18 "close failed"
+string 19 "file not found"
+string 20 "permission denied"
+string 21 "interrupted"
+string 22 "already exists"
+string 23 "not a directory"
+string 24 "is a directory"
+string 25 "would block"
+string 26 "broken pipe"
+string 27 "no space left on device"
+string 28 "invalid argument"
+string 29 "directory not empty"
+string 30 "bad file descriptor"
 import 0 extern fopen snippet$c_fopen header=<stdio.h> result_type=3 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
 import 1 extern fclose snippet$c_fclose header=<stdio.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (pointer) -> i32
 import 2 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 3 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 byte_at std_core$byte_at result_type=7 param_types=2,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 4 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 param_mutable=0 param_by_address= (ref) -> string
+import 5 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> any
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
+import 9 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=3 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
+import 10 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (pointer) -> i32
+import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=8,5,5,4 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 12 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
 impl 6 ByteAccess
+impl 11 Error
 export main 0
 
 fn 0 snippet$main () -> i32
-  local r any
+  local path string
+  local wrote any
+  local e ref
+  local $field_12 string
   local p pointer
-  local $call_11 string
-  local $k_19 i32
-  local $k_20 string
-  local $k_21 string
-  local $call_22 string
-  local $k_23 string
-  local $k_24 string
+  local $k_35 i32
+  local $k_36 string
+  local $k_37 string
+  local $call_38 string
+  local $call_39 string
+  local $k_40 string
+  local $call_41 string
+  local $k_42 string
   local missing any
-  local $k_31 i32
-  local $k_32 string
-  local $k_33 string
-  local $call_34 string
-  local $k_37 i32
-  local $k_38 string
-  local $k_39 string
-  local $call_40 string
-  string.const 0   ; "/etc/hosts"
-  string.const 1   ; "rb"
-  call.import 0   ; snippet$c_fopen
-  local.tee 0   ; r
-  type_check 4   ; pointer
+  local $k_49 i32
+  local $k_50 string
+  local $k_51 string
+  local $call_52 string
+  local $k_55 i32
+  local $k_56 string
+  local $k_57 string
+  local $call_58 string
+  call 4   ; std_io$temp_dir
+  string.const 0   ; "/vader_cpointer_probe"
+  call 1   ; concat_2
+  local.tee 0   ; path
+  string.const 1   ; "x"
+  call 5   ; std_io$write_file_string
+  local.tee 1   ; wrote
+  type_check 11   ; std_io$IOError
   if $L0 void
-    local.get 0   ; r
-    ref.cast 4   ; -> pointer
-    local.set 1   ; p
-    string.const 2   ; "matched CPointer"
+    local.get 1   ; wrote
+    ref.cast 11   ; -> std_io$IOError
+    local.set 2   ; e
+    local.field 2 11 0   ; e.msg
+    ref.cast 2   ; -> string
+    local.set 3   ; $field_12
+    string.const 2   ; "setup failed: "
+    local.get 3   ; $field_12
+    call 1   ; concat_2
     string.const 3   ; "\n"
     call 1   ; concat_2
-    local.set 2   ; $call_11
+    local.set 3   ; $field_12
     i32.const 0
-    local.get 2   ; $call_11
-    call 4   ; std_io$write
-    local.get 1   ; p
+    local.get 3   ; $field_12
+    call 7   ; std_io$write
+    return.lit i32.const 1
+  end $L0
+  local.get 0   ; path
+  string.const 4   ; "rb"
+  call.import 0   ; snippet$c_fopen
+  local.tee 1   ; wrote
+  type_check 4   ; pointer
+  if $L1 void
+    local.get 1   ; wrote
+    ref.cast 4   ; -> pointer
+    local.set 4   ; p
+    string.const 5   ; "matched CPointer"
+    string.const 3   ; "\n"
+    call 1   ; concat_2
+    local.set 3   ; $field_12
+    i32.const 0
+    local.get 3   ; $field_12
+    call 7   ; std_io$write
+    local.get 4   ; p
     call.import 1   ; snippet$c_fclose
     drop
     i32.const 0
-    local.set 3   ; $k_19
-    string.const 5   ; "after match"
-    local.set 4   ; $k_20
+    local.set 5   ; $k_35
+    string.const 7   ; "after match"
+    local.set 6   ; $k_36
     string.const 3   ; "\n"
-    local.set 5   ; $k_21
-    local.get 4   ; $k_20
-    local.get 5   ; $k_21
+    local.set 7   ; $k_37
+    local.get 6   ; $k_36
+    local.get 7   ; $k_37
     call 1   ; concat_2
-    local.set 6   ; $call_22
-    local.get 3   ; $k_19
-    local.get 6   ; $call_22
-    call 4   ; std_io$write
-    string.const 6   ; "/no/such/path/at/all"
-    local.set 7   ; $k_23
-    string.const 1   ; "rb"
-    local.set 8   ; $k_24
-    local.get 7   ; $k_23
-    local.get 8   ; $k_24
+    local.set 8   ; $call_38
+    local.get 5   ; $k_35
+    local.get 8   ; $call_38
+    call 7   ; std_io$write
+    call 4   ; std_io$temp_dir
+    local.set 9   ; $call_39
+    string.const 8   ; "/vader_no_such_probe_at_all"
+    local.set 10   ; $k_40
+    local.get 9   ; $call_39
+    local.get 10   ; $k_40
+    call 1   ; concat_2
+    local.set 11   ; $call_41
+    string.const 4   ; "rb"
+    local.set 12   ; $k_42
+    local.get 11   ; $call_41
+    local.get 12   ; $k_42
     call.import 0   ; snippet$c_fopen
-    local.tee 9   ; missing
+    local.tee 13   ; missing
     type_check 4   ; pointer
-    if $L1 void
-      local.get 9   ; missing
+    if $L2 void
+      local.get 13   ; missing
       ref.cast 4   ; -> pointer
-      local.set 1   ; p
+      local.set 4   ; p
       i32.const 0
-      local.set 10   ; $k_31
-      string.const 7   ; "unexpectedly opened"
-      local.set 11   ; $k_32
+      local.set 14   ; $k_49
+      string.const 9   ; "unexpectedly opened"
+      local.set 15   ; $k_50
       string.const 3   ; "\n"
-      local.set 12   ; $k_33
-      local.get 11   ; $k_32
-      local.get 12   ; $k_33
+      local.set 16   ; $k_51
+      local.get 15   ; $k_50
+      local.get 16   ; $k_51
       call 1   ; concat_2
-      local.set 13   ; $call_34
-      local.get 10   ; $k_31
-      local.get 13   ; $call_34
-      call 4   ; std_io$write
-      local.get 1   ; p
+      local.set 17   ; $call_52
+      local.get 14   ; $k_49
+      local.get 17   ; $call_52
+      call 7   ; std_io$write
+      local.get 4   ; p
       call.import 1   ; snippet$c_fclose
       drop
-      return.lit i32.const 0
-    end $L1
-    local.get 9   ; missing
-    type_check 0   ; null
-    if $L2 void
-      i32.const 0
-      local.set 14   ; $k_37
-      string.const 4   ; "matched null"
-      local.set 15   ; $k_38
-      string.const 3   ; "\n"
-      local.set 16   ; $k_39
-      local.get 15   ; $k_38
-      local.get 16   ; $k_39
-      call 1   ; concat_2
-      local.set 17   ; $call_40
-      local.get 14   ; $k_37
-      local.get 17   ; $call_40
-      call 4   ; std_io$write
+      local.get 0   ; path
+      call 6   ; std_io$remove_file
+      drop
       return.lit i32.const 0
     end $L2
-    return
-  end $L0
-  local.get 0   ; r
-  type_check 0   ; null
-  if $L3 void
-    string.const 4   ; "matched null"
-    string.const 3   ; "\n"
-    call 1   ; concat_2
-    local.set 2   ; $call_11
-    i32.const 0
-    local.get 2   ; $call_11
-    call 4   ; std_io$write
-    i32.const 0
-    local.set 3   ; $k_19
-    string.const 5   ; "after match"
-    local.set 4   ; $k_20
-    string.const 3   ; "\n"
-    local.set 5   ; $k_21
-    local.get 4   ; $k_20
-    local.get 5   ; $k_21
-    call 1   ; concat_2
-    local.set 6   ; $call_22
-    local.get 3   ; $k_19
-    local.get 6   ; $call_22
-    call 4   ; std_io$write
-    string.const 6   ; "/no/such/path/at/all"
-    local.set 7   ; $k_23
-    string.const 1   ; "rb"
-    local.set 8   ; $k_24
-    local.get 7   ; $k_23
-    local.get 8   ; $k_24
-    call.import 0   ; snippet$c_fopen
-    local.tee 9   ; missing
-    type_check 4   ; pointer
-    if $L4 void
-      local.get 9   ; missing
-      ref.cast 4   ; -> pointer
-      local.set 1   ; p
+    local.get 13   ; missing
+    type_check 0   ; null
+    if $L3 void
       i32.const 0
-      local.set 10   ; $k_31
-      string.const 7   ; "unexpectedly opened"
-      local.set 11   ; $k_32
+      local.set 18   ; $k_55
+      string.const 6   ; "matched null"
+      local.set 19   ; $k_56
       string.const 3   ; "\n"
-      local.set 12   ; $k_33
-      local.get 11   ; $k_32
-      local.get 12   ; $k_33
+      local.set 20   ; $k_57
+      local.get 19   ; $k_56
+      local.get 20   ; $k_57
       call 1   ; concat_2
-      local.set 13   ; $call_34
-      local.get 10   ; $k_31
-      local.get 13   ; $call_34
-      call 4   ; std_io$write
-      local.get 1   ; p
-      call.import 1   ; snippet$c_fclose
+      local.set 21   ; $call_58
+      local.get 18   ; $k_55
+      local.get 21   ; $call_58
+      call 7   ; std_io$write
+      local.get 0   ; path
+      call 6   ; std_io$remove_file
       drop
       return.lit i32.const 0
-    end $L4
-    local.get 9   ; missing
-    type_check 0   ; null
+    end $L3
+    return
+  end $L1
+  local.get 1   ; wrote
+  type_check 0   ; null
+  if $L4 void
+    string.const 6   ; "matched null"
+    string.const 3   ; "\n"
+    call 1   ; concat_2
+    local.set 3   ; $field_12
+    i32.const 0
+    local.get 3   ; $field_12
+    call 7   ; std_io$write
+    i32.const 0
+    local.set 5   ; $k_35
+    string.const 7   ; "after match"
+    local.set 6   ; $k_36
+    string.const 3   ; "\n"
+    local.set 7   ; $k_37
+    local.get 6   ; $k_36
+    local.get 7   ; $k_37
+    call 1   ; concat_2
+    local.set 8   ; $call_38
+    local.get 5   ; $k_35
+    local.get 8   ; $call_38
+    call 7   ; std_io$write
+    call 4   ; std_io$temp_dir
+    local.set 9   ; $call_39
+    string.const 8   ; "/vader_no_such_probe_at_all"
+    local.set 10   ; $k_40
+    local.get 9   ; $call_39
+    local.get 10   ; $k_40
+    call 1   ; concat_2
+    local.set 11   ; $call_41
+    string.const 4   ; "rb"
+    local.set 12   ; $k_42
+    local.get 11   ; $call_41
+    local.get 12   ; $k_42
+    call.import 0   ; snippet$c_fopen
+    local.tee 13   ; missing
+    type_check 4   ; pointer
     if $L5 void
+      local.get 13   ; missing
+      ref.cast 4   ; -> pointer
+      local.set 4   ; p
       i32.const 0
-      local.set 14   ; $k_37
-      string.const 4   ; "matched null"
-      local.set 15   ; $k_38
+      local.set 14   ; $k_49
+      string.const 9   ; "unexpectedly opened"
+      local.set 15   ; $k_50
       string.const 3   ; "\n"
-      local.set 16   ; $k_39
-      local.get 15   ; $k_38
-      local.get 16   ; $k_39
+      local.set 16   ; $k_51
+      local.get 15   ; $k_50
+      local.get 16   ; $k_51
       call 1   ; concat_2
-      local.set 17   ; $call_40
-      local.get 14   ; $k_37
-      local.get 17   ; $call_40
-      call 4   ; std_io$write
+      local.set 17   ; $call_52
+      local.get 14   ; $k_49
+      local.get 17   ; $call_52
+      call 7   ; std_io$write
+      local.get 4   ; p
+      call.import 1   ; snippet$c_fclose
+      drop
+      local.get 0   ; path
+      call 6   ; std_io$remove_file
+      drop
       return.lit i32.const 0
     end $L5
+    local.get 13   ; missing
+    type_check 0   ; null
+    if $L6 void
+      i32.const 0
+      local.set 18   ; $k_55
+      string.const 6   ; "matched null"
+      local.set 19   ; $k_56
+      string.const 3   ; "\n"
+      local.set 20   ; $k_57
+      local.get 19   ; $k_56
+      local.get 20   ; $k_57
+      call 1   ; concat_2
+      local.set 21   ; $call_58
+      local.get 18   ; $k_55
+      local.get 21   ; $call_58
+      call 7   ; std_io$write
+      local.get 0   ; path
+      call 6   ; std_io$remove_file
+      drop
+      return.lit i32.const 0
+    end $L6
     return
-  end $L3
+  end $L4
   return
 end
 
@@ -223,11 +312,11 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 8   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 16   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 8   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 16   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 3   ; std_core$finish_buffer
@@ -236,18 +325,51 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 6   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 14   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 7   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 4 std_io$write (i32,string) -> void
+fn 4 std_io$temp_dir () -> string
+  string.const 10   ; "TMPDIR"
+  call.import 6   ; std_env$get_env
+  call 8   ; std_io$temp_dir_of
+  return
+end
+
+fn 5 std_io$write_file_string (string,string) -> any
+  local $call_2 ref
+  local.get 1   ; arg 1
+  call.import 5   ; std_core$bytes
+  local.set 2   ; $call_2
+  local.get 0   ; arg 0
+  local.get 2   ; $call_2
+  call 9   ; std_io$write_file_bytes
+  return
+end
+
+fn 6 std_io$remove_file (string) -> any
+  local.get 0   ; arg 0
+  call.import 12   ; system_posix$sys_unlink
+  i32.const 0
+  i32.ne
+  if $L0 void
+    string.const 11   ; "cannot remove file"
+    call 10   ; std_io$last_io_error
+    return
+  end $L0
+  null.const
+  box 0   ; -> null
+  return
+end
+
+fn 7 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -257,7 +379,7 @@ fn 4 std_io$write (i32,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 5   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -284,7 +406,7 @@ fn 4 std_io$write (i32,string) -> void
         local.get 0   ; arg 0
         local.get 6   ; chunk
         local.get 7   ; $len_11
-        call 5   ; std_io$write_bytes
+        call 11   ; std_io$write_bytes
         local.tee 8   ; n
         i32.const 0
         i32.le
@@ -305,7 +427,306 @@ fn 4 std_io$write (i32,string) -> void
   return
 end
 
-fn 5 std_io$write_bytes (i32,ref,usize) -> i32
+fn 8 std_io$temp_dir_of (any) -> string
+  local e string
+  local __coalesce_0 any
+  local.get 0   ; arg 0
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    string.const 12   ; ""
+    local.set 1   ; e
+  else
+    local.get 2   ; __coalesce_0
+    ref.cast 2   ; -> string
+    local.set 1   ; e
+  end $L0
+  local.get 1   ; e
+  string.const 12   ; ""
+  string.eq
+  if $L1 void
+    return.lit string.const 13   ; "/tmp"
+  end $L1
+  local.get 1   ; e
+  call 12   ; std_io$without_trailing_sep
+  return
+end
+
+fn 9 std_io$write_file_bytes (string,ref) -> any
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local f any
+  local $cast_28 pointer
+  local err ref
+  local $call_39 i32
+  local $k_40 i32
+  local.get 0   ; arg 0
+  call.import 2   ; std_core$byte_len
+  local.set 2   ; __for_len_1
+  i64.const 0
+  local.set 3   ; __for_i_2
+  block $L0 void
+    loop $L1 void
+      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
+      u64.lt
+      if $L2 void
+        local.get 0   ; arg 0
+        local.get 3   ; __for_i_2
+        call.import 3   ; std_core$byte_at
+        i32.const 0
+        i32.eq
+        if $L3 void
+          string.const 14   ; "path contains a NUL byte"
+          i32.const 0
+          i32.const 0
+          struct.new 11   ; std_io$IOError
+          return
+        end $L3
+        local.get 3   ; __for_i_2
+        i64.const 1
+        i64.add
+        local.set 3   ; __for_i_2
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 0   ; arg 0
+  string.const 15   ; "wb"
+  call.import 9   ; system_posix$sys_fopen
+  local.tee 4   ; f
+  type_check 0   ; null
+  if $L4 void
+    string.const 16   ; "open failed"
+    call 10   ; std_io$last_io_error
+    return
+  end $L4
+  local.get 1   ; arg 1
+  array.len
+  i64.const 0
+  u64.gt
+  if $L5 void
+    local.get 1   ; arg 1
+    array.len
+    local.set 2   ; __for_len_1
+    local.get 4   ; f
+    ref.cast 4   ; -> pointer
+    local.set 5   ; $cast_28
+    local.get 1   ; arg 1
+    i64.const 1
+    local.get 2   ; __for_len_1
+    local.get 5   ; $cast_28
+    call.import 11   ; system_posix$sys_fwrite
+    local.set 2   ; __for_len_1
+    local.get 1   ; arg 1
+    array.len
+    local.set 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    local.get 3   ; __for_i_2
+    i64.ne
+    if $L6 void
+      string.const 17   ; "short write"
+      call 10   ; std_io$last_io_error
+      local.set 6   ; err
+      local.get 4   ; f
+      ref.cast 4   ; -> pointer
+      call.import 10   ; system_posix$sys_fclose
+      drop
+      local.get 6   ; err
+      return
+    end $L6
+    local.get 4   ; f
+    ref.cast 4   ; -> pointer
+    call.import 10   ; system_posix$sys_fclose
+    local.set 7   ; $call_39
+    i32.const 0
+    local.set 8   ; $k_40
+    local.get 7   ; $call_39
+    local.get 8   ; $k_40
+    i32.ne
+    if $L7 void
+      string.const 18   ; "close failed"
+      call 10   ; std_io$last_io_error
+      return
+    end $L7
+    null.const
+    box 0   ; -> null
+    return
+  end $L5
+  local.get 4   ; f
+  ref.cast 4   ; -> pointer
+  call.import 10   ; system_posix$sys_fclose
+  local.set 7   ; $call_39
+  i32.const 0
+  local.set 8   ; $k_40
+  local.get 7   ; $call_39
+  local.get 8   ; $k_40
+  i32.ne
+  if $L8 void
+    string.const 18   ; "close failed"
+    call 10   ; std_io$last_io_error
+    return
+  end $L8
+  null.const
+  box 0   ; -> null
+  return
+end
+
+fn 10 std_io$last_io_error (string) -> ref
+  local e i32
+  local kind u8
+  local if_res i32
+  local reason string
+  local if_res string
+  call.import 8   ; system_posix$sys_last_errno
+  local.set 1   ; e
+  i32.const 0
+  local.set 2   ; kind
+  local.get 1   ; e
+  i32.const 2
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 2   ; kind
+  else
+  end $L0
+  local.get 1   ; e
+  i32.const 1
+  i32.eq
+  if $L1 void
+    i32.const 2
+    local.set 2   ; kind
+  else
+  end $L1
+  local.get 1   ; e
+  i32.const 13
+  i32.eq
+  if $L2 void
+    i32.const 2
+    local.set 2   ; kind
+  else
+  end $L2
+  local.get 1   ; e
+  i32.const 4
+  i32.eq
+  if $L3 void
+    i32.const 3
+    local.set 2   ; kind
+  else
+  end $L3
+  local.get 1   ; e
+  i32.const 17
+  i32.eq
+  if $L4 void
+    i32.const 4
+    local.set 2   ; kind
+  else
+  end $L4
+  local.get 1   ; e
+  i32.const 20
+  i32.eq
+  if $L5 void
+    i32.const 5
+    local.set 2   ; kind
+  else
+  end $L5
+  local.get 1   ; e
+  i32.const 21
+  i32.eq
+  if $L6 void
+    i32.const 6
+    local.set 2   ; kind
+  else
+  end $L6
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L7 void
+    i32.const 35
+    local.set 3   ; if_res
+  else
+    i32.const 11
+    local.set 3   ; if_res
+  end $L7
+  local.get 1   ; e
+  local.get 3   ; if_res
+  i32.eq
+  if $L8 void
+    i32.const 7
+    local.set 2   ; kind
+  else
+  end $L8
+  local.get 1   ; e
+  i32.const 32
+  i32.eq
+  if $L9 void
+    i32.const 8
+    local.set 2   ; kind
+  else
+  end $L9
+  local.get 1   ; e
+  i32.const 28
+  i32.eq
+  if $L10 void
+    i32.const 9
+    local.set 2   ; kind
+  else
+  end $L10
+  local.get 1   ; e
+  i32.const 22
+  i32.eq
+  if $L11 void
+    i32.const 10
+    local.set 2   ; kind
+  else
+  end $L11
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L12 void
+    i32.const 66
+    local.set 3   ; if_res
+  else
+    i32.const 39
+    local.set 3   ; if_res
+  end $L12
+  local.get 1   ; e
+  local.get 3   ; if_res
+  i32.eq
+  if $L13 void
+    i32.const 11
+    local.set 2   ; kind
+  else
+  end $L13
+  local.get 1   ; e
+  i32.const 9
+  i32.eq
+  if $L14 void
+    i32.const 12
+    local.set 2   ; kind
+  else
+  end $L14
+  local.get 2   ; kind
+  call 13   ; std_io$describe_io_error_kind
+  local.tee 4   ; reason
+  string.const 12   ; ""
+  string.eq
+  if $L15 void
+    local.get 0   ; arg 0
+    local.set 5   ; if_res
+  else
+    local.get 4   ; reason
+    local.set 5   ; if_res
+  end $L15
+  local.get 5   ; if_res
+  local.get 2   ; kind
+  local.get 1   ; e
+  struct.new 11   ; std_io$IOError
+  return
+end
+
+fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -320,25 +741,202 @@ fn 5 std_io$write_bytes (i32,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 4   ; system_posix$sys_write
+  call.import 7   ; system_posix$sys_write
   isize.to_i32
   return
 end
 
-fn 6 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_io$without_trailing_sep (string) -> string
+  local b ref
+  local trailing usize
+  local __for_hi_0 usize
+  local i usize
+  local last usize
+  local or_res bool
+  local $sub_23 usize
+  local.get 0   ; arg 0
+  call.import 5   ; std_core$bytes
+  local.set 1   ; b
+  i64.const 0
+  local.set 2   ; trailing
+  local.get 1   ; b
+  array.len
+  local.set 3   ; __for_hi_0
+  i64.const 0
+  local.set 4   ; i
+  block $L0 void
+    loop $L1 void
+      local.get 4   ; i
+      local.get 3   ; __for_hi_0
+      u64.lt
+      if $L2 void
+        local.get 1   ; b
+        array.len
+        i64.const 1
+        i64.sub
+        local.get 4   ; i
+        i64.sub
+        local.tee 5   ; last
+        i64.const 0
+        i64.eq
+        if $L3 void
+          bool.const true
+          local.set 6   ; or_res
+        else
+          local.get 1   ; b
+          local.get 5   ; last
+          array.get 8   ; u8[][]
+          ref.cast 7   ; -> u8
+          i32.const 47
+          i32.ne
+          local.set 6   ; or_res
+        end $L3
+        local.get 6   ; or_res
+        if $L4 void
+        else
+          local.get 5   ; last
+          i64.const 1
+          i64.sub
+          local.set 7   ; $sub_23
+          local.get 1   ; b
+          local.get 7   ; $sub_23
+          array.get 8   ; u8[][]
+          ref.cast 7   ; -> u8
+          i32.const 58
+          i32.eq
+          if $L5 void
+          else
+            local.get 2   ; trailing
+            i64.const 1
+            i64.add
+            local.set 2   ; trailing
+            local.get 4   ; i
+            i64.const 1
+            i64.add
+            local.set 4   ; i
+            br $L1
+          end $L5
+        end $L4
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 2   ; trailing
+  i64.const 0
+  i64.eq
+  if $L6 void
+    local.get 0   ; arg 0
+    return
+  end $L6
+  local.get 1   ; b
+  array.len
+  local.get 2   ; trailing
+  i64.sub
+  local.set 2   ; trailing
+  local.get 1   ; b
+  i64.const 0
+  local.get 2   ; trailing
+  array.slice 8   ; u8[][]
+  call.import 4   ; std_core$bytes_to_string
+  return
+end
+
+fn 13 std_io$describe_io_error_kind (u8) -> string
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L0 void
+    return.lit string.const 19   ; "file not found"
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.eq
+  if $L1 void
+    return.lit string.const 20   ; "permission denied"
+  end $L1
+  local.get 0   ; arg 0
+  i32.const 3
+  i32.eq
+  if $L2 void
+    return.lit string.const 21   ; "interrupted"
+  end $L2
+  local.get 0   ; arg 0
+  i32.const 4
+  i32.eq
+  if $L3 void
+    return.lit string.const 22   ; "already exists"
+  end $L3
+  local.get 0   ; arg 0
+  i32.const 5
+  i32.eq
+  if $L4 void
+    return.lit string.const 23   ; "not a directory"
+  end $L4
+  local.get 0   ; arg 0
+  i32.const 6
+  i32.eq
+  if $L5 void
+    return.lit string.const 24   ; "is a directory"
+  end $L5
+  local.get 0   ; arg 0
+  i32.const 7
+  i32.eq
+  if $L6 void
+    return.lit string.const 25   ; "would block"
+  end $L6
+  local.get 0   ; arg 0
+  i32.const 8
+  i32.eq
+  if $L7 void
+    return.lit string.const 26   ; "broken pipe"
+  end $L7
+  local.get 0   ; arg 0
+  i32.const 9
+  i32.eq
+  if $L8 void
+    return.lit string.const 27   ; "no space left on device"
+  end $L8
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.eq
+  if $L9 void
+    return.lit string.const 28   ; "invalid argument"
+  end $L9
+  local.get 0   ; arg 0
+  i32.const 11
+  i32.eq
+  if $L10 void
+    return.lit string.const 29   ; "directory not empty"
+  end $L10
+  local.get 0   ; arg 0
+  i32.const 12
+  i32.eq
+  if $L11 void
+    return.lit string.const 30   ; "bad file descriptor"
+  end $L11
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L12 void
+    return.lit string.const 12   ; ""
+  end $L12
+  return
+end
+
+fn 14 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 7 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 15 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 8 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 16 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

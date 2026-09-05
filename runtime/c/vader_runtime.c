@@ -3443,14 +3443,18 @@ void* vader_ptr_at(const void* base, size_t i) {
  * `*__errno_location()` on glibc — so no `@extern` can name it. Same escape as
  * the struct-member accessors below: `cc` resolves what Vader cannot, and the
  * result crosses as a plain value.
- * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`. */
-#if !defined(_WIN32)
+ * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`.
+ *
+ * NOT guarded by `#if !defined(_WIN32)`, though only the POSIX bodies call it.
+ * `errno` is standard C and the Windows CRT has it, and the interpreter runs a
+ * PINNED target's bodies on whatever host it is on: a `--target=linux-x86_64`
+ * bytecode executed on Windows calls this, and a guard would make the symbol
+ * missing there. */
 #include <errno.h>
 VADER_HOST_EXPORT
 int32_t vader_last_errno(void) {
     return (int32_t) errno;
 }
-#endif
 
 /* What KIND of thing `path` is. Ordinals must match
  * `lib/system/posix/posix.vader`'s `PATH_*` constants.

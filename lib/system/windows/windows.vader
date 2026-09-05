@@ -95,7 +95,7 @@ export delete_file :: fn(path: u16[]) -> i32
 ///
 /// @return the raw Win32 code ; 0 when nothing has failed.
 @c_header("<windows.h>")
-@extern("GetLastError")
+@extern("kernel32", "GetLastError")
 export get_last_error :: fn() -> u32
 
 /// Win32 error codes `std/io` classifies. Unlike `errno` these are stable
