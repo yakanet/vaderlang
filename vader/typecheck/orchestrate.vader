@@ -555,8 +555,8 @@ populate_from :: fn(
                 per_module,
             )
         }
-        if entry_typed.namespace_export_params[mod_id] is null {
-            entry_typed.namespace_export_params[mod_id] = build_namespace_export_params(
+        if entry_typed.namespace_export_decls[mod_id] is null {
+            entry_typed.namespace_export_decls[mod_id] = build_namespace_export_decls(
                 mod_id,
                 project,
                 per_module,
@@ -1839,12 +1839,12 @@ build_namespace_exports :: fn(
 // params are reachable here. To support overloaded namespace calls this map
 // would need to become bucket-valued and selection move into
 // `namespace_member_params`, mirroring `overload_params_matching`.
-build_namespace_export_params :: fn(
+build_namespace_export_decls :: fn(
     mod_id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
-) -> MutableMap<string, AST.FnParam[]> {
-    out :: MutableMap<string, AST.FnParam[]> {}
+) -> MutableMap<string, AST.FnDecl> {
+    out :: MutableMap<string, AST.FnDecl> {}
     loaded :: project.modules[mod_id] ?? return out
     typed :: per_module[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
@@ -1854,7 +1854,7 @@ build_namespace_export_params :: fn(
         }
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd {
-            out[name] = fd.params
+            out[name] = fd
         }
     }
     return out

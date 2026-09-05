@@ -248,7 +248,7 @@ export TypedProgram :: struct {
     /// for fn members. Consumed by `call.vader::callee_param_decls` so a
     /// namespace-qualified call (`mod.foo(...)`) can reorder named args and
     /// fill omitted defaults from each param's `default_value`.
-    namespace_export_params: MutableMap<string, MutableMap<string, AST.FnParam[]>>
+    namespace_export_decls: MutableMap<string, MutableMap<string, AST.FnDecl>>
 
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
@@ -537,7 +537,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .import_targets  = null,
     .external_types  = MutableMap<i32, Type> {},
     .namespace_exports = MutableMap<string, MutableMap<string, Type>> {},
-    .namespace_export_params = MutableMap<string, MutableMap<string, AST.FnParam[]>> {},
+    .namespace_export_decls = MutableMap<string, MutableMap<string, AST.FnDecl>> {},
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,

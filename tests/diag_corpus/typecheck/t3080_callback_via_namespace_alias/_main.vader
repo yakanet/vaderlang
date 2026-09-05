@@ -1,0 +1,17 @@
+// A callback argument that names no function, where the CALLEE is reached
+// through a namespace alias — T3080.
+//
+// The check used to give up whenever the callee was not a bare identifier, and
+// `M.f` is a `FieldExpr`. Giving up let the call through to `midir/build`, which
+// has no address to hand C and PANICKED the compiler instead of reporting this.
+//
+// The mirror-image defect went with it: a named fn reached the same way —
+// `M.double_it` as the argument — was refused T3080 although it is exactly the
+// form §7 of the style guide mandates for an aliased import.
+module "snippet"
+
+F :: import "snippet/ffi"
+
+run :: fn(g: fn(i32) -> i32) -> i32 = F.call_twice(g)
+
+main :: fn() -> i32 { return run((x: i32) -> x * 2) }

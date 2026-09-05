@@ -892,3 +892,22 @@ The fix is the B1 inline representation the runtime already has
 T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants
 the same treatment. Once it lands, the reserved members go back to being what
 they are and the `__typeof__` cast can narrow or go.
+
+## T3080 still panics on a UFCS callee
+
+`lookup_callee_fn_decl` now resolves a namespace-qualified callee, which closed
+both halves of that shape: a valid `M.double_it` argument is no longer refused,
+and a `M.call_twice(g)` call reports T3080 instead of reaching `midir/build`'s
+panic. The UFCS shape is NOT closed:
+
+    bad :: fn(g: fn(i32) -> i32) -> i32 { s :: 20  return s.reg(g) }
+    → vader: panic — midir/build: argument 2 of `reg` names `g`, which is not a
+      function — typecheck should have refused it (T3080)
+
+A UFCS callee is a `FieldExpr` whose target is a VALUE, so the namespace path
+does not apply, and `UfcsResult` (`vader/typecheck/field.vader:1047`) carries the
+curried type and the first param but not the winning `FnDecl`. Threading the pick
+out of `try_free_fn_ufcs_with_first` is what closes it.
+
+Do NOT close it by checking the arguments when the callee is unresolved: that
+would refuse a lambda passed to an ordinary Vader fn, which is legal.

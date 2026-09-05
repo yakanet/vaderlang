@@ -451,13 +451,14 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
 
 // Declared params of a namespace-qualified callee `mod.foo`. Mirrors
 // `field.vader::try_namespace_field`'s base→module resolution but reads the
-// params table populated by `build_namespace_export_params`. Returns null
+// decl table populated by `build_namespace_export_decls`. Returns null
 // unless `fe` is a namespace member fn call whose arity matches `callee_ty`
 // (a mismatch stays positional rather than mis-filling).
 namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     mod_id :: namespace_call_mod_id(fe, typed) ?? return null
-    by_name :: typed.namespace_export_params[mod_id] ?? return null
-    ps :: by_name[fe.field] ?? return null
+    by_name :: typed.namespace_export_decls[mod_id] ?? return null
+    fd :: by_name[fe.field] ?? return null
+    ps :: fd.params
     if ps.len() != callee_ty.params.len() {
         return null
     }
@@ -1054,6 +1055,16 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     base: AST.Expr = callee
     if callee is AST.GenericInstExpr as gi {
         base = gi.callee
+    }
+    // A namespace-qualified name — `M.f`, the form §7 of the style guide
+    // mandates for an aliased import. It is a `FieldExpr`, not an ident, and
+    // treating it as unresolvable had two costs: a valid callback argument was
+    // refused T3080, and a call whose CALLEE wore that shape skipped the check
+    // entirely and reached `midir/build`'s panic.
+    if base is AST.FieldExpr as fe {
+        mod_id :: namespace_call_mod_id(fe, typed) ?? return null
+        by_name :: typed.namespace_export_decls[mod_id] ?? return null
+        return by_name[fe.field]
     }
     if base !is AST.IdentExpr {
         return null
