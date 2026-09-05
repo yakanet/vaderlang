@@ -63,7 +63,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                 vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
                 if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
                 if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 171u);
+                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 172u);
                 t1 = ((uint8_t) t0.payload.i);
                 if (t1 == INT32_C(36)) {
                     l3 = ((int32_t) (size_t) l4);
@@ -88,7 +88,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 171u);
+                t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 172u);
                 t1 = ((uint8_t) t0.payload.i);
                 if (t1 == INT32_C(95)) {
                     t2 = (l4 + INT64_C(1));
@@ -96,7 +96,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
                     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
                     if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 171u);
+                    t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 172u);
                     t1 = ((uint8_t) t0.payload.i);
                     l5 = t1 == INT32_C(95);
                 } else {
