@@ -4997,14 +4997,12 @@ static void vader_comptime_populate_deps(void* l0, void* l1) {
 
 static vader_box_t vader_comptime_read_relative_file(vader_string_t l0, vader_string_t l1) {
     vader_string_t l2 = 0;
-    size_t l3;
-    vader_box_t l4 = vader_box_null();
+    vader_box_t l3 = vader_box_null();
     bool t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
-    vader_box_t t3 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l4, &t3 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t2 };
+    vader_string_t t1 = 0;
+    vader_box_t t2 = vader_box_null();
+    vader_box_t* gc_roots[2] = { &l3, &t2 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = std_string_starts_with(l0, 430u);
@@ -5017,16 +5015,14 @@ static vader_box_t vader_comptime_read_relative_file(vader_string_t l0, vader_st
             l2 = concat_3(l1, 430u, l0);
         }
     }
-    t1 = (INT64_C(16384) * INT64_C(1024));
-    l3 = (size_t) (int64_t) t1;
-    l4 = std_io_read_file_string(l2, l3);
-    if (l4.tag == 167u) {
-        t2 = l4.payload.s;
-        t3 = vader_box_string(167u, t2);
-        { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = std_io_read_file_string(l2, (size_t) (int64_t) INT64_C(16777216));
+    if (l3.tag == 167u) {
+        t1 = l3.payload.s;
+        t2 = vader_box_string(167u, t1);
+        { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t3 = vader_box_obj(0u, NULL);
-    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_box_obj(0u, NULL);
+    { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
