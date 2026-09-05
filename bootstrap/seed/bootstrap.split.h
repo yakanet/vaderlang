@@ -5549,7 +5549,7 @@ void std_io_write(int32_t l0, vader_string_t l1);
 vader_string_t std_io_current_working_directory(void);
 bool std_io_exists(vader_string_t l0);
 bool std_io_is_dir(vader_string_t l0);
-vader_box_t std_io_read_file_string(vader_string_t l0);
+vader_box_t std_io_read_file_string(vader_string_t l0, size_t l1);
 vader_string_t std_io_current_executable_location(void);
 vader_box_t std_io_read_dir(vader_string_t l0);
 void __defer_std_io_0(void* l0);

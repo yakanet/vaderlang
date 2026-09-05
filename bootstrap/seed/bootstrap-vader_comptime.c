@@ -5015,7 +5015,7 @@ static vader_box_t vader_comptime_read_relative_file(vader_string_t l0, vader_st
             l2 = concat_3(l1, 430u, l0);
         }
     }
-    l3 = std_io_read_file_string(l2);
+    l3 = std_io_read_file_string(l2, (size_t) (int64_t) INT64_C(268435456));
     if (l3.tag == 166u) {
         t1 = l3.payload.s;
         t2 = vader_box_string(166u, t1);
