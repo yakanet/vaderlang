@@ -34,14 +34,44 @@ ProjectCtx :: struct {
     /// Const symbol id → lowered value (inline bucket) — `build_ident`
     /// re-builds it at each read site.
     const_inline:  MutableMap<i32, LoweredExpr>
+    /// `@extern` fn symbol id → the indices of its CALLBACK parameters.
+    ///
+    /// Read off the DECLARATION, not off the callee expression's recorded type:
+    /// a namespace call, a UFCS call and a non-primary overload pick all record
+    /// the call's RESULT type on the callee ident, so asking the expression
+    /// would silently answer "no callbacks here" and emit a fn value into C.
+    /// A symbol names one declaration, which is also what makes an overload pick
+    /// unambiguous.
+    extern_callbacks: MutableMap<i32, MutableSet<usize>>
 }
 
 new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
+    externs :: MutableMap<i32, MutableSet<usize>> {}
+    for [_, m] in lp.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                if fn_metadata(fd).is_extern {
+                    if fd.origin.symbol is Symbol as sym {
+                        slots :: MutableSet<usize> {}
+                        for i in 0..<fd.params.len() {
+                            if fd.params[i].type is FnType {
+                                slots.add(i)
+                            }
+                        }
+                        if slots.len() > 0 {
+                            externs[sym.id] = slots
+                        }
+                    }
+                }
+            }
+        }
+    }
     return ProjectCtx {
         .strings = [],
         .string_index = MutableMap<string, i32> {},
         .const_fn_wrap = lp.const_fn_wrap,
         .const_inline  = lp.const_inline,
+        .extern_callbacks = externs,
     }
 }
 
@@ -234,6 +264,16 @@ FnMetadata :: struct {
     extern_name: string
     is_extern:   bool
     is_exported: bool
+    /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
+    /// or `""`. The linker does not need it — it resolves against what is on the
+    /// command line — but the VM does: it opens the library to find the symbol,
+    /// and `GetStdHandle` lives in `kernel32.dll`, not in the C runtime.
+    c_library:   string
+    /// `@c_header("<windows.h>")`, or `""`. When set, the emitter INCLUDES that
+    /// header and does not synthesise a prototype — the header already has the
+    /// real one, and a synthesised one that differs is a conflicting
+    /// declaration the C compiler refuses outright.
+    c_header:    string
 }
 
 import "toolchain/ast"
@@ -245,16 +285,64 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false
     is_exported := false
+    c_header := ""
+    c_library := ""
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
         is_extern = decorators_have(fn_decl.decorators, "extern")
         is_exported = decorators_have(fn_decl.decorators, "export")
+        c_header = c_header_of(fn_decl.decorators)
+        c_library = extern_library_name(fn_decl)
     }
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
         .is_exported = is_exported,
+        .c_header    = c_header,
+        .c_library   = c_library,
     }
+}
+
+/// The library named by a 2-argument `@extern`, or `""`.
+///
+/// `@extern("kernel32", "WriteFile")` names WHERE the symbol comes from: a
+/// linker library natively, a WASM import module, and the shared object the VM
+/// opens. One argument means the default resolution scope.
+///
+/// @param d  the declaration.
+/// @return   the library's bare name, or `""`.
+extern_library_name :: fn(d: FnDecl) -> string {
+    for dec in d.decorators {
+        if dec.name == "extern" && dec.args.len() == 2 {
+            a :: dec.args[0]
+            if a is StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
+}
+
+/// The header named by `@c_header("<...>")`, or `""` when absent.
+///
+/// @param decs  the declaration's decorators.
+/// @return      the header spelling, verbatim, including its brackets.
+c_header_of :: fn(decs: Decorator[]) -> string {
+    for d in decs {
+        if d.name == "c_header" && d.args.len() == 1 {
+            a :: d.args[0]
+            if a is StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
 }
 
 /// `@extern("c_name")` / `@extern("module", "c_name")` reader — returns the
@@ -275,12 +363,6 @@ extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
     }
     return fn_decl.name
 }
-
-decorators_have :: fn(decs: Decorator[], name: string) -> bool {
-    for d in decs { if d.name == name { return true } }
-    return false
-}
-
 
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
     fields: CFGStructField[]! = []
@@ -311,6 +393,8 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .extern_name = meta.extern_name,
         .is_exported = meta.is_exported,
         .is_extern   = meta.is_extern,
+        .c_header    = meta.c_header,
+        .c_library   = meta.c_library,
     }
 }
 
@@ -685,7 +769,12 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
 build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
         if callee_id.symbol.kind == SymbolKind.Fn {
-            args :: build_args(fn_ctx, e.args) ?? return null
+            slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
+            args :: if slots is MutableSet<usize> as cb {
+                build_extern_args(fn_ctx, e.args, cb, callee_id.symbol.name) ?? return null
+            } else {
+                build_args(fn_ctx, e.args) ?? return null
+            }
             dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
                 .dst = dst, .callee = callee_id.symbol, .args = args, .type = e.type, .span = e.span,
@@ -701,6 +790,52 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
         .fn_type = type_of(e.callee), .type = e.type, .span = e.span,
     })
     return dst
+}
+
+/// Arguments of an `@extern` call, where a fn-typed parameter is a CALLBACK.
+///
+/// A foreign callee receives the function's ADDRESS, not a Vader fn value — see
+/// `bytecode/op::FnAddr`. Only a direct reference to a named fn can supply one.
+///
+/// This is the AUTHORITY, and it refuses rather than degrading: falling back to
+/// a fn value here would hand C a `vader_fn_t` to jump into, which is a wild
+/// pointer no test distinguishes from a passing one.
+/// `typecheck/call::reject_indirect_callbacks` reports the same condition where
+/// the user can read it; reaching the panic means it missed a shape.
+///
+/// @param fn_ctx  the function being built.
+/// @param args    the call's arguments.
+/// @param slots   parameter indices that are callbacks, from the DECLARATION.
+/// @param callee  the callee's name, for the failure message.
+build_extern_args :: fn(
+    fn_ctx: FnCtx!, args: LoweredExpr[], slots: MutableSet<usize>, callee: string,
+) -> LocalId[] | null {
+    out: LocalId[]! = []
+    for i in 0..<args.len() {
+        a :: args[i]
+        if !slots.contains(i) {
+            local :: build_expr(fn_ctx, a) ?? return null
+            out.push(local)
+            continue
+        }
+        if a !is LoweredIdent {
+            panic("midir/build: argument ${i + 1} of `${callee}` is a callback that names no function — typecheck should have refused it (T3080)")
+        }
+        if a.symbol.kind != SymbolKind.Fn {
+            panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function — typecheck should have refused it (T3080)")
+        }
+        // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
+        // a fn-typed slot is a `ValType.Ref` — which `c_emit` puts in the frame's
+        // `raw[]`, where `vader_gc_scan_raw` dereferences it as an object header
+        // with no heap-membership check. `emit_fn_addr` makes the same choice for
+        // the temp; a slot is the other half of it.
+        dst :: fresh_tmp(fn_ctx, "fn_addr", TY_CPOINTER)
+        emit(fn_ctx, InstrFnAddr {
+            .dst = dst, .fn_symbol = a.symbol, .type = a.type, .span = a.span,
+        })
+        out.push(dst)
+    }
+    return out
 }
 
 build_args :: fn(fn_ctx: FnCtx!, args: LoweredExpr[]) -> LocalId[] | null {

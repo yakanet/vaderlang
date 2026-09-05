@@ -404,19 +404,27 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 // decorator on the same line as the decl). `decl_start_line` is the line
 // of the decl's first non-decorator token — the printer's call site picks
 // it (`name_span.start.line` for named decls, fallback to `span.start.line`).
+/// One decorator — `@name` or `@name(args)` — with nothing after it.
+///
+/// Shared by the declaration form, which picks its separator from the source
+/// lines, and the parameter form, which is always inline.
+emit_decorator :: fn(self: Printer!, deco: p.Decorator) -> void {
+    self.write("@")
+    self.write(deco.name)
+    if deco.args.len() > 0 {
+        self.write("(")
+        for j in 0..<deco.args.len() {
+            if j > 0 { self.write(", ") }
+            self.emit_expr(deco.args[j])
+        }
+        self.write(")")
+    }
+}
+
 emit_decorators :: fn(self: Printer!, decos: p.Decorator[], decl_start_line: i32) -> void {
     for i in 0..<decos.len() {
         deco :: decos[i]
-        self.write("@")
-        self.write(deco.name)
-        if deco.args.len() > 0 {
-            self.write("(")
-            for j in 0..<deco.args.len() {
-                if j > 0 { self.write(", ") }
-                self.emit_expr(deco.args[j])
-            }
-            self.write(")")
-        }
+        self.emit_decorator(deco)
         // Next-thing's line : the following decorator's line if any, else
         // the decl's start line.
         next_line :: if i + 1 < decos.len() {
@@ -559,6 +567,13 @@ flat_params_width :: fn(source: string, params: p.FnParam[]) -> usize {
 }
 
 emit_fn_param :: fn(self: Printer!, fp: p.FnParam) -> void {
+    // A parameter decorator is always inline — `@c_pointer d: Div!`. Dropping it
+    // is not cosmetic: the typechecker REQUIRES `@c_pointer` where a `@c_struct`
+    // crosses, so a formatted file stops compiling.
+    for deco in fp.decorators {
+        self.emit_decorator(deco)
+        self.write(" ")
+    }
     if fp.variadic { self.write("...") }
     self.write(fp.name)
     // `!` binds to the NAME, so it precedes the `: T` ascription.

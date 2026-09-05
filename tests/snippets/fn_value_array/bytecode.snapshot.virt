@@ -6,14 +6,14 @@ type 3 array 2
 export main 2
 
 fn 0 snippet$inc (i32) -> i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 1
   i32.add
   return
 end
 
 fn 1 snippet$double (i32) -> i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 2
   i32.mul
   return
@@ -24,31 +24,31 @@ fn 2 snippet$main () -> i32
   local $fn_ref_1 ref
   local $call_ind_7 i32
   local $call_ind_11 i32
-  fn.ref 0 2
-  local.set 0
-  fn.ref 1 2
-  local.set 1
-  local.get 0
-  local.get 1
-  array.new 3 2
-  local.tee 0
+  fn.ref 0 2   ; snippet$inc
+  local.set 0   ; $fn_ref_0
+  fn.ref 1 2   ; snippet$double
+  local.set 1   ; $fn_ref_1
+  local.get 0   ; $fn_ref_0
+  local.get 1   ; $fn_ref_1
+  array.new 3 2   ; fn[][]
+  local.tee 0   ; $fn_ref_0
   i32.const 0
-  array.get 3
-  local.set 1
+  array.get 3   ; fn[][]
+  local.set 1   ; $fn_ref_1
   i32.const 7
-  local.get 1
-  call.indirect 2
-  local.set 2
-  local.get 0
+  local.get 1   ; $fn_ref_1
+  call.indirect 2   ; fn
+  local.set 2   ; $call_ind_7
+  local.get 0   ; $fn_ref_0
   i32.const 1
-  array.get 3
-  local.set 0
+  array.get 3   ; fn[][]
+  local.set 0   ; $fn_ref_0
   i32.const 3
-  local.get 0
-  call.indirect 2
-  local.set 3
-  local.get 2
-  local.get 3
+  local.get 0   ; $fn_ref_0
+  call.indirect 2   ; fn
+  local.set 3   ; $call_ind_11
+  local.get 2   ; $call_ind_7
+  local.get 3   ; $call_ind_11
   i32.add
   return
 end

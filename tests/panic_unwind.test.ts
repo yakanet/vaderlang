@@ -16,9 +16,19 @@ const SNIPPET = "tests/snippets/panic_runs_defers/_main.vader";
 // Innermost frame's defer first (refund), then the caller's (release hold).
 const EXPECTED_STDOUT = "reserve inventory\ncharging 500\nrefund 500\nrelease hold\n";
 
+// The compiler the CLI would invoke on THIS host, mirroring
+// `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
+// half on the platform that most needs it — and did not even skip cleanly, since
+// `spawn` THROWS on a missing program rather than exiting non-zero.
+const HOST_CC = process.platform === "win32" ? "gcc" : "cc";
+
 async function haveCc(): Promise<boolean> {
-  const proc = Bun.spawn(["cc", "--version"], { stdout: "ignore", stderr: "ignore" });
-  return (await proc.exited) === 0;
+  try {
+    const proc = Bun.spawn([HOST_CC, "--version"], { stdout: "ignore", stderr: "ignore" });
+    return (await proc.exited) === 0;
+  } catch {
+    return false;
+  }
 }
 
 test("panic runs pending defers on the VM before aborting", async () => {

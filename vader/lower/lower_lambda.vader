@@ -130,6 +130,19 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
     return TY_UNRESOLVED
 }
 
+/// A module path as a C-safe identifier fragment (`vader/lower` -> `vader_lower`).
+module_key :: fn(path: string) -> string {
+    out := ""
+    for b in path.bytes() {
+        if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
+            out = out + "${char(b)}"
+        } else {
+            out = out + "_"
+        }
+    }
+    return out
+}
+
 /// Bump and return the next synthetic Symbol id from the project's
 /// monotonically-decreasing pool. Shared with `lower_defer` so both
 /// lifts pull from a single counter (otherwise `__lambda_N` /
@@ -171,14 +184,27 @@ fresh_lifted_symbol :: fn(ctx: FnLowerCtx!, is_env: bool) -> Symbol {
 /// shared pool so the two passes' naming counters stay consistent.
 export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_prefix: string, env_prefix: string) -> Symbol {
     id :: next_synthetic_id(ctx)
-    suffix :: render_id_for_name(id)
     prefix := fn_prefix
     kind := SymbolKind.Fn
     if is_env {
         prefix = env_prefix
         kind = SymbolKind.Struct
     }
-    return Symbol { .id = id, .kind = kind, .name = "${prefix}${suffix}", .module = ctx.typed.resolved.path, .visibility = AST.Visibility.Private, .defined_at = null }
+    // The NAME is keyed per module, the ID stays project-global: the id must be
+    // unique program-wide, the name only has to be stable. `next_synthetic_id`
+    // is a project-wide rank, so a function reached by one target alone
+    // renumbered every lambda behind it — see `LowerProjectCtx.lambda_seq`.
+    // `display_path` is the DECLARED module name, not the folder: `path` carries
+    // the filesystem identity and is absolute whenever the entry was named
+    // absolutely, which would put the build directory in the emitted C.
+    //
+    // The counter is keyed on the SAME sanitised string the name uses. Keyed on
+    // the raw one, two modules that sanitise alike both start at 0 and mint
+    // identical names.
+    key :: module_key(ctx.typed.resolved.display_path)
+    seq :: ctx.project.lambda_seq[key] ?? 0
+    ctx.project.lambda_seq[key] = seq + 1
+    return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = AST.Visibility.Private, .defined_at = null }
 }
 
 /// Synthetic IDs walk negative ; render as an unsigned magnitude for

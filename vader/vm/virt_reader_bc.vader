@@ -349,6 +349,26 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
     return DirectiveError { .reason = "unrecognised type kind in `${rest}`" }
 }
 
+/// Byte offset of the ` as "` that introduces a mirrored C type, or -1.
+///
+/// Scanned by hand: `std/string` has no substring search, and the one place
+/// that needs it is this line format.
+///
+/// @param s  the text between `struct ` and `{`.
+/// @return   the offset of the space starting ` as "`, or -1 when absent.
+find_mirror_marker :: fn(s: string) -> isize {
+    bs :: s.bytes()
+    if bs.len() < 5 {
+        return -1
+    }
+    for i in 0..<bs.len() - 4 {
+        if bs[i] == ' ' && bs[i + 1] == 'a' && bs[i + 2] == 's' && bs[i + 3] == ' ' && bs[i + 4] == '"' {
+            return isize(i)
+        }
+    }
+    return -1
+}
+
 /// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
 /// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
 /// → `-1`.
@@ -368,7 +388,22 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` with
     // json-escapes ; unquote so `sanitise` derives the same C identifier as the
     // direct-source build.
-    name :: unquote_struct_name(raw_name)
+    // `Name as "struct timespec"` — the mirrored C type, absent on an ordinary
+    // struct. Split before unquoting: both halves are quoted independently.
+    marker :: find_mirror_marker(raw_name)
+    c_name :: if marker < 0 {
+        ""
+    } else {
+        tail :: raw_name.bytes()[usize(marker) + 5..<raw_name.bytes().len()].bytes_to_string()
+        end :: tail.index_of('"', 0)
+        if end < 0 { "" } else { tail.bytes()[0..<usize(end)].bytes_to_string() }
+    }
+    bare :: if marker < 0 {
+        raw_name
+    } else {
+        raw_name.bytes()[0..<usize(marker)].bytes_to_string()
+    }
+    name :: unquote_struct_name(bare)
     fields: bc.BcField[]! = []
     if open >= 0 {
         asb :: after_struct.bytes()
@@ -398,7 +433,7 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
             }
         }
     }
-    return bc.BcStruct { .name = name, .fields = fields, .symbol_id = -1 }
+    return bc.BcStruct { .name = name, .fields = fields, .c_name = c_name, .symbol_id = -1 }
 }
 
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
@@ -446,18 +481,98 @@ parse_import_decl_bc :: fn(
             .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)",
         }
     }
-    extern_name :: parts[name_i]
+    // `<lib>:<symbol>` when the symbol comes from a named library — see
+    // `write_imports`. A bare name means the default resolution scope.
+    raw_name :: parts[name_i]
+    colon :: raw_name.index_of(':', 0)
+    c_library :: if colon < 0 {
+        ""
+    } else {
+        raw_name.bytes()[0..<usize(colon)].bytes_to_string()
+    }
+    extern_name :: if colon < 0 {
+        raw_name
+    } else {
+        raw_name.bytes()[usize(colon) + 1..<raw_name.bytes().len()].bytes_to_string()
+    }
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature = if open < 0 {
         bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
     } else {
         parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
+    // Attributes written between the mangled name and the signature —
+    // `header=<...>` and `result_type=<n>`, in either order and both optional.
+    // Read by scanning rather than by position, so adding a third one later does
+    // not silently shift the others.
+    c_header := ""
+    result_type: i32 = 0
+    param_types: i32[]! = []
+    param_mutable: bool[]! = []
+    param_by_address: bool[]! = []
+    for i in (name_i + 2)..<parts.len() {
+        attr :: parts[i]
+        if attr.starts_with("header=") {
+            c_header = attr.trim_prefix("header=")
+        }
+        if attr.starts_with("result_type=") {
+            parsed :: parse_int_in_base(attr.trim_prefix("result_type="), 10)
+            if parsed !is ParseError {
+                result_type = i32(parsed)
+            }
+        }
+        if attr.starts_with("param_types=") {
+            for field in attr.trim_prefix("param_types=").split(",") {
+                parsed :: parse_int_in_base(field, 10)
+                param_types.push(if parsed is ParseError { 0 } else { i32(parsed) })
+            }
+        }
+        if attr.starts_with("param_mutable=") {
+            for field in attr.trim_prefix("param_mutable=").split(",") {
+                param_mutable.push(field == "1")
+            }
+        }
+        if attr.starts_with("param_by_address=") {
+            for field in attr.trim_prefix("param_by_address=").split(",") {
+                param_by_address.push(field == "1")
+            }
+        }
+    }
+    // The result's type index is carried as an attribute rather than by
+    // `write_signature`, which renders a union as `any` — so it is stitched back
+    // in here. Without it a `string | null` result reads as a plain word and the
+    // FFI hands the atom back as an integer.
+    final_sig :: bc.BcSignature {
+        .params = sig.params, .result = sig.result,
+        // Only trust the attribute when it describes every parameter: a partial
+        // list would misalign the block layout it feeds.
+        .param_types = if param_types.len() == sig.params.len() {
+            param_types
+        } else {
+            sig.param_types
+        },
+        .result_type = if result_type == 0 { sig.result_type } else { result_type },
+        .param_names = sig.param_names,
+        // Same rule as `param_types`: a list that does not cover every parameter
+        // is not trusted, the flags being read positionally.
+        .param_mutable = if param_mutable.len() == sig.params.len() {
+            param_mutable
+        } else {
+            sig.param_mutable
+        },
+        .param_by_address = if param_by_address.len() == sig.params.len() {
+            param_by_address
+        } else {
+            sig.param_by_address
+        },
+    }
     imports.push(bc.BcImport {
         .extern_name  = extern_name,
         .mangled_name = mangled,
-        .signature    = sig,
+        .signature    = final_sig,
         .is_extern    = is_extern,
+        .c_library    = c_library,
+        .c_header     = c_header,
     })
     return null
 }

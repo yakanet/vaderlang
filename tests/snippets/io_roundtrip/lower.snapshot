@@ -21,54 +21,62 @@
         "hello from vader" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(13) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(13) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
                   __off_1 :usize
-                arg2:
-                  "exists: " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  call :bool
+                value:
+                  call :usize
                     callee:
-                      exists :fn(string) -> bool
+                      write_string_at :usize
                     arg0:
-                      path :string
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "exists: " :string
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_bool :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      call :bool
+                        callee:
+                          exists :fn(string) -> bool
+                        arg0:
+                          path :string
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+          arg1:
+            "\n" :string
     let contents: IOError | string =
       call :IOError | string
         callee:
@@ -85,16 +93,24 @@
             ~>
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
+                  int(0) :i32
+                arg1:
                   call :string
                     callee:
                       concat_2 :string
                     arg0:
-                      "read: " :string
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "read: " :string
+                        arg1:
+                          cast → string
+                            contents :IOError | string
                     arg1:
-                      cast → string
-                        contents :IOError | string
+                      "\n" :string
           else:
             ~>
               if :void
@@ -105,9 +121,17 @@
                   ~>
                     call :void
                       callee:
-                        std_io$println__string :void
+                        write :fn(Stream, string) -> void
                       arg0:
-                        "read failed" :string
+                        int(0) :i32
+                      arg1:
+                        call :string
+                          callee:
+                            concat_2 :string
+                          arg0:
+                            "read failed" :string
+                          arg1:
+                            "\n" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -47,12 +47,15 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 # give.
 SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 
-# Every target the seed carries. All of them, including the two that have no
-# backend yet: a target costs only the units that actually differ for it (25 KB
-# with one `@target` in the closure, nothing at all today), and a seed that
-# covers a platform before the platform ships is what keeps `seed.sh check`
-# reproducible from any machine.
-SEED_TARGETS="darwin-arm64,darwin-x86_64,linux-x86_64,linux-arm64,windows-x86_64,windows-arm64,wasi-wasm32,browser-wasm32"
+# Every target that has a backend. `wasi-wasm32` and `browser-wasm32` are out:
+# emitting for a platform nothing can compile does not make the seed more
+# portable, and it makes every `@target` group answer for a case that cannot be
+# written yet — a write syscall needs `fd_write` and an iovec array on WASI, and
+# has no meaning at all in a browser. They come back with the WASM emitter.
+# One arch per OS: bootstrapping on a second arch of the same OS needs no seed
+# of its own — the emitted C is portable, `cc` targets the arch. Cross-compiling
+# to the others stays available through `--target`; only the seed is narrower.
+SEED_TARGETS="darwin-arm64,linux-x86_64,windows-x86_64"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
@@ -266,7 +269,7 @@ generator:        $VADER
 META
 
     shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null | wc -l | tr -d ' ')
-    per_target=$(ls bootstrap/seed/ | grep -cE '\.(darwin|linux|windows|wasi|browser)-' || true)
+    per_target=$(find bootstrap/seed -mindepth 2 -name '*.c' 2>/dev/null | wc -l | tr -d ' ')
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
     echo "  git diff --stat bootstrap/seed"

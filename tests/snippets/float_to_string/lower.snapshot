@@ -41,13 +41,21 @@
               __for_i_2 :usize
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
+            int(0) :i32
+          arg1:
             call :string
               callee:
-                format_f64 :fn(f64) -> string
+                concat_2 :string
               arg0:
-                x :f64
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    x :f64
+              arg1:
+                "\n" :string
         assign
           target:
             __for_i_2 :usize
@@ -60,31 +68,39 @@
     let pi: f64 = float(3.141592653589793) :f64
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
-            "pi = " :string
+            call :string
+              callee:
+                concat_4 :string
+              arg0:
+                "pi = " :string
+              arg1:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    pi :f64
+              arg2:
+                ", sci = " :string
+              arg3:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    mul :{float}
+                      l:
+                        float(2.5e-8) :f64
+                      r:
+                        float(1.0) :f64
           arg1:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                pi :f64
-          arg2:
-            ", sci = " :string
-          arg3:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                mul :{float}
-                  l:
-                    float(2.5e-8) :f64
-                  r:
-                    float(1.0) :f64
+            "\n" :string
     let inf: f64 =
       div :{float}
         l:
@@ -93,38 +109,46 @@
           float(0.0) :f64
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_5 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                format_f64 :fn(f64) -> string
+                concat_5 :string
               arg0:
-                inf :f64
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    inf :f64
+              arg1:
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    neg :f64
+                      inf :f64
+              arg3:
+                " " :string
+              arg4:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    div :{float}
+                      l:
+                        float(0.0) :f64
+                      r:
+                        float(0.0) :f64
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                neg :f64
-                  inf :f64
-          arg3:
-            " " :string
-          arg4:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                div :{float}
-                  l:
-                    float(0.0) :f64
-                  r:
-                    float(0.0) :f64
+            "\n" :string
     return int(0) :i32
   fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
     let c0: usize =

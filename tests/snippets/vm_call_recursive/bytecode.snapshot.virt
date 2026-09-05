@@ -5,25 +5,25 @@ export main 1
 
 fn 0 snippet$factorial (i32) -> i32
   local $call_6 i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 1
   i32.le
   if $L0 void
     return.lit i32.const 1
   end $L0
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 1
   i32.sub
-  call 0
-  local.set 1
-  local.get 0
-  local.get 1
+  call 0   ; snippet$factorial
+  local.set 1   ; $call_6
+  local.get 0   ; arg 0
+  local.get 1   ; $call_6
   i32.mul
   return
 end
 
 fn 1 snippet$main () -> i32
   i32.const 5
-  call 0
+  call 0   ; snippet$factorial
   return
 end

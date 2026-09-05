@@ -17,154 +17,218 @@
           ~>
             call :void
               callee:
-                std_io$println__string :void
+                write :fn(Stream, string) -> void
               arg0:
+                int(0) :i32
+              arg1:
                 call :string
                   callee:
-                    concat_3 :string
+                    concat_2 :string
                   arg0:
-                    label :string
+                    call :string
+                      callee:
+                        concat_3 :string
+                      arg0:
+                        label :string
+                      arg1:
+                        "=ERR:" :string
+                      arg2:
+                        .msg :string
+                          cast → Base64Error
+                            out :Base64Error | u8[]
                   arg1:
-                    "=ERR:" :string
-                  arg2:
-                    .msg :string
-                      cast → Base64Error
-                        out :Base64Error | u8[]
+                    "\n" :string
         else:
           ~>
             call :void
               callee:
-                std_io$println__string :void
+                write :fn(Stream, string) -> void
               arg0:
+                int(0) :i32
+              arg1:
                 call :string
                   callee:
-                    concat_3 :string
+                    concat_2 :string
                   arg0:
-                    label :string
-                  arg1:
-                    "=" :string
-                  arg2:
                     call :string
                       callee:
-                        bytes_to_string :string
+                        concat_3 :string
                       arg0:
-                        cast → u8[]
-                          out :Base64Error | u8[]
+                        label :string
+                      arg1:
+                        "=" :string
+                      arg2:
+                        call :string
+                          callee:
+                            bytes_to_string :string
+                          arg0:
+                            cast → u8[]
+                              out :Base64Error | u8[]
+                  arg1:
+                    "\n" :string
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-f=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-f=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "f" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "f" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-fo=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-fo=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "fo" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "fo" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-foo=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-foo=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "foo" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "foo" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-foob=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-foob=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "foob" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "foob" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-fooba=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-fooba=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "fooba" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "fooba" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            "enc-foobar=" :string
-          arg1:
             call :string
               callee:
-                encode :fn(u8[]) -> string
+                concat_2 :string
               arg0:
-                call :u8[]
+                "enc-foobar=" :string
+              arg1:
+                call :string
                   callee:
-                    bytes :u8[]
+                    encode :fn(u8[]) -> string
                   arg0:
-                    "foobar" :string
+                    call :u8[]
+                      callee:
+                        bytes :u8[]
+                      arg0:
+                        "foobar" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
         show_decode :fn(string, string) -> void
@@ -248,109 +312,125 @@
             ~>
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
+                  int(0) :i32
+                arg1:
                   call :string
                     callee:
-                      concat_3 :string
+                      concat_2 :string
                     arg0:
-                      "roundtrip-" :string
+                      call :string
+                        callee:
+                          concat_3 :string
+                        arg0:
+                          "roundtrip-" :string
+                        arg1:
+                          s :string
+                        arg2:
+                          "=ERR" :string
                     arg1:
-                      s :string
-                    arg2:
-                      "=ERR" :string
+                      "\n" :string
           else:
             ~>
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
-                  block :string
-                    let __p_3: string = s :string
-                    let __buf_4: Buffer =
-                      call :Buffer
-                        callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          add :usize
-                            l:
-                              int(16) :usize
-                            r:
-                              call :usize
-                                callee:
-                                  byte_len :usize
-                                arg0:
-                                  __p_3 :string
-                    let __off_5: usize = int(0) :usize
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
+                  int(0) :i32
+                arg1:
+                  call :string
+                    callee:
+                      concat_2 :string
+                    arg0:
+                      block :string
+                        let __p_3: string = s :string
+                        let __buf_4: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              add :usize
+                                l:
+                                  int(16) :usize
+                                r:
+                                  call :usize
+                                    callee:
+                                      byte_len :usize
+                                    arg0:
+                                      __p_3 :string
+                        let __off_5: usize = int(0) :usize
+                        assign
+                          target:
                             __off_5 :usize
-                          arg2:
-                            "roundtrip-" :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                "roundtrip-" :string
+                        assign
+                          target:
                             __off_5 :usize
-                          arg2:
-                            __p_3 :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                __p_3 :string
+                        assign
+                          target:
                             __off_5 :usize
-                          arg2:
-                            "=" :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_bool :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                "=" :string
+                        assign
+                          target:
                             __off_5 :usize
-                          arg2:
-                            eq :bool
-                              l:
-                                call :string
-                                  callee:
-                                    bytes_to_string :string
-                                  arg0:
-                                    cast → u8[]
-                                      decoded :Base64Error | u8[]
-                              r:
-                                s :string
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
-                        arg0:
-                          __buf_4 :Buffer
-                        arg1:
-                          __off_5 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_bool :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                eq :bool
+                                  l:
+                                    call :string
+                                      callee:
+                                        bytes_to_string :string
+                                      arg0:
+                                        cast → u8[]
+                                          decoded :Base64Error | u8[]
+                                  r:
+                                    s :string
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
+                    arg1:
+                      "\n" :string
         assign
           target:
             __for_i_2 :usize

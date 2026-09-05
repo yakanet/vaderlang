@@ -744,6 +744,7 @@ export infer_call :: fn(
             ),
         )
     }
+    reject_indirect_callbacks(c, callee_ty, typed, diags)
     // `@no_return` callees (`panic` / `todo` / `unreachable`) yield `never`.
     // Resolved once here, applied at each return below — args are still
     // type-checked first so a bad argument to `todo(...)` is still flagged.
@@ -1066,6 +1067,54 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
 // True when the callee fn carries `@no_return` (`panic` / `todo` /
 // `unreachable`). Such a call diverges, so its expression type is `never` —
 // assignable into any slot and flow-terminating (see `is_divergent_stmt`).
+/// Reject a callback argument that is not a direct reference to a named fn.
+///
+/// What crosses to C is the function's ADDRESS (`bytecode/op::FnAddr`), and only
+/// a named fn has one: a lambda or a closure is a `vader_fn_t` whose `code` takes
+/// a leading `env` and boxed arguments, so the foreign callee would jump into the
+/// wrong ABI. The TYPE is fine in both cases — this is a shape rule, which is why
+/// it needs a diagnostic of its own rather than a mismatch.
+///
+/// @param c          the call being checked.
+/// @param callee_ty  its callee's fn type, for the parameter positions.
+/// @param typed      resolves an argument to the fn it names, if any.
+/// @param diags      accumulator for T3080.
+reject_indirect_callbacks :: fn(
+    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    // Nothing to look up unless a parameter is a fn type — this runs on every
+    // call expression in the program, and almost none has one.
+    has_callback := false
+    for pt in callee_ty.params {
+        if pt is FnType {
+            has_callback = true
+        }
+    }
+    if !has_callback {
+        return
+    }
+    decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
+    if !decorators_have(decl.decorators, "extern") {
+        return
+    }
+    n :: min(c.args.len(), callee_ty.params.len())
+    for i in 0..<n {
+        if callee_ty.params[i] !is FnType {
+            continue
+        }
+        // The SAME question `midir/build::build_extern_args` asks — does this
+        // argument resolve to a fn symbol. A syntactic ident test is not it: a
+        // local bound to a fn is an ident and has no address of its own.
+        if lookup_callee_fn_decl(c.args[i].value, typed) != null {
+            continue
+        }
+        diags.push(typecheck_error(
+            .CallbackNotDirectFn, c.args[i].span,
+            "argument ${i + 1} of `${callee_name(c.callee)}`",
+        ))
+    }
+}
+
 callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
     decl :: lookup_callee_fn_decl(callee, typed) ?? return false
     for d in decl.decorators {

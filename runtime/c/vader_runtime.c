@@ -50,6 +50,10 @@
 extern char** environ;
 #endif
 
+/* Dynamic foreign calls for the VM — trampolines plus library loading. Included
+ * here, after the platform block, because the runtime builds as a single TU. */
+#include "vader_ffi.h"
+
 /* ----------------------------------------------------------------- defer
  *
  * Global LIFO of pending `defer` closures. The C-emit appends to it via
@@ -104,8 +108,6 @@ void vader_defer_pop_exec(uint32_t count) {
 }
 
 /* ----------------------------------------------------------------- gc arena */
-
-#define VADER_GC_ALIGN 8u
 
 typedef struct {
     char* base;
@@ -182,6 +184,12 @@ static vader_old_region_t* g_old_large_free = NULL;   /* freed large regions, be
  * previous epoch's marks read as "unmarked" without a clear pass; a FREE slot
  * carries 0 (never equal to g_mark_value). `vader_old_alloc` stamps live=this. */
 static uint8_t g_mark_value = 1u;
+
+/* Set the first time a Vader function's ADDRESS is handed to C (`fn.addr`).
+ * Until then no foreign callee can re-enter Vader, so no foreign call is a
+ * safepoint and nothing lent to one can move. It never clears: once C holds the
+ * address it may call it at any later point, through any other function. */
+uint8_t vader_ffi_callback_escaped = 0u;
 
 /* Gray worklist — objects whose slots still need scanning. Reused by both
  * cycles: minor pushes freshly-promoted old objects (to forward their young
@@ -699,7 +707,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
      * On Windows the CRT defaults stdout to TEXT mode, which translates every
      * `\n` to `\r\n` — that corrupts `dump` / `build` / `fmt` output (LF on
      * disk, CRLF on the wire) and every snapshot comparison. Force binary here,
-     * not just lazily in `vader_read_stdin` (which only `lsp` reaches). */
+     * not just lazily on the first stdin read. */
     vader_ensure_stdio_binary();
     if (g_atoms_initialized) return;
     g_atoms_initialized = 1;
@@ -1196,8 +1204,8 @@ static void vader_atom_mark_roots(void) {
         }
         /* Stack objects are OFF-ARENA, so `vader_atom_mark_heap` — young
          * from-space plus the live old slots — never reaches them. Redundant
-         * with `vader_atom_mark_cstack_conservative` today, since their fields do
-         * sit on the C stack; precise here so that scan can one day go.
+         * with `vader_atom_mark_cstack_conservative`, since their fields do sit
+         * on the C stack.
          *
          * Guard each list on its own, NOT the frame: a frame carrying stack
          * objects and no box roots must not be skipped whole. */
@@ -1206,6 +1214,16 @@ static void vader_atom_mark_roots(void) {
                 char* o = (char*) fr->stack_objs[i];
                 if (o != NULL) {
                     vader_atom_mark_object(o, ((vader_obj_header_t*) o)->type_index, NULL);
+                }
+            }
+        }
+        /* String locals. A `vader_string_t` is an atom ID, not a pointer, so it
+         * cannot appear in `ptrs` or `raw` — this list is the only PRECISE root
+         * an atom has. */
+        if (fr->atoms != NULL) {
+            for (uint32_t i = 0; i < fr->natoms; i++) {
+                if (fr->atoms[i] != NULL) {
+                    vader_atom_mark(*fr->atoms[i]);
                 }
             }
         }
@@ -1805,6 +1823,22 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object — the trace never visits it, so any inner dynamic
  * ref would be missed and freed under your feet. */
+/* Copy a young object into the non-moving old gen and forward the original to
+ * it. Returns NULL when the old reservation is at its cap — the caller decides
+ * what that means. The caller also PUBLISHES the copy: a collection gray-pushes
+ * it, an out-of-cycle tenure marks its card. */
+static void* vader_gc_promote(void* obj, vader_obj_header_t* hdr, size_t bytes, uint8_t age) {
+    void* dst = vader_old_alloc(bytes);
+    if (dst == NULL) return NULL;
+    memcpy(dst, obj, bytes);
+    hdr->forward = dst;                              /* source forwards to promoted */
+    vader_obj_header_t* dh = (vader_obj_header_t*) dst;
+    dh->forward = NULL;                              /* the memcpy carried the source's */
+    dh->age  = age;
+    dh->mark = g_mark_value;                         /* live in the current old epoch */
+    return dst;
+}
+
 /* Definition of the guard declared above. Kept out of the hot path's body so
  * the fast case is a single load-and-test the branch predictor never misses. */
 static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index) {
@@ -1858,14 +1892,8 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
      * young.to — the retry path in vader_gc_alloc escalates to a major (whose
      * sweep frees old room) and traps only at the true cap. */
     if (hdr->age + 1u >= VADER_TENURE_AGE) {
-        void* dst = vader_old_alloc(bytes);
+        void* dst = vader_gc_promote(obj, hdr, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
-            memcpy(dst, obj, bytes);
-            hdr->forward = dst;                          /* source forwards to promoted */
-            vader_obj_header_t* dh = (vader_obj_header_t*) dst;
-            dh->forward = NULL;
-            dh->age  = (uint8_t)(hdr->age + 1u);
-            dh->mark = g_mark_value;                     /* live in the current old epoch */
             g_total_copied += bytes;
             vader_gray_push((char*) dst);                /* scan its slots for young refs */
             return dst;
@@ -1976,6 +2004,14 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * Same write-barrier rule as `vader_gc_scan_box`. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
+    /* Membership BEFORE the header read. `vader_gc_forward` guards this way and
+     * this function did not: its fast path read `hdr->forward` on whatever the
+     * slot held. A slot holding a non-heap address then had those eight bytes
+     * read as a forwarding pointer and written back — for a `.text` address
+     * (`fn.addr`) that is machine code, never NULL, so the callback pointer was
+     * replaced by an instruction encoding and the next call jumped to it. An
+     * immortal or an off-heap pointer is not ours to move. */
+    if (!vader_in_young_from(*slot) && !vader_in_old(*slot)) return;
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
     if (hdr->forward != NULL) { *slot = hdr->forward; }
     else { *slot = vader_gc_forward(*slot, hdr->type_index); }
@@ -2395,6 +2431,31 @@ vader_gc_stats_t vader_gc_get_stats(void) {
  * table is the single source of truth and is mirrored by the PHASE_*
  * constants in vader/profile/profile.vader. Keep the two in lockstep. */
 
+/* The profiler's own clock. Internal on purpose: `std/time` reads the OS
+ * clocks itself through `@target` + `@extern`, so nothing outside this file
+ * needs it and it stays off the FFI surface. */
+static vader_i64_t prof_monotonic_ns(void) {
+#ifdef _WIN32
+    static LARGE_INTEGER freq = { .QuadPart = 0 };
+    if (freq.QuadPart == 0) {
+        QueryPerformanceFrequency(&freq);
+    }
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    /* Avoid `now * 1_000_000_000` overflow by splitting via the
+     * frequency divisor — preserves resolution to the granularity
+     * of the underlying counter (~100 ns on modern Intel/AMD). */
+    vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
+    vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
+    vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
+    return whole_sec_ns + sub_sec_ns;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (vader_i64_t) ts.tv_sec * 1000000000 + (vader_i64_t) ts.tv_nsec;
+#endif
+}
+
 #define VADER_PROF_MAX_PHASES 16
 
 /* Phase names — index = phase id. Mirror in vader/profile/profile.vader. */
@@ -2496,13 +2557,13 @@ void vader_prof_begin(int32_t phase_id) {
     g_prof_coll0        = (int64_t) s.total_collections;
     g_prof_alloc0       = (int64_t) s.total_alloc_bytes;
     g_prof_alloc_count0 = (int64_t) s.total_alloc_count;
-    g_prof_t0           = vader_clock_monotonic_ns();   /* start the clock last */
+    g_prof_t0           = prof_monotonic_ns();   /* start the clock last */
 }
 
 void vader_prof_end(int32_t phase_id) {
     if (!vader_prof_enabled()) return;
     if (phase_id < 0 || phase_id >= VADER_PROF_MAX_PHASES) return;
-    int64_t t1 = vader_clock_monotonic_ns();       /* stop the clock first */
+    int64_t t1 = prof_monotonic_ns();       /* stop the clock first */
     vader_gc_stats_t s = vader_gc_get_stats();
     g_prof_wall_ns[phase_id]    += t1 - g_prof_t0;
     g_prof_rss_growth[phase_id] += vader_prof_max_rss_bytes() - g_prof_rss0;
@@ -2727,6 +2788,76 @@ static void vader_array_resolve_buf(vader_array_t* a) {
     if (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = vader_array_buf_forward(a->buf);
     }
+}
+
+/* Force a young object into the NON-MOVING old generation so a pointer into it
+ * survives a foreign call, leaving a forwarding pointer behind.
+ *
+ * NOT a pin — the object MOVES, and safety rests entirely on every reader
+ * re-resolving through `forward`. The array data buffer is such a reader
+ * (`vader_array_resolve_buf` runs at every site that touches `buf->slots`); an
+ * object Vader holds directly is NOT, because the caller's own local would keep
+ * addressing the evacuated copy until the next minor rewrote it, and every write
+ * in between would be lost. Those root the pointer across the call instead.
+ *
+ * Tenuring is permanent: the old generation is non-moving, so the object never
+ * returns to young and only a major reclaims it. That is why the caller gates on
+ * `vader_ffi_callback_escaped` rather than doing this on every lend.
+ *
+ * Returns the tenured address, or the original when the old generation is at its
+ * cap — a lend that could not be secured, which is the pre-existing hazard and
+ * not a new one. */
+static void* vader_gc_force_tenure(void* obj) {
+    if (!vader_in_young_from(obj)) return obj;   /* old or immortal: already still */
+    vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+    if (hdr->forward != NULL) return hdr->forward;
+    size_t bytes = vader_gc_obj_size(obj, hdr->type_index);
+    if (bytes == 0) return obj;
+    void* dst = vader_gc_promote(obj, hdr, bytes, VADER_TENURE_AGE);
+    if (dst == NULL) return obj;
+    /* No cycle is running to trace the copy, so mark its card: the next minor
+     * scans it for old->young edges. The buffers this tenures today are
+     * scalar-element (`vader_array_bytes` traps on BOXED and REF above), so it
+     * finds none — the mark is what keeps the helper correct for a caller that
+     * tenures something with reference slots. */
+    VADER_WRITE_BARRIER(dst);
+    return dst;
+}
+
+/* Lend an array's raw bytes to a foreign callee — see the contract in vader.h. */
+vader_slice_t vader_array_bytes(vader_array_t* a) {
+    vader_slice_t s = { NULL, 0 };
+    if (a == NULL) return s;
+    a = vader_array_resolve(a);
+    if (a->length == 0) return s;
+
+    if (vader_array_is_borrowed(a)) {
+        /* A borrowed view is always a BYTE view over an interned atom, so
+         * `offset` and `length` are already byte quantities. */
+        const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a));
+        s.ptr = src + a->offset;
+        s.len = a->length;
+        return s;
+    }
+
+    vader_array_resolve_buf(a);
+    if (a->buf == NULL) return s;
+    if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED
+        || a->buf->element_kind == VADER_ARRAY_KIND_REF) {
+        vader_trap("vader_array_bytes: array of refs cannot cross the C ABI");
+    }
+    /* C holds this pointer for the whole call. If a Vader function address has
+     * ever crossed into C, any foreign call can re-enter and collect, so the
+     * buffer has to stop moving; other headers sharing it pick the new address
+     * up through `vader_array_resolve_buf`. Until one has, no callee can call
+     * back and the lend costs what it always did. */
+    if (vader_ffi_callback_escaped) {
+        a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
+    }
+    size_t esz = vader_array_element_size(a->buf->element_kind);
+    s.ptr = (const uint8_t*) a->buf->slots + a->offset * esz;
+    s.len = a->length * esz;
+    return s;
 }
 
 /* Out-of-line half of the emitter's per-access buf resolve — see the contract
@@ -3097,6 +3228,17 @@ void vader_array_clear(vader_array_t* a) {
         vader_trap("cannot clear a borrowed `const u8[]` byte view");
     }
     a = vader_array_resolve(a);
+    vader_array_resolve_buf(a);
+    /* Shrink the BUFFER alongside the array when this array owns the tail —
+     * same rule, and the same reason, as `vader_array_remove_last` above. Left
+     * out, `offset + length < buf->length` makes the next `vader_array_push`
+     * read the array as a slice view and detach into a fresh capacity-DOUBLED
+     * buffer, so a clear + refill loop doubles the backing store on every pass.
+     * A genuine view (offset != 0, or a shorter prefix) does not match and
+     * keeps its isolation. */
+    if (a->offset == 0 && a->offset + a->length == a->buf->length) {
+        a->buf->length = 0;
+    }
     a->length = 0;
 }
 
@@ -3241,89 +3383,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 /* ----------------------------------------------------------------- I/O */
 
-/* `stream_tag` mirrors `std/io::Stream` ; anything outside {Stdout, Stderr}
- * traps. The `println` / `eprintln` newline emission lives in the Vader-side
- * wrappers, not here. */
-#define VADER_STREAM_STDOUT ((int32_t) 0)
-#define VADER_STREAM_STDERR ((int32_t) 1)
-
-void vader_write(int32_t stream_tag, vader_string_t s) {
-    FILE* f;
-    if      (stream_tag == VADER_STREAM_STDOUT) f = stdout;
-    else if (stream_tag == VADER_STREAM_STDERR) f = stderr;
-    else    vader_trap("vader_write: invalid stream tag");
-    fwrite(vader_atom_data(s), 1, vader_atom_len(s), f);
-    fflush(f);
-}
-
-/* Byte-oriented file I/O. `read_file_bytes` reads the whole file into a fresh
- * owned `u8[]` (no intern, no UTF-8 reinterpretation) — `fread` lands directly
- * in the array's slots. No Vader allocation runs between `vader_array_new` and
- * the return, so `arr` cannot move before it is boxed. */
-vader_box_t vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
-                                  uint32_t elem_tag, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    FILE* f = fopen(p, "rb");
-    vader_atom_cstr_free(p);
-    if (f == NULL) return vader_box_string(err_tag, vader_string_new("file not found", 14));
-
-    if (fseek(f, 0, SEEK_END) != 0) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
-    }
-    long size = ftell(f);
-    if (size < 0) { fclose(f); return vader_box_string(err_tag, vader_string_new("ftell failed", 12)); }
-    if ((unsigned long) size > SIZE_MAX / 2) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("file too large", 14));
-    }
-    if (fseek(f, 0, SEEK_SET) != 0) {
-        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
-    }
-
-    vader_array_t* arr = vader_array_new(arr_type, (size_t) size, VADER_ARRAY_KIND_U8, elem_tag);
-    size_t n = (size_t) size > 0 ? fread(arr->buf->slots, 1, (size_t) size, f) : 0;
-    fclose(f);
-    if (n != (size_t) size) {
-        return vader_box_string(err_tag, vader_string_new("short read", 10));
-    }
-    return vader_box_obj(arr_type, arr);
-}
-
-/* Write a `u8[]`'s raw bytes verbatim. Handles both a borrowed view (bytes live
- * in the owner atom) and a materialised buffer — mirrors `vader_string_as_string`. */
-vader_box_t vader_write_file_bytes(vader_string_t path, vader_array_t* content,
-                                   uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    FILE* f = fopen(p, "wb");
-    vader_atom_cstr_free(p);
-    if (f == NULL) return vader_box_string(err_tag, vader_string_new("open failed", 11));
-
-    content = vader_array_resolve(content);
-    size_t len = content->length;
-    size_t n = len;
-    if (len > 0) {
-        if (vader_array_is_borrowed(content)) {
-            const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(content));
-            n = fwrite(src + content->offset, 1, len, f);
-        } else {
-            vader_array_resolve_buf(content);
-            const uint8_t* src = (const uint8_t*) content->buf->slots;
-            n = fwrite(src + content->offset, 1, len, f);
-        }
-    }
-    fclose(f);
-    if (n != len) return vader_box_string(err_tag, vader_string_new("short write", 11));
-    return vader_box_null();
-}
-
-vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
-    char buf[4096];
-    if (fgets(buf, sizeof(buf), stdin) == NULL) {
-        return vader_box_string(err_tag, vader_string_new("EOF", 3));
-    }
-    size_t n = strlen(buf);
-    if (n > 0 && buf[n - 1] == '\n') n--;
-    return vader_box_string(ok_tag, vader_string_new(buf, n));
-}
 
 /* Switch stdin/stdout/stderr to binary mode on Windows. The CRT default is
  * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
@@ -3332,7 +3391,7 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
  * the VM's runtime-error / panic messages are diffed byte-for-byte by the
  * snapshot suite, and text-mode `\n`→`\r\n` on stderr makes every such line
  * mismatch by an invisible trailing `\r` on Windows. Called at program startup
- * (`vader_atom_init_with_comptime`) and at the first `vader_read_stdin` ;
+ * (`vader_atom_init_with_comptime`) and at the first stdin read ;
  * idempotent via the static flag. POSIX has no such concept — the helper is a
  * no-op there. */
 static int g_stdio_binary_ready = 0;
@@ -3347,428 +3406,55 @@ static void vader_ensure_stdio_binary(void) {
 #endif
 }
 
-/* Read EXACTLY `n` bytes from stdin into a fresh string. Loops over
- * `fread` until `n` bytes have been accumulated or EOF is reached. EOF
- * before `n` bytes is an error — the LSP transport relies on this
- * "exactly N bytes" contract for Content-Length framing. Forces binary
- * mode on first call so `\r\n` survives the read on Windows. */
-vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
-    vader_ensure_stdio_binary();
-    if (n == 0) {
-        return vader_box_string(ok_tag, vader_string_new("", 0));
-    }
-    char* buf = (char*) malloc(n + 1u);
-    if (buf == NULL) vader_trap("read_stdin: malloc failed");
-    size_t got = 0;
-    while (got < n) {
-        size_t r = fread(buf + got, 1, n - got, stdin);
-        if (r == 0) {
-            if (feof(stdin)) {
-                free(buf);
-                return vader_box_string(err_tag, vader_string_new("EOF", 3));
-            }
-            if (ferror(stdin)) {
-                free(buf);
-                return vader_box_string(err_tag, vader_string_new("stdin read error", 16));
-            }
-            /* No data, no EOF, no error — interrupted read. Retry. */
-            continue;
-        }
-        got += r;
-    }
-    return vader_box_string(ok_tag, vader_atom_intern_take(buf, n));
-}
-
-/* Switch stdin to unbuffered so `fread` (used by `vader_read_stdin`) issues an
- * exact `read()` with no readahead — keeping `poll(STDIN_FILENO)` consistent
- * with what the next `read_stdin` will consume. Without this, fread's userspace
- * buffer can swallow a queued frame and hide it from `poll()`, breaking the LSP
- * debounce (poll reports "idle" while a full frame already sits in the buffer).
- * A length-prefixed RPC server calls this once at startup, BEFORE any stdin
- * read — the streaming `vader run prog.virt` stdin path keeps its buffering. */
-void vader_set_stdin_unbuffered(void) {
-    setvbuf(stdin, NULL, _IONBF, 0);
-}
-
-/* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
- * Used by the LSP event loop to detect a quiescent edit window: drain the burst
- * of `didChange` notifications, then run the typecheck once. Relies on stdin
- * being unbuffered (`vader_set_stdin_unbuffered`) so the raw fd reflects the real
- * pending bytes. A hangup (peer closed the pipe) reports ready so the caller's
- * next read observes EOF rather than spinning. */
-vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
-#if defined(_WIN32)
-    /* LSP stdin is a pipe (the editor's anonymous pipe). PeekNamedPipe reports
-     * bytes available WITHOUT consuming them — it works on anonymous pipes too,
-     * despite the name. It's instantaneous, so emulate the timeout by polling in
-     * small Sleep slices; this loop only runs during the debounce settle window
-     * (once per burst), never per byte. With unbuffered stdin
-     * (`vader_set_stdin_unbuffered`) the kernel pipe PeekNamedPipe inspects matches
-     * what the next `fread` will consume. */
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return 1; /* let the read attempt observe the state */
-    DWORD waited = 0;
-    for (;;) {
-        DWORD avail = 0;
-        if (!PeekNamedPipe(h, NULL, 0, NULL, &avail, NULL)) {
-            /* Not a pipe (console / redirected file) or peer closed the pipe —
-             * report ready so the next read proceeds or observes EOF, as the
-             * pre-debounce code did. Never reports a false "idle" that could
-             * spin. */
-            return 1;
-        }
-        if (avail > 0) return 1;
-        if (timeout_ms >= 0 && waited >= (DWORD) timeout_ms) return 0;
-        DWORD slice = 5;
-        if (timeout_ms >= 0) {
-            DWORD remaining = (DWORD) timeout_ms - waited;
-            if (remaining < slice) slice = remaining;
-        }
-        Sleep(slice);
-        waited += slice;
-    }
-#else
-    struct pollfd pfd;
-    pfd.fd      = STDIN_FILENO;
-    pfd.events  = POLLIN;
-    pfd.revents = 0;
-    int r = poll(&pfd, 1, timeout_ms);
-    /* r < 0 (e.g. EINTR) → treat as "nothing pending": the caller proceeds to
-     * flush, which is harmless. r == 0 → timeout. r > 0 → data or hangup. */
-    return r > 0;
-#endif
-}
-
-/* `exists` / `is_dir` / `read_dir` — filesystem queries split across POSIX
- * (`dirent.h`, `sys/stat.h`) and Windows (`FindFirstFileA` /
- * `GetFileAttributesA`). `exists` must NOT be implemented via `fopen` : the
- * Windows CRT refuses to open a directory as a file, so an `fopen`-based
- * check reports every directory as missing. That silently empties the
- * module-discovery walk — `walk_root` (vader/resolver/discover.vader) guards
- * on `exists(dir)` and bails before indexing anything, so every compile on
- * Windows fails with R2001. Use the stat / attribute query instead. Path
- * arguments come as atom IDs ; we materialise a NUL-terminated C string via
- * `vader_atom_to_cstr` and intern dirent names back through `vader_string_new`. */
+/* ------------------------------------------------- directory-entry accessors
+ *
+ * Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
+ * take for itself, and it is all that is left here: `std/io::read_dir` drives
+ * `opendir` / `readdir` / `FindFirstFileW` from Vader and calls one of these for
+ * the name. Only `cc` resolves the offset, and only from the real header —
+ * `d_name` sits at 21 on Darwin against 19 on glibc.
+ *
+ * They have to be CALLS and not struct reads: the interpreter has no C layout,
+ * but it can call a C function and resolve one by name out of its own process.
+ * `VADER_HOST_EXPORT` is what keeps that possible — see the macro. */
 
 #if defined(_WIN32)
 
-vader_bool_t vader_exists(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    DWORD attr = GetFileAttributesA(p);
-    vader_atom_cstr_free(p);
-    return attr != INVALID_FILE_ATTRIBUTES;
-}
 
-vader_bool_t vader_is_dir(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    DWORD attr = GetFileAttributesA(p);
-    vader_atom_cstr_free(p);
-    return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
-                           uint32_t str_type, uint32_t err_tag) {
-    /* FindFirstFileA expects a glob — append "\\*". */
-    const char* p = vader_atom_to_cstr(path);
-    size_t plen = vader_atom_len(path);
-    char* pat = (char*) malloc(plen + 3);
-    if (pat == NULL) {
-        vader_atom_cstr_free(p);
-        vader_trap("read_dir: malloc failed");
+/* It carries the UTF-16 conversion as well: `cFileName` is `WCHAR[MAX_PATH]`
+ * and a Vader string is UTF-8, so the encoding difference belongs on this side
+ * of the boundary.
+ *
+ * The result lives in a static buffer, valid until the next call — the same
+ * contract `cFileName` itself has, since `FindNextFileW` overwrites it. The shim
+ * interns before either happens. */
+VADER_HOST_EXPORT
+const char* vader_find_data_name(const void* fd) {
+    static char utf8[MAX_PATH * 4];
+    const WIN32_FIND_DATAW* d = (const WIN32_FIND_DATAW*) fd;
+    int n = WideCharToMultiByte(CP_UTF8, 0, d->cFileName, -1,
+                                utf8, (int) sizeof(utf8), NULL, NULL);
+    if (n <= 0) {
+        utf8[0] = '\0';
     }
-    memcpy(pat, p, plen);
-    size_t pat_len = plen;
-    if (pat_len > 0 && pat[pat_len - 1] != '\\' && pat[pat_len - 1] != '/') {
-        pat[pat_len++] = '\\';
-    }
-    pat[pat_len++] = '*';
-    pat[pat_len] = '\0';
-    vader_atom_cstr_free(p);
-
-    WIN32_FIND_DATAA fd;
-    HANDLE h = FindFirstFileA(pat, &fd);
-    free(pat);
-    if (h == INVALID_HANDLE_VALUE) {
-        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
-    }
-
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
-    VADER_GC_PUSH1(arr_box);
-    do {
-        const char* name = fd.cFileName;
-        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
-        size_t n = strlen(name);
-        /* `fd.cFileName` lives on the stack and is overwritten by the
-         * next FindNextFileA — intern via `vader_string_new` to copy the
-         * bytes into the atom table before the next iteration. */
-        vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
-    } while (FindNextFileA(h, &fd));
-    FindClose(h);
-    vader_box_t result = arr_box;
-    VADER_GC_POP();
-    return result;
+    return utf8;
 }
 
 #else  /* POSIX */
 
 #include <dirent.h>
-#include <sys/stat.h>
 
-vader_bool_t vader_exists(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    struct stat st;
-    int rc = stat(p, &st);
-    vader_atom_cstr_free(p);
-    return rc == 0;
-}
-
-vader_bool_t vader_is_dir(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    struct stat st;
-    int rc = stat(p, &st);
-    vader_atom_cstr_free(p);
-    return rc == 0 && S_ISDIR(st.st_mode);
-}
-
-vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
-                           uint32_t str_type, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    DIR* d = opendir(p);
-    vader_atom_cstr_free(p);
-    if (d == NULL) {
-        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
-    }
-
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
-    VADER_GC_PUSH1(arr_box);
-    struct dirent* ent;
-    while ((ent = readdir(d)) != NULL) {
-        const char* name = ent->d_name;
-        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
-        size_t n = strlen(name);
-        /* Intern the dirent name directly — the buffer is reused on the
-         * next readdir, so the atom dedupe/copy is the correct ownership
-         * transfer. */
-        vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
-    }
-    closedir(d);
-    vader_box_t result = arr_box;
-    VADER_GC_POP();
-    return result;
+/* The bytes belong to the C library and die at the next `readdir`; the shim
+ * interns them before then. */
+VADER_HOST_EXPORT
+const char* vader_dirent_name(const void* ent) {
+    return ((const struct dirent*) ent)->d_name;
 }
 
 #endif  /* _WIN32 / POSIX */
 
-/* `vader_create_dir` backs `std/io::create_dir`. Creates `path` and every
- * missing parent, so a caller can name a nested destination without walking it
- * itself — the shape every generated-output path needs. An existing directory
- * is success, not an error: the caller asked for it to exist, and it does.
- *
- * Walks the path forward, creating each prefix in turn. Mode 0777 is masked by
- * the process umask, matching `mkdir -p`. */
-static int vader_mkdir_one(const char* p) {
-#if defined(_WIN32)
-    if (CreateDirectoryA(p, NULL)) return 0;
-    if (GetLastError() != ERROR_ALREADY_EXISTS) return -1;
-    /* EEXIST is only success when what exists is a DIRECTORY. A regular file
-     * there is a failure the caller must hear about — otherwise `create_dir`
-     * returns null and the error resurfaces later as an unrelated write
-     * failure, which is what the stdlib doc promises against. */
-    DWORD attr = GetFileAttributesA(p);
-    return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) ? 0 : -1;
-#else
-    if (mkdir(p, 0777) == 0) return 0;
-    if (errno != EEXIST) return -1;
-    struct stat st;
-    if (stat(p, &st) != 0) return -1;
-    return S_ISDIR(st.st_mode) ? 0 : -1;
-#endif
-}
 
-vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    size_t n = strlen(p);
-    if (n == 0) {
-        vader_atom_cstr_free(p);
-        return vader_box_string(err_tag, vader_string_new("empty path", 10));
-    }
-    if (n >= 4096) {
-        vader_atom_cstr_free(p);
-        return vader_box_string(err_tag, vader_string_new("path too long", 13));
-    }
-
-    char buf[4096];
-    memcpy(buf, p, n);
-    buf[n] = '\0';
-    vader_atom_cstr_free(p);
-
-    /* Create each prefix. Start at 1 so a leading "/" is not treated as a
-     * component to create, and skip repeated separators.
-     *
-     * A Windows drive designator is skipped for the same reason: `C:` is a root,
-     * not a component. `CreateDirectoryA("C:")` fails with ERROR_ALREADY_EXISTS
-     * and the guard below then asks `GetFileAttributesA("C:")`, which means "the
-     * current directory ON DRIVE C:" — a per-drive notion that need not exist in
-     * a process whose working directory is on another drive. GitHub's Windows
-     * runners work from `D:\a\...` while `GetTempPath` hands back a `C:` path,
-     * which is exactly that shape, and it made every `create_dir` under the temp
-     * directory fail with "cannot create parent".
-     *
-     * Guarded to `_WIN32`: on POSIX a directory may legitimately be named `a:`,
-     * and skipping it would refuse to create a path the caller asked for. */
-    for (size_t i = 1; i < n; i++) {
-        if (buf[i] != '/') continue;
-        if (buf[i - 1] == '/') continue;
-#if defined(_WIN32)
-        if (i == 2 && buf[1] == ':') continue;   /* "C:/..." — the drive root */
-#endif
-        buf[i] = '\0';
-        int rc = vader_mkdir_one(buf);
-        buf[i] = '/';
-        if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot create parent", 20));
-    }
-    if (vader_mkdir_one(buf) != 0) {
-        return vader_box_string(err_tag, vader_string_new("cannot create directory", 23));
-    }
-    return vader_box_null();
-}
-
-/* `vader_remove_file` backs `std/io::remove_file`. Deletes a FILE; a directory
- * is refused by the platform rather than silently recursed into, which is the
- * conservative default for something irreversible. A missing path is an error,
- * not success: a caller that does not care checks `exists` first, and one that
- * does would rather hear about it. */
-vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    /* NOT `remove()`: on POSIX that falls back to `rmdir` for a directory, so an
-     * empty one would silently vanish through a function named remove_FILE.
-     * `unlink` / `DeleteFileA` both refuse a directory outright. */
-#if defined(_WIN32)
-    int rc = DeleteFileA(p) ? 0 : -1;
-#else
-    int rc = unlink(p);
-#endif
-    vader_atom_cstr_free(p);
-    if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot remove file", 18));
-    return vader_box_null();
-}
-
-
-/* ----------------------------------------------------------------- location
- *
- * `vader_current_executable_location` backs the `std/io` intrinsic the resolver
- * uses to find the stdlib + C-runtime next to the running binary (sidecar
- * layout). Returns a `/`-separated path, falling back to "." when the platform
- * query fails, so resolution degrades to cwd-relative rather than breaking. */
-
-static void vader_path_to_slash(char* s, size_t n) {
-    for (size_t i = 0; i < n; i++) { if (s[i] == '\\') s[i] = '/'; }
-}
-
-vader_string_t vader_current_executable_location(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    DWORD len = GetModuleFileNameA(NULL, buf, (DWORD) sizeof(buf));
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#elif defined(__APPLE__)
-    char raw[4096];
-    uint32_t cap = (uint32_t) sizeof(raw);
-    if (_NSGetExecutablePath(raw, &cap) == 0 && realpath(raw, buf) != NULL) {
-        n = strlen(buf);
-    }
-#else  /* Linux + other /proc systems */
-    ssize_t r = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-    if (r > 0) { buf[(size_t) r] = '\0'; n = (size_t) r; }
-#endif
-    if (n == 0) return vader_string_new(".", 1);
-    vader_path_to_slash(buf, n);
-    return vader_string_new(buf, n);
-}
-
-/* `vader_current_working_directory` backs the `std/io` intrinsic. The process
- * working directory, `/`-separated and WITHOUT a trailing separator, falling
- * back to "." when the platform query fails — so a caller joining onto it stays
- * cwd-relative rather than producing an absolute path it cannot trust.
- *
- * Distinct from `vader_current_executable_location`: that one answers "where is
- * the binary", this one "where was it invoked from". The resolver wants the
- * former for sidecar layout; a build driver wants the latter to find the file
- * the user meant. */
-vader_string_t vader_current_working_directory(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    DWORD len = GetCurrentDirectoryA((DWORD) sizeof(buf), buf);
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#else
-    if (getcwd(buf, sizeof(buf)) != NULL) n = strlen(buf);
-#endif
-    if (n == 0) return vader_string_new(".", 1);
-    vader_path_to_slash(buf, n);
-    /* Drop a trailing separator so callers join with "/name" uniformly. The
-     * filesystem root ("/" on POSIX, "C:/" on Windows) keeps its separator. */
-    while (n > 1 && buf[n - 1] == '/' && buf[n - 2] != ':') n--;
-    return vader_string_new(buf, n);
-}
-
-/* `vader_temp_dir` backs the `std/io::temp_dir` intrinsic — the OS scratch
- * directory for temporary files, `/`-separated and WITHOUT a trailing
- * separator (callers join with "/name"). Honours $TMPDIR (POSIX) / GetTempPath
- * (Windows, which itself reads %TMP% / %TEMP% / %USERPROFILE%), so a sandboxed
- * CI runner's redirected temp is respected ; falls back to "/tmp" when unset. */
-vader_string_t vader_temp_dir(void) {
-    char buf[4096];
-    size_t n = 0;
-#if defined(_WIN32)
-    /* GetTempPathA writes the directory plus a trailing backslash. */
-    DWORD len = GetTempPathA((DWORD) sizeof(buf), buf);
-    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
-#else
-    const char* env = getenv("TMPDIR");
-    if (env != NULL && env[0] != '\0') {
-        n = strlen(env);
-        if (n >= sizeof(buf)) n = sizeof(buf) - 1;
-        memcpy(buf, env, n);
-    }
-#endif
-    if (n == 0) { memcpy(buf, "/tmp", 4); n = 4; }
-    vader_path_to_slash(buf, n);
-    /* Drop any trailing separator so `temp_dir() + "/name"` stays clean. */
-    while (n > 1 && buf[n - 1] == '/') n--;
-    return vader_string_new(buf, n);
-}
-
-/* ----------------------------------------------------------------- terminal / env
- *
- * `vader_is_tty` backs `std/tty::is_tty`. It reports whether `stream` (0 =
- * stdout, 1 = stderr) is an interactive terminal that will render ANSI escapes;
- * on Windows it also enables virtual-terminal processing on first probe (and
- * reports false on a console too old for it, so callers fall back to plain
- * text). The result is cached per stream for the process lifetime — Vader has
- * no module-scope run-once, so the memo lives here. `vader_get_env` backs
- * `std/env::get_env`: it boxes the variable's value as a string (str_tag) or
- * returns a null box when the variable is unset.
- */
-#if defined(_WIN32)
-#  ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#    define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
-#  endif
-/* True iff the Windows console behind `f` is interactive AND virtual-terminal
- * processing can be enabled on it — only then do ANSI escapes render rather
- * than print literally. Idempotent: re-enabling VT on an already-VT console is
- * a no-op, and the per-stream cache means it runs at most once. */
-static int vader_win_console_supports_ansi(FILE* f) {
-    if (!_isatty(_fileno(f))) return 0;
-    HANDLE h = (HANDLE) _get_osfhandle(_fileno(f));
-    if (h == INVALID_HANDLE_VALUE) return 0;
-    DWORD mode = 0;
-    if (!GetConsoleMode(h, &mode)) return 0;
-    return SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) ? 1 : 0;
-}
-#endif
+/* ----------------------------------------------------------------- target */
 
 /* Ordinals must match `std/target::Os`, declaration order. An unsupported
  * platform is a build error rather than a guess: the OS set is closed, and a
@@ -3804,156 +3490,7 @@ int32_t vader_current_arch(void) {
 #endif
 }
 
-vader_bool_t vader_is_tty(int32_t stream) {
-    /* Index by Stream tag: Stdout = 0, Stderr = 1. */
-    static int cache[2] = { -1, -1 };
-    int i = (stream == 1) ? 1 : 0;
-    if (cache[i] < 0) {
-#if defined(_WIN32)
-        cache[i] = vader_win_console_supports_ansi(i == 1 ? stderr : stdout);
-#else
-        cache[i] = isatty(i == 1 ? STDERR_FILENO : STDOUT_FILENO) ? 1 : 0;
-#endif
-    }
-    return cache[i] != 0;
-}
 
-vader_box_t vader_get_env(vader_string_t name, uint32_t str_tag) {
-    const char* key = vader_string_to_cstr(name);
-    const char* val = getenv(key);
-    vader_box_t out = (val == NULL)
-        ? vader_box_null()
-        : vader_box_string(str_tag, vader_string_new(val, strlen(val)));
-    vader_cstr_free(key);
-    return out;
-}
-
-/* ----------------------------------------------------------------- raw terminal
- *
- * What an interactive prompt needs and line-oriented stdin cannot give: keys as
- * they are pressed, with no echo and no line editing in the way.
- *
- * Raw mode also turns OFF signal generation, so Ctrl-C is delivered as the byte
- * 0x03 instead of killing the process. That is deliberate and it is what keeps
- * the terminal usable: a process killed mid-prompt would leave the shell with no
- * echo. The caller sees 0x03, restores, and exits on its own terms. Nothing here
- * installs a signal handler — the runtime installs none anywhere, and a prompt is
- * not the place to start.
- *
- * Windows gets ENABLE_VIRTUAL_TERMINAL_INPUT, which makes the console deliver
- * arrows as the same ANSI sequences POSIX does — one decoder serves both. It is
- * the input-side twin of the ENABLE_VIRTUAL_TERMINAL_PROCESSING that
- * `vader_win_console_supports_ansi` already sets for output. */
-
-#if defined(_WIN32)
-#  ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
-#    define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
-#  endif
-static DWORD g_saved_console_in_mode = 0;
-#else
-#include <termios.h>
-#include <sys/ioctl.h>
-static struct termios g_saved_termios;
-#endif
-
-/* Whether raw mode is currently installed. Guards both the double-begin (which
- * would save the ALREADY-RAW state as the thing to restore, permanently breaking
- * the terminal) and the unpaired end. */
-static int g_raw_mode_active = 0;
-
-vader_bool_t vader_terminal_raw_begin(void) {
-    if (g_raw_mode_active) return 1;
-#if defined(_WIN32)
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return 0;
-    DWORD mode = 0;
-    /* Fails on a pipe or a redirected file — i.e. exactly when there is no
-     * console to put in raw mode. Report it rather than pretending. */
-    if (!GetConsoleMode(h, &mode)) return 0;
-    g_saved_console_in_mode = mode;
-    DWORD raw = mode & ~(DWORD)(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
-    raw |= ENABLE_VIRTUAL_TERMINAL_INPUT;
-    if (!SetConsoleMode(h, raw)) return 0;
-#else
-    if (!isatty(STDIN_FILENO)) return 0;
-    if (tcgetattr(STDIN_FILENO, &g_saved_termios) != 0) return 0;
-    struct termios raw = g_saved_termios;
-    /* ECHO: do not print what is typed. ICANON: deliver bytes as they arrive
-     * rather than per line. ISIG: Ctrl-C/Z become bytes, see the header note.
-     * IEXTEN: no Ctrl-V literal-next. IXON: Ctrl-S/Q do not freeze the stream.
-     * ICRNL: Enter stays \r, so it is one key and not a newline. */
-    raw.c_lflag &= ~(tcflag_t)(ECHO | ICANON | ISIG | IEXTEN);
-    raw.c_iflag &= ~(tcflag_t)(IXON | ICRNL);
-    /* One byte is enough to return, and never wait beyond it: this is what makes
-     * `read_keys` return a lone ESC as one byte and an arrow as three. */
-    raw.c_cc[VMIN] = 1;
-    raw.c_cc[VTIME] = 0;
-    /* TCSAFLUSH discards anything typed before the switch, so keystrokes meant
-     * for the shell do not land in the prompt. */
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) != 0) return 0;
-#endif
-    g_raw_mode_active = 1;
-    return 1;
-}
-
-void vader_terminal_raw_end(void) {
-    if (!g_raw_mode_active) return;
-    g_raw_mode_active = 0;
-#if defined(_WIN32)
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h != INVALID_HANDLE_VALUE && h != NULL) {
-        SetConsoleMode(h, g_saved_console_in_mode);
-    }
-#else
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &g_saved_termios);
-#endif
-}
-
-int32_t vader_terminal_columns(void) {
-#if defined(_WIN32)
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return 0;
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    if (!GetConsoleScreenBufferInfo(h, &info)) return 0;
-    /* The WINDOW, not the buffer: the buffer is often far wider than what is
-     * visible, and wrapping is decided by what is visible. */
-    int32_t width = (int32_t) (info.srWindow.Right - info.srWindow.Left + 1);
-    return width > 0 ? width : 0;
-#else
-    struct winsize ws;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != 0) return 0;
-    return (int32_t) ws.ws_col;
-#endif
-}
-
-/* Blocks for the FIRST byte, then returns whatever else is already queued, up to
- * `max`. Reads the raw descriptor rather than `fread` — stdio buffering and raw
- * mode fight, and `vader_read_stdin`'s "exactly n bytes" contract is the wrong
- * shape for keys. Returns "" on EOF or error, which the caller reads as "no more
- * input" and unwinds. */
-vader_string_t vader_terminal_read_keys(int32_t max) {
-    if (max <= 0) return vader_string_new("", 0);
-    if (max > 64) max = 64;
-    char buf[64];
-#if defined(_WIN32)
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return vader_string_new("", 0);
-    DWORD got = 0;
-    if (!ReadFile(h, buf, (DWORD) max, &got, NULL) || got == 0) {
-        return vader_string_new("", 0);
-    }
-    return vader_string_new(buf, (size_t) got);
-#else
-    for (;;) {
-        ssize_t got = read(STDIN_FILENO, buf, (size_t) max);
-        if (got > 0) return vader_string_new(buf, (size_t) got);
-        /* A signal that raw mode did not suppress (SIGWINCH on a resize) can cut
-         * the read short; that is not the end of input, so wait again. */
-        if (got < 0 && errno == EINTR) continue;
-        return vader_string_new("", 0);
-    }
-#endif
-}
 
 /* ----------------------------------------------------------------- process
  *

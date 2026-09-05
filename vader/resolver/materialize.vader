@@ -36,15 +36,10 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl!, trait_: AST.Tra
     if !is_intrinsic(impl_.decorators) { return }
     if impl_.members.len() > 0 { return }
     subst :: build_subst(impl_, trait_)
-    // Each materialised member needs a name_span unique per (impl, method) :
-    // `impl_method_decl_types` is name-span-keyed, so anchoring every member at
-    // the shared `impl_.trait_name_span` collapses a multi-method trait's return
-    // types onto the last method's (e.g. `Buffer implements ByteAccess`'s
-    // `load_u8 -> u8` degraded to `memory_copy`'s `void`). A per-impl `StampCtx`
-    // (base keyed to the impl, counter per method) keeps members distinct within
-    // the impl AND across sibling impls of one trait — mirrors the default-method
-    // path (`materialize_default_members`). Single-method intrinsic traits are
-    // unaffected (their lone member was already unique).
+    // One `StampCtx` per impl, so each member's name_span is unique per
+    // (impl, method) : `impl_method_decl_types` is name-span-keyed, and a shared
+    // span collapses a multi-method trait's return types onto the last method's.
+    // See docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
     impl_pos :: impl_.trait_name_span.start
     stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "${CLONE_FILE_PREFIX}${impl_pos.file}" }
     for method in trait_.members {
@@ -65,19 +60,11 @@ export materialize_default_members :: fn(
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
     subst :: build_subst(impl_, trait_)
-    // One deterministic span allocator per impl : `base_line` = the impl's
-    // source line (stable + unique per impl), `counter` accumulates across
-    // every cloned member so each node gets a distinct `<clone>` span. The
-    // determinism is load-bearing — std/core's bodies are materialised twice
-    // (typecheck + lower phases, distinct ImplDecl copies) and node ids
-    // differ between the two, so the clone spans must NOT depend on them or
-    // the resolver's span-keyed `idents` records and the lower-phase reads
-    // land on different keys. Same source + same traversal ⇒ same spans.
-    // `base_line` keys the `<clone>` spans to THIS impl. Fold in the column
-    // so two impls on the same source line (rare, but not forbidden) don't
-    // share a base and collide their cloned-node spans. `line * 1024 + column`
-    // is collision-free for realistic positions (columns « 1024) and stable
-    // across the typecheck/lower materialisation generations.
+    // One deterministic span allocator per impl, threaded through every member
+    // clone below. The spans must be derived from the SOURCE position and a
+    // traversal counter — never from a node id — or the two materialisation
+    // generations disagree on the span-keyed `idents` keys. See
+    // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
     impl_pos :: impl_.trait_name_span.start
     stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "${CLONE_FILE_PREFIX}${impl_pos.file}" }
     for method in trait_.members {
@@ -102,25 +89,19 @@ synth_with_body :: fn(
         .span = method.span,
         .id = AST.UNASSIGNED_NODE_ID,
         .name = method.name,
-        // Key the clone on the trait method's name span (distinct per
-        // default method), not the shared `impl_.trait_name_span` —
-        // `impl_method_decl_types` is name-span-keyed, so a shared span
-        // would collapse is_empty / count / last onto one return type.
+        // The trait method's name span, distinct per default method — not the
+        // shared `impl_.trait_name_span`, which is name-span-keyed into
+        // `impl_method_decl_types` and would collapse is_empty / count / last
+        // onto one return type.
         .name_span = method.name_span,
         .visibility = .Public,
         .type_params = [],
-        // EVERY param (including `self`) gets a deterministic `<clone>` span
-        // from the SAME `StampCtx` as the body. This is load-bearing : the
-        // resolver mints the param's Symbol at the param span AND records the
-        // body's `self`/`other` use-sites' Symbols by name, so `build_impl_
-        // member_params` (lower, span-keyed `idents` lookup) and the body's
-        // idents must agree on the param span. The trait method's
-        // `name_span` is SHARED across the N primitive impls of one trait
-        // (i8 … char `Comparable`), so anchoring `self` there made
-        // `build_impl_member_params` read the LAST impl's `self` Symbol — the
-        // body's `self` resolved to the right one → CFG-build failed with
-        // `unresolved ident self`. Deterministic per-impl spans fix both the
-        // cross-impl collision and the param↔body Symbol agreement.
+        // EVERY param, `self` included, draws from the SAME `StampCtx` as the
+        // body : `build_impl_member_params` (lower) looks the param Symbol up in
+        // the span-keyed `idents`, so param and body must agree on the span.
+        // Anchoring `self` at the trait method's shared `name_span` instead
+        // makes it read a sibling impl's Symbol. See
+        // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
         .params = substitute_params_stamped(method.params, subst, stamp),
         .return_type = substitute_opt_type(method.return_type, subst),
         .body = body,
@@ -144,6 +125,9 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out
@@ -176,6 +160,9 @@ substitute_params_disambiguated :: fn(
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out
@@ -304,6 +291,9 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[]! {
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
             .variadic = p.variadic, .mutable = p.mutable,
+            // Carried over: a rebuilt param that dropped them would lose an
+            // `@c_pointer` and silently change the ABI.
+            .decorators = p.decorators,
         })
     }
     return out

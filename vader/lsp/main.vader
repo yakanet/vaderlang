@@ -73,7 +73,6 @@ export run_server :: fn(library_root: string, vader_root: string) -> i32 {
     state :: A.new_state(library_root, vader_root)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.
-    P.unbuffer_stdin()
     shutdown_received := false
     for {
         // Block for the next message, then process it.

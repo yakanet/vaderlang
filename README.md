@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/yakanet/vaderlang/actions/workflows/build.yml/badge.svg)](https://github.com/yakanet/vaderlang/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-![Status](https://img.shields.io/badge/status-pre--MVP-orange)
+![Status](https://img.shields.io/badge/status-experimental-orange)
 ![Self-hosted](https://img.shields.io/badge/compiler-self--hosted-brightgreen)
 
 **The discipline of static typing, the ergonomics of a script.**
@@ -64,7 +64,7 @@ vader run shapes.vader
 - **Compiles to fast native code.** A C backend (`vader build`) produces native binaries backed by a precise generational GC; a bytecode VM (`vader run`) executes without a build step. WASM is on the roadmap.
 - **Self-hosted, reproducibly.** The compiler is written in Vader and compiles itself to a *byte-for-byte* fixed point. A committed C seed lets any machine with a C compiler rebuild the whole toolchain from source.
 
-> **Status: pre-MVP, hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG/SSA → bytecode → C) are documented in [`SPEC.md` §2](./SPEC.md).
+> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG/SSA → bytecode → C) are documented in [`SPEC.md` §2](./SPEC.md).
 
 ## Quick start
 
@@ -217,7 +217,7 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 
 ```sh
 vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c
-vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (CC env var is a fallback)
+vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`CC` is read by the bootstrap scripts only)
 ```
 
 **Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:

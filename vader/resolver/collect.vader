@@ -111,7 +111,7 @@ merge_bucket_map :: fn<K, V>(dst: MutableMap<K, V[]!>!, src: MutableMap<K, V[]!>
 /// detect self-imports (R2024). `index` is the project-wide module
 /// table built by `discover_modules` ; an empty `MutableMap` (no
 /// loader) disables import-path resolution and is used by mono-file
-/// callers (e.g. legacy `resolve_module` tests).
+/// callers (a `resolve_module` test with no module graph).
 export collect_module :: fn(
     program: Program, module_path: string, module_name: string,
     factory: SymbolFactory!,
@@ -186,12 +186,12 @@ collect_decl :: fn(
 ) -> void {
     match d {
         is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, paths, diags) }
-        is FnDecl        as x -> { self.add_fn(x, module_path, factory, diags) }
-        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, factory, diags) }
-        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is FnDecl        as x -> { self.add_fn(x, module_path, module_name, factory, diags) }
+        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
+        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
         is ImplDecl  -> {}   // contributes methods to a type, not new top-level names
         is AssertDecl -> {}  // @assert doesn't introduce a name
     }
@@ -205,7 +205,7 @@ collect_decl :: fn(
 /// @error R2004 when the fn's name collides with a same-named TYPE or CONST
 ///        (a fn can't overload a non-fn declaration). Order-independent with
 ///        `add_named`, which flags the reverse decl order.
-add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: SymbolFactory!, diags: Diagnostic[]!) -> void {
+add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name: string, factory: SymbolFactory!, diags: Diagnostic[]!) -> void {
     // `main` is the program entry point and is always public. Letting it
     // default to private locks the entry-point fn behind module visibility.
     visibility := d.visibility
@@ -224,7 +224,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: Sy
         }
     }
 
-    sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
+    sym :: factory.make(.Fn, d.name, module_path, module_name, visibility, d.name_span)
     bucket :: self.fn_overloads[d.name]
     match bucket {
         is null -> { self.fn_overloads[d.name] = [sym] }
@@ -250,7 +250,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: Sy
 
 add_named :: fn(
     self: CollectedModule!, kind: SymbolKind, name: string, name_span: Span,
-    visibility: Visibility, module_path: string, factory: SymbolFactory!,
+    visibility: Visibility, module_path: string, module_name: string, factory: SymbolFactory!,
     diags: Diagnostic[]!,
 ) -> void {
     // First-wins on duplicates ; later occurrences raise R2004.
@@ -263,7 +263,7 @@ add_named :: fn(
                 "`${name}` already declared in this module"))
         }
         is null   -> {
-            sym :: factory.make(kind, name, module_path, visibility, name_span)
+            sym :: factory.make(kind, name, module_path, module_name, visibility, name_span)
             self.symbols[name] = sym
         }
     }
@@ -359,7 +359,7 @@ bind_import :: fn(
                 // same-signature clash is caught at typecheck (T3053). Record the
                 // ImportInfo so wire + imported overloads see it, but leave the fn
                 // in the primary name slot.
-                sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+                sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
                 self.imports[sym.id] = ImportInfo {
                     .path = import_path,
                     .imported_name = imported_name,
@@ -373,7 +373,7 @@ bind_import :: fn(
             }
         }
         is null   -> {
-            sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+            sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
             self.symbols[local] = sym
             self.imports[sym.id] = ImportInfo {
                 .path = import_path,
@@ -426,35 +426,24 @@ diagnose_import_path :: fn(
         return null
     }
     // A shipped library must not import the compiler. `lib/` hosts what the
-    // toolchain ships — `std/` and the libraries beside it — and none of it may
-    // depend on what INTERPRETS Vader, or a program importing a library would drag
-    // the compiler into its runtime closure.
+    // toolchain ships, and none of it may depend on what INTERPRETS Vader, or a
+    // program importing a library would drag the compiler into its runtime
+    // closure. Two exemptions: `toolchain/build` is the driver contract and a
+    // driver links the compiler by design, and the compiler may import itself.
     //
-    // Two exemptions. `toolchain/build` is the driver contract, and a driver links
-    // the compiler by design. And the compiler may import itself — a belt, since a
-    // bundle ships it at `<bundle>/src/vader/`, outside the library root: put it
-    // back under `lib/` and the guard still behaves.
+    // Note the asymmetry — PROVENANCE decides who is a library (a user module may
+    // legitimately be called `json`; only who provided it says whether it is ours)
+    // while the module NAME decides who is the compiler (`vader/*` is exactly what
+    // the compiler's modules are called). Two things force it.
     //
-    // Provenance decides who is a library — a user module may legitimately be
-    // called `json`, and only who PROVIDED it says whether it is ours — while the
-    // module NAME decides who is the compiler, since `vader/*` is exactly what the
-    // compiler's modules are called.
+    // `ModuleOrigin` cannot name the compiler: `vader/` is `.Build` in a checkout
+    // as in a bundle, there being deliberately no `.Compiler` variant.
     //
-    // The asymmetry is forced, and NOT by resolution order — the target IS
-    // available here, since `preresolve_imports` resolves every import declaration
-    // into `index` before `collect_files` runs. Two things force it:
-    //
-    // The rule is about the ATTEMPT. R2034 must fire on an import of `vader/*` that
-    // does not resolve from where the library sits, which is the case a bundled
-    // library is in — so the check has to stay ABOVE the module-not-found lookup
-    // below. Moving it under a `target` read turns R2034 into R2001 and drops the
-    // layering guard in silence; `hook_driver.test.ts` pins exactly that, with a
-    // probe importing `vader/lexer` from a staged root where it cannot resolve.
-    //
-    // And even with the target in hand, `ModuleOrigin` could not identify it:
-    // `vader/` is `.Build` in a checkout (the project root) as in a bundle (a flag
-    // root), because there is deliberately no `.Compiler` variant. Naming is the
-    // only predicate available.
+    // And the rule is about the ATTEMPT, so R2034 must fire on an import of
+    // `vader/*` that does not resolve from where the library sits — which means
+    // this check STAYS ABOVE the module-not-found lookup below. Move it under and
+    // R2034 silently becomes R2001; `hook_driver.test.ts` pins that with a probe
+    // importing `vader/lexer` from a staged root where it cannot resolve.
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")
         && from_module_name != DRIVER_CONTRACT_MODULE
@@ -464,8 +453,8 @@ diagnose_import_path :: fn(
         return null
     }
     // Empty index = mono-file caller (no module graph) ; skip the
-    // module-not-found check so legacy single-file tests aren't
-    // flooded with R2001 they never used to see.
+    // module-not-found check, or a single-file caller is flooded with R2001 for
+    // every import it has no graph to resolve.
     if index.is_empty() { return null }
     target :: index[raw_path]
     match target {

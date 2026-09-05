@@ -214,7 +214,7 @@ declare_named_with_args :: fn(
     sym :: by_name[name] ?? return
     args: Type[]! = []
     for tp in type_params {
-        tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
+        tp_sym :: factory.make(.TypeParam, tp.name, module_path, module_path, .Private, tp.span)
         args.push(mk_type_param(tp_sym))
     }
     typed.decl_types[sym.id] = mk(sym, args)
@@ -250,6 +250,11 @@ declare_fn :: fn(
     }
     if has_extern_decorator(decl.decorators) {
         validate_extern(decl, params, return_type, typed, diags)
+    } else {
+        // `validate_extern` checks them for an `@extern`; every other fn has to
+        // be checked here, or `@c_pointer` would pass unnoticed on a Vader body
+        // where it means nothing.
+        validate_param_decorators(decl, false, diags)
     }
     // A bodyless top-level free fn becomes a host import (`lower_decl.vader`
     // returns a null body → `call.import`). Host-ness must be *declared* :
@@ -426,6 +431,157 @@ is_user_type_kind :: fn(k: SymbolKind) -> bool {
 
 // ---- @extern ABI validation -----------------------------------------------
 
+/// Whether `t` is a struct declaring the C type it mirrors (`@c_struct`).
+///
+/// @param t      the candidate parameter type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       whether the struct carries a C spelling.
+mirrors_a_c_struct :: fn(t: Type, typed: TypedProgram) -> bool = c_struct_spelling_of(t, typed) != ""
+
+/// The C type spelling a struct mirrors, or `""`.
+///
+/// @param t      the candidate type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       e.g. `"struct timespec"`, or `""` for anything else.
+c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
+    if t !is StructType {
+        return ""
+    }
+    sd :: typed.struct_decls[t.symbol.id] ?? return ""
+    for d in sd.decorators {
+        if d.name == "c_struct" && d.args.len() == 1 {
+            a :: d.args[0]
+            if a is AST.StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is AST.StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
+}
+
+/// Whether the declaration names the header that owns its prototype.
+///
+/// @param d  the `@extern` declaration.
+declares_c_header :: fn(d: AST.FnDecl) -> bool {
+    for dec in d.decorators {
+        if dec.name == "c_header" {
+            return true
+        }
+    }
+    return false
+}
+
+/// Whether the parameter carries `@c_pointer`.
+///
+/// @param pm  the parameter.
+/// @return    whether it crosses as an address.
+param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
+    for d in pm.decorators {
+        if d.name == "c_pointer" {
+            return true
+        }
+    }
+    return false
+}
+
+/// Check the decorators written on each of `decl`'s parameters.
+///
+/// `@c_pointer` is the only one a parameter may carry, and only on an `@extern`
+/// declaration: it says the foreign callee receives the parameter's ADDRESS
+/// rather than its value, which has no meaning for a Vader-bodied fn.
+///
+/// Direction is NOT part of the decorator — the `!` already carries it. Without
+/// one, C reads through the pointer and the caller supplies the value; with one,
+/// C writes through it.
+///
+/// @param decl       the fn whose parameters to check.
+/// @param is_extern  whether the declaration carries `@extern`.
+/// @param diags      accumulator for T3079.
+validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]!) -> void {
+    for pm in decl.params {
+        for d in pm.decorators {
+            if d.name != "c_pointer" {
+                diags.push(typecheck_error(
+                    .InvalidParameterDecorator, pm.span,
+                    "`@${d.name}` cannot decorate a parameter — only `@c_pointer` can"))
+            } else if !is_extern {
+                diags.push(typecheck_error(
+                    .InvalidParameterDecorator, pm.span,
+                    "`@c_pointer` only means something on an `@extern` declaration"))
+            } else if d.args.len() != 0 {
+                diags.push(typecheck_error(
+                    .InvalidParameterDecorator, pm.span,
+                    "`@c_pointer` takes no argument — the `!` on the type says whether C writes"))
+            }
+        }
+    }
+}
+
+/// Check the field types of a `@c_struct` mirror that is about to cross to C.
+///
+/// The shim copies a mirror one field at a time into a real C struct, so every
+/// field needs a C representation of its own: an unmarshalled scalar, an enum
+/// (which crosses as its repr), or another mirror. Nothing else has one, and
+/// nothing downstream notices — a `string` field hands C the atom ID and an
+/// array field the Vader array header, both through a cast `cc` accepts. The
+/// value is wrong at run time and no build ever says so, which is why this is
+/// a typecheck gate rather than something left to the C compiler.
+///
+/// The diagnostic points at the PARAMETER, not the field: the mirror may be
+/// declared in another module, and a span from there would be attributed to
+/// this file. The detail names the field instead.
+///
+/// @param t      the mirror type reached from the parameter; a non-struct is a
+///               no-op, so callers need not narrow first.
+/// @param span   the parameter — where the struct crosses.
+/// @param typed  the module, for `struct_decls` and `struct_field_types`.
+/// @param seen   struct symbol ids already walked, so a cycle terminates.
+/// @param diags  accumulator for T3050.
+validate_mirror_fields :: fn(
+    t: Type,
+    span: Span,
+    typed: TypedProgram,
+    seen: MutableSet<i32>!,
+    diags: Diagnostic[]!,
+) -> void {
+    if t !is StructType {
+        return
+    }
+    if t.symbol.id in seen {
+        return
+    }
+    seen.add(t.symbol.id)
+    sd :: typed.struct_decls[t.symbol.id] ?? return
+    fmap :: typed.struct_field_types[t.symbol.id] ?? return
+    for f in sd.fields {
+        fty :: fmap[f.name] ?? continue
+        if fty is StructType as nested {
+            if mirrors_a_c_struct(nested, typed) {
+                validate_mirror_fields(nested, span, typed, seen, diags)
+            } else {
+                diags.push(typecheck_error(
+                    .InvalidExternDecl, span,
+                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct — a struct member needs its own `@c_struct` naming the C type it mirrors",
+                ))
+            }
+            continue
+        }
+        // An enum crosses as its repr, which the shim assigns like any integer.
+        if fty is EnumType {
+            continue
+        }
+        if !is_unmarshalled_scalar(fty, false) {
+            diags.push(typecheck_error(
+                .InvalidExternDecl, span,
+                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation: `${display_type(fty)}` — a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
+            ))
+        }
+    }
+}
+
 validate_extern :: fn(
     decl: AST.FnDecl,
     params: Type[],
@@ -442,6 +598,7 @@ validate_extern :: fn(
             ),
         )
     }
+    validate_param_decorators(decl, true, diags)
     args :: extern_decorator_args(decl.decorators)
     if args.len() > 2 {
         diags.push(
@@ -466,12 +623,48 @@ validate_extern :: fn(
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
+        // A struct crosses ONLY as `@c_pointer` on a type that declares which C
+        // type it mirrors. The shim then declares a real one and marshals field
+        // by field, so the C compiler computes the offsets from the real header
+        // — an undeclared struct has no C spelling to declare and would have to
+        // guess a layout instead.
+        if mirrors_a_c_struct(pt, typed) {
+            if param_has_c_pointer(decl.params[i]) {
+                validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
+                continue
+            }
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.params[i].span,
+                    "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
+                ),
+            )
+            continue
+        }
+        // `@c_pointer` spills the argument to a stack temporary and hands over
+        // its address. That only means something for a value C can receive a
+        // pointer TO: a scalar, or a mirror (handled above). On anything else
+        // the shim takes the address of the Vader representation — a `string`
+        // parameter would pass a `const char**` aimed at an atom ID, an array
+        // one a pointer to the array header — and the `(void*)` cast the shim
+        // emits hides the mismatch from `cc`.
+        if param_has_c_pointer(decl.params[i]) && !is_unmarshalled_scalar(pt, false) {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` — a `string` and an array already cross as pointers, so drop the decorator",
+                ),
+            )
+            continue
+        }
         if !is_extern_abi_type(pt, false) {
             diags.push(
                 typecheck_error(
                     .InvalidExternDecl,
                     decl.params[i].span,
-                    "`@extern` parameter type must be a primitive or `string`, got `${display_type(pt)}`",
+                    "`@extern` parameter type must be a primitive, `string`, or a primitive-element array, got `${display_type(pt)}`",
                 ),
             )
         }
@@ -485,14 +678,29 @@ validate_extern :: fn(
             typecheck_error(
                 .InvalidExternDecl,
                 ret_span,
-                "`@extern` return type must be a primitive, `string`, or `void`, got `${display_type(return_type)}`",
+                "`@extern` return type must be a primitive, `string`, `CPointer | null`, or `void`, got `${display_type(return_type)}`",
             ),
         )
     }
+    // Keyed on the SYMBOL alone, because that is what the C side can tell apart:
+    // `emit_import_shims` dedupes on `extern_name` and emits ONE prototype per
+    // symbol, and the declared library reaches no `-l` — it is read by the VM's
+    // `ffi_open` and nowhere else. Keying on library + symbol would let two
+    // declarations through that the native backend then collapses into one
+    // prototype, the second shim calling the first's.
+    //
+    // The cost is that a stdlib `@extern` reserves its C name project-wide:
+    // since `std/math` names `pow`, a program importing it cannot declare its
+    // own — unless both name a header, see below.
     sym_name :: extern_symbol_name_for(decl)
     prior :: typed.extern_symbols[sym_name]
     if prior is AST.FnDecl as p {
-        if p.id != decl.id {
+        // Unless BOTH name a header. The clash above is about the SYNTHESISED
+        // prototype, and `@c_header` emits none — each shim calls the symbol
+        // with its own types, which `cc` checks against the real declaration. It
+        // is what lets `stat` be declared once per system, the way every FFI
+        // does: the mirror it fills differs, so the signature does too.
+        if p.id != decl.id && !(declares_c_header(decl) && declares_c_header(p)) {
             diags.push(
                 typecheck_error(
                     .InvalidExternDecl,
@@ -570,18 +778,173 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
     return decl.name
 }
 
-/// C-ABI type whitelist : primitives + `string`. `void` allowed only in
-/// return position (the caller passes `allow_void = true` for return types).
-/// `null` is rejected everywhere — it's not a marshallable value.
-is_extern_abi_type :: fn(t: Type, allow_void: bool) -> bool {
-    // @partial: only primitives (and `string`, itself a PrimitiveType) cross the
-    // C ABI; every aggregate / ref / synthetic variant is rejected.
+/// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two
+/// union shapes (a nullable foreign pointer anywhere, `string | null` as a
+/// result); a primitive-element array as an argument; and a FUNCTION TYPE as an
+/// argument — a callback. `void` is allowed in return position only, `null`
+/// nowhere. Each arm below states its own reason.
+is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
+    // @partial: primitives (`string` included, itself a PrimitiveType) and
+    // primitive-element arrays cross the C ABI; every other aggregate / ref /
+    // synthetic variant is rejected.
     @partial match t {
         is UnresolvedType     -> { return true }
         is PrimitiveType as p -> {
-            if p.name == "void" { return allow_void }
+            if p.name == "void" { return is_return }
             if p.name == "null" { return false }
             return true
+        }
+        is DistinctType as d  -> {
+            // A newtype is zero-cost and stripped at lowering, so its ABI is
+            // its backing's. `Handle :: CPointer` is the recommended idiom for
+            // a foreign handle — it must cross.
+            return is_extern_abi_type(d.backing, is_return)
+        }
+        is UnionType          -> {
+            // Two union shapes cross. A nullable foreign pointer, because C has
+            // no other nullable scalar. And `string | null` as a RESULT: a C
+            // function returning a `char*` says "absent" with NULL, and folding
+            // that onto `""` would lose the distinction `getenv` rests on.
+            return is_nullable_pointer(t) || (is_return && is_nullable_string(t))
+        }
+        is ArrayType as a     -> {
+            // A borrowed array crosses as ONE bare pointer; a length, when the
+            // callee wants one, is a parameter of its own. That shape only
+            // exists on the way IN — C cannot fabricate a `vader_array_t`, so
+            // an array return stays rejected.
+            if is_return {
+                return false
+            }
+            return is_extern_abi_element(a.element)
+        }
+        is FnType as f        -> {
+            // A CALLBACK, in parameter position only. What crosses is the
+            // function's ADDRESS (`bytecode/op::FnAddr`), so every part of its
+            // signature has to cross too — C will call it with those very types.
+            //
+            // A return is rejected: a C function handing back code Vader would
+            // call has no representation here.
+            if is_return {
+                return false
+            }
+            // A callback's own signature is NARROWER than an extern's. An
+            // `@extern` parameter gets a shim that marshals — `string` becomes a
+            // `const char*`, an array becomes its data pointer — but C calls a
+            // callback DIRECTLY, with no shim anywhere. So only the types that
+            // need no marshalling may appear in one; a `string` parameter would
+            // hand the Vader body a `const char*` where it expects an atom id.
+            if !is_unmarshalled_scalar(f.return_type, true) {
+                return false
+            }
+            for pt in f.params {
+                if !is_unmarshalled_scalar(pt, false) {
+                    return false
+                }
+            }
+            return true
+        }
+        _                     -> { return false }
+    }
+}
+
+/// Whether `t` crosses the C boundary with no marshalling at all.
+///
+/// The subset a CALLBACK signature may use: C calls it directly, so every type
+/// in it has to have the same representation on both sides. `string` and arrays
+/// are excluded — an `@extern` parameter gets them through a shim that converts,
+/// and a callback has no shim.
+///
+/// @param t          the candidate type.
+/// @param is_return  whether it sits in return position (`void` is allowed there).
+is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
+    if t is DistinctType as d {
+        return is_unmarshalled_scalar(d.backing, is_return)
+    }
+    if t is UnresolvedType {
+        return true
+    }
+    if t !is PrimitiveType {
+        return false
+    }
+    if t.name == "void"   { return is_return }
+    if t.name == "string" { return false }
+    if t.name == "null"   { return false }
+    return true
+}
+
+/// True when `t` is `string | null` — the shape a C function returning a
+/// `char*` needs to say "absent" rather than "empty".
+///
+/// @param t  the candidate type.
+/// @return   whether it is exactly `string | null`.
+is_nullable_string :: fn(t: Type) -> bool {
+    if t !is UnionType {
+        return false
+    }
+    if t.variants.len() != 2 {
+        return false
+    }
+    has_null := false
+    has_str := false
+    for v in t.variants {
+        bare :: strip_distinct(v)
+        if bare is PrimitiveType as p {
+            if p.name == "null"   { has_null = true }
+            if p.name == "string" { has_str = true }
+        }
+    }
+    return has_null && has_str
+}
+
+/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
+/// foreign pointer, and the only union that crosses the C boundary.
+///
+/// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
+/// shim converts it at the boundary, exactly as it already converts a
+/// `vader_string_t` atom id to a `const char*`. Nothing about how Vader
+/// represents unions changes.
+///
+/// @param t  the candidate slot type.
+/// @return   whether it is the nullable-pointer shape.
+is_nullable_pointer :: fn(t: Type) -> bool {
+    if t is UnionType as u {
+        if u.variants.len() != 2 {
+            return false
+        }
+        has_null := false
+        has_ptr := false
+        for v in u.variants {
+            // `Handle | null` with `Handle :: CPointer` is the same ABI shape as
+            // `CPointer | null` — see through the newtype.
+            bare :: strip_distinct(v)
+            if bare is PrimitiveType as p {
+                if p.name == "null" {
+                    has_null = true
+                }
+                if p.name == "CPointer" {
+                    has_ptr = true
+                }
+            }
+        }
+        return has_null && has_ptr
+    }
+    return false
+}
+
+/// True when `t` may be the element of an `@extern` array parameter — a
+/// numeric / `bool` / `char` primitive, i.e. one whose array storage is dense
+/// and whose slots the GC never scans.
+///
+/// `string` is excluded: its dense storage is a table of atom ids, which is
+/// meaningless to a C callee. `void` / `null` have no storage at all.
+///
+/// @param t  the array's element type.
+/// @return   whether a `T[]` of it can be lent across the C ABI.
+is_extern_abi_element :: fn(t: Type) -> bool {
+    @partial match t {
+        is UnresolvedType     -> { return true }
+        is PrimitiveType as p -> {
+            return p.name != "void" && p.name != "null" && p.name != "string"
         }
         _                     -> { return false }
     }

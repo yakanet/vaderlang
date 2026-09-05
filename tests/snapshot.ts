@@ -163,8 +163,16 @@ export async function dumpLowerViaVader(_source: string, entryPath: string, modu
   return runVaderDump("lowered-ast", entryPath, modules);
 }
 
+// The canonical target every committed snapshot is generated for. Neutral on
+// purpose: not the machine any particular contributor uses.
+export const SNAPSHOT_TARGET = "linux-x86_64";
+
 export async function dumpBytecodeViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
-  return runVaderDump("bytecode", entryPath);
+  // `--annotate` appends `; <mangled name>` after every index-bearing op. The
+  // index is a rank of insertion and says nothing on its own; the name is what a
+  // reader — and a snapshot diff — actually needs. The reader strips `;`
+  // comments, so the dump stays re-readable and `vader-vm-self` still runs it.
+  return runVaderDump("bytecode", entryPath, undefined, ["--annotate"]);
 }
 
 // Drive `./build/vader dump --stage=<S> <file>` through the shared `runCli`
@@ -172,9 +180,19 @@ export async function dumpBytecodeViaVader(_source: string, entryPath: string, _
 // wall-clock budget (a regressed stage can otherwise pin a CPU for hours —
 // see `cli-bin.ts`). A non-zero exit is surfaced inline so snapshot diffs are
 // debuggable rather than mysteriously empty.
-async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[]): Promise<string> {
-  const args = ["dump", `--stage=${stage}`, entryPath];
+async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[], extra?: readonly string[]): Promise<string> {
+  // PINNED to one target. A `@target` group in the closure (`std/io::write_bytes`
+  // since println went through the FFI) makes every stage after target selection
+  // differ per platform: Windows picks the Win32 body and the bytecode carries
+  // `kernel32:GetStdHandle` where POSIX carries `write`. A snapshot's identity is
+  // its target, not the machine that regenerated it.
+  // Flags BEFORE the positional path: the CLI reads the first non-flag argument
+  // as the entry file, so a flag placed after it is taken as a second positional
+  // and silently changes what gets dumped.
+  const args = ["dump", `--stage=${stage}`, `--target=${SNAPSHOT_TARGET}`];
   if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
+  if (extra) args.push(...extra);
+  args.push(entryPath);
   const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
   if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
   return stdout;

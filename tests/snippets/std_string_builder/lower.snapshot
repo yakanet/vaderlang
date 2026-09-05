@@ -37,13 +37,21 @@
         char(0x21)
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            std_string_builder$StringBuilder$Display$to_string :string
+            concat_2 :string
           arg0:
-            sb :StringBuilder!
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                sb :StringBuilder!
+          arg1:
+            "\n" :string
     let sb2: StringBuilder! =
       StringBuilder! {
         parts:
@@ -72,13 +80,21 @@
         "baz" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            std_string_builder$StringBuilder$Display$to_string :string
+            concat_2 :string
           arg0:
-            sb2 :StringBuilder!
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                sb2 :StringBuilder!
+          arg1:
+            "\n" :string
     let sb3: StringBuilder! =
       StringBuilder! {
         parts:
@@ -86,21 +102,29 @@
       }
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_3 :string
+            concat_2 :string
           arg0:
-            "empty='" :string
-          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                concat_3 :string
               arg0:
-                sb3 :StringBuilder!
-          arg2:
-            "'" :string
+                "empty='" :string
+              arg1:
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    sb3 :StringBuilder!
+              arg2:
+                "'" :string
+          arg1:
+            "\n" :string
     let sb4: StringBuilder! =
       StringBuilder! {
         parts:
@@ -122,13 +146,21 @@
         char(0x29)
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            std_string_builder$StringBuilder$Display$to_string :string
+            concat_2 :string
           arg0:
-            sb4 :StringBuilder!
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                sb4 :StringBuilder!
+          arg1:
+            "\n" :string
     let n: i32 = int(42) :i32
     let sb5: StringBuilder! =
       StringBuilder! {
@@ -180,13 +212,21 @@
                 __off_1 :usize
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            std_string_builder$StringBuilder$Display$to_string :string
+            concat_2 :string
           arg0:
-            sb5 :StringBuilder!
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                sb5 :StringBuilder!
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =
@@ -256,3 +296,52 @@
           buf :Buffer
         arg1:
           c2 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -17,7 +17,6 @@ import "std/env"
 import "std/tty"
 import "std/process"
 import "std/math"
-import "std/time"
 import "std/string"
 import "std/target"
 
@@ -27,6 +26,7 @@ import "std/target"
 export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
 
+/// The `(fn_ptr, args, nargs)` triple the three `ffi_call_*` arms share.
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
 host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(string, string) -> bool) -> HostCallResult {
@@ -35,24 +35,6 @@ host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     if a is Trap { return a }
     if b is Trap { return b }
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
-}
-
-/// One f64 arg → one f64 result. Used by `std/math` unary intrinsics
-/// (`sqrt` / `floor` / `ceil` / `round` / `abs`).
-host_f64_unary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(f64) -> f64) -> HostCallResult {
-    a :: read_f64(stack[arg_base], at_pc, label)
-    if a is Trap { return a }
-    return HostOk { .value = F64Val { .value = apply(a.value) } }
-}
-
-/// Two f64 args → one f64 result. Used by `std/math` binary intrinsics
-/// (`pow` / `min` / `max`).
-host_f64_binary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(f64, f64) -> f64) -> HostCallResult {
-    a :: read_f64(stack[arg_base    ], at_pc, "${label} arg 0")
-    b :: read_f64(stack[arg_base + 1], at_pc, "${label} arg 1")
-    if a is Trap { return a }
-    if b is Trap { return b }
-    return HostOk { .value = F64Val { .value = apply(a.value, b.value) } }
 }
 
 /// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
@@ -66,18 +48,6 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
-/// Build the host-side value for a failed io intrinsic : a real
-/// `std/io$IOError` instance when its struct is in the type table (so
-/// `is IOError` narrows and `Error.message` dispatches), the legacy
-/// tag-only `ErrorVal` otherwise (io never imported — unreachable from
-/// the io arms in practice, kept as a defensive fallback).
-mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
-    if io_error_type_id < 0 { return ErrorVal { .message = msg } }
-    return StructVal {
-        .type_id = io_error_type_id,
-        .fields = [StringVal { .value = msg }],
-    }
-}
 
 /// Dispatch a host import. Matches on `intrinsic_id_for(info.mangled_name)`
 /// (the single manifest classification) — every arm pops the args from
@@ -105,6 +75,8 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 ///                  `find_io_error_type_id`), stamped onto fabricated io
 ///                  error values by `mk_io_error` ; `-1` when io was never
 ///                  imported.
+/// @param types     the module type table — an `@extern` lending an array needs
+///                  its element width, which only the type table spells.
 /// @param is_comptime  true when this dispatch runs inside a `@comptime`
 ///                  evaluation (`exec_fn_value` path). Gates the impure hosts
 ///                  (see `is_impure_host`) so a compile-time constant can never
@@ -115,18 +87,7 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool, debug: DebugController | null) -> HostCallResult {
-    id :: bc.intrinsic_id_for(info.mangled_name)
-    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
-    // / terminal) read or mutate state outside the program. Running one during a
-    // `@comptime` evaluation would bake a non-reproducible result and silently
-    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
-    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
-    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
-    // for debug) keep running.
-    if is_comptime && is_impure_host(id) {
-        return impure_comptime_trap(info.mangled_name)
-    }
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -146,36 +107,25 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_begin" { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
-    match id {
-    .IoWrite -> {
-        // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
-        STDOUT :: i32(0)
-        STDERR :: i32(1)
-        tag :: read_i32(stack[arg_base], at_pc, "write stream")
-        if tag is Trap {
-            return tag
-        }
-        msg :: read_string(stack[arg_base + 1], at_pc, "write msg")
-        if msg is Trap {
-            return msg
-        }
-        stream :: tag.value
-        text :: msg.value
-        if stream != STDOUT && stream != STDERR {
-            return Trap { .message = "write at pc=${at_pc}: invalid Stream tag ${stream}" }
-        }
-        // Under the DAP debugger, program output must NOT reach fd 1/2 directly
-        // — in stdio transport that would corrupt the protocol stream. Route
-        // every write through the debug sink, which emits DAP `output` events.
-        if debug != null {
-            debug.output_sink(stream, text)
-        } else if stream == STDOUT {
-            print(text)
-        } else {
-            eprint(text)
-        }
-        return HostOk { .value = zero_value() }
+    // A user `@extern` names a linker symbol, never a manifest entry, so
+    // classifying it first is waste — and `intrinsic_id_for` is not cheap: it
+    // rebuilds and INTERNS mangled names. Placed after the `vader_profile$*`
+    // arms above, which ARE `@extern` and must still be served.
+    if info.is_extern {
+        return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
     }
+    id :: bc.intrinsic_id_for(info.mangled_name)
+    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
+    // / terminal) read or mutate state outside the program. Running one during a
+    // `@comptime` evaluation would bake a non-reproducible result and silently
+    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
+    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
+    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
+    // for debug) keep running.
+    if is_comptime && is_impure_host(id) {
+        return impure_comptime_trap(info.mangled_name)
+    }
+    match id {
     // ---- std/string family ----------------------------------------------
     .ByteLen -> {
         // Internal fold target — `s.bytes().len()` lowers to a std_core$byte_len
@@ -337,106 +287,13 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if deadline > sched_state[0] { sched_state[0] = deadline }
         return HostOk { .value = I32Val { .value = 0 } }
     }
-    // ---- std/time --------------------------------------------------------
-    // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
-    // the native clock through the public `now()` / `monotonic()` (this host is
-    // native, so these are native calls — no VM re-dispatch, no recursion).
-    .TimeNowUnixMs   -> { return HostOk { .value = I64Val { .value = i64(now()) / 1_000_000 } } }
-    .TimeMonotonicNs -> { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
     // ---- std/math --------------------------------------------------------
-    .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
-    .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
-    .MathCos   -> { return host_f64_unary(stack, arg_base, at_pc, "cos",   (a) -> cos(a)) }
-    .MathTan   -> { return host_f64_unary(stack, arg_base, at_pc, "tan",   (a) -> tan(a)) }
-    .MathFloor -> { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
-    .MathCeil  -> { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
-    .MathRound -> { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    .MathPow   -> { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
     // ---- std/io fallible file ops ---------------------------------------
     // `read_file` / `write_file` are gone — `read_file_string` /
     // `write_file_string` are now pure-Vader wrappers over the byte
     // intrinsics below, so the VM executes their bytecode directly (which
     // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
     // dedicated host arm.
-    .IoReadFileBytes -> {
-        path :: read_string(stack[arg_base], at_pc, "read_file_bytes")
-        if path is Trap { return path }
-        result :: read_file_bytes(path.value)
-        // Early-return narrows `result` to `u8[]` on the success path. The
-        // bytes are boxed as `u8` slots (riding in `I32Val`) tagged so they
-        // narrow under `is u8[]` — mirrors the `bytes` arm above.
-        if result is IOError {
-            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
-        }
-        return HostOk { .value = u8_array_to_value(result, u8_array_type_id) }
-    }
-    .IoWriteFileBytes -> {
-        path :: read_string(stack[arg_base], at_pc, "write_file_bytes path")
-        if path is Trap { return path }
-        arr :: read_array(stack[arg_base + 1], at_pc, "write_file_bytes content")
-        if arr is Trap { return arr }
-        content: u8[]! = [] * arr.length
-        for i in 0..<arr.length {
-            b :: read_i32(arr.elements[arr.offset + i], at_pc, "write_file_bytes byte")
-            if b is Trap { return b }
-            content.push(u8(b.value))
-        }
-        result :: write_file_bytes(path.value, content)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
-    }
-    .IoExists -> {
-        path :: read_string(stack[arg_base], at_pc, "exists")
-        if path is Trap { return path }
-        return HostOk { .value = BoolVal { .value = exists(path.value) } }
-    }
-    .IoIsDir -> {
-        path :: read_string(stack[arg_base], at_pc, "is_dir")
-        if path is Trap { return path }
-        return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
-    }
-    .IoTempDir -> {
-        return HostOk { .value = StringVal { .value = temp_dir() } }
-    }
-    .IoCurrentExecutableLocation -> {
-        // Reached when a compile runs in the self-host VM: the resolver's
-        // `resolve_sidecar` (module.vader) queries the exe location on every
-        // stdlib-root resolution. Returns the VM process's own location; a
-        // wrong sidecar just fails the marker check and falls back to cwd.
-        return HostOk { .value = StringVal { .value = current_executable_location() } }
-    }
-    .IoCreateDir -> {
-        path :: read_string(stack[arg_base], at_pc, "create_dir")
-        if path is Trap { return path }
-        result :: create_dir(path.value)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
-    }
-    .IoRemoveFile -> {
-        path :: read_string(stack[arg_base], at_pc, "remove_file")
-        if path is Trap { return path }
-        result :: remove_file(path.value)
-        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
-        return HostOk { .value = NullVal {} }
-    }
-    .IoCurrentWorkingDirectory -> {
-        // Same reason as the arm above: a compile running in the self-host VM
-        // must still be able to ask where it was invoked from.
-        return HostOk { .value = StringVal { .value = current_working_directory() } }
-    }
-    .IoReadDir -> {
-        path :: read_string(stack[arg_base], at_pc, "read_dir")
-        if path is Trap { return path }
-        // `read_dir` returns `string[] | Error`. The early-return
-        // guard narrows `result` to the array on the success path. Needed by
-        // the resolver's module discovery (vader/resolver/discover.vader) when
-        // the compiler runs itself through the VM.
-        result :: read_dir(path.value)
-        if result is IOError {
-            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
-        }
-        return HostOk { .value = string_array_to_value(result, string_array_type_id) }
-    }
     // ---- std/process spawn (non-blocking) -------------------------------
     .ProcessSpawnStart -> {
         argv :: read_array(stack[arg_base], at_pc, "spawn_start argv")
@@ -471,41 +328,61 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = StringVal { .value = spawn_take_stderr(h.value) } }
     }
     // ---- std/tty + std/env ----------------------------------------------
-    .TtyIsTty -> {
-        tag :: read_i32(stack[arg_base], at_pc, "is_tty stream")
-        if tag is Trap { return tag }
-        stream :: if tag.value == 1 { Stream.Stderr } else { Stream.Stdout }
-        return HostOk { .value = BoolVal { .value = is_tty(stream) } }
-    }
     // Raw mode from the VM is the same call the native binary makes: the VM is
     // itself a native binary, so these are its own intrinsics. It matters because
-    // `vader test` runs every @test on the VM — a prompt test that could not
-    // reach the terminal here would be untestable.
-    .TtyRawModeBegin -> { return HostOk { .value = BoolVal { .value = raw_mode_begin() } } }
-    .TtyRawModeEnd -> {
-        raw_mode_end()
-        return HostOk { .value = zero_value() }
-    }
-    .TtyColumns -> { return HostOk { .value = I32Val { .value = columns() } } }
-    .TtyReadKeys -> {
-        max :: read_i32(stack[arg_base], at_pc, "read_keys max")
-        if max is Trap { return max }
-        return HostOk { .value = StringVal { .value = read_keys(max.value) } }
-    }
     // Both re-enter the same host the compiled compiler binds to: an `Os` / `Arch`
     // ordinal rides in an i32 slot like any enum.
+    // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
+    // served here too — the arms forward to the same intrinsics the natively
+    // compiled VM calls directly.
+    .FfiOpen -> {
+        name :: read_string(stack[arg_base], at_pc, "ffi_open name")
+        if name is Trap { return name }
+        return HostOk { .value = I64Val { .value = i64(ffi_open(name.value)) } }
+    }
+    .FfiSymbol -> {
+        lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib")
+        if lib is Trap { return lib }
+        sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name")
+        if sym is Trap { return sym }
+        return HostOk { .value = I64Val { .value = i64(ffi_symbol(usize(lib.value), sym.value)) } }
+    }
+    .FfiCall -> {
+        ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn_ptr")
+        if ptr is Trap { return ptr }
+        desc_arr :: read_array(stack[arg_base + 1], at_pc, "ffi_call desc")
+        if desc_arr is Trap { return desc_arr }
+        frame_arr :: read_array(stack[arg_base + 2], at_pc, "ffi_call frame")
+        if frame_arr is Trap { return frame_arr }
+        // A VM array holds boxed `Value`s, not contiguous bytes, so both are
+        // materialised into real `u8[]`. The host takes their address right
+        // before the call, and nothing runs in between.
+        desc: u8[]! = []
+        for i in 0..<desc_arr.length {
+            b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
+            if b is Trap { return b }
+            desc.push(u8(b.value))
+        }
+        frame: u8[]! = []
+        for i in 0..<frame_arr.length {
+            b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
+            if b is Trap { return b }
+            frame.push(u8(b.value))
+        }
+        ffi_call(usize(ptr.value), desc, frame)
+        // `frame` is a COPY, and it carries BOTH what the callee wrote into a
+        // lent area and the result itself — so it has to travel back whole.
+        for i in 0..<frame_arr.length {
+            at :: frame_arr.offset + i
+            frame_arr.elements[at] = retyped_int(frame_arr.elements[at], i64(frame[i]))
+        }
+        return HostOk { .value = zero_value() }
+    }
     .TargetCurrentOs -> {
         return HostOk { .value = I32Val { .value = i32(current_os()) } }
     }
     .TargetCurrentArch -> {
         return HostOk { .value = I32Val { .value = i32(current_arch()) } }
-    }
-    .EnvGetEnv -> {
-        name :: read_string(stack[arg_base], at_pc, "get_env name")
-        if name is Trap { return name }
-        value :: get_env(name.value)
-        if value == null { return HostOk { .value = NullVal {} } }
-        return HostOk { .value = StringVal { .value = value } }
     }
     // ---- std/abort -------------------------------------------------------
     .AbortPanic -> {
@@ -513,11 +390,684 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if message is Trap { return message }
         return Trap { .message = "vader: panic — ${message.value}" }
     }
-    // Hosts served natively (C shims) but not by the VM, plus non-intrinsics —
-    // grouped so a new IntrinsicId variant still trips T3013 here.
-    .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered | .NotIntrinsic -> {}
+    // Non-intrinsics. Kept as an arm rather than a wildcard so a new
+    // `IntrinsicId` variant still trips T3013 here.
+    .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
+}
+
+/// Whether `symbol` is the raw write syscall behind `std/io` — `write(2)` on POSIX,
+/// which the Windows CRT also exports (as an alias of `_write`).
+///
+/// Recognised so the DAP routing below can send program output to the debug
+/// client rather than the process's own stdout.
+///
+/// @param symbol  the import's foreign symbol name.
+/// @return        whether it is the write syscall.
+is_write_symbol :: fn(symbol: string) -> bool =
+    symbol == "write" || symbol == "_write" || symbol == "WriteFile"
+
+/// Whether `symbol` is Win32's `GetStdHandle`.
+///
+/// Under the debugger it is intercepted so the handle it returns is a POSIX
+/// DESCRIPTOR (1 / 2) rather than a real Win32 handle. `debug_write` then reads
+/// the same first argument on both platforms — `WriteFile`'s first three
+/// parameters have the same shape as `write`'s — and nothing else has to know
+/// which OS produced the call.
+///
+/// @param symbol  the import's foreign symbol name.
+/// @return        whether it is `GetStdHandle`.
+is_std_handle_symbol :: fn(symbol: string) -> bool = symbol == "GetStdHandle"
+
+/// The POSIX descriptor a `GetStdHandle` argument stands for, under the
+/// debugger. `STD_OUTPUT_HANDLE` is `(DWORD) -11`, `STD_ERROR_HANDLE` `(DWORD) -12`.
+///
+/// @param which  the `nStdHandle` argument.
+/// @return       1 for stdout, 2 for stderr.
+debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } else { 1 }
+
+/// Route a `sys_write` through the debugger's output sink instead of the real
+/// descriptor, and report the full count as written.
+///
+/// The argument shape is `sys_write(fd, buf, count)`; the sink takes a Stream
+/// ordinal, which is `fd - 1` (descriptor 1 is `Stdout`, 2 is `Stderr`).
+///
+/// @param info      the import, for its name in trap messages.
+/// @param stack     the operand stack.
+/// @param arg_base  index of the first argument.
+/// @param at_pc     program counter, for trap messages.
+/// @param debug     the attached controller.
+/// @return          the byte count, as the syscall would report it.
+debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
+    fd :: read_i64(stack[arg_base], at_pc, "sys_write fd")
+    if fd is Trap { return fd }
+    arr :: read_array(stack[arg_base + 1], at_pc, "sys_write buf")
+    if arr is Trap { return arr }
+    count :: read_i64(stack[arg_base + 2], at_pc, "sys_write count")
+    if count is Trap { return count }
+    if count.value < 0 || usize(count.value) > arr.length {
+        return Trap { .message = "sys_write at pc=${at_pc}: count ${count.value} exceeds the buffer" }
+    }
+    bs: u8[]! = []
+    for i in 0..<usize(count.value) {
+        b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
+        if b is Trap { return b }
+        bs.push(u8(b.value))
+    }
+    debug.output_sink(i32(fd.value) - 1, bytes_to_string(bs))
+    // `WriteFile` answers a bool, `write` a byte count.
+    if info.signature.result == bc.ValType.Bool {
+        return HostOk { .value = BoolVal { .value = true } }
+    }
+    return HostOk { .value = I64Val { .value = count.value } }
+}
+
+/// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
+/// and calling through a trampoline.
+///
+/// What is covered: integer, `bool` and pointer-width parameters, `f64`,
+/// `string`, any number of lent arrays of integer elements of any width the
+/// target spells, and `@c_struct` mirrors — up to eight arguments. Everything
+/// else traps naming the reason, because calling with a mis-marshalled frame
+/// would corrupt the stack instead of failing: a `char` or `f32` parameter, a
+/// call mixing floating and integer arguments, more than two floating ones, an
+/// `f32` or `string` result, and a callback (the interpreter has no address for
+/// a Vader function).
+///
+/// The library is `BcImport.c_library` when the declaration names one, else the
+/// running process — which covers libc and anything linked into the binary.
+///
+/// @param info         the import, for its `extern_name` and signature.
+/// @param stack        the operand stack.
+/// @param arg_base     index of the first argument.
+/// @param at_pc        program counter, for trap messages.
+/// @param types        the module type table, for a lent array's element width.
+/// @param debug        the DAP controller when one is attached, else null.
+/// @return             the callee's result, or a `Trap` naming what stopped it.
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+    // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
+    // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
+    // here.
+    params :: info.signature.params
+    if params.len() > 8 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: more than 8 arguments" }
+    }
+    // Under the DAP debugger, program output must NOT reach fd 1/2 directly —
+    // in stdio transport that would corrupt the protocol stream. This is the
+    // routing the `IoWrite` arm carried before `write` became ordinary Vader;
+    // it has to live here now, because the VM no longer sees `write` at all,
+    // only the `sys_write` beneath it.
+    if debug != null && is_std_handle_symbol(info.extern_name) {
+        which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which")
+        if which is Trap { return which }
+        return HostOk { .value = I64Val { .value = debug_std_descriptor(which.value) } }
+    }
+    if debug != null && is_write_symbol(info.extern_name) {
+        return debug_write(info, stack, arg_base, at_pc, debug)
+    }
+    // The declared library, or the default scope. `GetStdHandle` lives in
+    // `kernel32.dll`, which the running process exports nothing of.
+    lib :: ffi_open(info.c_library)
+    if lib == 0 {
+        where :: if info.c_library == "" { "the running process" } else { "`${info.c_library}`" }
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: cannot open ${where}" }
+    }
+    sym :: ffi_symbol(lib, info.extern_name)
+    if sym == 0 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
+    }
+
+    // The call is described by DATA, not by its shape: one class per slot, then
+    // a flat frame of eight-byte slots followed by whatever an ADDR slot points
+    // into. `vader_ffi.h` owns the classes and the dispatch.
+    desc: u8[]! = [u8(FFI_VOID)]
+    slot_words: i64[]! = []
+    addr_slots: i64[]! = []
+    data: u8[]! = []
+    borrowed: LentArray[]! = []
+    lent_structs: LentStruct[]! = []
+    for i in 0..<params.len() {
+        v :: stack[arg_base + i]
+        // Unreachable in practice — `exec` traps on `fn.addr` before the value
+        // could reach here — but a `.virt` read from elsewhere need not have
+        // come through that path. See `bytecode/op::FnAddr`.
+        if v is FnVal {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a callback, and the interpreter has no address for a Vader function" }
+        }
+        // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
+        // carries that decorator too, and that branch reads a SCALAR. The shim
+        // declares a real C struct and marshals by field name; nothing here can
+        // build one at run time.
+        if v is StructVal as sv {
+            fields :: mirrored_struct_fields(types, info.signature.param_types, i)
+            if fields == null {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a struct the type table does not describe" }
+            }
+            layout :: bc.c_struct_layout(fields, types)
+            // Every offset from that field on is arithmetic the C compiler never
+            // agreed to. A mirror field must be a C scalar; nothing in the
+            // language can widen that, which is why the message states the shape
+            // rather than offering a remedy.
+            if layout.unknown_field != null {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} mirrors a C struct whose field `${layout.unknown_field}` is not a C scalar and cannot be laid out" }
+            }
+            // The block is what the native shim's `struct stat p1;` is: storage
+            // the callee writes through. Zero-filled, because padding the mirror
+            // does not describe still travels.
+            at :: data.len()
+            // Rounded up to a floor, deliberately. The block's size is COMPUTED
+            // from the declared fields, and only `cc` can confirm it matches the
+            // real type — which it does, through the `_Static_assert` the native
+            // build emits. A mirror that left a field out therefore fails to
+            // compile, but nothing stops `vader run` on its own, and the callee
+            // would then write past a block sized for a partial mirror. The
+            // floor turns that into wrong values instead of a buffer overrun.
+            floor :: usize(bc.MIRROR_BLOCK_FLOOR)
+            room :: if usize(layout.size) > floor { usize(layout.size) } else { floor }
+            for _pad in 0..<room {
+                data.push(0)
+            }
+            filled :: serialise_mirror(data, at, sv, fields, types, at_pc, info.extern_name, 0)
+            if filled is Trap { return filled }
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(at))
+            if param_mirror_is_mutable(info.signature, i) {
+                lent_structs.push(LentStruct { .target = sv, .at = at, .fields = fields })
+            }
+            continue
+        }
+        if extern_by_address(info.signature, i) {
+            // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
+            // into the frame's data area and hand over that offset — the mirror
+            // of the stack temporary the native shim spills to.
+            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            if w is Trap { return w }
+            width :: usize(size_of_val_type(params[i]))
+            if width == 0 || width > 8 {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
+            }
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            push_little_endian(data, w.value, width)
+        } else if v is ArrayVal as arr {
+            elem :: lent_element_val_type(types, arr.type_id)
+            if elem == null {
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only integer elements are covered)" }
+            }
+            width :: usize(bc.size_of_val_type(elem))
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            borrowed.push(LentArray { .target = arr, .at = data.len(), .element = elem })
+            for j in 0..<arr.length {
+                b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` element")
+                if b is Trap { return b }
+                push_little_endian(data, b.value, width)
+            }
+        } else if v is StringVal as sv {
+            // A `string` crosses as a NUL-terminated buffer in the frame's data
+            // area — the same ADDR mechanism a lent array uses. The native shim
+            // reaches the same place through `vader_string_to_cstr`.
+            desc.push(u8(FFI_ADDR))
+            addr_slots.push(i64(slot_words.len()))
+            slot_words.push(i64(data.len()))
+            data.push_all(sv.value.bytes())
+            data.push(0)
+        } else if v is F64Val as f {
+            desc.push(u8(FFI_F64))
+            slot_words.push(i64(f.value.to_bits()))
+        } else if v is BoolVal as b {
+            desc.push(u8(FFI_WORD))
+            slot_words.push(if b.value { 1 } else { 0 })
+        } else if v is NullVal {
+            // `null` IS a pointer value — the null address — which is what the
+            // native shim passes for a `CPointer | null`.
+            desc.push(u8(FFI_WORD))
+            slot_words.push(0)
+        } else {
+            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            if w is Trap { return w }
+            desc.push(u8(FFI_WORD))
+            slot_words.push(w.value)
+        }
+    }
+
+    // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
+    // returning `float` leaves only the low half of the result register
+    // meaningful, so reading 64 bits of it would give an arbitrary value.
+    if info.signature.result == bc.ValType.F32 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
+    }
+    desc[0] = if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.String) {
+        u8(FFI_STR_OPT)
+    } else {
+        u8(ffi_result_class(info.signature.result))
+    }
+
+    // An ADDR slot carries an offset into the WHOLE frame, so it only becomes
+    // final once the slot area's width is known.
+    base :: slot_words.len() * 8
+    for si in addr_slots {
+        slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
+    }
+    frame: u8[]! = []
+    for w in slot_words {
+        push_little_endian(frame, w, 8)
+    }
+    frame.push_all(data)
+    // The frame carries the RESULT back as well as the arguments out, so a
+    // value-returning call needs a slot even with no arguments. Without one the
+    // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
+    // runtime's `fview.len < nargs * 8` guard reads `0 < 0` — so `getpid()`
+    // wrote its result to address 0 and the interpreter took SIGSEGV.
+    if frame.len() == 0 && info.signature.result != bc.ValType.Void {
+        push_little_endian(frame, 0, 8)
+    }
+
+    returned :: ffi_call(sym, desc, frame)
+
+    // What C wrote into a lent array has to travel back: the frame is a FLAT
+    // COPY of the boxed elements, so without this a mutable lend —
+    // `read_file_bytes` filling its buffer — would silently read back what it
+    // sent. The native path needs no equivalent: it lends the array's own
+    // storage, so the write lands in place.
+    for b in borrowed {
+        width :: usize(bc.size_of_val_type(b.element))
+        // Only an integer class reaches `LentArray`, so unsigned is the whole
+        // question — `lent_element_val_type` filtered the rest out.
+        signed :: !bc.is_unsigned_val(b.element)
+        for j in 0..<b.target.length {
+            slot :: b.target.offset + j
+            written :: read_little_endian(frame, base + b.at + j * width, width, signed)
+            b.target.elements[slot] = retyped_int(b.target.elements[slot], written)
+        }
+    }
+    // Same reason as the arrays above: the block is a copy, so a callee that
+    // filled it has written somewhere the Vader struct cannot see.
+    for ls in lent_structs {
+        read_back_mirror(frame, base + ls.at, ls.target, ls.fields, types, 0)
+    }
+    if info.signature.result == bc.ValType.Void {
+        return HostOk { .value = zero_value() }
+    }
+    if info.signature.result == bc.ValType.F64 {
+        return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
+    }
+    // A `string` result comes back as the call's RETURN value, not through the
+    // frame: it is an atom, and only C can turn the callee's pointer into one.
+    if desc[0] == u8(FFI_STR_OPT) {
+        if read_little_endian(frame, 0, 8, false) == 0 {
+            return HostOk { .value = NullVal {} }
+        }
+        return HostOk { .value = StringVal { .value = returned } }
+    }
+    if info.signature.result == bc.ValType.String {
+        return HostOk { .value = StringVal { .value = returned } }
+    }
+    // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
+    // a null pointer from a pointer whose value is 0.
+    if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.Pointer)
+        && read_little_endian(frame, 0, 8, false) == 0 {
+        return HostOk { .value = NullVal {} }
+    }
+    return extern_result(info.signature.result, read_little_endian(frame, 0, 8, true))
+}
+
+/// Argument / result classes for `ffi_call` — mirrors `VADER_FFI_*` in
+/// `runtime/c/vader_ffi.h`. The two must agree.
+FFI_VOID :: 0
+FFI_WORD :: 1
+FFI_F64  :: 2
+FFI_ADDR :: 3
+FFI_STR  :: 4
+FFI_STR_OPT :: 5
+
+/// The class a result `ValType` is read back as.
+///
+/// @param result  the import's declared result.
+/// @return        `FFI_VOID`, `FFI_F64`, or `FFI_WORD`.
+ffi_result_class :: fn(result: bc.ValType) -> i32 {
+    if result == bc.ValType.Void {
+        return FFI_VOID
+    }
+    if result == bc.ValType.F64 {
+        return FFI_F64
+    }
+    if result == bc.ValType.String {
+        return FFI_STR
+    }
+    return FFI_WORD
+}
+
+/// Whether the result slot is `want | null`, a two-variant union whose other
+/// half is exactly `want`.
+///
+/// C says "absent" by returning NULL, and only the DECLARED type says whether a
+/// zero word means that. The native path never has to ask: its shim reads the
+/// sentinel (`r == NULL ? vader_box_null() : ...`). The VM calls the symbol
+/// through `dlsym`, so it owns that reading — without it a failed `fopen` came
+/// back as a pointer valued 0, `f == null` was false, and the next `fread`
+/// dereferenced it.
+///
+/// Only `string` and `pointer` are asked for: for `i32 | null` a returned 0 is
+/// a legitimate value, and collapsing it to `null` would corrupt the result.
+///
+/// @param types        the module type table.
+/// @param result_type  the result slot's BcType index.
+/// @param want         the non-`null` variant to match.
+/// @return             whether the slot is exactly `want | null`.
+ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) -> bool {
+    if result_type < 0 || usize(result_type) >= types.len() {
+        return false
+    }
+    u :: types[usize(result_type)]
+    if u !is bc.BcUnion {
+        return false
+    }
+    if u.variants.len() != 2 {
+        return false
+    }
+    has_null := false
+    has_want := false
+    for vi in u.variants {
+        if vi < 0 || usize(vi) >= types.len() {
+            continue
+        }
+        v :: types[usize(vi)]
+        if v is bc.BcPrimitive as bp {
+            if bp.val == bc.ValType.Null { has_null = true }
+            if bp.val == want            { has_want = true }
+        }
+    }
+    return has_null && has_want
+}
+
+/// One array lent to a foreign call, and where its bytes sit in the flat buffer
+/// — everything the write-back needs once the callee has returned.
+
+/// A `@c_struct` argument the callee writes through, to read back after the call.
+LentStruct :: struct {
+    target: StructVal
+    /// Offset of the block inside the frame's data area.
+    at:     usize
+    fields: bc.BcField[]
+}
+
+/// The mirrored struct's fields for parameter `i`, or `null` when the type table
+/// says nothing about it.
+///
+/// `param_types` is absent from a `.virt` re-read, which is why this returns an
+/// option rather than trapping on an index.
+mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -> bc.BcField[] | null {
+    if i >= param_types.len() {
+        return null
+    }
+    idx :: param_types[i]
+    if idx < 0 || usize(idx) >= types.len() {
+        return null
+    }
+    t :: types[usize(idx)]
+    if t !is bc.BcStruct {
+        return null
+    }
+    if t.c_name == "" {
+        return null
+    }
+    return t.fields
+}
+
+/// A mirrored field's own value class, for the sign of the read-back.
+field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
+    v :: bc.c_field_val_type(f, types)
+    if v == null {
+        return bc.ValType.I64
+    }
+    return v
+}
+
+/// Read a mirrored struct back out of the frame block, descending into a nested
+/// mirror. The mirror image of `serialise_mirror`, and it must stay one: a field
+/// written at an offset has to be read from the same one.
+///
+/// @param frame   the frame the callee wrote into.
+/// @param base    where this struct starts in it.
+/// @param target  the Vader value to write back into.
+/// @param fields  the mirror's fields at this level.
+/// @param depth   guards a malformed self-referential mirror.
+read_back_mirror :: fn(
+    frame: u8[], base: usize, target: StructVal!, fields: bc.BcField[],
+    types: bc.BcType[], depth: i32,
+) -> void {
+    if depth >= bc.NEST_CAP {
+        return
+    }
+    layout :: bc.c_struct_layout(fields, types)
+    for j in 0..<fields.len() {
+        nested :: bc.nested_mirror(fields[j], types)
+        if nested != null {
+            inner :: target.fields[j]
+            if inner is StructVal as isv {
+                read_back_mirror(
+                    frame, base + usize(layout.offsets[j]), isv, nested.fields,
+                    types, depth + 1,
+                )
+            }
+            continue
+        }
+        width :: bc.c_field_width(fields[j], types)
+        if width == null {
+            continue
+        }
+        signed :: !bc.is_unsigned_val(field_val_type(types, fields[j]))
+        written :: read_little_endian(frame, base + usize(layout.offsets[j]), usize(width), signed)
+        target.fields[j] = retyped_int(target.fields[j], written)
+    }
+}
+
+/// Write a mirrored struct into the frame block at `base`, descending into a
+/// nested mirror.
+///
+/// The C side holds a nested struct INLINE, so its members sit at offsets inside
+/// the same block; Vader holds it by pointer, so the recursion follows the
+/// `StructVal` and keeps writing into the SAME block at the nested offsets.
+///
+/// @param data    the frame's data area, appended to before this runs.
+/// @param base    where this struct starts in `data`.
+/// @param sv      the Vader value to read from.
+/// @param fields  the mirror's fields at this level.
+/// @param depth   guards a malformed self-referential mirror.
+/// @return        `null` on success, a `Trap` naming the field otherwise.
+serialise_mirror :: fn(
+    data: u8[]!, base: usize, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
+    at_pc: i32, extern_name: string, depth: i32,
+) -> Trap | null {
+    if depth >= bc.NEST_CAP {
+        return Trap { .message = "extern `${extern_name}` at pc=${at_pc}: mirror nests deeper than ${bc.NEST_CAP}" }
+    }
+    layout :: bc.c_struct_layout(fields, types)
+    for j in 0..<fields.len() {
+        nested :: bc.nested_mirror(fields[j], types)
+        if nested != null {
+            inner :: sv.fields[j]
+            if inner !is StructVal {
+                return Trap { .message = "extern `${extern_name}` at pc=${at_pc}: field `${fields[j].name}` mirrors a nested C struct but holds no value" }
+            }
+            t :: serialise_mirror(
+                data, base + usize(layout.offsets[j]), inner, nested.fields, types,
+                at_pc, extern_name, depth + 1,
+            )
+            if t is Trap { return t }
+            continue
+        }
+        width :: bc.c_field_width(fields[j], types)
+        if width == null {
+            continue
+        }
+        cell :: read_i64(sv.fields[j], at_pc, "extern `${extern_name}` field `${fields[j].name}`")
+        if cell is Trap { return cell }
+        write_little_endian(data, base + usize(layout.offsets[j]), cell.value, usize(width))
+    }
+    return null
+}
+
+/// Whether the callee writes through the mirrored struct at parameter `i`.
+param_mirror_is_mutable :: fn(sig: bc.BcSignature, i: usize) -> bool {
+    if i >= sig.param_mutable.len() {
+        return false
+    }
+    return sig.param_mutable[i]
+}
+
+/// Write `value` into `buf` at `at`, little-endian, over `width` bytes.
+write_little_endian :: fn(buf: u8[]!, at: usize, value: i64, width: usize) -> void {
+    v :: u64(value)
+    for k in 0..<width {
+        buf[at + k] = u8((v >> u64(k * 8)) & 0xFF)
+    }
+}
+
+LentArray :: struct {
+    target: ArrayVal
+    at:     usize
+    /// What the array holds — the stride of the spill and the read-back, and
+    /// whether the read-back sign-extends.
+    element: bc.ValType
+}
+
+/// The `ValType` of the elements an array value holds, or `null` when they are
+/// not integers the lend can spill.
+///
+/// Read off the VALUE's `type_id`, not the import's signature: a `.virt` reload
+/// carries no `BcType` indices for a signature (`virt_reader_bc` reconstructs
+/// them as `0` for every ref slot), so a signature-derived width would be right
+/// from source and wrong through the round-trip — the two paths must agree.
+///
+/// @param types          the module type table.
+/// @param array_type_id  the `ArrayVal`'s own type index.
+/// @return               the element's value class, or `null` when not lendable.
+lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValType | null {
+    if array_type_id < 0 || usize(array_type_id) >= types.len() {
+        return null
+    }
+    t :: types[usize(array_type_id)]
+    if t !is bc.BcArray {
+        return null
+    }
+    if t.element < 0 || usize(t.element) >= types.len() {
+        return null
+    }
+    element :: types[usize(t.element)]
+    if element !is bc.BcPrimitive {
+        return null
+    }
+    if !bc.is_integer_val(element.val) {
+        return null
+    }
+    return element.val
+}
+
+/// Read `width` bytes of `buf` at `at` back as an integer.
+///
+/// The mirror of `push_little_endian` — same machine on both sides, so this is
+/// a spill format and not a wire one.
+///
+/// @param buf     the flat lend buffer.
+/// @param at      the element's first byte.
+/// @param width   how many bytes it occupies.
+/// @param signed  whether to sign-extend a narrow value.
+/// @return        the integer C left there.
+read_little_endian :: fn(buf: u8[], at: usize, width: usize, signed: bool) -> i64 {
+    value: i64 = 0
+    for k in 0..<width {
+        value = value | (i64(buf[at + k]) << i64(k * 8))
+    }
+    if signed && width < 8 {
+        sign_bit :: i64(1) << i64(width * 8 - 1)
+        if (value & sign_bit) != 0 {
+            value = value - (sign_bit << 1)
+        }
+    }
+    return value
+}
+
+/// Whether parameter `i` carries `@c_pointer`. Absent (not per-index) on every
+/// signature that has no `@extern` behind it, hence the length guard.
+///
+/// @param sig  the import's signature.
+/// @param i    parameter index.
+/// @return     whether the callee receives the parameter's address.
+extern_by_address :: fn(sig: bc.BcSignature, i: usize) -> bool {
+    if i >= sig.param_by_address.len() {
+        return false
+    }
+    return sig.param_by_address[i]
+}
+
+/// Append the low `width` bytes of `value` to `buf`, least significant first.
+///
+/// Little-endian unconditionally: every target we emit for is little-endian, and
+/// the bytes are read back by the C callee on the SAME machine — this is a
+/// spill, not a wire format.
+///
+/// @param buf    the flat lend buffer, appended to.
+/// @param value  the scalar to spill.
+/// @param width  how many bytes the foreign parameter occupies.
+push_little_endian :: fn(buf: u8[]!, value: i64, width: usize) -> void {
+    for k in 0..<width {
+        buf.push(u8((value >> i64(k * 8)) & 0xFF))
+    }
+}
+
+/// Rebuild `old`'s variant around a new integer, so a write-back preserves the
+/// element class the array was built with.
+///
+/// @param old  the element being overwritten.
+/// @param n    the byte C wrote.
+/// @return     `n` wearing `old`'s variant.
+retyped_int :: fn(old: Value, n: i64) -> Value {
+    if old is I64Val {
+        return I64Val { .value = n }
+    }
+    return I32Val { .value = i32(n) }
+}
+
+/// Wrap a foreign call's raw machine result as the `Value` its declared return
+/// type calls for.
+///
+/// @param result  the import's declared result class.
+/// @param raw     the trampoline's `i64`.
+/// @return        the wrapped value.
+extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
+    // A `string` result is a `const char*` the callee owns; turning it into a
+    // Vader string means measuring and interning it, which nothing here does.
+    // Reporting the raw address as an integer would hand the caller a bogus
+    // atom id, so refuse instead.
+    if result == bc.ValType.String {
+        return Trap { .message = "extern: a `string` result is not covered on the VM" }
+    }
+    if result == bc.ValType.Void {
+        return HostOk { .value = zero_value() }
+    }
+    if result == bc.ValType.Bool {
+        // The LOW 32 bits only. A Win32 `BOOL` is an `int`, and the x64 ABI
+        // defines EAX alone on return — whatever the callee left in the upper
+        // half of RAX is not part of the value. Testing all 64 turns a `FALSE`
+        // from `FindNextFileW` into `true`, and the caller is a `for {}` that
+        // only that result breaks: an infinite loop, not a one-off wrong branch.
+        return HostOk { .value = BoolVal { .value = i32(raw & 0xFFFF_FFFF) != 0 } }
+    }
+    // A narrow integer keeps the carrier the VM uses for its width : `i32` and
+    // below ride `I32Val`, everything wider rides `I64Val`.
+    if result == bc.ValType.I32 || result == bc.ValType.U32
+        || result == bc.ValType.I16 || result == bc.ValType.U16
+        || result == bc.ValType.I8 || result == bc.ValType.U8
+        || result == bc.ValType.Char {
+        return HostOk { .value = I32Val { .value = i32(raw) } }
+    }
+    return HostOk { .value = I64Val { .value = raw } }
 }
 
 // ---- comptime impurity gate -----------------------------------------------
@@ -541,20 +1091,27 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
     IMPURE_COMPTIME_MARKER in message
 
 // Classify a host by comptime purity. Impure hosts read or mutate the outside
-// world (clock, environment, filesystem, stdin, subprocess, terminal) and so
-// bake non-reproducibly. `IoWrite` is deliberately PURE : writing debug output
-// to stdout doesn't change the baked value, so `println` in a `@comptime` block
-// stays legal. Exhaustive over `IntrinsicId` so a newly added host must be
-// classified here (T3013) rather than silently defaulting to servable.
+// world (clock, environment, stdin, subprocess, terminal) and so bake
+// non-reproducibly.
+//
+// The FILESYSTEM left this list with `read_dir`, which is Vader over `@extern`
+// now rather than a host. It is NOT therefore refused: `dispatch_extern` runs
+// before this gate and takes no `is_comptime`, so any `@extern` is reachable
+// from a `@comptime` block — a door `@extern` already held open, which
+// `read_dir` now stands in. Exhaustive over `IntrinsicId` so a newly added host
+// must be classified here (T3013) rather than silently defaulting to servable.
+//
+// `println` inside a `@comptime` block stays legal: writing to stdout does not
+// change the baked value, and `write` is ordinary Vader now — it reaches
+// `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
+// reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
-        | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
-        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
-        | .IoCurrentWorkingDirectory | .IoCreateDir | .IoRemoveFile -> true
-    .TimeNowUnixMs | .TimeMonotonicNs -> true
+    // Running arbitrary native code is impure by construction, and this is
+    // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
+    // a build that dlopen'd a library would not be reproducible.
+    .FfiOpen | .FfiSymbol | .FfiCall -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
         | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
-    .TtyIsTty | .EnvGetEnv -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
     // emit of the same source would differ. That is exactly what `seed.sh check`
@@ -563,18 +1120,15 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .TargetCurrentOs | .TargetCurrentArch -> true
     // Raw mode mutates the terminal and reads keystrokes; the width is whatever
     // the window happens to be. Nothing here bakes reproducibly.
-    .TtyRawModeBegin | .TtyRawModeEnd | .TtyColumns | .TtyReadKeys -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
-    .IoWrite -> false
     .ByteLen | .ByteAt -> false
     .Bytes | .BytesToString | .StringIndexAt | .StringHash
         | .StringEquals | .StringNotEquals -> false
     .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
-    .MathSqrt | .MathSin | .MathCos | .MathTan | .MathFloor | .MathCeil | .MathRound | .MathPow -> false
     .AbortPanic -> false
     .NotIntrinsic -> false
 }

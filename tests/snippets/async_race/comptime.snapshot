@@ -20,6 +20,7 @@
   Timeout<T>
   Timeout<T>
   Timeout<T>
+  ArrayOps<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -62,7 +63,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

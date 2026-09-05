@@ -5,22 +5,22 @@ type 2 fn (1) -> 1
 export main 2
 
 fn 0 snippet$triple (i32) -> i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 3
   i32.mul
   return
 end
 
 fn 1 snippet$apply (ref,i32) -> i32
-  local.get 1
-  local.get 0
-  call.indirect 2
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  call.indirect 2   ; fn
   return
 end
 
 fn 2 snippet$main () -> i32
-  fn.ref 0 2
+  fn.ref 0 2   ; snippet$triple
   i32.const 7
-  call 1
+  call 1   ; snippet$apply
   return
 end

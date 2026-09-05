@@ -86,6 +86,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
                         .kind       = SymbolKind.Fn,
                         .name       = mangled,
                         .module     = found_free.symbol.module,
+                        .module_name = found_free.symbol.module,
                         .visibility = Visibility.Private,
                         .defined_at = null,
                     }

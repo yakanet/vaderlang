@@ -111,10 +111,10 @@ check_environment :: fn() -> Check[] {
         })
     }
     // `CC` is honoured by the BOOTSTRAP scripts (`bootstrap/build.sh` line 24,
-    // `build.ps1` line 15) and by nothing else — `vader build` defaults to `cc`
-    // and reads only `--cc`. Someone who exported `CC=clang` and then wonders why
-    // the build invoked `cc` has no way to find that out, which is the whole shape
-    // of failure this command exists for.
+    // `build.ps1` line 15) and by nothing else — `vader build` takes its default
+    // from `pipeline::default_cc` and reads only `--cc`. Someone who exported
+    // `CC=clang` and then wonders why the build invoked something else has no way
+    // to find that out, which is the whole shape of failure this command exists for.
     cc_env :: get_env("CC")
     if cc_env != null && cc_env != "" {
         out.push(check_warn(

@@ -104,6 +104,7 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
         .kind       = SymbolKind.TypeParam,
         .name       = name,
         .module     = "test",
+        .module_name = "test",
         .visibility = Visibility.Private,
         .defined_at = null,
     }

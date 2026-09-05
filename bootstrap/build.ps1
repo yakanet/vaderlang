@@ -6,6 +6,9 @@
 # `-ThreeStage` adds the round `verify.sh` needs, which compares stage1 against
 # the stage2 it produces. See bootstrap/build.sh's header for the reasoning.
 #
+# Runs on Windows PowerShell 5.1 as well as PowerShell 7+ -- keep it that way:
+# nothing here may use a 7-only form (`ForEach-Object -Parallel`, `??`, `?:`,
+# `&&`), since 5.1 is what a stock Windows offers and the CI only runs 7.
 # Needs a mingw-w64 C compiler (gcc or clang) on PATH -- MSVC is NOT supported
 # (the runtime uses __attribute__((weak))). The seed is plain C, compiled where
 # it is tracked -- nothing to decompress. The compiler defaults to gcc; override
@@ -48,7 +51,14 @@ New-Item -ItemType Directory -Force build | Out-Null
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
 $hostTarget = "windows-$hostArch"
 $seedShared = @(Get-ChildItem -Path 'bootstrap\seed' -Include 'bootstrap.split.g.c','bootstrap-*.c' -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
-$seedHost = @(Get-ChildItem -Path 'bootstrap\seed' -Filter "bootstrap.$hostTarget-*.c" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$seedIncDir = Join-Path (Join-Path $PWD 'bootstrap\seed') $hostTarget
+$seedHost = @(Get-ChildItem -Path $seedIncDir -Filter '*.c' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$seedRoot = Join-Path $PWD 'bootstrap\seed'
+if (-not (Test-Path $seedIncDir)) {
+    $seeded = (Get-ChildItem -Path $seedRoot -Directory | ForEach-Object { $_.Name }) -join ' '
+    throw "no seed for $hostTarget -- seeded targets: $seeded"
+}
+$seedInc = @($seedIncDir, $seedRoot)
 if ($seedShared.Count -eq 0) {
     throw "no seed under bootstrap\seed\ -- run bootstrap/seed.sh regenerate"
 }
@@ -76,25 +86,63 @@ function LtoLinkFlags {
     }
 }
 
-function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags) {
+# Start-Process joins -ArgumentList with spaces and quotes nothing of its own,
+# so an include root or source path holding a space would arrive as two
+# arguments.
+function QuoteArg($a) {
+    $s = "$a"
+    if ($s -match '[\s"]') { return '"' + ($s -replace '"', '\"') + '"' }
+    return $s
+}
+
+# One cc process per unit, at most $ccJobs at a time. Windows PowerShell 5.1 has
+# no `ForEach-Object -Parallel`, and its `$using:` reaches only into jobs and
+# remote sessions -- driving the processes directly is the one form 5.1 and 7
+# both accept, so this stays a single code path instead of a per-version branch.
+function CcCompileAll($flags, $objDir, $units, $incArgs, $what) {
+    $queue = [System.Collections.Queue]::new()
+    foreach ($u in $units) { $queue.Enqueue($u) }
+    $running = [System.Collections.ArrayList]::new()
+    $failed = [System.Collections.ArrayList]::new()
+    while ($queue.Count -gt 0 -or $running.Count -gt 0) {
+        while ($running.Count -lt $ccJobs -and $queue.Count -gt 0) {
+            $unit = $queue.Dequeue()
+            $obj = Join-Path $objDir ([IO.Path]::GetFileNameWithoutExtension($unit) + '.o')
+            $log = "$obj.log"
+            $argv = @(@($flags) + $incArgs + @('-c', $unit, '-o', $obj) |
+                Where-Object { $null -ne $_ -and "$_" -ne '' })
+            $proc = Start-Process -FilePath $ccAbs -NoNewWindow -PassThru `
+                -ArgumentList (($argv | ForEach-Object { QuoteArg $_ }) -join ' ') `
+                -RedirectStandardError $log
+            # Reading .Handle keeps the handle open: without it .ExitCode is
+            # unavailable once the child is gone, and every unit reads as a pass.
+            $null = $proc.Handle
+            [void]$running.Add([pscustomobject]@{ Proc = $proc; Unit = $unit; Log = $log })
+        }
+        Start-Sleep -Milliseconds 40
+        for ($i = $running.Count - 1; $i -ge 0; $i--) {
+            $slot = $running[$i]
+            if (-not $slot.Proc.HasExited) { continue }
+            $slot.Proc.WaitForExit()
+            $text = if (Test-Path $slot.Log) { Get-Content -Raw $slot.Log } else { '' }
+            Remove-Item $slot.Log -Force -ErrorAction SilentlyContinue
+            if ($text -and "$text".Trim()) { Write-Host "$text".TrimEnd() }
+            if ($slot.Proc.ExitCode -ne 0) { [void]$failed.Add($slot.Unit) }
+            $running.RemoveAt($i)
+        }
+    }
+    if ($failed.Count -gt 0) { throw "$what compilation failed for: $($failed -join ', ')" }
+}
+
+function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags, $extraInc) {
     $objDir = Join-Path $PWD $objDirRel
     $rtInc = Join-Path $PWD 'runtime\c'
-    $cc = $ccAbs
-    $failed = $units | ForEach-Object -ThrottleLimit $ccJobs -Parallel {
-        $c = $using:cc
-        $f = $using:flags
-        $inc = $using:rtInc
-        $obj = Join-Path $using:objDir ([IO.Path]::GetFileNameWithoutExtension($_) + '.o')
-        # `2>&1` is load bearing: a cc WARNING left on the runspace's error
-        # stream reaches the parent pipeline, where the script's 'Stop'
-        # preference makes it terminating -- the build died on a warning before
-        # $LASTEXITCODE could be read. Folding it into the output stream keeps
-        # the text and makes the exit code the only verdict.
-        $out = & $c $f "-I$inc" -c $_ -o $obj 2>&1
-        if ($out) { Write-Host (($out | Out-String).TrimEnd()) }
-        if ($LASTEXITCODE -ne 0) { $_ }
-    }
-    if ($failed) { throw "$what compilation failed for: $($failed -join ', ')" }
+    # `$extraInc` is a LIST of include roots, most specific first: the seed's
+    # per-target directory owns `bootstrap.imports.h`, its root the shared
+    # `bootstrap.split.h`.
+    $incArgs = @($extraInc | Where-Object { $null -ne $_ } | ForEach-Object { "-I$_" }) +
+               @("-I$rtInc")
+    CcCompileAll $flags $objDir $units $incArgs $what
     $objs = @(Get-ChildItem -Path $objDir -Filter '*.o' | ForEach-Object { $_.FullName })
     if ($objs.Count -eq 0) { throw "$what link: no objects under $objDir" }
     # `@(...)` on $null yields a ONE-element array holding $null, which reaches a
@@ -130,7 +178,7 @@ $work0 = Join-Path $PWD 'build\work\stage0'
 Remove-Item -Recurse -Force $work0 -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $work0 | Out-Null
 $seedUnits = @($seedShared) + @($seedHost) + @((Join-Path $PWD $runtime))
-CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0' $null
+CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0' $null $seedInc
 
 Step "[2/$stages] Building stage1 (full compiler, via stage0)  -- self-compiles"
 $work1 = Join-Path $PWD 'build\work\stage1'

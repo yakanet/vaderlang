@@ -1,0 +1,30 @@
+// `@c_struct` marshalling — a Vader struct mirroring a C one crosses as an
+// address, and the emitted C carries the `_Static_assert` layout lines.
+//
+// `div_t` is the mirrored type because both its members are `int`, 32 bits on
+// every target we build for — `long` and `time_t` are not. `abs` carries the
+// `@c_header`: an `@extern` naming one drops the synthesised prototype, so the
+// helper below cannot, and the include is what brings `div_t` in.
+
+module "snippet"
+
+import "std/io"
+
+/// Mirror of C's `div_t` — a quotient and a remainder.
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem:  i32
+}
+
+@c_header("<stdlib.h>")
+@extern("abs") c_abs :: fn(x: i32) -> i32
+
+@extern fill_div :: fn(@c_pointer d: Div!, quot: i32, rem: i32) -> void
+
+main :: fn() -> i32 {
+    d :: Div { .quot = 0, .rem = 0 }
+    fill_div(d, -7, 3)
+    println("quot=${d.quot} abs=${c_abs(d.quot)} rem=${d.rem}")
+    return 0
+}

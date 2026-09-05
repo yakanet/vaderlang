@@ -28,9 +28,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "not matched" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "not matched" :string
+              arg1:
+                "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

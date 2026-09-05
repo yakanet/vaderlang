@@ -7,11 +7,11 @@ fn 0 snippet$main () -> i32
   local $mul_2 i32
   local $mul_5 i32
   i32.const 70
-  local.set 0
+  local.set 0   ; $mul_2
   i32.const 70
-  local.set 1
-  local.get 0
-  local.get 1
+  local.set 1   ; $mul_5
+  local.get 0   ; $mul_2
+  local.get 1   ; $mul_5
   i32.add
   return
 end

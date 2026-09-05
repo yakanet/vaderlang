@@ -15,41 +15,57 @@
                 LoweredCellNew
               ~>
                 block :void
-                  let shout: __lambda_env_7! =
-                    __lambda_env_7! {
+                  let shout: __lambda_env_snippet_3! =
+                    __lambda_env_snippet_3! {
                       cap_0: p :P
                     }
                   call :void
                     callee:
-                      std_io$println__string :void
+                      write :fn(Stream, string) -> void
                     arg0:
+                      int(0) :i32
+                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          "HELLO " :string
+                          call :string
+                            callee:
+                              concat_2 :string
+                            arg0:
+                              "HELLO " :string
+                            arg1:
+                              .name :string
+                                LoweredCellGet
                         arg1:
-                          .name :string
-                            LoweredCellGet
+                          "\n" :string
                   ~>
                     call :void
                       callee:
-                        std_io$println__string :void
+                        write :fn(Stream, string) -> void
                       arg0:
+                        int(0) :i32
+                      arg1:
                         call :string
                           callee:
                             concat_2 :string
                           arg0:
-                            "again " :string
-                          arg1:
                             call :string
                               callee:
                                 concat_2 :string
                               arg0:
-                                "HELLO " :string
+                                "again " :string
                               arg1:
-                                .name :string
-                                  LoweredCellGet
+                                call :string
+                                  callee:
+                                    concat_2 :string
+                                  arg0:
+                                    "HELLO " :string
+                                  arg1:
+                                    .name :string
+                                      LoweredCellGet
+                          arg1:
+                            "\n" :string
             else:
               ~>
                 if :void
@@ -61,62 +77,70 @@
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled: __lambda_env_2! =
-                          __lambda_env_2! {
+                        let doubled: __lambda_env_snippet_1! =
+                          __lambda_env_snippet_1! {
                             cap_0: n :i32
                           }
                         ~>
                           call :void
                             callee:
-                              std_io$println__string :void
+                              write :fn(Stream, string) -> void
                             arg0:
-                              block :string
-                                let __buf_1: Buffer =
-                                  call :Buffer
-                                    callee:
-                                      new_byte_buffer :Buffer
-                                    arg0:
-                                      int(28) :usize
-                                let __off_2: usize = int(0) :usize
-                                assign
-                                  target:
-                                    __off_2 :usize
-                                  value:
-                                    call :usize
-                                      callee:
-                                        write_string_at :usize
-                                      arg0:
-                                        __buf_1 :Buffer
-                                      arg1:
+                              int(0) :i32
+                            arg1:
+                              call :string
+                                callee:
+                                  concat_2 :string
+                                arg0:
+                                  block :string
+                                    let __buf_1: Buffer =
+                                      call :Buffer
+                                        callee:
+                                          new_byte_buffer :Buffer
+                                        arg0:
+                                          int(28) :usize
+                                    let __off_2: usize = int(0) :usize
+                                    assign
+                                      target:
                                         __off_2 :usize
-                                      arg2:
-                                        "twice = " :string
-                                assign
-                                  target:
-                                    __off_2 :usize
-                                  value:
-                                    call :usize
-                                      callee:
-                                        write_int :usize
-                                      arg0:
-                                        __buf_1 :Buffer
-                                      arg1:
+                                      value:
+                                        call :usize
+                                          callee:
+                                            write_string_at :usize
+                                          arg0:
+                                            __buf_1 :Buffer
+                                          arg1:
+                                            __off_2 :usize
+                                          arg2:
+                                            "twice = " :string
+                                    assign
+                                      target:
                                         __off_2 :usize
-                                      arg2:
-                                        cast → i64
-                                          add :i32
-                                            l:
-                                              LoweredCellGet
-                                            r:
-                                              LoweredCellGet
-                                ~>
-                                  call :string
-                                    callee:
-                                      finish_buffer :string
-                                    arg0:
-                                      __buf_1 :Buffer
-                                    arg1:
-                                      __off_2 :usize
+                                      value:
+                                        call :usize
+                                          callee:
+                                            write_int :usize
+                                          arg0:
+                                            __buf_1 :Buffer
+                                          arg1:
+                                            __off_2 :usize
+                                          arg2:
+                                            cast → i64
+                                              add :i32
+                                                l:
+                                                  LoweredCellGet
+                                                r:
+                                                  LoweredCellGet
+                                    ~>
+                                      call :string
+                                        callee:
+                                          finish_buffer :string
+                                        arg0:
+                                          __buf_1 :Buffer
+                                        arg1:
+                                          __off_2 :usize
+                                arg1:
+                                  "\n" :string
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -134,16 +158,16 @@
       arg0:
         int(21) :i32 | P
     return int(0) :i32
-  struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2!) -> i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
     ~>
       add :i32
         l:
           LoweredCellGet
         r:
           LoweredCellGet
-  struct __lambda_env_7 { cap_0: ? }
-  fn __lambda_6(__env_3: __lambda_env_7!) -> string
+  struct __lambda_env_snippet_3 { cap_0: ? }
+  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3!) -> string
     ~>
       call :string
         callee:

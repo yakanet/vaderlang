@@ -31,6 +31,9 @@ export ValType :: enum(u8) {
     F32, F64,
     // Other primitives
     Bool, Char, String, Null, Void,
+    // Opaque foreign pointer — a `void*` the program never dereferences. NOT a
+    // `Ref`: the GC must not scan it, and it holds no object header.
+    Pointer,
     // Reference shapes
     Ref, Any,
 }
@@ -59,6 +62,7 @@ export val_type_name :: fn(v: ValType) -> string = match v {
     .String -> "string"
     .Null -> "null"
     .Void -> "void"
+    .Pointer -> "pointer"
     .Ref -> "ref"
     .Any -> "any"
 }
@@ -90,6 +94,7 @@ export parse_val_type :: fn(name: string) -> ValType | null {
     if name == "string" { return ValType.String }
     if name == "null" { return ValType.Null }
     if name == "void" { return ValType.Void }
+    if name == "pointer" { return ValType.Pointer }
     if name == "ref" { return ValType.Ref }
     if name == "any" { return ValType.Any }
     return null
@@ -116,6 +121,7 @@ export is_integer_val :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }
@@ -141,6 +147,7 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }
@@ -172,6 +179,7 @@ export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null  -> false
     .Void  -> false
+    .Pointer -> false
     .Ref   -> false
     .Any   -> false
 }
@@ -202,6 +210,7 @@ export is_u64_class :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }
@@ -231,6 +240,7 @@ export is_u32_class :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }
@@ -267,6 +277,7 @@ export is_string_val :: fn(v: ValType) -> bool = match v {
     .Char -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }
@@ -501,9 +512,9 @@ export BcField :: struct {
 /// generic source decl share a `symbol_id`, which C-emit uses to find
 /// a struct's all-`Any` counterpart for the erasure boundary
 /// conversion.
-/// Mangled type-table name of the `std/io` `IOError` struct — the identity
-/// the host boundary stamps onto fabricated io errors (`vm/host.vader::
-/// mk_io_error`, `c_emit/host.vader::io_err_shim`).
+/// Mangled type-table name of the `std/io` `IOError` struct — the identity a
+/// host-fabricated io error carries, so `is IOError` narrows and `Error.message`
+/// dispatches on it.
 export MANGLED_IO_ERROR :: r"std_io$IOError"
 
 /// Index of the `BcStruct` named `name` in `types`, or `-1` when absent.
@@ -520,6 +531,11 @@ export struct_type_index :: fn(types: BcType[], name: string) -> i32 {
 export BcStruct :: struct {
     name: string
     fields: BcField[]
+    /// C type this struct mirrors, from `@c_struct("struct timespec")` — `""`
+    /// for an ordinary Vader struct. The `@extern` shim declares a real one of
+    /// these and marshals FIELD BY FIELD, which is why no offset is recorded
+    /// here: the C compiler computes them, per platform, from the real header.
+    c_name: string
     symbol_id: i32          // -1 = unknown
 }
 
@@ -582,6 +598,7 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .String -> 16
     .Void -> 0
     .Null -> 0
+    .Pointer -> 8
     .Ref -> 16
     .Any -> 16
 }
@@ -667,6 +684,7 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
     .String -> ArrayKind.Boxed
     .Null -> ArrayKind.Boxed
     .Void -> ArrayKind.Boxed
+    .Pointer -> ArrayKind.U64
     .Ref -> ArrayKind.Ref
     .Any -> ArrayKind.Boxed
 }

@@ -1,0 +1,215 @@
+// vader/bytecode/c_layout — where a mirrored struct's fields sit in the C type.
+//
+// The native backend never needs this: its shim declares a real C struct and
+// lets `cc` lay it out. The VM cannot — it has no compiler at hand — so it
+// builds the block itself, and needs to know where each field goes.
+//
+// The layout is COMPUTED from the declared field widths using the C rules
+// (natural alignment, trailing padding to the widest member) and then PINNED by
+// `_Static_assert` in the emitted C. So the arithmetic here is never trusted on
+// its own: if it diverges from what `cc` computes, the native build fails and
+// says which field. That is what makes it safe for the VM to rely on.
+//
+// A mirror may describe only a PREFIX of its C type, which is what makes
+// `struct stat` usable: its `timespec` members have no nameable path, but
+// `st_mode` sits before them. The offsets of a prefix are the real ones — the
+// padding a prefix cannot account for is all past its end — so the block is
+// sized by `MIRROR_BLOCK_FLOOR` rather than by the computation, and the emitted
+// C asserts the C type fits inside it.
+
+module "vader/bytecode"
+
+// ---- layout ---------------------------------------------------------------
+
+/// Size the interpreter gives every mirrored-struct block, at minimum.
+///
+/// A mirror is allowed to describe only a PREFIX of its C type — reaching
+/// `st_mode` in a `struct stat` needs four of its nineteen members, and the ones
+/// that follow cannot even be named. The computed size is then smaller than the
+/// real one, so the block is sized by this floor instead, and the emitted C
+/// asserts the C type fits inside it. That is what keeps a callee from writing
+/// past the block.
+export MIRROR_BLOCK_FLOOR: i64 : 4096
+
+/// Byte offsets of a mirrored struct's fields, and the total size.
+export CLayout :: struct {
+    /// One entry per field, in declaration order.
+    offsets: i64[]
+    /// Size of the DECLARED fields, trailing padding included. Equal to
+    /// `sizeof` the C type only when the mirror is exhaustive; smaller for a
+    /// prefix, which is why the interpreter sizes its block by the floor.
+    size:    i64
+    /// Name of the first field whose width could not be derived, `null` when
+    /// every field has one. A name invalidates every offset from that field on,
+    /// so a caller must refuse the layout rather than use it.
+    unknown_field: string | null = null
+}
+
+/// The `ValType` a mirrored field holds on the Vader side.
+///
+/// The one place that resolves a `BcField` through the type table — the width,
+/// the interpreter's read-back signedness and the emitter's signedness assert are
+/// all read off it, and they must not each answer from their own copy.
+///
+/// @param f      the field.
+/// @param types  the module type table.
+/// @return       the field's `ValType`, or `null` when its type is not a
+///               primitive, or its index is not one the table holds.
+export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+        return null
+    }
+    t :: types[usize(f.type_index)]
+    if t is BcPrimitive as p {
+        return p.val
+    }
+    return null
+}
+
+/// The width a mirrored field occupies in the C struct.
+///
+/// Read from the VADER field's own type, which is what the emitted
+/// `_Static_assert` pins against the C field — so a mirror whose C field has a
+/// different width fails the native build rather than laying out wrongly here.
+///
+/// The SIGNEDNESS is not carried here. The interpreter takes it from the Vader
+/// field, and `vader/c_emit/host.vader::signedness_assert` is what holds that
+/// agreement to the C side.
+///
+/// @param f      the field.
+/// @param types  the module type table, to size the field's own type.
+/// @return       the width in bytes, or `null` when the field's type carries
+///               none — a mirror nothing can lay out.
+export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
+    return c_field_width_at(f, types, 0)
+}
+
+/// A mirror nested inside another, or `null` when the field is not one.
+///
+/// A field whose type is itself a `@c_struct` mirrors a C struct member. The C
+/// side has it INLINE; Vader holds a pointer to a separate object, which is why
+/// nothing here may ever `memcpy` — the shim copies member by member and the
+/// interpreter serialises field by field.
+///
+/// @param f      the field.
+/// @param types  the module type table.
+export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null {
+    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+        return null
+    }
+    t :: types[usize(f.type_index)]
+    if t is BcStruct as st {
+        if st.c_name != "" {
+            return st
+        }
+    }
+    return null
+}
+
+/// How deep a mirror may nest.
+///
+/// A C struct cannot contain itself by value, so a well-formed mirror bottoms
+/// out. The cap is what keeps a MALFORMED one — a Vader struct naming itself —
+/// from recursing forever rather than reporting.
+export NEST_CAP :: 16
+
+c_field_width_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
+    v :: c_field_val_type(f, types)
+    if v != null {
+        return i64(size_of_val_type(v))
+    }
+    if depth >= NEST_CAP {
+        return null
+    }
+    nested :: nested_mirror(f, types)
+    if nested == null {
+        return null
+    }
+    inner :: c_struct_layout_at(nested.fields, types, depth + 1)
+    if inner.unknown_field != null {
+        return null
+    }
+    return inner.size
+}
+
+/// The alignment a mirrored field imposes: its own width for a scalar, the
+/// strictest of its members for a nested mirror.
+c_field_align_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
+    v :: c_field_val_type(f, types)
+    if v != null {
+        return i64(size_of_val_type(v))
+    }
+    if depth >= NEST_CAP {
+        return null
+    }
+    nested :: nested_mirror(f, types)
+    if nested == null {
+        return null
+    }
+    strictest: i64 = 1
+    for inner_f in nested.fields {
+        a :: c_field_align_at(inner_f, types, depth + 1)
+        if a == null {
+            return null
+        }
+        if a > strictest {
+            strictest = a
+        }
+    }
+    return strictest
+}
+
+/// Lay a mirrored struct out the way a C compiler would.
+///
+/// Each field starts at the next multiple of its own alignment, and the total is
+/// rounded up to the STRICTEST alignment among them, which is what produces the
+/// trailing padding.
+///
+/// A field whose width is UNDERIVABLE lands in `unknown_field` — see `CLayout`.
+///
+/// @param fields  the mirror's fields, in declaration order.
+/// @param types   the module type table.
+/// @return        the offsets, the total size, and the first underivable field.
+export c_struct_layout :: fn(fields: BcField[], types: BcType[]) -> CLayout =
+    c_struct_layout_at(fields, types, 0)
+
+c_struct_layout_at :: fn(fields: BcField[], types: BcType[], depth: i32) -> CLayout {
+    offsets: i64[]! = []
+    at: i64 = 0
+    strictest: i64 = 1
+    unknown: string | null = null
+    for f in fields {
+        w :: c_field_width_at(f, types, depth)
+        align_opt :: c_field_align_at(f, types, depth)
+        if w == null {
+            if unknown == null {
+                unknown = f.name
+            }
+            offsets.push(at)
+            continue
+        }
+        if align_opt == null {
+            if unknown == null {
+                unknown = f.name
+            }
+            offsets.push(at)
+            continue
+        }
+        // Size and alignment are separate facts: `struct { char a; int b; }` is
+        // 8 wide and 4 aligned. They coincide for a scalar, which is why the
+        // helpers split only where a nested mirror makes them diverge.
+        align :: align_opt
+        if align > strictest {
+            strictest = align
+        }
+        rem :: at % align
+        if rem != 0 {
+            at += align - rem
+        }
+        offsets.push(at)
+        at += w
+    }
+    tail :: at % strictest
+    total :: if tail == 0 { at } else { at + strictest - tail }
+    return CLayout { .offsets = offsets, .size = total, .unknown_field = unknown }
+}

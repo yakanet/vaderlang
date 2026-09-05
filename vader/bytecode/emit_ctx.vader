@@ -223,6 +223,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx!) -> i32 {
     ctx.types.push(BcStruct {
         .name      = "\$Cell_${type_intern_key(slot_type)}",
         .fields    = fields,
+        .c_name    = "",
         .symbol_id = -1,
     })
     ctx.type_key[key] = new_index

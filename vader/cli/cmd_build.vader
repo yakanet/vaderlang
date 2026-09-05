@@ -52,7 +52,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     use_manifest :: parsed.bool_flag("manifest")
     out_flag     :: parsed.string_flag("out", "")
     release      :: parsed.bool_flag("release")
-    cc           :: parsed.string_flag("cc", "cc")
+    cc           :: parsed.string_flag("cc", default_cc())
     ldflags      :: parsed.string_flag("ldflags", "")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
@@ -154,13 +154,48 @@ cmd_build :: fn(args: string[]) -> i32 {
         return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0)
     }
 
-    // TODO: --emit=bytecode / --emit=bytecode-text — write the binary (.vir) /
-    // text (.virt) module. The bytecode already exists post
-    // `prepare_cfg_bytecode` ; this only needs the writer wired.
+    if emit == "bytecode-text" {
+        return build_bytecode_text(file, out_flag, include_path_flags, build_target)
+    }
+    // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
+    // above covers the textual form; this one waits on a binary writer.
     // A wasm module is not an emit kind: it is `--emit=executable
     // --target=wasm32-browser`, and it waits on the wasm backend, not on this.
     eprintln("vader build --emit=${emit}: not yet implemented")
     return 2
+}
+
+/// `--emit=bytecode-text` — write the COMPLETE `.virt` module beside the input.
+///
+/// Distinct from `dump --stage=bytecode`, which is a VIEW of one module: this is
+/// the whole linked image, every function it needs included, and it is what the
+/// VM executes. The separation is the point — a dump narrows to what you are
+/// reading, a build produces what actually runs.
+///
+/// @param file                entry source.
+/// @param out_flag            `-o` value, or "" to derive `<input>.virt`.
+/// @param include_path_flags  extra module search roots.
+/// @param target              the platform to select `@target` bodies for.
+/// @return                    0 on success, 1 on a write failure, 2 on a
+///                            front-end error (already reported).
+build_bytecode_text :: fn(
+    file: Path, out_flag: string, include_path_flags: string[], target: Target | null,
+) -> i32 {
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
+    // Same gate as every other emit path: errors abort, warnings still print.
+    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+        return 2
+    }
+    out :: if out_flag != "" {
+        out_flag.to_path()
+    } else {
+        "${strip_input_suffix(file)}.virt".to_path()
+    }
+    if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
+        return 1
+    }
+    eprintln("vader build: wrote ${out}")
+    return 0
 }
 
 // Lower `file` through the canonical CFG → bytecode → c_emit path (the same
@@ -501,19 +536,52 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             return 1
         }
     }
-    // The units all `#include` ONE header, so a per-target header has nowhere to
-    // go — unlike the globals and the units below, which fall back to per-target
-    // files. The header carries per-target material (the forward decls driven by
-    // `internal_fn_flags`, the trampoline / lift / import prototypes), so taking
-    // target 0's on faith would compile the others against declarations that are
-    // not theirs, and surface as a link error far from here.
-    if !all_equal(headers_of(progs)) {
-        eprintln("vader build --seed-targets: the targets emitted different headers, "
-            + "which the seed's one shared header cannot carry")
-        return 1
+    // The shared header USUALLY matches across targets, because the `@extern`
+    // declarations and their shims — the part a target changes most — live in
+    // their own header. It does not have to: the synthetic type names
+    // (`__Tuple_N`, `__lambda_env_N`) are numbered AFTER target selection, so a
+    // function reached by one target only shifts every id behind it and the
+    // header diverges by pure renumbering. `to_wide` / `from_wide`, called on
+    // Windows and dead-stripped elsewhere, moved the whole table by two.
+    //
+    // So it falls back the same way the imports header and the globals unit
+    // already do — one copy per target directory, found first on the include
+    // path — rather than refusing a build whose output is perfectly valid.
+    if all_equal(headers_of(progs)) {
+        if write_out("${out}.split.h".to_path(), first.header) != 0 {
+            return 1
+        }
+    } else {
+        for i in 0..<targets.len() {
+            target :: display_target(targets[i])
+            if ensure_target_dir(out, target) != 0 {
+                return 1
+            }
+            name :: "${canonicalise(out).filename()}.split.h"
+            if write_out("${out.parent()}/${target}/${name}".to_path(), progs[i].header) != 0 {
+                return 1
+            }
+        }
     }
-    if write_out("${out}.split.h".to_path(), first.header) != 0 {
-        return 1
+    // The imports header keeps a fixed NAME, so the units never mention a
+    // target. When the targets agree it sits beside the shared header; when
+    // they do not, each goes in a directory of its own and the build puts the
+    // right one first on the include path.
+    if all_equal(imports_of(progs)) {
+        if write_out(imports_header_path(out), first.imports) != 0 {
+            return 1
+        }
+    } else {
+        for i in 0..<targets.len() {
+            target :: display_target(targets[i])
+            if ensure_target_dir(out, target) != 0 {
+                return 1
+            }
+            name :: imports_header_name("${canonicalise(out).filename()}.split.h")
+            if write_out("${out.parent()}/${target}/${name}".to_path(), progs[i].imports) != 0 {
+                return 1
+            }
+        }
     }
     if all_equal(globals_of(progs)) {
         if write_out("${out}.split.g.c".to_path(), first.globals) != 0 {
@@ -522,11 +590,14 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
     } else {
         for i in 0..<targets.len() {
             // Through `unit_path`, not a second spelling of the rule: the build
-            // scripts glob per-target files as `<stem>.<target>-*.c`, and the
-            // `.split.g.c` form this used to write matched neither that nor the
-            // shared-globals line. Masked today because every target's globals
-            // are identical, so this branch never runs — and it would have
-            // surfaced as a missing symbol at link time, far from the cause.
+            // scripts compile one target directory, and the `.split.g.c` form
+            // this used to write matched neither that nor the shared-globals
+            // line. Masked today because every target's globals are identical,
+            // so this branch never runs — and it would have surfaced as a
+            // missing symbol at link time, far from the cause.
+            if ensure_target_dir(out, display_target(targets[i])) != 0 {
+                return 1
+            }
             if write_out(unit_path(out, display_target(targets[i]), GLOBALS_UNIT), progs[i].globals) != 0 {
                 return 1
             }
@@ -544,6 +615,9 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             }
         } else {
             for i in 0..<targets.len() {
+                if ensure_target_dir(out, display_target(targets[i])) != 0 {
+                    return 1
+                }
                 if write_out(unit_path(out, display_target(targets[i]), name), progs[i].units[k]) != 0 {
                     return 1
                 }
@@ -557,6 +631,14 @@ headers_of :: fn(progs: CProgram[]) -> string[] {
     out: string[]! = []
     for pr in progs {
         out.push(pr.header)
+    }
+    return out
+}
+
+imports_of :: fn(progs: CProgram[]) -> string[] {
+    out: string[]! = []
+    for pr in progs {
+        out.push(pr.imports)
     }
     return out
 }
@@ -638,11 +720,23 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
     return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
+// Path of the imports header beside `out`, under the FIXED name the shared
+// header includes. A per-target build writes it into its own directory instead
+// (see `write_deduplicated`), and the compile adds that directory ahead of the
+// shared one on the include path.
+//
+// Built from `out` the same way `${out}.split.h` is, NOT from `out.parent()`:
+// a bare `out` with no directory part yielded an empty parent and an absolute
+// `/p.imports.h`, which only showed up on Windows — every test here had run
+// with a directory in the path.
+imports_header_path :: fn(out: Path) -> Path = "${out}${IMPORTS_HEADER_SUFFIX}".to_path()
+
 // Write the split program : `<out>.split.h`, `<out>.split.g.c`, and
 // `<out>.split.<k>.c` for each function unit. All co-located so each TU's
 // `#include "<base>.split.h"` resolves relative to its own directory.
 write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
     if write_out("${out}.split.h".to_path(), prog.header) != 0 { return 1 }
+    if write_out(imports_header_path(out), prog.imports) != 0 { return 1 }
     if write_out("${out}.split.g.c".to_path(), prog.globals) != 0 { return 1 }
     for k in 0..<prog.units.len() {
         if write_out(unit_path(out, "", prog.unit_names[k]), prog.units[k]) != 0 { return 1 }
@@ -665,12 +759,41 @@ split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
 // later unit the moment a module is added, which renames and rewrites files
 // whose contents did not change — the same renumbering the atom table used to
 // do, one level up.
+/// Where one split unit is written: `<out>-<unit>.c` when every target agreed on
+/// it, `<out-dir>/<target>/<stem>.<unit>.c` when they did not — the directory
+/// already says which target, so the name no longer repeats it.
+///
+/// A per-target unit sits in that target's directory, beside the imports header
+/// that is already there — so a build compiles the flat shared set plus ONE
+/// directory, and an obsolete unit stays visible instead of blending into the
+/// flat listing.
+///
+/// @param out     the `--out` stem.
+/// @param target  the target's display name, or `""` for a shared unit.
+/// @param unit    the module's unit name.
+/// @return        the path to write.
 unit_path :: fn(out: Path, target: string, unit: string) -> Path =
     if target == "" {
         "${out}-${unit}.c".to_path()
     } else {
-        "${out}.${target}-${unit}.c".to_path()
+        "${out.parent()}/${target}/${out.filename()}.${unit}.c".to_path()
     }
+
+/// Create the directory a per-target unit goes in. Idempotent — several units
+/// share it, and the imports header may have made it already.
+///
+/// @param out     the `--out` stem.
+/// @param target  the target's display name.
+/// @return        0, or 1 after reporting why the directory could not be made.
+ensure_target_dir :: fn(out: Path, target: string) -> i32 {
+    dir :: "${out.parent()}/${target}"
+    mk :: create_dir(dir)
+    if mk is IOError as e {
+        eprintln("vader build --seed-targets: cannot create `${dir}`: ${e.message()}")
+        return 1
+    }
+    return 0
+}
 
 // `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
 // flags as the monolithic `cc_argv`, plus `-I <runtime>` so `#include "vader.h"`
@@ -728,6 +851,6 @@ cc_link_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    argv.push("-lm")
+    push_math_library(argv)
     return argv
 }

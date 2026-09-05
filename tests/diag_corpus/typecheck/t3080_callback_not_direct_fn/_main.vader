@@ -1,0 +1,9 @@
+// A callback crosses as the function's ADDRESS, and only a named function has
+// one. A lambda is a `vader_fn_t` whose `code` takes a leading `env` and boxed
+// arguments, so the foreign callee would jump into the wrong ABI. The type is
+// right in both cases — this is a shape rule.
+module "snippet"
+
+@extern call_twice :: fn(f: fn(i32) -> i32) -> i32
+
+main :: fn() -> i32 = call_twice((x: i32) -> x * 2)

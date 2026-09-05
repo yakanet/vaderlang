@@ -1,0 +1,7 @@
+// The message is baked into the build, so it has to be a static literal: an
+// interpolation would need a value the parser does not have.
+module "snippet"
+
+main :: fn() -> i32 = 0
+
+@assert(true, "count is ${1}")

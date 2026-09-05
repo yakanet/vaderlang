@@ -135,17 +135,25 @@
             ~>
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
+                  int(0) :i32
+                arg1:
                   call :string
                     callee:
                       concat_2 :string
                     arg0:
-                      "err " :string
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "err " :string
+                        arg1:
+                          vcall Error.message :string
+                            recv:
+                              e :Error
                     arg1:
-                      vcall Error.message :string
-                        recv:
-                          e :Error
+                      "\n" :string
           else:
             ~>
               if :void
@@ -159,27 +167,43 @@
                   ~>
                     call :void
                       callee:
-                        std_io$println__string :void
+                        write :fn(Stream, string) -> void
                       arg0:
+                        int(0) :i32
+                      arg1:
                         call :string
                           callee:
                             concat_2 :string
                           arg0:
-                            "str " :string
+                            call :string
+                              callee:
+                                concat_2 :string
+                              arg0:
+                                "str " :string
+                              arg1:
+                                s :string
                           arg1:
-                            s :string
+                            "\n" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            tail_string :fn(A | B | string) -> string
+            concat_2 :string
           arg0:
-            "plain" :string
+            call :string
+              callee:
+                tail_string :fn(A | B | string) -> string
+              arg0:
+                "plain" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

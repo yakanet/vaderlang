@@ -181,11 +181,15 @@ audited place per opcode**, so the barrier can't be forgotten at a call site.
 
 ### 6. One raw write + the platform syscalls
 `vader_write(stream, ptr, len)` is the single output primitive. Everything else
-in `std/io` / `std/process` / `std/time` is platform syscalls
-(`vader_read_file`, `vader_spawn_run`, `vader_clock_*`, `vader_read_dir`, …) —
+in `std/io` / `std/process` is platform syscalls
+(`vader_read_file`, `vader_spawn_run`, `vader_read_dir`, …) —
 kept host, but **isolated behind a thin `Platform` layer** so a new target has
 one obvious file to fill in. These are genuinely un-virtualizable (POSIX vs
 WASI vs Windows differ).
+
+`std/time` no longer needs a host helper: its clocks are declared in Vader and
+selected by `@target`, reaching `clock_gettime` / `GetSystemTimePreciseAsFileTime`
+directly on both backends.
 
 ### 7. Transcendental math
 `vader_math_sqrt/pow/sin/cos/tan/floor/ceil/round` → libm. Kept host for

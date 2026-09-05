@@ -157,6 +157,7 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .Void -> "void"
     // T12: a concrete heap ref rides the stack as a raw 8-byte pointer; the tag
     // is recovered from the object header at the erasure boundary (`vader_ref_box`).
+    .Pointer -> "void*"
     .Ref -> "void*"
     .Any -> "vader_box_t"
 }
@@ -187,6 +188,9 @@ export unbox_expr :: fn(name: string, target: ValType) -> string = match target 
     .String -> "${name}.payload.s"
     .Null  -> name
     .Void  -> "((void) 0)"
+    // Rides in the INTEGER payload, never `obj` : the GC must not follow a
+    // foreign address, and going through `payload.i` makes that structural.
+    .Pointer -> "((void*) (intptr_t) ${name}.payload.i)"
     // T12: narrowing a box to a concrete ref extracts its object pointer.
     .Ref   -> "${name}.payload.obj"
     .Any   -> name
@@ -221,8 +225,7 @@ export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = m
     .String -> "vader_box_string(${type_index}u, ${name})"
     .Null  -> name
     .Void  -> "vader_box_null()"
-    // T12: widening a raw concrete ref (void*) into a box recovers the tag from
-    // the object header (`type_index` here is the static type, less precise).
+    .Pointer -> "vader_box_i64(${type_index}u, (int64_t) (intptr_t) ${name})"
     .Ref   -> "vader_ref_box(${name})"
     .Any   -> name
 }

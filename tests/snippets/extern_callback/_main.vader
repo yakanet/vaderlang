@@ -1,0 +1,21 @@
+// A C callback: the foreign callee receives the ADDRESS of a Vader function and
+// calls it.
+//
+// What crosses is `&snippet_double_it`, the function's own emitted symbol, and
+// not the `vader_fn_t` a fn VALUE would be — see `vader/bytecode/op::FnAddr`.
+//
+// `helper.c` CALLS the callback and sums the results, so the committed
+// `vm.snapshot` (42) fails on a wrong address instead of passing quietly.
+
+module "snippet"
+
+import "std/io"
+
+double_it :: fn(x: i32) -> i32 = x * 2
+
+@extern call_twice :: fn(f: fn(i32) -> i32) -> i32
+
+main :: fn() -> i32 {
+    println("${call_twice(double_it)}")
+    return 0
+}

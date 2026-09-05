@@ -1,0 +1,357 @@
+// system/windows — the Win32 calls the standard library needs.
+//
+// Not the CRT: `_write` would be the shorter road, but it is an emulation layer
+// over these, and going through it means inheriting its buffering and its
+// descriptor table for no gain.
+
+module "system/windows"
+
+/// A Win32 `HANDLE` — an opaque kernel object, never dereferenced.
+export Handle :: CPointer
+
+/// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
+/// written in their two's-complement form.
+export STD_OUTPUT_HANDLE: u32 : 0xFFFF_FFF5
+
+/// See `STD_OUTPUT_HANDLE`.
+export STD_ERROR_HANDLE: u32 : 0xFFFF_FFF4
+
+/// See `STD_OUTPUT_HANDLE`.
+export STD_INPUT_HANDLE: u32 : 0xFFFF_FFF6
+
+/// `GetStdHandle`. Returns `INVALID_HANDLE_VALUE` on failure.
+///
+/// @param which  one of the `STD_*_HANDLE` selectors.
+/// @return       the standard device's handle.
+@c_header("<windows.h>")
+@extern("kernel32", "GetStdHandle")
+export get_std_handle :: fn(which: u32) -> Handle
+
+/// `GetModuleFileNameW`. Writes the running module's path into `buf` and
+/// returns its length; 0 on failure, or `size` exactly when it was truncated.
+///
+/// @param module  `null` for the running executable.
+@c_header("<windows.h>")
+@extern("kernel32", "GetModuleFileNameW")
+export get_module_file_name :: fn(module: CPointer | null, buf: u16[]!, size: u32) -> u32
+
+/// `GetCurrentDirectoryW`. Writes the working directory into `buf` and returns
+/// its length; 0 on failure, or a length >= `size` when `buf` is too small.
+///
+/// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
+/// @param buf   receives the path, NUL-terminated.
+@c_header("<windows.h>")
+@extern("kernel32", "GetCurrentDirectoryW")
+export get_current_directory :: fn(size: u32, buf: u16[]!) -> u32
+
+/// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
+/// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
+/// too small — in both of which cases nothing usable was written.
+///
+/// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
+/// @param buf   receives the path, NUL-terminated.
+/// @return      UTF-16 units written, excluding the NUL.
+@c_header("<windows.h>")
+@extern("kernel32", "GetTempPathW")
+export get_temp_path :: fn(size: u32, buf: u16[]!) -> u32
+
+/// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
+/// caller re-tests the path rather than reading `GetLastError`.
+///
+/// @param path      directory to create.
+/// @param security  `lpSecurityAttributes`; `null` for the default descriptor.
+@c_header("<windows.h>")
+@extern("kernel32", "CreateDirectoryW")
+export create_directory :: fn(path: u16[], security: CPointer | null) -> bool
+
+/// `FILE_ATTRIBUTE_DIRECTORY` — set when the entry is a directory.
+export FILE_ATTRIBUTE_DIRECTORY: u32 : 0x10
+
+/// What `GetFileAttributesW` returns for a path it cannot query.
+export INVALID_FILE_ATTRIBUTES: u32 : 0xFFFF_FFFF
+
+/// `GetFileAttributesW`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
+/// queried — which is how existence is tested, there being no `access` here.
+///
+/// @param path  the path to query.
+/// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
+@c_header("<windows.h>")
+@extern("kernel32", "GetFileAttributesW")
+export get_file_attributes :: fn(path: u16[]) -> u32
+
+/// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
+/// behaviour `std/io::remove_file` promises.
+///
+/// @param path  the file to delete.
+/// @return      non-zero on success.
+@c_header("<windows.h>")
+@extern("kernel32", "DeleteFileW")
+export delete_file :: fn(path: u16[]) -> i32
+
+/// `WriteFile`. False on failure — the caller reads `GetLastError`.
+///
+/// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
+/// NOT pass as null.
+///
+/// `written` is a one-element array so the count READS BACK, the same shape
+/// `read_file` uses. A `@c_pointer` scalar would not: the callee writes through
+/// it and the value is discarded.
+///
+/// @param h           the device handle.
+/// @param buf         the bytes to write.
+/// @param count       how many of them.
+/// @param written     scratch the callee fills with the byte count; unread.
+/// @param overlapped  always null here — this is the synchronous form.
+/// @return            whether the write succeeded.
+@c_header("<windows.h>")
+@extern("kernel32", "WriteFile")
+export write_file :: fn(h: Handle, buf: u8[], count: u32,
+                        written: u32[]!, overlapped: CPointer | null) -> bool
+
+
+// ---- UTF-8 <-> UTF-16 -----------------------------------------------------
+// UTF-16 buffers cross as `u16[]`, which is what they hold.
+//
+// Every LENGTH below is in UTF-16 UNITS, which for a `u16[]` is also the
+// buffer's length -- not its size in bytes.
+
+/// `CP_UTF8` — the code page identifier for UTF-8.
+export CP_UTF8: u32 : 65001
+
+/// `MultiByteToWideChar`. With `src_len` of `-1` the input is read up to its NUL
+/// and the terminator is written too, so the result is usable as `LPCWSTR`.
+///
+/// @param dst      receives the UTF-16 units; may be empty when `dst_len` is 0.
+/// @param dst_len  `dst`'s capacity in UTF-16 units, or 0 to measure.
+/// @return         units written (or required, when measuring); 0 on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "MultiByteToWideChar")
+export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, src_len: i32,
+                                     dst: u16[]!, dst_len: i32) -> i32
+
+/// `WideCharToMultiByte`. The two trailing `lpDefaultChar` / `lpUsedDefaultChar`
+/// arguments must be null for `CP_UTF8`; Windows fails the call otherwise.
+///
+/// @param src_len  units to read, or `-1` for a NUL-terminated input.
+/// @param dst_len  `dst`'s capacity in bytes, or 0 to measure.
+/// @return         bytes written (or required, when measuring); 0 on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "WideCharToMultiByte")
+export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src_len: i32,
+                                     dst: u8[]!, dst_len: i32,
+                                     default_char: CPointer | null,
+                                     used_default: CPointer | null) -> i32
+
+// ---- files ----------------------------------------------------------------
+
+/// `INVALID_HANDLE_VALUE`, as the machine word `isize(handle)` yields. Win32
+/// reports a failed `CreateFileW` with this and NOT with NULL, which is why the
+/// handle is tested through `isize` rather than a `CPointer | null`.
+export INVALID_HANDLE: isize : -1
+
+/// `dwDesiredAccess` bits.
+export GENERIC_READ: u32 : 0x8000_0000
+
+/// See `GENERIC_READ`.
+export GENERIC_WRITE: u32 : 0x4000_0000
+
+/// `dwShareMode` — let other readers in while we hold the file.
+export FILE_SHARE_READ: u32 : 0x1
+
+/// See `FILE_SHARE_READ`.
+export FILE_SHARE_WRITE: u32 : 0x2
+
+/// `dwCreationDisposition` — truncate an existing file, create it otherwise.
+export CREATE_ALWAYS: u32 : 2
+
+/// See `CREATE_ALWAYS` — open only what already exists.
+export OPEN_EXISTING: u32 : 3
+
+/// `dwFlagsAndAttributes` — no special semantics.
+export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
+
+/// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// `isize(h) == INVALID_HANDLE`, never against null.
+///
+/// Unlike `fopen` there is no text mode, so nothing ever rewrites a `\n`.
+///
+/// @param path         UTF-16, NUL-terminated. Prefix `\\?\\` to pass MAX_PATH.
+/// @param security     `lpSecurityAttributes`; null for the default descriptor.
+/// @param template     `hTemplateFile`; always null here.
+@c_header("<windows.h>")
+@extern("kernel32", "CreateFileW")
+export create_file_w :: fn(path: u16[], access: u32, share: u32,
+                           security: CPointer | null, disposition: u32,
+                           flags: u32, template: CPointer | null) -> Handle
+
+/// Bytes to reserve for a `WIN32_FIND_DATAW`.
+///
+/// An OPAQUE buffer: Vader never looks inside it, `FindFirstFileW` fills it and
+/// `find_data_name` reads the one member a listing needs. Nothing checks this
+/// number — the callee writes `sizeof(WIN32_FIND_DATAW)` bytes whatever it says
+/// — so it is taken HIGH on purpose. The real size is 592 on x86_64 (measured
+/// against the mingw headers, and it is 320 for the ANSI twin); over-reserving
+/// wastes a few hundred bytes on the stack, under-reserving corrupts.
+///
+/// ⚠️ Do NOT narrow this to what one toolchain reports.
+export FIND_DATA_BYTES: usize: 1024
+
+/// `FindFirstFileW`. The pattern is a directory path with `\*` appended.
+///
+/// Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// `isize(h) == INVALID_HANDLE`, never against null.
+///
+/// @param pattern  a NUL-terminated UTF-16 glob, from `to_wide`.
+/// @param data     `FIND_DATA_BYTES` of scratch the callee fills.
+/// @return         a search handle.
+@c_header("<windows.h>")
+@extern("kernel32", "FindFirstFileW")
+export find_first_file :: fn(pattern: u16[], data: u8[]!) -> Handle
+
+/// `FindNextFileW`. False once the search is exhausted.
+///
+/// @param handle  the search handle `find_first_file` returned.
+/// @param data    the same buffer, refilled.
+@c_header("<windows.h>")
+@extern("kernel32", "FindNextFileW")
+export find_next_file :: fn(handle: Handle, data: u8[]!) -> bool
+
+/// `FindClose`. Pairs with `find_first_file`.
+///
+/// @param handle  the search handle.
+@c_header("<windows.h>")
+@extern("kernel32", "FindClose")
+export find_close :: fn(handle: Handle) -> bool
+
+/// The `cFileName` of a filled `WIN32_FIND_DATAW`, as a Vader string.
+///
+/// The Windows twin of `system/posix::dirent_name`, and it exists for the same
+/// reason: reading a NAMED member of a C struct is the one step a Vader FFI call
+/// cannot take for itself. It has to be a CALL, not a read of the struct — the
+/// interpreter has no C layout but resolves an `@extern` by name out of the
+/// running process. It carries the UTF-16 to UTF-8 conversion with it.
+///
+/// The bytes are valid until the next call, which is also `cFileName`'s own
+/// contract: `find_next_file` overwrites it. The shim interns before either.
+///
+/// @param data  the buffer `find_first_file` filled.
+/// @return      the entry name.
+@extern("vader_find_data_name")
+export find_data_name :: fn(data: u8[]) -> string
+
+/// `COORD` — a console cell position or size.
+///
+/// Field names are the C ones because a mirror copies BY NAME; the snake_case
+/// rule does not reach across the boundary.
+@c_struct("COORD")
+export Coord :: struct { X: i16, Y: i16 }
+
+/// `SMALL_RECT` — an inclusive rectangle of console cells.
+@c_struct("SMALL_RECT")
+export SmallRect :: struct { Left: i16, Top: i16, Right: i16, Bottom: i16 }
+
+/// `CONSOLE_SCREEN_BUFFER_INFO`. Mirrored WHOLE rather than as a prefix: every
+/// member but `wAttributes` is itself a struct, so a prefix would have to stop
+/// before the one that matters.
+@c_struct("CONSOLE_SCREEN_BUFFER_INFO")
+export ScreenBufferInfo :: struct {
+    dwSize:              Coord
+    dwCursorPosition:    Coord
+    wAttributes:         u16
+    srWindow:            SmallRect
+    dwMaximumWindowSize: Coord
+}
+
+/// `GetConsoleScreenBufferInfo`. False when the handle is not a console.
+///
+/// `srWindow` is the VISIBLE window, which is what a width should be measured
+/// from: the buffer (`dwSize`) is often far wider, and wrapping follows what is
+/// on screen.
+@c_header("<windows.h>")
+@extern("kernel32", "GetConsoleScreenBufferInfo")
+export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBufferInfo!) -> bool
+
+/// `PeekNamedPipe`. Reports how many bytes are readable WITHOUT consuming them.
+///
+/// It works on an anonymous pipe too, despite the name — which is what makes it
+/// the console-less way to ask "is there input". False when the handle is not a
+/// pipe (a console, a redirected file) or the peer closed it; a caller reads that
+/// as "go ahead and read", never as "idle".
+///
+/// @param buf        always null here: we ask for the COUNT, not the bytes.
+/// @param read       always null, for the same reason.
+/// @param available  receives the byte count; a one-element array so it reads back.
+/// @param message    always null: only a message-mode pipe uses it.
+@c_header("<windows.h>")
+@extern("kernel32", "PeekNamedPipe")
+export peek_named_pipe :: fn(h: Handle, buf: CPointer | null, size: u32,
+                             read: CPointer | null, available: u32[]!,
+                             message: CPointer | null) -> bool
+
+/// `Sleep`. Milliseconds, and it is the only wait Win32 offers without a handle.
+@c_header("<windows.h>")
+@extern("kernel32", "Sleep")
+export sleep_ms :: fn(ms: u32) -> void
+
+/// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
+/// translation of Ctrl-C into a signal — plus the one it turns on, so escape
+/// sequences arrive as bytes.
+export ENABLE_PROCESSED_INPUT: u32 : 0x0001
+export ENABLE_LINE_INPUT: u32 : 0x0002
+export ENABLE_ECHO_INPUT: u32 : 0x0004
+export ENABLE_VIRTUAL_TERMINAL_INPUT: u32 : 0x0200
+
+/// Bit enabling ANSI escape interpretation on a console output handle. Only with
+/// it set do escapes render rather than print literally.
+export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
+
+/// `GetConsoleMode`. False when the handle is not a console — which is also how
+/// a caller tests for one, a redirected stream having no mode to read.
+///
+/// @param mode  receives the current mode; a one-element array so it reads back.
+@c_header("<windows.h>")
+@extern("kernel32", "GetConsoleMode")
+export get_console_mode :: fn(h: Handle, mode: u32[]!) -> bool
+
+/// `SetConsoleMode`. False on failure — an old console refusing a mode bit it
+/// does not know, which is what tells a caller ANSI is unavailable.
+@c_header("<windows.h>")
+@extern("kernel32", "SetConsoleMode")
+export set_console_mode :: fn(h: Handle, mode: u32) -> bool
+
+/// `ReadFile`. False on failure; a synchronous read returning true with `read`
+/// short of `count` has reached end of file.
+///
+/// @param read        receives the byte count; a one-element array so it reads
+///                    back — Win32 forbids null here on a synchronous call.
+/// @param overlapped  always null: this is the synchronous form.
+@c_header("<windows.h>")
+@extern("kernel32", "ReadFile")
+export read_file :: fn(h: Handle, buf: u8[]!, count: u32, read: u32[]!,
+                       overlapped: CPointer | null) -> bool
+
+/// `CloseHandle`. False on failure, which a caller that is done with the file
+/// has nothing to do about.
+@c_header("<windows.h>")
+@extern("kernel32", "CloseHandle")
+export close_handle :: fn(h: Handle) -> bool
+
+// ---- clocks ---------------------------------------------------------------
+//
+// Both cells cross as a one-element `i64[]`: a `FILETIME` is two contiguous
+// `DWORD`s, low half first, and a `LARGE_INTEGER`'s `QuadPart` is one i64.
+
+/// `GetSystemTimePreciseAsFileTime`. Fills `ft` with 100-ns ticks since 1601.
+@c_header("<windows.h>")
+@extern("kernel32", "GetSystemTimePreciseAsFileTime")
+export get_system_time_precise_as_file_time :: fn(ft: i64[]!) -> void
+
+/// `QueryPerformanceCounter`. Fills `counter`; false on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "QueryPerformanceCounter")
+export query_performance_counter :: fn(counter: i64[]!) -> bool
+
+/// `QueryPerformanceFrequency`. Fills `freq` with counts per second; false on failure.
+@c_header("<windows.h>")
+@extern("kernel32", "QueryPerformanceFrequency")
+export query_performance_frequency :: fn(freq: i64[]!) -> bool

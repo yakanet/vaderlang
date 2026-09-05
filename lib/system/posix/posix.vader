@@ -1,0 +1,305 @@
+// system/posix — raw POSIX syscalls.
+
+module "system/posix"
+
+import "std/target"
+
+/// Standard output's file descriptor.
+export STDOUT :: 1
+
+/// Standard error's file descriptor.
+export STDERR :: 2
+
+/// `write(2)`. Byte count written, or -1 with `errno` set.
+///
+/// `isize`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here.
+/// `@c_header` hands `cc` the real prototype, so a width mismatch stops the
+/// build rather than truncating silently.
+@c_header("<unistd.h>")
+@extern("write")
+export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
+
+/// `CLOCK_REALTIME` — the wall clock.
+export CLOCK_REALTIME :: 0
+
+/// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
+export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
+
+/// The bits of `st_mode` carrying the file type. POSIX fixes the value, and
+/// `opendir(3)`. NULL when `path` is not a directory, does not exist, or
+/// cannot be searched.
+///
+/// This is how POSIX answers "is it a directory" without a `struct stat`
+/// mirror. `struct stat`'s layout differs BETWEEN ARCHES of the same system --
+/// on Linux `st_mode` sits at 24 on x86_64 and at 16 on arm64 -- and a Vader
+/// mirror can match one or the other, never both. Asking `opendir` removes the
+/// question.
+///
+/// @param path  the directory to open.
+/// @return      a `DIR*`, or null.
+@c_header("<dirent.h>")
+@extern("opendir")
+export sys_opendir :: fn(path: string) -> CPointer | null
+
+/// `closedir(3)`. Pairs with `sys_opendir`.
+///
+/// @param dir  the handle `sys_opendir` returned.
+@c_header("<dirent.h>")
+@extern("closedir")
+export sys_closedir :: fn(dir: CPointer) -> i32
+
+/// `readdir(3)`. The next entry, or null at the end of the directory.
+///
+/// The `struct dirent` it returns is owned and REUSED by the C library: read the
+/// name out before the next call and never keep the pointer.
+///
+/// @param dir  the handle `sys_opendir` returned.
+/// @return     a `struct dirent*`, or null at the end.
+@c_header("<dirent.h>")
+@extern("readdir")
+export sys_readdir :: fn(dir: CPointer) -> CPointer | null
+
+/// The `d_name` of a `struct dirent`, as a Vader string.
+///
+/// The one step a Vader FFI call cannot take for itself: reading a NAMED member
+/// of a C struct. `d_name` sits at a different offset on every system, and only
+/// `cc` can resolve it — from the real header, at the accessor in the runtime.
+///
+/// It has to be a CALL, not a read of the struct: the interpreter has no C
+/// layout, but it resolves an `@extern` by name out of the running process the
+/// way it reaches libc. That is what keeps `read_dir` working on both backends,
+/// which anything in the stdlib has to.
+///
+/// The returned bytes belong to the C library and die at the next `sys_readdir`;
+/// the shim interns them before then.
+///
+/// @param ent  a `struct dirent*` from `sys_readdir`.
+/// @return     the entry name.
+@extern("vader_dirent_name")
+export dirent_name :: fn(ent: CPointer) -> string
+
+/// `ferror(3)`. Non-zero once the stream's error indicator is set.
+///
+/// A short `fread` means end of file OR an error, and the count cannot tell
+/// them apart -- this is what separates them.
+///
+/// @param stream  the `FILE*`.
+/// @return        non-zero if the stream is in error.
+@c_header("<stdio.h>")
+@extern("ferror")
+export sys_ferror :: fn(stream: CPointer) -> i32
+
+/// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error — and
+/// a SHORT read is not an error: a pipe hands over what has arrived so far, so
+/// a caller wanting `n` bytes loops until it has them.
+///
+/// @param fd     the descriptor; `0` is stdin.
+/// @param buf    receives the bytes.
+/// @param count  how many to ask for, at most `buf.len()`.
+/// @return       bytes read, `0` at EOF, `-1` on error.
+@c_header("<unistd.h>")
+@extern("read")
+export sys_read :: fn(fd: i32, buf: u8[]!, count: usize) -> isize
+
+/// `struct pollfd` — one descriptor and what to watch it for.
+///
+/// Field names are the C ones because a mirror copies BY NAME.
+@c_struct("struct pollfd")
+export Pollfd :: struct {
+    fd:      i32
+    events:  i16
+    revents: i16
+}
+
+/// `POLLIN` — data is available to read. 1 on both systems.
+export POLLIN: i16: 1
+
+/// `poll(2)` on a SINGLE descriptor.
+///
+/// `poll` takes an array; one element crosses as its address, which is the same
+/// thing to C. A caller watching several would need the array form.
+///
+/// @param fds         the descriptor to watch; `revents` is filled in.
+/// @param nfds        always 1 here.
+/// @param timeout_ms  milliseconds, negative to block.
+/// @return            how many descriptors are ready, 0 on timeout, -1 on error.
+@c_header("<poll.h>")
+@extern("poll")
+export sys_poll_one :: fn(@c_pointer fds: Pollfd!, nfds: u64, timeout_ms: i32) -> i32
+
+/// Bytes to reserve for a `struct termios`. The LARGER of the measured sizes,
+/// deliberately, and not a per-system value.
+///
+/// MEASURED: 72 on Darwin, 60 on Linux — x86_64 and arm64 alike, the type being
+/// built from fixed-width members. A SIZE, not an offset, which is why no
+/// architecture axis is needed where a `struct stat` mirror would have wanted one.
+///
+/// ⚠️ Do NOT narrow this to the per-system figure. The risk is asymmetric —
+/// over-reserving wastes 12 bytes on Linux, under-reserving is an out-of-bounds
+/// write by `tcgetattr`, which nothing here checks. One constant, taken high, is
+/// the shape that cannot be got wrong.
+export TERMIOS_BYTES: usize: 72
+
+/// `TCSAFLUSH` — apply after draining output, DISCARDING pending input. That
+/// last part is why raw mode uses it: keystrokes meant for the shell must not
+/// land in the prompt. 2 on both systems.
+export TCSAFLUSH: i32: 2
+
+/// `tcgetattr(3)`. Reads the terminal state into an OPAQUE buffer.
+///
+/// The buffer is never interpreted on the Vader side — it travels from here to
+/// `sys_tcsetattr` and back, so nothing needs the layout of `struct termios`,
+/// whose shape differs between systems (`c_line` is Linux-only) and whose `c_cc`
+/// is an array. `buf` must hold at least `TERMIOS_BYTES`.
+///
+/// @param fd   the descriptor — 0 for stdin.
+/// @param buf  receives the state.
+/// @return     0 on success, -1 otherwise.
+@c_header("<termios.h>")
+@extern("tcgetattr")
+export sys_tcgetattr :: fn(fd: i32, buf: u8[]!) -> i32
+
+/// `tcsetattr(3)`. Applies a state read by `sys_tcgetattr`.
+///
+/// @param fd      the descriptor.
+/// @param action  when to apply it — `TCSAFLUSH` here.
+/// @param buf     the state to install.
+/// @return        0 on success, -1 otherwise.
+@c_header("<termios.h>")
+@extern("tcsetattr")
+export sys_tcsetattr :: fn(fd: i32, action: i32, buf: u8[]) -> i32
+
+/// `cfmakeraw(3)`. Turns a state into the raw one, in place.
+///
+/// The whole reason Vader never has to name a `termios` member: the flag surgery
+/// happens in C. It is MORE aggressive than a hand-rolled raw mode — it also
+/// clears `OPOST`, so `\n` no longer returns the carriage and a caller must write
+/// `\r\n` itself.
+@c_header("<termios.h>")
+@extern("cfmakeraw")
+export sys_cfmakeraw :: fn(buf: u8[]!) -> void
+
+/// `struct winsize` — the terminal size `TIOCGWINSZ` fills in.
+///
+/// Field names are the C ones because a mirror copies BY NAME; the snake_case
+/// rule does not reach across the boundary.
+@c_struct("struct winsize")
+export Winsize :: struct {
+    ws_row:    u16
+    ws_col:    u16
+    ws_xpixel: u16
+    ws_ypixel: u16
+}
+
+/// `TIOCGWINSZ`. A macro, and its value is not portable — it encodes the
+/// direction and the payload size, which differ between the two ioctl schemes.
+export TIOCGWINSZ: u64: if VADER_OS == Os.Darwin { 0x4008_7468 } else { 0x5413 }
+
+/// `ioctl(2)` for `TIOCGWINSZ`. 0 on success, -1 otherwise.
+///
+/// `ioctl` is variadic; `@c_header` brings the real prototype, so the shim's
+/// three-argument call is ordinary C rather than a redeclaration.
+///
+/// @param fd       the descriptor to ask about — 1 for stdout.
+/// @param request  always `TIOCGWINSZ` here.
+/// @param ws       receives the size.
+@c_header("<sys/ioctl.h>")
+@extern("ioctl")
+export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer ws: Winsize!) -> i32
+
+/// `isatty(3)`. Whether `fd` refers to a terminal.
+///
+/// @param fd  the descriptor — 1 for stdout, 2 for stderr.
+/// @return    1 when it is a terminal, 0 otherwise.
+@c_header("<unistd.h>")
+@extern("isatty")
+export sys_isatty :: fn(fd: i32) -> i32
+
+/// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
+///
+/// Linux reads the running binary's path from `/proc/self/exe`.
+@c_header("<unistd.h>")
+@extern("readlink")
+export sys_readlink :: fn(path: string, buf: u8[]!, size: usize) -> isize
+
+/// `realpath(3)`. Writes the canonical path into `resolved` and returns it, or
+/// null on failure. `resolved` must hold at least `PATH_MAX` bytes.
+@c_header("<stdlib.h>")
+@extern("realpath")
+export sys_realpath :: fn(path: string, resolved: u8[]!) -> CPointer | null
+
+/// `fopen(3)`. A stream handle, or null when the file cannot be opened.
+///
+/// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to
+/// know the numeric value of `O_CREAT` — which is 512 on Darwin and 64 on Linux.
+/// Reading proceeds until end of file, so `SEEK_END` is not needed either.
+///
+/// @param path  the file to open.
+/// @param mode  `"rb"` or `"wb"`.
+@c_header("<stdio.h>")
+@extern("fopen")
+export sys_fopen :: fn(path: string, mode: string) -> CPointer | null
+
+/// `fclose(3)`. 0 on success.
+@c_header("<stdio.h>")
+@extern("fclose")
+export sys_fclose :: fn(stream: CPointer) -> i32
+
+/// `fread(3)`. The number of ITEMS read — short at end of file.
+///
+/// @param buf     receives the bytes.
+/// @param size    item size in bytes; 1 to read bytes.
+/// @param count   how many items to read.
+/// @param stream  an open stream.
+@c_header("<stdio.h>")
+@extern("fread")
+export sys_fread :: fn(buf: u8[]!, size: usize, count: usize, stream: CPointer) -> usize
+
+/// `fwrite(3)`. The number of items written; short means failure.
+@c_header("<stdio.h>")
+@extern("fwrite")
+export sys_fwrite :: fn(buf: u8[], size: usize, count: usize, stream: CPointer) -> usize
+
+/// `getcwd(3)`. Fills `buf` with the working directory, NUL-terminated, and
+/// returns it — or null when `buf` is too small or the directory is unreadable.
+/// The length is not reported: read up to the NUL.
+///
+/// @param buf   receives the path.
+/// @param size  `buf`'s capacity in bytes.
+@c_header("<unistd.h>")
+@extern("getcwd")
+export sys_getcwd :: fn(buf: u8[]!, size: usize) -> CPointer | null
+
+/// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
+/// why the caller re-tests the path rather than reading `errno`.
+///
+/// @param path  directory to create.
+/// @param mode  permission bits, masked by the process umask.
+@c_header("<sys/stat.h>")
+@extern("mkdir")
+export sys_mkdir :: fn(path: string, mode: u32) -> i32
+
+/// `access(2)` mode: does the entry exist at all.
+export F_OK :: 0
+
+/// `access(2)`. 0 when the check passes, -1 with `errno` set otherwise.
+///
+/// `F_OK` answers existence without a `struct stat`, which is why `exists` uses
+/// it: no C struct has to be mirrored to ask the only question being asked.
+@c_header("<unistd.h>")
+@extern("access")
+export sys_access :: fn(path: string, mode: i32) -> i32
+
+/// `unlink(2)`. 0 on success, -1 with `errno` set.
+///
+/// NOT `remove(3)`: on POSIX that falls back to `rmdir` for a directory, so an
+/// empty one would vanish through a call named remove_FILE.
+@c_header("<unistd.h>")
+@extern("unlink")
+export sys_unlink :: fn(path: string) -> i32
+
+/// `clock_gettime(2)`. Fills `ts` — two cells standing in for `struct timespec`,
+/// both members being 64-bit here — with seconds then nanoseconds. -1 on failure.
+@c_header("<time.h>")
+@extern("clock_gettime")
+export sys_clock_gettime :: fn(clock_id: i32, ts: i64[]!) -> i32

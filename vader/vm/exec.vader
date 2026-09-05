@@ -1217,7 +1217,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
+                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug)
                 if dispatch_outcome is Trap {
                     // User-reachable (e.g. `panic()`) — run pending defers first.
                     if pending != null { return pending }
@@ -1251,6 +1251,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
+            }
+            is bc.FnAddr -> {
+                // See `bytecode/op::FnAddr` — no compiled code to address here.
+                return Trap {
+                    .message = "fn.addr at pc=${frame.pc}: the interpreter has no address for a Vader function",
+                }
             }
             is bc.MakeClosure -> {
                 index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "make_closure")
@@ -1317,7 +1323,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
+                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             push_val(frame, arg_base, hok.value)
@@ -1616,6 +1622,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     frame.tag[frame.sp - 1] = StackTag.Null
                 } else {
                     last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
+                    // Shrink the SHARED backing when this array owns the tail —
+                    // same rule as `array.clear` below, and as the native
+                    // `vader_array_remove_last`. `data.const` hands out a fresh
+                    // header over the pool entry's `elements`, so a length
+                    // written only on the header is lost for a module-level
+                    // array: the next read rebuilds it from `elements.len()`.
+                    if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                        array_unwrap.elements.remove_last()
+                    }
                     array_unwrap.length = array_unwrap.length - 1
                     push_val(frame, frame.sp - 1, last)
                 }
@@ -1627,10 +1642,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                // Reset to a fresh empty backing : the VM tracks logical length
-                // via `elements.len()` on push, so reusing the old backing would
-                // resurrect cleared elements on the next push.
-                array_unwrap.elements = []
+                // Clear the SHARED backing when this array owns it, the way the
+                // native runtime shrinks `buf->length` in `vader_array_clear`.
+                // `data.const` hands out a FRESH header over the pool entry's
+                // `elements`, which is how a module-level array is reached, so
+                // rebinding the field here would leave that array untouched —
+                // `push` mutates the shared backing and would still see three
+                // elements after a `clear`. Emptying it in place keeps
+                // `elements.len()` as the logical length, so nothing resurfaces
+                // on the next push. A genuine slice view (offset != 0, or a
+                // shorter prefix) detaches instead and keeps its isolation.
+                if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                    array_unwrap.elements.clear()
+                } else {
+                    array_unwrap.elements = []
+                }
                 array_unwrap.offset = 0
                 array_unwrap.length = 0
                 frame.sp = frame.sp - 1

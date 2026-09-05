@@ -1,0 +1,10 @@
+// `@c_pointer` on a type that is already a pointer — T3079.
+//
+// The decorator spills the argument to a stack temporary and passes its
+// address. A `string` already crosses as a `const char*`, so the address is of
+// the atom ID; the `(void*)` cast in the shim hides that from `cc`.
+module "snippet"
+
+@extern keep_string :: fn(@c_pointer s: string) -> void
+
+main :: fn() -> i32 { return 0 }

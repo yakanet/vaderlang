@@ -4,6 +4,12 @@
 
 ## generic instances
   ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -43,12 +49,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

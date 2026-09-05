@@ -66,61 +66,101 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            trim_suffix :fn(string, string) -> string
+            concat_2 :string
           arg0:
-            "foo.vader" :string
+            call :string
+              callee:
+                trim_suffix :fn(string, string) -> string
+              arg0:
+                "foo.vader" :string
+              arg1:
+                ".vader" :string
           arg1:
-            ".vader" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            trim_suffix :fn(string, string) -> string
+            concat_2 :string
           arg0:
-            "foo.bar" :string
+            call :string
+              callee:
+                trim_suffix :fn(string, string) -> string
+              arg0:
+                "foo.bar" :string
+              arg1:
+                ".vader" :string
           arg1:
-            ".vader" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            trim_prefix :fn(string, string) -> string
+            concat_2 :string
           arg0:
-            "std/io" :string
+            call :string
+              callee:
+                trim_prefix :fn(string, string) -> string
+              arg0:
+                "std/io" :string
+              arg1:
+                "std/" :string
           arg1:
-            "std/" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            trim_prefix :fn(string, string) -> string
+            concat_2 :string
           arg0:
-            "foo" :string
+            call :string
+              callee:
+                trim_prefix :fn(string, string) -> string
+              arg0:
+                "foo" :string
+              arg1:
+                "std/" :string
           arg1:
-            "std/" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            replace_chars_where :fn(string, fn(char) -> bool, string) -> string
+            concat_2 :string
           arg0:
-            "std::io.print!" :string
+            call :string
+              callee:
+                replace_chars_where :fn(string, fn(char) -> bool, string) -> string
+              arg0:
+                "std::io.print!" :string
+              arg1:
+                is_non_id :fn(char) -> bool
+              arg2:
+                "_" :string
           arg1:
-            is_non_id :fn(char) -> bool
-          arg2:
-            "_" :string
+            "\n" :string
     let parts: string[] =
       call :string[]
         callee:
@@ -131,64 +171,80 @@
           is_white_char :fn(char) -> bool
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(26) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(26) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
                   __off_1 :usize
-                arg2:
-                  "count=" :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "count=" :string
+              assign
+                target:
                   __off_1 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_unsigned :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      cast → u64
+                        LoweredArrayLen
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+          arg1:
+            "\n" :string
     let n: usize =
       LoweredArrayLen
     let i: usize = int(0) :usize
     loop while (<…>)
       call :void
         callee:
-          std_io$println__string :void
+          write :fn(Stream, string) -> void
         arg0:
-          index :string
-            on:
-              parts :string[]
-            ix:
-              i :usize
+          int(0) :i32
+        arg1:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              index :string
+                on:
+                  parts :string[]
+                ix:
+                  i :usize
+            arg1:
+              "\n" :string
       assign
         target:
           i :usize
@@ -199,3 +255,52 @@
             r:
               int(1) :usize
     return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

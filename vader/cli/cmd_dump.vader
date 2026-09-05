@@ -61,6 +61,16 @@ cmd_dump :: fn(args: string[]) -> i32 {
         eprintln("run \"vader help dump\" for the stage list")
         return 1
     }
+    // `--target` is parsed ONCE, for every stage. The resolver filters `@target`
+    // bodies by it (`target_select.vader`), so a front-end dump that ignored it
+    // rendered for THIS machine -- which is why the committed snapshots,
+    // generated for `SNAPSHOT_TARGET`, disagreed with another host.
+    target_arg :: parsed.string_flag("target", "")
+    target :: parse_dump_target(target_arg)
+    if target is TargetParseError as e {
+        eprintln("vader dump --target=${target_arg}: ${e.reason} `${e.fragment}`")
+        return 2
+    }
     if stage == "lexer" {
         return run_lexer_stage(file)
     }
@@ -68,34 +78,34 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return run_parser_stage(file)
     }
     if stage == "resolved-ast" {
-        return run_resolver_stage(file, module_filter, include_path_flags)
+        return run_resolver_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "typed-ast" {
-        return run_typecheck_stage(file, module_filter, include_path_flags)
+        return run_typecheck_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "evaluated-ast" {
-        return run_comptime_stage(file, module_filter, include_path_flags)
+        return run_comptime_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "lowered-ast" {
-        return run_lower_stage(file, module_filter, include_path_flags)
+        return run_lower_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "bytecode" {
-        return run_bytecode_stage(file, annotate, include_path_flags)
+        return run_bytecode_stage(file, annotate, include_path_flags, target)
     }
     if stage == "cfg" {
-        return run_cfg_stage(file, module_filter, include_path_flags)
+        return run_cfg_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "bytecode-cfg" {
-        return run_bytecode_cfg_stage(file, include_path_flags)
+        return run_bytecode_cfg_stage(file, include_path_flags, target)
     }
     if stage == "c" {
-        return run_c_stage(file, include_path_flags)
+        return run_c_stage(file, include_path_flags, target)
     }
     if stage == "dced-ast" {
-        return run_dced_stage(file, module_filter, include_path_flags)
+        return run_dced_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "targets" {
-        return run_targets_stage(file, parsed.string_flag("target", ""))
+        return run_targets_stage(file, target)
     }
     // Recognised stages we know about but can't run yet.
     if stage == "wasm" {
@@ -157,8 +167,10 @@ run_parser_stage :: fn(file: Path) -> i32 {
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
 
-run_resolver_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
-    project :: load_project(file.as_string(), include_path_flags)
+run_resolver_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
+    project :: load_project(file.as_string(), include_path_flags, target)
     resolved :: resolve_loaded_project(project, dump_scope(module_filter, project))
     println(dump_project(resolved))
     diags :: collect_resolver_diags(project, resolved)
@@ -226,12 +238,14 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 // top-level decl types only — expression / local types arrive with Phase 3
 // (body checking). The dump format is stable so snapshots can byte-diff
 // stdout.
-run_typecheck_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
+run_typecheck_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
     // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
     // side-tables, so ask the typecheck to populate them (the only path that does).
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true)
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true, target)
     // No `LoadedProject` here ; the entry typed module (`fc.result.typed`)
     // carries its own display path for the default scope.
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
@@ -242,8 +256,10 @@ run_typecheck_stage :: fn(file: Path, module_filter: string[], include_path_flag
     return 0
 }
 
-run_comptime_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+run_comptime_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
     println(dump_evaluated(pipeline.evaluated, dump_scope(module_filter, pipeline.loaded)))
     // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
     // typecheck + comptime diags as a single `# Diagnostics` block —
@@ -253,8 +269,10 @@ run_comptime_stage :: fn(file: Path, module_filter: string[], include_path_flags
     return 0
 }
 
-run_cfg_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+run_cfg_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
     lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
@@ -269,8 +287,10 @@ run_cfg_stage :: fn(file: Path, module_filter: string[], include_path_flags: str
     return 0
 }
 
-run_bytecode_cfg_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+run_bytecode_cfg_stage :: fn(
+    file: Path, include_path_flags: string[], target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
     lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
@@ -288,9 +308,23 @@ run_bytecode_cfg_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
 /// side-table maps that dominate the live set — returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
 
-run_bytecode_stage :: fn(file: Path, annotate: bool, include_path_flags: string[]) -> i32 {
+/// Parse a `--target=<os-arch>` flag for a dump stage. Empty means "this
+/// machine", which the pipeline spells `null`.
+///
+/// @param flag  the raw flag value.
+/// @return      the target, `null` for the host, or why it could not be parsed.
+parse_dump_target :: fn(flag: string) -> Target | null | TargetParseError {
+    if flag == "" {
+        return null
+    }
+    return parse_target(flag)
+}
+
+run_bytecode_stage :: fn(
+    file: Path, annotate: bool, include_path_flags: string[], target: Target | null,
+) -> i32 {
     // The bytecode dump never renders `debug`, so skip populating it.
-    b :: prepare_cfg_bytecode(file, false)
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
     // skips lowering on a front-end error) — print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
@@ -303,9 +337,13 @@ run_bytecode_stage :: fn(file: Path, annotate: bool, include_path_flags: string[
     }
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) so the output isn't
-    // double-newlined. `--annotate` routes through the disassembly
-    // variant — NOT round-trippable, so it never feeds `parse_virt` or
-    // the parity snapshots.
+    // double-newlined.
+    //
+    // `--annotate` appends `; <name>` after each index-bearing op. It IS
+    // round-trippable — `strip_comment` removes `;` comments before parsing —
+    // and the parity snapshots use it: an index is a rank of insertion, the name
+    // is what a reader needs. (This comment claimed the opposite; the corpus
+    // re-reads and executes every annotated dump, which settles it.)
     out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else {
         dump_bytecode(b.module, b.entry)
     }
@@ -314,10 +352,10 @@ run_bytecode_stage :: fn(file: Path, annotate: bool, include_path_flags: string[
     return 0
 }
 
-run_c_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
+run_c_stage :: fn(file: Path, include_path_flags: string[], target: Target | null) -> i32 {
     // `dump --stage=c` is a non-release C view : populate `debug` so the
     // emitted C carries `#line` (matches a debug `build --target=c`).
-    b :: prepare_cfg_bytecode(file, true)
+    b :: prepare_cfg_bytecode_with(file, true, include_path_flags, target)
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
@@ -351,8 +389,10 @@ run_c_stage :: fn(file: Path, include_path_flags: string[]) -> i32 {
 // lowerer minted for that module's `main`. Returns "" when the entry module
 // isn't resolvable, which suppresses the directive.
 
-run_lower_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+run_lower_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
     lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
@@ -373,18 +413,7 @@ run_lower_stage :: fn(file: Path, module_filter: string[], include_path_flags: s
 // (`tests/target_model.test.ts`), and it needs NO TOOLCHAIN — so it answers for
 // every target from any machine, which is what makes cross-target selection
 // testable in CI as it stands.
-run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
-    target: Target | null = null
-    if target_flag != "" {
-        parsed :: parse_target(target_flag)
-        if parsed is TargetParseError as e {
-            eprintln("vader dump --target=${target_flag}: ${e.reason} `${e.fragment}`")
-            return 2
-        }
-        if parsed is Target as t {
-            target = t
-        }
-    }
+run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
     project :: load_project(file.as_string(), [], target)
     // The baked constants, read back from the module the compiler GENERATED —
     // not re-rendered from the `Target` parsed above. The difference is the
@@ -411,6 +440,7 @@ run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
     }
     println("")
     println("# Selected body")
+    cwd :: current_working_directory()
     lines: string[]! = []
     for [_, lm] in project.modules {
         for f in lm.module.files {
@@ -420,8 +450,12 @@ run_targets_stage :: fn(file: Path, target_flag: string) -> i32 {
                         continue
                     }
                     body :: fd.body
+                    // Relative to the cwd, like every diagnostic. A stdlib body
+                    // resolves through an absolute path, so printing it verbatim
+                    // put the DEVELOPER'S home directory in a committed snapshot
+                    // — green locally, red on any other machine.
                     origin :: if body is BlockExpr as b {
-                        "${b.span.start.file}:${b.span.start.line}"
+                        "${relative_to(b.span.start.file, cwd)}:${b.span.start.line}"
                     } else {
                         "(no body)"
                     }
@@ -470,8 +504,10 @@ selected_by_target :: fn(fd: FnDecl) -> bool {
     return false
 }
 
-run_dced_stage :: fn(file: Path, module_filter: string[], include_path_flags: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+run_dced_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
     lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)

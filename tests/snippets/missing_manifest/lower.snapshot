@@ -63,22 +63,38 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            describe :fn(string) -> string
+            concat_2 :string
           arg0:
-            "/no/such/manifest.toml" :string
+            call :string
+              callee:
+                describe :fn(string) -> string
+              arg0:
+                "/no/such/manifest.toml" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            catch_all :fn(string) -> string
+            concat_2 :string
           arg0:
-            "/no/such/manifest.toml" :string
+            call :string
+              callee:
+                catch_all :fn(string) -> string
+              arg0:
+                "/no/such/manifest.toml" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
     let c0: usize =

@@ -99,7 +99,7 @@ lto_link_flags() {
 
 compile_unit() {
     unit_log="$UNIT_OBJDIR/$(basename "$1" .c).cclog"
-    if ! "$CC_ABS" $UNIT_CFLAGS -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o" \
+    if ! "$CC_ABS" $UNIT_CFLAGS $UNIT_INCLUDES -Iruntime/c -c "$1" -o "$UNIT_OBJDIR/$(basename "$1" .c).o" \
          >"$unit_log" 2>&1; then
         echo "cc failed on $1" >&2
         cat "$unit_log" >&2
@@ -119,9 +119,12 @@ cc_link_parallel() {
     unit_out="$3"
     unit_ldflags="$4"
     shift 4
-    export CC_ABS UNIT_CFLAGS UNIT_OBJDIR
+    export CC_ABS UNIT_CFLAGS UNIT_OBJDIR UNIT_INCLUDES
     printf '%s\n' "$@" \
       | xargs -P "$CC_JOBS" -I{} bash -c 'compile_unit "$@"' _ {}
+    case "$(uname -s)" in
+      Linux) unit_ldflags="$unit_ldflags -Wl,--no-as-needed" ;;
+    esac
     "$CC_ABS" $unit_ldflags -o "$unit_out" "$UNIT_OBJDIR"/*.o -lm
 }
 
@@ -145,11 +148,26 @@ host_target() {
 # emitted different bytes for it, so today there are none — the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-# `bootstrap-<module>.c` is shared; `bootstrap.<target>-<module>.c` belongs to
-# one target. The two patterns cannot overlap — a shared unit has no dot after
-# `bootstrap` — so the host's set is the union with the globals TU.
+if [ ! -d "bootstrap/seed/$HOST_TARGET" ]; then
+    printf 'bootstrap/build.sh: no seed for %s -- seeded targets:' "$HOST_TARGET" >&2
+    for d in bootstrap/seed/*/; do printf ' %s' "$(basename "$d")" >&2; done
+    printf '\n' >&2
+    exit 1
+fi
+# `bootstrap-<module>.c`, flat, is shared by every target; a unit the targets
+# disagreed on lives in `seed/<target>/` instead. So the host's set is the flat
+# shared list plus ONE directory — nothing else is compiled, and a stale unit
+# from another target cannot be picked up by a glob.
 seed_shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null || true)
-seed_host=$(ls bootstrap/seed/bootstrap."$HOST_TARGET"-*.c 2>/dev/null || true)
+seed_host=$(ls bootstrap/seed/"$HOST_TARGET"/*.c 2>/dev/null || true)
+# Two include roots, target first: the per-target directory owns
+# `bootstrap.imports.h`, and the seed root owns the shared `bootstrap.split.h`
+# that every unit — including the ones now sitting in a target directory —
+# includes by bare name.
+seed_includes="-Ibootstrap/seed"
+if [ -d "bootstrap/seed/$HOST_TARGET" ]; then
+    seed_includes="-Ibootstrap/seed/$HOST_TARGET -Ibootstrap/seed"
+fi
 if [ -z "$seed_shared" ]; then
     echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
     exit 1
@@ -185,7 +203,9 @@ stage1_ldflags="$(lto_link_flags)"
 step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
 rm -rf build/work/stage0
 mkdir -p build/work/stage0
+UNIT_INCLUDES="$seed_includes"
 cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 "$STAGE0_CFLAGS" $seed_shared $seed_host "$runtime"
+UNIT_INCLUDES=""
 
 step "[2/$stages] Building stage1 (full compiler, via stage0)  — self-compiles"
 rm -rf build/work/stage1

@@ -46,12 +46,39 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // (which, for a genuine conversion, fails both directions anyway).
     if scalar_castable(src) && scalar_castable(target) { return true }
     if src is DistinctType || target is DistinctType { return true }
+    // Reading a foreign pointer as a machine word. A Win32 `HANDLE` reports
+    // failure as `INVALID_HANDLE_VALUE` (-1) and `mmap` as `MAP_FAILED` (-1),
+    // so a sentinel that is not NULL cannot be tested at all while the pointer
+    // stays opaque -- `CPointer | null` only ever sees zero.
+    //
+    // ONE direction: fabricating a pointer from an integer stays refused, and
+    // nothing needs it. A sentinel is RETURNED and compared, never passed, so
+    // the handle keeps travelling as a `CPointer` and no call site has to
+    // launder it back.
+    if is_c_pointer(src) && is_machine_word(target) { return true }
     // Identity / compatible either direction : `i32(x: i32)`, a free literal
     // narrowed to the target, a subtype widen (`Animal(cat)`).
     if is_assignable(src, target) || is_assignable(target, src) { return true }
     // Explicit `Into<Target>` conversion (string-keyed lookup — last resort).
     into_impl :: typed.impl_methods["${display_type_key(src)}::into::${display_type_key(target)}"]
     if into_impl !is null && into_impl.ty is FnType { return true }
+    return false
+}
+
+/// Whether `t` is the opaque foreign pointer `CPointer`.
+is_c_pointer :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p {
+        return p.name == "CPointer"
+    }
+    return false
+}
+
+/// Whether `t` is a pointer-width integer — the only targets a `CPointer` may
+/// be read as, since a narrower one would silently drop address bits.
+is_machine_word :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p {
+        return p.name == "isize" || p.name == "usize"
+    }
     return false
 }
 

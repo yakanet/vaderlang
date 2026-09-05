@@ -1,0 +1,28 @@
+module "snippet"
+
+import "std/io"
+
+// Reading a foreign pointer as a machine word. The point is the FAILURE
+// sentinels that are not NULL: a Win32 `HANDLE` reports failure as
+// `INVALID_HANDLE_VALUE` (-1) and `mmap` as `MAP_FAILED` (-1), neither of which
+// a `CPointer | null` can see — it only ever narrows on zero.
+//
+// `malloc` rather than one of those two because it is the one allocator every
+// target has, MinGW included; the conversion under test is the same.
+@c_header("<stdlib.h>")
+@extern("malloc")
+c_malloc :: fn(n: usize) -> CPointer
+
+@c_header("<stdlib.h>")
+@extern("free")
+c_free :: fn(p: CPointer) -> void
+
+main :: fn() -> i32 {
+    p :: c_malloc(16)
+    // A successful `malloc` is neither NULL nor the -1 sentinel, so both
+    // readings hold — and both widths agree on the same address.
+    println("live=${isize(p) != 0 && isize(p) != -1}")
+    println("widths_agree=${usize(p) == usize(isize(p))}")
+    c_free(p)
+    return 0
+}

@@ -91,6 +91,35 @@ export find_build_driver :: fn(root: string) -> string | null {
 
 // ---- compiler-source resolution -------------------------------------------
 
+/// The compiler's own sources under `$VADER_HOME`, or `""` when it does not
+/// supply them (unset, or holding neither layout).
+///
+/// Both layouts are accepted: a checkout holds `vader/` at its root, a bundle
+/// holds `src/vader/`. A value holding neither is ignored exactly as it is in
+/// `resolver::sidecar_root` — `vader doctor` is what reports it.
+///
+/// Split out so the REPORT and the RESOLUTION ask the same question. `doctor`
+/// first inferred the answer by testing whether the resolved root started with
+/// `$VADER_HOME`, which is a string prefix, not a path: with the variable set to
+/// `…/vaderlang` and the sources at `…/vaderlang2`, it claimed the sources came
+/// through the variable. Comparing against what this returns cannot say that.
+///
+/// @return the directory holding `vader/pipeline`, or `""`.
+export compiler_source_home :: fn() -> string {
+    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    if home == "" {
+        return ""
+    }
+    if exists(join_path(home, COMPILER_SOURCE_MARKER)) {
+        return home
+    }
+    bundled :: join_path(home, BUNDLED_SOURCE_DIR)
+    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
+        return bundled
+    }
+    return ""
+}
+
 /// Include-path root under which the COMPILER's own modules resolve.
 ///
 /// A driver imports `toolchain/build`, which the library root already provides —
@@ -123,35 +152,6 @@ export find_build_driver :: fn(root: string) -> string | null {
 ///
 /// @param root  invocation directory, used as the checkout fallback.
 /// @return      a directory under which `vader/pipeline/` is expected to resolve.
-/// The compiler's own sources under `$VADER_HOME`, or `""` when it does not
-/// supply them (unset, or holding neither layout).
-///
-/// Both layouts are accepted: a checkout holds `vader/` at its root, a bundle
-/// holds `src/vader/`. A value holding neither is ignored exactly as it is in
-/// `resolver::sidecar_root` — `vader doctor` is what reports it.
-///
-/// Split out so the REPORT and the RESOLUTION ask the same question. `doctor`
-/// first inferred the answer by testing whether the resolved root started with
-/// `$VADER_HOME`, which is a string prefix, not a path: with the variable set to
-/// `…/vaderlang` and the sources at `…/vaderlang2`, it claimed the sources came
-/// through the variable. Comparing against what this returns cannot say that.
-///
-/// @return the directory holding `vader/pipeline`, or `""`.
-export compiler_source_home :: fn() -> string {
-    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
-    if home == "" {
-        return ""
-    }
-    if exists(join_path(home, COMPILER_SOURCE_MARKER)) {
-        return home
-    }
-    bundled :: join_path(home, BUNDLED_SOURCE_DIR)
-    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
-        return bundled
-    }
-    return ""
-}
-
 export compiler_source_root :: fn(root: string) -> string {
     // `$VADER_HOME` first, the same precedence it gets in every other sidecar
     // probe (`resolver::sidecar_root`). Both layouts are accepted under it: a

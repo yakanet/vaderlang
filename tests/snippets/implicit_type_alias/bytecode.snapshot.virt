@@ -6,13 +6,13 @@ type 3 primitive string
 export main 1
 
 fn 0 snippet$classify (any) -> i32
-  local.get 0
-  type_check 2
+  local.get 0   ; arg 0
+  type_check 2   ; i32
   if $L0 void
     return.lit i32.const 1
   end $L0
-  local.get 0
-  type_check 3
+  local.get 0   ; arg 0
+  type_check 3   ; string
   if $L1 void
     return.lit i32.const 2
   end $L1
@@ -21,6 +21,6 @@ end
 
 fn 1 snippet$main () -> i32
   i32.const 42
-  call 0
+  call 0   ; snippet$classify
   return
 end

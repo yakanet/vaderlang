@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { writeFileSync } from "node:fs";
 
 import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
-import { VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { SNAPSHOT_TARGET, VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
@@ -274,6 +274,21 @@ const C_PARITY = new Set<string>([
   // element width. A variant matched modulo mutability that read back at the
   // wrong representation would be a silent wrong value, not a trap.
   "union_variant_narrow_mutation",
+  // The emitted C IS the subject: `@c_struct` marshalling exists only there,
+  // and its `_Static_assert` layout lines have no other corpus. Oracle 2 links
+  // the snippet's `helper.c`, so it also pins that the synthesised prototype
+  // agrees with the address the shim actually passes.
+  "array_clear_refill",
+  "c_struct_layout",
+  "c_struct_prefix_mirror",
+  // A C CALLBACK: what must cross is `&snippet_double_it`, the function's own
+  // symbol, and not the `vader_fn_t` a fn value would be. Oracle 1 pins that
+  // line in `c.snapshot`; the `vm.snapshot` holds what the NATIVE binary
+  // prints, which is what makes Oracle 2 discriminate — `helper.c` calls the
+  // callback, so a wrong address crashes instead of passing quietly.
+  "extern_callback",
+  "extern_callback_slot",
+  "extern_lend_across_callback",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
@@ -284,8 +299,15 @@ test("c-emit: allowlist resolves to real snippets", () => {
 
 for (const s of scenarios) {
   // Oracle 1 — regression vs the Vader-generated golden.
+  //
+  // Pinned to ONE target. A `@target` group in the closure (`std/io::write_bytes`
+  // since println went through the FFI) makes the emitted C differ per platform,
+  // so a snapshot taken on the contributor's machine could never match another's
+  // — CI saw a 12-entry type table where macOS wrote 11. The target is the
+  // snapshot's identity, not the machine's. Oracle 2 below deliberately does NOT
+  // pin: it compiles and runs the C, which only works for the host.
   test.concurrent(`c-emit-snapshot: ${s.name}`, async () => {
-    const dump = await runCli(["dump", "--stage=c", s.mainPath]);
+    const dump = await runCli(["dump", "--stage=c", `--target=${SNAPSHOT_TARGET}`, s.mainPath]);
     const cmp = snapshotEquals(s.dir, "c.snapshot", dump.stdout);
     if (!cmp.ok) {
       throw new Error(

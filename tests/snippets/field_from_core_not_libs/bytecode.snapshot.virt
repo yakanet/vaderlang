@@ -8,14 +8,14 @@ type 5 ref _
 export main 1
 
 fn 0 snippet$count_fields (ref) -> i32
-  local.get 0
+  local.get 0   ; arg 0
   array.len
   usize.to_i32
   return
 end
 
 fn 1 snippet$main () -> i32
-  array.new 1 0
-  call 0
+  array.new 1 0   ; std_core$Field[][]
+  call 0   ; snippet$count_fields
   return
 end

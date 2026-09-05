@@ -125,109 +125,197 @@
     let nothing: Cat | Dog | null = null
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            greet :fn(Cat | Dog | null) -> string
+            concat_2 :string
           arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v2 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v2 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v3 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v3 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v4 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v4 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
+            call :string
+              callee:
+                greet :fn(Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
           arg1:
-            dog :Cat | Dog | null
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
+            concat_2 :string
           arg0:
-            nothing :Cat | Dog | null
+            call :string
+              callee:
+                greet :fn(Cat | Dog | null) -> string
+              arg0:
+                nothing :Cat | Dog | null
           arg1:
-            dog :Cat | Dog | null
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
+            concat_2 :string
           arg0:
-            cat :Cat | Dog | null
+            call :string
+              callee:
+                greet_v2 :fn(Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
           arg1:
-            nothing :Cat | Dog | null
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                greet_v2 :fn(Cat | Dog | null) -> string
+              arg0:
+                nothing :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                greet_v3 :fn(Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                greet_v3 :fn(Cat | Dog | null) -> string
+              arg0:
+                nothing :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                greet_v4 :fn(Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                greet_v4 :fn(Cat | Dog | null) -> string
+              arg0:
+                nothing :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
+              arg1:
+                dog :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
+              arg0:
+                nothing :Cat | Dog | null
+              arg1:
+                dog :Cat | Dog | null
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
+              arg0:
+                cat :Cat | Dog | null
+              arg1:
+                nothing :Cat | Dog | null
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -8,7 +8,7 @@
       }
   fn snippet$log_it() -> Async<null>
     return
-      __asyncstate_4! {
+      __asyncstate_snippet_0! {
         s0: int(0) :i32
         s1: int(0) :i32
         awaited: null
@@ -16,7 +16,7 @@
       }
   fn snippet$wrap() -> Async<null>
     return
-      __asyncstate_10! {
+      __asyncstate_snippet_1! {
         s0: null
         awaited: null
         state: int(3) :i32
@@ -35,32 +35,48 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "parked?!" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "parked?!" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
-        "complete" :string
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "complete" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
-  struct __asyncstate_4 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_4$Async$resume(self: __asyncstate_4!) -> null | Suspended!
+  struct __asyncstate_snippet_0 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> null | Suspended!
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_3 :__asyncstate_4!
+                __self_3 :__asyncstate_snippet_0!
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_3 :__asyncstate_4!
+                __self_3 :__asyncstate_snippet_0!
             value:
               int(-1) :i32
           return null
@@ -70,69 +86,77 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_snippet_0!
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .s1 :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_snippet_0!
                 value:
                   .s0 :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_snippet_0!
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
-                  block :string
-                    let __buf_1: Buffer =
-                      call :Buffer
-                        callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          int(27) :usize
-                    let __off_2: usize = int(0) :usize
-                    assign
-                      target:
-                        __off_2 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_1 :Buffer
-                          arg1:
+                  int(0) :i32
+                arg1:
+                  call :string
+                    callee:
+                      concat_2 :string
+                    arg0:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(27) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
                             __off_2 :usize
-                          arg2:
-                            "logged " :string
-                    assign
-                      target:
-                        __off_2 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_int :usize
-                          arg0:
-                            __buf_1 :Buffer
-                          arg1:
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                "logged " :string
+                        assign
+                          target:
                             __off_2 :usize
-                          arg2:
-                            cast → i64
-                              .s1 :i32
-                                __self_3 :__asyncstate_4!
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
-                        arg0:
-                          __buf_1 :Buffer
-                        arg1:
-                          __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                cast → i64
+                                  .s1 :i32
+                                    __self_3 :__asyncstate_snippet_0!
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
+                    arg1:
+                      "\n" :string
               assign
                 target:
                   .state :i32
-                    __self_3 :__asyncstate_4!
+                    __self_3 :__asyncstate_snippet_0!
                 value:
                   int(0) :i32
             else:
@@ -141,7 +165,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_3 :__asyncstate_4!
+                        __self_3 :__asyncstate_snippet_0!
                     r:
                       int(2) :i32
                 then:
@@ -149,7 +173,7 @@
                     vcall Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
-                          __self_3 :__asyncstate_4!
+                          __self_3 :__asyncstate_snippet_0!
                   if :void
                     cond:
                       is Suspended! :bool
@@ -162,14 +186,14 @@
                       assign
                         target:
                           .s0 :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_snippet_0!
                         value:
                           cast → i32
                             __resumed_4 :Any | Suspended!
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_snippet_0!
                         value:
                           int(1) :i32
                 else:
@@ -178,14 +202,14 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_snippet_0!
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_snippet_0!
                         value:
                           cast → Async<Any>
                             call :Async<i32>
@@ -194,47 +218,47 @@
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_4!
+                            __self_3 :__asyncstate_snippet_0!
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended! {
                         }
-  fn snippet$__asyncstate_4$Async$cancel(self: __asyncstate_4!) -> void
+  fn snippet$__asyncstate_snippet_0$Async$cancel(self: __asyncstate_snippet_0!) -> void
     if :void
       cond:
         is null :bool
           .awaited :Async<Any>
-            __self_3 :__asyncstate_4!
+            __self_3 :__asyncstate_snippet_0!
       then:
       else:
         vcall Async.cancel :void
           recv:
             .awaited :Async<Any>
-              __self_3 :__asyncstate_4!
+              __self_3 :__asyncstate_snippet_0!
     assign
       target:
         .state :i32
-          __self_3 :__asyncstate_4!
+          __self_3 :__asyncstate_snippet_0!
       value:
         int(-1) :i32
-  struct __asyncstate_10 { s0: null, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_10$Async$resume(self: __asyncstate_10!) -> null | Suspended!
+  struct __asyncstate_snippet_1 { s0: null, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_1$Async$resume(self: __asyncstate_snippet_1!) -> null | Suspended!
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_snippet_1!
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_snippet_1!
             value:
               int(-1) :i32
           return null
@@ -244,21 +268,29 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_1 :__asyncstate_10!
+                    __self_1 :__asyncstate_snippet_1!
                 r:
                   int(1) :i32
             then:
               .s0 :null
-                __self_1 :__asyncstate_10!
+                __self_1 :__asyncstate_snippet_1!
               call :void
                 callee:
-                  std_io$println__string :void
+                  write :fn(Stream, string) -> void
                 arg0:
-                  "wrapped" :string
+                  int(0) :i32
+                arg1:
+                  call :string
+                    callee:
+                      concat_2 :string
+                    arg0:
+                      "wrapped" :string
+                    arg1:
+                      "\n" :string
               assign
                 target:
                   .state :i32
-                    __self_1 :__asyncstate_10!
+                    __self_1 :__asyncstate_snippet_1!
                 value:
                   int(0) :i32
             else:
@@ -267,7 +299,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_1 :__asyncstate_10!
+                        __self_1 :__asyncstate_snippet_1!
                     r:
                       int(2) :i32
                 then:
@@ -275,7 +307,7 @@
                     vcall Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
-                          __self_1 :__asyncstate_10!
+                          __self_1 :__asyncstate_snippet_1!
                   if :void
                     cond:
                       is Suspended! :bool
@@ -288,14 +320,14 @@
                       assign
                         target:
                           .s0 :null
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_snippet_1!
                         value:
                           cast → null
                             __resumed_2 :Any | Suspended!
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_snippet_1!
                         value:
                           int(1) :i32
                 else:
@@ -304,14 +336,14 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_snippet_1!
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_snippet_1!
                         value:
                           cast → Async<Any>
                             call :Async<null>
@@ -320,29 +352,29 @@
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_10!
+                            __self_1 :__asyncstate_snippet_1!
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended! {
                         }
-  fn snippet$__asyncstate_10$Async$cancel(self: __asyncstate_10!) -> void
+  fn snippet$__asyncstate_snippet_1$Async$cancel(self: __asyncstate_snippet_1!) -> void
     if :void
       cond:
         is null :bool
           .awaited :Async<Any>
-            __self_1 :__asyncstate_10!
+            __self_1 :__asyncstate_snippet_1!
       then:
       else:
         vcall Async.cancel :void
           recv:
             .awaited :Async<Any>
-              __self_1 :__asyncstate_10!
+              __self_1 :__asyncstate_snippet_1!
     assign
       target:
         .state :i32
-          __self_1 :__asyncstate_10!
+          __self_1 :__asyncstate_snippet_1!
       value:
         int(-1) :i32
   struct snippet$Ready__i32 { v: i32 }
@@ -352,3 +384,52 @@
         self :Ready<i32>
   fn snippet$Ready$Async$cancel__i32(self: Ready<i32>!) -> void
   struct snippet$Ready__Any { v: Any }
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

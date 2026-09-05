@@ -299,6 +299,13 @@ write_fn_param :: fn(sb: StringBuilder!, p: FnParam, level: i32) -> void {
         sb.entry(false, level + 1, "mutable")
         sb.write_bool(p.mutable)
     }
+    // Same rule. Load-bearing beyond inspection: `tests/formatter.test.ts`
+    // compares this dump before and after formatting, so a decorator missing
+    // HERE is a decorator the formatter may silently drop with nothing failing.
+    if p.decorators.len() > 0 {
+        sb.entry(false, level + 1, "decorators")
+        sb.write_decorators(p.decorators, level + 1)
+    }
     sb.close_obj(level)
 }
 

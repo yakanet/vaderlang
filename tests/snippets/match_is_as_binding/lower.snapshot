@@ -94,35 +94,59 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            show :fn(null | P | Q) -> string
+            concat_2 :string
           arg0:
-            P! {
-              x: int(42) :i32
-            }
+            call :string
+              callee:
+                show :fn(null | P | Q) -> string
+              arg0:
+                P! {
+                  x: int(42) :i32
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            show :fn(null | P | Q) -> string
+            concat_2 :string
           arg0:
-            Q! {
-              y: "hello" :string
-            }
+            call :string
+              callee:
+                show :fn(null | P | Q) -> string
+              arg0:
+                Q! {
+                  y: "hello" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            show :fn(null | P | Q) -> string
+            concat_2 :string
           arg0:
-            null
+            call :string
+              callee:
+                show :fn(null | P | Q) -> string
+              arg0:
+                null
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

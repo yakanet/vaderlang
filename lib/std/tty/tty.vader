@@ -23,8 +23,10 @@
 
 module "std/tty"
 
-import "std/io"
 import "std/env"
+import "std/io"
+import "system/posix"
+import "system/windows"
 
 // ---- detection ------------------------------------------------------------
 
@@ -33,7 +35,59 @@ import "std/env"
 /// also enables virtual-terminal processing on the stream (and reports false
 /// when the console is too old to support it). The result is memoized per
 /// stream — the syscall runs once.
-@intrinsic export is_tty :: fn(stream: Stream = .Stdout) -> bool
+@target
+export is_tty :: fn(stream: Stream = .Stdout) -> bool {
+    // No terminal on `wasi-wasm32` / `browser-wasm32`, and no escapes to render.
+    return false
+}
+
+/// Answer per stream, indexed by `Stream` tag: `-1` unknown, `0` no, `1` yes.
+///
+/// Module-scope state, which the `!` marker on the type is what grants: the probe
+/// is a syscall and `should_colorize` runs it twice per coloured fragment. On
+/// Windows it also SETS the console mode, so running it once is what keeps that
+/// a probe rather than a repeated write.
+TTY_CACHE: i32[]!: [-1, -1]
+
+/// Index of `stream` in `TTY_CACHE`. Anything but `.Stderr` reads as stdout,
+/// mirroring what the C original did with its tag.
+tty_slot :: fn(stream: Stream) -> usize = if stream == Stream.Stderr { 1 } else { 0 }
+
+@target(.Linux, .Darwin)
+is_tty :: fn(stream: Stream = .Stdout) -> bool {
+    i :: tty_slot(stream)
+    if TTY_CACHE[i] < 0 {
+        fd :: if i == 1 { 2 } else { 1 }
+        TTY_CACHE[i] = if sys_isatty(fd) != 0 { 1 } else { 0 }
+    }
+    return TTY_CACHE[i] != 0
+}
+
+// The console must be interactive AND accept virtual-terminal processing — only
+// then do ANSI escapes render rather than print literally. `GetConsoleMode`
+// failing IS the "not a console" answer: a redirected stream has no mode to read.
+// Enabling VT is idempotent, and the memo means it runs once.
+@target(.Windows)
+is_tty :: fn(stream: Stream = .Stdout) -> bool {
+    i :: tty_slot(stream)
+    if TTY_CACHE[i] >= 0 {
+        return TTY_CACHE[i] != 0
+    }
+    TTY_CACHE[i] = 0
+    which :: if i == 1 { STD_ERROR_HANDLE } else { STD_OUTPUT_HANDLE }
+    h :: get_std_handle(which)
+    if h == INVALID_HANDLE {
+        return false
+    }
+    mode: u32[]! = [0]
+    if !get_console_mode(h, mode) {
+        return false
+    }
+    if set_console_mode(h, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING) {
+        TTY_CACHE[i] = 1
+    }
+    return TTY_CACHE[i] != 0
+}
 
 /// True when ANSI color should be emitted: either standard stream is a terminal
 /// and `NO_COLOR` is unset or empty. Per the NO_COLOR convention, a non-empty

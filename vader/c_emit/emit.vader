@@ -317,13 +317,49 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// of `emit_type_decls` : in a split build these are the module's public
 /// shape, routed to the shared header ; the atom table + data pool (the data
 /// half) go to the globals TU.
+/// The `@c_struct` mirrors, emitted with the imports rather than in the shared
+/// header.
+///
+/// A mirror is per SYSTEM by nature: two systems describe the same C type with
+/// different fields, and each mirror is materialised only where its `@target`
+/// body is kept. So a mirror belongs beside the shims that marshal it and the
+/// `_Static_assert`s that check it — all of which already live per target —
+/// rather than in the header every target shares.
+///
+/// @param ctx  the emit context.
+/// @param out  the imports accumulator.
+emit_mirrored_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+    for i in 0..<ctx.module.types.len() {
+        if ctx.module.types[i] is BcStruct as fwd {
+            if fwd.c_name != "" {
+                cname :: ctx.struct_c_names[i]
+                out.append("typedef struct ${cname} ${cname};\n")
+            }
+        }
+    }
+    for j in 0..<ctx.module.types.len() {
+        if ctx.module.types[j] is BcStruct as s {
+            if s.c_name != "" {
+                emit_struct_body(ctx, s, j, out)
+            }
+        }
+    }
+}
+
 emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Forward decls for every struct so field references compile in
     // any declaration order.
     for i in 0..<ctx.module.types.len() {
-        if ctx.module.types[i] is BcStruct {
-            cname :: ctx.struct_c_names[i]
-            out.append("typedef struct ${cname} ${cname};\n")
+        // Under `--split` a `@c_struct` mirror is emitted with the imports
+        // instead: it exists only on the systems that declare it, and the shared
+        // header has to read the same for every target. In a single file there
+        // is nowhere else to put it, and the type table below takes `sizeof` on
+        // it, so it stays here.
+        if ctx.module.types[i] is BcStruct as fwd {
+            if fwd.c_name == "" || !ctx.split {
+                cname :: ctx.struct_c_names[i]
+                out.append("typedef struct ${cname} ${cname};\n")
+            }
         }
     }
     out.append("\n")
@@ -332,7 +368,11 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // line. Phase 2 skips the packed-payload mirror twin (emitted next to
     // the regular typedef for inline-variant POD shapes).
     for j in 0..<ctx.module.types.len() {
-        if ctx.module.types[j] is BcStruct as s { emit_struct_body(ctx, s, j, out) }
+        if ctx.module.types[j] is BcStruct as s {
+            if s.c_name == "" || !ctx.split {
+                emit_struct_body(ctx, s, j, out)
+            }
+        }
     }
     out.append("\n")
 }
@@ -462,7 +502,10 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     if indices.len() == 0 {
         return
     }
-    out.append("static vader_array_t* vader_global_const_arrays[] = {")
+    // `main` installs the frame, and under `--split` `main` lives in a different
+    // unit from the data pool — so `static` here leaves it undeclared there.
+    link :: linkage_prefix(ctx.split)
+    out.append("${link}vader_array_t* vader_global_const_arrays[] = {")
     for k in 0..<indices.len() {
         if k > 0 { out.append(",") }
         out.append(" &vader_data_${indices[k]}")
@@ -477,13 +520,13 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // this one is stale — still valid memory, so scanning it is safe ; it just
     // retains whatever the initial slots held.
     objs :: boxed_pool_objects(ctx.module.data_pool, indices)
-    out.append("static void* vader_global_const_objs[] = {")
+    out.append("${link}void* vader_global_const_objs[] = {")
     for k in 0..<objs.len() {
         if k > 0 { out.append(",") }
         out.append(" ${objs[k]}")
     }
     out.append(" };\n")
-    out.append("static vader_gc_frame_t vader_global_const_frame = ")
+    out.append("${link}vader_gc_frame_t vader_global_const_frame = ")
     out.append("{ NULL, 0u, 0u, NULL, NULL, ${objs.len()}u, vader_global_const_objs };\n")
 }
 

@@ -22,62 +22,62 @@ fn 0 snippet$run (any,bool,bool) -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 6 3
-  local.set 3
-  local.get 0
-  type_check 2
+  array.new 6 3   ; i32[][]
+  local.set 3   ; items
+  local.get 0   ; arg 0
+  type_check 2   ; snippet$Pair
   if $L0 void
-    local.get 0
-    ref.cast 2
-    struct.get 2 0
-    ref.cast 5
-    local.set 4
-    local.get 1
+    local.get 0   ; arg 0
+    ref.cast 2   ; -> snippet$Pair
+    struct.get 2 0   ; snippet$Pair.a
+    ref.cast 5   ; -> i32
+    local.set 4   ; n
+    local.get 1   ; arg 1
     if $L1 void
-      local.get 2
+      local.get 2   ; arg 2
       if $L2 void
-        local.get 3
-        local.tee 5
+        local.get 3   ; items
+        local.tee 5   ; __for_arr_0
         array.len
-        local.set 6
+        local.set 6   ; __for_len_1
         i64.const 0
-        local.set 7
+        local.set 7   ; __for_i_2
         block $L3 void
           loop $L4 void
-            local.get 7
-            local.get 6
+            local.get 7   ; __for_i_2
+            local.get 6   ; __for_len_1
             u64.lt
             if $L5 void
-              local.get 5
-              local.get 7
+              local.get 5   ; __for_arr_0
+              local.get 7   ; __for_i_2
               load_slot_i32
-              local.set 8
+              local.set 8   ; it
               i32.const 2
-              local.set 9
-              local.get 8
-              local.get 9
+              local.set 9   ; $k_27
+              local.get 8   ; it
+              local.get 9   ; $k_27
               i32.eq
               if $L6 void
                 i64.const 1
-                local.set 10
-                local.get 7
-                local.get 10
+                local.set 10   ; $k_29
+                local.get 7   ; __for_i_2
+                local.get 10   ; $k_29
                 i64.add
-                local.set 7
+                local.set 7   ; __for_i_2
                 br $L4
               end $L6
               i32.const 1
-              local.set 11
-              local.get 4
-              local.get 11
+              local.set 11   ; $k_31
+              local.get 4   ; n
+              local.get 11   ; $k_31
               i32.add
-              local.set 4
+              local.set 4   ; n
               i64.const 1
-              local.set 12
-              local.get 7
-              local.get 12
+              local.set 12   ; $k_33
+              local.get 7   ; __for_i_2
+              local.get 12   ; $k_33
               i64.add
-              local.set 7
+              local.set 7   ; __for_i_2
               br $L4
             else
             end $L5
@@ -87,63 +87,63 @@ fn 0 snippet$run (any,bool,bool) -> i32
       end $L2
     else
     end $L1
-    local.get 4
+    local.get 4   ; n
     return
   end $L0
-  local.get 0
-  type_check 3
+  local.get 0   ; arg 0
+  type_check 3   ; snippet$Wrap
   if $L7 void
-    local.get 0
-    ref.cast 3
-    struct.get 3 0
-    ref.cast 5
-    local.set 4
-    local.get 1
+    local.get 0   ; arg 0
+    ref.cast 3   ; -> snippet$Wrap
+    struct.get 3 0   ; snippet$Wrap.b
+    ref.cast 5   ; -> i32
+    local.set 4   ; n
+    local.get 1   ; arg 1
     if $L8 void
-      local.get 2
+      local.get 2   ; arg 2
       if $L9 void
-        local.get 3
-        local.tee 5
+        local.get 3   ; items
+        local.tee 5   ; __for_arr_0
         array.len
-        local.set 6
+        local.set 6   ; __for_len_1
         i64.const 0
-        local.set 7
+        local.set 7   ; __for_i_2
         block $L10 void
           loop $L11 void
-            local.get 7
-            local.get 6
+            local.get 7   ; __for_i_2
+            local.get 6   ; __for_len_1
             u64.lt
             if $L12 void
-              local.get 5
-              local.get 7
+              local.get 5   ; __for_arr_0
+              local.get 7   ; __for_i_2
               load_slot_i32
-              local.set 8
+              local.set 8   ; it
               i32.const 2
-              local.set 9
-              local.get 8
-              local.get 9
+              local.set 9   ; $k_27
+              local.get 8   ; it
+              local.get 9   ; $k_27
               i32.eq
               if $L13 void
                 i64.const 1
-                local.set 10
-                local.get 7
-                local.get 10
+                local.set 10   ; $k_29
+                local.get 7   ; __for_i_2
+                local.get 10   ; $k_29
                 i64.add
-                local.set 7
+                local.set 7   ; __for_i_2
                 br $L11
               end $L13
               i32.const 1
-              local.set 11
-              local.get 4
-              local.get 11
+              local.set 11   ; $k_31
+              local.get 4   ; n
+              local.get 11   ; $k_31
               i32.add
-              local.set 4
+              local.set 4   ; n
               i64.const 1
-              local.set 12
-              local.get 7
-              local.get 12
+              local.set 12   ; $k_33
+              local.get 7   ; __for_i_2
+              local.get 12   ; $k_33
               i64.add
-              local.set 7
+              local.set 7   ; __for_i_2
               br $L11
             else
             end $L12
@@ -153,7 +153,7 @@ fn 0 snippet$run (any,bool,bool) -> i32
       end $L9
     else
     end $L8
-    local.get 4
+    local.get 4   ; n
     return
   end $L7
   return
@@ -161,9 +161,9 @@ end
 
 fn 1 snippet$main () -> i32
   i32.const 5
-  struct.new 2
+  struct.new 2   ; snippet$Pair
   bool.const true
   bool.const true
-  call 0
+  call 0   ; snippet$run
   return
 end

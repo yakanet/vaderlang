@@ -119,7 +119,7 @@ diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
 //
 // The suffix must start at a SEPARATOR: `/proj` must not shorten
 // `/project/x.vader` to `ect/x.vader`.
-relative_to :: fn(file: string, base: string) -> string {
+export relative_to :: fn(file: string, base: string) -> string {
     if base.is_empty() {
         return file
     }

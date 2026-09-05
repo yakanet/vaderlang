@@ -13,19 +13,21 @@
 // rule, applied to every action. This one pins what two actions do.
 
 import { test, expect } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, existsSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnCapture, MEDIUM_BUILD } from "./cli-bin.ts";
 
 const REPO = resolve(".");
 
-// What a project needs beside it to resolve `std/…` when the binary is not part
-// of a `dist/` bundle: the library root and the C runtime, found relative to the
-// invocation directory. Symlinked into the staged project rather than copied —
-// the same trick `hook_driver.test.ts` uses, and for the same reason: it
-// reproduces an installed layout without touching the checkout.
-const TOOLCHAIN_LINKS = ["lib", "runtime"] as const;
+// Where a scaffolded project finds `lib/` and `runtime/c/`, which it needs to
+// resolve `std/…` when the binary is not part of a `dist/` bundle. `$VADER_HOME`
+// says it directly, rather than planting symlinks Windows refuses to a plain user
+// — the same move `hook_driver.test.ts` makes, and for the same reason.
+//
+// The two `$VADER_HOME` tests below set it deliberately and keep doing so:
+// `hermeticEnv` clears the variable, and applies its `extra` last.
+const TOOLCHAIN_ENV = { VADER_HOME: REPO };
 
 function withTempDir<T>(body: (dir: string) => Promise<T>): Promise<T> {
   const dir = mkdtempSync(join(tmpdir(), "vader-scaffold-"));
@@ -51,10 +53,10 @@ test("`vader new` writes a project that runs", async () => {
     expect(readFileSync(join(project, "vader.json"), "utf8")).toContain('"name": "my-app"');
     expect(readFileSync(join(project, "src/main.vader"), "utf8")).toContain('module "src"');
 
-    for (const name of TOOLCHAIN_LINKS) {
-      symlinkSync(`${REPO}/${name}`, join(project, name));
-    }
-    const ran = await spawnCapture(["run", "src/main.vader"], { cwd: project, timeoutMs: MEDIUM_BUILD });
+    const ran = await spawnCapture(
+      ["run", "src/main.vader"],
+      { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD },
+    );
     expect(ran.exit).toBe(0);
     expect(ran.stdout).toContain("hello from my-app");
   });

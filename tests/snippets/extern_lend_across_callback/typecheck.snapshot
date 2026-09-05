@@ -1,0 +1,46 @@
+# Typecheck
+
+## tests/snippets/extern_lend_across_callback
+  FnDecl         c_abs                :: fn(i32) -> i32
+  FnDecl         churn                :: fn(i32) -> void
+  StructDecl     Div                  :: Div!
+  FnDecl         lend_fill_array      :: fn(i32[]!, usize) -> void
+  FnDecl         lend_fill_div        :: fn(Div!) -> void
+  FnDecl         lend_set_cb          :: fn(fn(i32) -> void) -> void
+  FnDecl         main                 :: fn() -> i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn() -> void
+  expr 33:17    IdentExpr      :: fn(i32) -> void
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(fn(i32) -> void) -> void
+  expr 35:18    SeqLitExpr     :: i32[]!
+  expr 36:21    IdentExpr      :: i32[]!
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(i32[]!, usize) -> void
+  expr 38:14    RangeExpr      :: Range<i32>!
+  expr 39:12    BinaryExpr     :: bool
+  expr 39:12    IdentExpr      :: i32[]!
+  expr 39:12    IndexExpr      :: i32
+  expr 39:15    IdentExpr      :: i32
+  expr 39:21    BinaryExpr     :: i32
+  expr 39:28    IdentExpr      :: i32
+  expr 39:9     IfExpr         :: void
+  expr 40:13    IdentExpr      :: bool
+  expr 43:13    StringLitExpr  :: string
+  expr 43:22    IdentExpr      :: bool
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 45:10    StructLitExpr  :: Div!
+  expr 46:19    IdentExpr      :: Div!
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(Div!) -> void
+  expr 47:13    StringLitExpr  :: string
+  expr 47:23    FieldExpr      :: i32
+  expr 47:23    IdentExpr      :: Div!
+  expr 47:33    FieldExpr      :: i32
+  expr 47:33    IdentExpr      :: Div!
+  expr 47:46    CallExpr       :: i32
+  expr 47:46    IdentExpr      :: fn(i32) -> i32
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 47:52    UnaryExpr      :: i32

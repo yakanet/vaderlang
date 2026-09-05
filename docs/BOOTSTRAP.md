@@ -173,9 +173,13 @@ once the self-hosted compiler is the source of truth.
 
   It is a SET, not a file, and covers every supported target at once. That is
   what makes a `@target` body in the bootstrap closure possible: a seed emitted
-  on macOS stays re-emittable byte-for-byte on Linux, because every target is
-  in it. Two things make it affordable — the units are partitioned per MODULE
-  (so one changed function does not reshuffle the rest) and every target is
+  on macOS stays re-emittable byte-for-byte on Linux, because every seeded
+  target is in it — one arch per OS (`darwin-arm64`, `linux-x86_64`,
+  `windows-x86_64`). A second arch of the same OS carries no seed of its own:
+  the emitted C is portable, `cc` targets the arch. Bootstrapping there is not
+  supported; cross-compiling to it through `--target` still is. Two things
+  make it affordable — the units are partitioned per MODULE (so one changed
+  function does not reshuffle the rest) and every target is
   emitted against ONE atom table (so ids do not renumber). Measured with one
   `@target` body in the closure: 38 shared files and 25 KB per target, against
   11.7 MB per target without either.

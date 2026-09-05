@@ -385,6 +385,9 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     if ins is InstrFnRef as fr {
         return InstrFnRef { .span = fr.span, .dst = remap_local(m, fr.dst), .fn_symbol = fr.fn_symbol, .type = fr.type }
     }
+    if ins is InstrFnAddr as fa {
+        return InstrFnAddr { .span = fa.span, .dst = remap_local(m, fa.dst), .fn_symbol = fa.fn_symbol, .type = fa.type }
+    }
     if ins is InstrFieldGet as fg {
         return InstrFieldGet {
             .span = fg.span, .dst = remap_local(m, fg.dst),
@@ -577,6 +580,9 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
     }
     if ins is InstrFnRef as fr {
         return InstrFnRef { .span = fr.span, .dst = new_dst, .fn_symbol = fr.fn_symbol, .type = fr.type }
+    }
+    if ins is InstrFnAddr as fa {
+        return InstrFnAddr { .span = fa.span, .dst = new_dst, .fn_symbol = fa.fn_symbol, .type = fa.type }
     }
     return ins
 }

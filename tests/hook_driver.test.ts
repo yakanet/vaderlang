@@ -36,7 +36,7 @@
 // wait for a slot.
 
 import { test, expect, afterAll } from "bun:test";
-import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync, realpathSync } from "node:fs";
+import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, existsSync, realpathSync } from "node:fs";
 import { withStagedLibraryRoot } from "./lib-probe.ts";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -53,19 +53,27 @@ const LINT = `${FIXTURES}/pascal_case_lint`;
 const GENERATE = `${FIXTURES}/generate_module`;
 const JSON_DERIVE = `${FIXTURES}/json_derive`;
 
-// A driven build needs `lib/`, `runtime/c/` and `vader/` reachable from the
-// project: the first two because the compiler resolves them beside the binary or
-// relative to the invocation directory, the third because a driver imports
-// `toolchain/build`. That is the layout a `dist/` bundle ships, so each run stages
-// the fixture into a temp directory and symlinks the three in — reproducing an
-// installed toolchain without polluting the checkout, and without touching
-// `resolve_sidecar`, which the rest of the suite depends on.
+// A driven build needs `lib/`, `runtime/c/` and `vader/` reachable: the first two
+// because the compiler resolves them beside the binary or relative to the
+// invocation directory, the third because a driver imports `toolchain/build`.
+//
+// `$VADER_HOME` is what says where they are, which is exactly what the variable
+// exists for — pointing a binary at a toolchain that is not the one beside it. It
+// replaces the three symlinks this file used to plant in every staged fixture:
+// Windows grants `symlinkSync` to no plain user, so those returned `EPERM` and
+// took 23 tests down on a real machine while passing in CI, whose runner holds the
+// privilege.
 const REPO = resolve(".");
 
-// What a driven build needs beside the project. Named once because two places
-// read it in opposite directions: `stage()` links these in, and the bundle test
-// asserts their ABSENCE — a drift between the two would quietly weaken the very
-// thing that test pins.
+// The toolchain a staged project builds against. `hermeticEnv` clears
+// `$VADER_HOME` for the rest of the suite — an exported one would silently run
+// the corpus against a different `lib/` — and applies `extra` last, so this wins
+// where it is passed and nowhere else.
+const TOOLCHAIN_ENV = { VADER_HOME: REPO };
+
+// What a `dist/` bundle ships beside the compiler. Read in two directions: the
+// bundle staging builds these, and the bundle test asserts their ABSENCE beside
+// the PROJECT — that build has to reach the bundle's copies or nothing.
 const TOOLCHAIN_LINKS = ["lib", "runtime", "vader"] as const;
 
 // The staged copy starts CLEAN. Nothing under `build/` is committed, but a dev who
@@ -81,9 +89,6 @@ function copyFixture(fixture: string, dir: string): void {
 function stage(fixture: string): string {
   const dir = mkdtempSync(`${tmpdir()}/vader-hook-`);
   copyFixture(fixture, dir);
-  for (const name of TOOLCHAIN_LINKS) {
-    symlinkSync(`${REPO}/${name}`, `${dir}/${name}`);
-  }
   return dir;
 }
 
@@ -176,7 +181,7 @@ function drivenBuild(name: string): Promise<Built> {
     pending = (async () => {
       const dir = stage(`${FIXTURES}/${name}`);
       staged.push(dir);
-      const r = await run(["build"], { cwd: dir });
+      const r = await run(["build"], { cwd: dir, env: TOOLCHAIN_ENV });
       return { dir, ...r };
     })();
     builds.set(name, pending);
@@ -306,7 +311,7 @@ for (const name of fixtures) {
     // They run after the build on purpose: without `build/generated/` they fail
     // `R2006`, so a green run says the generated declarations were really there.
     if (declaresTests(`${FIXTURES}/${name}`)) {
-      const t = await run(["test", "src"], { cwd: b.dir });
+      const t = await run(["test", "src"], { cwd: b.dir, env: TOOLCHAIN_ENV });
       if (t.exit !== 0) {
         throw new Error(
           `${name}: \`vader test src\` failed after the driven build — the ` +
@@ -327,10 +332,12 @@ for (const name of fixtures) {
 
 // A `dist/` bundle is a LAYOUT, not a project — binary at the root, then ONE
 // module root `lib/` (holding `std/` and the compiler's `vader/`) plus
-// `runtime/c/` beside it. Assembling one by copy + symlink costs
-// nothing, and it is the only way to exercise what a real install does: the
-// staged-project symlinks every other test uses are exactly what masked the gap
-// this pins.
+// `runtime/c/` beside it. It is the one staging `$VADER_HOME` cannot stand in
+// for: the on-disk shape IS what this exercises, and a variable pointing at the
+// checkout would test the checkout.
+//
+// Assembled by COPY. 4.9 MB and 0.4 s, against a symlink Windows grants no plain
+// user — and this test matters most on the platform where an install is a bundle.
 //
 // The binary is COPIED, not symlinked: `current_executable_location()` resolves
 // through a symlink (realpath), which would report the repo's `build/` as the
@@ -354,10 +361,10 @@ function stageBundle(): string {
   // staging the next namespace added, and the bundle then fails on a module the
   // checkout resolves fine.
   for (const ns of readdirSync(`${REPO}/lib`)) {
-    symlinkSync(`${REPO}/lib/${ns}`, `${dir}/lib/${ns}`);
+    cpSync(`${REPO}/lib/${ns}`, `${dir}/lib/${ns}`, { recursive: true });
   }
-  // Mirror the dist trim rather than linking `vader/` whole: the point of this
-  // staging is to exercise what a real install HAS. Linking everything would make
+  // Mirror the dist trim rather than taking `vader/` whole: the point of this
+  // staging is to exercise what a real install HAS. Bringing everything would make
   // the test pass on a bundle that cannot build — the only failure this staging
   // exists to catch. See bootstrap/dist-exclude.txt for the list and the rule.
   const excluded = new Set(
@@ -367,9 +374,9 @@ function stageBundle(): string {
   mkdirSync(`${dir}/src/vader`, { recursive: true });
   for (const sub of readdirSync(`${REPO}/vader`)) {
     if (excluded.has(sub)) continue;
-    symlinkSync(`${REPO}/vader/${sub}`, `${dir}/src/vader/${sub}`);
+    cpSync(`${REPO}/vader/${sub}`, `${dir}/src/vader/${sub}`, { recursive: true });
   }
-  symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
+  cpSync(`${REPO}/runtime/c`, `${dir}/runtime/c`, { recursive: true });
   return dir;
 }
 
@@ -524,7 +531,7 @@ test.concurrent("a driven build sweeps the previous build's generated modules", 
     '// Generated by `vader build` — do not edit.\n\nmodule "gen/describe"\n\n' +
     'export describe_Point :: fn() -> string = "STALE"\n');
 
-  const built = await run(["build"], { cwd: dir });
+  const built = await run(["build"], { cwd: dir, env: TOOLCHAIN_ENV });
   expect(built.stderr).not.toContain("error[");
   expect(built.exit).toBe(0);
   expect(existsSync(stale)).toBe(false);
@@ -569,7 +576,10 @@ test.concurrent("a named file bypasses the driver, and says so", async () => {
   // silently dropping a project's rules would make them untrustworthy.
   const dir = stage(LINT);
   staged.push(dir);
-  const r = await run(["build", "--emit=c", "--out=-", "src/main.vader"], { cwd: dir });
+  const r = await run(
+    ["build", "--emit=c", "--out=-", "src/main.vader"],
+    { cwd: dir, env: TOOLCHAIN_ENV },
+  );
   expect(r.stderr).toContain("not applied");
   expect(r.exit).toBe(0);
 }, HEAVY_BUILD);
@@ -579,11 +589,14 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
   const dir = stage(LINT);
   staged.push(dir);
   const quiet =
-    await run(["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"], { cwd: dir });
+    await run(
+      ["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"],
+      { cwd: dir, env: TOOLCHAIN_ENV },
+    );
   expect(quiet.stderr).not.toContain("not applied");
 
   // With no file either, --no-hooks means the driver is not even looked for.
-  const bare = await run(["build", "--no-hooks"], { cwd: dir });
+  const bare = await run(["build", "--no-hooks"], { cwd: dir, env: TOOLCHAIN_ENV });
   expect(bare.stderr).toContain("expected a file");
   expect(bare.exit).toBe(1);
 }, HEAVY_BUILD);
@@ -603,11 +616,10 @@ test.concurrent("driven build: a project scaffolded by `vader new`", async () =>
     expect(created.exit).toBe(0);
 
     const project = join(dir, "scaffolded");
-    for (const name of TOOLCHAIN_LINKS) {
-      symlinkSync(`${REPO}/${name}`, join(project, name));
-    }
-
-    const built = await spawnCapture(["build"], { cwd: project, timeoutMs: HEAVY_BUILD });
+    const built = await spawnCapture(
+      ["build"],
+      { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD },
+    );
     expect(built.exit).toBe(0);
 
     // The binary is named after the PROJECT, which is what `ctx.out` in the

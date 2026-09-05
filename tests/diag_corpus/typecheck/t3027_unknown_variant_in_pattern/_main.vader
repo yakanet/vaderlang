@@ -1,0 +1,21 @@
+// A variant that does not exist, in a match PATTERN rather than an expression.
+//
+// This went undiagnosed: the arm type-checked, matched nothing, and counted
+// itself as covering a variant. So a typo became silent dead code, and removing
+// a variant left every arm still naming it invisible — which is how three
+// `IntrinsicId` variants were deleted while six `match` arms kept using them.
+module "snippet"
+
+Color :: enum { Red, Green, Blue }
+
+describe :: fn(c: Color) -> string = match c {
+    .Red   -> "red"
+    .Green -> "green"
+    .Blue  -> "blue"
+    .Bogus -> "bogus"
+}
+
+main :: fn() -> i32 {
+    describe(.Red)
+    return 0
+}

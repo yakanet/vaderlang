@@ -46,9 +46,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "encode failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "encode failed" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     let wr: IOError | null =
       call :IOError | null
@@ -66,9 +74,32 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "write failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                call :string
+                  callee:
+                    concat_5 :string
+                  arg0:
+                    "write failed: " :string
+                  arg1:
+                    vcall Error.message :string
+                      recv:
+                        cast → Error
+                          wr :IOError | null
+                  arg2:
+                    " path=[" :string
+                  arg3:
+                    path :string
+                  arg4:
+                    "]" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     let raw: IOError | u8[] =
       call :IOError | u8[]
@@ -83,9 +114,26 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "read failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    "read failed: " :string
+                  arg1:
+                    vcall Error.message :string
+                      recv:
+                        cast → Error
+                          raw :IOError | u8[]
+              arg1:
+                "\n" :string
         return int(1) :i32
     let dec: Ppm | PpmError =
       call :Ppm | PpmError
@@ -101,9 +149,17 @@
       then:
         call :void
           callee:
-            std_io$println__string :void
+            write :fn(Stream, string) -> void
           arg0:
-            "decode failed" :string
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "decode failed" :string
+              arg1:
+                "\n" :string
         return int(1) :i32
     let ok: bool =
       and :bool
@@ -184,14 +240,22 @@
                 int(1) :usize
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            images_ppm$Ppm$Display$to_string :string
+            concat_2 :string
           arg0:
-            cast → Ppm
-              dec :Ppm | PpmError
+            call :string
+              callee:
+                images_ppm$Ppm$Display$to_string :string
+              arg0:
+                cast → Ppm
+                  dec :Ppm | PpmError
+          arg1:
+            "\n" :string
     if :void
       cond:
         ok :bool
@@ -199,16 +263,32 @@
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "OK" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "OK" :string
+                arg1:
+                  "\n" :string
       else:
         ~>
           call :void
             callee:
-              std_io$println__string :void
+              write :fn(Stream, string) -> void
             arg0:
-              "MISMATCH" :string
+              int(0) :i32
+            arg1:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "MISMATCH" :string
+                arg1:
+                  "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
@@ -259,3 +339,109 @@
           buf :Buffer
         arg1:
           c1 :usize
+  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let c4: usize =
+      add :usize
+        l:
+          c3 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p4 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c4 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c3 :usize
+      arg2:
+        p4 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c4 :usize

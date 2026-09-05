@@ -8,32 +8,32 @@ fn 0 snippet$main () -> i32
   local a i64
   local b i64
   i64.const 100
-  call 1
-  local.set 0
+  call 1   ; snippet_units$make_instant
+  local.set 0   ; a
   i32.const 250
   i32.to_i64
-  local.set 1
-  local.get 0
-  local.get 1
-  call 2
+  local.set 1   ; b
+  local.get 0   ; a
+  local.get 1   ; b
+  call 2   ; snippet_units$elapsed
   i64.to_i32
   return
 end
 
 fn 1 snippet_units$make_instant (i64) -> i64
-  local.get 0
+  local.get 0   ; arg 0
   return
 end
 
 fn 2 snippet_units$elapsed (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
-  local.get 1
-  local.set 2
-  local.get 0
-  local.set 3
-  local.get 2
-  local.get 3
+  local.get 1   ; arg 1
+  local.set 2   ; $cast_2
+  local.get 0   ; arg 0
+  local.set 3   ; $cast_3
+  local.get 2   ; $cast_2
+  local.get 3   ; $cast_3
   i64.sub
   return
 end

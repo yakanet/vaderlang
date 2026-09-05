@@ -50,7 +50,6 @@ export DapProgram :: struct {
 /// @param compile  compiles a launch-target path to a `DapProgram`.
 /// @return         `0` on a clean shutdown, `1` on a transport error.
 export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
-    unbuffer_stdin()
     // Monotonic DAP `seq`, shared (by cell) with the output-sink + pause-loop
     // closures so response / event / program-output frames all draw from one
     // counter.

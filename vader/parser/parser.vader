@@ -537,7 +537,7 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
     if decorators.len() == 1 && decorators[0].name == "assert" {
         dec :: decorators[0]
         if dec.args.len() < 1 || dec.args.len() > 2 {
-            p.error(.UnknownDecoratorPlacement, dec.span,
+            p.error(.DecoratorArgumentCount, dec.span,
                 "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`")
             return null
         }
@@ -553,19 +553,19 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
                         match s.parts[0] {
                             is StringLitText as t -> { message = t.value }
                             _ -> {
-                                p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                                p.error(.DecoratorArgumentForm, msg_arg.span,
                                     "`@assert` message must be a static string literal (no interpolation)")
                                 return null
                             }
                         }
                     } else {
-                        p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                        p.error(.DecoratorArgumentForm, msg_arg.span,
                             "`@assert` message must be a static string literal (no interpolation)")
                         return null
                     }
                 }
                 _ -> {
-                    p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                    p.error(.DecoratorArgumentForm, msg_arg.span,
                         "`@assert` message must be a static string literal (no interpolation)")
                     return null
                 }
@@ -1135,6 +1135,11 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
             first = false
 
             start_tok :: p.peek()
+            // Decorators come before the name, as everywhere else. Which ones
+            // are ACCEPTED is a typecheck question, not a parse one — the
+            // parser's job is to carry them to a pass that knows the context
+            // (only an `@extern` declaration admits `@c_pointer`).
+            param_decorators :: p.parse_decorators()
             is_variadic := false
             if p.check(.Dot) && p.check_at(.Dot, 1) && p.check_at(.Dot, 2) {
                 p.advance()
@@ -1203,6 +1208,7 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
                 .default_value = default_value,
                 .variadic      = is_variadic,
                 .mutable       = is_mutable && ty == null,
+                .decorators    = param_decorators,
             })
         }
     }
@@ -3370,6 +3376,8 @@ parse_single_param_lambda_tail :: fn(p: Parser!, param_ident: IdentExpr) -> Lamb
         .ty            = null,
         .default_value = null,
         .variadic      = false,
+        // `x -> expr` has no room for one.
+        .decorators    = [],
     }
     body_expr :: p.parse_expr(0)
     body :: wrap_as_block(body_expr)

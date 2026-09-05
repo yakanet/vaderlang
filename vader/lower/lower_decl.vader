@@ -122,6 +122,7 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
                 .kind       = SymbolKind.Param,
                 .name       = name,
                 .module     = typed.resolved.path,
+                .module_name = typed.resolved.path,
                 .visibility = Visibility.Private,
                 .defined_at = null,
             }

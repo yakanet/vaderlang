@@ -7,8 +7,10 @@
 
 module "std/time"
 
-import "std/string"
 import "std/math"
+import "std/string"
+import "system/posix"
+import "system/windows"
 
 /// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).
 /// Suitable for formatting, persistence, and absolute-time comparisons.
@@ -29,20 +31,70 @@ export Monotonic :: i64
 /// (e.g. `b - a` when `b < a`). Range : ±~292 years (i64 ns).
 export Duration :: i64
 
-// ---- intrinsics (module-private : the raw clock primitives ; callers use
-//      `now()` / `monotonic()` / `StopWatch`, never the bare i64) -----------
+// ---- the clock primitives (module-private : callers use `now()` /
+//      `monotonic()` / `StopWatch`, never the bare i64) --------------------
+//
+// POSIX reads a `struct timespec`, Win32 a FILETIME and a performance counter,
+// and the two shapes differ enough that `@target` selects a BODY — the split
+// `std/io::write_bytes` already makes between a descriptor and a HANDLE.
+//
+// The bare `@target` declaration carries no body on purpose: a target with no
+// clock then fails to BUILD (R2041) rather than reading a plausible zero. WASI
+// has a clock module and will bind to it when that target lands.
 
-// Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC).
-// Millisecond resolution everywhere — the wall clock is intentionally
-// coarser than `monotonic_ns` so different host backends agree.
-@intrinsic
+// Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC). Deliberately
+// coarser than `monotonic_ns` so the backends agree.
+@target
 now_unix_ms :: fn() -> i64
 
+@target(.Linux, .Darwin)
+now_unix_ms :: fn() -> i64 {
+    ts: i64[]! = [0, 0]
+    if sys_clock_gettime(CLOCK_REALTIME, ts) != 0 {
+        return 0
+    }
+    return ts[0] * 1_000 + ts[1] / 1_000_000
+}
+
+// The FILETIME epoch (1601-01-01 UTC) to the Unix one, in milliseconds — the
+// 134_774 days between them.
+FILETIME_TO_UNIX_MS: i64: 11_644_473_600_000
+
+@target(.Windows)
+now_unix_ms :: fn() -> i64 {
+    ft: i64[]! = [0]
+    get_system_time_precise_as_file_time(ft)
+    // 100-ns ticks -> ms, then rebase. Dividing first is exact: the offset is a
+    // whole number of milliseconds.
+    return ft[0] / 10_000 - FILETIME_TO_UNIX_MS
+}
+
 // Monotonic nanoseconds since an arbitrary, process-stable epoch.
-// Resolution on the TS VM is ~5 µs (`performance.now()` is browser-
-// throttled when run outside Bun/Node) ; ~10 ns on native.
-@intrinsic
+@target
 monotonic_ns :: fn() -> i64
+
+@target(.Linux, .Darwin)
+monotonic_ns :: fn() -> i64 {
+    ts: i64[]! = [0, 0]
+    if sys_clock_gettime(CLOCK_MONOTONIC, ts) != 0 {
+        return 0
+    }
+    return ts[0] * 1_000_000_000 + ts[1]
+}
+
+@target(.Windows)
+monotonic_ns :: fn() -> i64 {
+    freq: i64[]! = [0]
+    if !query_performance_frequency(freq) || freq[0] == 0 {
+        return 0
+    }
+    counter: i64[]! = [0]
+    if !query_performance_counter(counter) {
+        return 0
+    }
+    // Split by the divisor: `counter * 1_000_000_000` overflows within hours.
+    return (counter[0] / freq[0]) * 1_000_000_000 + (counter[0] % freq[0]) * 1_000_000_000 / freq[0]
+}
 
 // ---- Duration constructors -----------------------------------------------
 
@@ -355,6 +407,17 @@ MAX_INSTANT_MS: i64: 9_223_372_036_854
 // ---------------------------------------------------------------------- tests
 
 import "std/testing"
+
+// The clocks read the OS through `@target` + `@extern`, so this is what fails if
+// a platform's declaration is wrong — a bad `clockid_t`, a FILETIME read at the
+// wrong width. It runs on the VM, which reaches the same symbols.
+// (`test_monotonic_non_negative_elapsed` already pins that monotonic never
+// decreases; what is new here is that both clocks are actually SET.)
+@test test_clocks_read_the_host :: fn() -> void {
+    // 2023-01-01, comfortably behind any real reading and ahead of a zero.
+    assert(i64(now()) > 1_672_531_200_000_000_000, "wall clock must be past 2023")
+    assert(i64(monotonic()) > 0, "monotonic clock must be set")
+}
 
 @test test_duration_constructors :: fn() -> void {
     assert_eq(i64(nanos(500)), 500)
