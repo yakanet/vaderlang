@@ -59,7 +59,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowere
     lifted_decl :: LoweredFnDecl { .mangled = lifted_symbol.name, .params = lifted_params, .return_type = return_type, .body = body, .origin = lifted_entry }
     ctx.project.synth_decls.push(env_decl)
     ctx.project.synth_decls.push(lifted_decl)
-    return LoweredMakeClosure { .span = lambda.span, .type = ctx.types.expr_type(lambda), .fn_symbol = lifted_symbol, .env = LoweredStructLit { .span = lambda.span, .type = env_type, .fields = build_env_lit_fields(lambda.span, captures) } }
+    return LoweredMakeClosure { .span = lambda.span, .type = ctx.types.expr_type(lambda), .fn_symbol = lifted_symbol, .env = LoweredStructLit { .span = lambda.span, .type = env_type, .fields = build_env_lit_fields(ctx, lambda.span, captures) } }
 }
 
 // Recover the closure-analysis capture list for `lambda`. Falls back
@@ -79,11 +79,11 @@ build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
     return fields
 }
 
-build_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
+build_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField[] {
     fields: LoweredStructLitField![]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]
-        fields.push(LoweredStructLitField { .name = "cap_${i}", .value = LoweredIdent { .span = span, .type = capture.type, .symbol = capture.symbol } })
+        fields.push(LoweredStructLitField { .name = "cap_${i}", .value = lifted_cell_ref(ctx, capture.symbol, span, capture.type) })
     }
     return fields
 }

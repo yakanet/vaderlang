@@ -1,0 +1,9 @@
+# stdout
+inner sees a param
+mid ran
+body ran
+deferred sees another param
+n=22
+deferred sees n=42
+# exit
+0

@@ -199,6 +199,46 @@ export lower_cell_init :: fn(
     return CellInit { .value = cell, .slot_type = TY_UNRESOLVED }
 }
 
+/// The expression denoting `symbol`'s CELL inside the fn being lowered right
+/// now: `env.cap_N` when that fn is itself a lifted body that captured it, a
+/// plain ident otherwise.
+///
+/// This is what an env literal must store. A captured binding is heap-promoted
+/// to a `Cell<T>` (`lower_cell_init`) and every lift sharing it holds a ref to
+/// the SAME cell, so the slot carries the ref, not the value — which is why
+/// this stops one step short of `try_route_through_env`, whose job is reading
+/// the value back out.
+///
+/// Without the routing, a lift nested inside another lift built its env from a
+/// bare ident on a symbol the enclosing LIFTED fn does not own as a local.
+/// `midir` could not resolve it and replaced the whole entry block with
+/// `unreachable`, so the nested closure — and everything around it — silently
+/// did nothing.
+///
+/// @param ctx     the fn-body context ; its `lifted_context` decides.
+/// @param symbol  the captured binding.
+/// @param span    span for the synthesised nodes.
+/// @param type    the binding's type, used only for the non-lifted ident.
+/// @return        `env.cap_N` (typed `Unresolved`, it is an opaque cell ref) or
+///                a plain `LoweredIdent`.
+export lifted_cell_ref :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
+) -> LoweredExpr {
+    lifted :: ctx.lifted_context
+    if lifted != null {
+        field_name :: lifted.capture_fields[symbol.id]
+        if field_name is string as name {
+            env_ident :: LoweredIdent {
+                .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
+            }
+            return LoweredFieldAccess {
+                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = name,
+            }
+        }
+    }
+    return LoweredIdent { .span = span, .type = type, .symbol = symbol }
+}
+
 /// Return a copy of `block` with `prefix` spliced in before its statements,
 /// preserving the block's `span` / `type` / `trailing`. Used to splice a
 /// fn-entry or loop-entry prologue (captured-param / loop-var cell promotion)

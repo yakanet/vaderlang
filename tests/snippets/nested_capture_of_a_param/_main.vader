@@ -1,0 +1,68 @@
+// A lift nested inside another lift, capturing a binding from OUTSIDE both.
+//
+// The env literal at the inner lift site names a symbol the enclosing LIFTED fn
+// does not own as a local, so it has to be read out of that fn's own env. Built
+// as a bare ident instead, `midir` could not resolve it and replaced the entry
+// block with `unreachable` — the nested closure and everything around it went
+// silently missing.
+//
+// A captured PARAMETER is the shape that broke; a captured local resolved by
+// another route, which is why `defer_in_lambda` looked fine.
+module "snippet"
+
+import "std/io"
+
+// Lambda inside a lambda.
+nested_lambda :: fn(p: string) -> void {
+    mid :: fn() -> void {
+        inner :: fn() -> void {
+            println("inner sees ${p}")
+        }
+        inner()
+        println("mid ran")
+    }
+    mid()
+}
+
+// A defer thunk is a lift too, so a defer inside a lambda is the same shape.
+defer_in_lambda :: fn(p: string) -> void {
+    g :: fn() -> void {
+        defer println("deferred sees ${p}")
+        println("body ran")
+    }
+    g()
+}
+
+// The env slot must carry the CELL, not a copy of the value: a write through
+// one lift has to be visible from the other, and from the defer that fires
+// after it.
+shared_cell :: fn(step: i32) -> void {
+    n := 0
+    mid :: fn() -> void {
+        inner :: fn() -> void {
+            n += step
+        }
+        inner()
+        n += 1
+    }
+    mid()
+    mid()
+    println("n=${n}")
+}
+
+writes_are_visible_to_the_defer :: fn(final: i32) -> void {
+    n := 0
+    g :: fn() -> void {
+        defer println("deferred sees n=${n}")
+        n = final
+    }
+    g()
+}
+
+main :: fn() -> i32 {
+    nested_lambda("a param")
+    defer_in_lambda("another param")
+    shared_cell(10)
+    writes_are_visible_to_the_defer(42)
+    return 0
+}

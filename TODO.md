@@ -911,28 +911,3 @@ out of `try_free_fn_ufcs_with_first` is what closes it.
 
 Do NOT close it by checking the arguments when the callee is unresolved: that
 would refuse a lambda passed to an ordinary Vader fn, which is legal.
-
-## A `defer` whose thunk captures an enclosing variable erases the whole call
-
-The lambda is never entered — not the deferred statement, the WHOLE body — and
-nothing is reported. Both backends, identically, so it is a lowering or DCE bug
-and not a VM divergence.
-
-    defer_captures :: fn(p: string) -> void {
-        g :: fn() -> void {
-            defer println("E deferred, p=${p}")
-            println("E body")
-        }
-        g()
-    }
-    → prints nothing at all
-
-The discriminating pair: a lambda whose BODY captures `p` while the defer does
-not runs correctly, both lines. Move the capture into the deferred thunk and the
-call vanishes. So it is the thunk's capture set — `closure_analysis.vader:214`
-walks a `DeferStmt` into its own scope and records `defer_captures` keyed by
-`capture_key(path, defer_stmt.id)` — that turns the enclosing call into
-something DCE or lowering drops.
-
-Serious: on the native backend this is a silent wrong-code bug, not a trap.
-Found while fixing the void-trailing defer bug (`tests/snippets/defer_in_void_fn`).
