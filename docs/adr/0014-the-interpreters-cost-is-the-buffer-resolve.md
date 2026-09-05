@@ -15,10 +15,13 @@ by the allocation counter this record wanted: a `u8` local costs exactly 2 alloc
 per iteration, one per `local.set`, ceiling −19.3 %.
 
 ⚠️ **Every static count below is DOUBLE.** The C emitter tail-duplicates the whole loop
-body into both branches of `if is_comptime`, so "292 arms" is 146 per copy — which is
-this record's own "real 145 arms" — and the resolve / barrier / alloc figures halve the
-same way. De-duplicating it measures **+22 %**, i.e. worse: the duplication is a
-specialisation that pays. Full audit:
+body into both branches of `if is_comptime`, so the arms are **147 per copy** — near this
+record's own "real 145 arms", quoted from its prototype — and the resolve / barrier /
+alloc figures halve the same way (469 / 244 / ~96). Neither copy is dead: copy 1 is the
+comptime path, copy 2 the normal one. De-duplicating measures **+22 %**, i.e. worse — the
+merged copy becomes a join reached from two predecessors with different live states, and
+spill traffic per dispatch copy rises 29 % (4 650 against 6 003) while the stack frame
+GROWS. The duplication is a specialisation that pays. Full audit:
 [`.claude/plans/2026-09-06-vm-runtime-audit.md`].
 
 ## Context

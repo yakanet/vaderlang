@@ -9,10 +9,17 @@ its measurements, not its decision. Investigation only ; no code changed.
 and 0014's was right — see "The correction, and how the instrument lied" at the end. And
 **every static count over `exec_entry`, in this record and in 0014, is DOUBLE**: the C
 emitter tail-duplicates the whole loop body into both branches of `if is_comptime`
-(`exec.vader:1062`), so the region holds two copies of the dispatch. Per copy: 470 forward
-tests, 244 barriers, ~97 `gc_alloc`, and 146 arms — which is exactly 0014's "real 145
-arms". Measured ratios are unaffected (they compare two builds of the same shape); only
-the counts are.
+(`exec.vader:1062`), so the region holds two copies of the dispatch. Counted per copy
+rather than halved — copy 1 is C lines 5880-16927, copy 2 is 16929-27987, and they are
+symmetric: **469 forward tests, 469 bounds checks, 244 barriers, ~96 `gc_alloc`, 28
+`stack_ensure`, 58 `peek_val`, 147 arms**. The 147 is the same 147 source tests this
+record quotes for the jump table.
+
+**Neither copy is dead.** A counter in copy 1 alone reports 2 666 041 ops on a `build` and
+the same on a `run`; a counter in both reports 80 666 883 on that run. Copy 1 is the
+comptime path, copy 2 the normal one — phase-separated hot code, not dead code, and
+`exec_entry` is 39 266 lines of assembly. Measured ratios are unaffected (they compare two
+builds of the same shape); only the counts are.
 
 The measured 13 % ceiling stands — it was obtained by deleting code and rebuilding, not by
 counting. Full audit, with the levers this record's own lever now ranks behind:
