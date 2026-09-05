@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 // User @extern foreign symbols — resolved by the linker.
+extern int32_t vader_path_kind(const char*);
 extern const char* vader_dirent_name(void*);
 
 static inline size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -23,6 +24,7 @@ static inline int32_t vader_host_system_darwin_ns_get_executable_path(void* a0, 
 static inline ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 static inline vader_box_t vader_host_system_posix_sys_opendir(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); void* r = opendir(c0); vader_cstr_free_for(a0, c0); return r == NULL ? vader_box_null() : vader_box_i64(168u, (int64_t) (intptr_t) r); }
 static inline int32_t vader_host_system_posix_sys_closedir(void* a0) { return closedir(a0); }
+static inline int32_t vader_host_system_posix_sys_path_kind(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); int32_t r = vader_path_kind(c0); vader_cstr_free_for(a0, c0); return r; }
 static inline vader_box_t vader_host_system_posix_sys_readdir(void* a0) { void* r = readdir(a0); return r == NULL ? vader_box_null() : vader_box_i64(168u, (int64_t) (intptr_t) r); }
 static inline vader_string_t vader_host_system_posix_dirent_name(void* a0) { const char* r = vader_dirent_name(a0); vader_string_t out = r == NULL ? vader_atom_intern("", 0) : vader_atom_intern(r, strlen(r)); return out; }
 static inline int32_t vader_host_system_posix_sys_ferror(void* a0) { return ferror(a0); }
