@@ -163,16 +163,16 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0) {
     vader_box_t l1 = vader_box_null();
     void* l2 = NULL;
     void* l3 = NULL;
-    void* l8 = NULL;
-    size_t l4, l5, l7, l9;
-    void* l6;
-    bool l10;
+    void* l7 = NULL;
+    size_t l4, l6, l8;
+    void* l5;
+    bool l9;
     void* t0 = NULL;
-    void* t1;
-    int32_t t2;
-    int64_t t3;
+    size_t t1;
+    void* t2;
+    int32_t t3;
     vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[4] = { &l2, &l3, &l8, &t0 };
+    void** gc_raw_roots[4] = { &l2, &l3, &l7, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
@@ -191,27 +191,27 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0) {
     t0 = (void*) _a2_arr;
     vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) t0, (size_t) INT64_C(65536));
     l3 = (void*) _a3_arr;
-    l4 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_20: {
-            if ((l4 < INT64_C(4096))) {
-                l5 = ((vader_array_t*) l3)->length;
-                l6 = ((void*) (intptr_t) l1.payload.i);
-                l7 = vader_host_system_posix_sys_fread(l3, (size_t) (int64_t) INT64_C(1), l5, l6);
-                if ((l7 > INT64_C(0))) {
-                    vader_array_t* _a4_arr = vader_array_slice((vader_array_t*) l3, (size_t) INT64_C(0), (size_t) l7);
-                    l8 = (void*) _a4_arr;
-                    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l8);
+        loop_18: {
+            t1 = ((vader_array_t*) l2)->length;
+            if ((t1 <= INT64_C(268435456))) {
+                l4 = ((vader_array_t*) l3)->length;
+                l5 = ((void*) (intptr_t) l1.payload.i);
+                l6 = vader_host_system_posix_sys_fread(l3, (size_t) (int64_t) INT64_C(1), l4, l5);
+                if ((l6 > INT64_C(0))) {
+                    vader_array_t* _a4_arr = vader_array_slice((vader_array_t*) l3, (size_t) INT64_C(0), (size_t) l6);
+                    l7 = (void*) _a4_arr;
+                    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l7);
                 } else {
                 }
-                l9 = ((vader_array_t*) l3)->length;
-                if ((l7 < l9)) {
-                    t1 = ((void*) (intptr_t) l1.payload.i);
-                    t2 = vader_host_system_posix_sys_ferror(t1);
-                    l10 = t2 != INT32_C(0);
-                    t1 = ((void*) (intptr_t) l1.payload.i);
-                    vader_host_system_posix_sys_fclose(t1);
-                    if (l10) {
+                l8 = ((vader_array_t*) l3)->length;
+                if ((l6 < l8)) {
+                    t2 = ((void*) (intptr_t) l1.payload.i);
+                    t3 = vader_host_system_posix_sys_ferror(t2);
+                    l9 = t3 != INT32_C(0);
+                    t2 = ((void*) (intptr_t) l1.payload.i);
+                    vader_host_system_posix_sys_fclose(t2);
+                    if (l9) {
                         vader_struct_std_io_IOError_t* _a5_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
                         vader_obj_header_init(_a5_obj, 384u);
                         _a5_obj->f_msg = 1940u;
@@ -220,15 +220,13 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0) {
                     }
                     { vader_box_t __vret = vader_ref_box(l2); vader_gc_top = gc_frame.prev; return __vret; }
                 }
-                t3 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t3;
-                goto loop_20;
+                goto loop_18;
             } else {
             }
         }
     }
-    t1 = ((void*) (intptr_t) l1.payload.i);
-    vader_host_system_posix_sys_fclose(t1);
+    t2 = ((void*) (intptr_t) l1.payload.i);
+    vader_host_system_posix_sys_fclose(t2);
     vader_struct_std_io_IOError_t* _a6_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
     vader_obj_header_init(_a6_obj, 384u);
     _a6_obj->f_msg = 1577u;
