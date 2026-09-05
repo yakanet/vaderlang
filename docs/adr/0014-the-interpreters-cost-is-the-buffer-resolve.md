@@ -4,6 +4,12 @@
 
 Accepted (2026-09-05). Investigation only — no code changed.
 
+**Amended by [0015](0015-the-interpreters-buffer-resolve-is-worth-thirteen-percent.md)
+(2026-09-06)**: three of the static counts below do not reproduce (write barriers
+and `gc_alloc` above all), the 23 ns/op is one workload's figure rather than the
+interpreter's speed, and the lever this record files as its main one is measured
+at ~13 %. The reasoning here stands; the numbers are superseded there.
+
 ## Context
 
 `@comptime` folding of `std/core/dtoa_tables` costs ~80 ms on every build of any
