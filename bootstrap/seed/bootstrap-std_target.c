@@ -2,32 +2,32 @@
 
 vader_string_t std_target_Arch_Display_to_string(uint8_t l0) {
     if (l0 == INT32_C(0)) {
-        return 2387u;
+        return 2393u;
     }
     if (l0 == INT32_C(1)) {
-        return 1179u;
+        return 1184u;
     }
     if (l0 == INT32_C(2)) {
-        return 2370u;
+        return 2376u;
     }
     vader_unreachable("unreachable return in std_target$Arch$Display$to_string");
 }
 
 vader_string_t std_target_Os_Display_to_string(uint8_t l0) {
     if (l0 == INT32_C(0)) {
-        return 2376u;
+        return 2382u;
     }
     if (l0 == INT32_C(1)) {
-        return 1786u;
+        return 1792u;
     }
     if (l0 == INT32_C(2)) {
-        return 1410u;
+        return 1416u;
     }
     if (l0 == INT32_C(3)) {
-        return 2369u;
+        return 2375u;
     }
     if (l0 == INT32_C(4)) {
-        return 1268u;
+        return 1273u;
     }
     vader_unreachable("unreachable return in std_target$Os$Display$to_string");
 }

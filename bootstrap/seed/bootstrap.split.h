@@ -2895,6 +2895,7 @@ struct vader_struct_vader_bytecode_BcImport_t {
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
+    int32_t f_c_variadic_fixed;
 };
 struct vader_struct_vader_bytecode_BcLocal_t {
     vader_obj_header_t header;
@@ -4426,6 +4427,7 @@ struct vader_struct_vader_midir_CFGExternDecl_t {
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
+    int32_t f_c_variadic_fixed;
 };
 struct vader_struct_vader_midir_CFGFunction_t {
     vader_obj_header_t header;
@@ -4549,6 +4551,7 @@ struct vader_struct_vader_midir_FnMetadata_t {
     vader_obj_header_t header;
     vader_string_t f_extern_name;
     bool f_is_extern;
+    int32_t f_c_variadic_fixed;
     bool f_is_exported;
     vader_string_t f_c_library;
     vader_string_t f_c_header;
@@ -6046,7 +6049,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2408u
+#define VADER_COMPTIME_ATOM_COUNT 2414u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

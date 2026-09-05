@@ -34,6 +34,6 @@ static inline bool vader_host_system_windows_read_file(void* a0, void* a1, uint3
 static inline bool vader_host_system_windows_close_handle(void* a0) { return CloseHandle(a0); }
 static inline size_t vader_host_vader_vm_ffi_open(vader_string_t a0) { const char* c0 = vader_string_to_cstr(a0); void* r = vader_ffi_open(c0); vader_cstr_free_for(a0, c0); return (size_t) (uintptr_t) r; }
 static inline size_t vader_host_vader_vm_ffi_symbol(size_t a0, vader_string_t a1) { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }
-static inline vader_string_t vader_host_vader_vm_ffi_call(size_t a0, void* a1, void* a2) { return vader_ffi_call((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2); }
+static inline vader_string_t vader_host_vader_vm_ffi_call(size_t a0, void* a1, void* a2, int64_t a3) { return vader_ffi_call_n((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2, a3); }
 static inline void vader_host_std_abort_panic(vader_string_t a0) { vader_panic(a0); }
 
