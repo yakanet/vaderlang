@@ -159,7 +159,10 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
         e10 = q
         k :: DOUBLE_POW5_INV_BITCOUNT + pow5bits(q) - 1
         i :: -e2 + q + k
-        [rvr, rvp, rvm] :: mul_shift_all_64(m2, DOUBLE_POW5_INV_SPLIT_LO[usize(q)], DOUBLE_POW5_INV_SPLIT_HI[usize(q)], i, mm_shift)
+        row :: 2 * usize(q)
+        lo  :: DOUBLE_POW5_INV_SPLIT[row]
+        hi  :: DOUBLE_POW5_INV_SPLIT[row + 1]
+        [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, i, mm_shift)
         vr = rvr
         vp = rvp
         vm = rvm
@@ -180,7 +183,10 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
         i :: -e2 - q
         k :: pow5bits(i) - DOUBLE_POW5_BITCOUNT
         j :: q - k
-        [rvr, rvp, rvm] :: mul_shift_all_64(m2, DOUBLE_POW5_SPLIT_LO[usize(i)], DOUBLE_POW5_SPLIT_HI[usize(i)], j, mm_shift)
+        row :: 2 * usize(i)
+        lo  :: DOUBLE_POW5_SPLIT[row]
+        hi  :: DOUBLE_POW5_SPLIT[row + 1]
+        [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, j, mm_shift)
         vr = rvr
         vp = rvp
         vm = rvm

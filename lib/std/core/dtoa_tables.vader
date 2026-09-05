@@ -2,10 +2,11 @@
 // computed at compile time (no committed data, no external generator).
 //
 // Drives the pure-Vader shortest-double formatter in dtoa.vader (Ryu, Adams
-// 2018) and the f32 formatter in f2s.vader. Each 128-bit f64 table entry is a
-// `_LO` (low 64 bits) + `_HI` (high 64 bits) pair, indexed in lockstep;
-// value = LO[i] + (HI[i] << 64). The f32 tables are single-u64 slices derived
-// from the f64 `_HI` words.
+// 2018) and the f32 formatter in f2s.vader. Each 128-bit f64 entry is a [lo, hi]
+// PAIR stored adjacently, so row `i` is `[2 * i]` + `[2 * i + 1]` and
+// value = table[2*i] + (table[2*i+1] << 64) — the reference's
+// `DOUBLE_POW5_SPLIT[i][0]` / `[1]`. The f32 tables are single-u64 columns
+// derived from the same rows' `hi` word.
 //
 // Reference: Ulf Adams, "Ryu" (PLDI 2018), ulfjack/ryu d2s_full_table.h.
 //   pow5bits(e)               = ((e * 1217359) >> 19) + 1   (bit length of 5^e)
@@ -26,9 +27,9 @@
 // recovered as `floor(2^K / 5^q) >> (K - k)` (exact : floor(floor(x)/2^s) =
 // floor(x/2^s)). `test_*_reference` pins the baked values against sampled rows.
 //
-// `build_*` are plain fns (executed once per @comptime block), not intermediate
-// @comptime consts : an un-baked const referenced inside another comptime block
-// gets its RHS re-inlined per loop iteration, which explodes the step budget.
+// `build_*` are plain fns, not intermediate @comptime consts : an un-baked
+// @comptime const referenced from another comptime block gets its RHS re-inlined
+// at the read site, so reading one inside a loop rebuilds it per iteration.
 
 module "std/core"
 
@@ -86,37 +87,32 @@ build_pow5_inv :: fn(rows: i32) -> u64[] {
     return out
 }
 
-// Deinterleave a packed [lo, hi, ...] table into its low / high column.
-even_words :: fn(packed: u64[]) -> u64[] {
-    out: u64[]! = []
-    for i in 0..<(packed.len() / 2) { out.push(packed[i * 2]) }
-    return out
-}
-odd_words :: fn(packed: u64[]) -> u64[] {
-    out: u64[]! = []
-    for i in 0..<(packed.len() / 2) { out.push(packed[i * 2 + 1]) }
-    return out
-}
+// ---- f64 : one packed [lo, hi] row per index ------------------------------
 
-// ---- 5^i (multiply path, e2 < 0) ------------------------------------------
+/// Row `i` of 5^i at `[2 * i]` (low) + `[2 * i + 1]` (high). 326 rows.
+DOUBLE_POW5_SPLIT: u64[]: @comptime { return build_pow5_split(326) }
 
-DOUBLE_POW5_SPLIT_LO: u64[]: @comptime { return even_words(build_pow5_split(326)) }
-DOUBLE_POW5_SPLIT_HI: u64[]: @comptime { return odd_words(build_pow5_split(326)) }
+/// Row `q` of 1/5^q at `[2 * q]` (low) + `[2 * q + 1]` (high). 342 rows.
+DOUBLE_POW5_INV_SPLIT: u64[]: @comptime { return build_pow5_inv(342) }
 
-// ---- 1/5^q reciprocal (multiply path, e2 >= 0) ----------------------------
-
-DOUBLE_POW5_INV_SPLIT_LO: u64[]: @comptime { return even_words(build_pow5_inv(342)) }
-DOUBLE_POW5_INV_SPLIT_HI: u64[]: @comptime { return odd_words(build_pow5_inv(342)) }
-
-// ---- f32 (Ryu f2s) : single-u64 tables, derived from the f64 tables -------
+// ---- f32 (Ryu f2s) : single-u64 tables, the high word of the f64 rows -----
 // FLOAT_POW5_SPLIT     : 47 rows  (5^i,  used when e2 < 0)  — f64 hi (>> 64)
 // FLOAT_POW5_INV_SPLIT : 55 rows  (1/5^q, used when e2 >= 0) — f64 hi >> 2 (>> 66)
+//
+// Sized to the f32 range rather than read out of the f64 tables above, so an
+// index past that range still trips a bounds check.
 
-FLOAT_POW5_SPLIT: u64[]: @comptime { return odd_words(build_pow5_split(47)) }
+FLOAT_POW5_SPLIT: u64[]: @comptime {
+    packed :: build_pow5_split(47)
+    out: u64[]! = []
+    for i in 0..<47 { out.push(packed[i * 2 + 1]) }
+    return out
+}
 
 FLOAT_POW5_INV_SPLIT: u64[]: @comptime {
+    packed :: build_pow5_inv(55)
     out: u64[]! = []
-    for e in odd_words(build_pow5_inv(55)) { out.push((e >> 2) + 1) }
+    for q in 0..<55 { out.push((packed[q * 2 + 1] >> 2) + 1) }
     return out
 }
 
@@ -129,21 +125,21 @@ import "std/testing"
 // reference so a helper regression can't silently corrupt the tables.
 
 @test test_double_split_reference :: fn() -> void {
-    assert_eq(DOUBLE_POW5_SPLIT_LO[0], u64(0))
-    assert_eq(DOUBLE_POW5_SPLIT_HI[0], u64(1152921504606846976))
-    assert_eq(DOUBLE_POW5_SPLIT_LO[325], u64(8710297504448807696))
-    assert_eq(DOUBLE_POW5_SPLIT_HI[325], u64(1780059086805761106))
-    assert_eq(DOUBLE_POW5_SPLIT_LO.len(), usize(326))
+    assert_eq(DOUBLE_POW5_SPLIT[0], u64(0))
+    assert_eq(DOUBLE_POW5_SPLIT[1], u64(1152921504606846976))
+    assert_eq(DOUBLE_POW5_SPLIT[650], u64(8710297504448807696))
+    assert_eq(DOUBLE_POW5_SPLIT[651], u64(1780059086805761106))
+    assert_eq(DOUBLE_POW5_SPLIT.len(), usize(652))
 }
 
 @test test_double_inv_reference :: fn() -> void {
-    assert_eq(DOUBLE_POW5_INV_SPLIT_LO[0], u64(1))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_HI[0], u64(2305843009213693952))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_LO[1], u64(11068046444225730970))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_HI[1], u64(1844674407370955161))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_LO[341], u64(673562245690857633))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_HI[341], u64(1345193707530136767))
-    assert_eq(DOUBLE_POW5_INV_SPLIT_LO.len(), usize(342))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[0], u64(1))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[1], u64(2305843009213693952))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[2], u64(11068046444225730970))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[3], u64(1844674407370955161))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[682], u64(673562245690857633))
+    assert_eq(DOUBLE_POW5_INV_SPLIT[683], u64(1345193707530136767))
+    assert_eq(DOUBLE_POW5_INV_SPLIT.len(), usize(684))
 }
 
 @test test_float_reference :: fn() -> void {
