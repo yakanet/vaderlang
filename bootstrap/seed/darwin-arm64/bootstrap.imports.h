@@ -38,9 +38,4 @@ static inline size_t vader_host_vader_vm_ffi_open(vader_string_t a0) { const cha
 static inline size_t vader_host_vader_vm_ffi_symbol(size_t a0, vader_string_t a1) { const char* c1 = vader_string_to_cstr(a1); void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1); vader_cstr_free_for(a1, c1); return (size_t) (uintptr_t) r; }
 static inline vader_string_t vader_host_vader_vm_ffi_call(size_t a0, void* a1, void* a2) { return vader_ffi_call((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2); }
 static inline void vader_host_std_abort_panic(vader_string_t a0) { vader_panic(a0); }
-static inline int64_t vader_host_std_process_spawn_start(void* a0) { return vader_spawn_start((vader_array_t*) a0); }
-static inline int32_t vader_host_std_process_spawn_poll(int64_t a0) { return vader_spawn_poll(a0); }
-static inline void vader_host_std_process_spawn_kill(int64_t a0) { vader_spawn_kill(a0); }
-static inline vader_string_t vader_host_std_process_spawn_take_stdout(int64_t a0) { return vader_spawn_take_stdout(a0); }
-static inline vader_string_t vader_host_std_process_spawn_take_stderr(int64_t a0) { return vader_spawn_take_stderr(a0); }
 
