@@ -337,6 +337,12 @@ export TIOCGWINSZ: u64: if VADER_OS == Os.Darwin { 0x4008_7468 } else { 0x5413 }
 /// @param request  always `TIOCGWINSZ` here.
 /// @param ws       receives the size.
 @c_header("<sys/ioctl.h>")
+// `int ioctl(int, unsigned long, ...)` — the third argument is VARIADIC, and
+// two are fixed. Unmarked, the interpreter casts to a non-variadic prototype;
+// on darwin-arm64 variadic arguments travel on the STACK, so the callee reads
+// an uninitialised word and the kernel writes eight bytes through it while
+// reporting success.
+@c_variadic(2)
 @extern("ioctl")
 export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer ws: Winsize!) -> i32
 
