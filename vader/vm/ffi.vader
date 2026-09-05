@@ -10,10 +10,9 @@
 // hand that to every program — a surface decision of its own. The compiler is
 // the only caller today.
 //
-// Addresses ride `usize`, not the FFI pointer type: the committed seed predates
-// that type, so the compiler's own sources cannot name it until the next
-// reseed. `0` is the null address. Nothing here dereferences or offsets one —
-// the value only travels from `ffi_symbol` to a call.
+// Addresses ride `usize`, not `CPointer`. `0` is the null address. Nothing here
+// dereferences or offsets one — the value only travels from `ffi_symbol` to a
+// call, so the pointer type would buy nothing the integer does not already give.
 
 module "vader/vm"
 
@@ -149,7 +148,6 @@ import "std/testing"
     sym :: ffi_symbol(ffi_open(""), "sqrt")
     assert(sym != 0, "sqrt must resolve")
 
-    // The shape the old per-shape trampolines could not express at all.
     desc: u8[] = [2, 2]
     frame: u8[]! = []
     push_little_endian(frame, i64(4.0.to_bits()), 8)

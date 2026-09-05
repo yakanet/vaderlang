@@ -141,12 +141,15 @@ export read_line :: fn() -> string | IOError {
         }
         bytes :: b.bytes()
         if bytes.len() == 0 || bytes[0] == '\n' {
+            // A CRLF peer: drop the CR that TERMINATED the line, not every CR
+            // in it — an interior `\r` is data, and silently eating it corrupts
+            // any line-oriented payload that carries one.
+            if out.len() > 0 && out[out.len() - 1] == '\r' {
+                out.remove_last()
+            }
             return out.bytes_to_string()
         }
-        // A CRLF peer: drop the CR so callers see the same line as on POSIX.
-        if bytes[0] != '\r' {
-            out.push(bytes[0])
-        }
+        out.push(bytes[0])
     }
     return IOError { .msg = "line too long" }
 }

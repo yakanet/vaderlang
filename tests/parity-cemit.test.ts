@@ -180,10 +180,10 @@ const C_PARITY = new Set<string>([
   // chain layer — single UFCS combinator + nested direct-call chain.
   "fuse_generator_chain",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
-  // (`c_emit/host.vader::user_extern_shim`). The shim only exists in native
-  // C output (the VM has no user-extern registry), so this run is the ONLY
-  // guard on the marshalling ABI: the 2026-05 atom migration broke it for
-  // ~6 weeks without a test noticing. Links the snippet's `helper.c`.
+  // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
+  // output — the VM reaches a foreign symbol through `dlsym` instead, so it
+  // never marshals through the shim — which makes this run the only guard on
+  // the marshalling ABI. Links the snippet's `helper.c`.
   "extern_native_basic",
   // Comptime-folded non-finite f64 constants (`inf` / `-inf` / `nan`). The
   // native run is the guard: the literal emitter must render them as compiler

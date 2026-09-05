@@ -12,10 +12,11 @@
  * The shapes are coarse on purpose. Every ABI we target (System V AMD64,
  * AAPCS64, Win64) passes integers and pointers of any width in the same general
  * registers, in the same order, so a single `int64_t` slot carries an `int`, a
- * `size_t` or a `void*` alike. Floats travel in other registers and are NOT
- * covered: `vader_ffi_call_f64` accepts a floating RESULT, never a floating
- * argument. Structs by value are not covered either — their classification is
- * per-field, which no fixed shape can express.
+ * `size_t` or a `void*` alike. Floats travel in OTHER registers, so a call is
+ * either all-word or all-double — the mixed shape has no slot layout a fixed
+ * trampoline can express, and neither do structs by value, whose classification
+ * is per-field. The all-double shape covers one or two arguments; see the
+ * dispatch in `vader_ffi_call_n`.
  *
  * An uncovered signature must be rejected by the caller before it gets here.
  *
@@ -37,9 +38,8 @@
 #  include <dlfcn.h>
 #endif
 
-/* Largest arity a trampoline covers. Six is the point where every ABI we target
- * stops passing integer arguments in registers; eight leaves room without
- * making the switch unwieldy. */
+/* Largest arity a trampoline covers. Past six, every ABI we target starts
+ * passing integer arguments on the stack. */
 #define VADER_FFI_MAX_ARGS 8
 
 /* Open a shared library by BARE name — `"sqlite3"`, not `"libsqlite3.so"` —
@@ -111,9 +111,9 @@ void* vader_ffi_open(const char* name) {
 #endif
 }
 
-/* Resolved-symbol memo. `dispatch_extern` resolves on EVERY foreign call, so a
- * VM-executed `println` paid a full `dlsym` symbol-table search each time — the
- * test suite went from 41 s to 153 s before this existed.
+/* Resolved-symbol memo. `dispatch_extern` resolves on EVERY foreign call, so
+ * without this a VM-executed `println` pays a full `dlsym` symbol-table search
+ * each time.
  *
  * Linear and small on purpose: a program reaches a handful of distinct foreign
  * symbols, and a scan of a few entries costs less than any hashing would. Names

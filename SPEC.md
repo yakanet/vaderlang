@@ -435,6 +435,7 @@ x := a + \
 | Signed integers | `i8`, `i16`, `i32`, `i64`, `isize` |
 | Floats | `f32`, `f64` |
 | Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
+| Foreign pointer | `CPointer` (§13) |
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
@@ -2630,10 +2631,13 @@ a `uint32_t*` passed where Win32 wants `LPDWORD`.
 construction and nothing compares them to the header: declaring `isatty` as
 `fn(fd: i64) -> i64` compiles, links against the real `int isatty(int)`, and
 misreads the ABI at run time. Reach for `@c_header` by default, not only to
-settle a conflict — 53 of this tree's 56 externs carry one.
+settle a conflict: it is the ONLY check that the declaration matches the real
+function, since a bare `@extern` synthesises its prototype FROM the Vader
+signature and nothing ever compares the two.
 
-Only **system** headers work today: the driver puts the runtime directory on the
-include path and nothing else, so `@c_header("\"my_header.h\"")` does not resolve.
+A quoted header resolves relative to the source: the generated translation units
+are written beside the `.vader` file, so `@c_header("\"my_header.h\"")` finds a
+header sitting next to it. Anywhere else needs `--cflags="-I<dir>"`.
 
 ### `@c_struct` — mirroring a C struct
 
@@ -2653,14 +2657,19 @@ computes every offset from the actual header and checks every field's type —
 nothing here assumes a layout. `!` picks the direction: without it C reads what
 Vader holds, with it the shim copies back what C wrote.
 
-The emitted C also carries `_Static_assert` lines, and they pin WIDTHS, never
-offsets: each mirrored field against the C field of that name, each field's
-signedness, and two bounds on the struct — the interpreter's computed block fits
-inside `sizeof(C)` (so a mirror may be a PREFIX), and `sizeof(C)` fits the 4 KiB
-block the interpreter reserves. A drifting header then fails the build. There is
-no alignment assert and no field-to-field distance assert: the shim copies by
-NAME and `cc` resolves both offsets itself, so a Vader offset and a C one never
-meet.
+The emitted C also carries `_Static_assert` lines: each mirrored field's width
+against the C field of that name, each field's signedness, each field's OFFSET
+against `__builtin_offsetof`, and two bounds on the struct — the interpreter's
+computed block fits inside `sizeof(C)`, and `sizeof(C)` fits the 4 KiB block the
+interpreter reserves. A drifting header then fails the build.
+
+The offset assert is what makes a mirror **a contiguous LEADING prefix** rather
+than any subset. The shim itself would not need it — it copies by NAME and `cc`
+resolves both offsets. The interpreter would: it lays its block out from the
+declared fields at natural alignment from zero and hands that address to the real
+callee, so skipping a member shifts every field after it under `vader run` alone,
+where nothing on the Vader side could see it. A mirror may therefore stop early;
+it may not have holes.
 
 **The VM runs a `@c_struct` argument.** It builds the block itself from the
 declared field widths, passes its address, and reads it back when the parameter
@@ -2706,15 +2715,27 @@ so the two layouts still never meet. Nesting is capped at 16 deep.
 @c_struct("SMALL_RECT")
 SmallRect :: struct { Left: i16, Top: i16, Right: i16, Bottom: i16 }
 
+// Whole, not `{ srWindow: SmallRect }`: `srWindow` is the fourth member, and a
+// mirror that skipped the three before it would fail the offset assert.
 @c_struct("CONSOLE_SCREEN_BUFFER_INFO")
-ScreenBufferInfo :: struct { srWindow: SmallRect }
+ScreenBufferInfo :: struct {
+    dwSize:              Coord
+    dwCursorPosition:    Coord
+    wAttributes:         u16
+    srWindow:            SmallRect
+    dwMaximumWindowSize: Coord
+}
 ```
 
 > A field decorator `@c_size(N, .System)` used to state the C width per system.
 > It was removed: it carried an OS axis and no ARCHITECTURE axis, while a C
 > struct's layout differs between arches of one system — `st_mode` sits at
 > offset 24 on linux-x86_64 and 16 on linux-arm64 — so no single annotated
-> mirror could be correct for both. `P1034` retired with it, and `T3080` was
+> mirror could be correct for both. An arch axis would not have saved it either:
+> the arches also disagree on field ORDER, which no per-field annotation can
+> express. `struct stat` is not mirrorable at all — see
+> `docs/adr/0013-what-the-ffi-boundary-cannot-express.md` for what to reach for
+> instead. `P1034` retired with it, and `T3080` was
 > reused for the callback shape rule below.
 
 ### The opaque buffer — when there is no mirror to write
@@ -2857,9 +2878,9 @@ vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" pro
 
 ### VM behaviour
 
-The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps with the library it looked in.
+The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol — `extern 'X' at pc=N: symbol not found`.
 
-The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` or `string` result. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function.
+The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function.
 
 C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 

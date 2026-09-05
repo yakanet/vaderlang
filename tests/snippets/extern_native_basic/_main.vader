@@ -2,8 +2,8 @@
 /// Two foreign symbols : `add_i32` from the adjacent `helper.c` and
 /// `strlen` from libc (overridden via the decorator string arg). The
 /// native test runner pre-compiles `helper.c` → `helper.o` and links
-/// it into the binary ; the VM target is skipped (user externs have
-/// no VM host-fn registry).
+/// it into the binary ; the VM reaches both symbols through `dlsym` on the
+/// running process instead, so it exercises a different path to the same call.
 module "snippet"
 
 import "std/io"

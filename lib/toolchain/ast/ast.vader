@@ -290,7 +290,7 @@ export FnParam :: struct {
     /// The type-side spelling of the same notion is `FnType.params_mutable`,
     /// needed because a fn TYPE has no parameter names.
     mutable:       bool = false
-    /// Decorators written before the parameter (`@c_pointer buf: u8[]`).
+    /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
     ///
     /// REQUIRED, with no default, deliberately — the same reason
     /// `StructType.immutable` carries none: three sites in

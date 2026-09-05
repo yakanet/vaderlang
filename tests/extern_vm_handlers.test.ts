@@ -11,9 +11,12 @@
 // the profiler brackets are emitted unconditionally, the C linker bound them
 // natively, and the VM had no handler.
 //
-// `lib/std/` is deliberately NOT covered: it uses `@intrinsic`, which the manifest
-// (`intrinsic_id_for`) already validates at build time — an unwired one fails the
-// build rather than reaching the VM.
+// `lib/` is deliberately NOT covered. Its `@intrinsic` declarations — still the
+// bulk of `lib/std/` — are validated at build time by the manifest
+// (`intrinsic_id_for`): an unwired one fails the build rather than reaching the
+// VM. Its `@extern` declarations (`lib/std/math`, `lib/std/env`, and all of
+// `lib/system/`) need no handler at all: the VM resolves a foreign symbol
+// through `dlsym` on the running process, so there is nothing to register.
 //
 // IF THIS FAILS, pick one:
 //   - add a handler in `vader/vm/host.vader` (a no-op return is fine when the VM

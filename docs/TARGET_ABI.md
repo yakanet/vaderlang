@@ -179,21 +179,25 @@ inline expansion. Naming the helpers (vs open-coding `((T*)…)[i]` at each emit
 site) **centralizes the G1 re-derive and the G2 `VADER_WRITE_BARRIER` in one
 audited place per opcode**, so the barrier can't be forgotten at a call site.
 
-### 6. One raw write + the platform syscalls
-`vader_write(stream, ptr, len)` is the single output primitive. Everything else
-in `std/io` / `std/process` is platform syscalls
-(`vader_read_file`, `vader_spawn_run`, `vader_read_dir`, …) —
-kept host, but **isolated behind a thin `Platform` layer** so a new target has
-one obvious file to fill in. These are genuinely un-virtualizable (POSIX vs
-WASI vs Windows differ).
+### 6. One raw write, and the platform syscalls declared in Vader
+`vader_write(stream, ptr, len)` is the single output primitive.
 
-`std/time` no longer needs a host helper: its clocks are declared in Vader and
-selected by `@target`, reaching `clock_gettime` / `GetSystemTimePreciseAsFileTime`
-directly on both backends.
+Everything else in `std/io` and `std/process` used to be host functions behind a
+`Platform` layer — `vader_read_file`, `vader_spawn_run`, `vader_read_dir` and the
+rest. None of them exist any more. The syscalls are declared in Vader with
+`@extern` and selected by `@target`, reaching `open` / `readdir` / `posix_spawn`
+or their Win32 counterparts directly on both backends. What is left in
+`runtime/c/` for these is the handful of ACCESSORS that read a named member of a
+C struct, which is the one step an FFI call cannot take for itself — see
+`docs/adr/0013-what-the-ffi-boundary-cannot-express.md`.
+
+`std/time` went the same way: its clocks reach `clock_gettime` /
+`GetSystemTimePreciseAsFileTime` directly.
 
 ### 7. Transcendental math
-`vader_math_sqrt/pow/sin/cos/tan/floor/ceil/round` → libm. Kept host for
-precision + speed. (Trade-off noted below.)
+`std/math` reaches libm through `@extern` — `sqrt`, `pow`, `sin` and the rest are
+the C functions themselves, not host wrappers around them. Kept out of Vader for
+precision and speed. (Trade-off noted below.)
 
 ## Movable to Vader (above the ABI)
 

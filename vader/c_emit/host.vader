@@ -64,10 +64,11 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         for d in extern_decls { out.append("${d}\n") }
         out.append("\n")
     }
-    // Width assertions for every `@c_struct` a shim marshals. `cc` — which has
-    // the real header — refuses to compile a mirror whose field is narrower
-    // than what the library declares, so the field-by-field copy cannot
-    // truncate. `cc` IS the consumer: the check is spent entirely at build
+    // Layout assertions for every `@c_struct` a shim marshals. `cc` — which has
+    // the real header — refuses to compile a mirror whose field width differs
+    // from what the library declares, in EITHER direction, or whose offset does.
+    // So the field-by-field copy cannot truncate and the interpreter's block
+    // cannot drift. `cc` IS the consumer: the check is spent entirely at build
     // time, and nothing reads it at run time.
     asserts :: c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module))
     if asserts.len() > 0 {
@@ -324,18 +325,17 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> str
         out.push(
             "_Static_assert(sizeof(${t.c_name}) <= ${MIRROR_BLOCK_FLOOR}, \"${t.c_name} fits the interpreter block\");",
         )
-        // No offset assertion: the shim declares its OWN C struct and copies
-        // member by member BY NAME, so `cc` resolves both offsets itself and a
-        // Vader offset never meets a C one there.
+        // The shim would need neither of the per-leaf asserts below: it declares
+        // its OWN C struct and copies member by member BY NAME, so `cc` resolves
+        // both offsets itself and a Vader offset never meets a C one there.
         //
         // The VM has no such luxury — it lays the block out from these very
         // widths and hands its address to the real callee. That is why each leaf
-        // is pinned EXACTLY rather than merely fitting: an exact width makes the
-        // interpreter's offsets provably C's across the declared prefix. A wider
-        // Vader field would shift every field after it under `vader run` alone,
-        // and since the interpreter reads its own block back, nothing on the
-        // Vader side could see it. A type whose width differs between systems
-        // takes one mirror per system, the way `stat` does.
+        // is pinned EXACTLY rather than merely fitting, AND why its offset is
+        // pinned too: a wider Vader field, or a skipped member, shifts every
+        // field after it under `vader run` alone, and since the interpreter
+        // reads its own block back, nothing on the Vader side could see it. A
+        // type whose width differs between systems takes one mirror per system.
         push_leaf_asserts(types, t.fields, t.c_name, "", vt, 0, out, 0)
     }
     return out

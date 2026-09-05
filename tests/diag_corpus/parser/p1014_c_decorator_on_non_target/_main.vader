@@ -1,0 +1,24 @@
+// `@c_pointer` decorates a PARAMETER of an `@extern`, and `@c_struct` names the
+// C type a STRUCT mirrors. Written on any other declaration they would parse,
+// pass the resolver's decorator whitelist, and reach neither check — the same
+// silent no-op `@target` is rejected for.
+//
+// The `@extern` case is the trap: `@c_pointer` there LOOKS like it says
+// something about the call, and the parameter-level check never sees it.
+
+module "main"
+
+@c_pointer
+@extern("abs")
+sys_abs :: fn(v: i32) -> i32
+
+@c_struct("thing")
+noop :: fn() -> i32 = 1
+
+@c_pointer
+E :: enum(u8) { A, B }
+
+@c_struct("other")
+Tr :: trait { m :: fn(self) -> i32 }
+
+main :: fn() -> i32 = 0
