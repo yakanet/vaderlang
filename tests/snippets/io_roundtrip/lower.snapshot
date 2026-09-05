@@ -84,7 +84,15 @@
         arg0:
           path :string
         arg1:
-          int(268435456) :usize
+          mul :usize
+            l:
+              mul :usize
+                l:
+                  int(16) :usize
+                r:
+                  int(1024) :usize
+            r:
+              int(1024) :usize
     block :void
       ~>
         if :void

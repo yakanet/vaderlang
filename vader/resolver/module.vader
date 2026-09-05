@@ -219,7 +219,7 @@ export list_vader_files :: fn(root_path: string) -> string[] {
 }
 
 try_read :: fn(path: string) -> string | null {
-    result :: read_file_string(path, READ_LIMIT_DEFAULT)
+    result :: read_file_string(path)
     if result is string as s {
         return s
     }

@@ -392,13 +392,18 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
 // 64 KiB per read.
 READ_CHUNK: usize : 64 * 1024
 
-/// A ceiling for `read_file_bytes` when the caller has no figure of its own.
+/// A ceiling for a read whose caller has no figure of its own.
 ///
-/// It is a policy number, not a fact about files: 256 MiB is well under what a
-/// process can hold, which is the property that matters — a bound the heap
-/// reaches first never fires, and the GC traps before the refusal can be
-/// returned. Name your own when you know what you are reading.
-export READ_LIMIT_DEFAULT: usize: 256 * 1024 * 1024
+/// It is a policy number, not a fact about files, and it is bounded from BOTH
+/// sides. It has to clear anything the toolchain legitimately reads — the
+/// largest `.vader` source here is 161 KiB and the largest emitted seed unit
+/// 2.3 MiB. And it has to stay under what the smallest backend can hold, or it
+/// never fires: the interpreter carries a `u8` per slot, so 256 MiB of file
+/// costs it about 2 GB and the GC traps before the refusal can be returned.
+/// 16 MiB clears the first by ~100x and refuses cleanly on both backends.
+///
+/// Name your own when you know what you are reading.
+export READ_LIMIT_DEFAULT: usize: 16 * 1024 * 1024
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
@@ -567,7 +572,11 @@ remove_file :: fn(path: string) -> null | IOError {
 /// @return           file contents as a UTF-8 string.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
-export read_file_string :: fn(path: string, max_bytes: usize) -> string | IOError {
+// The default is spelled as a LITERAL and must stay equal to
+// `READ_LIMIT_DEFAULT`. It cannot name it: a default that is an identifier is
+// resolved in the CALLER's module, where the callee's span is unknown, and the
+// call silently lowers to `unreachable`. See TODO.md.
+export read_file_string :: fn(path: string, max_bytes: usize = 16 * 1024 * 1024) -> string | IOError {
     r :: read_file_bytes(path, max_bytes)
     if r is IOError { return r }
     return r.bytes_to_string()

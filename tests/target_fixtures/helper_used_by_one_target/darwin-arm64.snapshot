@@ -7,16 +7,16 @@ VADER_ARCH = Arch.Arm64
 
 # Selected body
 main$normalize <- main.vader:20
-std_io$current_executable_location <- lib/std/io/io.vader:705
-std_io$current_working_directory <- lib/std/io/io.vader:741
-std_io$exists <- lib/std/io/io.vader:593
-std_io$is_dir <- lib/std/io/io.vader:616
-std_io$mkdir_one <- lib/std/io/io.vader:482
+std_io$current_executable_location <- lib/std/io/io.vader:714
+std_io$current_working_directory <- lib/std/io/io.vader:750
+std_io$exists <- lib/std/io/io.vader:602
+std_io$is_dir <- lib/std/io/io.vader:625
+std_io$mkdir_one <- lib/std/io/io.vader:487
 std_io$poll_stdin <- lib/std/io/io.vader:251
-std_io$read_dir <- lib/std/io/io.vader:637
+std_io$read_dir <- lib/std/io/io.vader:646
 std_io$read_file_bytes <- lib/std/io/io.vader:317
 std_io$read_stdin <- lib/std/io/io.vader:177
-std_io$remove_file <- lib/std/io/io.vader:547
-std_io$temp_dir <- lib/std/io/io.vader:783
+std_io$remove_file <- lib/std/io/io.vader:552
+std_io$temp_dir <- lib/std/io/io.vader:792
 std_io$write_bytes <- lib/std/io/io.vader:57
-std_io$write_file_bytes <- lib/std/io/io.vader:412
+std_io$write_file_bytes <- lib/std/io/io.vader:417

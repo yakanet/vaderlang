@@ -150,7 +150,7 @@
                       arg2:
                         e :string
                   arg1:
-                    int(268435456) :usize
+                    int(16777216) :usize
         assign
           target:
             __for_i_2 :usize

@@ -123,7 +123,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
 // null after writing the canonical "vader: cannot read …" line to
 // stderr — every stage that consumes a source file shares this path.
 read_source :: fn(file: Path) -> string | null {
-    src_or_err :: file.as_string().read_file_string(READ_LIMIT_DEFAULT)
+    src_or_err :: read_file_string(file.as_string())
     match src_or_err {
         is string  -> { return src_or_err }
         is IOError -> {

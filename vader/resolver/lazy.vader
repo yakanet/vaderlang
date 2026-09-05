@@ -259,7 +259,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     if files_here.len() == 0 { return null }
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
     for path in files_here {
-        content_opt :: read_file_string(path, READ_LIMIT_DEFAULT)
+        content_opt :: read_file_string(path)
         content :: match content_opt { is string as s -> s, is IOError -> "" }
         if content == "" { continue }
         bucket.files.push(path)

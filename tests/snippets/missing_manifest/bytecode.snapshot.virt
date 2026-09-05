@@ -38,29 +38,34 @@ vtable Error.message 9 11
 export main 2
 
 fn 0 snippet$describe (string) -> string
+  local $mul_5 usize
   local r any
-  local $field_7 string
-  local $field_10 string
+  local $field_11 string
+  local $field_14 string
+  i64.const 16384
+  i64.const 1024
+  i64.mul
+  local.set 1   ; $mul_5
   local.get 0   ; arg 0
-  i64.const 268435456
+  local.get 1   ; $mul_5
   call 7   ; std_io$read_file_string
-  local.tee 1   ; r
+  local.tee 2   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
-    local.get 1   ; r
+    local.get 2   ; r
     ref.cast 9   ; -> std_io$IOError
     struct.get 9 0   ; std_io$IOError.msg
     ref.cast 1   ; -> string
-    local.set 2   ; $field_7
-    local.get 1   ; r
+    local.set 3   ; $field_11
+    local.get 2   ; r
     ref.cast 9   ; -> std_io$IOError
     struct.get 9 0   ; std_io$IOError.msg
     ref.cast 1   ; -> string
-    local.set 3   ; $field_10
+    local.set 4   ; $field_14
     string.const 0   ; "unreadable ("
-    local.get 2   ; $field_7
+    local.get 3   ; $field_11
     string.const 1   ; " / "
-    local.get 3   ; $field_10
+    local.get 4   ; $field_14
     string.const 2   ; ")"
     call 3   ; concat_5
     return
@@ -69,24 +74,29 @@ fn 0 snippet$describe (string) -> string
 end
 
 fn 1 snippet$catch_all (string) -> string
+  local $mul_5 usize
   local r any
-  local $vcall_8 string
+  local $vcall_12 string
+  i64.const 16384
+  i64.const 1024
+  i64.mul
+  local.set 1   ; $mul_5
   local.get 0   ; arg 0
-  i64.const 268435456
+  local.get 1   ; $mul_5
   call 7   ; std_io$read_file_string
-  local.tee 1   ; r
+  local.tee 2   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
-    local.get 1   ; r
+    local.get 2   ; r
     ref.cast 9   ; -> std_io$IOError
     virtual.call 1 Error.message
-    local.set 2   ; $vcall_8
+    local.set 3   ; $vcall_12
     string.const 4   ; "caught by trait: "
-    local.get 2   ; $vcall_8
+    local.get 3   ; $vcall_12
     call 4   ; concat_2
     return
   end $L0
-  local.get 1   ; r
+  local.get 2   ; r
   ref.cast 1   ; -> string
   return
 end

@@ -158,7 +158,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L1
   local.get 0   ; path
-  i64.const 268435456
+  i64.const 16777216
   call 9   ; std_io$read_file_bytes
   local.tee 2   ; enc
   type_check 23   ; ref Error

@@ -10,7 +10,7 @@ main :: fn() -> i32 {
 
     println("exists: ${exists(path)}")
 
-    contents :: read_file_string(path, READ_LIMIT_DEFAULT)
+    contents :: read_file_string(path)
     match contents {
         is string -> println("read: ${contents}")
         is Error  -> println("read failed")

@@ -128,7 +128,7 @@ member_in_module :: fn(
 }
 
 member_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
-    src_or :: read_file_string(path, READ_LIMIT_DEFAULT)
+    src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
         is string as src -> {
@@ -229,7 +229,7 @@ export resolve_in_module :: fn(state: ServerState, from_uri: string, module_path
 // to read, or doesn't export `name`. The returned URI is `file://`
 // + the absolute path so editors jump correctly.
 lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding, exported_only: bool) -> ExternalHit | null {
-    src_or :: read_file_string(path, READ_LIMIT_DEFAULT)
+    src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
         is string as src -> {

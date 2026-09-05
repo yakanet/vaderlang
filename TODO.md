@@ -911,3 +911,49 @@ out of `try_free_fn_ufcs_with_first` is what closes it.
 
 Do NOT close it by checking the arguments when the callee is unresolved: that
 would refuse a lambda passed to an ordinary Vader fn, which is legal.
+
+## A default parameter value that names a constant miscompiles across modules
+
+Only a LITERAL default survives a call from another module. A default that is an
+identifier lowers the whole call to `unreachable`, in silence, on both backends.
+
+    // provider module
+    export LIMIT: usize: 16
+    export f :: fn(path: string, max: usize = LIMIT) -> usize = max
+
+    // consumer module
+    f("x")   → vader: reached unreachable at unreachable return in <caller>
+
+Change `= LIMIT` to `= 16` and it works. Within ONE module both spellings work,
+which is why nothing caught it: the tree had no cross-module defaulted call
+before `std/io::read_file_string` grew one.
+
+The mechanism: `normalize_call_args` (`vader/typecheck/call.vader:341`) splices
+the callee's `default_value` AST NODE into the caller's argument list, so it is
+lowered in the CALLER's context. `lower_ident` resolves through
+`ctx.typed.resolved.idents[ident.span.hash()]` — the caller's ident table, keyed
+by span hash — and the node's span belongs to the callee's file, so the lookup
+misses and falls to `stub("unresolved ident ...")`, which is `LoweredUnreachable`.
+A literal has no ident to resolve.
+
+Three ways out, and the choice is a real one:
+  - resolve an identifier default to its VALUE at normalisation time (narrow,
+    covers a module-level const, which is the whole use);
+  - let ident lowering fall back to the DECLARING module's table (needs the
+    spliced node to carry its origin module — span hashes are not unique across
+    modules, see the node-id collision hazard);
+  - refuse a non-literal default with a diagnostic (honest, loses the feature).
+
+`std/io::read_file_string` carries a literal default with a comment pinning it to
+`READ_LIMIT_DEFAULT`; that duplication goes away when this is fixed.
+
+## UFCS does not fill default parameters
+
+    read_file_string :: fn(path: string, max_bytes: usize = ...) -> ...
+
+    read_file_string(p)     // fine
+    p.read_file_string()    // T3003 wrong number of arguments: expected 1, got 0
+
+The receiver fills parameter 0, so the remaining parameter should default. It
+does not, which forces the bare form at `vader/cli/cmd_dump.vader:126`. Sibling
+of the UFCS elaboration plan (`.claude/plans/2026-07-27-ufcs-dispatch-elaboration.md`).

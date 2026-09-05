@@ -279,7 +279,7 @@ emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], 
 // the C-emit. The entry fn is the module's `is_main` function (recovered from
 // the dump's `export main N` directive).
 emit_c_source_from_virt :: fn(file: Path, release: bool) -> string | null {
-    src :: read_file_string(file.as_string(), READ_LIMIT_DEFAULT)
+    src :: read_file_string(file.as_string())
     if src is IOError {
         eprintln("vader build: cannot read ${file}")
         return null

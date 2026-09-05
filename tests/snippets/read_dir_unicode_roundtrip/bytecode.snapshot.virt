@@ -168,7 +168,7 @@ fn 0 snippet$main () -> i32
         string.const 1   ; "/"
         local.get 4   ; $vcall_15
         call 1   ; concat_3
-        i64.const 268435456
+        i64.const 16777216
         call 11   ; std_io$read_file_bytes
         type_check 10   ; std_io$IOError
         bool.not

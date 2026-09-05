@@ -93,8 +93,12 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.get 4   ; $call_18
   call 10   ; std_io$write
+  i64.const 16384
+  i64.const 1024
+  i64.mul
+  local.set 2   ; __off_1
   local.get 0   ; path
-  i64.const 268435456
+  local.get 2   ; __off_1
   call 9   ; std_io$read_file_string
   local.tee 5   ; contents
   type_check 2   ; string

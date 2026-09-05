@@ -60,7 +60,7 @@
         arg0:
           path :string
         arg1:
-          int(268435456) :usize
+          int(16777216) :usize
     if :void
       cond:
         is Error :bool

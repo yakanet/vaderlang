@@ -141,7 +141,7 @@ export source_for :: fn(self: ServerState, uri: string) -> string | null {
 export source_for_path :: fn(self: ServerState, path: string) -> string {
     open :: self.docs[path_to_uri(path)]
     if open is string as s { return s }
-    disk :: read_file_string(path, READ_LIMIT_DEFAULT)
+    disk :: read_file_string(path)
     if disk is string as s { return s }
     return ""
 }

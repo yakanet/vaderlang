@@ -260,7 +260,7 @@ group_facts :: fn(group: Path[]) -> FileFacts[] {
 // be read — the callers treat that as "not a folder module", the conservative
 // answer.
 file_facts :: fn(f: Path) -> FileFacts {
-    src :: read_file_string(f.as_string(), READ_LIMIT_DEFAULT)
+    src :: read_file_string(f.as_string())
     if src is IOError {
         return FileFacts { .declared = "", .imports = [] }
     }

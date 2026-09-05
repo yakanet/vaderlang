@@ -2986,7 +2986,7 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
 /// @error       missing file ; a line the `.virt` reader can't interpret ;
 ///              any VM trap surfaced by `exec`.
 export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
-    source :: read_file_string(path, READ_LIMIT_DEFAULT)
+    source :: read_file_string(path)
     if source is IOError {
         eprintln("vader run: cannot read ${path}")
         return 1
