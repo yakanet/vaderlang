@@ -130,9 +130,14 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
     members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
     ty :: members[e.field]
     if ty is null {
-        // Exported miss : fire R2008 if it's a PRIVATE member ; otherwise it's a
-        // genuinely-absent member and stays a silent unresolved (as before).
-        namespace_private_member_reported(target_sym.id, e.field, e.field_span, resolved, diags)
+        // A PRIVATE member is R2008 ; a genuinely ABSENT one is R2007, the same
+        // answer the unqualified form gives. Silence here let `is Alias.Nope`
+        // through as an unresolved type, which interns as `ref _` and matches
+        // every erased value under the VM — see the four dead arms `8a7c09cce`
+        // meant to delete and could not be told it had missed.
+        if !namespace_private_member_reported(target_sym.id, e.field, e.field_span, resolved, diags) {
+            diags.push(resolver_error(.UnresolvedTypeName, e.field_span, "`${e.field}`"))
+        }
         return TY_UNRESOLVED
     }
     return ty

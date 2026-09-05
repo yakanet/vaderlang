@@ -1,0 +1,9 @@
+module "snippet/lib"
+
+/// The two variants this module exports. `L.Absent` names neither.
+export Real  :: struct { n: i32 }
+export Other :: struct { s: string }
+
+/// The union the entry matches on, so the fixture stays about R2007 and not
+/// about exhaustiveness.
+export Either :: Real | Other

@@ -717,19 +717,19 @@ export StoreI64 :: struct {}
 /// Write an `f64` at byte offset `off`. Pops `obj, off, v: f64`. No barrier.
 export StoreF64 :: struct {}
 
-/// 4-byte signed read (`i32` / `u32` / `char` elements). See `LoadSlotU8`.
+/// 4-byte signed read (`i32` / `u32` / `char` elements).
 /// `bounds_safe` : producer PROVED the index in range (BCE) → C backend skips the
 /// bounds check ; default `false`. The VM checks regardless (soundness oracle).
 export LoadSlotI32 :: struct { bounds_safe: bool = false }
-/// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). See `LoadSlotU8`.
+/// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). `bounds_safe` as above.
 export LoadSlotI64 :: struct { bounds_safe: bool = false }
-/// 8-byte float read (`f64` elements). See `LoadSlotU8`.
+/// 8-byte float read (`f64` elements). `bounds_safe` as above.
 export LoadSlotF64 :: struct { bounds_safe: bool = false }
-/// 4-byte signed write (`i32` / `u32` / `char` elements). See `StoreSlotU8`.
+/// 4-byte signed write (`i32` / `u32` / `char` elements). `bounds_safe` as above.
 export StoreSlotI32 :: struct { bounds_safe: bool = false }
-/// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). See `StoreSlotU8`.
+/// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). `bounds_safe` as above.
 export StoreSlotI64 :: struct { bounds_safe: bool = false }
-/// 8-byte float write (`f64` elements). See `StoreSlotU8`.
+/// 8-byte float write (`f64` elements). `bounds_safe` as above.
 export StoreSlotF64 :: struct { bounds_safe: bool = false }
 
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`

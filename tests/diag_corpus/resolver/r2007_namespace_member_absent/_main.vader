@@ -1,0 +1,23 @@
+// resolver-modules-2 : a `P :: import` namespace alias reaching a member that does
+// not exist AT ALL must fire R2007, the same answer the unqualified form gives —
+// and it must fire from inside a `match` arm, which is where the silence bit.
+//
+// Two silences stacked before the fix. `namespace_member_type` returned
+// `TY_UNRESOLVED` without a diagnostic for an ABSENT member (it only reported the
+// PRIVATE case, R2008), and `pattern_type_of` lowered arm patterns into a throwaway
+// sink, so anything it did raise was dropped. The pattern then interned as `ref _`,
+// which matches every erased value under the VM but nothing native: the same `match`
+// took a different arm depending on the backend, silently. Four arms in `vader/vm`
+// and `vader/c_emit` lived that way for months.
+module "snippet"
+
+L :: import "snippet/lib"
+
+main :: fn() -> i32 {
+    v: L.Either = L.Real { .n = 1 }
+    return match v {
+        is L.Absent -> 2
+        is L.Real   -> 1
+        is L.Other  -> 3
+    }
+}
