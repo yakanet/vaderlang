@@ -7544,10 +7544,6 @@ static void vader_c_emit_emit_op(void* l0, int32_t l1, vader_box_t l2) {
         vader_c_emit_emit_buffer_store(l0, 2338u, 304u);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    if (l2.tag == 178u) {
-        vader_c_emit_emit_slot_load_prim(l0, 2257u, (uint8_t) (int32_t) INT32_C(2), false);
-        { vader_gc_top = gc_frame.prev; return; }
-    }
     if (l2.tag == 608u) {
         t0 = l2.payload.obj;
         l6 = ((vader_struct_vader_bytecode_LoadSlotI32_t*) t0)->f_bounds_safe;
@@ -7564,10 +7560,6 @@ static void vader_c_emit_emit_op(void* l0, int32_t l1, vader_box_t l2) {
         t0 = l2.payload.obj;
         l6 = ((vader_struct_vader_bytecode_LoadSlotF64_t*) t0)->f_bounds_safe;
         vader_c_emit_emit_slot_load_prim(l0, 1451u, (uint8_t) (int32_t) INT32_C(11), l6);
-        { vader_gc_top = gc_frame.prev; return; }
-    }
-    if (l2.tag == 178u) {
-        vader_c_emit_emit_slot_store_prim(l0, 2257u, (uint8_t) (int32_t) INT32_C(2), false);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l2.tag == 630u) {
