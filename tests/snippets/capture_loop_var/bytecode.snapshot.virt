@@ -16,8 +16,8 @@ type 13 primitive usize
 type 14 struct std_core$Buffer {  }
 type 15 primitive u8
 type 16 array 15
-type 17 array 11
-type 18 primitive isize
+type 17 primitive isize
+type 18 array 11
 type 19 array 20
 type 20 fn () -> 4
 type 21 struct $Cell_string { value:11 }
@@ -35,7 +35,7 @@ string 8 "filtered defer z="
 string 9 "nested n="
 import 0 byte_len std_core$byte_len result_type=13 param_types=11 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 14 ByteAccess
 export main 2
 
@@ -68,7 +68,7 @@ fn 2 snippet$main () -> i32
   string.const 0   ; "a"
   string.const 1   ; "b"
   string.const 2   ; "c"
-  array.new 17 3   ; string[][]
+  array.new 18 3   ; string[][]
   local.set 1   ; __for_arr_0
   array.new 19 0   ; fn[][]
   local.set 0   ; thunks
@@ -85,7 +85,7 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 17   ; string[][]
+        array.get 18   ; string[][]
         ref.cast 11   ; -> string
         struct.new 21   ; $Cell_string
         struct.new 3   ; __lambda_env_snippet_1

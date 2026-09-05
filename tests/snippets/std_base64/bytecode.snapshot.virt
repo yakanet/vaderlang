@@ -10,11 +10,11 @@ type 7 primitive u64
 type 8 primitive char
 type 9 array 10
 type 10 primitive u8
-type 11 array 1
-type 12 union 13,9
-type 13 struct base64$Base64Error { msg:1 }
-type 14 primitive isize
-type 15 struct std_string_builder$StringBuilder { parts:11 }
+type 11 union 12,9
+type 12 struct base64$Base64Error { msg:1 }
+type 13 primitive isize
+type 14 struct std_string_builder$StringBuilder { parts:15 }
+type 15 array 1
 string 0 "=ERR:"
 string 1 "\n"
 string 2 "="
@@ -66,10 +66,10 @@ import 1 byte_at std_core$byte_at result_type=10 param_types=1,5 param_mutable=0
 import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 param_mutable=0 param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 4 at std_core$string$Index$at result_type=8 param_types=1,5 param_mutable=0,0 param_by_address= (string,usize) -> char
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=3,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
-impl 13 Error
-impl 15 Display
+impl 12 Error
+impl 14 Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
@@ -78,11 +78,11 @@ fn 0 snippet$show_decode (string,string) -> void
   local.get 1   ; arg 1
   call 12   ; base64$decode
   local.tee 2   ; out
-  type_check 13   ; base64$Base64Error
+  type_check 12   ; base64$Base64Error
   if $L0 void
     local.get 2   ; out
-    ref.cast 13   ; -> base64$Base64Error
-    struct.get 13 0   ; base64$Base64Error.msg
+    ref.cast 12   ; -> base64$Base64Error
+    struct.get 12 0   ; base64$Base64Error.msg
     ref.cast 1   ; -> string
     local.set 3   ; $field_8
     local.get 0   ; arg 0
@@ -228,7 +228,7 @@ fn 1 snippet$main () -> i32
   string.const 29   ; "a"
   string.const 30   ; "ab"
   string.const 31   ; "The quick brown fox"
-  array.new 11 5   ; string[][]
+  array.new 15 5   ; string[][]
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -242,14 +242,14 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 11   ; string[][]
+        array.get 15   ; string[][]
         ref.cast 1   ; -> string
         local.tee 0   ; $call_4
         call.import 3   ; std_core$bytes
         call 13   ; base64$encode
         call 12   ; base64$decode
         local.tee 4   ; decoded
-        type_check 13   ; base64$Base64Error
+        type_check 12   ; base64$Base64Error
         if $L3 void
           string.const 32   ; "roundtrip-"
           local.get 0   ; $call_4
@@ -877,7 +877,7 @@ fn 12 base64$decode (string) -> any
   i64.ne
   if $L1 void
     string.const 40   ; "base64: input length must be a multiple of 4"
-    struct.new 13   ; base64$Base64Error
+    struct.new 12   ; base64$Base64Error
     return
   end $L1
   i64.const 0
@@ -1027,7 +1027,7 @@ fn 12 base64$decode (string) -> any
             local.get 25   ; __buf_0
             local.get 26   ; __off_1
             call 5   ; std_core$finish_buffer
-            struct.new 13   ; base64$Base64Error
+            struct.new 12   ; base64$Base64Error
             return
           end $L10
           local.get 8   ; v0
@@ -1160,7 +1160,7 @@ fn 12 base64$decode (string) -> any
     local.get 58   ; or_res
     if $L12 void
       string.const 43   ; "base64: invalid character in final quad"
-      struct.new 13   ; base64$Base64Error
+      struct.new 12   ; base64$Base64Error
       return
     end $L12
     local.get 53   ; v0
@@ -1248,7 +1248,7 @@ fn 12 base64$decode (string) -> any
       local.get 79   ; or_res
       if $L15 void
         string.const 43   ; "base64: invalid character in final quad"
-        struct.new 13   ; base64$Base64Error
+        struct.new 12   ; base64$Base64Error
         return
       end $L15
       local.get 74   ; v2
@@ -1324,7 +1324,7 @@ fn 12 base64$decode (string) -> any
       i32.lt
       if $L17 void
         string.const 44   ; "base64: invalid character before padding"
-        struct.new 13   ; base64$Base64Error
+        struct.new 12   ; base64$Base64Error
         return
       end $L17
       local.get 96   ; v2
@@ -1373,7 +1373,7 @@ fn 12 base64$decode (string) -> any
   i32.eq
   if $L18 void
     string.const 41   ; "base64: '=' padding is only allowed at the end of input"
-    struct.new 13   ; base64$Base64Error
+    struct.new 12   ; base64$Base64Error
     return
   end $L18
   array.new 9 0   ; u8[][]
@@ -1495,7 +1495,7 @@ fn 12 base64$decode (string) -> any
           local.get 25   ; __buf_0
           local.get 26   ; __off_1
           call 5   ; std_core$finish_buffer
-          struct.new 13   ; base64$Base64Error
+          struct.new 12   ; base64$Base64Error
           return
         end $L25
         local.get 8   ; v0
@@ -1628,7 +1628,7 @@ fn 12 base64$decode (string) -> any
   local.get 58   ; or_res
   if $L27 void
     string.const 43   ; "base64: invalid character in final quad"
-    struct.new 13   ; base64$Base64Error
+    struct.new 12   ; base64$Base64Error
     return
   end $L27
   local.get 53   ; v0
@@ -1716,7 +1716,7 @@ fn 12 base64$decode (string) -> any
     local.get 79   ; or_res
     if $L30 void
       string.const 43   ; "base64: invalid character in final quad"
-      struct.new 13   ; base64$Base64Error
+      struct.new 12   ; base64$Base64Error
       return
     end $L30
     local.get 74   ; v2
@@ -1792,7 +1792,7 @@ fn 12 base64$decode (string) -> any
     i32.lt
     if $L32 void
       string.const 44   ; "base64: invalid character before padding"
-      struct.new 13   ; base64$Base64Error
+      struct.new 12   ; base64$Base64Error
       return
     end $L32
     local.get 96   ; v2
@@ -1856,8 +1856,8 @@ fn 13 base64$encode (ref) -> string
   local.tee 1   ; bs
   array.len
   local.set 2   ; n
-  array.new 11 0   ; string[][]
-  struct.new 15   ; std_string_builder$StringBuilder
+  array.new 15 0   ; string[][]
+  struct.new 14   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   i64.const 0
   local.set 4   ; i
@@ -2200,7 +2200,7 @@ end
 fn 15 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -2221,7 +2221,7 @@ fn 16 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -2233,15 +2233,15 @@ fn 16 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 15 0   ; arg 0.parts
+    local.field 0 14 0   ; arg 0.parts
     i32.const 0
-    array.get 11   ; string[][]
+    array.get 15   ; string[][]
     ref.cast 1   ; -> string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -2255,7 +2255,7 @@ fn 16 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 11   ; string[][]
+        array.get 15   ; string[][]
         ref.cast 1   ; -> string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
@@ -2277,7 +2277,7 @@ fn 16 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -2291,7 +2291,7 @@ fn 16 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 11   ; string[][]
+        array.get 15   ; string[][]
         ref.cast 1   ; -> string
         local.set 7   ; p
         local.get 2   ; __for_arr_0

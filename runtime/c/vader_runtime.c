@@ -3466,6 +3466,18 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
  * arguments come as atom IDs ; we materialise a NUL-terminated C string via
  * `vader_atom_to_cstr` and intern dirent names back through `vader_string_new`. */
 
+/* The one thing a Vader FFI call cannot do for itself: read a named member of a
+ * C struct. `readdir` hands back a `struct dirent*` it owns, and `d_name` sits at
+ * a different offset on every system (21 on Darwin, 19 on glibc) — an offset only
+ * `cc` can resolve, and only from the real header.
+ *
+ * Kept as a C accessor rather than a Vader projection because it must work on
+ * BOTH backends: the interpreter has no C layout, but it can CALL a C function,
+ * and it resolves this one out of its own process the way it resolves libc.
+ * The returned pointer belongs to the C library and dies at the next `readdir`;
+ * the shim interns it before then. */
+const char* vader_dirent_name(const void* ent);
+
 #if defined(_WIN32)
 
 
@@ -3581,6 +3593,17 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
     vader_box_t result = arr_box;
     VADER_GC_POP();
     return result;
+}
+
+
+/* `used` + `noinline`: the body is one load, so link-time optimisation inlines it
+ * into its only caller and DROPS the symbol — and the interpreter resolves this
+ * by name out of the running process, where a dropped symbol is a trap at the
+ * first `read_dir`. Anchoring is what keeps it callable, not a performance
+ * choice. */
+__attribute__((used)) VADER_NOINLINE
+const char* vader_dirent_name(const void* ent) {
+    return ((const struct dirent*) ent)->d_name;
 }
 
 #endif  /* _WIN32 / POSIX */

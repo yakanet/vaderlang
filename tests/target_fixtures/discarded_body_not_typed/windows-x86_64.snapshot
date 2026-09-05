@@ -9,15 +9,16 @@ VADER_ARCH = Arch.X86_64
 # Selected body
 main$platform_kind <- main-windows.vader:19
 main$platform_tag <- main-windows.vader:16
-std_io$current_executable_location <- lib/std/io/io.vader:640
-std_io$current_working_directory <- lib/std/io/io.vader:669
+std_io$current_executable_location <- lib/std/io/io.vader:666
+std_io$current_working_directory <- lib/std/io/io.vader:695
 std_io$exists <- lib/std/io/io.vader:565
 std_io$is_dir <- lib/std/io/io.vader:590
 std_io$mkdir_one <- lib/std/io/io.vader:457
 std_io$poll_stdin <- lib/std/io/io.vader:262
+std_io$read_dir <- (no body)
 std_io$read_file_bytes <- lib/std/io/io.vader:340
 std_io$read_stdin <- lib/std/io/io.vader:203
 std_io$remove_file <- lib/std/io/io.vader:527
-std_io$temp_dir <- lib/std/io/io.vader:705
+std_io$temp_dir <- lib/std/io/io.vader:731
 std_io$write_bytes <- lib/std/io/io.vader:65
 std_io$write_file_bytes <- lib/std/io/io.vader:413

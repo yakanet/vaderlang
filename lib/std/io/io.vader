@@ -601,7 +601,33 @@ is_dir :: fn(path: string) -> bool {
 /// @param path  the directory to list.
 /// @return      entry names (no path prefix).
 /// @error       `IOError` if `path` isn't a directory or can't be opened.
-@intrinsic export read_dir :: fn(path: string) -> string[]! | IOError
+@target
+export read_dir :: fn(path: string) -> string[]! | IOError
+
+@target(.Linux, .Darwin)
+read_dir :: fn(path: string) -> string[]! | IOError {
+    d :: sys_opendir(path) ?? return IOError {
+        .msg = "read_dir: cannot open `${path}`",
+    }
+    defer sys_closedir(d)
+    out: string[]! = []
+    for {
+        p :: sys_readdir(d) ?? break
+        name :: dirent_name(p)
+        if name != "." && name != ".." {
+            out.push(name)
+        }
+    }
+    return out
+}
+
+// Still the host's on Windows. `FindFirstFileW` reports the name in
+// `WIN32_FIND_DATAW.cFileName`, a `WCHAR[260]` INSIDE a caller-allocated struct:
+// the same accessor shape as `dirent_name`, plus the UTF-16 to UTF-8 conversion
+// the runtime already does inline. Portable the same way, not yet written.
+@target(.Windows)
+@intrinsic
+read_dir :: fn(path: string) -> string[]! | IOError
 
 /// Full path of the running executable, `/`-separated. Use `std/path`'s
 /// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,

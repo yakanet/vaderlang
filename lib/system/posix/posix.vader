@@ -48,6 +48,36 @@ export sys_opendir :: fn(path: string) -> CPointer | null
 @extern("closedir")
 export sys_closedir :: fn(dir: CPointer) -> i32
 
+/// `readdir(3)`. The next entry, or null at the end of the directory.
+///
+/// The `struct dirent` it returns is owned and REUSED by the C library: read the
+/// name out before the next call and never keep the pointer.
+///
+/// @param dir  the handle `sys_opendir` returned.
+/// @return     a `struct dirent*`, or null at the end.
+@c_header("<dirent.h>")
+@extern("readdir")
+export sys_readdir :: fn(dir: CPointer) -> CPointer | null
+
+/// The `d_name` of a `struct dirent`, as a Vader string.
+///
+/// The one step a Vader FFI call cannot take for itself: reading a NAMED member
+/// of a C struct. `d_name` sits at a different offset on every system, and only
+/// `cc` can resolve it — from the real header, at the accessor in the runtime.
+///
+/// A `@c_read` projection would express this too, and more generally, but only
+/// natively: the interpreter has no C layout. It can CALL a C function, which is
+/// why this stays a call. `read_dir` therefore runs on both backends, which the
+/// stdlib has to.
+///
+/// The returned bytes belong to the C library and die at the next `sys_readdir`;
+/// the shim interns them before then.
+///
+/// @param ent  a `struct dirent*` from `sys_readdir`.
+/// @return     the entry name.
+@extern("vader_dirent_name")
+export dirent_name :: fn(ent: CPointer) -> string
+
 /// `ferror(3)`. Non-zero once the stream's error indicator is set.
 ///
 /// A short `fread` means end of file OR an error, and the count cannot tell

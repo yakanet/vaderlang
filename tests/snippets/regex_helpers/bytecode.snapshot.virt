@@ -12,12 +12,12 @@ type 9 primitive u64
 type 10 array 11
 type 11 primitive u8
 type 12 primitive void
-type 13 array 4
-type 14 fn (1) -> 2
+type 13 fn (1) -> 2
+type 14 array 4
 type 15 struct std_string$StringChars { bytes:10,cursor:7,length:7 }
 type 16 struct __Tuple_char_usize_8bd920da { _0:1,_1:7 }
 type 17 primitive isize
-type 18 struct std_string_builder$StringBuilder { parts:13 }
+type 18 struct std_string_builder$StringBuilder { parts:14 }
 type 19 union 6,0
 string 0 "foo.vader"
 string 1 ".vader"
@@ -143,7 +143,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   local.get 0   ; $call_5
   call 8   ; std_io$write
-  fn.ref 0 14   ; snippet$is_non_id
+  fn.ref 0 13   ; snippet$is_non_id
   local.set 1   ; $fn_ref_26
   string.const 7   ; "std::io.print!"
   local.get 1   ; $fn_ref_26
@@ -155,7 +155,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   local.get 0   ; $call_5
   call 8   ; std_io$write
-  fn.ref 22 14   ; std_char$is_white_char
+  fn.ref 22 13   ; std_char$is_white_char
   local.set 1   ; $fn_ref_26
   string.const 9   ; "  hello  world\tfoo\n bar  "
   local.get 1   ; $fn_ref_26
@@ -202,7 +202,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 1   ; $fn_ref_26
         local.get 5   ; i
-        array.get 13   ; string[][]
+        array.get 14   ; string[][]
         ref.cast 4   ; -> string
         string.const 2   ; "\n"
         call 2   ; concat_2
@@ -657,7 +657,7 @@ fn 12 std_string$replace_chars_where (string,ref,string) -> string
   local __iter_0 ref
   local __step_1 any
   local c char
-  array.new 13 0   ; string[][]
+  array.new 14 0   ; string[][]
   struct.new 18   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   local.get 0   ; arg 0
@@ -677,7 +677,7 @@ fn 12 std_string$replace_chars_where (string,ref,string) -> string
         ref.cast 1   ; -> char
         local.tee 6   ; c
         local.get 1   ; arg 1
-        call.indirect 14   ; fn
+        call.indirect 13   ; fn
         if $L3 void
           local.get 3   ; sb
           local.get 2   ; arg 2
@@ -704,9 +704,9 @@ fn 13 std_string$split_where (string,ref) -> ref
   local __step_1 any
   local c char
   local $call_18 string
-  array.new 13 0   ; string[][]
+  array.new 14 0   ; string[][]
   local.set 2   ; out
-  array.new 13 0   ; string[][]
+  array.new 14 0   ; string[][]
   struct.new 18   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   bool.const false
@@ -728,7 +728,7 @@ fn 13 std_string$split_where (string,ref) -> ref
         ref.cast 1   ; -> char
         local.tee 7   ; c
         local.get 1   ; arg 1
-        call.indirect 14   ; fn
+        call.indirect 13   ; fn
         if $L3 void
           local.get 4   ; has_pending
           if $L4 void
@@ -738,7 +738,7 @@ fn 13 std_string$split_where (string,ref) -> ref
             local.get 2   ; out
             local.get 8   ; $call_18
             array.push 4   ; string[]
-            array.new 13 0   ; string[][]
+            array.new 14 0   ; string[][]
             struct.new 18   ; std_string_builder$StringBuilder
             local.set 3   ; sb
             bool.const false
@@ -1294,7 +1294,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   if $L1 void
     local.field 0 18 0   ; arg 0.parts
     i32.const 0
-    array.get 13   ; string[][]
+    array.get 14   ; string[][]
     ref.cast 4   ; -> string
     return
   end $L1
@@ -1314,7 +1314,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 13   ; string[][]
+        array.get 14   ; string[][]
         ref.cast 4   ; -> string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
@@ -1350,7 +1350,7 @@ fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 13   ; string[][]
+        array.get 14   ; string[][]
         ref.cast 4   ; -> string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
