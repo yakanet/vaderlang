@@ -54,7 +54,15 @@ export Symbol :: struct {
     id:          i32
     kind:        SymbolKind
     name:        string
+    /// The module's IDENTITY — its physical folder. Compared for "same module"
+    /// tests, and NOT usable as a stable key: it is an absolute path, so it
+    /// differs between a checkout, a `dist/` bundle and a staged temp dir.
     module:      string
+    /// The module's DECLARED name (`module "vader/types"`). One module resolves
+    /// to exactly one folder, so this identifies the same thing as `module`
+    /// while staying identical everywhere — which is what a type-intern key
+    /// needs. Same split as `Module.id` vs `Module.display_path`.
+    module_name: string
     visibility:  Visibility
     defined_at:  Span | null
 }
@@ -69,6 +77,7 @@ export make :: fn(
         kind: SymbolKind,
         name: string,
         module: string,
+        module_name: string,
         visibility: Visibility,
         defined_at: Span | null
     ) -> Symbol {
@@ -78,7 +87,8 @@ export make :: fn(
         .id         = id,
         .kind       = kind,
         .name       = name,
-        .module     = module,
+        .module      = module,
+        .module_name = module_name,
         .visibility = visibility,
         .defined_at = defined_at,
     }

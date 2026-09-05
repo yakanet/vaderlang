@@ -537,7 +537,7 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
     if decorators.len() == 1 && decorators[0].name == "assert" {
         dec :: decorators[0]
         if dec.args.len() < 1 || dec.args.len() > 2 {
-            p.error(.UnknownDecoratorPlacement, dec.span,
+            p.error(.DecoratorArgumentCount, dec.span,
                 "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`")
             return null
         }
@@ -553,19 +553,19 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
                         match s.parts[0] {
                             is StringLitText as t -> { message = t.value }
                             _ -> {
-                                p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                                p.error(.DecoratorArgumentForm, msg_arg.span,
                                     "`@assert` message must be a static string literal (no interpolation)")
                                 return null
                             }
                         }
                     } else {
-                        p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                        p.error(.DecoratorArgumentForm, msg_arg.span,
                             "`@assert` message must be a static string literal (no interpolation)")
                         return null
                     }
                 }
                 _ -> {
-                    p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                    p.error(.DecoratorArgumentForm, msg_arg.span,
                         "`@assert` message must be a static string literal (no interpolation)")
                     return null
                 }
@@ -615,6 +615,22 @@ reject_target_decorator :: fn(p: Parser!, decorators: Decorator[], what: string)
         if d.name == "target" {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@target` selects a function body ; it does not apply to ${what}")
+        }
+    }
+}
+
+// `@c_pointer` belongs on a PARAMETER and `@c_struct` on a struct. Written on a
+// declaration they reach neither check and do nothing — the same silent no-op
+// `reject_target_decorator` exists to prevent.
+reject_c_decorators :: fn(p: Parser!, decorators: Decorator[], what: string) -> void {
+    for d in decorators {
+        if d.name == "c_pointer" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@c_pointer` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
+        }
+        if d.name == "c_struct" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@c_struct` names the C type a STRUCT mirrors ; it does not apply to ${what}")
         }
     }
 }
@@ -1005,6 +1021,7 @@ parse_named_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
 }
 
 parse_fn_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
+    p.reject_c_decorators(decorators, "a function")
     p.advance()  // `fn`
     // Angle type-params `fn<T: Bound>(...)` are merged with the legacy
     // dollar-prefixed introductions collected from the value-arg types.
@@ -1135,6 +1152,11 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
             first = false
 
             start_tok :: p.peek()
+            // Decorators come before the name, as everywhere else. Which ones
+            // are ACCEPTED is a typecheck question, not a parse one — the
+            // parser's job is to carry them to a pass that knows the context
+            // (only an `@extern` declaration admits `@c_pointer`).
+            param_decorators :: p.parse_decorators()
             is_variadic := false
             if p.check(.Dot) && p.check_at(.Dot, 1) && p.check_at(.Dot, 2) {
                 p.advance()
@@ -1203,6 +1225,7 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
                 .default_value = default_value,
                 .variadic      = is_variadic,
                 .mutable       = is_mutable && ty == null,
+                .decorators    = param_decorators,
             })
         }
     }
@@ -1396,6 +1419,7 @@ merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[]
 
 parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.reject_target_decorator(decorators, "a trait")
+    p.reject_c_decorators(decorators, "a trait")
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     // Trait composition. Two forms :
@@ -1444,6 +1468,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
 
 parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
     p.reject_target_decorator(decorators, "an enum")
+    p.reject_c_decorators(decorators, "an enum")
     p.advance()  // `enum`
     repr: TypeExpr | null = null
     if p.match_kind(.LParen) != null {
@@ -3370,6 +3395,8 @@ parse_single_param_lambda_tail :: fn(p: Parser!, param_ident: IdentExpr) -> Lamb
         .ty            = null,
         .default_value = null,
         .variadic      = false,
+        // `x -> expr` has no room for one.
+        .decorators    = [],
     }
     body_expr :: p.parse_expr(0)
     body :: wrap_as_block(body_expr)

@@ -109,7 +109,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     // Locate the first `-` that lives in the pre-release slot — i.e.
     // the first `-` after the patch component, which lives after the
     // second `.`. Earlier `-` bytes are part of an alphanumeric
-    // identifier (`pre-mvp` etc.) and must NOT be treated as separators.
+    // identifier (`alpha-1` etc.) and must NOT be treated as separators.
     dash_pos: usize = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
@@ -980,14 +980,13 @@ import "std/testing"
     }
 }
 
-@test test_parse_compiler_version :: fn() -> void {
-    // The actual CLI_VERSION from `vader/version/version.vader`. The
-    // pre-release is a single identifier `pre-mvp` (one hyphen) — this
-    // anchors the rule that hyphens inside an identifier are allowed.
-    match parse("0.0.0-pre-mvp") {
+@test test_parse_hyphen_inside_prerelease_identifier :: fn() -> void {
+    // One identifier carrying a hyphen, not two identifiers: the separator
+    // inside a pre-release is `.`, so `alpha-1` stays whole.
+    match parse("1.0.0-alpha-1") {
         is Version as v -> {
-            assert_eq(v.major, 0)
-            assert_eq(v.prerelease, "pre-mvp")
+            assert_eq(v.major, 1)
+            assert_eq(v.prerelease, "alpha-1")
         }
         is ParseError -> assert(false, "expected Ok")
     }

@@ -170,7 +170,7 @@ test("help is generated per action, not one flat string", async () => {
   expect(perAction.exit).toBe(0);
   expect(perAction.stdout).toContain("-o, --out=<path>");
   // A flag's declared default is surfaced rather than described in prose.
-  expect(perAction.stdout).toContain("(default: cc)");
+  expect(perAction.stdout).toContain("(default: cc, or gcc on Windows)");
   // The overview stays an overview: it points at this view instead of inlining
   // every flag of every action.
   expect(overview.stdout).not.toContain("--ldflags");

@@ -118,164 +118,212 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                pick :fn(i32, string) -> string
+                concat_4 :string
               arg0:
-                int(7) :i32
+                call :string
+                  callee:
+                    pick :fn(i32, string) -> string
+                  arg0:
+                    int(7) :i32
+                  arg1:
+                    "int" :string
               arg1:
-                "int" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    pick :string
+                  arg0:
+                    "a" :string
+                  arg1:
+                    "str" :string
+              arg3:
+                " want=7:int a:str" :string
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                pick :string
-              arg0:
-                "a" :string
-              arg1:
-                "str" :string
-          arg3:
-            " want=7:int a:str" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                tag :fn(Display, string) -> string
+                concat_4 :string
               arg0:
-                int(7) :i32
+                call :string
+                  callee:
+                    tag :fn(Display, string) -> string
+                  arg0:
+                    int(7) :i32
+                  arg1:
+                    ">" :string
               arg1:
-                ">" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    tag :string
+                  arg0:
+                    "abc" :string
+                  arg1:
+                    "!" :string
+              arg3:
+                " want=>|7 abc|!" :string
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                tag :string
-              arg0:
-                "abc" :string
-              arg1:
-                "!" :string
-          arg3:
-            " want=>|7 abc|!" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                tw :fn(i32) -> string
+                concat_4 :string
               arg0:
-                int(1) :i32
-          arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                tw :string
-              arg0:
-                "a" :string
+                call :string
+                  callee:
+                    tw :fn(i32) -> string
+                  arg0:
+                    int(1) :i32
               arg1:
-                "d" :string
-          arg3:
-            " want=one two:d" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    tw :string
+                  arg0:
+                    "a" :string
+                  arg1:
+                    "d" :string
+              arg3:
+                " want=one two:d" :string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                pick :fn(i32, string) -> string
+                concat_4 :string
               arg0:
-                int(7) :i32
+                call :string
+                  callee:
+                    pick :fn(i32, string) -> string
+                  arg0:
+                    int(7) :i32
+                  arg1:
+                    "X" :string
               arg1:
-                "X" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    pick :string
+                  arg0:
+                    "a" :string
+                  arg1:
+                    "Y" :string
+              arg3:
+                " want=7:X a:Y" :string
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                pick :string
-              arg0:
-                "a" :string
-              arg1:
-                "Y" :string
-          arg3:
-            " want=7:X a:Y" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                tag :fn(Display, string) -> string
+                concat_4 :string
               arg0:
-                int(7) :i32
+                call :string
+                  callee:
+                    tag :fn(Display, string) -> string
+                  arg0:
+                    int(7) :i32
+                  arg1:
+                    "#" :string
               arg1:
-                "#" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    tag :string
+                  arg0:
+                    "abc" :string
+                  arg1:
+                    "?" :string
+              arg3:
+                " want=#|7 abc|?" :string
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                tag :string
-              arg0:
-                "abc" :string
-              arg1:
-                "?" :string
-          arg3:
-            " want=#|7 abc|?" :string
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_4 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                pick :fn(i32, string) -> string
+                concat_4 :string
               arg0:
-                int(7) :i32
+                call :string
+                  callee:
+                    pick :fn(i32, string) -> string
+                  arg0:
+                    int(7) :i32
+                  arg1:
+                    "P" :string
               arg1:
-                "P" :string
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    pick :string
+                  arg0:
+                    "a" :string
+                  arg1:
+                    "Q" :string
+              arg3:
+                " want=7:P a:Q" :string
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                pick :string
-              arg0:
-                "a" :string
-              arg1:
-                "Q" :string
-          arg3:
-            " want=7:P a:Q" :string
+            "\n" :string
     return int(0) :i32
   fn snippet$pick_1(s: string, y: string) -> string
     ~>

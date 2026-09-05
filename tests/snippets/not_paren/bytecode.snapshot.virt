@@ -6,49 +6,49 @@ export main 3
 
 fn 0 snippet$f (bool,bool) -> bool
   local or_res bool
-  local.get 0
+  local.get 0   ; arg 0
   if $L0 void
     bool.const true
-    local.set 2
+    local.set 2   ; or_res
   else
-    local.get 1
-    local.set 2
+    local.get 1   ; arg 1
+    local.set 2   ; or_res
   end $L0
-  local.get 2
+  local.get 2   ; or_res
   bool.not
   return
 end
 
 fn 1 snippet$g (i32) -> bool
   local or_res bool
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     bool.const true
-    local.set 1
+    local.set 1   ; or_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 1
     i32.eq
-    local.set 1
+    local.set 1   ; or_res
   end $L0
-  local.get 1
+  local.get 1   ; or_res
   bool.not
   return
 end
 
 fn 2 snippet$h (bool,bool) -> bool
   local and_res bool
-  local.get 0
+  local.get 0   ; arg 0
   if $L0 void
-    local.get 1
-    local.set 2
+    local.get 1   ; arg 1
+    local.set 2   ; and_res
   else
     bool.const false
-    local.set 2
+    local.set 2   ; and_res
   end $L0
-  local.get 2
+  local.get 2   ; and_res
   bool.not
   return
 end
@@ -59,37 +59,37 @@ fn 3 snippet$main () -> i32
   local c i32
   bool.const false
   bool.const false
-  call 0
+  call 0   ; snippet$f
   if $L0 void
     i32.const 1
-    local.set 0
+    local.set 0   ; a
   else
     i32.const 0
-    local.set 0
+    local.set 0   ; a
   end $L0
   i32.const 5
-  call 1
+  call 1   ; snippet$g
   if $L1 void
     i32.const 2
-    local.set 1
+    local.set 1   ; b
   else
     i32.const 0
-    local.set 1
+    local.set 1   ; b
   end $L1
   bool.const true
   bool.const false
-  call 2
+  call 2   ; snippet$h
   if $L2 void
     i32.const 4
-    local.set 2
+    local.set 2   ; c
   else
     i32.const 0
-    local.set 2
+    local.set 2   ; c
   end $L2
-  local.get 0
-  local.get 1
+  local.get 0   ; a
+  local.get 1   ; b
   i32.add
-  local.get 2
+  local.get 2   ; c
   i32.add
   return
 end

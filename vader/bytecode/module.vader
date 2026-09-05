@@ -59,6 +59,22 @@ export BcSignature :: struct {
     /// paths that don't carry names (imports, synth wrappers, `.virt` reload) ;
     /// consumers fall back to `arg<i>`.
     param_names: string[]
+    /// Per-parameter `!` marker, parallel to `params`. Empty (not per-index) on
+    /// every path that has no reason to carry it.
+    ///
+    /// The bit exists for ONE consumer: the `@extern` shim, which must know
+    /// whether C receives `const void*` or `void*`, and whether a scalar is
+    /// passed by value or by address. `ArrayType.immutable` otherwise stops at
+    /// this boundary on purpose (the layout is the same either way) — this
+    /// vector is the deliberate exception, not a widening of the notion.
+    param_mutable: bool[] = []
+    /// Per-parameter `@c_pointer`, parallel to `params`. Empty when none.
+    ///
+    /// Set only for an `@extern` import: it says the foreign callee receives the
+    /// parameter's ADDRESS rather than its value, so the shim spills it to a
+    /// stack temporary and passes `&tmp`. `param_mutable` then says whether C
+    /// writes through it.
+    param_by_address: bool[] = []
 }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit
@@ -89,6 +105,20 @@ export BcImport :: struct {
     mangled_name: string
     signature: BcSignature
     is_extern: bool
+    /// Header to `#include` instead of synthesising a prototype, or `""`.
+    /// See `FnMetadata.c_header`.
+    c_header: string = ""
+    /// Library to open before resolving the symbol, or `""` for the default
+    /// scope. See `FnMetadata.c_library` — the VM needs it, the linker does not.
+    c_library: string = ""
+    /// How many of a VARIADIC callee's parameters are fixed, `-1` when it is not
+    /// variadic. From `@c_variadic(N)`.
+    ///
+    /// The interpreter needs it and cannot derive it: a variadic callee called
+    /// through a non-variadic cast reads its variadic arguments from the wrong
+    /// place on darwin-arm64, where they travel on the stack rather than in
+    /// registers. `cc` gets the same fact from `@c_header`; nothing gave it to us.
+    c_variadic_fixed: i32 = -1
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

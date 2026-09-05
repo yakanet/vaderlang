@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/c_struct_prefix_mirror
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         sys_gettimeofday     :: fn(TimeVal!, CPointer | null) -> i32
+  StructDecl     TimeVal              :: TimeVal!
+  expr 30:11    StructLitExpr  :: TimeVal!
+  expr 31:11    CallExpr       :: i32
+  expr 31:11    IdentExpr      :: fn(TimeVal!, CPointer | null) -> i32
+  expr 31:28    IdentExpr      :: TimeVal!
+  expr 32:13    StringLitExpr  :: string
+  expr 32:19    IdentExpr      :: i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:22    BinaryExpr     :: bool
+  expr 33:22    FieldExpr      :: i64
+  expr 33:22    IdentExpr      :: TimeVal!
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void

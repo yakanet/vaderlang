@@ -185,9 +185,9 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
             return ft
         }
     }
-    fts :: imported_overloads_in(typed, callee.span.start.file, callee.name)
-    if fts.len() > 0 {
-        return fts[0]
+    imported :: imported_overloads_in(typed, callee.span.start.file, callee.name)
+    if imported.len() > 0 {
+        return imported[0].ty
     }
     return null
 }
@@ -204,7 +204,9 @@ collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgra
         }
     }
     // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
-    out.push_all(imported_overloads_in(typed, file, name))
+    for imported in imported_overloads_in(typed, file, name) {
+        out.push(imported.ty)
+    }
     return out
 }
 
@@ -437,9 +439,13 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
     if c.callee is AST.FieldExpr as fe {
         // Genuine UFCS dispatch (the dispatched fn's own first param was stashed
         // when the FieldExpr was typed) curries away `self`.
-        dispatched_first :: typed.ufcs_receiver_types[fe.id]
-        if dispatched_first != null {
-            return ufcs_method_params(fe.field, dispatched_first, callee_ty, typed)
+        // The pick itself, when the dispatch could keep it: its params minus the
+        // receiver, which is what lines up with the curried callee type. Beats
+        // re-deriving the winner from the receiver type — the same answer, and
+        // one the imported half cannot give at all.
+        chosen :: typed.ufcs_chosen_decls[fe.id]
+        if chosen is AST.FnDecl as fd {
+            return ufcs_tail_params(fd)
         }
         // Otherwise a namespace member call (`mod.foo(...)`) : reach the
         // export's declared params so named args + defaults fill, same as the
@@ -451,13 +457,14 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
 
 // Declared params of a namespace-qualified callee `mod.foo`. Mirrors
 // `field.vader::try_namespace_field`'s base→module resolution but reads the
-// params table populated by `build_namespace_export_params`. Returns null
+// decl table populated by `build_namespace_export_decls`. Returns null
 // unless `fe` is a namespace member fn call whose arity matches `callee_ty`
 // (a mismatch stays positional rather than mis-filling).
 namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     mod_id :: namespace_call_mod_id(fe, typed) ?? return null
-    by_name :: typed.namespace_export_params[mod_id] ?? return null
-    ps :: by_name[fe.field] ?? return null
+    by_name :: typed.namespace_export_decls[mod_id] ?? return null
+    fd :: by_name[fe.field] ?? return null
+    ps :: fd.params
     if ps.len() != callee_ty.params.len() {
         return null
     }
@@ -491,45 +498,19 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
     return fallback
 }
 
-// UFCS dispatch curries away the receiver (`self`), so the call's `callee_ty`
-// has one fewer param than the method's decl. Return the method decl's params
-// minus `self`, for the free fn named `method` whose first param is the one the
-// dispatch retained.
-//
-// `dispatched_first_param` is NOT the receiver's type: `field.vader` stores the
-// chosen fn's own first param there (`ufcs_receiver_types[e.id] =
-// free_ufcs.first_param` — see the field's doc, "the param that got curried
-// away"). So the test below identifies the candidate the typer already picked,
-// rather than re-deciding which receiver fits: for that candidate the two types
-// are the same one and it matches outright, which is exactly the intent. Don't
-// read it as a receiver-fits check and try to align it with
-// `field.vader::receiver_fits_first_param` — the two answer different questions,
-// and the wider routes that one accepts (trait widening, `T[]` → `Iterator<T>`,
-// the TypeParam wildcard) are already reflected in what was stored.
-ufcs_method_params :: fn(
-    method: string, dispatched_first_param: Type, callee_ty: FnType, typed: TypedProgram,
-) -> AST.FnParam[] | null {
-    bucket :: typed.resolved.fn_overloads[method] ?? return null
-    for sym in bucket {
-        decl :: typed.fn_decls[sym.id]
-        if decl is AST.FnDecl as fd {
-            if fd.params.len() != callee_ty.params.len() + 1 {
-                continue
-            }
-            ft :: typed.decl_types[sym.id]
-            if ft is FnType as f {
-                if f.params.len() > 0 && is_assignable(dispatched_first_param, f.params[0]) {
-                    tail: AST.FnParam![]! = []
-                    for i in 1..<fd.params.len() {
-                        tail.push(fd.params[i])
-                    }
-                    return tail
-                }
-            }
-        }
+// A UFCS method's parameters as the CALL SITE writes them: the declaration's,
+// minus the receiver the dispatch curried away.
+ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
+    if fd.params.len() == 0 {
+        return null
     }
-    return null
+    tail: AST.FnParam![]! = []
+    for i in 1..<fd.params.len() {
+        tail.push(fd.params[i])
+    }
+    return tail
 }
+
 
 
 /// T3069 for every type-param of `callee_ty` that nothing at this call site
@@ -744,6 +725,7 @@ export infer_call :: fn(
             ),
         )
     }
+    reject_indirect_callbacks(c, callee_ty, typed, diags)
     // `@no_return` callees (`panic` / `todo` / `unreachable`) yield `never`.
     // Resolved once here, applied at each return below — args are still
     // type-checked first so a bad argument to `todo(...)` is still flagged.
@@ -1054,6 +1036,16 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     if callee is AST.GenericInstExpr as gi {
         base = gi.callee
     }
+    // A namespace-qualified name — `M.f`, the form §7 of the style guide
+    // mandates for an aliased import. It is a `FieldExpr`, not an ident, and
+    // treating it as unresolvable had two costs: a valid callback argument was
+    // refused T3080, and a call whose CALLEE wore that shape skipped the check
+    // entirely and reached `midir/build`'s panic.
+    if base is AST.FieldExpr as fe {
+        mod_id :: namespace_call_mod_id(fe, typed) ?? return null
+        by_name :: typed.namespace_export_decls[mod_id] ?? return null
+        return by_name[fe.field]
+    }
     if base !is AST.IdentExpr {
         return null
     }
@@ -1066,6 +1058,54 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
 // True when the callee fn carries `@no_return` (`panic` / `todo` /
 // `unreachable`). Such a call diverges, so its expression type is `never` —
 // assignable into any slot and flow-terminating (see `is_divergent_stmt`).
+/// Reject a callback argument that is not a direct reference to a named fn.
+///
+/// What crosses to C is the function's ADDRESS (`bytecode/op::FnAddr`), and only
+/// a named fn has one: a lambda or a closure is a `vader_fn_t` whose `code` takes
+/// a leading `env` and boxed arguments, so the foreign callee would jump into the
+/// wrong ABI. The TYPE is fine in both cases — this is a shape rule, which is why
+/// it needs a diagnostic of its own rather than a mismatch.
+///
+/// @param c          the call being checked.
+/// @param callee_ty  its callee's fn type, for the parameter positions.
+/// @param typed      resolves an argument to the fn it names, if any.
+/// @param diags      accumulator for T3080.
+reject_indirect_callbacks :: fn(
+    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    // Nothing to look up unless a parameter is a fn type — this runs on every
+    // call expression in the program, and almost none has one.
+    has_callback := false
+    for pt in callee_ty.params {
+        if pt is FnType {
+            has_callback = true
+        }
+    }
+    if !has_callback {
+        return
+    }
+    decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
+    if !decorators_have(decl.decorators, "extern") {
+        return
+    }
+    n :: min(c.args.len(), callee_ty.params.len())
+    for i in 0..<n {
+        if callee_ty.params[i] !is FnType {
+            continue
+        }
+        // The SAME question `midir/build::build_extern_args` asks — does this
+        // argument resolve to a fn symbol. A syntactic ident test is not it: a
+        // local bound to a fn is an ident and has no address of its own.
+        if lookup_callee_fn_decl(c.args[i].value, typed) != null {
+            continue
+        }
+        diags.push(typecheck_error(
+            .CallbackNotDirectFn, c.args[i].span,
+            "argument ${i + 1} of `${callee_name(c.callee)}`",
+        ))
+    }
+}
+
 callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
     decl :: lookup_callee_fn_decl(callee, typed) ?? return false
     for d in decl.decorators {

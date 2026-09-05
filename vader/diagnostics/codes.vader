@@ -18,8 +18,8 @@
 // a `<phase>_error(.Variant, ...)` call site is reserved-for-future, not dead
 // — it keeps its wire ID for when the check ships.
 //
-// PRE-MVP : IDs are NOT frozen. Nothing outside this repo consumes them, so a
-// code may be renumbered, reused, or given a new meaning — see `.claude/CLAUDE.md`
+// IDs are NOT frozen. Nothing outside this repo consumes them, so a code may be
+// renumbered, reused, or given a new meaning — see `.claude/CLAUDE.md`
 // §12. The constraint is per-commit, not forever : one meaning per ID at a time,
 // and the `<phase>_info` message, the `tests/diag_corpus/` fixture and the
 // committed snapshots move together. The retirement comments below are kept as
@@ -42,8 +42,8 @@ export LexerCode :: enum(u8) {
     IntegerLiteralOverflow,                 // L0011
 }
 
-// Typecheck-pass codes. New codes are appended ; retired IDs may be reused
-// pre-MVP (see the file header).
+// Typecheck-pass codes. New codes are appended ; retired IDs may be reused —
+// see the file header for the condition.
 export TypecheckCode :: enum(u8) {
     TypeMismatch,                       // T3001
     ExpectedKnownType,                  // T3002
@@ -118,6 +118,10 @@ export TypecheckCode :: enum(u8) {
     ModuleConstMutableElement,          // T3076
     ImmutableValueIntoMutableSlot,      // T3077
     MethodOnlyBehindNamespaceAlias,     // T3078
+    InvalidParameterDecorator,          // T3079
+    // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
+    // here rather than carrying a hole, per §12.
+    CallbackNotDirectFn,                // T3080
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -151,6 +155,10 @@ export ParserCode :: enum(u8) {
     ExpressionNestingTooDeep,               // P1029
     RepeatedMutabilityMarker,               // P1030
     MutabilityMarkerOnName,                 // P1031
+    DecoratorArgumentCount,                 // P1032
+    DecoratorArgumentForm,                  // P1033
+    // P1034 (DecoratorArgumentValue) retired : its only site bounded
+    // `@c_size`'s width, and `@c_size` is gone from the language.
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -231,14 +239,25 @@ export LowerCode :: enum(u8) {
     IntoCoercionFailed,                     // M5004
     IntrinsicUnsupported,                   // M5005
     SelfReceiverMissing,                    // M5006
-    // M5007 / M5008 (generator / async closure-capture) retired : captured
-    // locals now survive suspension as heap cells (see `lower_coroutine`).
+    // M5007 was the generator half of a closure-capture pair, retired when
+    // captured locals started surviving suspension as heap cells. Reused here.
+    //
+    // It has NO fixture under `tests/diag_corpus/`, deliberately: it cannot be
+    // provoked from source. Every way a program can name something unknown is
+    // R2006, and this fires only when a name the resolver ACCEPTED is missing
+    // from the table the lowerer reads — a compiler self-check. It exists
+    // because the alternative was silence: the miss lowers to
+    // `LoweredUnreachable`, which makes `midir` replace the entry block, so the
+    // surrounding code vanished with nothing to read.
+    UnresolvedIdent,                        // M5007
+    // M5008 (async closure-capture) retired for the same reason as M5007's
+    // former meaning ; not reused.
     AwaitInShortCircuit,                    // M5009
     ComptimeForNotUnrollable,               // M5010
 }
 
-// `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are
-// free to reuse pre-MVP (see the file header).
+// `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
+// to reuse — see the file header for the condition.
 export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
     UnreachableCode,                        // W0002
@@ -329,6 +348,8 @@ export parser_info :: fn(c: ParserCode) = match c {
     .MissingFunctionBody                -> CodeInfo { .id = "P1012", .message = "missing function body" }
     .ExecutableStatementAtTopLevel      -> CodeInfo { .id = "P1013", .message = "executable statement at top level (only declarations allowed)" }
     .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
+    .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
+    .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
@@ -428,6 +449,7 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
+    .UnresolvedIdent                    -> CodeInfo { .id = "M5007", .message = "identifier did not resolve at lowering" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
     .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
 }
@@ -501,6 +523,8 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ModuleConstMutableElement          -> CodeInfo { .id = "T3076", .message = "a mutable module const needs a flat element type" }
     .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
+    .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
+    .CallbackNotDirectFn                -> CodeInfo { .id = "T3080", .message = "callback argument must name a function directly" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

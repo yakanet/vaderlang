@@ -1,0 +1,60 @@
+// `is CPointer` on a `CPointer | null` result, tested POSITIVELY.
+//
+// The interpreter had no path from the machine word a foreign pointer comes
+// back as to the `CPointer` class, so this match took NO arm: not the pointer
+// one, not the null one, and not a trap either — the interpreter left `main`
+// with exit 0 while the native build took the pointer arm and carried on. The
+// two lines after the match are what made the difference visible.
+//
+// `lib/std/io` escaped it only because it asks `if f == null`, which agrees on
+// both backends. Every positive `is CPointer` test was silently dead.
+//
+// `fopen` and `fclose` are libc, so this runs on BOTH backends — which is the
+// whole point: the bug is a divergence, and only a snippet the interpreter also
+// executes can pin it.
+//
+// The file it opens is one it WRITES first. Opening `/etc/hosts` made the
+// positive arm depend on a POSIX path: on Windows `fopen` returned NULL, the
+// snippet took the null arm, and a test for the pointer arm quietly stopped
+// testing anything.
+
+module "snippet"
+
+import "std/io"
+
+@c_header("<stdio.h>")
+@extern("fopen")
+c_fopen :: fn(path: string, mode: string) -> CPointer | null
+
+@c_header("<stdio.h>")
+@extern("fclose")
+c_fclose :: fn(f: CPointer) -> i32
+
+main :: fn() -> i32 {
+    path :: "${temp_dir()}/vader_cpointer_probe"
+    wrote :: write_file_string(path, "x")
+    if wrote is IOError as e {
+        println("setup failed: ${e.msg}")
+        return 1
+    }
+    r :: c_fopen(path, "rb")
+    match r {
+        is CPointer as p -> {
+            println("matched CPointer")
+            c_fclose(p)
+        }
+        is null -> println("matched null")
+    }
+    println("after match")
+
+    missing :: c_fopen("${temp_dir()}/vader_no_such_probe_at_all", "rb")
+    match missing {
+        is CPointer as p -> {
+            println("unexpectedly opened")
+            c_fclose(p)
+        }
+        is null -> println("matched null")
+    }
+    remove_file(path)
+    return 0
+}

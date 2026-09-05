@@ -63,11 +63,101 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is AnyType            -> "Any"
 }
 
+/// A tuple's ELEMENT keys as a C-safe identifier fragment: `[i32, string]`
+/// becomes `i32_string`. Built from the elements rather than the tuple's own
+/// `type_intern_key`, which already starts with `Tuple<` and would spell the
+/// word twice.
+///
+/// Long shapes fall back to a hash. C99 only guarantees 63 significant
+/// characters in an internal identifier, and a nested shape reached 611: two
+/// names differing past a compiler's limit would silently become ONE struct.
+/// The threshold keeps the ordinary cases readable in a debugger and only the
+/// monsters opaque.
+///
+/// @param elements  the tuple's element types, in order.
+tuple_shape_name :: fn(elements: Type[]) -> string {
+    // The hash is taken over the EXACT key, never over the sanitised spelling.
+    // `c_safe_key` is many-to-one -- it collapses each run of characters C
+    // rejects into one `_`, so `Box<i32>` and `Box_i32<>` spell alike -- and
+    // hashing the spelling would collapse the same pairs a second time instead
+    // of separating them. Two distinct tuple types then took one C struct name
+    // and `cc` refused the file outright.
+    //
+    // So the discriminant is unconditional: the spelling is for the reader, the
+    // hash is what makes the name an identity.
+    exact :: type_key_join(elements, "_")
+    digest :: fnv1a_hex(exact)
+    spelled :: c_safe_key(exact)
+    if spelled.byte_len() <= TUPLE_NAME_MAX - SHAPE_DIGEST_LEN - 1 {
+        return "${spelled}_${digest[0..<SHAPE_DIGEST_LEN]}"
+    }
+    return "${elements.len()}_${digest}"
+}
+
+/// Hex digits of the shape digest kept when the name is also spelled out. Eight
+/// is 32 bits of separation, which is what distinguishes two shapes that
+/// sanitise alike; the unspelled form keeps all sixteen.
+SHAPE_DIGEST_LEN: usize : 8
+
+/// Longest tuple shape spelled in full.
+///
+/// C99 guarantees 63 significant characters in an INTERNAL identifier, and the
+/// emitter wraps this fragment in 23 more: `vader_struct_` (13) + `__Tuple_`
+/// (8) + `_t` (2). What is left is 40. Past that, two shapes differing only
+/// beyond the limit would be ONE struct to a compiler that applies the
+/// guarantee, so the name is hashed instead of spelled.
+TUPLE_NAME_MAX: usize : 40
+
+/// FNV-1a over the shape, as 16 hex digits. Only reached for a shape too long
+/// to spell; a collision would merge two distinct structs, so `intern_type`'s
+/// key map stays the authority on identity — this only names what it interned.
+fnv1a_hex :: fn(s: string) -> string {
+    h: u64 = 0xcbf29ce484222325
+    for b in s.bytes() {
+        h = (h ^ u64(b)) * 0x100000001b3
+    }
+    out := ""
+    for i in 0..<16 {
+        shift :: u64((15 - i) * 4)
+        nibble :: (h >> shift) & 0xF
+        out = out + "0123456789abcdef"[usize(nibble)..<usize(nibble) + 1]
+    }
+    return out
+}
+
+/// A type key as a C-safe identifier fragment. Every run of characters C would
+/// reject collapses to a single `_`.
+///
+/// @param key  a `type_intern_key` result, or a join of several.
+c_safe_key :: fn(key: string) -> string {
+    out := ""
+    prev_underscore := false
+    for b in key.bytes() {
+        if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
+            out = out + "${char(b)}"
+            prev_underscore = false
+        } else if !prev_underscore {
+            out = out + "_"
+            prev_underscore = true
+        }
+    }
+    return out
+}
+
 // Source-position identity for a symbol — file:offset when the decl has a
 // span, else a synthetic `id` fallback.
-symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
-    is null       -> "id${sym.id}"
-    is Span as at -> "${at.start.file}:${at.start.offset}"
+// The MODULE, not the file. A module resolves to exactly one folder, which the
+// compiler guarantees, so `module + name` identifies a declaration everywhere —
+// a checkout, a `dist/` bundle where `lib/` sits beside the binary, a staged
+// temp directory. The source PATH identified the same thing, but only within one
+// machine's layout: it leaked absolute paths into C struct names
+// (`$Cell_Struct__private_var_folders_…`), which made the emitted C differ
+// between two build directories and pushed single identifiers past 2 KB.
+symbol_key :: fn(sym: Symbol) -> string {
+    if sym.module_name == "" {
+        return "id${sym.id}"
+    }
+    return "${sym.module_name}.${sym.name}"
 }
 
 // Join each type's intern key with `sep`. Recurses through `type_intern_key`
@@ -166,9 +256,15 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
                 .return_type = intern_type(f.return_type, ctx),
             }
         }
-        // Anonymous struct `__Tuple_<slot>` with positional fields `_0`,
-        // `_1`, … . The slot index disambiguates same-arity shapes so
-        // `[i32, string]` and `[bool, string]` emit distinct C structs.
+        // Anonymous struct with positional fields `_0`, `_1`, … , named after
+        // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
+        // distinct C structs.
+        //
+        // The name must not depend on the slot's RANK in the type table: a rank
+        // shifts when anything interned earlier differs, and a name that shifts
+        // makes identical modules emit different C. `type_intern_key` is the
+        // same key `intern_type` dedupes on, so two tuples share a name exactly
+        // when they share a slot.
         is TupleType as p -> {
             fields: BcField[]! = []
             for i in 0..<p.elements.len() {
@@ -178,8 +274,9 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
                 })
             }
             return BcStruct {
-                .name      = "__Tuple_${slot_index}",
+                .name      = "__Tuple_${tuple_shape_name(p.elements)}",
                 .fields    = fields,
+                .c_name    = "",
                 .symbol_id = -1,
             }
         }
@@ -210,6 +307,12 @@ import "toolchain/span"
 /// @param name  the primitive name (`"i32"`, `"string"`, …).
 /// @return      the matching `ValType` ; `Any` for unrecognised names.
 export val_type_of_primitive_name :: fn(name: string) -> ValType {
+    // The FFI pointer's SOURCE spelling is `CPointer` while its `.virt`
+    // spelling is `pointer` — two namespaces, mapped here rather than by
+    // teaching `parse_val_type` a name the text format never writes.
+    if name == "CPointer" {
+        return ValType.Pointer
+    }
     parsed :: parse_val_type(name) ?? return ValType.Any
     return parsed
 }
@@ -261,7 +364,7 @@ import "std/testing"
 // one. Covers all three carriers.
 @test test_immutability_never_reaches_the_bytecode :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "Cfg", "test", .Public, null)
+    sym :: factory.make(.Struct, "Cfg", "test", "test", .Public, null)
     i32_ty: Type = mk_primitive("i32")
 
     mutable_struct   :: mk_struct(sym, [], false)

@@ -64,22 +64,34 @@ export lower_block :: fn(
     // ident-ref as the new trailing.
     trailing := raw_trailing
     if defer_count > 0 && !last_diverges {
-        if trailing == null {
+        if raw_trailing == null {
             stmts.push(LoweredDeferPopExec {
                 .span = block.span, .count = i32(defer_count),
             })
+        } else if is_void(type_of(raw_trailing)) {
+            // A void trailing carries no value the drain could disturb, so it
+            // needs no temporary. Binding one anyway left a `void` local being
+            // read back onto the stack before `return`, and the VM decides
+            // "this frame returned something" from a non-empty stack — so a
+            // void fn holding a defer looked like it returned `null`. Only
+            // visible when the frame is the VM entry, which is every `@test`.
+            stmts.push(LoweredExprStmt { .span = raw_trailing.span, .expr = raw_trailing })
+            stmts.push(LoweredDeferPopExec {
+                .span = raw_trailing.span, .count = i32(defer_count),
+            })
+            trailing = null
         } else {
-            value_type :: type_of(trailing)
+            value_type :: type_of(raw_trailing)
             tmp_sym :: fresh_synthetic_symbol(ctx, "block")
             stmts.push(LoweredLet {
-                .span = trailing.span, .name = tmp_sym.name,
-                .symbol = tmp_sym, .type = value_type, .value = trailing,
+                .span = raw_trailing.span, .name = tmp_sym.name,
+                .symbol = tmp_sym, .type = value_type, .value = raw_trailing,
             })
             stmts.push(LoweredDeferPopExec {
-                .span = trailing.span, .count = i32(defer_count),
+                .span = raw_trailing.span, .count = i32(defer_count),
             })
             trailing = LoweredIdent {
-                .span = trailing.span, .type = value_type, .symbol = tmp_sym,
+                .span = raw_trailing.span, .type = value_type, .symbol = tmp_sym,
             }
         }
     }
@@ -308,6 +320,7 @@ synth_unused_local :: fn(ctx: FnLowerCtx!, name: string) -> Symbol {
         .kind       = SymbolKind.Local,
         .name       = name,
         .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
         .visibility = Visibility.Private,
         .defined_at = null,
     }

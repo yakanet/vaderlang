@@ -1,0 +1,13 @@
+// A `@c_struct` field with no C representation — T3050.
+//
+// The shim copies a mirror field by field into a real C struct. A `string`
+// field has nothing to copy: it would hand C the atom ID, through a cast `cc`
+// accepts, and the value would be wrong at run time with no build ever saying so.
+module "snippet"
+
+@c_struct("struct holder")
+Holder :: struct { name: string, n: i32 }
+
+@extern show :: fn(@c_pointer h: Holder) -> i32
+
+main :: fn() -> i32 { return 0 }

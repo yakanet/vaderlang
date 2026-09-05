@@ -1,0 +1,31 @@
+// A `defer` in a void function, where the block's trailing expression is itself
+// void. The trailing needs no temporary to protect it from the drain, and
+// binding one anyway left a `void` local being read back onto the stack before
+// `return` — which the VM reads as "this frame returned something".
+module "snippet"
+
+import "std/io"
+
+Err :: struct { msg: string }
+
+fallible :: fn(x: i32) -> null | Err = null
+
+// Void trailing (`println`), so nothing escapes the block.
+void_trailing :: fn() -> void {
+    defer println("deferred first")
+    println("body last")
+}
+
+// A value trailing still gets its temporary: the drain must not run before the
+// value is computed, nor after it has escaped.
+value_trailing :: fn() -> i32 {
+    defer println("deferred second")
+    fallible(1)
+    return 7
+}
+
+main :: fn() -> i32 {
+    void_trailing()
+    println("got ${value_trailing()}")
+    return 0
+}

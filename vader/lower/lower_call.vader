@@ -345,6 +345,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
         .kind       = .Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
         .visibility = Visibility.Private,
         .defined_at = null,
     }

@@ -14,6 +14,14 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
+- [ ] **An expression-bodied fn whose body is `f(x) ?? Enum.Variant` aborts stage1, naming a DIFFERENT function** (found 2026-09-03, reproduced twice). Writing `vader/vm/host.vader::field_val_type` as `= bc.c_field_val_type(f, types) ?? bc.ValType.I64` makes stage0 abort with `midir/emit: no field \`element\` on \`?\` in 'vader_vm$dispatch_extern'`. The brace form of the same function compiles. Deterministic: reverted and re-applied, same message both times.
+
+  **`dispatch_extern` is the CALLER**, and its `b.element` is the only `.element` in it — so a type that should be `LentArray` reads as `?` there. That the failure lands in the caller rather than in the edited fn points at the post-lowering single-expression inliner splicing the `??` body into its call sites, but that is a hypothesis, not a diagnosis. Three reductions failed to reproduce it standalone (same-module two-file, namespace alias, single file), so the shape needs something the small cases lack — start from the real file rather than from a snippet.
+
+- [ ] **Cut the Windows CI job — it alone sets the run's wall clock** (measured 2026-09-03, run #281). `Test (Windows)` takes 750 s against 232 s for `Test (Posix)` doing the same work, and the whole run is 12 m 35 s: everything else finishes inside its shadow. The cost is not one bad step — both halves are ~3× Posix: build 210 s vs 44 s, test 493 s vs 179 s. Windows is also the STABLE job (194-223 s / 487-523 s across runs #278-#281, ±6 %) while Posix swings ~1.9× on a burstable runner, so a Posix number read on its own says nothing.
+
+  Untested hypotheses, in the order they are worth measuring: **(a) process spawn** — `--split` runs one `cc` per module and the suite spawns the CLI a few thousand times ; `CreateProcess` is far dearer than `fork`/`exec`, and this is the one cost both halves share, which fits the uniform ×3 ; **(b) Defender** scanning every `.o` and every spawned binary — `Add-MpPreference -ExclusionPath` on the work tree is a one-line experiment ; **(c)** `build.ps1`'s `CcLinkParallel` is a `Start-Process` sliding window where `build.sh` uses `xargs -P`, so its own overhead is per-file. Measure before changing anything: the runner's core count and per-step timings come from the `actions/runs/<id>/jobs` API without auth.
+
 - [ ] **`T[]` should satisfy a `[C: Index]` / `[C: IndexSet]` bound — DEFERRED, a dynamic-dispatch feature, not a perf one** (revisited 2026-07-20). Direct `arr[i]` / `arr[i] = v` lower to the built-in fast op (concrete `ArrayGet`/`ArraySet`, 0 alloc) and STAY that way regardless of this item — nothing here touches the array fast path. The only thing an array-`Index` impl adds is letting an array satisfy a **generic** `[C: Index]` bound; since generics are erased (.NET model), that path is *inherently* a runtime vtable dispatch (slow, rare) — not something the fast array machinery can be "moved into". Prereq **(1) — SHIPPED** (`272af6472`, snippet `generic_index_dispatch`): the index OPERATOR `c[0]` / `c[0] = v` now dispatches through a `TypeParam` `Index`/`IndexSet` bound for user **struct** implementors (`infer_index` / `check_assign` record `bounded_dispatch_trait`; `lower_index` / `lower_assign` emit a vcall). Remaining blockers, both on the **erased array receiver** (found 2026-07-20, `@intrinsic T[] implements Index/IndexSet` attempted + fully reverted): **(a) vtable key** — a concrete `i32[]` carries its element-specific type id (header `type_index`, e.g. 2) but the single materialised row is keyed on the erased `Any[]` (e.g. 8), so both the VM (`receiver_type_id_of` → `a.type_id`) and native (`switch(recv.tag)`) miss; **(b) erased primitive read/write** — the erased body emits `array.get <ref>`, whose native path (`vader_array_ref_load_box`) only handles `element_kind ∈ {REF, BOXED}`, NOT a primitive-packed buffer (`i32[]` = 4-byte slots) → would read a 24-byte box from a 4-byte slot (the VM escapes via uniform boxing). Two design options if ever needed: **A. full erasure** — extend the runtime ref-load/store helpers to box/unbox primitive elements via `element_kind` + `element_tag`, and expand the one erased row over every array type in the table (generalises to any `T[] implements Trait` virtual dispatch); **B. per-element monomorphisation** — materialise concrete `at__<elem>` / `set_at__<elem>` keyed on the concrete array type (fast reads, no runtime change, more plumbing to track which element types reach the bound). Defer until there's a real caller passing an array to a `[C: Index]` generic.
 
 - [x] **`for x in self` over an abstract `Iterator<T>` typed the loop var `?`, not `T`** (found 2026-07-24, fixed 2026-08-13). Inside a generic combinator's own body — `my_map :: fn<T, U>(self: Iterator<T>, …) { for x in self { … } }` — every loop variable recorded as `?`, visible in `tests/snippets/fuse_generator_chain/typecheck.snapshot` and in LSP hover. Now `T`.
@@ -824,3 +832,123 @@ Moved out of MVP (was §1.10). C backend already covers native deployment.
 - `vader/` — the self-hosted Vader compiler (lexer, parser, typecheck, lower, midir, bytecode, c_emit, vm, lsp, fmt, cli)
 - `tests/` — snapshot tests
 - `docs/IMPROVEMENT.md` — review-driven improvement plan (2026-05-11)
+
+## LSP — keywords highlighted inside a vaderdoc comment
+
+Reported 2026-09-05 with a screenshot of `lib/system/darwin/darwin.vader`. Inside
+a `///` block, ordinary words are coloured as code: `NEEDED`, `the`, `is` and
+`one` each get an identifier/keyword colour while the rest of the line stays
+comment-grey. The whole run is one comment token, so the highlighting is coming
+from somewhere that re-tokenises the comment's TEXT rather than from
+`classify_token`.
+
+Worth checking against `bug_yield_not_highlighted_keyword`'s fix, which made
+`classify_token` exhaustive and single-source — this looks like a second
+consumer that never got the same treatment.
+
+## Varargs in Vader — and what the C interface should become
+
+`@c_variadic(N)` is a STOPGAP, taken 2026-09-05 to close a real hole: the VM's
+trampoline casts a resolved symbol to a NON-variadic prototype, and on
+darwin-arm64 variadic arguments travel on the stack rather than in registers, so
+`ioctl` had the kernel write eight bytes to an uninitialised stack word and
+report success. The marker says where a callee's fixed arguments end, which is
+the one thing the trampoline needs and the one thing `@c_header` gives to `cc`
+and not to us.
+
+**We want real varargs in the language.** When they land, revisit the C
+interface as a whole rather than bolting them onto the marker.
+
+Two things to carry into that decision:
+
+- Today a variadic C function is bound as ONE `@extern` PER CALL SHAPE, and the
+  duplicate-symbol gate (T3050) steps aside when both carry `@c_header`
+  precisely so that works. It is verbose, and it has a virtue Vader-level
+  varargs would lose: `cc` checks each shape against the real prototype, so
+  `printf("%d", 3.0)` fails the build. A `...` on the Vader side moves that
+  check to nobody.
+- `@c_variadic(N)` does not protect against its own absence. A bare
+  `@extern("ioctl")` stays wrong on the VM, silently. Only `cc` knows a
+  prototype is variadic, so a compiler-side check would cover the native path
+  and not the one that is actually broken. Same shape as `@c_header` being our
+  only ABI check with nothing requiring it.
+
+## 5 — a mirror field that is a nullable pointer
+
+`CPointer | null` is refused as a `@c_struct` field and should not be. It is the
+one union with a flat C shape — a bare `void*`, which is exactly what a struct
+member holding an optional pointer is — but the emitted field is a 16-byte
+`vader_box_t`, so the width assert catches it and the gate refuses it first.
+
+Deferred 2026-09-05. The workaround in `lib/system/windows` is a `usize` for
+every RESERVED member (`lpSecurityDescriptor`, `STARTUPINFOA`'s four pointers),
+which occupies the right eight bytes and stays zero, plus a `__typeof__`
+conversion in the shim's assignment. That is sound while every leaf carries both
+a width and an offset `_Static_assert` — but it means a member that genuinely
+holds a pointer the caller sets cannot be mirrored at all.
+
+The fix is the B1 inline representation the runtime already has
+(`vader_b1_to_box` / `vader_box_to_b1`, `runtime/c/vader.h`): a `T | null` where
+T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants
+the same treatment. Once it lands, the reserved members go back to being what
+they are and the `__typeof__` cast can narrow or go.
+
+## A bare identifier in a `match` pattern BINDS — it does not compare
+
+    K: i32: 7
+    match 99 {
+        K -> "matched K"      // taken, for every value
+        _ -> "fell through"
+    }
+    → matched K
+
+`K` is a binding pattern that shadows the constant, so the arm is irrefutable and
+every later arm is dead. It compiles clean. The only hint is `W0007 K is never
+used`, which does not appear at all once the constant has another user — which is
+exactly the case for a table of named platform codes.
+
+Found writing `std/io::last_io_error`, where a `match` over `ENOENT` / `EACCES` /
+`EISDIR` classified all three as the first arm. The codes were right and the
+classification silently was not; both bodies are `if` chains now, with the reason
+written beside them.
+
+Rust hit the same shape and answered with a lint (`bindings_with_variant_name`,
+deny-by-default) plus the convention that a const pattern is a PATH. Options
+here, roughly in order of cost:
+  - warn when a binding pattern's name resolves to a module-level constant in
+    scope — the narrow, high-value case, and what actually bit;
+  - require a leading `.` or a qualified path for a value pattern, making a bare
+    name unambiguously a binding (a syntax change, SPEC §"Patterns");
+  - leave it, and rely on `_` never being reached being caught by T3013 — which
+    it is NOT here, since the first arm covers everything.
+
+## A cross-target `@comptime` that reaches a `@target` body dies silently
+
+Dumping for one target from a host that is not it, where the closure holds a
+`@comptime` value calling a `@target`-split extern:
+
+    vader dump --stage=bytecode --target=linux-x86_64 <snippet>   # run on Windows
+    → no output at all, no diagnostic, exit 0
+
+A `@comptime` is folded on the machine the COMPILER runs on. The `@target` body
+it reaches is the one selected for the TARGET. So the host evaluates a call to
+`clock_gettime`, which Windows cannot resolve, and the evaluation takes the whole
+dump down without a word.
+
+Found because `std/time` briefly carried `@comptime BUILT_AT_SECONDS ::
+unix_seconds_now()`. `lib/random` imports `std/time`, so `std_random` and
+`ufcs_primitive_literal` — two snippets that never mention the clock — produced
+zero bytes on Windows CI while every other snippet dumped normally. Correlation
+verified on the guest: the two snippets pulling `std/time` gave 0 lines, two that
+do not gave 7 and 925. The constant is gone; the hole is not.
+
+Same family as the pinned-target-vs-host divergence that had Windows running the
+LINUX `temp_dir()` body.
+
+Two things to fix, and the first matters more:
+  - **the silence.** An FFI resolution failure during comptime folding must be a
+    diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is
+    what made this take a guest reproduction to find. Sibling of M5007.
+  - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a
+    `@target` body when host ≠ target, or select the HOST's body for the folding
+    (which changes what gets baked, and needs deciding rather than assuming).

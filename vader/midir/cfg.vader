@@ -77,6 +77,12 @@ export CFGExternDecl :: struct {
     /// that the linker resolves). False for @intrinsic-style bodyless
     /// fns (stdlib host bindings handled by the c-emit shim switch).
     is_extern:   bool
+    /// See `FnMetadata.c_header`.
+    c_header:    string
+    /// See `FnMetadata.c_library`.
+    c_library:   string
+    /// See `BcImport.c_variadic_fixed`.
+    c_variadic_fixed: i32 = -1
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs
@@ -173,6 +179,7 @@ export Instruction ::
     | InstrCall
     | InstrCallIndirect
     | InstrFnRef
+    | InstrFnAddr
     | InstrVirtualCall
     | InstrFieldGet
     | InstrFieldSet
@@ -268,6 +275,20 @@ export InstrFnRef :: struct {
     dst:       LocalId
     fn_symbol: Symbol
     type:      Type                     // the fn type
+}
+
+/// A function's ADDRESS, for a C callback. Lowers to bytecode `fn.addr`.
+///
+/// Distinct from `InstrFnRef`, which builds a callable Vader value; see
+/// `bytecode/op::FnAddr` for why the two cannot be the same thing. Built only
+/// by `build_call` for an argument in a callback position of an `@extern`.
+export InstrFnAddr :: struct {
+    span:      Span
+    dst:       LocalId
+    fn_symbol: Symbol
+    /// The callee's signature as written at the site. Informational — it feeds
+    /// the dump only. `dst` is typed `TY_CPOINTER`, not this.
+    type:      Type
 }
 
 /// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.

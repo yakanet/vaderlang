@@ -5,6 +5,7 @@
 ## tests/snippets/narrow_imported_map/lib
 
 ## generic instances
+  ArrayOps<T>
   MutableMap<i32, i32 | Wrap>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
@@ -35,7 +36,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  ArrayOps<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>

@@ -183,6 +183,7 @@ synth_concat_symbol :: fn(ctx: FnLowerCtx!, kind: SymbolKind, name: string) -> S
     .kind       = kind,
     .name       = name,
     .module     = ctx.project.loaded.entry,
+    .module_name = ctx.project.loaded.entry,
     .visibility = Visibility.Private,
     .defined_at = null,
 }

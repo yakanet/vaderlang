@@ -1,7 +1,7 @@
 // vader/dap/protocol — DAP (Debug Adapter Protocol) message encoding.
 //
 // DAP rides the SAME `Content-Length\r\n\r\n<json>` framing as LSP, so the
-// transport (`read_frame` / `write_frame` / `unbuffer_stdin` / `poll_pending`)
+// transport (`read_frame` / `write_frame` / `poll_pending`)
 // and the JSON field accessors are reused verbatim from `vader/lsp/protocol`.
 // Only the message SHAPE differs — DAP uses `seq` / `type: request|response|
 // event` / `command` where LSP uses the JSON-RPC 2.0 envelope — so this module

@@ -201,6 +201,7 @@ type_param_t :: fn() = Symbol {
     .kind       = SymbolKind.TypeParam,
     .name       = "T",
     .module     = "test",
+    .module_name = "test",
     .visibility = Visibility.Private,
     .defined_at = null,
 }
@@ -245,6 +246,7 @@ type_param_t :: fn() = Symbol {
         .kind       = SymbolKind.TypeParam,
         .name       = "T",
         .module     = "test",
+        .module_name = "test",
         .visibility = Visibility.Private,
         .defined_at = null,
     }

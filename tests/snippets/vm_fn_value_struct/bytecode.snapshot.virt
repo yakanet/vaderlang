@@ -6,21 +6,21 @@ type 3 fn (1,1) -> 1
 export main 1
 
 fn 0 snippet$mul (i32,i32) -> i32
-  local.get 0
-  local.get 1
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   i32.mul
   return
 end
 
 fn 1 snippet$main () -> i32
   local $field_3 ref
-  fn.ref 0 3
-  struct.new 2
-  struct.get 2 0
-  local.set 0
+  fn.ref 0 3   ; snippet$mul
+  struct.new 2   ; snippet$Calculator
+  struct.get 2 0   ; snippet$Calculator.op
+  local.set 0   ; $field_3
   i32.const 6
   i32.const 7
-  local.get 0
-  call.indirect 3
+  local.get 0   ; $field_3
+  call.indirect 3   ; fn
   return
 end

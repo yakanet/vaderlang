@@ -40,14 +40,6 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
     }
 }
 
-/// Clone an Expr, dispatching to `substitute_type_expr` for type-position
-/// shapes and recursing into value-position children for the rest. EXHAUSTIVE
-/// over the closed `Expr` union : every node is rebuilt with a fresh
-/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased (a
-/// passed-through node would later be mutated in place by `assign_block_ids`,
-/// corrupting the trait's own ids across every impl — the CR-f defect) and
-/// every nested `Self` / type-param is substituted. A new `Expr` variant trips
-/// T3013 here until it is handled — no silent pass-through.
 // Substitute inside a `??` fallback, preserving its concrete shape : break /
 // continue carry no substitutable expression ; return substitutes its value.
 substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback, subst: Subst) -> AST.CoalesceFallback = match f {
@@ -61,6 +53,19 @@ subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
     return substitute_expr_full(v, subst)
 }
 
+/// Clone an Expr, dispatching to `substitute_type_expr` for type-position shapes
+/// and recursing into value-position children for the rest.
+///
+/// EXHAUSTIVE over the closed `Expr` union: every node is rebuilt with a fresh
+/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased — a
+/// passed-through node would later be mutated in place by `assign_block_ids`,
+/// corrupting the trait's own ids across every impl — and every nested `Self` /
+/// type-param is substituted. A new `Expr` variant trips T3013 here until it is
+/// handled; there is no silent pass-through.
+///
+/// @param e      the node to clone.
+/// @param subst  the type-param → trait-arg bindings to apply.
+/// @return       a fresh tree sharing no node with `e`.
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
     match e {
         // Leaves : reuse the original. No TypeParam refs possible.
@@ -287,6 +292,8 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 new_params.push(AST.FnParam {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
                     .ty = new_pty, .default_value = new_default, .variadic = pm.variadic, .mutable = pm.mutable,
+                    // Carried over — see the field's own note on why it has no default.
+                    .decorators = pm.decorators,
                 })
             }
             new_ret: AST.TypeExpr | null = null
@@ -448,36 +455,23 @@ export substitute_block_materialized :: fn(
 
 // ---- span uniquification for materialised clones --------------------------
 //
-// Rewrite every cloned node's span to a unique synthetic span. The
-// resolver's `idents` map is SPAN-keyed, so cloned body nodes that kept the
-// trait method's source spans collide across the N impls sharing one default
-// method (i8 … char `Comparable`), leaving `other` unresolved in the `gt` /
-// `gte` / … bodies. (`expr_types` is id-keyed, so it was already safe — this
-// only fixes the span-keyed `idents` lookups.)
+// Rewrite every cloned node's span to `<clone>:(base_line):(N)`. A clone that
+// keeps the trait method's spans collides with every sibling impl of that trait
+// in the span-keyed `idents` map, and the replacement span must be DETERMINISTIC
+// rather than merely unique — a node id will not do. Both constraints, and what
+// each ingredient of the span answers for, are recorded in
+// docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
 //
-// The span MUST be DETERMINISTIC, not derived from the per-clone node id :
-// std/core's default-method bodies are materialised TWICE (once for the
-// typecheck phase, once for the lower phase, on distinct ImplDecl copies),
-// and node ids differ between the two generations — so an id-derived span
-// would record `idents` under one span at resolve time and read a different
-// span at lower time → miss. Instead the span is `<clone>:(base_line):(N)`
-// where `base_line` is the impl's source line (stable + unique per impl) and
-// `N` is a traversal counter that accumulates across all the impl's cloned
-// members. Identical tree structure → identical counter per node across both
-// generations → resolve and lower agree. `file = "<clone>:<src>"` (the impl's
-// source file folded in) keeps these clear of every real source span AND
-// distinguishes two impls at the same `(line, column)` in different files of
-// one module (`Span.hash` folds in `start.file`). Coverage mirrors
-// `substitute_block` / `substitute_expr_full`.
+// Coverage mirrors `substitute_block` / `substitute_expr_full` : a node kind
+// missed here silently keeps its trait span.
 
-/// Deterministic span allocator for one impl's materialised clones. `base_line`
-/// = the impl's source line ; `counter` accumulates across the impl's members
-/// (created once per impl, threaded through every member clone) ; `file` is a
-/// synthetic per-impl-source-file discriminator (`"<clone>:<src>"`) so two impls
-/// at the SAME `(line, column)` in DIFFERENT files of one module don't collide
-/// their span keys (`Span.hash` folds in `start.file`). Keeps the `<clone>`
-/// prefix to stay clear of real source spans, and is stable across the
-/// typecheck/lower materialisation generations (the source file is invariant).
+/// Deterministic span allocator for one impl's materialised clones — created once
+/// per impl, then threaded through every member clone.
+///
+/// `base_line` is the impl's source `line * 1024 + column`, `counter` a traversal
+/// counter accumulating across the impl's members, and `file` is
+/// `"<clone>:<src>"` — the impl's source file folded in, since `Span.hash` folds
+/// in `start.file`.
 export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 
 /// Prefix marking a materialised clone's synthetic file path — the rest of the

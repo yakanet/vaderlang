@@ -20,6 +20,10 @@
   Timeout<T>
   Timeout<T>
   Timeout<T>
+  ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -52,6 +56,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Mul<Rhs, Out>
   MutableSet<i32>
   MutableSet<usize>
   MutableSet<T>
@@ -62,11 +67,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  ArrayOps<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>

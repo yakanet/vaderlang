@@ -1,0 +1,7 @@
+// `@assert` stands on its own at the top level rather than annotating a
+// declaration. It takes a condition, and optionally a message — no more.
+module "snippet"
+
+main :: fn() -> i32 = 0
+
+@assert(true, "a", "b")

@@ -14,57 +14,65 @@
         float(-inf) :f64
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            concat_9 :string
+            concat_2 :string
           arg0:
             call :string
               callee:
-                format_f64 :fn(f64) -> string
+                concat_9 :string
               arg0:
-                float(inf) :f64
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    float(inf) :f64
+              arg1:
+                " " :string
+              arg2:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    float(-inf) :f64
+              arg3:
+                " " :string
+              arg4:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    float(nan) :f64
+              arg5:
+                " " :string
+              arg6:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    index :f64
+                      on:
+                        arr :f64[]!
+                      ix:
+                        int(0) :i32
+              arg7:
+                " " :string
+              arg8:
+                call :string
+                  callee:
+                    format_f64 :fn(f64) -> string
+                  arg0:
+                    index :f64
+                      on:
+                        arr :f64[]!
+                      ix:
+                        int(1) :i32
           arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                float(-inf) :f64
-          arg3:
-            " " :string
-          arg4:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                float(nan) :f64
-          arg5:
-            " " :string
-          arg6:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                index :f64
-                  on:
-                    arr :f64[]!
-                  ix:
-                    int(0) :i32
-          arg7:
-            " " :string
-          arg8:
-            call :string
-              callee:
-                format_f64 :fn(f64) -> string
-              arg0:
-                index :f64
-                  on:
-                    arr :f64[]!
-                  ix:
-                    int(1) :i32
+            "\n" :string
     return int(0) :i32
   fn concat_9(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string, p7: string, p8: string) -> string
     let c0: usize =

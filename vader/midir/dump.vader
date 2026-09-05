@@ -80,6 +80,7 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrCall         as i -> { return "${dump_dst(i.dst)}call ${i.callee.name}(${dump_args(i.args)}) :${display_type(i.type)}" }
         is InstrCallIndirect as i -> { return "${dump_dst(i.dst)}call_indirect %${i.callee}(${dump_args(i.args)}) :${display_type(i.type)}" }
         is InstrFnRef        as i -> { return "%${i.dst} = fn_ref ${i.fn_symbol.name} :${display_type(i.type)}" }
+        is InstrFnAddr       as i -> { return "%${i.dst} = fn_addr ${i.fn_symbol.name} :${display_type(i.type)}" }
         is InstrVirtualCall  as i -> {
             extra :: if i.args.len() > 0 { ", ${dump_args(i.args)}" } else { "" }
             return "${dump_dst(i.dst)}vcall ${i.trait_name}.${i.method}(recv=%${i.receiver}${extra}) :${display_type(i.type)}"

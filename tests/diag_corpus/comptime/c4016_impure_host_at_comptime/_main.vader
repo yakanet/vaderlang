@@ -1,21 +1,29 @@
-// A `@comptime` const that reaches an impure host (here `get_env`, via the
-// VM-backed comptime pass) is refused with C4016 : running it at build time
-// would bake a non-reproducible value and break the byte-identical bootstrap.
+// A `@comptime` const that asks what machine the COMPILER is running on — here
+// `current_os` — is refused with C4016.
+//
+// Not because it is impure. Reading the clock or the environment at build time
+// is allowed and is the program author's call; a build stamp is an ordinary
+// thing to want. This is refused for a different reason: baking it makes the
+// same SOURCE emit differently depending on who built it, which no author asked
+// for and none can see. This tree's own byte-identical bootstrap is checked
+// where it belongs, by `bootstrap/verify.sh`.
 module "snippet"
 
-import "std/env"
+import "std/target"
 
 @comptime
-export HOME_AT_BUILD :: read_home()
+export INTERACTIVE_AT_BUILD :: read_tty()
 
-read_home :: fn() -> string {
-    v :: get_env("HOME")
-    if v == null { return "unset" }
-    return v
+// `current_os` will never leave the intrinsics: it answers for the machine the
+// COMPILER runs on, and baking that would make a macOS emit differ from a Linux
+// one for the same source — which `seed.sh check` compares byte for byte.
+read_tty :: fn() -> string {
+    if current_os() == Os.Darwin { return "mac" }
+    return "other"
 }
 
 main :: fn() -> i32 {
     // Reference the const so its RHS is inlined and the VM-backed comptime pass
-    // actually evaluates `read_home` (an unused const is skipped silently).
-    return i32(HOME_AT_BUILD.byte_len())
+    // actually evaluates `read_tty` (an unused const is skipped silently).
+    return i32(INTERACTIVE_AT_BUILD.byte_len())
 }

@@ -151,6 +151,16 @@ export LowerProjectCtx :: struct {
     /// (which are `≥ 1`).
     next_synthetic_id:   i32
 
+    /// Per-MODULE counter for lifted-symbol NAMES (`__lambda_*`, `__defer_*`).
+    /// Distinct from `next_synthetic_id`, which stays project-global because
+    /// the ids it mints must be unique across the whole program.
+    ///
+    /// A name keyed on a project-wide rank shifts whenever anything before it
+    /// changes, so a function reached by one target alone renumbers every
+    /// lambda behind it and modules whose code is identical emit different C.
+    /// Keyed per module, a module that does not change keeps its names.
+    lambda_seq:          MutableMap<string, i32>!
+
     /// Monotonically-increasing counter for synthetic `MonoEntry` IDs,
     /// separated from the symbol-id pool so minting an entry doesn't
     /// bump `__lambda_N` / `__lambda_env_N` naming.
@@ -325,6 +335,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
         .closures            = new_closure_analysis(),
+        .lambda_seq          = MutableMap<string, i32> {},
         .next_mono_entry_id  = 1_000_000,
         .fn_instances        = MutableMap<string, GenericFnInstance> {},
         .fn_instances_order  = [],

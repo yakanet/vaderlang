@@ -204,17 +204,14 @@ export load_project_with_overlay :: fn(
                 _ -> {}
             }
             drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
-            // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
-            // S4): `${sb}` interpolation and user `StringBuilder` code resolve
-            // `StringBuilder {}` + `append`/`to_string` in the lowerer, a
-            // dependency not visible as a source import (string `+` and all-string
-            // `${}` now route through the synthesised `concat_N`, std/core-backed).
-            // Appending it last (rather than seeding it early)
-            // keeps the natural module load order — and thus symbol-id assignment
-            // — identical to a build without the force-load, so it never perturbs
-            // materialisation for entries that already load it (e.g.
-            // bootstrap.vader strands `build_stmt` if string_builder is seeded
-            // early). Unused-when-no-interp code is DCE'd.
+            // Force-load `std/string_builder`: the lowerer resolves
+            // `StringBuilder {}` + `append`/`to_string` for `${sb}` interpolation,
+            // a dependency no source import makes visible. DCE'd when unused.
+            //
+            // It MUST come after the natural BFS, not be seeded early, so module
+            // load order — and thus symbol-id assignment — stays identical to a
+            // build that never asked for it. Seeding it early strands `build_stmt`
+            // in bootstrap.vader.
             string_builder :: resolve_lazy("std/string_builder", bases, index, loader_diags)
             match string_builder {
                 is DiscoveredModule as sbm -> {
@@ -226,24 +223,17 @@ export load_project_with_overlay :: fn(
                 _ -> {}
             }
             // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
-            // AFTER the natural BFS for the same reason `std/string_builder` is:
-            // the natural module load order — and thus symbol-id assignment —
-            // stays identical to a build that never asked for them.
+            // after the natural BFS for the same order-preserving reason as
+            // `std/string_builder` above. The module is VIRTUAL — generated per
+            // build and served through the overlay, never written to disk, which
+            // would be a second source of truth and wrong on the first
+            // cross-compile. Skipped without `std/target`, since the constants
+            // name `Os` and `Arch` and there would be no module to name them from.
             //
-            // The module is VIRTUAL: its source is generated per build and served
-            // through the overlay, never written to disk. A copy on disk would be
-            // a second source of truth, and it would be wrong on the first
-            // cross-compile.
-            //
-            // Skipped when `std/target` is absent — a single-file snippet without
-            // the stdlib — exactly as `build_core_seed` returns an empty map
-            // without `std/core`: the constants name `Os` and `Arch`, so with no
-            // module to name them from there is nothing to bake.
-            // `bake_target`, not `effective_target`: the constants must exist in
-            // the union view too, where selection is off but `VADER_OS` is still
-            // a name any file may use. Defaulting here rather than at each entry
-            // point means every command — `run`, `test`, `lint`, `dump`, the LSP
-            // — bakes consistently without having to remember to ask.
+            // `bake_target`, NOT `effective_target`: the constants must exist in
+            // the union view too, where selection is off but `VADER_OS` is still a
+            // name any file may use. Defaulting here rather than per entry point
+            // is what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
             load_baked_target(modules, bases, index, loader_diags, overlay,
                 factory, node_factory, bake_target)
             detect_import_cycles(modules, index, loader_diags)
@@ -256,16 +246,6 @@ export load_project_with_overlay :: fn(
     }
 }
 
-// Full-parse + collect each file the BFS pulls in. Mirrors the legacy
-// `load_one` / `collect_files` path : the header-only index records
-// the file *paths*, so we re-read + re-parse here to produce the
-// SourceFile + CollectedModule the resolver / typechecker downstream
-// expect. `index` lets `collect_files` resolve each import path and
-// emit R2001/R2024/R2025/R2028 with the right span.
-// BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
-// module, then enqueue its imports. Shared by the entry BFS and the
-// std/string_builder force-load so both follow identical ingestion logic
-// (and so the force-load can run as a separate, order-preserving pass).
 // Generate and ingest the baked-constants module. Requires `std/target`, which
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
@@ -296,16 +276,18 @@ load_baked_target :: fn(
     drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, target)
 }
 
+// BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
+// module, then enqueue its imports. Shared by the entry BFS and the
+// `std/string_builder` force-load, so the force-load runs as a separate pass
+// without diverging from the ingestion logic.
 drain_load_queue :: fn(
     queue: DiscoveredModule[]!, bases: IncludePath[],
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory!,
-    // NO default. It used to carry one, and two of the four call sites silently
-    // took it — including the `std/target` pre-load, which then ran with
-    // selection DISABLED and let every `@target` body through to the type
-    // checker. A default here makes "I forgot" and "I mean no target" the same
-    // keystroke; requiring the argument makes the compiler ask.
+    // NO default: it would make "I forgot" and "I mean no target" the same
+    // keystroke. A call site that takes it silently runs with selection
+    // DISABLED and lets every `@target` body through to the type checker.
     target: Target | null,
 ) -> void {
     cursor: usize = 0
@@ -373,6 +355,11 @@ walk_import_cycle :: fn(
     state[id] = 2
 }
 
+// Full-parse + collect one module's files. The index is header-only and records
+// the file *paths*, so the files are re-read and re-parsed here to produce the
+// SourceFile + CollectedModule downstream expects. `index` is what lets
+// `collect_files` resolve each import path and emit R2001/R2024/R2025/R2028 with
+// the right span.
 ingest_module :: fn(
     m: DiscoveredModule, bases: IncludePath[],
     modules: MutableMap<string, LoadedModule>!, factory: SymbolFactory!,
@@ -455,28 +442,25 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 }
 
 // Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
-// first-match-wins : the `--include-paths` flag entries (highest precedence, and
-// what a driven build injects the compiler's own sources through), then a BUNDLED
-// library root when the binary is part of one, then the manifest dir itself (so a
-// project's own modules resolve by their folder-relative name), then each
-// `vader.json includePaths` entry joined onto it, then the cwd-relative library
-// fallback.
+// first-match-wins: the `--include-paths` flag entries (a driven build injects the
+// compiler's own sources through these), then a BUNDLED library root when the
+// binary is part of one, then the manifest dir itself, then each `vader.json
+// includePaths` entry joined onto it, then the cwd-relative library fallback.
 //
-// Why the bundled root outranks the project — NAMESPACE RESERVATION. `lib/` hosts
-// every namespace the toolchain ships, and those names are ordinary directory
-// names (`std`, and in time `json`, `cli`, `images`, …). With the project first, a
-// project declaring `module "cli"` silently wins over the shipped `cli`, which is
-// bad on its own and worse in a DRIVEN build: the compiler's sources are compiled
-// in the same unit as the project, so `vader/cli` would be built against the
-// user's module. Reproduced before fixing.
+// The bundled root outranks the project to RESERVE the namespaces `lib/` ships,
+// which are ordinary directory names (`std`, and in time `json`, `cli`, …).
+// Project-first, a project declaring `module "cli"` wins over the shipped `cli` —
+// and in a DRIVEN build, where the compiler's sources compile in the same unit,
+// `vader/cli` would then be built against the user's module.
 //
-// Only the BUNDLED root is promoted, never the cwd-relative fallback: the bundle's
-// root is authoritative (the toolchain put it there, and the marker proves it),
-// whereas a bare `<cwd>/lib` is a guess — and a project that keeps its own code
-// under `lib/` must not have that searched ahead of its own modules.
-// It returns the ORIGIN with each root, and that is the point: this is the only
-// place that knows. A flag came from the caller, the sidecar probe found a root the
-// toolchain planted, a manifest entry may be either. See `ModuleOrigin`.
+// Only the BUNDLED root is promoted, never the cwd-relative fallback: a bundle's
+// root is authoritative (the marker proves the toolchain planted it) where a bare
+// `<cwd>/lib` is a guess, and a project keeping its own code under `lib/` must not
+// have that searched ahead of its own modules.
+//
+// The ORIGIN travels with each root because this is the only place that knows it:
+// a flag came from the caller, the sidecar probe found a planted root, a manifest
+// entry may be either. See `ModuleOrigin`.
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> IncludePath[] {
@@ -535,8 +519,8 @@ plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
 /// directory otherwise — the same shape as `resolve_sidecar`'s stdlib fallback,
 /// and for the same reason: `find_manifest_root` returns null for a project with
 /// no `vader.json`, which is most small projects and every test fixture. It also
-/// matches what the DRIVER used to write the tree: the CLI hands it the invocation
-/// directory as `args[1]`. The consequence to know is that compiling a
+/// matches the anchor the DRIVER writes the tree against: the CLI hands it the
+/// invocation directory as `args[1]`. The consequence to know is that compiling a
 /// manifest-less project from a different directory will not find its generated
 /// tree — exactly the existing limitation on finding its stdlib.
 ///
@@ -562,8 +546,8 @@ entry_folder_of :: fn(path: string) -> string {
     if exists(path) && is_dir(path) { return path }
     folder :: dir_of(path)
     // A bare filename ("main.vader", no separator) has no parent, and `read_dir`
-    // of "" fails — which surfaced as `entry file's folder declares no module`,
-    // a message pointing at the module declaration rather than at the path. The
+    // of "" fails — surfacing as `entry file's folder declares no module`, a
+    // message pointing at the module declaration rather than at the path. The
     // invocation directory is what the user meant.
     if folder == "" { return "." }
     return folder
@@ -595,24 +579,18 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
         match existing {
             is null -> { dst.symbols[name] = sym }
             is Symbol as e -> {
-                // Fn-vs-fn collisions are handled by `fn_overloads`
-                // below — the primary slot keeps its first-wins binding
-                // (mirrors `add_fn_symbol`'s policy) while every
-                // overload still lands in the bucket.
+                // Two cross-file collisions are legitimate. Fn-vs-fn goes
+                // to `fn_overloads` below — the primary slot keeps its
+                // first-wins binding (`add_fn_symbol`'s policy), the
+                // overloads land in the bucket. ImportBinding-vs-Import-
+                // Binding is normal usage (two files of one module each
+                // importing `MutableMap`); `bind_import` checks the per-file
+                // scope, so the module-wide table only needs one slot to
+                // carry the binding to the wire pass.
                 //
-                // ImportBinding-vs-ImportBinding (same name imported in
-                // multiple sibling files) is normal Vader usage : two
-                // files of the same module can independently import
-                // `MutableMap` from `std/collections`. Per-file scope
-                // is what `bind_import` already checks ; the merged
-                // module-wide table only needs one slot to carry the
-                // binding through to the wire pass.
-                //
-                // Cross-file duplicates of any other non-fn kind
-                // (struct / enum / trait / const / type-alias) violate
-                // the module-system invariant that one module owns one
-                // declaration of a given name ; fire R2026 per
-                // decision #28 of the module redesign.
+                // Every other non-fn kind duplicated across files breaks the
+                // one-module-owns-one-declaration invariant: R2026 (module
+                // redesign, decision #28).
                 fn_pair     :: e.kind == SymbolKind.Fn && sym.kind == SymbolKind.Fn
                 import_pair :: e.kind == SymbolKind.ImportBinding && sym.kind == SymbolKind.ImportBinding
                 if !fn_pair && !import_pair {

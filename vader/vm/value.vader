@@ -535,6 +535,14 @@ export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
     // `i32 | f32` union — describes as "f64" and matches nothing, so the narrow
     // yields NEITHER. `f64` is already caught by the exact-name check above.
     if val == .F32 { return v is F64Val }
+    // `CPointer` has no dedicated Value variant either — a foreign pointer comes
+    // back from `extern_result` as an `I64Val` (a machine word is what it is).
+    // Without this arm `is CPointer` matched NOTHING: a `match` over
+    // `CPointer | null` took no branch at all and the interpreter left the
+    // function, exit 0, no trap — while the native build took the pointer arm.
+    // The native side tags its box with the `CPointer` type id, which is why
+    // only the VM was affected.
+    if val == .Pointer { return v is I64Val || v is I32Val }
     return false
 }
 
@@ -559,6 +567,7 @@ export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
     .String -> false
     .Null  -> false
     .Void  -> false
+    .Pointer -> false
     .Ref   -> false
     .Any   -> false
 }

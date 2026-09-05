@@ -25,6 +25,38 @@ import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
+/// `bytecode.snapshot.virt` is pinned to `SNAPSHOT_TARGET`, but this test
+/// EXECUTES it. On a host that is not that target the pinned bytecode carries
+/// another platform's `@target` bodies: Windows ran the LINUX `temp_dir()`,
+/// looked up `TMPDIR` -- a variable Windows does not set, it uses `TMP`/`TEMP`
+/// -- and fell back to `"/tmp"`, which does not exist there, so
+/// `ppm_roundtrip` reported `open failed`. macOS never noticed because
+/// `@target(.Linux, .Darwin)` share one body.
+///
+/// A snapshot's identity is its target; an execution's identity is its host.
+/// The two cannot be the same artefact, so off-target hosts re-emit for
+/// themselves and only the pinned host reuses the committed file.
+const HOST_IS_SNAPSHOT_TARGET = process.platform === "linux" && process.arch === "x64";
+
+/// The `.virt` to run: the committed one when the host IS the pinned target,
+/// a host-targeted re-emission otherwise.
+async function virtForHost(name: string, mainPath: string, pinned: string): Promise<string> {
+  if (HOST_IS_SNAPSHOT_TARGET) {
+    return pinned;
+  }
+  const dumped = await runCli(["dump", "--stage=bytecode", mainPath]);
+  if (dumped.exit !== 0) {
+    throw new Error(`vader-vm: could not emit host bytecode for ${name}\n${dumped.stderr}`);
+  }
+  const out = join(tmpdir(), `vader-vm-host-${name}.virt`);
+  writeFileSync(out, dumped.stdout);
+  return out;
+}
+
+/// Snippets whose `@extern` targets a symbol no Windows DLL exports, so the VM
+/// cannot resolve it even though the native build links it statically.
+const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_prefix_mirror"]);
+
 // Snippets where Vader's self-emitted bytecode INTENTIONALLY diverges from
 // the TS snapshot (mode-a GATE A : concrete devirt instead of erased
 // `virtual.call`) AND is more correct — TS's erased form returns the wrong
@@ -274,9 +306,12 @@ for (const s of scenarios) {
   // the committed TS `.virt`), and compare to the same `vm.snapshot` oracle.
   if (VADER_SELF_EMIT.has(s.name)) {
     test.concurrent(`vader-vm-self: ${s.name}`, async () => {
-      const dump = await runCli(["dump", "--stage=bytecode", s.mainPath]);
+      // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle
+      // needs the whole linked image, every function it calls included. The dump
+      // is a VIEW of one module and is free to narrow; the build is what runs.
       const tmp = join(tmpdir(), `vader-self-${s.name}.virt`);
-      writeFileSync(tmp, dump.stdout);
+      const built = await runCli(["build", "--emit=bytecode-text", "-o", tmp, s.mainPath]);
+      if (built.exit !== 0) throw new Error(`bytecode-text emit failed: ${built.stderr}`);
       const { stdout, stderr, exit } = await runCli(["run", tmp]);
       const actual = formatRun(stdout, stderr, exit);
       const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
@@ -290,9 +325,26 @@ for (const s of scenarios) {
     }, { timeout: MEDIUM_BUILD });
     continue;
   }
-  // Native-only snippets — `@extern` user imports trap in the Vader VM
-  // for the same reason they trap in the TS VM (no host-fn registry).
+  // A snippet with a `helper.c` defines its OWN foreign symbols, which live in
+  // the compiled binary and nowhere the interpreter can reach: it resolves an
+  // `@extern` by `dlsym` against the RUNNING PROCESS, so it finds libc and the
+  // Vader runtime and not a symbol linked into some other executable.
+  //
+  // The reason used to be that `@extern` traps on the VM outright, for want of a
+  // host registry. This branch gave it one — `dispatch_extern` — so a snippet
+  // whose externs are libc (`c_pointer_as_word`, `c_struct_prefix_mirror`) runs
+  // on both backends. Only the ones that supply their own C are skipped, and
+  // that is now the whole of the reason.
   if (s.helperCFiles.length > 0) {
+    test.skip(`vader-vm: ${s.name}`, () => {});
+    continue;
+  }
+  // The VM resolves an `@extern` through `dlsym` on the C library, so it can
+  // only reach what that library EXPORTS. MinGW keeps the POSIX shims in
+  // libmingwex.a, a static archive: the native build links `gettimeofday` in
+  // and runs, while the VM gets "symbol not found". That is a property of the
+  // platform's libc, not of the snippet — so the parity check does not apply.
+  if (process.platform === "win32" && VM_PARITY_UNAVAILABLE_WIN32.has(s.name)) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
   }
@@ -316,7 +368,8 @@ for (const s of scenarios) {
     }
   }
   test.concurrent(`vader-vm: ${s.name}`, async () => {
-    const { stdout, stderr, exit } = await runCli(["run", virtPath]);
+    const runVirt = await virtForHost(s.name, s.mainPath, virtPath);
+    const { stdout, stderr, exit } = await runCli(["run", runVirt]);
     const actual = formatRun(stdout, stderr, exit);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {

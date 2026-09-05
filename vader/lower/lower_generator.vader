@@ -72,7 +72,7 @@ push_generator_decls :: fn(
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
     next_sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = next_mangled,
-        .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
+        .module = fn_ctx.typed.resolved.path, .module_name = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
     }
     next_decl :: LoweredFnDecl {
         .mangled = next_mangled,

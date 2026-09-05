@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/distinct_into_backing
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Tag                  :: type
+  FnDecl         takes                :: fn(string) -> string
+  expr 11:34    CallExpr       :: string
+  expr 11:34    IdentExpr      :: type
+  expr 11:41    IdentExpr      :: Tag
+  expr 14:36    IdentExpr      :: string
+  expr 17:13    CallExpr       :: string
+  expr 17:13    IdentExpr      :: fn(string) -> string
+  expr 17:19    CallExpr       :: Tag
+  expr 17:19    IdentExpr      :: type
+  expr 17:23    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    CallExpr       :: string
+  expr 18:13    IdentExpr      :: type
+  expr 18:20    CallExpr       :: Tag
+  expr 18:20    IdentExpr      :: type
+  expr 18:24    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

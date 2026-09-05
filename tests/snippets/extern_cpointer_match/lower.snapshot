@@ -1,0 +1,257 @@
+# Lower
+
+## snippet
+  fn snippet$c_fopen(path: string, mode: string) -> CPointer | null
+    <extern / signature only>
+  fn snippet$c_fclose(f: CPointer) -> i32
+    <extern / signature only>
+  fn snippet$main() -> i32
+    let path: string =
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          call :string
+            callee:
+              temp_dir :fn() -> string
+        arg1:
+          "/vader_cpointer_probe" :string
+    let wrote: IOError | null =
+      call :IOError | null
+        callee:
+          write_file_string :fn(string, string) -> IOError | null
+        arg0:
+          path :string
+        arg1:
+          "x" :string
+    if :void
+      cond:
+        is IOError! :bool
+          wrote :IOError | null
+      then:
+        let e: IOError! =
+          cast → IOError!
+            wrote :IOError | null
+        call :void
+          callee:
+            write :fn(Stream, string) -> void
+          arg0:
+            int(0) :i32
+          arg1:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    "setup failed: " :string
+                  arg1:
+                    .msg :string
+                      e :IOError
+              arg1:
+                "\n" :string
+        return int(1) :i32
+    let r: CPointer | null =
+      call :CPointer | null
+        callee:
+          c_fopen :fn(string, string) -> CPointer | null
+        arg0:
+          path :string
+        arg1:
+          "rb" :string
+    block :i32 | void
+      ~>
+        if :i32 | void
+          cond:
+            is CPointer :bool
+              r :CPointer | null
+          then:
+            let p: CPointer =
+              cast → CPointer
+                r :CPointer | null
+            ~>
+              block :i32
+                call :void
+                  callee:
+                    write :fn(Stream, string) -> void
+                  arg0:
+                    int(0) :i32
+                  arg1:
+                    call :string
+                      callee:
+                        concat_2 :string
+                      arg0:
+                        "matched CPointer" :string
+                      arg1:
+                        "\n" :string
+                ~>
+                  call :i32
+                    callee:
+                      c_fclose :fn(CPointer) -> i32
+                    arg0:
+                      p :CPointer
+          else:
+            ~>
+              if :i32 | void
+                cond:
+                  is null :bool
+                    r :CPointer | null
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        write :fn(Stream, string) -> void
+                      arg0:
+                        int(0) :i32
+                      arg1:
+                        call :string
+                          callee:
+                            concat_2 :string
+                          arg0:
+                            "matched null" :string
+                          arg1:
+                            "\n" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "after match" :string
+          arg1:
+            "\n" :string
+    let missing: CPointer | null =
+      call :CPointer | null
+        callee:
+          c_fopen :fn(string, string) -> CPointer | null
+        arg0:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              call :string
+                callee:
+                  temp_dir :fn() -> string
+            arg1:
+              "/vader_no_such_probe_at_all" :string
+        arg1:
+          "rb" :string
+    block :i32 | void
+      ~>
+        if :i32 | void
+          cond:
+            is CPointer :bool
+              missing :CPointer | null
+          then:
+            let p: CPointer =
+              cast → CPointer
+                missing :CPointer | null
+            ~>
+              block :i32
+                call :void
+                  callee:
+                    write :fn(Stream, string) -> void
+                  arg0:
+                    int(0) :i32
+                  arg1:
+                    call :string
+                      callee:
+                        concat_2 :string
+                      arg0:
+                        "unexpectedly opened" :string
+                      arg1:
+                        "\n" :string
+                ~>
+                  call :i32
+                    callee:
+                      c_fclose :fn(CPointer) -> i32
+                    arg0:
+                      p :CPointer
+          else:
+            ~>
+              if :i32 | void
+                cond:
+                  is null :bool
+                    missing :CPointer | null
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        write :fn(Stream, string) -> void
+                      arg0:
+                        int(0) :i32
+                      arg1:
+                        call :string
+                          callee:
+                            concat_2 :string
+                          arg0:
+                            "matched null" :string
+                          arg1:
+                            "\n" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void
+    call :IOError | null
+      callee:
+        remove_file :fn(string) -> IOError | null
+      arg0:
+        path :string
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -480,6 +480,7 @@ synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
         .kind       = SymbolKind.Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
         .visibility = AST.Visibility.Private,
         .defined_at = null,
     }
@@ -513,6 +514,7 @@ resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Sym
                 .kind       = SymbolKind.Local,
                 .name       = name,
                 .module     = ctx.typed.resolved.path,
+                .module_name = ctx.typed.resolved.path,
                 .visibility = AST.Visibility.Private,
                 .defined_at = null,
             }

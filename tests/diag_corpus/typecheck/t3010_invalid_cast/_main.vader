@@ -1,0 +1,17 @@
+module "snippet"
+
+@c_header("<stdlib.h>")
+@extern("malloc")
+c_malloc :: fn(n: usize) -> CPointer
+
+// Reading a `CPointer` as a pointer-width integer is allowed — it is the only
+// way to test a non-NULL failure sentinel. Everything around it is not:
+// fabricating a pointer from an integer, and reading one into a target too
+// narrow to hold an address.
+main :: fn() -> i32 {
+    p :: c_malloc(16)
+    a :: isize(p)
+    b :: CPointer(42)
+    c :: u8(p)
+    return 0
+}

@@ -22,7 +22,7 @@
 // exercised, while the checkout is left untouched and the tests stay
 // parallel-safe.
 
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -39,9 +39,16 @@ export async function withStagedLibraryRoot<T>(
   const dir = mkdtempSync(join(tmpdir(), "vlibroot-"));
   try {
     mkdirSync(join(dir, "lib"), { recursive: true });
-    // `std/` is symlinked rather than copied: every probe needs `std/io` to write
-    // a runnable entry, and copying it per test would cost more than the test.
-    symlinkSync(join(REPO, "lib", "std"), join(dir, "lib", "std"));
+    // The root is SYNTHETIC — real namespaces beside fabricated ones — so
+    // `$VADER_HOME` cannot supply it the way it does for a staged project: it
+    // would hand over the checkout's `lib/` and lose the fabrications. The real
+    // halves are therefore COPIED, not symlinked, which Windows refuses to a plain
+    // user. `std/` is there because every probe needs `std/io` to write a runnable
+    // entry, and `system/` comes with it — `std/io` imports it for the write
+    // syscall, and a root missing it fails to resolve before any probe runs.
+    // Together they are 400 KB, well under what a probe's own compile costs.
+    cpSync(join(REPO, "lib", "std"), join(dir, "lib", "std"), { recursive: true });
+    cpSync(join(REPO, "lib", "system"), join(dir, "lib", "system"), { recursive: true });
     for (const [ns, files] of Object.entries(namespaces)) {
       for (const [rel, content] of Object.entries(files)) {
         const p = join(dir, "lib", ns, rel);

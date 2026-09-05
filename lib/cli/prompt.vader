@@ -79,7 +79,7 @@ new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
         burst :: TTY.read_keys(64)
-        if burst == "" {
+        if burst == null {
             return input_closed()
         }
         reader.pending = decode_burst(burst)
@@ -170,7 +170,7 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
     for {
         erase(drawn)
         frame :: render_select(question, options, cursor, render_width())
-        println(frame)
+        TTY.raw_print(frame)
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -245,7 +245,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
     drawn := 0
     for {
         erase(drawn)
-        println(render_multiselect(question, options, checked, cursor, render_width()))
+        TTY.raw_print(render_multiselect(question, options, checked, cursor, render_width()))
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
         if press is PromptError as e {
@@ -298,16 +298,16 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
     for {
         press :: next_press(reader)
         if press is PromptError as e {
-            println("")
+            TTY.raw_print("")
             return e
         }
         answer :: confirm_answer(press, default_yes)
         if answer is bool as decided {
-            println(if decided { "yes" } else { "no" })
+            TTY.raw_print(if decided { "yes" } else { "no" })
             return decided
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            println("")
+            TTY.raw_print("")
             return cancelled()
         }
     }
@@ -362,15 +362,15 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
         print(render_text(question, typed, default_value, render_width()))
         press :: next_press(reader)
         if press is PromptError as e {
-            println("")
+            TTY.raw_print("")
             return e
         }
         if press.key == Key.Enter {
-            println("")
+            TTY.raw_print("")
             return if typed == "" { default_value } else { typed }
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
-            println("")
+            TTY.raw_print("")
             return cancelled()
         }
         if press.key == Key.Backspace {

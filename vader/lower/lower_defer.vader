@@ -86,7 +86,7 @@ export lower_defer :: fn(
 
     env_lit :: LoweredStructLit {
         .span = defer_stmt.span, .type = env_type,
-        .fields = build_defer_env_lit_fields(defer_stmt.span, captures),
+        .fields = build_defer_env_lit_fields(ctx, defer_stmt.span, captures),
     }
     thunk :: LoweredMakeClosure {
         .span = defer_stmt.span, .type = TY_UNRESOLVED,
@@ -116,15 +116,13 @@ build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
     return fields
 }
 
-build_defer_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
+build_defer_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField[] {
     fields: LoweredStructLitField![]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]
         fields.push(LoweredStructLitField {
             .name = "cap_${i}",
-            .value = LoweredIdent {
-                .span = span, .type = capture.type, .symbol = capture.symbol,
-            },
+            .value = lifted_cell_ref(ctx, capture.symbol, span, capture.type),
         })
     }
     return fields

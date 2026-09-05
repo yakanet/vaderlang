@@ -7,46 +7,67 @@ type 4 struct std_core$Buffer {  }
 type 5 primitive u8
 type 6 array 5
 type 7 primitive void
+type 8 primitive isize
 string 0 "vader"
-string 1 "héllo café 你好"
-string 2 "abcde"
-string 3 ""
-string 4 "["
-string 5 "]"
-string 6 "\n"
-import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 2 bytes std_core$bytes (string) -> ref
-import 3 write std_io$write (i32,string) -> void
+string 1 "\n"
+string 2 "héllo café 你好"
+string 3 "abcde"
+string 4 ""
+string 5 "["
+string 6 "]"
+import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=6 param_mutable=0 param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,6,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local e string
-  string.const 0
-  call.import 2
-  call.import 1
-  call 4
-  string.const 1
-  call.import 2
-  call.import 1
-  call 4
-  string.const 2
-  call.import 2
+  local $call_5 string
+  string.const 0   ; "vader"
+  call.import 2   ; std_core$bytes
+  call.import 1   ; std_core$bytes_to_string
+  string.const 1   ; "\n"
+  call 2   ; concat_2
+  local.set 0   ; $call_5
+  i32.const 0
+  local.get 0   ; $call_5
+  call 5   ; std_io$write
+  string.const 2   ; "héllo café 你好"
+  call.import 2   ; std_core$bytes
+  call.import 1   ; std_core$bytes_to_string
+  string.const 1   ; "\n"
+  call 2   ; concat_2
+  local.set 0   ; $call_5
+  i32.const 0
+  local.get 0   ; $call_5
+  call 5   ; std_io$write
+  string.const 3   ; "abcde"
+  call.import 2   ; std_core$bytes
   i64.const 1
   i64.const 4
-  array.slice 6
-  call.import 1
-  call 4
-  string.const 3
-  call.import 2
-  call.import 1
-  local.set 0
-  string.const 4
-  local.get 0
-  string.const 5
-  call 1
-  call 4
+  array.slice 6   ; u8[][]
+  call.import 1   ; std_core$bytes_to_string
+  string.const 1   ; "\n"
+  call 2   ; concat_2
+  local.set 0   ; $call_5
+  i32.const 0
+  local.get 0   ; $call_5
+  call 5   ; std_io$write
+  string.const 4   ; ""
+  call.import 2   ; std_core$bytes
+  call.import 1   ; std_core$bytes_to_string
+  local.set 0   ; $call_5
+  string.const 5   ; "["
+  local.get 0   ; $call_5
+  string.const 6   ; "]"
+  call 1   ; concat_3
+  string.const 1   ; "\n"
+  call 2   ; concat_2
+  local.set 0   ; $call_5
+  i32.const 0
+  local.get 0   ; $call_5
+  call 5   ; std_io$write
   return.lit i32.const 0
 end
 
@@ -55,82 +76,179 @@ fn 1 concat_3 (string,string,string) -> string
   local $call_5 usize
   local $call_8 usize
   local buf ref
-  local.get 0
-  call.import 0
-  local.set 3
-  local.get 1
-  call.import 0
-  local.set 4
-  local.get 3
-  local.get 4
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 3   ; c0
+  local.get 4   ; $call_5
   i64.add
-  local.set 4
-  local.get 2
-  call.import 0
-  local.set 5
-  local.get 4
-  local.get 5
+  local.set 4   ; $call_5
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; $call_8
+  local.get 4   ; $call_5
+  local.get 5   ; $call_8
   i64.add
-  local.tee 5
-  call 2
-  local.tee 6
+  local.tee 5   ; $call_8
+  call 3   ; std_core$new_byte_buffer
+  local.tee 6   ; buf
   i64.const 0
-  local.get 0
-  call 7
-  local.get 6
-  local.get 3
-  local.get 1
-  call 7
-  local.get 6
-  local.get 4
-  local.get 2
-  call 7
-  local.get 6
-  local.get 5
-  call 3
+  local.get 0   ; arg 0
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 3   ; c0
+  local.get 1   ; arg 1
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 4   ; $call_5
+  local.get 2   ; arg 2
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 5   ; $call_8
+  call 4   ; std_core$finish_buffer
   return
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
-  local.get 0
-  call 5
+fn 2 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 3   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 4   ; std_core$finish_buffer
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 6
+fn 3 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  call 7   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 4 std_io$println__string (string) -> void
+fn 4 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 8   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 5 std_io$write (i32,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
+  local.get 1   ; arg 1
+  call.import 2   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  block $L0 void
+    loop $L1 void
+      local.get 2   ; buf
+      array.len
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
+      u64.ge
+      if $L2 void
+      else
+        local.get 2   ; buf
+        array.len
+        local.set 5   ; $len_8
+        local.get 2   ; buf
+        local.get 3   ; sent
+        local.get 5   ; $len_8
+        array.slice 6   ; u8[][]
+        local.tee 6   ; chunk
+        array.len
+        local.set 7   ; $len_11
+        local.get 0   ; arg 0
+        local.get 6   ; chunk
+        local.get 7   ; $len_11
+        call 6   ; std_io$write_bytes
+        local.tee 8   ; n
+        i32.const 0
+        i32.le
+        if $L3 void
+          return
+        end $L3
+        local.get 8   ; n
+        i32.to_i64
+        local.set 9   ; $cast_16
+        local.get 3   ; sent
+        local.get 9   ; $cast_16
+        i64.add
+        local.set 3   ; sent
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  return
+end
+
+fn 6 std_io$write_bytes (i32,ref,usize) -> i32
+  local fd i32
+  local.get 0   ; arg 0
   i32.const 0
-  local.get 0
-  call.import 3
-  i32.const 0
-  string.const 6
-  call.import 3
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 3   ; system_posix$sys_write
+  isize.to_i32
   return
 end
 
-fn 5 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0
+fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 6 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
+fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 7 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
+fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
   buffer_write_string
   return
 end

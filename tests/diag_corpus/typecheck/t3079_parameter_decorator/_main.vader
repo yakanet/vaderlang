@@ -1,0 +1,7 @@
+module "snippet"
+
+// `@c_pointer` says the foreign callee receives the parameter's ADDRESS, which
+// has no meaning for a fn Vader compiles a body for.
+takes_value :: fn(@c_pointer x: i32) -> i32 = x
+
+main :: fn() -> i32 = takes_value(1)

@@ -31,6 +31,7 @@ module "toolchain/build"
 import "vader/diagnostics"
 import "std/io"
 import "std/path"
+import "vader/pipeline"
 import "vader/resolver"
 import "toolchain/span"
 
@@ -139,7 +140,7 @@ export new_build_context :: fn(args: string[]) -> BuildContext! = BuildContext {
     .generated_root = DEFAULT_GENERATED_ROOT,
     .out            = "",
     .release        = false,
-    .cc             = DEFAULT_CC,
+    .cc             = default_cc(),
     .ldflags        = "",
     .target         = .Native,
 }
@@ -153,10 +154,6 @@ export BuildTarget :: enum(u8) {
     /// Produce nothing — for a driver that drains the stream purely to observe.
     None,
 }
-
-/// C compiler assumed when a driver names none. `cc` rather than a specific
-/// toolchain: it is what every platform's default install provides.
-export DEFAULT_CC :: "cc"
 
 // Module search roots for the front end: what the driver configured, then the
 // compiler's own `stdlib/`.

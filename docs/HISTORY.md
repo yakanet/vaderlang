@@ -492,7 +492,7 @@ roadmap to open/in-progress work only. Grouped by their original
   (`as_string as bytes_as_string`, used in `std/path` / `vader/fmt` /
   `vader/resolver` to dodge the `std/path::as_string` name collision) for the
   same op — ~313 sites across 83 files. Migrate all to `bytes_to_string` and drop
-  the legacy names (pre-MVP, no back-compat).
+  the legacy names (no back-compat before 1.0).
   Separate cleanup chantier, not S1.
   - [ ] **Idea: `string(bytes)` cast form** — once `bytes_to_string` is canonical,
     consider letting `string(xxx)` (where `xxx : u8[]`) be the surface for the

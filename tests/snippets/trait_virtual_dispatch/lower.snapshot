@@ -31,26 +31,42 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            report :fn(Error) -> string
+            concat_2 :string
           arg0:
-            ParseErr! {
-              msg: "bad token" :string
-            }
+            call :string
+              callee:
+                report :fn(Error) -> string
+              arg0:
+                ParseErr! {
+                  msg: "bad token" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            report :fn(Error) -> string
+            concat_2 :string
           arg0:
-            NetErr! {
-              reason: "timeout" :string
-            }
+            call :string
+              callee:
+                report :fn(Error) -> string
+              arg0:
+                NetErr! {
+                  reason: "timeout" :string
+                }
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -1,0 +1,35 @@
+// A callback that is NOT the only argument, so its address lands in a local
+// SLOT rather than a C expression temp.
+//
+// The distinction is a GC root: a fn-typed slot is a `ValType.Ref`, and
+// `c_emit` puts every `Ref` slot in the frame's `raw[]`, where
+// `vader_gc_scan_raw` reads the pointee's object header with no
+// heap-membership check. A `.text` address has no header — its `hdr->forward`
+// is machine code, never NULL — so the collector would overwrite the slot with
+// garbage and the NEXT call would jump to it.
+//
+// `bump` therefore forces a collection from INSIDE the foreign call, and the
+// loop runs the whole shape twice so a poisoned slot is used after it is
+// clobbered. `helper.c` sums what the callback returns, so a wrong address
+// fails the snapshot instead of passing quietly.
+
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+bump :: fn(x: i32) -> i32 {
+    collect()
+    return x + 1
+}
+
+@extern apply_twice :: fn(base: i32, f: fn(i32) -> i32, scale: i32) -> i32
+
+main :: fn() -> i32 {
+    total: i32 = 0
+    for _r in 0..<2 {
+        total += apply_twice(10, bump, 3)
+    }
+    println("${total}")
+    return 0
+}

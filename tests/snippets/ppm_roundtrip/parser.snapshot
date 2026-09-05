@@ -334,7 +334,37 @@
                             "parts": [
                               {
                                 "kind": "text",
-                                "value": "write failed"
+                                "value": "write failed: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "wr"
+                                    },
+                                    "field": "message"
+                                  },
+                                  "args": []
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": " path=["
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "path"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "]"
                               }
                             ]
                           },
@@ -378,6 +408,14 @@
                     "name": "path"
                   },
                   "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "READ_LIMIT_DEFAULT"
+                  },
+                  "spread": false
                 }
               ]
             }
@@ -417,7 +455,22 @@
                             "parts": [
                               {
                                 "kind": "text",
-                                "value": "read failed"
+                                "value": "read failed: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "raw"
+                                    },
+                                    "field": "message"
+                                  },
+                                  "args": []
+                                }
                               }
                             ]
                           },

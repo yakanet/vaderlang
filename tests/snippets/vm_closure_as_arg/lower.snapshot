@@ -21,8 +21,8 @@
           add_bias :fn(i32) -> i32
         arg1:
           int(7) :i32
-  struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2!, n: i32) -> i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, n: i32) -> i32
     return
       add :i32
         l:

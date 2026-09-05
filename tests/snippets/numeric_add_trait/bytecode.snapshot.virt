@@ -9,29 +9,29 @@ fn 0 snippet$main () -> i32
   local c i32
   i32.const 7
   i32.const 7
-  call 1
-  local.set 0
+  call 1   ; std_core$i32$Add$add_vt
+  local.set 0   ; a
   i32.const 8
   i32.const 8
-  call 1
+  call 1   ; std_core$i32$Add$add_vt
   i32.const 8
-  call 1
-  local.set 1
+  call 1   ; std_core$i32$Add$add_vt
+  local.set 1   ; b
   i32.const 2
   i32.const 2
-  call 1
-  local.set 2
-  local.get 0
-  local.get 1
+  call 1   ; std_core$i32$Add$add_vt
+  local.set 2   ; c
+  local.get 0   ; a
+  local.get 1   ; b
   i32.add
-  local.get 2
+  local.get 2   ; c
   i32.add
   return
 end
 
 fn 1 std_core$i32$Add$add_vt (i32,i32) -> i32
-  local.get 0
-  local.get 1
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   i32.add
   return
 end

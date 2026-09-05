@@ -221,7 +221,12 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcPrimitive as p -> "primitive ${val_type_name(p.val)}"
-    is BcStruct as s    -> "struct ${quote_ident(s.name)} { ${format_fields(s.fields)} }"
+    is BcStruct as s    -> {
+        // `as "<c type>"` only when the struct mirrors one — an ordinary struct
+        // writes exactly what it did before, so no committed snapshot moves.
+        mirror :: if s.c_name == "" { "" } else { " as \"${s.c_name}\"" }
+        "struct ${quote_ident(s.name)}${mirror} { ${format_fields(s.fields)} }"
+    }
     is BcArray as a     -> "array ${a.element}"
     is BcUnion as u     -> "union ${format_variants(u.variants)}"
     is BcRef as r       -> if r.trait_name == "" { "ref _" } else { "ref ${quote_ident(r.trait_name)}" }
@@ -298,10 +303,101 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
     for i in 0..<imports.len() {
         imp :: imports[i]
         prefix :: if imp.is_extern { "extern " } else { "" }
-        sb.append("import ${i} ${prefix}${imp.extern_name} ${imp.mangled_name} ")
+        // The library, when the symbol does not come from the default scope.
+        // Written as `<lib>:<symbol>` because the round-trip has to preserve it:
+        // dropping it made the VM look up `GetStdHandle` in the C runtime
+        // instead of `kernel32`, so every `.virt` re-read failed on Windows
+        // while the direct run worked.
+        lib :: if imp.c_library == "" { "" } else { "${imp.c_library}:" }
+        // The header, when one owns the prototype. Same reason as the library:
+        // without it a `.virt` re-read SYNTHESISES a prototype, which is the
+        // conflicting declaration `@c_header` exists to avoid. Written BEFORE
+        // the signature — `parse_signature_bc` reads the return type to the end
+        // of the line, so a trailing field lands inside it.
+        header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
+        // The fixed-argument count of a VARIADIC callee. Read back without it, a
+        // `@c_variadic` import calls through a non-variadic cast again — the
+        // exact silent corruption the marker exists to stop.
+        va :: if imp.c_variadic_fixed < 0 { "" } else { "variadic=${imp.c_variadic_fixed} " }
+        // The result's TYPE index, not just its `ValType`. `write_signature`
+        // renders a union as `any`, so a `string | null` result read back from a
+        // `.virt` looked like a plain word — and the FFI then returned the atom
+        // as an integer instead of a string. Only non-zero indices are written;
+        // 0 is the "no type" slot every other import carries.
+        rt :: if imp.signature.result_type == 0 { "" } else { "result_type=${imp.signature.result_type} " }
+        // The PARAMETERS' type indices, for the same reason as the result's: a
+        // `@c_struct` argument renders as a bare `ref` in the signature, so a
+        // `.virt` re-read left the VM unable to describe the block it must lay
+        // out -- `argument 0 is a struct the type table does not describe`.
+        pt :: if all_zero(imp.signature.param_types) {
+            ""
+        } else {
+            "param_types=${join_indices(imp.signature.param_types)} "
+        }
+        // `!` and `@c_pointer` per parameter. `write_signature` renders neither
+        // (it serves functions too), so without them a `.virt` re-read lost the
+        // write-back: the callee filled the block and the VM never copied it
+        // out, leaving the Vader struct at its pre-call values.
+        // Written whenever the import HAS parameters, never conditioned on a
+        // flag being set: absence is not the same as false downstream, and a
+        // read-only mirror marshalled as if C wrote through it hands the callee
+        // an UNINITIALISED struct.
+        pm :: if imp.signature.params.len() > 0 {
+            "param_mutable=${join_flags(imp.signature.param_mutable)} "
+        } else {
+            ""
+        }
+        pa :: if imp.signature.params.len() > 0 {
+            "param_by_address=${join_flags(imp.signature.param_by_address)} "
+        } else {
+            ""
+        }
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${va}${header}${rt}${pt}${pm}${pa}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }
+}
+
+/// Whether every entry is the "no type" slot, in which case the attribute is
+/// left out rather than written as a run of zeroes.
+///
+/// @param xs  the signature's per-parameter `BcType` indices.
+all_zero :: fn(xs: i32[]) -> bool {
+    for x in xs {
+        if x != 0 {
+            return false
+        }
+    }
+    return true
+}
+
+/// Render type indices as a comma-separated list, the form the `.virt` reader
+/// splits on.
+///
+/// @param xs  the signature's per-parameter `BcType` indices.
+join_indices :: fn(xs: i32[]) -> string {
+    sb :: StringBuilder {}
+    for i in 0..<xs.len() {
+        if i > 0 {
+            sb.append(",")
+        }
+        sb.append("${xs[i]}")
+    }
+    return sb.to_string()
+}
+
+/// Render per-parameter flags as a comma-separated run of `0` / `1`.
+///
+/// @param xs  one flag per parameter.
+join_flags :: fn(xs: bool[]) -> string {
+    sb :: StringBuilder {}
+    for i in 0..<xs.len() {
+        if i > 0 {
+            sb.append(",")
+        }
+        sb.append(if xs[i] { "1" } else { "0" })
+    }
+    return sb.to_string()
 }
 
 write_impl_table :: fn(sb: StringBuilder!, impls: ImplEntry[]) -> void {
@@ -593,6 +689,7 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is CallIndirect             -> out.append("call.indirect ${op.type_id}")
         is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
         is FnRef                    -> out.append("fn.ref ${op.function_index} ${op.type_id}")
+        is FnAddr                   -> out.append("fn.addr ${op.function_index}")
         is MakeClosure              -> out.append("make_closure ${op.function_index} ${op.env_type_id}")
         is If                       -> out.append("if")
         is Else                     -> out.append("else")
@@ -780,6 +877,7 @@ annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, o
     if op is ArraySlice as a   { return "${type_label(module, a.type_id)}[]" }
     if op is CallIndirect as c { return type_label(module, c.type_id) }
     if op is FnRef as f        { return fn_label(module, f.function_index) }
+    if op is FnAddr as f       { return fn_label(module, f.function_index) }
     if op is MakeClosure as m  { return fn_label(module, m.function_index) }
     if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
     return ""

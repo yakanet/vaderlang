@@ -11,46 +11,7 @@
   __genstate_map<i32>
   ArrayOps<T>
   Into<Target>
-  MutableMap<i32, bool>
-  MutableMap<i32, i32>
-  MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
-  MutableMap<string, i32>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<K, V>
   Add<Rhs, Out>
-  MutableSet<i32>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
@@ -89,6 +50,45 @@
   Yield<T>
   Yield<T>
   Async<T>
+  MutableMap<i32, bool>
+  MutableMap<i32, i32>
+  MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
+  MutableMap<string, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<K, V>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
   Range<char>
   Range<i32>
   Range<usize>

@@ -22,8 +22,9 @@
 #ifndef VADER_H
 #define VADER_H
 
-/* glibc gates POSIX clocks (`CLOCK_REALTIME`, `CLOCK_MONOTONIC`) and GNU
- * pthread extensions (`pthread_getattr_np`) behind feature-test macros.
+/* glibc gates POSIX clocks (`clock_gettime`, which emitted code reaches through
+ * `@c_header("<time.h>")`) and GNU pthread extensions (`pthread_getattr_np`)
+ * behind feature-test macros.
  * Under `-std=c11` ISO mode neither is exposed by default. Define
  * `_GNU_SOURCE` before any system include so the runtime compiles cleanly
  * on Linux ; Darwin / BSD expose these APIs unconditionally so the macro
@@ -33,8 +34,9 @@
 #endif
 
 /* Windows: `GetCurrentThreadStackLimits` (the conservative old-gen stack scan,
- * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock) are
- * Windows 8 APIs, declared by `<windows.h>` only when `_WIN32_WINNT >= 0x0602`.
+ * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock, called
+ * by EMITTED code — `std/time` declares it through `@c_header("<windows.h>")`)
+ * are Windows 8 APIs, declared only when `_WIN32_WINNT >= 0x0602`.
  * Some mingw-w64 toolchains leave `_WIN32_WINNT` unset (or below 0x0602),
  * gating those declarations out — `-Wimplicit-function-declaration` errors.
  * Pin the minimum target before any system include ; only ever RAISE it, so a
@@ -57,6 +59,19 @@
 #  define VADER_LIKELY(x)   __builtin_expect(!!(x), 1)
 #  define VADER_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #  define VADER_NOINLINE    __attribute__((noinline))
+/* A runtime function the INTERPRETER resolves by name at run time, not the
+ * linker. Two things have to hold and neither is automatic: link-time
+ * optimisation must not inline a small body and drop the symbol, and on Windows
+ * the name must reach the EXE's export table — `GetProcAddress` reads that, and
+ * a plain global is absent from it. POSIX needs only the first half, since
+ * `dlopen(NULL)` exposes the global scope. */
+#  if defined(_WIN32)
+/* mingw takes this arm too: `dllexport` is what puts the name in the EXE's
+ * export table, which is the only thing `GetProcAddress` reads. */
+#    define VADER_HOST_EXPORT __attribute__((used, noinline, dllexport))
+#  else
+#    define VADER_HOST_EXPORT __attribute__((used, noinline))
+#  endif
 /* Reads memory, writes none — lets the optimiser CSE the call and, crucially,
  * keep hoisting loop-invariant loads across it. Without this an out-of-line
  * helper is an opaque barrier that clobbers every alias. */
@@ -65,11 +80,13 @@
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE    __declspec(noinline)
+#  define VADER_HOST_EXPORT __declspec(dllexport) __declspec(noinline)
 #  define VADER_PURE
 #else
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE
+#  define VADER_HOST_EXPORT
 #  define VADER_PURE
 #endif
 
@@ -352,6 +369,11 @@ typedef struct {
     void*    forward;
 } vader_obj_header_t;
 
+/* Every allocation is rounded up to this, so it is the strongest alignment a
+ * Vader object's fields can rely on. Emitted code asserts foreign struct
+ * alignment against it, hence its home here rather than in the runtime .c. */
+#define VADER_GC_ALIGN 8u
+
 static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     vader_obj_header_t* h = (vader_obj_header_t*) obj;
     h->type_index = type_index;
@@ -468,6 +490,56 @@ static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
 static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
     return (uint32_t) (a->capacity >> 32);
 }
+/* Dynamic foreign calls, for the VM only — see runtime/c/vader_ffi.h for the
+ * contract and the ABI restrictions. Declared here because the emitted C calls
+ * them through the `vader/vm/ffi.vader` intrinsics. */
+void*   vader_ffi_open(const char* name);
+void*   vader_ffi_symbol(void* lib, const char* symbol);
+int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
+/* One call, described by data — see vader_ffi.h. */
+vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
+                                int64_t nfixed);
+/* The pre-`@c_variadic` entry point, kept because the COMMITTED SEED emits a
+ * call to it: a runtime change reaches stage0 immediately, while the emitter
+ * change that would stop calling it only arrives with the next reseed. Drop it
+ * then. */
+vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
+
+/* Contiguous read view over an array's raw element bytes — what an `@extern`
+ * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
+ * call, and must never outlive it: nothing Vader owns may.
+ *
+ * A callback makes a foreign call a safepoint — C re-enters Vader, Vader
+ * allocates, and the collector can evacuate the buffer while C still holds this
+ * pointer. So once any Vader function address has crossed into C
+ * (`vader_ffi_callback_escaped`), `vader_array_bytes` tenures the buffer into
+ * the non-moving old generation before handing it out.
+ *
+ * `len` is a BYTE count, not an element count. An empty array yields
+ * `{ NULL, 0 }`. */
+typedef struct {
+    const void* ptr;
+    size_t      len;
+} vader_slice_t;
+
+/* The three-case array lend: follow a pending GC forward on the header, then
+ * branch on borrowed view (bytes live in the owner atom) versus materialised
+ * buffer, honouring `offset` and the element width. Used by the `@extern`
+ * shims and by the VM's `ffi_call_int_lend`.
+ *
+ * `vader_write_file_bytes` and `vader_string_as_string` still open-code the
+ * same three cases; converting them is a separate cleanup, and until it lands
+ * this is one of three copies, not the only one.
+ *
+ * A BOXED- or REF-kind array traps: the typechecker rejects one at the ABI
+ * boundary, so reaching here means a compiler bug. */
+vader_slice_t vader_array_bytes(vader_array_t* a);
+
+/* Set the first time a Vader function's address is handed to C. Read by
+ * `vader_array_bytes` to decide whether a lend must be secured against a
+ * collection; written by the `fn.addr` the C emitter issues. */
+extern uint8_t vader_ffi_callback_escaped;
+
 /* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */
 static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag, vader_atom_t owner) {
     a->header._reserved = VADER_ARRAY_FLAG_BORROWED;
@@ -1066,6 +1138,21 @@ typedef struct vader_gc_frame {
      * initialised. Appended last so existing positional frame initializers
      * `{ prev, nrefs, nraw, ptrs, raw }` read nstack=0 / stack_objs=NULL. */
     void**                 stack_objs;
+    /* Count of atom roots — `string` locals and parameters. */
+    uint32_t               natoms;
+    /* Atom roots : `atoms[i]` addresses a `vader_string_t` local. A string is an
+     * atom ID (`uint32_t`), not a pointer, so it CANNOT live in `ptrs` or `raw`
+     * — both are pointer arrays. Without this list the only thing keeping a
+     * live atom alive was the conservative C-stack scan, which finds an ID only
+     * if the C compiler happened to spill it rather than keep it in a register.
+     * That made atom lifetime depend on register allocation: `concat_N` reads
+     * its parameters' LENGTHS, allocates the output buffer (a collection point),
+     * then reads their BYTES — and a swept parameter yielded a zeroed prefix of
+     * exactly the right length. See `.claude/plans/2026-08-31-atom-rooting.md`.
+     *
+     * Appended last so existing positional initializers read natoms=0 /
+     * atoms=NULL. */
+    vader_string_t**       atoms;
 } vader_gc_frame_t;
 
 extern vader_gc_frame_t* vader_gc_top;
@@ -1079,6 +1166,16 @@ extern vader_gc_frame_t* vader_gc_top;
     vader_gc_frame_t __frame = { vader_gc_top, 1u, 0u, __roots };                \
     vader_gc_top = &__frame
 #define VADER_GC_POP() (vader_gc_top = __frame.prev)
+
+/* Push a frame holding N RAW roots — `void*` slots whose pointee is a heap
+ * object, the shape `vader_gc_scan_raw` walks. Named rather than fixed like
+ * `VADER_GC_PUSH1` so several can nest and the emitter need not know the frame's
+ * layout; the trailing fields are left to C's partial initialisation, which is
+ * the contract `vader_gc_frame_t` is extended under. */
+#define VADER_GC_PUSH_RAW(frame, roots, n)                                       \
+    vader_gc_frame_t frame = { vader_gc_top, 0u, (uint32_t)(n), NULL, (roots) }; \
+    vader_gc_top = &frame
+#define VADER_GC_POP_FRAME(frame) (vader_gc_top = (frame).prev)
 
 /* ----------------------------------------------------------------- fn */
 
@@ -1113,69 +1210,8 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-void           vader_write(int32_t stream_tag, vader_string_t s);
-/* Byte-oriented file I/O — lossless for arbitrary binary (unlike the string
- * variants, which are codepoint/UTF-8 based). `read_file_bytes` materialises a
- * fresh owned `u8[]` (arr_type / elem_tag are its BcType indices) ; the success
- * box carries the array, the error box a message string. `write_file_bytes`
- * writes `content`'s raw bytes (borrowed view or owned buffer), null on success. */
-vader_box_t    vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
-                                     uint32_t elem_tag, uint32_t err_tag);
-vader_box_t    vader_write_file_bytes(vader_string_t path, vader_array_t* content,
-                                      uint32_t err_tag);
-vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
-vader_bool_t   vader_exists(vader_string_t path);
-vader_bool_t   vader_is_dir(vader_string_t path);
-/* The running executable's full path, `/`-separated ; "." on failure. Backs the
- * `std/io::current_executable_location` intrinsic for sidecar resolution. */
-vader_string_t vader_current_executable_location(void);
-
-/* `std/io::current_working_directory` — the process working directory,
- * `/`-separated, no trailing separator. "." when the query fails. */
-vader_string_t vader_current_working_directory(void);
-
-/* `std/io::create_dir` — create a directory and every missing parent. An
- * existing directory is success. */
-vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag);
-
-/* `std/io::remove_file` — delete a file. Directories and missing paths are
- * errors. */
-vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag);
-
-/* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
- * Idempotent; a finished or unknown handle is a no-op. */
-void vader_spawn_kill(vader_i64_t handle);
-/* The OS temp directory, `/`-separated, no trailing separator. Honours $TMPDIR
- * (POSIX) / GetTempPath (Windows), falling back to "/tmp". Backs the
- * `std/io::temp_dir` intrinsic. */
-vader_string_t vader_temp_dir(void);
-/* Read EXACTLY `n` bytes from stdin into a fresh string. Boxes the result
- * (success or `Error`). EOF before `n` bytes is reported as an error —
- * the LSP transport's Content-Length framing relies on this contract. */
-vader_box_t    vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag);
-/* Make stdin unbuffered so `poll(STDIN_FILENO)` stays consistent with what
- * `vader_read_stdin` will consume. Call once before any stdin read; intended
- * for length-prefixed RPC servers (e.g. the LSP). */
-void           vader_set_stdin_unbuffered(void);
-/* True iff stdin has data ready within `timeout_ms` (0 = non-blocking poll).
- * Backs the LSP debounce; requires `vader_set_stdin_unbuffered` first. */
-vader_bool_t   vader_poll_stdin(int32_t timeout_ms);
-/* `read_dir` lists the immediate entries of `path` as a `[string]`. Entries
- * are returned in OS-provided order (POSIX `readdir`, Windows `FindNextFileA`)
- * minus `.` and `..`. On failure, boxes an Error variant carrying a short
- * diagnostic string. */
-vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
-                              uint32_t str_type, uint32_t err_tag);
-
-/* ----------------------------------------------------------------- terminal / env
- * `vader_is_tty` reports whether `stream` (0 = stdout, 1 = stderr) is an
- * interactive terminal whose ANSI escapes will render; on Windows it enables
- * virtual-terminal processing on first probe (false when the console is too old
- * for it). Cached per stream for the process lifetime (Vader has no module-scope
- * run-once, so the memo lives here). Backs `std/tty::is_tty`. `vader_get_env`
- * reads an environment variable and boxes the value as a string (str_tag), or
- * returns a null box when unset; backs `std/env::get_env`. */
-/*
+/* ----------------------------------------------------------------- target
+ *
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
  * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
  * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
@@ -1191,51 +1227,27 @@ int32_t        vader_current_os(void);
 /* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
-vader_bool_t   vader_is_tty(int32_t stream);
-vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
 
-/* ----------------------------------------------------------------- raw terminal
- * Interactive-prompt primitives backing `std/tty`'s raw mode — what a selectable
- * list needs and line-oriented stdin cannot give.
+/* ----------------------------------------------------------------- I/O */
+
+/* ----------------------------------------------------------------- target
  *
- * `raw_mode_begin` puts stdin in raw mode: no echo, no line buffering, and
- * **no signal generation** — so Ctrl-C arrives as the byte 0x03 for the caller to
- * handle rather than killing the process with the terminal left unusable. It
- * returns false when stdin is not an interactive terminal, in which case nothing
- * was changed. Idempotent; the original state is saved on the first successful
- * call and `raw_mode_end` restores it. A caller MUST pair them — `defer` is the
- * Vader-side way, and it covers the panic path too since `vader_trap` runs
- * pending defers before aborting.
+ * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
+ * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
+ * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
+ * both sides; reorder the Vader enum and this must move with it.
  *
- * `terminal_read_keys` blocks for the first byte then returns everything already
- * queued, up to `max`. That is what makes a lone ESC distinguishable from the
- * start of an arrow sequence without any timing. It reads the raw descriptor,
- * NOT `fread` — do not mix it with `vader_read_stdin` on one stream.
- *
- * `terminal_columns` reports the terminal width, or 0 when it cannot be
- * determined (not a terminal, or the query failed). */
-vader_bool_t   vader_terminal_raw_begin(void);
-void           vader_terminal_raw_end(void);
-int32_t        vader_terminal_columns(void);
-vader_string_t vader_terminal_read_keys(int32_t max);
+ * This is NOT the compilation target. `VADER_OS` answers that, is baked at build
+ * time, and is what `@target` selects on. This one is resolved at runtime, which
+ * is why a program that manipulates its own environment — resolving a path,
+ * choosing a separator — must use it: a seed emitted on one platform and
+ * compiled on another would otherwise carry the wrong answer.
+ */
+int32_t        vader_current_os(void);
+/* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
+ * same reason, as `vader_current_os` above. */
+int32_t        vader_current_arch(void);
 
-/* ----------------------------------------------------------------- process
- * Non-blocking subprocess primitives backing `std/process::spawn_async`.
- * `spawn_start` launches a child and returns a handle (>= 0) into the runtime
- * child table, or -1 on failure. `spawn_poll` drains its pipes + reaps without
- * blocking, returning VADER_SPAWN_RUNNING while alive, else the exit status
- * (>= 0) or a negative sentinel. `spawn_take_stdout/_stderr` intern the
- * captured output once done (stderr take frees the slot). The blocking
- * `std/process::spawn` is `block_on(spawn_async(...))` over these. */
-
-#define VADER_SPAWN_LAUNCH_FAIL (-1)
-#define VADER_SPAWN_SIGNALED    (-2)
-#define VADER_SPAWN_RUNNING     (-1)  /* poll: still alive (context distinguishes from LAUNCH_FAIL) */
-
-vader_i64_t    vader_spawn_start(vader_array_t* argv);
-vader_i32_t    vader_spawn_poll(vader_i64_t handle);
-vader_string_t vader_spawn_take_stdout(vader_i64_t handle);
-vader_string_t vader_spawn_take_stderr(vader_i64_t handle);
 
 /* ----------------------------------------------------------------- string */
 
@@ -1291,64 +1303,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
-
-/* Wall-clock milliseconds since the Unix epoch. POSIX takes
- * `clock_gettime(CLOCK_REALTIME)` ; Windows reads
- * `GetSystemTimePreciseAsFileTime` which counts 100-ns ticks from
- * 1601-01-01 (subtract the 11_644_473_600 second offset to reach
- * the Unix epoch). */
-static inline vader_i64_t vader_clock_realtime_ms(void) {
-#ifdef _WIN32
-    FILETIME ft;
-    GetSystemTimePreciseAsFileTime(&ft);
-    /* 100-ns ticks since 1601 -> ms since 1970. */
-    vader_i64_t ticks = ((vader_i64_t) ft.dwHighDateTime << 32) | (vader_i64_t) ft.dwLowDateTime;
-    return ticks / 10000 - 11644473600000LL;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000 + (vader_i64_t) (ts.tv_nsec / 1000000);
-#endif
-}
-
-/* Monotonic nanoseconds since an arbitrary process-stable epoch. POSIX
- * routes through `CLOCK_MONOTONIC` ; Windows uses
- * `QueryPerformanceCounter` scaled by the cached tick frequency. */
-static inline vader_i64_t vader_clock_monotonic_ns(void) {
-#ifdef _WIN32
-    static LARGE_INTEGER freq = { .QuadPart = 0 };
-    if (freq.QuadPart == 0) {
-        QueryPerformanceFrequency(&freq);
-    }
-    LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
-    /* Avoid `now * 1_000_000_000` overflow by splitting via the
-     * frequency divisor — preserves resolution to the granularity
-     * of the underlying counter (~100 ns on modern Intel/AMD). */
-    vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
-    vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
-    vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
-    return whole_sec_ns + sub_sec_ns;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (vader_i64_t) ts.tv_sec * 1000000000 + (vader_i64_t) ts.tv_nsec;
-#endif
-}
-
-/* ----------------------------------------------------------------- math */
-
-#include <math.h>
-
-/* Wrappers that match the exact signature the emitter expects (single arg). */
-static inline vader_f64_t vader_math_sqrt(vader_f64_t x)  { return sqrt(x);  }
-static inline vader_f64_t vader_math_pow(vader_f64_t x, vader_f64_t n) { return pow(x, n); }
-static inline vader_f64_t vader_math_floor(vader_f64_t x) { return floor(x); }
-static inline vader_f64_t vader_math_ceil(vader_f64_t x)  { return ceil(x);  }
-static inline vader_f64_t vader_math_round(vader_f64_t x) { return round(x); }
-static inline vader_f64_t vader_math_sin(vader_f64_t x)   { return sin(x);   }
-static inline vader_f64_t vader_math_cos(vader_f64_t x)   { return cos(x);   }
-static inline vader_f64_t vader_math_tan(vader_f64_t x)   { return tan(x);   }
 
 /* ----------------------------------------------------------------- traps */
 

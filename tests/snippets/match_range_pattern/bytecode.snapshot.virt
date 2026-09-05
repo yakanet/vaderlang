@@ -7,108 +7,108 @@ export main 2
 fn 0 snippet$classify (char) -> i32
   local and_res bool
   local if_res i32
-  local.get 0
+  local.get 0   ; arg 0
   char.const 48
   i32.ge
   if $L0 void
-    local.get 0
+    local.get 0   ; arg 0
     char.const 57
     i32.le
-    local.set 1
+    local.set 1   ; and_res
   else
     bool.const false
-    local.set 1
+    local.set 1   ; and_res
   end $L0
-  local.get 1
+  local.get 1   ; and_res
   if $L1 void
     i32.const 1
-    local.set 2
+    local.set 2   ; if_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     char.const 97
     i32.ge
     if $L2 void
-      local.get 0
+      local.get 0   ; arg 0
       char.const 122
       i32.le
-      local.set 1
+      local.set 1   ; and_res
     else
       bool.const false
-      local.set 1
+      local.set 1   ; and_res
     end $L2
-    local.get 1
+    local.get 1   ; and_res
     if $L3 void
       i32.const 2
-      local.set 2
+      local.set 2   ; if_res
     else
-      local.get 0
+      local.get 0   ; arg 0
       char.const 65
       i32.ge
       if $L4 void
-        local.get 0
+        local.get 0   ; arg 0
         char.const 90
         i32.le
-        local.set 1
+        local.set 1   ; and_res
       else
         bool.const false
-        local.set 1
+        local.set 1   ; and_res
       end $L4
-      local.get 1
+      local.get 1   ; and_res
       if $L5 void
         i32.const 3
-        local.set 2
+        local.set 2   ; if_res
       else
         i32.const 0
-        local.set 2
+        local.set 2   ; if_res
       end $L5
     end $L3
   end $L1
-  local.get 2
+  local.get 2   ; if_res
   return
 end
 
 fn 1 snippet$bucket (i32) -> i32
   local and_res bool
   local if_res i32
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.ge
   if $L0 void
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 10
     i32.lt
-    local.set 1
+    local.set 1   ; and_res
   else
     bool.const false
-    local.set 1
+    local.set 1   ; and_res
   end $L0
-  local.get 1
+  local.get 1   ; and_res
   if $L1 void
     i32.const 1
-    local.set 2
+    local.set 2   ; if_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 10
     i32.ge
     if $L2 void
-      local.get 0
+      local.get 0   ; arg 0
       i32.const 99
       i32.le
-      local.set 1
+      local.set 1   ; and_res
     else
       bool.const false
-      local.set 1
+      local.set 1   ; and_res
     end $L2
-    local.get 1
+    local.get 1   ; and_res
     if $L3 void
       i32.const 2
-      local.set 2
+      local.set 2   ; if_res
     else
       i32.const 3
-      local.set 2
+      local.set 2   ; if_res
     end $L3
   end $L1
-  local.get 2
+  local.get 2   ; if_res
   return
 end
 
@@ -117,67 +117,67 @@ fn 2 snippet$main () -> i32
   local $mul_5 i32
   local $mul_23 i32
   char.const 53
-  call 0
-  local.set 0
+  call 0   ; snippet$classify
+  local.set 0   ; $call_1
   char.const 113
-  call 0
+  call 0   ; snippet$classify
   i32.const 10
   i32.mul
-  local.set 1
-  local.get 0
-  local.get 1
+  local.set 1   ; $mul_5
+  local.get 0   ; $call_1
+  local.get 1   ; $mul_5
   i32.add
-  local.set 0
+  local.set 0   ; $call_1
   char.const 81
-  call 0
+  call 0   ; snippet$classify
   i32.const 100
   i32.mul
-  local.set 1
-  local.get 0
-  local.get 1
+  local.set 1   ; $mul_5
+  local.get 0   ; $call_1
+  local.get 1   ; $mul_5
   i32.add
-  local.set 0
+  local.set 0   ; $call_1
   char.const 43
-  call 0
+  call 0   ; snippet$classify
   i32.const 1000
   i32.mul
-  local.set 1
-  local.get 0
-  local.get 1
+  local.set 1   ; $mul_5
+  local.get 0   ; $call_1
+  local.get 1   ; $mul_5
   i32.add
-  local.set 0
+  local.set 0   ; $call_1
   i32.const 9
-  call 1
-  local.set 1
+  call 1   ; snippet$bucket
+  local.set 1   ; $mul_5
   i32.const 10
-  call 1
+  call 1   ; snippet$bucket
   i32.const 10
   i32.mul
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $mul_23
+  local.get 1   ; $mul_5
+  local.get 2   ; $mul_23
   i32.add
-  local.set 1
+  local.set 1   ; $mul_5
   i32.const 99
-  call 1
+  call 1   ; snippet$bucket
   i32.const 100
   i32.mul
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $mul_23
+  local.get 1   ; $mul_5
+  local.get 2   ; $mul_23
   i32.add
-  local.set 1
+  local.set 1   ; $mul_5
   i32.const 100
-  call 1
+  call 1   ; snippet$bucket
   i32.const 1000
   i32.mul
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $mul_23
+  local.get 1   ; $mul_5
+  local.get 2   ; $mul_23
   i32.add
-  local.set 1
-  local.get 0
-  local.get 1
+  local.set 1   ; $mul_5
+  local.get 0   ; $call_1
+  local.get 1   ; $mul_5
   i32.add
   return
 end

@@ -399,6 +399,7 @@ bce_test_ctx :: fn() -> BcePurityCtx = BcePurityCtx {
 
 bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
     .id = id, .kind = SymbolKind.Fn, .name = name, .module = "test",
+    .module_name = "test",
     .visibility = AST.Visibility.Private, .defined_at = null,
 }
 

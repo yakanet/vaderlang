@@ -105,6 +105,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
             callee: i32 = -1
             if op is Call as c { callee = c.function_index }
             if op is FnRef as fr { callee = fr.function_index }
+            if op is FnAddr as fa { callee = fa.function_index }
             if op is MakeClosure as mc { callee = mc.function_index }
             if callee < 0 { continue }
             if reachable[callee] is bool { continue }
@@ -196,6 +197,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
             }
             if op is FnRef as fr {
                 fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)], .type_id = fr.type_id }
+            }
+            if op is FnAddr as fa {
+                fn_.body[bj] = FnAddr { .function_index = remap[usize(fa.function_index)] }
             }
             if op is MakeClosure as mc {
                 fn_.body[bj] = MakeClosure {
@@ -320,9 +324,13 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
         if t is BcStruct as s {
             new_fields: BcField[]! = []
             for f in s.fields {
-                new_fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
+                // Field by field, so a field ADDED to `BcField` is a compile
+                // error here rather than a value silently lost in a rebuild.
+                new_fields.push(BcField {
+                    .name = f.name, .type_index = remap_idx(remap, f.type_index),
+                })
             }
-            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .symbol_id = s.symbol_id })
+            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .c_name = s.c_name, .symbol_id = s.symbol_id })
         } else if t is BcUnion as u {
             new_vars: i32[]! = []
             for v in u.variants { new_vars.push(remap_idx(remap, v)) }
@@ -357,6 +365,11 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             .param_types = new_param_types,
             .result_type = remap_idx(remap, fn_.signature.result_type),
             .param_names = fn_.signature.param_names,
+            // Carried over explicitly, like the import branch below: the field
+            // defaults to `[]`, so a partial rebuild widens every parameter to
+            // mutable with nothing to say so.
+            .param_mutable = fn_.signature.param_mutable,
+            .param_by_address = fn_.signature.param_by_address,
         }
         for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
@@ -376,8 +389,16 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
                 .param_types = new_param_types,
                 .result_type = remap_idx(remap, imp.signature.result_type),
                 .param_names = imp.signature.param_names,
+                // Carried over explicitly — see `remap_signature` in retype.vader.
+                .param_mutable = imp.signature.param_mutable,
+                .param_by_address = imp.signature.param_by_address,
             },
             .is_extern    = imp.is_extern,
+            // Carried over — a dropped header resurrects the synthesised
+            // prototype and its conflict.
+            .c_header     = imp.c_header,
+            .c_variadic_fixed = imp.c_variadic_fixed,
+            .c_library    = imp.c_library,
         })
     }
     ctx.imports = new_imports

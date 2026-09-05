@@ -1,0 +1,6 @@
+# stdout
+bare default: 10
+ufcs default: 10
+explicit 4:   file too large
+# exit
+0

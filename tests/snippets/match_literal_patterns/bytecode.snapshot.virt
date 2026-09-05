@@ -4,7 +4,12 @@ type 1 primitive char
 type 2 primitive string
 type 3 primitive i32
 type 4 primitive bool
-type 5 primitive void
+type 5 primitive usize
+type 6 struct std_core$Buffer {  }
+type 7 primitive u8
+type 8 array 7
+type 9 primitive void
+type 10 primitive isize
 string 0 "right"
 string 1 "left"
 string 2 "plus"
@@ -23,174 +28,364 @@ string 14 "write"
 string 15 "rw"
 string 16 "read-write"
 string 17 "unknown"
-string 18 "nope"
-string 19 "\n"
-import 0 write std_io$write (i32,string) -> void
+string 18 "\n"
+string 19 "nope"
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 6 ByteAccess
 export main 4
 
 fn 0 snippet$describe_char (char) -> string
   local if_res string
-  local.get 0
+  local.get 0   ; arg 0
   char.const 62
   i32.eq
   if $L0 void
-    string.const 0
-    local.set 1
+    string.const 0   ; "right"
+    local.set 1   ; if_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     char.const 60
     i32.eq
     if $L1 void
-      string.const 1
-      local.set 1
+      string.const 1   ; "left"
+      local.set 1   ; if_res
     else
-      local.get 0
+      local.get 0   ; arg 0
       char.const 43
       i32.eq
       if $L2 void
-        string.const 2
-        local.set 1
+        string.const 2   ; "plus"
+        local.set 1   ; if_res
       else
-        string.const 3
-        local.set 1
+        string.const 3   ; "other"
+        local.set 1   ; if_res
       end $L2
     end $L1
   end $L0
-  local.get 1
+  local.get 1   ; if_res
   return
 end
 
 fn 1 snippet$describe_int (i32) -> string
   local if_res string
-  local.get 0
+  local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 4
-    local.set 1
+    string.const 4   ; "zero"
+    local.set 1   ; if_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     i32.const 1
     i32.eq
     if $L1 void
-      string.const 5
-      local.set 1
+      string.const 5   ; "one"
+      local.set 1   ; if_res
     else
-      local.get 0
+      local.get 0   ; arg 0
       i32.const 2
       i32.eq
       if $L2 void
-        string.const 6
-        local.set 1
+        string.const 6   ; "two"
+        local.set 1   ; if_res
       else
-        string.const 7
-        local.set 1
+        string.const 7   ; "many"
+        local.set 1   ; if_res
       end $L2
     end $L1
   end $L0
-  local.get 1
+  local.get 1   ; if_res
   return
 end
 
 fn 2 snippet$flag_label (bool) -> string
   local if_res string
-  local.get 0
+  local.get 0   ; arg 0
   bool.const true
   bool.eq
   if $L0 void
-    string.const 8
-    local.set 1
+    string.const 8   ; "on"
+    local.set 1   ; if_res
   else
-    local.get 0
+    local.get 0   ; arg 0
     bool.const false
     bool.eq
     if $L1 void
-      string.const 9
-      local.set 1
+      string.const 9   ; "off"
+      local.set 1   ; if_res
     else
-      string.const 10
-      local.set 1
+      string.const 10   ; "?"
+      local.set 1   ; if_res
     end $L1
   end $L0
-  local.get 1
+  local.get 1   ; if_res
   return
 end
 
 fn 3 snippet$mode_name (string) -> string
   local if_res string
-  local.get 0
-  string.const 11
+  local.get 0   ; arg 0
+  string.const 11   ; "r"
   string.eq
   if $L0 void
-    string.const 12
-    local.set 1
+    string.const 12   ; "read"
+    local.set 1   ; if_res
   else
-    local.get 0
-    string.const 13
+    local.get 0   ; arg 0
+    string.const 13   ; "w"
     string.eq
     if $L1 void
-      string.const 14
-      local.set 1
+      string.const 14   ; "write"
+      local.set 1   ; if_res
     else
-      local.get 0
-      string.const 15
+      local.get 0   ; arg 0
+      string.const 15   ; "rw"
       string.eq
       if $L2 void
-        string.const 16
-        local.set 1
+        string.const 16   ; "read-write"
+        local.set 1   ; if_res
       else
-        string.const 17
-        local.set 1
+        string.const 17   ; "unknown"
+        local.set 1   ; if_res
       end $L2
     end $L1
   end $L0
-  local.get 1
+  local.get 1   ; if_res
   return
 end
 
 fn 4 snippet$main () -> i32
+  local $call_4 string
   char.const 62
-  call 0
-  call 5
-  char.const 43
-  call 0
-  call 5
-  char.const 120
-  call 0
-  call 5
+  call 0   ; snippet$describe_char
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
   i32.const 0
-  call 1
-  call 5
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  char.const 43
+  call 0   ; snippet$describe_char
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  char.const 120
+  call 0   ; snippet$describe_char
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  i32.const 0
+  call 1   ; snippet$describe_int
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
   i32.const 1
-  call 1
-  call 5
+  call 1   ; snippet$describe_int
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
   i32.const 99
-  call 1
-  call 5
+  call 1   ; snippet$describe_int
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
   bool.const true
-  call 2
-  call 5
+  call 2   ; snippet$flag_label
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
   bool.const false
-  call 2
-  call 5
-  string.const 11
-  call 3
-  call 5
-  string.const 15
-  call 3
-  call 5
-  string.const 18
-  call 3
-  call 5
+  call 2   ; snippet$flag_label
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  string.const 11   ; "r"
+  call 3   ; snippet$mode_name
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  string.const 15   ; "rw"
+  call 3   ; snippet$mode_name
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
+  string.const 19   ; "nope"
+  call 3   ; snippet$mode_name
+  string.const 18   ; "\n"
+  call 5   ; concat_2
+  local.set 0   ; $call_4
+  i32.const 0
+  local.get 0   ; $call_4
+  call 8   ; std_io$write
   return.lit i32.const 0
 end
 
-fn 5 std_io$println__string (string) -> void
+fn 5 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 6   ; std_core$new_byte_buffer
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 12   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 7   ; std_core$finish_buffer
+  return
+end
+
+fn 6 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  call 10   ; std_core$usize$BufferAlloc$new_buffer_vt
+  return
+end
+
+fn 7 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 11   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 8 std_io$write (i32,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  block $L0 void
+    loop $L1 void
+      local.get 2   ; buf
+      array.len
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
+      u64.ge
+      if $L2 void
+      else
+        local.get 2   ; buf
+        array.len
+        local.set 5   ; $len_8
+        local.get 2   ; buf
+        local.get 3   ; sent
+        local.get 5   ; $len_8
+        array.slice 8   ; u8[][]
+        local.tee 6   ; chunk
+        array.len
+        local.set 7   ; $len_11
+        local.get 0   ; arg 0
+        local.get 6   ; chunk
+        local.get 7   ; $len_11
+        call 9   ; std_io$write_bytes
+        local.tee 8   ; n
+        i32.const 0
+        i32.le
+        if $L3 void
+          return
+        end $L3
+        local.get 8   ; n
+        i32.to_i64
+        local.set 9   ; $cast_16
+        local.get 3   ; sent
+        local.get 9   ; $cast_16
+        i64.add
+        local.set 3   ; sent
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  return
+end
+
+fn 9 std_io$write_bytes (i32,ref,usize) -> i32
+  local fd i32
+  local.get 0   ; arg 0
   i32.const 0
-  local.get 0
-  call.import 0
-  i32.const 0
-  string.const 19
-  call.import 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0   ; arg 0
+  buffer.new
+  return
+end
+
+fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
   return
 end

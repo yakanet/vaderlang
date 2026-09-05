@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/ufcs_callee_is_a_fn_value
+  FnDecl         apply                :: fn(i32, fn(i32) -> i32) -> i32
+  FnDecl         forwards             :: fn(fn(i32) -> i32) -> i32
+  FnDecl         labelled             :: fn(i32, string) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    FieldExpr      :: fn(fn(i32) -> i32) -> i32
+  expr 13:12    IdentExpr      :: i32
+  expr 13:20    IdentExpr      :: fn(i32) -> i32
+  expr 17:41    StringLitExpr  :: string
+  expr 17:59    StringLitExpr  :: string
+  expr 17:62    IdentExpr      :: string
+  expr 17:71    IdentExpr      :: i32
+  expr 20:13    StringLitExpr  :: string
+  expr 20:27    CallExpr       :: i32
+  expr 20:27    IdentExpr      :: fn(fn(i32) -> i32) -> i32
+  expr 20:36    LambdaExpr     :: fn(i32) -> i32
+  expr 20:48    BinaryExpr     :: i32
+  expr 20:48    IdentExpr      :: i32
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:27    CallExpr       :: string
+  expr 21:27    FieldExpr      :: fn(string) -> string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:27    CallExpr       :: string
+  expr 22:27    FieldExpr      :: fn(string) -> string
+  expr 22:38    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 9:49     CallExpr       :: i32
+  expr 9:49     IdentExpr      :: fn(i32) -> i32
+  expr 9:51     IdentExpr      :: i32

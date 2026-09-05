@@ -105,10 +105,6 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 /// a conscious decision (a new variant here trips T3013 at both sites).
 export IntrinsicId :: enum(u8) {
     NotIntrinsic,
-    // std/io
-    IoWrite, IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
-    IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
-    IoCurrentWorkingDirectory, IoCreateDir, IoRemoveFile,
     // std/core string + bytes
     ByteLen, ByteAt,
     Bytes, BytesToString, StringIndexAt, StringHash,
@@ -119,20 +115,16 @@ export IntrinsicId :: enum(u8) {
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     // std/runtime — cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
-    // std/time
-    TimeNowUnixMs, TimeMonotonicNs,
-    // std/math — libm transcendentals + rounding. min/max/abs/clamp are pure
-    // Vader (bodied → real fns, never host imports), so they are NOT here.
-    MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathPow,
     // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
-    ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnKill, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
-    TtyIsTty, EnvGetEnv, AbortPanic,
+    AbortPanic,
     // std/target — the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
     TargetCurrentOs, TargetCurrentArch,
     // std/tty raw mode — what `cli/prompt` reads keys through
-    TtyRawModeBegin, TtyRawModeEnd, TtyColumns, TtyReadKeys,
+    // vader/vm — dynamic foreign calls, the VM's answer to `@extern`. NOT in
+    // `std/`: they amount to running arbitrary native code.
+    FfiOpen, FfiSymbol, FfiCall,
 }
 
 /// Classify a host import's mangled name into its `IntrinsicId`, or
@@ -148,21 +140,9 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if eq == "not_equals" { return .PrimIntNotEquals }
     if is_display_to_string(mangled) { return .PrimDisplayToString }
 
-    if mangled == r"std_io$write"                        { return .IoWrite }
-    if mangled == r"std_io$exists"                       { return .IoExists }
-    if mangled == r"std_io$is_dir"                       { return .IoIsDir }
-    if mangled == r"std_io$temp_dir"                     { return .IoTempDir }
-    if mangled == r"std_io$read_dir"                     { return .IoReadDir }
-    if mangled == r"std_io$read_file_bytes"              { return .IoReadFileBytes }
-    if mangled == r"std_io$write_file_bytes"             { return .IoWriteFileBytes }
-    if mangled == r"std_io$read_line"                    { return .IoReadLine }
-    if mangled == r"std_io$read_stdin"                   { return .IoReadStdin }
-    if mangled == r"std_io$poll_stdin"                   { return .IoPollStdin }
-    if mangled == r"std_io$set_stdin_unbuffered"         { return .IoSetStdinUnbuffered }
-    if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
-    if mangled == r"std_io$current_working_directory"     { return .IoCurrentWorkingDirectory }
-    if mangled == r"std_io$create_dir"                    { return .IoCreateDir }
-    if mangled == r"std_io$remove_file"                   { return .IoRemoveFile }
+    if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
+    if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
+    if mangled == r"vader_vm$ffi_call"                    { return .FfiCall }
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
     if mangled == r"std_core$byte_at"                    { return .ByteAt }
@@ -183,30 +163,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$sched_arm"               { return .SchedArm }
     if mangled == r"std_runtime$sched_park"              { return .SchedPark }
 
-    if mangled == r"std_time$now_unix_ms"                { return .TimeNowUnixMs }
-    if mangled == r"std_time$monotonic_ns"               { return .TimeMonotonicNs }
 
-    if mangled == r"std_math$sqrt"                       { return .MathSqrt }
-    if mangled == r"std_math$sin"                        { return .MathSin }
-    if mangled == r"std_math$cos"                        { return .MathCos }
-    if mangled == r"std_math$tan"                        { return .MathTan }
-    if mangled == r"std_math$floor"                      { return .MathFloor }
-    if mangled == r"std_math$ceil"                       { return .MathCeil }
-    if mangled == r"std_math$round"                      { return .MathRound }
-    if mangled == r"std_math$pow"                        { return .MathPow }
-
-    if mangled == r"std_process$spawn_start"             { return .ProcessSpawnStart }
-    if mangled == r"std_process$spawn_kill"                { return .ProcessSpawnKill }
-    if mangled == r"std_process$spawn_poll"              { return .ProcessSpawnPoll }
-    if mangled == r"std_process$spawn_take_stdout"       { return .ProcessSpawnTakeStdout }
-    if mangled == r"std_process$spawn_take_stderr"       { return .ProcessSpawnTakeStderr }
-
-    if mangled == r"std_tty$is_tty"                      { return .TtyIsTty }
-    if mangled == r"std_tty$raw_mode_begin"              { return .TtyRawModeBegin }
-    if mangled == r"std_tty$raw_mode_end"                { return .TtyRawModeEnd }
-    if mangled == r"std_tty$columns"                     { return .TtyColumns }
-    if mangled == r"std_tty$read_keys"                   { return .TtyReadKeys }
-    if mangled == r"std_env$get_env"                     { return .EnvGetEnv }
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
     if mangled == r"std_abort$panic"                     { return .AbortPanic }
@@ -274,8 +231,13 @@ import "vader/lower"
 }
 
 @test test_intrinsic_id_for :: fn() -> void {
-    assert(intrinsic_id_for(r"std_io$write") == .IoWrite, "io write")
-    assert(intrinsic_id_for(r"std_math$sqrt") == .MathSqrt, "math sqrt")
+    // `std_io$write` is deliberately absent: it is ordinary Vader now, written
+    // over `sys/io::sys_write`.
+    assert(intrinsic_id_for(r"std_io$write") == .NotIntrinsic, "io write is no longer a host")
+    // Same shape: `std/math` became `@extern`, so re-adding a Math variant would
+    // silently route it back through `dispatch_import` while the declaration says
+    // otherwise — an import neither backend serves.
+    assert(intrinsic_id_for(r"std_math$sqrt") == .NotIntrinsic, "math sqrt is no longer a host")
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
     assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")

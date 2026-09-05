@@ -1,0 +1,20 @@
+module "snippet"
+
+import "std/io"
+
+// A newtype that converts to its own representation. The `into` body has no way
+// to reach the backing other than `string(self)`, so if that cast lifted to
+// `into` the impl would call itself forever — which is what it used to do.
+Tag :: string
+
+Tag implements Into<string> {
+    into :: fn(self) -> string = string(self)
+}
+
+takes :: fn(s: string) -> string = s
+
+main :: fn() -> i32 {
+    println(takes(Tag("coerced")))
+    println(string(Tag("unwrapped")))
+    return 0
+}

@@ -11,40 +11,40 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 2 3
-  local.tee 0
+  array.new 2 3   ; i32[][]
+  local.tee 0   ; xs
   i32.const 1
   i32.const 99
   store_slot_i32
-  local.get 0
+  local.get 0   ; xs
   i32.const 40
-  array.push 1
-  local.get 0
+  array.push 1   ; i32[]
+  local.get 0   ; xs
   i32.const 0
   load_slot_i32
-  local.set 1
-  local.get 0
+  local.set 1   ; $idx_9
+  local.get 0   ; xs
   i32.const 1
   load_slot_i32
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $idx_11
+  local.get 1   ; $idx_9
+  local.get 2   ; $idx_11
   i32.add
-  local.set 1
-  local.get 0
+  local.set 1   ; $idx_9
+  local.get 0   ; xs
   i32.const 3
   load_slot_i32
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $idx_11
+  local.get 1   ; $idx_9
+  local.get 2   ; $idx_11
   i32.add
-  local.set 1
-  local.get 0
+  local.set 1   ; $idx_9
+  local.get 0   ; xs
   array.len
   usize.to_i32
-  local.set 2
-  local.get 1
-  local.get 2
+  local.set 2   ; $idx_11
+  local.get 1   ; $idx_9
+  local.get 2   ; $idx_11
   i32.add
   return
 end

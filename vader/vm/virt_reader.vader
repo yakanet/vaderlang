@@ -395,6 +395,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "virtual.call"     { return parse_virtual_call(cleaned) }
     if head == "call"             { return parse_call(cleaned) }
     if head == "fn.ref"           { return parse_fn_ref(cleaned) }
+    if head == "fn.addr"          { return parse_fn_addr(cleaned) }
     if head == "make_closure"     { return parse_make_closure(cleaned) }
     if head == "struct.new_stack" { return parse_struct_new_after(cleaned, "struct.new_stack ") }
     if head == "struct.new"       { return parse_struct_new_after(cleaned, "struct.new ") }
@@ -769,6 +770,18 @@ parse_fn_ref :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "fn.ref ") ?? return null
     [fn_idx, type_id] :: pair
     return bc.FnRef { .function_index = fn_idx, .type_id = type_id }
+}
+
+/// Parse `fn.addr FN_INDEX` — the address of the function's own compiled code.
+///
+/// Carries no type hint: unlike `fn.ref` there is no `FnVal` to type, and the
+/// signature the address is called through belongs to the foreign callee.
+///
+/// @param line  the .virt line (comment-stripped).
+/// @return      `FnAddr`, or `null` on malformed input.
+parse_fn_addr :: fn(line: string) -> bc.Op | null {
+    idx :: parse_int_after_prefix(line, "fn.addr ") ?? return null
+    return bc.FnAddr { .function_index = idx }
 }
 
 /// Parse `make_closure FN_INDEX ENV_TYPE_ID` — same shape as `fn.ref`,

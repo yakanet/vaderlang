@@ -1,5 +1,37 @@
 #include "bootstrap.split.h"
 
+vader_string_t toolchain_span_Span_Display_to_string(void* l0) {
+    void* l1 = NULL;
+    size_t l2;
+    int64_t l3;
+    int32_t t0;
+    vader_string_t t1 = 0;
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(83));
+    l2 = (size_t) (int64_t) INT64_C(0);
+    t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_line;
+    l3 = ((int64_t) (int32_t) t0);
+    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 462u);
+    t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_column;
+    l3 = ((int64_t) (int32_t) t0);
+    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 382u);
+    t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_end)->f_line;
+    l3 = ((int64_t) (int32_t) t0);
+    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 462u);
+    t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_end)->f_column;
+    l3 = ((int64_t) (int32_t) t0);
+    l2 = std_core_write_int(l1, l2, l3);
+    t1 = std_core_finish_buffer(l1, l2);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
 bool toolchain_span_Span_Equals_equals(void* l0, void* l1) {
     vader_string_t l2, l3;
     bool l4;
@@ -39,12 +71,13 @@ bool toolchain_span_Span_Equals_equals(void* l0, void* l1) {
 
 uint64_t toolchain_span_Span_Hash_hash(void* l0) {
     uint64_t l1, l2;
-    vader_string_t t0;
+    vader_string_t t0 = 0;
     uint64_t t1;
     int64_t t2;
     int32_t t3;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_string_t* gc_atom_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
     t1 = std_core_string_Hash_hash_vt(t0);
@@ -70,21 +103,21 @@ void* toolchain_span_empty_span(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 475u);
-    _a0_obj->f_file = 483u;
+    vader_obj_header_init(_a0_obj, 479u);
+    _a0_obj->f_file = 510u;
     _a0_obj->f_offset = (size_t) (int64_t) INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l0 = (void*) _a0_obj;
     vader_struct_toolchain_span_Position_t* _a1_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a1_obj, 475u);
-    _a1_obj->f_file = 483u;
+    vader_obj_header_init(_a1_obj, 479u);
+    _a1_obj->f_file = 510u;
     _a1_obj->f_offset = (size_t) (int64_t) INT64_C(1);
     _a1_obj->f_line = INT32_C(1);
     _a1_obj->f_column = INT32_C(2);
     l1 = (void*) _a1_obj;
     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a2_obj, 476u);
+    vader_obj_header_init(_a2_obj, 480u);
     _a2_obj->f_start = l0;
     _a2_obj->f_end = l1;
     t0 = (void*) _a2_obj;
@@ -100,11 +133,11 @@ bool toolchain_span_has_source_position(void* l0) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
-    if (t0 == 483u) {
+    if (t0 == 510u) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
-    if (t0 == 481u) {
+    if (t0 == 508u) {
         return false;
     }
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_line;

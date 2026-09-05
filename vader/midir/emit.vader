@@ -32,6 +32,7 @@ import "vader/bytecode" {
 }
 import "vader/resolver/symbol"
 import "toolchain/span"
+AST :: import "toolchain/ast"
 
 // ============================================================================
 // CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG
@@ -95,9 +96,13 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
-    signature :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    base :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    // `@c_pointer` is read straight off the origin AST rather than threaded
+    // through `CFGParam`: it exists only on an `@extern`, which has no body to
+    // lower, so there is nothing for the intervening passes to carry it on.
+    signature :: with_by_address(base, ext.origin)
     import_index :: i32(ctx.imports.len())
-    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern })
+    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern, .c_header = ext.c_header, .c_library = ext.c_library, .c_variadic_fixed = ext.c_variadic_fixed })
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
@@ -139,7 +144,9 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
             type_index :: intern_type(f.type, ctx)
             fields.push(BcField { .name = f.name, .type_index = type_index })
         }
-        ctx.types[usize(idx)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
+        ctx.types[usize(idx)] = BcStruct {
+            .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
+        }
         return
     }
     // Origin sans symbol (synth env structs, lifted closures) keys on
@@ -153,20 +160,108 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
         type_index :: intern_type(f.type, ctx)
         fields.push(BcField { .name = f.name, .type_index = type_index })
     }
-    ctx.types[usize(new_index)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
+    ctx.types[usize(new_index)] = BcStruct {
+        .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
+    }
     ctx.type_key[s.mangled] = new_index
+}
+
+/// The C type named by `@c_struct("struct timespec")` on the origin struct
+/// declaration, or `""`.
+///
+/// Read from the AST decl rather than a symbol table: `MonoEntry` already
+/// carries the declaration a lowered struct came from, which is the same route
+/// `fn_metadata` takes for `@c_header`.
+///
+/// @param origin  the lowered struct's monomorphisation entry.
+/// @return        the C type spelling, or `""` for an ordinary Vader struct.
+c_struct_of :: fn(origin: MonoEntry) -> string {
+    d :: origin.decl
+    if d !is StructDecl {
+        return ""
+    }
+    for dec in d.decorators {
+        if dec.name == "c_struct" && dec.args.len() == 1 {
+            a :: dec.args[0]
+            if a is StringLitExpr && a.parts.len() == 1 {
+                pt :: a.parts[0]
+                if pt is StringLitText {
+                    return pt.value
+                }
+            }
+        }
+    }
+    return ""
+}
+
+/// Copy `sig`, filling `param_by_address` from the origin declaration's
+/// `@c_pointer` decorators.
+///
+/// @param sig     the signature built from the CFG params.
+/// @param origin  the mono entry, for its source `FnDecl`.
+/// @return        the signature with the by-address vector filled.
+with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
+    d :: origin.decl
+    if d !is AST.FnDecl {
+        return sig
+    }
+    flags: bool[]! = []
+    any := false
+    for pm in d.params {
+        by_addr := false
+        for dec in pm.decorators {
+            if dec.name == "c_pointer" {
+                by_addr = true
+            }
+        }
+        if by_addr {
+            any = true
+        }
+        flags.push(by_addr)
+    }
+    if !any {
+        return sig
+    }
+    return BcSignature {
+        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
+        .result_type = sig.result_type, .param_names = sig.param_names,
+        .param_mutable = sig.param_mutable, .param_by_address = flags,
+    }
 }
 
 build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx!) -> BcSignature {
     params_val: ValType[]! = []
     param_types: i32[]! = []
     param_names: string[]! = []
+    param_mutable: bool[]! = []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
         param_names.push(p.name)
+        param_mutable.push(is_mutable_slot(p.type))
     }
-    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names }
+    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
+}
+
+/// Whether the callee may write THROUGH the slot.
+///
+/// NOT the complement of `types::type_is_immutable`: that predicate answers
+/// false for a value type because the question has no meaning there, and
+/// negating it would report a bare `i64` as mutable. Only the three reference
+/// shapes carry the bit, and only they can be written through.
+///
+/// The distinction stayed invisible while a scalar always crossed by value;
+/// `@c_pointer` makes one cross as `T*`, where the answer decides `const`.
+///
+/// @param t  the parameter's declared type.
+/// @return   true when the callee may mutate through the slot.
+is_mutable_slot :: fn(t: Type) -> bool = match t {
+    is ArrayType  as a -> !a.immutable
+    is StructType as s -> !s.immutable
+    is TupleType  as p -> !p.immutable
+    is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
+     | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
+     | FreeCharType | NeverType | AnyType | DistinctType -> false
 }
 
 // ============================================================================
@@ -985,6 +1080,17 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_result(ctx, pos, fr.dst, fr.span)
         return
     }
+    if ins is InstrFnAddr as fa {
+        fn_idx_opt :: ctx.project.function_index_by_symbol_id[fa.fn_symbol.id]
+        if fn_idx_opt is i32 as fn_idx {
+            push_emit(ctx, FnAddr { .function_index = fn_idx }, fa.span)
+        } else {
+            // Same materialisation-gap class as the InstrFnRef arm above.
+            panic("midir/emit: unresolved fn-addr '${fa.fn_symbol.name}' (id=${fa.fn_symbol.id}) — callback target was never materialised")
+        }
+        emit_result(ctx, pos, fa.dst, fa.span)
+        return
+    }
     if ins is InstrVirtualCall as vc {
         for ai in 0..<vc.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, vc.args[ai], vc.span) }
@@ -1000,7 +1106,8 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFieldGet as fg {
-        target_type :: ctx.fn_.locals[usize(fg.target)].type
+        target_local :: ctx.fn_.locals[usize(fg.target)]
+        target_type :: target_local.type
         type_index :: intern_type(target_type, ctx.project)
         // Remember whether the scheduler elided our receiver get BEFORE
         // emitting it ; if it did, the tail op belongs to the producer
@@ -1010,7 +1117,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, fg.target, fg.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
         if field_slot == null {
-            panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
+            panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` (local ${fg.target} `${target_local.name}`) in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
         // No such struct field at emit time — the upstream pass produced a
         // field access that isn't a real load. The classic source is a
@@ -1302,6 +1409,7 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
     .String -> false
     .Null -> false
     .Void -> false
+    .Pointer -> false
     .Ref -> false
     .Any -> false
 }

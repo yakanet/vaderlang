@@ -1,0 +1,156 @@
+// vader/vm/ffi — the VM's window onto `runtime/c/vader_ffi.h`.
+//
+// The native backend resolves an `@extern` through the linker and `c_emit`
+// writes the call itself. The VM cannot: it learns a signature by reading
+// bytecode, and C wants one at compile time. So it loads the library, resolves
+// the symbol, and calls through a trampoline chosen by arity.
+//
+// Declared here rather than in `std/` on purpose. These five hosts amount to
+// "run arbitrary native code", and putting them in the standard library would
+// hand that to every program — a surface decision of its own. The compiler is
+// the only caller today.
+//
+// Addresses ride `usize`, not `CPointer`. `0` is the null address. Nothing here
+// dereferences or offsets one — the value only travels from `ffi_symbol` to a
+// call, so the pointer type would buy nothing the integer does not already give.
+
+module "vader/vm"
+
+/// Open a shared library by BARE name (`"sqlite3"`, not `"libsqlite3.so"`) —
+/// the host decorates it per platform. An empty name yields the running
+/// process, which is where a libc symbol lives.
+///
+/// @param name  the library's bare name, or `""` for the current process.
+/// @return      an opaque handle, or `0` when the library is not found.
+@intrinsic export ffi_open :: fn(name: string) -> usize
+
+/// Resolve `symbol` in `lib`.
+///
+/// @param lib     a handle from `ffi_open`.
+/// @param symbol  the exact linker name.
+/// @return        the function's address, or `0` when absent.
+@intrinsic export ffi_symbol :: fn(lib: usize, symbol: string) -> usize
+
+/// One foreign call, described by DATA rather than by its shape.
+///
+/// `desc` is one byte per slot — `desc[0]` classifies the result, `desc[1+i]`
+/// each argument: word, double, or an offset into `frame`. `frame` holds the
+/// argument slots, eight bytes each, followed by whatever an offset slot points
+/// into; the result is written back over its first eight bytes.
+///
+/// This is what lets ONE primitive serve every signature: covering a new ABI
+/// shape widens a switch in `runtime/c/vader_ffi.h` and touches no Vader.
+///
+/// @param fn_ptr  the address from `ffi_symbol`.
+/// @param desc    the class of the result, then of each argument.
+/// @param frame   the argument slots plus their data; receives the result.
+/// @param nfixed  how many of the callee's parameters are FIXED when it is
+///                variadic, `-1` when it is not. Only the real prototype knows,
+///                so `@c_variadic(N)` declares it — and a variadic callee called
+///                through a non-variadic cast reads its variadic arguments from
+///                the wrong place on darwin-arm64, silently.
+/// @return        the interned string for a `string`-returning callee, the empty
+///                string otherwise — an atom id cannot travel through the frame,
+///                since nothing on the Vader side can turn one back into a
+///                `string`.
+@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!, nfixed: i64) -> string
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `strlen` is the probe throughout: every platform's C runtime exports it, it
+// takes one pointer, and it writes NOTHING — so the tests leave the runner's own
+// stdout alone. `write` and `getpid` would fail on Windows (the CRT spells the
+// latter `_getpid`) and the first would interleave bytes into the test output.
+
+@test test_ffi_resolves_a_libc_symbol :: fn() -> void {
+    process :: ffi_open("")
+    assert(process != 0, "the running process must expose its C runtime")
+    assert(ffi_symbol(process, "strlen") != 0, "strlen must resolve")
+}
+
+@test test_ffi_missing_symbol_reports_zero :: fn() -> void {
+    process :: ffi_open("")
+    assert_eq(ffi_symbol(process, "vader_symbol_that_cannot_exist"), usize(0))
+}
+
+@test test_ffi_missing_library_reports_zero :: fn() -> void {
+    assert_eq(ffi_open("vader_library_that_cannot_exist"), usize(0))
+}
+
+// The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each
+// argument — 1 word, 3 an offset into the frame. The slot area is `nargs * 8`
+// bytes, so the data an offset points at starts there.
+
+@test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
+
+    // One address argument; the slot area is 8 bytes, so the string starts at 8.
+    desc: u8[] = [1, 3]
+    frame: u8[]! = []
+    push_little_endian(frame, 8, 8)
+    frame.push_all([104, 101, 108, 108, 111, 0])
+    ffi_call(sym, desc, frame, -1)
+    assert_eq(read_little_endian(frame, 0, 8, false), 5)
+}
+
+@test test_ffi_lends_at_an_offset :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
+
+    // The slot carries an OFFSET, not a value: measuring from the fourth byte
+    // of the data. A wrong offset would read the leading zeros and report 0.
+    desc: u8[] = [1, 3]
+    frame: u8[]! = []
+    push_little_endian(frame, 8 + 3, 8)
+    frame.push_all([0, 0, 0, 104, 105, 0])
+    ffi_call(sym, desc, frame, -1)
+    assert_eq(read_little_endian(frame, 0, 8, false), 2)
+}
+
+@test test_ffi_reads_back_what_c_wrote :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "memset")
+    assert(sym != 0, "memset must resolve")
+
+    // `memset(buf, 65, 4)` — the lend has to travel BOTH ways. The frame is a
+    // copy of the caller's bytes, so without the write-back this would read
+    // back what it sent.
+    desc: u8[] = [1, 3, 1, 1]
+    frame: u8[]! = []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 65, 8)
+    push_little_endian(frame, 4, 8)
+    frame.push_all([1, 2, 3, 4])
+    ffi_call(sym, desc, frame, -1)
+    assert_eq(i64(frame[24]), 65)
+    assert_eq(i64(frame[27]), 65)
+}
+
+@test test_ffi_lends_two_buffers_at_once :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "memcpy")
+    assert(sym != 0, "memcpy must resolve")
+
+    // ONE frame serving two address slots: destination at 24, source at 27.
+    desc: u8[] = [1, 3, 3, 1]
+    frame: u8[]! = []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 27, 8)
+    push_little_endian(frame, 3, 8)
+    frame.push_all([0, 0, 0, 7, 8, 9])
+    ffi_call(sym, desc, frame, -1)
+    assert_eq(i64(frame[24]), 7)
+    assert_eq(i64(frame[26]), 9)
+}
+
+@test test_ffi_passes_a_floating_argument :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "sqrt")
+    assert(sym != 0, "sqrt must resolve")
+
+    desc: u8[] = [2, 2]
+    frame: u8[]! = []
+    push_little_endian(frame, i64(4.0.to_bits()), 8)
+    ffi_call(sym, desc, frame, -1)
+    assert_eq(u64(read_little_endian(frame, 0, 8, false)).from_bits(), 2.0)
+}

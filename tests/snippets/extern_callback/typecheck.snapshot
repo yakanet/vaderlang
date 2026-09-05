@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/extern_callback
+  FnDecl         call_twice           :: fn(fn(i32) -> i32) -> i32
+  FnDecl         double_it            :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 14:34    BinaryExpr     :: i32
+  expr 14:34    IdentExpr      :: i32
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    CallExpr       :: i32
+  expr 19:16    IdentExpr      :: fn(fn(i32) -> i32) -> i32
+  expr 19:27    IdentExpr      :: fn(i32) -> i32
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void

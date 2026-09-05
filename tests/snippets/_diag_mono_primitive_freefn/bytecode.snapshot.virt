@@ -14,26 +14,26 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 2 3
+  array.new 2 3   ; i32[][]
   i32.const 1
   load_slot_i32
-  local.set 0
+  local.set 0   ; s
   i32.const 1
-  struct.new_stack 3
-  local.set 1
+  struct.new_stack 3   ; snippet$Point
+  local.set 1   ; $struct_9
   i32.const 2
-  struct.new_stack 3
-  local.set 2
-  local.get 1
-  local.get 2
-  array.new 4 2
+  struct.new_stack 3   ; snippet$Point
+  local.set 2   ; $struct_11
+  local.get 1   ; $struct_9
+  local.get 2   ; $struct_11
+  array.new 4 2   ; snippet$Point[][]
   i32.const 1
-  array.get 4
-  struct.get 3 0
-  ref.cast 1
-  local.set 3
-  local.get 0
-  local.get 3
+  array.get 4   ; snippet$Point[][]
+  struct.get 3 0   ; snippet$Point.x
+  ref.cast 1   ; -> i32
+  local.set 3   ; $field_17
+  local.get 0   ; s
+  local.get 3   ; $field_17
   i32.add
   return
 end

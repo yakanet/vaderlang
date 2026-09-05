@@ -280,6 +280,7 @@ const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol 
     .kind       = SymbolKind.Fn,
     .name       = "__const_${orig_sym.name}",
     .module     = orig_sym.module,
+    .module_name = orig_sym.module,
     .visibility = AST.Visibility.Private,
     .defined_at = orig_sym.defined_at,
 }

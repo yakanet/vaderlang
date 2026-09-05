@@ -1,0 +1,6 @@
+# stdout
+defaulted: 10 bytes
+bound 4:   file too large
+named 4:   file too large
+# exit
+0

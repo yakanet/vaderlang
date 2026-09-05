@@ -210,77 +210,133 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            direct :fn(Cat | Dog) -> string
+            concat_2 :string
           arg0:
-            Cat! {
-              name: "felix" :string
-            }
+            call :string
+              callee:
+                direct :fn(Cat | Dog) -> string
+              arg0:
+                Cat! {
+                  name: "felix" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            direct :fn(Cat | Dog) -> string
+            concat_2 :string
           arg0:
-            Dog! {
-              sound: "woof" :string
-            }
+            call :string
+              callee:
+                direct :fn(Cat | Dog) -> string
+              arg0:
+                Dog! {
+                  sound: "woof" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            negated :fn(Cat | Dog) -> string
+            concat_2 :string
           arg0:
-            Cat! {
-              name: "garfield" :string
-            }
+            call :string
+              callee:
+                negated :fn(Cat | Dog) -> string
+              arg0:
+                Cat! {
+                  name: "garfield" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            negated :fn(Cat | Dog) -> string
+            concat_2 :string
           arg0:
-            Dog! {
-              sound: "bark" :string
-            }
+            call :string
+              callee:
+                negated :fn(Cat | Dog) -> string
+              arg0:
+                Dog! {
+                  sound: "bark" :string
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            cascade :fn(Cat | Dog | Pig) -> string
+            concat_2 :string
           arg0:
-            Pig! {
-              weight: int(200) :i32
-            }
+            call :string
+              callee:
+                cascade :fn(Cat | Dog | Pig) -> string
+              arg0:
+                Pig! {
+                  weight: int(200) :i32
+                }
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            primitive_is :fn(i32 | string) -> string
+            concat_2 :string
           arg0:
-            int(42) :i32 | string
+            call :string
+              callee:
+                primitive_is :fn(i32 | string) -> string
+              arg0:
+                int(42) :i32 | string
+          arg1:
+            "\n" :string
     call :void
       callee:
-        std_io$println__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         call :string
           callee:
-            primitive_is :fn(i32 | string) -> string
+            concat_2 :string
           arg0:
-            "hello" :string
+            call :string
+              callee:
+                primitive_is :fn(i32 | string) -> string
+              arg0:
+                "hello" :string
+          arg1:
+            "\n" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

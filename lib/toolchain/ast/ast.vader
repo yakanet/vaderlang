@@ -167,6 +167,23 @@ export Decorator :: struct {
     args: Expr[]
 }
 
+/// Whether `decs` carries the decorator called `name`.
+///
+/// Here rather than in each pass: six modules open-coded this loop, and a
+/// decorator's presence is a question about the AST, which is what this module
+/// owns.
+///
+/// @param decs  the declaration's decorators.
+/// @param name  the decorator name, without the `@`.
+export decorators_have :: fn(decs: Decorator[], name: string) -> bool {
+    for d in decs {
+        if d.name == name {
+            return true
+        }
+    }
+    return false
+}
+
 // ============================================================================
 // Declarations
 // ============================================================================
@@ -273,6 +290,14 @@ export FnParam :: struct {
     /// The type-side spelling of the same notion is `FnType.params_mutable`,
     /// needed because a fn TYPE has no parameter names.
     mutable:       bool = false
+    /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
+    ///
+    /// REQUIRED, with no default, deliberately — the same reason
+    /// `StructType.immutable` carries none: three sites in
+    /// `resolver/materialize.vader` rebuild a `FnParam` field by field, and a
+    /// defaulted field is dropped there in silence. That is how
+    /// `FnParam.mutable` was lost once already.
+    decorators:    Decorator[]
 }
 
 // ---- Struct ---------------------------------------------------------------

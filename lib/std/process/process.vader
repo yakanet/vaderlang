@@ -18,6 +18,8 @@
 module "std/process"
 
 import "std/runtime"
+import "system/posix"
+import "system/windows"
 import "std/async"
 
 // Poll interval, ms. A child `cc` runs for 100s of ms, so a 2 ms detection
@@ -50,15 +52,91 @@ export ProcessResult :: struct {
     stderr: string
 }
 
-/// Launch `argv` without waiting ; returns a handle into the runtime child
-/// table, or a negative value on launch failure. Pipes for stdout/stderr are
-/// captured and drained by `spawn_poll`.
-@intrinsic export spawn_start :: fn(argv: string[]) -> i64
+// ---- the child table -------------------------------------------------------
+//
+// One tracked child per slot; a handle IS an index into `CHILDREN`. The table
+// used to live in the C runtime, which is why the handle is an opaque `i64`
+// rather than a struct — the shape stayed when the state moved here.
+//
+// Draining is POLL-BEFORE-READ on both systems: ask whether bytes are waiting,
+// read only then. The alternative on POSIX is a non-blocking descriptor and on
+// Windows a thread per pipe, and the reason for either is the same deadlock —
+// a child that fills one pipe while the parent blocks on the other. One
+// question asked before each read removes it without a descriptor flag or a
+// thread.
+
+/// One tracked child. `proc`, `out_h` and `err_h` are machine words because
+/// they mean different things per system: a pid and two descriptors on POSIX,
+/// a process handle and two pipe handles on Windows.
+Child :: struct {
+    in_use:    bool  = false
+    done:      bool  = false
+    exit_code: i32   = 0
+    out:       u8[]! = []
+    err:       u8[]! = []
+    proc:      i64   = 0
+    out_h:     i64   = -1
+    err_h:     i64   = -1
+    out_eof:   bool  = false
+    err_eof:   bool  = false
+}
+
+// The elements are READ-ONLY: a mutable module const may carry the marker on the
+// array level only (T3076), because its elements are emitted as static storage.
+// So a slot is updated by REPLACING it rather than by writing a field. The
+// captured buffers survive that: `out` and `err` carry their own `!`, so the
+// drain appends through a read-only `Child` without the struct being writable.
+CHILDREN: Child[]!: []
+
+// Windows handles, three words per child — process, stdout read end, stderr read
+// end — indexed by handle. They cannot live in `Child`: a `Handle` is a
+// `CPointer`, `CPointer` cannot be rebuilt from an integer (T3010), and a module
+// const array holds flat scalars. Written as machine words, read back as handles
+// through `ptr_at`, which is the one direction that works.
+WIN_HANDLES: usize[]!: []
+
+/// The `k`-th handle of child `handle` — 0 process, 1 stdout, 2 stderr.
+///
+/// @param handle  the child handle.
+/// @param k       which of the three.
+win_handle :: fn(handle: i64, k: usize) -> Handle = ptr_at(WIN_HANDLES, usize(handle) * 3 + k)
+
+/// How much to ask for per drain. One page: large enough that a chatty child
+/// does not need many rounds, small enough that an idle one costs a syscall
+/// and an empty answer.
+DRAIN_CHUNK: usize: 4096
+
+/// Take a free slot, growing the table when every one is busy.
+///
+/// @return  the handle.
+child_alloc :: fn() -> i64 {
+    for i in 0..<CHILDREN.len() {
+        if !CHILDREN[i].in_use {
+            CHILDREN[i] = Child { .in_use = true }
+            return i64(i)
+        }
+    }
+    CHILDREN.push(Child { .in_use = true })
+    return i64(CHILDREN.len() - 1)
+}
+
+/// Whether `handle` names a live slot.
+///
+/// @param handle  the handle to check.
+child_valid :: fn(handle: i64) -> bool =
+    handle >= 0 && usize(handle) < CHILDREN.len() && CHILDREN[usize(handle)].in_use
+
+/// Launch `argv` without waiting ; returns a handle into the child table, or a
+/// negative value on launch failure. Pipes for stdout/stderr are captured and
+/// drained by `spawn_poll`.
+@target
+export spawn_start :: fn(argv: string[]) -> i64
 
 /// Advance a launched child WITHOUT blocking: drain its pipes and reap if it
 /// exited. Returns `RUNNING` while alive, `SIGNALED` on abnormal termination,
 /// else the exit code (>= 0).
-@intrinsic export spawn_poll :: fn(handle: i64) -> i32
+@target
+export spawn_poll :: fn(handle: i64) -> i32
 
 /// Terminate a spawned child and reap it, freeing its slot.
 ///
@@ -69,14 +147,484 @@ export ProcessResult :: struct {
 /// nothing, since a caller cannot know which it holds.
 ///
 /// @param handle  the handle `spawn_start` returned.
-@intrinsic export spawn_kill :: fn(handle: i64) -> void
+@target
+export spawn_kill :: fn(handle: i64) -> void
+
+@target(.Linux, .Darwin)
+spawn_start :: fn(argv: string[]) -> i64 {
+    if argv.len() == 0 {
+        return -1
+    }
+    out_fds: i32[]! = [0, 0]
+    err_fds: i32[]! = [0, 0]
+    if sys_pipe(out_fds) != 0 {
+        return -1
+    }
+    if sys_pipe(err_fds) != 0 {
+        sys_close(out_fds[0])
+        sys_close(out_fds[1])
+        return -1
+    }
+    actions: u8[]! = [0] * SPAWN_ACTIONS_BYTES
+    if sys_spawn_actions_init(actions) != 0 {
+        close_pair(out_fds)
+        close_pair(err_fds)
+        return -1
+    }
+    // The child keeps only the write ends, dup'd onto its own 1 and 2.
+    sys_spawn_actions_addclose(actions, out_fds[0])
+    sys_spawn_actions_addclose(actions, err_fds[0])
+    sys_spawn_actions_adddup2(actions, out_fds[1], 1)
+    sys_spawn_actions_adddup2(actions, err_fds[1], 2)
+    sys_spawn_actions_addclose(actions, out_fds[1])
+    sys_spawn_actions_addclose(actions, err_fds[1])
+
+    // Two views of one vector: `owned` holds the pointers so they can be freed,
+    // `vec` is the `usize[]` that lends as the `char**` the spawn wants.
+    owned: CPointer[]! = []
+    vec: usize[]! = []
+    for a in argv {
+        p :: sys_strdup(a)
+        owned.push(p)
+        vec.push(usize(p))
+    }
+    vec.push(0)
+
+    pid: i32[]! = [0]
+    rc :: sys_posix_spawnp(pid, argv[0], actions, null, vec, sys_environ())
+    sys_spawn_actions_destroy(actions)
+    for p in owned {
+        sys_free(p)
+    }
+    // The parent holds the read ends only; the child owns the write ends now,
+    // and leaving them open here would keep EOF from ever arriving.
+    sys_close(out_fds[1])
+    sys_close(err_fds[1])
+    if rc != 0 {
+        sys_close(out_fds[0])
+        sys_close(err_fds[0])
+        return -1
+    }
+    h :: child_alloc()
+    CHILDREN[usize(h)] = Child {
+        .in_use = true,
+        .proc   = i64(pid[0]),
+        .out_h  = i64(out_fds[0]),
+        .err_h  = i64(err_fds[0]),
+    }
+    return h
+}
+
+/// Close both ends of a pipe pair.
+///
+/// @param fds  the two descriptors `sys_pipe` filled.
+close_pair :: fn(fds: i32[]) -> void {
+    sys_close(fds[0])
+    sys_close(fds[1])
+    return
+}
+
+/// Drain whatever is waiting on `fd` into `into`, without ever blocking.
+///
+/// Asks `poll` first and reads only when it says there is something, which is
+/// what lets one thread serve both pipes: a blocking read on an idle one would
+/// stall while the other filled and the child wedged.
+///
+/// @param child  the child handle.
+/// @param which  1 for stdout, 2 for stderr — the same indices `win_handle` uses.
+/// @param into   the accumulating buffer.
+/// @return       true once the writer is gone and the pipe is drained.
+@target
+drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool
+
+@target(.Linux, .Darwin)
+drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
+    c :: CHILDREN[usize(child)]
+    fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
+    chunk: u8[]! = [0] * DRAIN_CHUNK
+    pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
+    for {
+        if sys_poll_one(pfd, 1, 0) <= 0 {
+            return false
+        }
+        n :: sys_read(fd, chunk, DRAIN_CHUNK)
+        if n == 0 {
+            // `poll` said ready and the read returned nothing: the writer closed.
+            return true
+        }
+        if n < 0 {
+            // An ERROR, not an end. `errno` is out of reach here, and the common
+            // case is `EINTR` — a signal landing mid-read. Reporting EOF would
+            // discard the rest of the child's output; report "no progress" and
+            // let the next poll try again.
+            return false
+        }
+        for i in 0..<usize(n) {
+            into.push(chunk[i])
+        }
+    }
+    return false
+}
+
+@target(.Linux, .Darwin)
+spawn_poll :: fn(handle: i64) -> i32 {
+    if !child_valid(handle) {
+        return SIGNALED
+    }
+    c :: CHILDREN[usize(handle)]
+    if c.done {
+        return c.exit_code
+    }
+    out_eof := if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
+    err_eof := if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
+    st: i32[]! = [0]
+    rc :: sys_waitpid(i32(c.proc), st, WNOHANG)
+    if rc == 0 {
+        CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
+        return RUNNING
+    }
+    if rc < 0 {
+        // The child is unreachable — `waitpid` answers -1/ECHILD when `SIGCHLD`
+        // is `SIG_IGN`, and that disposition is INHERITED across `execve`, so a
+        // build launched from a harness that ignores it sees every child
+        // auto-reaped. Close here or the descriptors leak for good: the slot is
+        // released by `spawn_take_stderr` and nothing holds them after that.
+        sys_close(i32(c.out_h))
+        sys_close(i32(c.err_h))
+        CHILDREN[usize(handle)] = Child {
+            .in_use = true, .done = true, .exit_code = SIGNALED,
+            .out = c.out, .err = c.err, .proc = c.proc,
+            .out_h = c.out_h, .err_h = c.err_h,
+            .out_eof = true, .err_eof = true,
+        }
+        return SIGNALED
+    }
+    // Reaped. Drain once more: the child can write and exit between the drain
+    // above and the wait, and those bytes are still sitting in the pipe.
+    if !out_eof {
+        drain_pipe(handle, 1, c.out)
+    }
+    if !err_eof {
+        drain_pipe(handle, 2, c.err)
+    }
+    sys_close(i32(c.out_h))
+    sys_close(i32(c.err_h))
+    // The wait status layout is the same on Darwin and Linux: the low seven bits
+    // are the terminating signal, zero when the child exited normally, and the
+    // exit code is the next byte up.
+    code :: if (st[0] & 0x7F) == 0 { (st[0] >> 8) & 0xFF } else { SIGNALED }
+    CHILDREN[usize(handle)] = Child {
+        .in_use = true, .done = true, .exit_code = code,
+        .out = c.out, .err = c.err, .proc = c.proc,
+        .out_h = c.out_h, .err_h = c.err_h,
+        .out_eof = true, .err_eof = true,
+    }
+    return code
+}
+
+/// The same slot with its two EOF flags refreshed.
+///
+/// A slot is replaced rather than written into — see `CHILDREN` — and this is
+/// the only field pair a poll changes while the child is still alive.
+///
+/// @param c        the slot as it stands.
+/// @param out_eof  whether stdout is drained and closed.
+/// @param err_eof  likewise for stderr.
+with_eof :: fn(c: Child, out_eof: bool, err_eof: bool) -> Child = Child {
+    .in_use = c.in_use, .done = c.done, .exit_code = c.exit_code,
+    .out = c.out, .err = c.err, .proc = c.proc,
+    .out_h = c.out_h, .err_h = c.err_h,
+    .out_eof = out_eof, .err_eof = err_eof,
+}
+
+@target(.Linux, .Darwin)
+spawn_kill :: fn(handle: i64) -> void {
+    if !child_valid(handle) {
+        return
+    }
+    c :: CHILDREN[usize(handle)]
+    if !c.done {
+        sys_kill(i32(c.proc), SIGKILL)
+        st: i32[]! = [0]
+        sys_waitpid(i32(c.proc), st, 0)
+        sys_close(i32(c.out_h))
+        sys_close(i32(c.err_h))
+    }
+    CHILDREN[usize(handle)] = Child {}
+    return
+}
+
+@target(.Windows)
+spawn_start :: fn(argv: string[]) -> i64 {
+    if argv.len() == 0 {
+        return -1
+    }
+    // Inheritable ends, so the child receives the write halves.
+    sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
+    out_r: usize[]! = [0]
+    out_w: usize[]! = [0]
+    err_r: usize[]! = [0]
+    err_w: usize[]! = [0]
+    if !create_pipe(out_r, out_w, sa, 0) {
+        return -1
+    }
+    if !create_pipe(err_r, err_w, sa, 0) {
+        close_handle(ptr_at(out_r, 0))
+        close_handle(ptr_at(out_w, 0))
+        return -1
+    }
+    out_read  :: ptr_at(out_r, 0)
+    out_write :: ptr_at(out_w, 0)
+    err_read  :: ptr_at(err_r, 0)
+    err_write :: ptr_at(err_w, 0)
+    // The read ends are the parent's. `CreatePipe` made both ends inheritable so
+    // the child gets the write end, and `CreateProcess` inherits everything
+    // marked — so without this the child, and every sibling launched after it,
+    // also receives handles it has no business holding.
+    set_handle_information(out_read, HANDLE_FLAG_INHERIT, 0)
+    set_handle_information(err_read, HANDLE_FLAG_INHERIT, 0)
+
+    si :: StartupInfo {
+        .cb = 104, .lpReserved = 0, .lpDesktop = 0, .lpTitle = 0,
+        .dwX = 0, .dwY = 0, .dwXSize = 0, .dwYSize = 0,
+        .dwXCountChars = 0, .dwYCountChars = 0, .dwFillAttribute = 0,
+        .dwFlags = STARTF_USESTDHANDLES,
+        .wShowWindow = 0, .cbReserved2 = 0, .lpReserved2 = 0,
+        .hStdInput = get_std_handle(STD_INPUT_HANDLE),
+        .hStdOutput = out_write, .hStdError = err_write,
+    }
+    pi :: ProcessInformation { .hProcess = out_write, .hThread = out_write,
+                               .dwProcessId = 0, .dwThreadId = 0 }
+    // `CreateProcessA` MODIFIES the command line in place, so it is lent as a
+    // mutable NUL-terminated byte buffer rather than passed as a `string`.
+    line :: command_line_bytes(argv)
+    ok :: create_process(null, line, null, null, true, 0, null, null, si, pi)
+    // The parent drops the write ends whatever happened: while it holds one, the
+    // read end never reports EOF and the drain never finishes.
+    close_handle(out_write)
+    close_handle(err_write)
+    if !ok {
+        close_handle(out_read)
+        close_handle(err_read)
+        return -1
+    }
+    close_handle(pi.hThread)
+    h :: child_alloc()
+    base :: usize(h) * 3
+    for WIN_HANDLES.len() < base + 3 {
+        WIN_HANDLES.push(0)
+    }
+    WIN_HANDLES[base]     = usize(pi.hProcess)
+    WIN_HANDLES[base + 1] = usize(out_read)
+    WIN_HANDLES[base + 2] = usize(err_read)
+    CHILDREN[usize(h)] = Child { .in_use = true }
+    return h
+}
+
+/// Join `argv` into one command line, quoting what needs it, as a mutable
+/// NUL-terminated byte buffer.
+///
+/// `CreateProcessA` takes ONE string and writes into it, which is why this hands
+/// back bytes rather than a `string`: an atom is shared and interned, and the
+/// callee would be scribbling on it.
+///
+/// @param argv  the words.
+/// @return      the command line, NUL-terminated.
+command_line_bytes :: fn(argv: string[]) -> u8[]! {
+    out: u8[]! = []
+    for i in 0..<argv.len() {
+        if i > 0 {
+            out.push(' ')
+        }
+        push_quoted(argv[i].bytes(), out)
+    }
+    out.push(0)
+    return out
+}
+
+/// Append one argument, quoted and escaped the way `CommandLineToArgvW` reads
+/// it back.
+///
+/// The rules are not "wrap in quotes when it has a space". A backslash is
+/// ordinary EXCEPT immediately before a quote, where it escapes — so a run of
+/// backslashes that meets a quote (the one we add, or one in the argument) has
+/// to be doubled, and a quote inside the argument has to be escaped on top of
+/// that. Get it wrong and the child sees a different argv: `a"b` plus `c`
+/// arrived as the single word `ab c`, and a path ending in a separator escaped
+/// the closing quote and swallowed the next argument.
+///
+/// @param word  the argument's bytes.
+/// @param out   the command line being built.
+push_quoted :: fn(word: u8[], out: u8[]!) -> void {
+    if word.len() > 0 && !needs_quoting(word) {
+        for b in word {
+            out.push(b)
+        }
+        return
+    }
+    out.push('"')
+    slashes := 0
+    for b in word {
+        if b == '\\' {
+            slashes += 1
+            continue
+        }
+        if b == '"' {
+            // The run escapes the quote, so it must survive as itself: double
+            // it, then escape the quote with one more.
+            for _s in 0..<(slashes * 2 + 1) {
+                out.push('\\')
+            }
+            slashes = 0
+            out.push('"')
+            continue
+        }
+        for _s in 0..<slashes {
+            out.push('\\')
+        }
+        slashes = 0
+        out.push(b)
+    }
+    // A run at the END meets the closing quote we are about to add.
+    for _s in 0..<(slashes * 2) {
+        out.push('\\')
+    }
+    out.push('"')
+    return
+}
+
+/// Whether the argument has to be quoted at all.
+///
+/// The separator set is Win32's, not just space and tab: `CommandLineToArgvW`
+/// also breaks on a newline or a vertical tab, and a quote has to be escaped
+/// whether or not anything else forces the quoting.
+///
+/// @param word  the argument's bytes.
+needs_quoting :: fn(word: u8[]) -> bool {
+    for b in word {
+        if b == ' ' || b == '\t' || b == '\n' || b == 11 || b == '"' {
+            return true
+        }
+    }
+    return false
+}
+
+@target(.Windows)
+drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
+    h :: win_handle(child, which)
+    chunk: u8[]! = [0] * DRAIN_CHUNK
+    avail: u32[]! = [0]
+    got: u32[]! = [0]
+    for {
+        if !peek_named_pipe(h, null, 0, null, avail, null) {
+            // The peek fails once the write end is gone — that is the EOF.
+            return true
+        }
+        if avail[0] == 0 {
+            return false
+        }
+        want :: if usize(avail[0]) > DRAIN_CHUNK { u32(DRAIN_CHUNK) } else { avail[0] }
+        if !read_file(h, chunk, want, got, null) {
+            return true
+        }
+        if got[0] == 0 {
+            return true
+        }
+        for i in 0..<usize(got[0]) {
+            into.push(chunk[i])
+        }
+    }
+    return false
+}
+
+@target(.Windows)
+spawn_poll :: fn(handle: i64) -> i32 {
+    if !child_valid(handle) {
+        return SIGNALED
+    }
+    c :: CHILDREN[usize(handle)]
+    if c.done {
+        return c.exit_code
+    }
+    out_eof := if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
+    err_eof := if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
+    proc :: win_handle(handle, 0)
+    if wait_for_single_object(proc, 0) != WAIT_OBJECT_0 {
+        CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
+        return RUNNING
+    }
+    // Exited. Drain once more: the child can write and exit between the drain
+    // above and the wait, and those bytes are still sitting in the pipe.
+    if !out_eof {
+        drain_pipe(handle, 1, c.out)
+    }
+    if !err_eof {
+        drain_pipe(handle, 2, c.err)
+    }
+    code: u32[]! = [0]
+    got :: get_exit_code_process(proc, code)
+    close_handle(win_handle(handle, 1))
+    close_handle(win_handle(handle, 2))
+    close_handle(proc)
+    // An NTSTATUS crash sets the top two bits — `STATUS_ACCESS_VIOLATION` is
+    // 0xC0000005. Masking them off turned every crash into a large POSITIVE exit
+    // code, which `SpawnAsync.resume` reads as a clean run because it only
+    // branches on `SIGNALED`.
+    exit_code :: if !got {
+        SIGNALED
+    } else if (code[0] & 0xC000_0000) == 0xC000_0000 {
+        SIGNALED
+    } else {
+        i32(code[0])
+    }
+    CHILDREN[usize(handle)] = Child {
+        .in_use = true, .done = true, .exit_code = exit_code,
+        .out = c.out, .err = c.err, .proc = c.proc,
+        .out_h = c.out_h, .err_h = c.err_h,
+        .out_eof = true, .err_eof = true,
+    }
+    return exit_code
+}
+
+@target(.Windows)
+spawn_kill :: fn(handle: i64) -> void {
+    if !child_valid(handle) {
+        return
+    }
+    c :: CHILDREN[usize(handle)]
+    if !c.done {
+        proc :: win_handle(handle, 0)
+        terminate_process(proc, 1)
+        wait_for_single_object(proc, 2000)
+        close_handle(win_handle(handle, 1))
+        close_handle(win_handle(handle, 2))
+        close_handle(proc)
+    }
+    CHILDREN[usize(handle)] = Child {}
+    return
+}
 
 /// Intern the child's captured stdout (call after `spawn_poll` reports done).
-@intrinsic export spawn_take_stdout :: fn(handle: i64) -> string
+export spawn_take_stdout :: fn(handle: i64) -> string {
+    if !child_valid(handle) {
+        return ""
+    }
+    return CHILDREN[usize(handle)].out.bytes_to_string()
+}
 
 /// Intern the child's captured stderr AND release the child slot — the last
 /// call for a handle. Take order is stdout then stderr.
-@intrinsic export spawn_take_stderr :: fn(handle: i64) -> string
+export spawn_take_stderr :: fn(handle: i64) -> string {
+    if !child_valid(handle) {
+        return ""
+    }
+    c :: CHILDREN[usize(handle)]
+    out :: c.err.bytes_to_string()
+    // The LAST call for a handle — releasing here is what frees the slot and
+    // the captured buffers, and take order is stdout then stderr.
+    CHILDREN[usize(handle)] = Child {}
+    return out
+}
 
 // ---- async primitive -------------------------------------------------------
 

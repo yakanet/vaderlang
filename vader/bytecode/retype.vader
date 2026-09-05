@@ -131,6 +131,9 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
                 .extern_name = imp.extern_name, .mangled_name = imp.mangled_name,
                 .signature = remap_signature(imp.signature, remap),
                 .is_extern = imp.is_extern,
+                .c_header = imp.c_header,
+                .c_variadic_fixed = imp.c_variadic_fixed,
+                .c_library = imp.c_library,
             },
         )
     }
@@ -171,6 +174,11 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
     return BcSignature {
         .params = sig.params, .result = sig.result, .param_types = pts,
         .result_type = remap_idx(remap, sig.result_type), .param_names = sig.param_names,
+        // Carried over explicitly : the field defaults to `[]`, so a partial
+        // rebuild drops it in silence — the failure mode `types.vader` records
+        // for `FnParam.mutable`.
+        .param_mutable = sig.param_mutable,
+        .param_by_address = sig.param_by_address,
     }
 }
 
@@ -184,9 +192,11 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
     is BcStruct as s -> {
         fields: BcField[]! = []
         for f in s.fields {
-            fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
+            fields.push(BcField {
+                .name = f.name, .type_index = remap_idx(remap, f.type_index),
+            })
         }
-        BcStruct { .name = s.name, .fields = fields, .symbol_id = s.symbol_id }
+        BcStruct { .name = s.name, .fields = fields, .c_name = s.c_name, .symbol_id = s.symbol_id }
     }
     is BcArray as a -> BcArray { .element = remap_idx(remap, a.element) }
     is BcUnion as u -> {

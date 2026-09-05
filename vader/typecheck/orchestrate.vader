@@ -69,8 +69,9 @@ export check_file :: fn(
     overlay: MutableMap<string, string>,
     include_path_flags: string[],
     dump_types: bool,
+    selection: Selection | null = null,
 ) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
+    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
     diags: Diagnostic[]! = []
     result :: check_project_with_bodies(project, diags, dump_types)
     return FileCheck {
@@ -554,8 +555,8 @@ populate_from :: fn(
                 per_module,
             )
         }
-        if entry_typed.namespace_export_params[mod_id] is null {
-            entry_typed.namespace_export_params[mod_id] = build_namespace_export_params(
+        if entry_typed.namespace_export_decls[mod_id] is null {
+            entry_typed.namespace_export_decls[mod_id] = build_namespace_export_decls(
                 mod_id,
                 project,
                 per_module,
@@ -1578,12 +1579,12 @@ populate_imported_fn_overloads :: fn(
 // materialised trait-default body carries (`resolver/substitute_body.vader`):
 // such a body has no file of its own, and the names it may use are the ones its
 // impl's file can see. Maps hold references, so the alias costs one entry.
-file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, FnType[]!>! {
+file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, ImportedFn[]!>! {
     existing :: typed.imported_fn_overloads[file]
     if existing !is null {
         return existing
     }
-    table :: MutableMap<string, FnType[]!> {}
+    table :: MutableMap<string, ImportedFn[]!> {}
     typed.imported_fn_overloads[file] = table
     typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
     return table
@@ -1601,7 +1602,12 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
         }
         local :: symbol_by_id(sym_id, entry_typed) ?? continue
         where :: local.defined_at ?? continue
-        push_overload(file_overload_table(entry_typed, where.start.file), local.name, ty)
+        // A renamed import binds the same declaration under a new local name,
+        // so the decl travels with it exactly as a wildcard's does.
+        push_overload(
+            file_overload_table(entry_typed, where.start.file), local.name,
+            ImportedFn { .ty = ty, .decl = entry_typed.fn_decls[st.symbol.id] },
+        )
     }
 }
 
@@ -1618,7 +1624,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
 push_module_exported_fns :: fn(
     from: TypedProgram,
     into: TypedProgram!,
-    table: MutableMap<string, FnType[]!>!,
+    table: MutableMap<string, ImportedFn[]!>!,
     excluded: string[],
 ) -> void {
     if from.resolved.path == into.resolved.path {
@@ -1637,7 +1643,17 @@ push_module_exported_fns :: fn(
             ty :: from.decl_types[sym.id] ?? continue
             if ty is FnType as ft {
                 if name !in excluded {
-                    push_overload(table, name, ft)
+                    // The DECL travels with the type: it is what carries
+                    // parameter names and defaults, which a UFCS call site in
+                    // the importing module has no other way to reach.
+                    fd :: from.fn_decls[sym.id]
+                    push_overload(table, name, ImportedFn { .ty = ft, .decl = fd })
+                    // And the defaults' own name resolutions travel with it —
+                    // they are lowered in the CALLER's context. See
+                    // `import_defaults.vader`.
+                    if fd is AST.FnDecl as decl {
+                        publish_default_resolutions(from, into, decl)
+                    }
                 }
                 into.external_types[sym.id] = ft
             }
@@ -1660,13 +1676,13 @@ push_module_exported_fns :: fn(
     }
 }
 
-push_overload :: fn(table: MutableMap<string, FnType[]!>!, name: string, ft: FnType) -> void {
+push_overload :: fn(table: MutableMap<string, ImportedFn[]!>!, name: string, ft: ImportedFn) -> void {
     bucket :: table[name]
     if bucket is null {
         table[name] = [ft]
     } else {
         for i in 0..<bucket.len() {
-            if type_list_equals(bucket[i].params, ft.params) {
+            if type_list_equals(bucket[i].ty.params, ft.ty.params) {
                 bucket[i] = ft
                 table[name] = bucket
                 return
@@ -1838,12 +1854,12 @@ build_namespace_exports :: fn(
 // params are reachable here. To support overloaded namespace calls this map
 // would need to become bucket-valued and selection move into
 // `namespace_member_params`, mirroring `overload_params_matching`.
-build_namespace_export_params :: fn(
+build_namespace_export_decls :: fn(
     mod_id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
-) -> MutableMap<string, AST.FnParam[]> {
-    out :: MutableMap<string, AST.FnParam[]> {}
+) -> MutableMap<string, AST.FnDecl> {
+    out :: MutableMap<string, AST.FnDecl> {}
     loaded :: project.modules[mod_id] ?? return out
     typed :: per_module[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
@@ -1853,7 +1869,7 @@ build_namespace_export_params :: fn(
         }
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd {
-            out[name] = fd.params
+            out[name] = fd
         }
     }
     return out

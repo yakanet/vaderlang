@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/extern_callback_slot
+  FnDecl         apply_twice          :: fn(i32, fn(i32) -> i32, i32) -> i32
+  FnDecl         bump                 :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn() -> void
+  expr 23:12    BinaryExpr     :: i32
+  expr 23:12    IdentExpr      :: i32
+  expr 30:15    RangeExpr      :: Range<i32>!
+  expr 31:18    CallExpr       :: i32
+  expr 31:18    IdentExpr      :: fn(i32, fn(i32) -> i32, i32) -> i32
+  expr 31:34    IdentExpr      :: fn(i32) -> i32
+  expr 31:9     BinaryExpr     :: i32
+  expr 31:9     IdentExpr      :: i32
+  expr 33:13    StringLitExpr  :: string
+  expr 33:16    IdentExpr      :: i32
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
