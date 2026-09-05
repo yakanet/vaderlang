@@ -1,0 +1,39 @@
+# Typecheck
+
+## tests/snippets/extern_cpointer_match
+  FnDecl         c_fclose             :: fn(CPointer) -> i32
+  FnDecl         c_fopen              :: fn(string, string) -> CPointer | null
+  FnDecl         main                 :: fn() -> i32
+  expr 29:10    CallExpr       :: CPointer | null
+  expr 29:10    IdentExpr      :: fn(string, string) -> CPointer | null
+  expr 29:18    StringLitExpr  :: string
+  expr 29:32    StringLitExpr  :: string
+  expr 30:11    IdentExpr      :: CPointer | null
+  expr 30:5     MatchExpr      :: i32 | void
+  expr 32:13    CallExpr       :: void
+  expr 32:13    IdentExpr      :: fn(T) -> void
+  expr 32:21    StringLitExpr  :: string
+  expr 33:13    CallExpr       :: i32
+  expr 33:13    IdentExpr      :: fn(CPointer) -> i32
+  expr 33:22    IdentExpr      :: CPointer
+  expr 35:20    CallExpr       :: void
+  expr 35:20    IdentExpr      :: fn(T) -> void
+  expr 35:28    StringLitExpr  :: string
+  expr 37:13    StringLitExpr  :: string
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 39:16    CallExpr       :: CPointer | null
+  expr 39:16    IdentExpr      :: fn(string, string) -> CPointer | null
+  expr 39:24    StringLitExpr  :: string
+  expr 39:48    StringLitExpr  :: string
+  expr 40:11    IdentExpr      :: CPointer | null
+  expr 40:5     MatchExpr      :: i32 | void
+  expr 42:13    CallExpr       :: void
+  expr 42:13    IdentExpr      :: fn(T) -> void
+  expr 42:21    StringLitExpr  :: string
+  expr 43:13    CallExpr       :: i32
+  expr 43:13    IdentExpr      :: fn(CPointer) -> i32
+  expr 43:22    IdentExpr      :: CPointer
+  expr 45:20    CallExpr       :: void
+  expr 45:20    IdentExpr      :: fn(T) -> void
+  expr 45:28    StringLitExpr  :: string

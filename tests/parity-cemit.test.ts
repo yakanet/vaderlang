@@ -280,6 +280,8 @@ const C_PARITY = new Set<string>([
   // agrees with the address the shim actually passes.
   "array_clear_refill",
   "c_pointer_as_word",
+  "c_struct_char_field",
+  "extern_cpointer_match",
   "c_struct_layout",
   "c_struct_prefix_mirror",
   // A C CALLBACK: what must cross is `&snippet_double_it`, the function's own

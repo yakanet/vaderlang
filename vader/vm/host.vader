@@ -866,7 +866,7 @@ serialise_mirror :: fn(
         if width == null {
             continue
         }
-        cell :: read_i64(sv.fields[j], at_pc, "extern `${extern_name}` field `${fields[j].name}`")
+        cell :: read_scalar_word(sv.fields[j], at_pc, "extern `${extern_name}` field `${fields[j].name}`")
         if cell is Trap { return cell }
         write_little_endian(data, base + usize(layout.offsets[j]), cell.value, usize(width))
     }
@@ -991,7 +991,36 @@ retyped_int :: fn(old: Value, n: i64) -> Value {
     if old is I64Val {
         return I64Val { .value = n }
     }
+    // A mirror field may be `bool` or `char` — `typecheck/decl::validate_mirror_fields`
+    // admits both. Handing back an `I32Val` would silently retype the field, so
+    // it stops answering `is bool` after the call even though the byte is right.
+    if old is BoolVal {
+        return BoolVal { .value = n != 0 }
+    }
+    if old is CharVal {
+        return CharVal { .value = char(u32(n & 0xFFFF_FFFF)) }
+    }
     return I32Val { .value = i32(n) }
+}
+
+/// Read a mirror field as the machine word the block stores.
+///
+/// Wider than `read_i64` on purpose: a `bool` and a `char` are admitted mirror
+/// field types (`typecheck/decl::validate_mirror_fields`) and the native shim
+/// copies them with a plain C assignment, so the interpreter has to serialise
+/// them too rather than trapping on a shape the front end allowed.
+///
+/// @param v      the field's value.
+/// @param at_pc  program counter, for the trap message.
+/// @param label  names the field in that message.
+read_scalar_word :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
+    if v is BoolVal {
+        return I64Val { .value = if v.value { 1 } else { 0 } }
+    }
+    if v is CharVal {
+        return I64Val { .value = i64(u32(v.value)) }
+    }
+    return read_i64(v, at_pc, label)
 }
 
 /// Wrap a foreign call's raw machine result as the `Value` its declared return

@@ -248,9 +248,16 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
             return false
         }
         n :: sys_read(fd, chunk, DRAIN_CHUNK)
-        if n <= 0 {
+        if n == 0 {
             // `poll` said ready and the read returned nothing: the writer closed.
             return true
+        }
+        if n < 0 {
+            // An ERROR, not an end. `errno` is out of reach here, and the common
+            // case is `EINTR` — a signal landing mid-read. Reporting EOF would
+            // discard the rest of the child's output; report "no progress" and
+            // let the next poll try again.
+            return false
         }
         for i in 0..<usize(n) {
             into.push(chunk[i])
@@ -277,7 +284,19 @@ spawn_poll :: fn(handle: i64) -> i32 {
         return RUNNING
     }
     if rc < 0 {
-        CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
+        // The child is unreachable — `waitpid` answers -1/ECHILD when `SIGCHLD`
+        // is `SIG_IGN`, and that disposition is INHERITED across `execve`, so a
+        // build launched from a harness that ignores it sees every child
+        // auto-reaped. Close here or the descriptors leak for good: the slot is
+        // released by `spawn_take_stderr` and nothing holds them after that.
+        sys_close(i32(c.out_h))
+        sys_close(i32(c.err_h))
+        CHILDREN[usize(handle)] = Child {
+            .in_use = true, .done = true, .exit_code = SIGNALED,
+            .out = c.out, .err = c.err, .proc = c.proc,
+            .out_h = c.out_h, .err_h = c.err_h,
+            .out_eof = true, .err_eof = true,
+        }
         return SIGNALED
     }
     // Reaped. Drain once more: the child can write and exit between the drain
@@ -358,6 +377,12 @@ spawn_start :: fn(argv: string[]) -> i64 {
     out_write :: ptr_at(out_w, 0)
     err_read  :: ptr_at(err_r, 0)
     err_write :: ptr_at(err_w, 0)
+    // The read ends are the parent's. `CreatePipe` made both ends inheritable so
+    // the child gets the write end, and `CreateProcess` inherits everything
+    // marked — so without this the child, and every sibling launched after it,
+    // also receives handles it has no business holding.
+    set_handle_information(out_read, HANDLE_FLAG_INHERIT, 0)
+    set_handle_information(err_read, HANDLE_FLAG_INHERIT, 0)
 
     si :: StartupInfo {
         .cb = 104, .dwFlags = STARTF_USESTDHANDLES,
@@ -407,31 +432,73 @@ command_line_bytes :: fn(argv: string[]) -> u8[]! {
         if i > 0 {
             out.push(' ')
         }
-        word :: argv[i].bytes()
-        // Quote when empty or when a space would split the word. The backslash
-        // rules Win32 applies before a quote do not arise here: a path from the
-        // build never ends in one before a closing quote.
-        needs :: word.len() == 0 || contains_space(word)
-        if needs {
-            out.push('"')
-        }
-        for b in word {
-            out.push(b)
-        }
-        if needs {
-            out.push('"')
-        }
+        push_quoted(argv[i].bytes(), out)
     }
     out.push(0)
     return out
 }
 
-/// Whether any byte is a space or a tab.
+/// Append one argument, quoted and escaped the way `CommandLineToArgvW` reads
+/// it back.
 ///
-/// @param word  the bytes to scan.
-contains_space :: fn(word: u8[]) -> bool {
+/// The rules are not "wrap in quotes when it has a space". A backslash is
+/// ordinary EXCEPT immediately before a quote, where it escapes — so a run of
+/// backslashes that meets a quote (the one we add, or one in the argument) has
+/// to be doubled, and a quote inside the argument has to be escaped on top of
+/// that. Get it wrong and the child sees a different argv: `a"b` plus `c`
+/// arrived as the single word `ab c`, and a path ending in a separator escaped
+/// the closing quote and swallowed the next argument.
+///
+/// @param word  the argument's bytes.
+/// @param out   the command line being built.
+push_quoted :: fn(word: u8[], out: u8[]!) -> void {
+    if word.len() > 0 && !needs_quoting(word) {
+        for b in word {
+            out.push(b)
+        }
+        return
+    }
+    out.push('"')
+    slashes := 0
     for b in word {
-        if b == ' ' || b == '\t' {
+        if b == '\\' {
+            slashes += 1
+            continue
+        }
+        if b == '"' {
+            // The run escapes the quote, so it must survive as itself: double
+            // it, then escape the quote with one more.
+            for _s in 0..<(slashes * 2 + 1) {
+                out.push('\\')
+            }
+            slashes = 0
+            out.push('"')
+            continue
+        }
+        for _s in 0..<slashes {
+            out.push('\\')
+        }
+        slashes = 0
+        out.push(b)
+    }
+    // A run at the END meets the closing quote we are about to add.
+    for _s in 0..<(slashes * 2) {
+        out.push('\\')
+    }
+    out.push('"')
+    return
+}
+
+/// Whether the argument has to be quoted at all.
+///
+/// The separator set is Win32's, not just space and tab: `CommandLineToArgvW`
+/// also breaks on a newline or a vertical tab, and a quote has to be escaped
+/// whether or not anything else forces the quoting.
+///
+/// @param word  the argument's bytes.
+needs_quoting :: fn(word: u8[]) -> bool {
+    for b in word {
+        if b == ' ' || b == '\t' || b == '\n' || b == 11 || b == '"' {
             return true
         }
     }
@@ -495,7 +562,17 @@ spawn_poll :: fn(handle: i64) -> i32 {
     close_handle(win_handle(handle, 1))
     close_handle(win_handle(handle, 2))
     close_handle(proc)
-    exit_code :: if got { i32(code[0] & 0x7FFF_FFFF) } else { SIGNALED }
+    // An NTSTATUS crash sets the top two bits — `STATUS_ACCESS_VIOLATION` is
+    // 0xC0000005. Masking them off turned every crash into a large POSITIVE exit
+    // code, which `SpawnAsync.resume` reads as a clean run because it only
+    // branches on `SIGNALED`.
+    exit_code :: if !got {
+        SIGNALED
+    } else if (code[0] & 0xC000_0000) == 0xC000_0000 {
+        SIGNALED
+    } else {
+        i32(code[0])
+    }
     CHILDREN[usize(handle)] = Child {
         .in_use = true, .done = true, .exit_code = exit_code,
         .out = c.out, .err = c.err, .proc = c.proc,

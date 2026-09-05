@@ -6,8 +6,15 @@
 
 module "system/darwin"
 
-/// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success; `size` is updated
-/// to the needed capacity when the buffer is too small.
+/// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success, non-zero when
+/// `buf` was too small.
+///
+/// ⚠️ C writes the NEEDED capacity back through `size` and Vader never sees it:
+/// a scalar `@c_pointer` cannot be an out-parameter — the `!` that would ask for
+/// one is `T3075`, and the shim's temporary dies at the return. A caller wanting
+/// to retry at the right size must lend a one-element array instead. The one
+/// caller does not: it starts at 4096, four times `PATH_MAX` on Darwin, and
+/// treats failure as "give up".
 ///
 /// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
 /// carry symlinks, so callers pass it through `realpath`.

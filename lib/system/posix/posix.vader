@@ -410,6 +410,10 @@ export sys_getcwd :: fn(buf: u8[]!, size: usize) -> CPointer | null
 /// @param mode  permission bits, masked by the process umask.
 @c_header("<sys/stat.h>")
 @extern("mkdir")
+// `mode_t` is 2 bytes on Darwin and 4 on Linux, and neither is spellable per
+// target — same shape as `nfds_t` on `sys_poll_one`. Passing the wider one is
+// ABI-correct here because a permission mask uses the low bits and an argument
+// travels in the low half of its register.
 export sys_mkdir :: fn(path: string, mode: u32) -> i32
 
 /// `access(2)` mode: does the entry exist at all.

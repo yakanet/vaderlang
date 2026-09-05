@@ -832,3 +832,43 @@ Moved out of MVP (was §1.10). C backend already covers native deployment.
 - `vader/` — the self-hosted Vader compiler (lexer, parser, typecheck, lower, midir, bytecode, c_emit, vm, lsp, fmt, cli)
 - `tests/` — snapshot tests
 - `docs/IMPROVEMENT.md` — review-driven improvement plan (2026-05-11)
+
+## LSP — keywords highlighted inside a vaderdoc comment
+
+Reported 2026-09-05 with a screenshot of `lib/system/darwin/darwin.vader`. Inside
+a `///` block, ordinary words are coloured as code: `NEEDED`, `the`, `is` and
+`one` each get an identifier/keyword colour while the rest of the line stays
+comment-grey. The whole run is one comment token, so the highlighting is coming
+from somewhere that re-tokenises the comment's TEXT rather than from
+`classify_token`.
+
+Worth checking against `bug_yield_not_highlighted_keyword`'s fix, which made
+`classify_token` exhaustive and single-source — this looks like a second
+consumer that never got the same treatment.
+
+## Varargs in Vader — and what the C interface should become
+
+`@c_variadic(N)` is a STOPGAP, taken 2026-09-05 to close a real hole: the VM's
+trampoline casts a resolved symbol to a NON-variadic prototype, and on
+darwin-arm64 variadic arguments travel on the stack rather than in registers, so
+`ioctl` had the kernel write eight bytes to an uninitialised stack word and
+report success. The marker says where a callee's fixed arguments end, which is
+the one thing the trampoline needs and the one thing `@c_header` gives to `cc`
+and not to us.
+
+**We want real varargs in the language.** When they land, revisit the C
+interface as a whole rather than bolting them onto the marker.
+
+Two things to carry into that decision:
+
+- Today a variadic C function is bound as ONE `@extern` PER CALL SHAPE, and the
+  duplicate-symbol gate (T3050) steps aside when both carry `@c_header`
+  precisely so that works. It is verbose, and it has a virtue Vader-level
+  varargs would lose: `cc` checks each shape against the real prototype, so
+  `printf("%d", 3.0)` fails the build. A `...` on the Vader side moves that
+  check to nobody.
+- `@c_variadic(N)` does not protect against its own absence. A bare
+  `@extern("ioctl")` stays wrong on the VM, silently. Only `cc` knows a
+  prototype is variadic, so a compiler-side check would cover the native path
+  and not the one that is actually broken. Same shape as `@c_header` being our
+  only ABI check with nothing requiring it.

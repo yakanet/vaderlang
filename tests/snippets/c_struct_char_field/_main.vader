@@ -1,0 +1,35 @@
+// A `char` field in a `@c_struct` mirror, on BOTH backends.
+//
+// `validate_mirror_fields` admits `bool` and `char`, and the native shim copies
+// them with a plain C assignment. The interpreter read every field through
+// `read_i64`, which unwraps only the two integer carriers — so a mirror the
+// front end had accepted trapped at the call: "expected i64, got char". The
+// read-back had the matching half of the same hole, handing an `I32Val` where
+// the field was a `char`.
+//
+// `div_t` because its members are `int`, four bytes, which is what a Vader
+// `char` is — the width check is exact. `memset` because it is libc, so the
+// interpreter resolves it and this snippet runs on both backends.
+
+module "snippet"
+
+import "std/io"
+
+@c_struct("div_t")
+Pair :: struct {
+    quot: char
+    rem:  i32
+}
+
+@c_header("<stdlib.h>")
+@extern("memset")
+zero_pair :: fn(@c_pointer p: Pair!, byte: i32, n: usize) -> CPointer
+
+main :: fn() -> i32 {
+    p :: Pair { .quot = 'A', .rem = 7 }
+    println("before quot=${p.quot} rem=${p.rem}")
+    zero_pair(p, 0, 8)
+    // Still a `char` after the round trip, not an integer wearing its place.
+    println("after quot=${p.quot == '\u{0}'} rem=${p.rem}")
+    return 0
+}
