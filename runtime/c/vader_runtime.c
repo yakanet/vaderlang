@@ -3471,15 +3471,41 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
  * a different offset on every system (21 on Darwin, 19 on glibc) — an offset only
  * `cc` can resolve, and only from the real header.
  *
- * Kept as a C accessor rather than a Vader projection because it must work on
- * BOTH backends: the interpreter has no C layout, but it can CALL a C function,
- * and it resolves this one out of its own process the way it resolves libc.
+ * It has to be a CALL and not a struct read: the interpreter has no C layout,
+ * but it can call a C function and resolve this one out of its own process.
  * The returned pointer belongs to the C library and dies at the next `readdir`;
  * the shim interns it before then. */
 const char* vader_dirent_name(const void* ent);
 
 #if defined(_WIN32)
 
+
+/* The `cFileName` of a `WIN32_FIND_DATAW`, as UTF-8 — the Windows twin of
+ * `vader_dirent_name`.
+ *
+ * Same reason to exist: reading a NAMED member of a C struct is the one step a
+ * Vader FFI call cannot take for itself, and only `cc` resolves the offset from
+ * the real header. It carries the UTF-16 conversion too, because `cFileName` is
+ * `WCHAR[MAX_PATH]` and a Vader string is UTF-8 — the encoding difference belongs
+ * on this side of the boundary.
+ *
+ * The result lives in a static buffer and is valid until the next call. That is
+ * the same contract `cFileName` itself has: `FindNextFileW` overwrites it. The
+ * shim interns before either happens.
+ *
+ * `VADER_HOST_EXPORT` because the interpreter resolves it by NAME at run time —
+ * see the macro for the two things that has to survive. */
+VADER_HOST_EXPORT
+const char* vader_find_data_name(const void* fd) {
+    static char utf8[MAX_PATH * 4];
+    const WIN32_FIND_DATAW* d = (const WIN32_FIND_DATAW*) fd;
+    int n = WideCharToMultiByte(CP_UTF8, 0, d->cFileName, -1,
+                                utf8, (int) sizeof(utf8), NULL, NULL);
+    if (n <= 0) {
+        utf8[0] = '\0';
+    }
+    return utf8;
+}
 
 vader_bool_t vader_is_dir(vader_string_t path) {
     const char* p = vader_atom_to_cstr(path);
@@ -3601,7 +3627,7 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
  * by name out of the running process, where a dropped symbol is a trap at the
  * first `read_dir`. Anchoring is what keeps it callable, not a performance
  * choice. */
-__attribute__((used)) VADER_NOINLINE
+VADER_HOST_EXPORT
 const char* vader_dirent_name(const void* ent) {
     return ((const struct dirent*) ent)->d_name;
 }

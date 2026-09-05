@@ -621,13 +621,39 @@ read_dir :: fn(path: string) -> string[]! | IOError {
     return out
 }
 
-// Still the host's on Windows. `FindFirstFileW` reports the name in
-// `WIN32_FIND_DATAW.cFileName`, a `WCHAR[260]` INSIDE a caller-allocated struct:
-// the same accessor shape as `dirent_name`, plus the UTF-16 to UTF-8 conversion
-// the runtime already does inline. Portable the same way, not yet written.
 @target(.Windows)
-@intrinsic
-read_dir :: fn(path: string) -> string[]! | IOError
+read_dir :: fn(path: string) -> string[]! | IOError {
+    // `FindFirstFileW` wants a GLOB, not a directory: the separator is added
+    // only when the path does not already end in one, so `C:\` stays `C:\*`.
+    // The last byte decides, read directly: `std/string` is not in this file's
+    // closure, and a separator is ASCII so a byte test is exact.
+    //
+    // An EMPTY path takes no separator either. `\*` is the root of the current
+    // DRIVE, while `*` is the current directory — and the host implementation
+    // this replaces appended nothing to an empty path, so prefixing one would
+    // silently start listing `C:\`. A bare `C:` is left alone for the same
+    // reason: in Win32 it means "the current directory on C", not `C:\`.
+    pb :: path.bytes()
+    tail :: if pb.len() == 0 { u8(0) } else { pb[pb.len() - 1] }
+    sep :: if pb.len() == 0 || tail == '\\' || tail == '/' || tail == ':' { "" } else { "\\" }
+    data: u8[]! = [0] * FIND_DATA_BYTES
+    h :: find_first_file(to_wide("${path}${sep}*"), data)
+    if isize(h) == INVALID_HANDLE {
+        return IOError { .msg = "read_dir: cannot open `${path}`" }
+    }
+    defer find_close(h)
+    out: string[]! = []
+    for {
+        name :: find_data_name(data)
+        if name != "." && name != ".." {
+            out.push(name)
+        }
+        if !find_next_file(h, data) {
+            break
+        }
+    }
+    return out
+}
 
 /// Full path of the running executable, `/`-separated. Use `std/path`'s
 /// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,

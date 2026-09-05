@@ -165,6 +165,15 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
                 p = (void*) GetProcAddress((HMODULE) lib, buf);
             }
         }
+        if (p == NULL) {
+            /* Then the EXE's own export table. POSIX gets this for free —
+             * `dlopen(NULL)` exposes the whole global scope, so a runtime symbol
+             * like `vader_dirent_name` resolves there — while on Windows the CRT
+             * handle above knows nothing of the running program. Anything the
+             * interpreter must reach in ITSELF is `VADER_HOST_EXPORT`ed, which
+             * is what puts it in this table. */
+            p = (void*) GetProcAddress(GetModuleHandleW(NULL), symbol);
+        }
         return p;
     }
 #else

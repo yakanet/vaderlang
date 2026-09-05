@@ -59,6 +59,19 @@
 #  define VADER_LIKELY(x)   __builtin_expect(!!(x), 1)
 #  define VADER_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #  define VADER_NOINLINE    __attribute__((noinline))
+/* A runtime function the INTERPRETER resolves by name at run time, not the
+ * linker. Two things have to hold and neither is automatic: link-time
+ * optimisation must not inline a small body and drop the symbol, and on Windows
+ * the name must reach the EXE's export table — `GetProcAddress` reads that, and
+ * a plain global is absent from it. POSIX needs only the first half, since
+ * `dlopen(NULL)` exposes the global scope. */
+#  if defined(_WIN32)
+/* mingw takes this arm too: `dllexport` is what puts the name in the EXE's
+ * export table, which is the only thing `GetProcAddress` reads. */
+#    define VADER_HOST_EXPORT __attribute__((used, noinline, dllexport))
+#  else
+#    define VADER_HOST_EXPORT __attribute__((used, noinline))
+#  endif
 /* Reads memory, writes none — lets the optimiser CSE the call and, crucially,
  * keep hoisting loop-invariant loads across it. Without this an out-of-line
  * helper is an opaque barrier that clobbers every alias. */
@@ -67,11 +80,13 @@
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE    __declspec(noinline)
+#  define VADER_HOST_EXPORT __declspec(dllexport) __declspec(noinline)
 #  define VADER_PURE
 #else
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE
+#  define VADER_HOST_EXPORT
 #  define VADER_PURE
 #endif
 

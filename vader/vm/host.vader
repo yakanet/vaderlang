@@ -48,18 +48,6 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
-/// Build the host-side value for a failed io intrinsic : a real
-/// `std/io$IOError` instance when its struct is in the type table (so
-/// `is IOError` narrows and `Error.message` dispatches), the legacy
-/// tag-only `ErrorVal` otherwise (io never imported — unreachable from
-/// the io arms in practice, kept as a defensive fallback).
-mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
-    if io_error_type_id < 0 { return ErrorVal { .message = msg } }
-    return StructVal {
-        .type_id = io_error_type_id,
-        .fields = [StringVal { .value = msg }],
-    }
-}
 
 /// Dispatch a host import. Matches on `intrinsic_id_for(info.mangled_name)`
 /// (the single manifest classification) — every arm pops the args from
@@ -306,19 +294,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // intrinsics below, so the VM executes their bytecode directly (which
     // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
     // dedicated host arm.
-    .IoReadDir -> {
-        path :: read_string(stack[arg_base], at_pc, "read_dir")
-        if path is Trap { return path }
-        // `read_dir` returns `string[] | Error`. The early-return
-        // guard narrows `result` to the array on the success path. Needed by
-        // the resolver's module discovery (vader/resolver/discover.vader) when
-        // the compiler runs itself through the VM.
-        result :: read_dir(path.value)
-        if result is IOError {
-            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
-        }
-        return HostOk { .value = string_array_to_value(result, string_array_type_id) }
-    }
     // ---- std/process spawn (non-blocking) -------------------------------
     .ProcessSpawnStart -> {
         argv :: read_array(stack[arg_base], at_pc, "spawn_start argv")
@@ -1077,7 +1052,12 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
         return HostOk { .value = zero_value() }
     }
     if result == bc.ValType.Bool {
-        return HostOk { .value = BoolVal { .value = raw != 0 } }
+        // The LOW 32 bits only. A Win32 `BOOL` is an `int`, and the x64 ABI
+        // defines EAX alone on return — whatever the callee left in the upper
+        // half of RAX is not part of the value. Testing all 64 turns a `FALSE`
+        // from `FindNextFileW` into `true`, and the caller is a `for {}` that
+        // only that result breaks: an infinite loop, not a one-off wrong branch.
+        return HostOk { .value = BoolVal { .value = i32(raw & 0xFFFF_FFFF) != 0 } }
     }
     // A narrow integer keeps the carrier the VM uses for its width : `i32` and
     // below ride `I32Val`, everything wider rides `I64Val`.
@@ -1111,8 +1091,14 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
     IMPURE_COMPTIME_MARKER in message
 
 // Classify a host by comptime purity. Impure hosts read or mutate the outside
-// world (clock, environment, filesystem, stdin, subprocess, terminal) and so
-// bake non-reproducibly. Exhaustive over `IntrinsicId` so a newly added host
+// world (clock, environment, stdin, subprocess, terminal) and so bake
+// non-reproducibly.
+//
+// The FILESYSTEM left this list with `read_dir`, which is Vader over `@extern`
+// now rather than a host. It is NOT therefore refused: `dispatch_extern` runs
+// before this gate and takes no `is_comptime`, so any `@extern` is reachable
+// from a `@comptime` block — a door `@extern` already held open, which
+// `read_dir` now stands in. Exhaustive over `IntrinsicId` so a newly added host
 // must be classified here (T3013) rather than silently defaulting to servable.
 //
 // `println` inside a `@comptime` block stays legal: writing to stdout does not
@@ -1120,7 +1106,6 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 // `sys_write`, whose foreign-call gate `dispatch_extern` exempts for the same
 // reason.
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
-    .IoReadDir -> true
     // Running arbitrary native code is impure by construction, and this is
     // what keeps a `@comptime` block from reaching the FFI at all (C4016) —
     // a build that dlopen'd a library would not be reproducible.

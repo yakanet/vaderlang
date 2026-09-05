@@ -184,6 +184,61 @@ export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
 
+/// Bytes to reserve for a `WIN32_FIND_DATAW`.
+///
+/// An OPAQUE buffer: Vader never looks inside it, `FindFirstFileW` fills it and
+/// `find_data_name` reads the one member a listing needs. Nothing checks this
+/// number — the callee writes `sizeof(WIN32_FIND_DATAW)` bytes whatever it says
+/// — so it is taken HIGH on purpose. The real size is 592 on x86_64 (measured
+/// against the mingw headers, and it is 320 for the ANSI twin); over-reserving
+/// wastes a few hundred bytes on the stack, under-reserving corrupts.
+///
+/// ⚠️ Do NOT narrow this to what one toolchain reports.
+export FIND_DATA_BYTES: usize: 1024
+
+/// `FindFirstFileW`. The pattern is a directory path with `\*` appended.
+///
+/// Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// `isize(h) == INVALID_HANDLE`, never against null.
+///
+/// @param pattern  a NUL-terminated UTF-16 glob, from `to_wide`.
+/// @param data     `FIND_DATA_BYTES` of scratch the callee fills.
+/// @return         a search handle.
+@c_header("<windows.h>")
+@extern("kernel32", "FindFirstFileW")
+export find_first_file :: fn(pattern: u16[], data: u8[]!) -> Handle
+
+/// `FindNextFileW`. False once the search is exhausted.
+///
+/// @param handle  the search handle `find_first_file` returned.
+/// @param data    the same buffer, refilled.
+@c_header("<windows.h>")
+@extern("kernel32", "FindNextFileW")
+export find_next_file :: fn(handle: Handle, data: u8[]!) -> bool
+
+/// `FindClose`. Pairs with `find_first_file`.
+///
+/// @param handle  the search handle.
+@c_header("<windows.h>")
+@extern("kernel32", "FindClose")
+export find_close :: fn(handle: Handle) -> bool
+
+/// The `cFileName` of a filled `WIN32_FIND_DATAW`, as a Vader string.
+///
+/// The Windows twin of `system/posix::dirent_name`, and it exists for the same
+/// reason: reading a NAMED member of a C struct is the one step a Vader FFI call
+/// cannot take for itself. It has to be a CALL, not a read of the struct — the
+/// interpreter has no C layout but resolves an `@extern` by name out of the
+/// running process. It carries the UTF-16 to UTF-8 conversion with it.
+///
+/// The bytes are valid until the next call, which is also `cFileName`'s own
+/// contract: `find_next_file` overwrites it. The shim interns before either.
+///
+/// @param data  the buffer `find_first_file` filled.
+/// @return      the entry name.
+@extern("vader_find_data_name")
+export find_data_name :: fn(data: u8[]) -> string
+
 /// `COORD` — a console cell position or size.
 ///
 /// Field names are the C ones because a mirror copies BY NAME; the snake_case

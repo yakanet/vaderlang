@@ -512,9 +512,9 @@ export BcField :: struct {
 /// generic source decl share a `symbol_id`, which C-emit uses to find
 /// a struct's all-`Any` counterpart for the erasure boundary
 /// conversion.
-/// Mangled type-table name of the `std/io` `IOError` struct — the identity
-/// the host boundary stamps onto fabricated io errors (`vm/host.vader::
-/// mk_io_error`, `c_emit/host.vader::io_err_shim`).
+/// Mangled type-table name of the `std/io` `IOError` struct — the identity a
+/// host-fabricated io error carries, so `is IOError` narrows and `Error.message`
+/// dispatches on it.
 export MANGLED_IO_ERROR :: r"std_io$IOError"
 
 /// Index of the `BcStruct` named `name` in `types`, or `-1` when absent.
