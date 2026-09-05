@@ -1,0 +1,61 @@
+# Typecheck
+
+## tests/snippets/cross_module_default
+  FnDecl         main                 :: fn() -> i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: string
+  expr 16:16    IdentExpr      :: fn() -> string
+  expr 17:14    CallExpr       :: IOError | null
+  expr 17:14    IdentExpr      :: fn(string, string) -> IOError | null
+  expr 17:32    IdentExpr      :: string
+  expr 17:38    StringLitExpr  :: string
+  expr 18:17    IdentExpr      :: IOError!
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: IOError | null
+  expr 19:17    StringLitExpr  :: string
+  expr 19:34    FieldExpr      :: string
+  expr 19:34    IdentExpr      :: IOError
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(T) -> void
+  expr 22:11    CallExpr       :: IOError | null
+  expr 22:11    IdentExpr      :: fn(string) -> IOError | null
+  expr 22:23    IdentExpr      :: string
+  expr 24:13    CallExpr       :: IOError | string
+  expr 24:13    IdentExpr      :: fn(string, usize) -> IOError | string
+  expr 24:30    IdentExpr      :: string
+  expr 25:16    IdentExpr      :: string
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     IdentExpr      :: IOError | string
+  expr 26:17    StringLitExpr  :: string
+  expr 26:34    CallExpr       :: usize
+  expr 26:34    FieldExpr      :: fn() -> usize
+  expr 26:34    IdentExpr      :: string
+  expr 26:9     CallExpr       :: void
+  expr 26:9     IdentExpr      :: fn(T) -> void
+  expr 28:13    CallExpr       :: IOError | string
+  expr 28:13    FieldExpr      :: fn(usize) -> IOError | string
+  expr 28:13    IdentExpr      :: string
+  expr 29:16    IdentExpr      :: string
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     IdentExpr      :: IOError | string
+  expr 30:17    StringLitExpr  :: string
+  expr 30:34    CallExpr       :: usize
+  expr 30:34    FieldExpr      :: fn() -> usize
+  expr 30:34    IdentExpr      :: string
+  expr 30:9     CallExpr       :: void
+  expr 30:9     IdentExpr      :: fn(T) -> void
+  expr 32:25    IdentExpr      :: string
+  expr 32:37    IdentExpr      :: IOError!
+  expr 32:5     IfExpr         :: void
+  expr 32:8     BinaryExpr     :: bool
+  expr 32:8     CallExpr       :: IOError | string
+  expr 32:8     IdentExpr      :: fn(string, usize) -> IOError | string
+  expr 33:17    StringLitExpr  :: string
+  expr 33:34    FieldExpr      :: string
+  expr 33:34    IdentExpr      :: IOError!
+  expr 33:9     CallExpr       :: void
+  expr 33:9     IdentExpr      :: fn(T) -> void
+  expr 575:64   IdentExpr      :: usize

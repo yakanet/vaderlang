@@ -9,15 +9,7 @@
         arg0:
           path :string
         arg1:
-          mul :usize
-            l:
-              mul :usize
-                l:
-                  int(16) :usize
-                r:
-                  int(1024) :usize
-            r:
-              int(1024) :usize
+          int(16777216) :usize
     if :void
       cond:
         is IOError! :bool
@@ -50,15 +42,7 @@
         arg0:
           path :string
         arg1:
-          mul :usize
-            l:
-              mul :usize
-                l:
-                  int(16) :usize
-                r:
-                  int(1024) :usize
-            r:
-              int(1024) :usize
+          int(16777216) :usize
     if :void
       cond:
         is IOError! :bool

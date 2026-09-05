@@ -568,11 +568,11 @@ remove_file :: fn(path: string) -> null | IOError {
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path       filesystem path (absolute or cwd-relative).
 /// @param max_bytes  refuse once this many bytes have accumulated ; see
-///                   `read_file_bytes`. `READ_LIMIT_DEFAULT` when unsure.
+///                   `read_file_bytes`. Defaults to `READ_LIMIT_DEFAULT`.
 /// @return           file contents as a UTF-8 string.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
-export read_file_string :: fn(path: string, max_bytes: usize = 16 * 1024 * 1024) -> string | IOError {
+export read_file_string :: fn(path: string, max_bytes: usize = READ_LIMIT_DEFAULT) -> string | IOError {
     r :: read_file_bytes(path, max_bytes)
     if r is IOError { return r }
     return r.bytes_to_string()

@@ -1,0 +1,36 @@
+// A default parameter value that NAMES something, called from another module.
+//
+// `std/io::read_file_string` defaults `max_bytes` to `READ_LIMIT_DEFAULT`, a
+// constant of that module. Filling the default splices the callee's expression
+// into this call's arguments, where it is lowered in THIS module's context — so
+// the name has to have been published across with it. Before that, the lookup
+// missed, the ident lowered to `unreachable`, and the whole call did nothing
+// with no diagnostic at all.
+//
+// Both call forms go through it, and the explicit argument must still win.
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    path :: "${temp_dir()}/vader_cross_module_default"
+    wrote :: write_file_string(path, "0123456789")
+    if wrote is IOError as e {
+        println("setup failed: ${e.msg}")
+        return 1
+    }
+    defer remove_file(path)
+
+    bare :: read_file_string(path)
+    if bare is string as s {
+        println("bare default: ${s.len()}")
+    }
+    ufcs :: path.read_file_string()
+    if ufcs is string as s {
+        println("ufcs default: ${s.len()}")
+    }
+    if read_file_string(path, 4) is IOError as e {
+        println("explicit 4:   ${e.msg}")
+    }
+    return 0
+}
