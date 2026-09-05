@@ -6057,7 +6057,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2417u
+#define VADER_COMPTIME_ATOM_COUNT 2420u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
