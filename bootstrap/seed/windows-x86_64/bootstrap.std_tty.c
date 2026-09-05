@@ -59,7 +59,7 @@ static bool std_tty_is_tty(int32_t l0) {
     if (l3 == INT64_C(-1)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    vader_array_t* _a3_arr = vader_array_new(13u, 1u, 3u, 174u);
+    vader_array_t* _a3_arr = vader_array_new(13u, 1u, 3u, 175u);
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(0);
     l4 = (void*) _a3_arr;
     t2 = vader_host_system_windows_get_console_mode(l3, l4);
