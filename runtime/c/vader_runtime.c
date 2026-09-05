@@ -3406,95 +3406,28 @@ static void vader_ensure_stdio_binary(void) {
 #endif
 }
 
-/* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
- * Used by the LSP event loop to detect a quiescent edit window: drain the burst
- * of `didChange` notifications, then run the typecheck once. Vader reads stdin through
- * `read(2)` rather than stdio, so the raw fd already reflects the real pending
- * bytes. A hangup (peer closed the pipe) reports ready so the caller's
- * next read observes EOF rather than spinning. */
-vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
-#if defined(_WIN32)
-    /* LSP stdin is a pipe (the editor's anonymous pipe). PeekNamedPipe reports
-     * bytes available WITHOUT consuming them — it works on anonymous pipes too,
-     * despite the name. It's instantaneous, so emulate the timeout by polling in
-     * small Sleep slices; this loop only runs during the debounce settle window
-     * (once per burst), never per byte. With unbuffered stdin
-     * the kernel pipe PeekNamedPipe inspects matches
-     * what the next `fread` will consume. */
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    if (h == INVALID_HANDLE_VALUE || h == NULL) return 1; /* let the read attempt observe the state */
-    DWORD waited = 0;
-    for (;;) {
-        DWORD avail = 0;
-        if (!PeekNamedPipe(h, NULL, 0, NULL, &avail, NULL)) {
-            /* Not a pipe (console / redirected file) or peer closed the pipe —
-             * report ready so the next read proceeds or observes EOF, as the
-             * pre-debounce code did. Never reports a false "idle" that could
-             * spin. */
-            return 1;
-        }
-        if (avail > 0) return 1;
-        if (timeout_ms >= 0 && waited >= (DWORD) timeout_ms) return 0;
-        DWORD slice = 5;
-        if (timeout_ms >= 0) {
-            DWORD remaining = (DWORD) timeout_ms - waited;
-            if (remaining < slice) slice = remaining;
-        }
-        Sleep(slice);
-        waited += slice;
-    }
-#else
-    struct pollfd pfd;
-    pfd.fd      = STDIN_FILENO;
-    pfd.events  = POLLIN;
-    pfd.revents = 0;
-    int r = poll(&pfd, 1, timeout_ms);
-    /* r < 0 (e.g. EINTR) → treat as "nothing pending": the caller proceeds to
-     * flush, which is harmless. r == 0 → timeout. r > 0 → data or hangup. */
-    return r > 0;
-#endif
-}
-
-/* `exists` / `is_dir` / `read_dir` — filesystem queries split across POSIX
- * (`dirent.h`, `sys/stat.h`) and Windows (`FindFirstFileW` /
- * `GetFileAttributesA`). `exists` must NOT be implemented via `fopen` : the
- * Windows CRT refuses to open a directory as a file, so an `fopen`-based
- * check reports every directory as missing. That silently empties the
- * module-discovery walk — `walk_root` (vader/resolver/discover.vader) guards
- * on `exists(dir)` and bails before indexing anything, so every compile on
- * Windows fails with R2001. Use the stat / attribute query instead. Path
- * arguments come as atom IDs ; we materialise a NUL-terminated C string via
- * `vader_atom_to_cstr` and intern dirent names back through `vader_string_new`. */
-
-/* The one thing a Vader FFI call cannot do for itself: read a named member of a
- * C struct. `readdir` hands back a `struct dirent*` it owns, and `d_name` sits at
- * a different offset on every system (21 on Darwin, 19 on glibc) — an offset only
- * `cc` can resolve, and only from the real header.
+/* ------------------------------------------------- directory-entry accessors
  *
- * It has to be a CALL and not a struct read: the interpreter has no C layout,
- * but it can call a C function and resolve this one out of its own process.
- * The returned pointer belongs to the C library and dies at the next `readdir`;
- * the shim interns it before then. */
-const char* vader_dirent_name(const void* ent);
+ * Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
+ * take for itself, and it is all that is left here: `std/io::read_dir` drives
+ * `opendir` / `readdir` / `FindFirstFileW` from Vader and calls one of these for
+ * the name. Only `cc` resolves the offset, and only from the real header —
+ * `d_name` sits at 21 on Darwin against 19 on glibc.
+ *
+ * They have to be CALLS and not struct reads: the interpreter has no C layout,
+ * but it can call a C function and resolve one by name out of its own process.
+ * `VADER_HOST_EXPORT` is what keeps that possible — see the macro. */
 
 #if defined(_WIN32)
 
 
-/* The `cFileName` of a `WIN32_FIND_DATAW`, as UTF-8 — the Windows twin of
- * `vader_dirent_name`.
+/* It carries the UTF-16 conversion as well: `cFileName` is `WCHAR[MAX_PATH]`
+ * and a Vader string is UTF-8, so the encoding difference belongs on this side
+ * of the boundary.
  *
- * Same reason to exist: reading a NAMED member of a C struct is the one step a
- * Vader FFI call cannot take for itself, and only `cc` resolves the offset from
- * the real header. It carries the UTF-16 conversion too, because `cFileName` is
- * `WCHAR[MAX_PATH]` and a Vader string is UTF-8 — the encoding difference belongs
- * on this side of the boundary.
- *
- * The result lives in a static buffer and is valid until the next call. That is
- * the same contract `cFileName` itself has: `FindNextFileW` overwrites it. The
- * shim interns before either happens.
- *
- * `VADER_HOST_EXPORT` because the interpreter resolves it by NAME at run time —
- * see the macro for the two things that has to survive. */
+ * The result lives in a static buffer, valid until the next call — the same
+ * contract `cFileName` itself has, since `FindNextFileW` overwrites it. The shim
+ * interns before either happens. */
 VADER_HOST_EXPORT
 const char* vader_find_data_name(const void* fd) {
     static char utf8[MAX_PATH * 4];
@@ -3507,126 +3440,12 @@ const char* vader_find_data_name(const void* fd) {
     return utf8;
 }
 
-vader_bool_t vader_is_dir(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    DWORD attr = GetFileAttributesA(p);
-    vader_atom_cstr_free(p);
-    return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
-                           uint32_t str_type, uint32_t err_tag) {
-    /* The `W` form, not `A`: every path-taking call in `std/io` goes through
-     * `CreateFileW` now, and a name this hands back is joined into a path and
-     * fed straight to one of them. In the ANSI code page a name outside it
-     * comes back mangled, and the UTF-8 conversion on the other side then
-     * rejects it — so the two halves have to agree, and UTF-16 is the half
-     * that loses nothing.
-     *
-     * FindFirstFileW expects a glob — append "\\*". */
-    const char* p = vader_atom_to_cstr(path);
-    size_t plen = vader_atom_len(path);
-    char* pat = (char*) malloc(plen + 3);
-    if (pat == NULL) {
-        vader_atom_cstr_free(p);
-        vader_trap("read_dir: malloc failed");
-    }
-    memcpy(pat, p, plen);
-    size_t pat_len = plen;
-    if (pat_len > 0 && pat[pat_len - 1] != '\\' && pat[pat_len - 1] != '/') {
-        pat[pat_len++] = '\\';
-    }
-    pat[pat_len++] = '*';
-    pat[pat_len] = '\0';
-
-    int wpat_len = MultiByteToWideChar(CP_UTF8, 0, pat, -1, NULL, 0);
-    wchar_t* wpat = wpat_len > 0 ? (wchar_t*) malloc((size_t) wpat_len * sizeof(wchar_t)) : NULL;
-    if (wpat == NULL) {
-        free(pat);
-        vader_atom_cstr_free(p);
-        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
-    }
-    MultiByteToWideChar(CP_UTF8, 0, pat, -1, wpat, wpat_len);
-    free(pat);
-    vader_atom_cstr_free(p);
-
-    WIN32_FIND_DATAW fd;
-    HANDLE h = FindFirstFileW(wpat, &fd);
-    free(wpat);
-    if (h == INVALID_HANDLE_VALUE) {
-        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
-    }
-
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
-    VADER_GC_PUSH1(arr_box);
-    do {
-        const wchar_t* wname = fd.cFileName;
-        if (wname[0] == L'.' && (wname[1] == L'\0' || (wname[1] == L'.' && wname[2] == L'\0'))) continue;
-        /* Back to UTF-8, which is what a Vader string holds. `fd.cFileName`
-         * lives on the stack and is overwritten by the next FindNextFileW, so
-         * the bytes are copied into the atom table before the next round. */
-        int need = WideCharToMultiByte(CP_UTF8, 0, wname, -1, NULL, 0, NULL, NULL);
-        if (need <= 1) continue;
-        char* name = (char*) malloc((size_t) need);
-        if (name == NULL) continue;
-        WideCharToMultiByte(CP_UTF8, 0, wname, -1, name, need, NULL, NULL);
-        vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, (size_t) need - 1)));
-        free(name);
-    } while (FindNextFileW(h, &fd));
-    FindClose(h);
-    vader_box_t result = arr_box;
-    VADER_GC_POP();
-    return result;
-}
-
 #else  /* POSIX */
 
 #include <dirent.h>
-#include <sys/stat.h>
 
-vader_bool_t vader_is_dir(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    struct stat st;
-    int rc = stat(p, &st);
-    vader_atom_cstr_free(p);
-    return rc == 0 && S_ISDIR(st.st_mode);
-}
-
-vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
-                           uint32_t str_type, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(path);
-    DIR* d = opendir(p);
-    vader_atom_cstr_free(p);
-    if (d == NULL) {
-        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
-    }
-
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
-    VADER_GC_PUSH1(arr_box);
-    struct dirent* ent;
-    while ((ent = readdir(d)) != NULL) {
-        const char* name = ent->d_name;
-        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
-        size_t n = strlen(name);
-        /* Intern the dirent name directly — the buffer is reused on the
-         * next readdir, so the atom dedupe/copy is the correct ownership
-         * transfer. */
-        vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
-    }
-    closedir(d);
-    vader_box_t result = arr_box;
-    VADER_GC_POP();
-    return result;
-}
-
-
-/* `used` + `noinline`: the body is one load, so link-time optimisation inlines it
- * into its only caller and DROPS the symbol — and the interpreter resolves this
- * by name out of the running process, where a dropped symbol is a trap at the
- * first `read_dir`. Anchoring is what keeps it callable, not a performance
- * choice. */
+/* The bytes belong to the C library and die at the next `readdir`; the shim
+ * interns them before then. */
 VADER_HOST_EXPORT
 const char* vader_dirent_name(const void* ent) {
     return ((const struct dirent*) ent)->d_name;
@@ -3635,11 +3454,7 @@ const char* vader_dirent_name(const void* ent) {
 #endif  /* _WIN32 / POSIX */
 
 
-/* ----------------------------------------------------------------- terminal / env
- *
- * `vader_get_env` backs `std/env::get_env`: it boxes the variable's value as a
- * string (str_tag) or returns a null box when the variable is unset.
- */
+/* ----------------------------------------------------------------- target */
 
 /* Ordinals must match `std/target::Os`, declaration order. An unsupported
  * platform is a build error rather than a guess: the OS set is closed, and a

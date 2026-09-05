@@ -561,6 +561,11 @@ export exists :: fn(path: string) -> bool
 @target(.Linux, .Darwin)
 exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
 
+// The attribute query, NOT an open. The Windows CRT refuses to open a directory
+// as a file, so an `fopen`-shaped check reports every directory as missing —
+// which silently empties module discovery: `walk_root`
+// (vader/resolver/discover.vader) guards on `exists(dir)` and bails before
+// indexing anything, and every compile on Windows then fails with R2001.
 @target(.Windows)
 exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVALID_FILE_ATTRIBUTES
 

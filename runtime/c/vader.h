@@ -1204,24 +1204,10 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- I/O */
 
-vader_bool_t   vader_is_dir(vader_string_t path);
 /* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
  * Idempotent; a finished or unknown handle is a no-op. */
 void vader_spawn_kill(vader_i64_t handle);
-/* True iff stdin has data ready within `timeout_ms` (0 = non-blocking poll).
- * Backs the LSP debounce; Vader reads stdin through `read(2)`, not stdio, so
- * the raw fd already reflects the pending bytes. */
-vader_bool_t   vader_poll_stdin(int32_t timeout_ms);
-/* `read_dir` lists the immediate entries of `path` as a `[string]`. Entries
- * are returned in OS-provided order (POSIX `readdir`, Windows `FindNextFileA`)
- * minus `.` and `..`. On failure, boxes an Error variant carrying a short
- * diagnostic string. */
-vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
-                              uint32_t str_type, uint32_t err_tag);
-
-/* ----------------------------------------------------------------- terminal / env
- * `vader_get_env` reads an environment variable and boxes the value as a string
- * (str_tag), or returns a null box when unset; backs `std/env::get_env`. */
+/* ----------------------------------------------------------------- target
 /*
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
  * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
