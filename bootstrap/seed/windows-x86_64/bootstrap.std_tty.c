@@ -12,7 +12,7 @@ static vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        l2 = concat_3(5u, l1, 1824u);
+        l2 = concat_3(5u, l1, 1832u);
     } else {
         l2 = 0u;
     }
