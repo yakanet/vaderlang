@@ -20,8 +20,8 @@
   expr 16:22    CallExpr       :: void
   expr 16:22    IdentExpr      :: fn(T) -> void
   expr 16:30    StringLitExpr  :: string
-  expr 579:64   BinaryExpr     :: usize
-  expr 579:64   BinaryExpr     :: usize
+  expr 575:64   BinaryExpr     :: usize
+  expr 575:64   BinaryExpr     :: usize
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: string
   expr 6:16     IdentExpr      :: fn() -> string

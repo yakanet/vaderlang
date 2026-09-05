@@ -572,10 +572,6 @@ remove_file :: fn(path: string) -> null | IOError {
 /// @return           file contents as a UTF-8 string.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
-// The default is spelled as a LITERAL and must stay equal to
-// `READ_LIMIT_DEFAULT`. It cannot name it: a default that is an identifier is
-// resolved in the CALLER's module, where the callee's span is unknown, and the
-// call silently lowers to `unreachable`. See TODO.md.
 export read_file_string :: fn(path: string, max_bytes: usize = 16 * 1024 * 1024) -> string | IOError {
     r :: read_file_bytes(path, max_bytes)
     if r is IOError { return r }

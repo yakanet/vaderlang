@@ -65,5 +65,5 @@
   expr 31:36    IdentExpr      :: IOError
   expr 31:9     CallExpr       :: void
   expr 31:9     IdentExpr      :: fn(T) -> void
-  expr 579:64   BinaryExpr     :: usize
-  expr 579:64   BinaryExpr     :: usize
+  expr 575:64   BinaryExpr     :: usize
+  expr 575:64   BinaryExpr     :: usize

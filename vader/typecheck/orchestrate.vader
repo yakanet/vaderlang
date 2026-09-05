@@ -1646,9 +1646,14 @@ push_module_exported_fns :: fn(
                     // The DECL travels with the type: it is what carries
                     // parameter names and defaults, which a UFCS call site in
                     // the importing module has no other way to reach.
-                    push_overload(table, name, ImportedFn {
-                        .ty = ft, .decl = from.fn_decls[sym.id],
-                    })
+                    fd :: from.fn_decls[sym.id]
+                    push_overload(table, name, ImportedFn { .ty = ft, .decl = fd })
+                    // And the defaults' own name resolutions travel with it —
+                    // they are lowered in the CALLER's context. See
+                    // `import_defaults.vader`.
+                    if fd is AST.FnDecl as decl {
+                        publish_default_resolutions(from, into, decl)
+                    }
                 }
                 into.external_types[sym.id] = ft
             }

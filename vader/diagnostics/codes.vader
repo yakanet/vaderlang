@@ -239,8 +239,19 @@ export LowerCode :: enum(u8) {
     IntoCoercionFailed,                     // M5004
     IntrinsicUnsupported,                   // M5005
     SelfReceiverMissing,                    // M5006
-    // M5007 / M5008 (generator / async closure-capture) retired : captured
-    // locals now survive suspension as heap cells (see `lower_coroutine`).
+    // M5007 was the generator half of a closure-capture pair, retired when
+    // captured locals started surviving suspension as heap cells. Reused here.
+    //
+    // It has NO fixture under `tests/diag_corpus/`, deliberately: it cannot be
+    // provoked from source. Every way a program can name something unknown is
+    // R2006, and this fires only when a name the resolver ACCEPTED is missing
+    // from the table the lowerer reads — a compiler self-check. It exists
+    // because the alternative was silence: the miss lowers to
+    // `LoweredUnreachable`, which makes `midir` replace the entry block, so the
+    // surrounding code vanished with nothing to read.
+    UnresolvedIdent,                        // M5007
+    // M5008 (async closure-capture) retired for the same reason as M5007's
+    // former meaning ; not reused.
     AwaitInShortCircuit,                    // M5009
     ComptimeForNotUnrollable,               // M5010
 }
@@ -438,6 +449,7 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
+    .UnresolvedIdent                    -> CodeInfo { .id = "M5007", .message = "identifier did not resolve at lowering" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
     .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
 }

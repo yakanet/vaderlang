@@ -1,0 +1,178 @@
+// vader/typecheck/import_defaults — carry a default value's name resolutions
+// across a module boundary.
+//
+// `normalize_call_args` fills an omitted argument by splicing the CALLEE's
+// `default_value` AST node into the caller's argument list, so that node is
+// lowered in the CALLER's context. `lower_ident` resolves through
+// `resolved.idents[span.hash()]` — the caller's table — while the node's span
+// belongs to the declaring file. Every identifier inside a cross-module default
+// therefore missed, and a miss used to lower to `LoweredUnreachable`, which
+// makes `midir` replace the whole entry block: the call, and often the function
+// around it, silently did nothing. A literal default worked precisely because it
+// has no identifier to resolve.
+//
+// The fix is to publish the declaring module's resolutions for those spans into
+// the importing module's table, next to where its types and declarations are
+// already published (`orchestrate::push_module_exported_fns`). `Span`'s hash
+// folds in the file path, so an entry copied from another file cannot collide
+// with one of the importing module's own.
+//
+// A gap in the walk below is no longer silent: `lower_ident` reports M5007.
+
+module "vader/typecheck"
+
+import "std/collections"
+import "vader/resolver"
+
+AST :: import "vader/parser"
+
+/// Publish the resolutions for every identifier inside `fd`'s default values.
+///
+/// @param from  the module that declared `fd` — the resolutions come from here.
+/// @param into  the module importing it — the resolutions are copied here.
+/// @param fd    the exported declaration whose defaults may name something.
+export publish_default_resolutions :: fn(
+    from: TypedProgram, into: TypedProgram!, fd: AST.FnDecl,
+) -> void {
+    for pm in fd.params {
+        dv :: pm.default_value
+        if dv != null {
+            copy_expr_resolutions(dv, from, into)
+        }
+    }
+}
+
+// ---- the walk -------------------------------------------------------------
+
+// Exhaustive over `AST.Expr` deliberately: a `_ ->` here would let a new node
+// kind carry an identifier across unnoticed, which is the failure this file
+// exists to end.
+//
+// Statement LISTS are the one thing not descended into — a `BlockExpr`'s stmts,
+// a lambda body, a match arm's block. A default value shaped like that is not
+// something the language has ever been asked for, and covering it means a second
+// exhaustive walker over `Stmt`. The trailing expression of a block IS followed,
+// which is the form a value-position block actually takes.
+copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!) -> void {
+    match e {
+        is AST.IdentExpr as id -> {
+            sym :: from.resolved.idents[id.span.hash()]
+            if sym is Symbol as s {
+                into.resolved.idents[id.span.hash()] = s
+            }
+        }
+        is AST.CallExpr as c -> {
+            copy_expr_resolutions(c.callee, from, into)
+            for a in c.args {
+                copy_expr_resolutions(a.value, from, into)
+            }
+        }
+        is AST.FieldExpr        as f -> { copy_expr_resolutions(f.target, from, into) }
+        is AST.IndexExpr        as ix -> {
+            copy_expr_resolutions(ix.target, from, into)
+            copy_expr_resolutions(ix.index, from, into)
+        }
+        is AST.UnaryExpr        as u -> { copy_expr_resolutions(u.operand, from, into) }
+        is AST.BinaryExpr       as b -> {
+            copy_expr_resolutions(b.left, from, into)
+            copy_expr_resolutions(b.right, from, into)
+        }
+        is AST.NullCoalesceExpr as nc -> {
+            copy_expr_resolutions(nc.left, from, into)
+            fb :: AST.coalesce_fallback_expr(nc.fallback)
+            if fb != null {
+                copy_expr_resolutions(fb, from, into)
+            }
+        }
+        is AST.IfExpr           as f -> { copy_if_resolutions(f, from, into) }
+        is AST.MatchExpr        as m -> {
+            copy_expr_resolutions(m.scrutinee, from, into)
+            for arm in m.arms {
+                g :: arm.guard
+                if g != null {
+                    copy_expr_resolutions(g, from, into)
+                }
+                copy_expr_resolutions(arm.body, from, into)
+            }
+        }
+        is AST.BlockExpr        as bl -> {
+            t :: bl.trailing
+            if t != null {
+                copy_expr_resolutions(t, from, into)
+            }
+        }
+        is AST.StructLitExpr    as sl -> {
+            copy_expr_resolutions(sl.type_name, from, into)
+            for item in sl.items {
+                if item is AST.StructLitField as fld {
+                    copy_expr_resolutions(fld.value, from, into)
+                } else if item is AST.StructLitSpread as sp {
+                    copy_expr_resolutions(sp.expr, from, into)
+                }
+            }
+        }
+        is AST.SeqLitExpr       as sq -> {
+            for el in sq.elements {
+                copy_expr_resolutions(el, from, into)
+            }
+        }
+        is AST.RangeExpr        as r -> {
+            copy_expr_resolutions(r.lower, from, into)
+            copy_expr_resolutions(r.upper, from, into)
+        }
+        is AST.CastExpr         as cx -> {
+            copy_expr_resolutions(cx.target, from, into)
+            copy_expr_resolutions(cx.value, from, into)
+        }
+        is AST.GenericInstExpr  as gi -> {
+            copy_expr_resolutions(gi.callee, from, into)
+            for ta in gi.type_args {
+                copy_expr_resolutions(ta, from, into)
+            }
+        }
+        is AST.IntrinsicCallExpr as ic -> {
+            for a in ic.args {
+                copy_expr_resolutions(a, from, into)
+            }
+        }
+        is AST.StringLitExpr    as st -> {
+            for part in st.parts {
+                if part is AST.StringLitInterp as interp {
+                    copy_expr_resolutions(interp.expr, from, into)
+                }
+            }
+        }
+        is AST.FnTypeExpr       as ft -> {
+            for pt in ft.params {
+                copy_expr_resolutions(pt, from, into)
+            }
+            rt :: ft.return_type
+            if rt != null {
+                copy_expr_resolutions(rt, from, into)
+            }
+        }
+        is AST.ArrayTypeExpr    as at -> { copy_expr_resolutions(at.element, from, into) }
+        is AST.MutableTypeExpr  as mt -> { copy_expr_resolutions(mt.inner, from, into) }
+        is AST.AwaitExpr        as aw -> { copy_expr_resolutions(aw.inner, from, into) }
+        // Leaves, and the one form whose body is a statement list.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.DotVariantExpr | AST.LambdaExpr -> {}
+    }
+}
+
+copy_if_resolutions :: fn(f: AST.IfExpr, from: TypedProgram, into: TypedProgram!) -> void {
+    copy_expr_resolutions(f.cond, from, into)
+    t :: f.then_block.trailing
+    if t != null {
+        copy_expr_resolutions(t, from, into)
+    }
+    branch :: f.else_branch
+    if branch is AST.IfElseIf as ei {
+        copy_if_resolutions(ei.branch, from, into)
+    } else if branch is AST.IfElseBlock as eb {
+        bt :: eb.block.trailing
+        if bt != null {
+            copy_expr_resolutions(bt, from, into)
+        }
+    }
+}

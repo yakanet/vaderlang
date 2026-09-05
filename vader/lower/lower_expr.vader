@@ -182,10 +182,36 @@ stub :: fn(span: Span, type: Type, reason: string) -> LoweredExpr {
 // Per-kind expression lowerers
 // ============================================================================
 
+// Whether the resolver already reported something at `span`. Linear, and only
+// ever reached on the error path.
+resolver_reported_at :: fn(ctx: FnLowerCtx, span: Span) -> bool {
+    key :: span.hash()
+    for d in ctx.typed.resolved.diags {
+        if d.primary.hash() == key {
+            return true
+        }
+    }
+    return false
+}
+
 lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr {
     symbol :: ctx.typed.resolved.idents[ident.span.hash()]
     match symbol {
-        is null -> { return stub(ident.span, type, "unresolved ident ${ident.name}") }
+        is null -> {
+            // LOUD, but only when the resolver was happy. A miss here lowers to
+            // `LoweredUnreachable`, which makes `midir` replace the whole entry
+            // block — so a mis-routed ident erased the surrounding code with
+            // nothing at all to read, and two bugs cost a bisection each for
+            // exactly that. A name the resolver already rejected (R2006) is a
+            // recovery walk, not a lost resolution, and reporting it twice would
+            // only bury the diagnostic the user can act on.
+            if !resolver_reported_at(ctx, ident.span) {
+                ctx.project.diags.push(lower_error(
+                    .UnresolvedIdent, ident.span,
+                    "`${ident.name}` resolved elsewhere but not in this module's table"))
+            }
+            return stub(ident.span, type, "unresolved ident ${ident.name}")
+        }
         is Symbol as resolved -> {
             // `@comptime for x in arr { ... }` substitution : every
             // reference to the loop var inside the unrolled body
