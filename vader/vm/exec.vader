@@ -1103,8 +1103,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     //
     // CONSTRAINT: keep this guard's body a `return`. Gating it as
     // `if is_comptime { … }` makes the rest of the loop reachable from two edges,
-    // and the emitter then tail-duplicates the ENTIRE dispatch into both — worth
-    // 14k lines of C and 38 % of this module's `cc`. Record: docs/adr/0014.
+    // and the emitter then tail-duplicates the ENTIRE dispatch into both.
+    // Record: docs/adr/0014.
     steps: i64 = 0
     step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
 
@@ -1139,7 +1139,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         top :: frame_count[0] - 1
         steps += 1
         if steps > step_budget {
-            return Trap { .message = "comptime evaluation exceeded ${COMPTIME_STEP_BUDGET} steps (non-terminating @comptime?)" }
+            budget_msg :: ("comptime evaluation exceeded ${step_budget} steps "
+                + "(non-terminating @comptime?)")
+            return Trap { .message = budget_msg }
         }
         if top != cur_top {
             frame = frames[top]

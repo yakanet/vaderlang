@@ -1,0 +1,66 @@
+# Typecheck
+
+## tests/snippets/or_narrow_trait
+  FnDecl         classify             :: fn(Refused | string | Timeout) -> i32
+  TraitDecl      Err                  :: Err
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Refused              :: Refused!
+  FnDecl         remainder            :: fn(string | Timeout) -> i32
+  StructDecl     Timeout              :: Timeout!
+  expr 18:31    FieldExpr      :: i32
+  expr 18:31    IdentExpr      :: Timeout
+  expr 22:31    FieldExpr      :: i32
+  expr 22:31    IdentExpr      :: Refused
+  expr 27:13    IdentExpr      :: Err
+  expr 27:20    BinaryExpr     :: bool
+  expr 27:20    IdentExpr      :: Refused | string | Timeout
+  expr 27:25    IdentExpr      :: string
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: Refused | string | Timeout
+  expr 28:12    BinaryExpr     :: bool
+  expr 28:12    IdentExpr      :: Refused | string | Timeout
+  expr 28:17    IdentExpr      :: Timeout!
+  expr 28:9     IfExpr         :: void
+  expr 29:20    FieldExpr      :: i32
+  expr 29:20    IdentExpr      :: Timeout
+  expr 31:12    BinaryExpr     :: bool
+  expr 31:12    IdentExpr      :: Refused | string
+  expr 31:17    IdentExpr      :: Refused!
+  expr 31:9     IfExpr         :: void
+  expr 32:20    FieldExpr      :: i32
+  expr 32:20    IdentExpr      :: Refused
+  expr 36:12    UnaryExpr      :: i32
+  expr 41:13    IdentExpr      :: Err
+  expr 41:20    BinaryExpr     :: bool
+  expr 41:20    IdentExpr      :: string | Timeout
+  expr 41:25    IdentExpr      :: string
+  expr 41:5     IfExpr         :: void
+  expr 41:8     BinaryExpr     :: bool
+  expr 41:8     BinaryExpr     :: bool
+  expr 41:8     IdentExpr      :: string | Timeout
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    CallExpr       :: i32
+  expr 48:16    IdentExpr      :: fn(Refused | string | Timeout) -> i32
+  expr 48:25    StructLitExpr  :: Timeout!
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:16    CallExpr       :: i32
+  expr 49:16    IdentExpr      :: fn(Refused | string | Timeout) -> i32
+  expr 49:25    StructLitExpr  :: Refused!
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    CallExpr       :: i32
+  expr 50:16    IdentExpr      :: fn(Refused | string | Timeout) -> i32
+  expr 50:25    StringLitExpr  :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:13    StringLitExpr  :: string
+  expr 51:16    CallExpr       :: i32
+  expr 51:16    IdentExpr      :: fn(string | Timeout) -> i32
+  expr 51:26    StringLitExpr  :: string
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void

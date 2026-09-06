@@ -35,17 +35,18 @@
   fn snippet$area(n: i32) -> i32
     ~>
       block :i32
-        let s: Circle | Point | Square =
+        let __scrut_0: Circle | Point | Square =
           call :Circle | Point | Square
             callee:
               shape_at :fn(i32) -> Circle | Point | Square
             arg0:
               n :i32
+        let s: Circle | Point | Square = __scrut_0 :Circle | Point | Square
         ~>
           if :i32
             cond:
               is Circle! :bool
-                s :Circle | Point | Square
+                __scrut_0 :Circle | Point | Square
             then:
               ~>
                 mul :i32
@@ -66,7 +67,7 @@
                 if :i32
                   cond:
                     is Square! :bool
-                      s :Circle | Point | Square
+                      __scrut_0 :Circle | Point | Square
                   then:
                     ~>
                       mul :i32
@@ -83,7 +84,7 @@
                       if :i32
                         cond:
                           is Point! :bool
-                            s :Circle | Point | Square
+                            __scrut_0 :Circle | Point | Square
                         then:
                           ~>
                             int(0) :i32
@@ -93,19 +94,20 @@
   fn snippet$describe(n: i32) -> string
     ~>
       block :string
-        let s: Circle | Point | Square =
+        let __scrut_0: Circle | Point | Square =
           call :Circle | Point | Square
             callee:
               shape_at :fn(i32) -> Circle | Point | Square
             arg0:
               n :i32
+        let s: Circle | Point | Square = __scrut_0 :Circle | Point | Square
         ~>
           if :string
             cond:
               and :bool
                 l:
                   is Circle! :bool
-                    s :Circle | Point | Square
+                    __scrut_0 :Circle | Point | Square
                 r:
                   gt :bool
                     l:
@@ -122,7 +124,7 @@
                 if :string
                   cond:
                     is Circle! :bool
-                      s :Circle | Point | Square
+                      __scrut_0 :Circle | Point | Square
                   then:
                     ~>
                       "circle" :string
@@ -131,7 +133,7 @@
                       if :string
                         cond:
                           is Square! :bool
-                            s :Circle | Point | Square
+                            __scrut_0 :Circle | Point | Square
                         then:
                           ~>
                             "square" :string
@@ -140,7 +142,7 @@
                             if :string
                               cond:
                                 is Point! :bool
-                                  s :Circle | Point | Square
+                                  __scrut_0 :Circle | Point | Square
                               then:
                                 ~>
                                   "point" :string

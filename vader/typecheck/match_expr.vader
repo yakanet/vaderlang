@@ -51,19 +51,17 @@ export infer_match :: fn(
     // form. The resolver minted the binding at the match's own span and registered
     // it in `idents`, so the symbol is reachable from the MatchExpr alone. The
     // field-narrow key is empty for an alias : a binding is a slot, not a chain.
-    alias_sym :: if e.bind_as == "" { null } else { typed.resolved.idents[e.span.hash()] }
-    scrut_sym_id: i32 = -1
-    scrut_field_key: string = ""
-    if alias_sym is Symbol as alias {
-        typed.local_types[e.span.hash()] = scrut_ty
+    key   :: e.span.hash()
+    scrut :: e.scrutinee
+    alias_sym :: if e.bind_as == "" { null } else { typed.resolved.idents[key] }
+    if alias_sym is Symbol {
+        typed.local_types[key] = scrut_ty
         // Same hop as `is T as x` : the binding inherits the scrutinee's
         // mutability, so a rejected write through it points at the scrutinee.
-        typed.narrow_binding_scrutinee[e.span.hash()] = e.scrutinee
-        scrut_sym_id = alias.id
-    } else {
-        scrut_sym_id = scrutinee_sym_id(e.scrutinee, typed)
-        scrut_field_key = scrutinee_field_key(e.scrutinee, typed)
+        typed.narrow_binding_scrutinee[key] = scrut
     }
+    scrut_sym_id    :: if alias_sym is Symbol as a { a.id } else { scrutinee_sym_id(scrut, typed) }
+    scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
     arm_types: Type[]! = []
     remaining := scrut_ty
     has_wildcard := false

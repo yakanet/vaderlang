@@ -1,0 +1,53 @@
+module "snippet"
+
+import "std/io"
+
+// A `||` whose operands include a TRAIT test. The true side is the union of what
+// the operands matched, and a trait has to be resolved to its implementors before
+// it goes in : a bare `TraitType` is understood in isolation, a trait sitting
+// INSIDE a union is compared by shape and fails every later `is`.
+
+Err :: trait {
+    code :: fn(self) -> i32
+}
+
+Timeout :: struct { seconds: i32 }
+Refused :: struct { port: i32 }
+
+Timeout implements Err {
+    code :: fn(self) -> i32 = self.seconds
+}
+
+Refused implements Err {
+    code :: fn(self) -> i32 = self.port
+}
+
+// Two variants implement the trait, one does not.
+classify :: fn(x: Timeout | Refused | string) -> i32 {
+    if x is Err || x is string {
+        if x is Timeout as t {
+            return t.seconds
+        }
+        if x is Refused as r {
+            return r.port
+        }
+        return 0
+    }
+    return -1
+}
+
+// The false side removes the implementors too, so nothing is left here.
+remainder :: fn(x: Timeout | string) -> i32 {
+    if x is Err || x is string {
+        return 1
+    }
+    return 2
+}
+
+main :: fn() -> i32 {
+    println("${classify(Timeout { .seconds = 30 })}")
+    println("${classify(Refused { .port = 8080 })}")
+    println("${classify("closed")}")
+    println("${remainder("closed")}")
+    return 0
+}

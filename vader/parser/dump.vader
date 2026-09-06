@@ -923,7 +923,6 @@ write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
                 sb.entry(false, level + 1, "unreachable")
                 sb.append("true")
             }
-            // Suppressed when absent so every existing snapshot stays byte-identical.
             if e.bind_as != "" {
                 sb.entry(false, level + 1, "bindAs")
                 sb.write_string(e.bind_as)

@@ -1613,9 +1613,6 @@ push_divergent_narrow_if :: fn(
 // detected against the narrowing the previous one left, lands on the same type as
 // subtracting their union at once — so no grouping is needed here, unlike the
 // `else` side in `expr_if.vader` where the pushes would overwrite.
-//
-// Split out of `push_divergent_narrow_if` so the `is AST.BinaryExpr` test below
-// gets its own narrowing scope.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
     if cond is AST.BinaryExpr as bc {
         if bc.op == AST.BinaryOp.Or {
@@ -1696,9 +1693,8 @@ BlockNarrow :: struct {
 }
 
 detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
-    // Mirrors `expr_if.vader::detect_is_narrow` but kept local to
-    // avoid the cross-import — we only need the else-type for the
-    // divergent-guard case.
+    // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
+    // the divergent-guard case only needs the else-type.
     if cond is AST.UnaryExpr {
         if cond.op == AST.UnaryOp.Not {
             inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null

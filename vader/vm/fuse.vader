@@ -93,8 +93,8 @@ fuse_body :: fn(f: BcFunction) -> FusedBody {
     // the pair before it — otherwise the branch would arrive mid-superop.
     is_target :: mark_jump_targets(f.jump_table, n)
     ops: VmOp[]! = [] * n
-    // Old pc → new pc, total over the body: an absorbed op answers with the pair's
-    // index, so `remap_jump_table` never has to resolve a hole.
+    // Old pc → new pc. An absorbed op answers with its pair's index ; a dropped
+    // one answers `-1`, which `remap_jump_table` resolves forward.
     remap: i32[]! = [0] * n
     i: usize = 0
     for i < n {

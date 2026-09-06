@@ -55,28 +55,40 @@ export lower_match :: fn(
     // guarded match keeps it. A non-trivial scrutinee (`match f(x)`, a
     // field/index access, a captured-cell / env read — none of which lower to
     // `LoweredIdent`) also still spills, evaluated exactly once.
-    // `match e as x { … }` names the slot the scrutinee spills into, so the arms'
-    // references to `x` resolve to it. Always spills — eliding onto the
-    // scrutinee's own local would leave the alias unbound.
-    alias_symbol :: if expr.bind_as == "" {
-        null
-    } else {
-        ctx.typed.resolved.idents[expr.span.hash()]
-    }
-    elide_symbol :: if alias_symbol != null || any_arm_guarded(expr.arms) {
+    elide_symbol :: if any_arm_guarded(expr.arms) {
         null
     } else {
         scrut_ident_symbol(scrut_value)
     }
-    scrut_symbol :: if elide_symbol != null {
-        elide_symbol
+    scrut_symbol :: if elide_symbol is Symbol as reused {
+        reused
     } else {
-        spilled :: alias_symbol ?? fresh_synthetic_symbol(ctx, "scrut")
+        spilled :: fresh_synthetic_symbol(ctx, "scrut")
         stmts.push(LoweredLet {
             .span = span_of(scrut_value), .name = spilled.name, .symbol = spilled,
             .type = scrut_type, .value = scrut_value,
         })
         spilled
+    }
+    // `match e as x { … }` binds `x` to the ONE evaluation above — a binding of
+    // its own, not the match's own slot, because a lambda in an arm may capture
+    // it and a captured binding is heap-promoted to a `Cell` while the pattern
+    // predicates need the bare value.
+    alias_symbol :: if expr.bind_as == "" {
+        null
+    } else {
+        ctx.typed.resolved.idents[expr.span.hash()]
+    }
+    if alias_symbol is Symbol as alias {
+        alias_span :: span_of(scrut_value)
+        read :: LoweredIdent {
+            .span = alias_span, .type = scrut_type, .symbol = scrut_symbol,
+        }
+        init :: lower_cell_init(ctx, alias, read, scrut_type, alias_span)
+        stmts.push(LoweredLet {
+            .span = alias_span, .name = alias.name, .symbol = alias,
+            .type = init.slot_type, .value = init.value,
+        })
     }
 
     // `@unreachable` asserts the uncovered variants can't occur, so its

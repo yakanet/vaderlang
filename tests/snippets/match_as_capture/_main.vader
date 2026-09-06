@@ -1,0 +1,35 @@
+module "snippet"
+
+import "std/io"
+
+// A lambda inside an arm captures the `match … as` alias. A captured binding is
+// heap-promoted to a `Cell`, so the alias needs a binding of its own — the
+// match's own slot has to keep holding the bare value the pattern predicates read.
+
+Point :: struct { x: i32, y: i32 }
+
+deferred :: fn(p: Point | i32) -> fn() -> i32 {
+    return match p as v {
+        is Point -> { fn() -> i32 { return v.x + v.y } }
+        is i32   -> { fn() -> i32 { return v * 2 } }
+    }
+}
+
+// The alias is read directly in one arm and captured in another.
+mixed :: fn(p: Point | i32) -> i32 {
+    thunk :: match p as v {
+        is Point -> { fn() -> i32 { return v.x } }
+        is i32   -> { fn() -> i32 { return v } }
+    }
+    return thunk()
+}
+
+main :: fn() -> i32 {
+    g :: deferred(Point { .x = 3, .y = 4 })
+    println("${g()}")
+    h :: deferred(21)
+    println("${h()}")
+    println("${mixed(Point { .x = 9, .y = 1 })}")
+    println("${mixed(5)}")
+    return 0
+}

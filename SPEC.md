@@ -1165,7 +1165,7 @@ match value {
 }
 ```
 
-- **Scrutinee alias — `match e as x { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value the scrutinee evaluated to — once — and is narrowed by each arm to what that arm's pattern matched. It is the only place `as` introduces a binding.
+- **Scrutinee alias — `match e as x { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value the scrutinee evaluated to — once — and is narrowed by each arm to what that arm's pattern matched.
 
   The alias exists for an *expression* scrutinee. A scrutinee that is already a name needs none, since each arm narrows it in place:
 

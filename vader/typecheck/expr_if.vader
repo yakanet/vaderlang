@@ -4,10 +4,10 @@
 // types. Surface T3019 when the condition isn't `bool`-assignable.
 //
 // Branch-condition narrowing (`if x is T as a { … }`, `x == null`,
-// `x.f != null`, including `&&` chains) is applied through `narrow.vader`
-// in the then/else branches ; free-numeric branch types repin via
+// `x.f != null`, including `&&` and `||` chains) is applied through
+// `narrow.vader` in the then/else branches ; free-numeric branch types repin via
 // `join_if_branches` ; divergent guards (`if … { return }`) narrow the
-// fall-through. See `detect_is_narrow` / `collect_and_narrows`.
+// fall-through. See `detect_is_narrow` / `collect_chain_narrows`.
 
 module "vader/typecheck"
 
@@ -75,22 +75,22 @@ export infer_if :: fn(
         diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
             "if condition must be `bool`, got ${display_type(cond_ty)}"))
     }
-    // A `&&` condition narrows EACH operand's scrutinee for the then-block
-    // (`if a is T && a.f { … }`) ; its else can't narrow (we don't know which
-    // operand was false). A single (non-`&&`) condition keeps the existing
-    // then + inverse-else narrowing.
-    top_op :: if e.cond is AST.BinaryExpr as bc { bc.op } else { AST.BinaryOp.Add }
+    // A `&&` narrows EACH operand's scrutinee for the then-block
+    // (`if a is T && a.f { … }`) ; its else can't narrow, since a false
+    // conjunction doesn't say which operand failed. A `||` is the dual. Anything
+    // else keeps the single then + inverse-else narrowing.
     then_narrows: IsNarrow[]! = []
     else_narrows: IsNarrow[]! = []
-    if top_op == AST.BinaryOp.And {
+    if cond_has_op(e.cond, .And) {
         then_narrows = collect_and_narrows(e.cond, typed)
-    } else if top_op == AST.BinaryOp.Or {
-        groups :: group_or_narrows(collect_or_narrows(e.cond, typed), typed)
+    } else if cond_has_op(e.cond, .Or) {
+        leaves :: collect_or_narrows(e.cond, typed)
+        groups :: group_or_narrows(leaves, typed)
         // Every operand was false, so each slot's negative narrowing holds.
         else_narrows = groups
         // The then side only knows something when ONE slot accounts for EVERY
         // operand — otherwise a true condition doesn't say which operand fired.
-        if groups.len() == 1 && groups[0].leaf_count == count_or_operands(e.cond) {
+        if groups.len() == 1 && leaves.len() == count_or_operands(e.cond) {
             then_narrows.push(groups[0])
         }
     } else {
@@ -175,10 +175,13 @@ IsNarrow :: struct {
     then_ty:   Type
     else_ty:   Type
     field_key: string = ""
-    /// How many `||` operands this record merges. 1 everywhere except a group
-    /// built by `group_or_narrows` ; `infer_if` compares it to the operand count
-    /// to decide whether the then side may narrow at all.
-    leaf_count: usize = 1
+}
+
+// True when `cond` is a binary expression applying `op`. `infer_if` dispatches on
+// this rather than on a `BinaryOp` extracted with a stand-in for "not binary".
+cond_has_op :: fn(cond: AST.Expr, op: AST.BinaryOp) -> bool {
+    if cond is AST.BinaryExpr as b { return b.op == op }
+    return false
 }
 
 // One pushed narrowing, recorded so a scope (a `&&` right operand, a
@@ -189,18 +192,17 @@ PushedNarrow :: struct {
     prev:      NarrowSlot | null
 }
 
-// Collect the scrutinee / field narrowings introduced by a `&&` condition
-// chain, left-to-right (flattening nested `&&`). Each leaf (`x is T`,
-// `x == null`, `x.f != null`, …) contributes its `then` narrowing via
-// `detect_is_narrow`. A conjunction's else side can't narrow (we don't know
-// which operand was false), so callers apply these to the then side only.
-// Detection only — operands are type-checked with real diags by the caller,
-// so `detect_is_narrow` routes its own here to a sink.
-collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
+// Collect the narrowings a chain of `op` introduces, left-to-right (flattening
+// nested applications). Each leaf (`x is T`, `x == null`, `x.f != null`, …)
+// contributes its `then` narrowing via `detect_is_narrow` ; an operand that
+// narrows nothing contributes no leaf, so the count is NOT the operand count.
+// Detection only — operands are type-checked with real diags by the caller, so
+// `detect_is_narrow` routes its own here to a sink.
+collect_chain_narrows :: fn(cond: AST.Expr, op: AST.BinaryOp, typed: TypedProgram!) -> IsNarrow[]! {
     if cond is AST.BinaryExpr as x {
-        if x.op == AST.BinaryOp.And {
-            out :: collect_and_narrows(x.left, typed)
-            for n in collect_and_narrows(x.right, typed) { out.push(n) }
+        if x.op == op {
+            out :: collect_chain_narrows(x.left, op, typed)
+            for n in collect_chain_narrows(x.right, op, typed) { out.push(n) }
             return out
         }
     }
@@ -210,22 +212,15 @@ collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
     return out
 }
 
-// Collect the narrowings a `||` chain's operands introduce, left-to-right. Same
-// shape as `collect_and_narrows` — one leaf per operand that narrows anything,
-// detection only (real diags come from the caller's own walk of the operands).
-collect_or_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
-    if cond is AST.BinaryExpr as x {
-        if x.op == AST.BinaryOp.Or {
-            out :: collect_or_narrows(x.left, typed)
-            for n in collect_or_narrows(x.right, typed) { out.push(n) }
-            return out
-        }
-    }
-    out: IsNarrow[]! = []
-    single :: detect_is_narrow(cond, typed, diag_sink())
-    if single is IsNarrow as n { out.push(n) }
-    return out
-}
+// A conjunction's else side can't narrow (nothing says which operand was false),
+// so callers apply these to the then side only.
+collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
+    collect_chain_narrows(cond, .And, typed)
+
+// The dual : a disjunction's THEN side is the weak one, so callers apply these
+// to the else side and only merge them into the then side under `group_or_narrows`.
+collect_or_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
+    collect_chain_narrows(cond, .Or, typed)
 
 // Operands in a `||` chain, narrowing or not. Compared against the leaf count so
 // an operand that narrows nothing (`x is A || flag`) blocks the then side.
@@ -238,40 +233,64 @@ count_or_operands :: fn(cond: AST.Expr) -> usize {
     return 1
 }
 
+// What a leaf leaves on the TRUE side, as a type the union can carry. Normally
+// its `then_ty` — but a trait test narrows to the TRAIT, and a trait is only ever
+// understood in isolation : `is_resolved_enough` waves a bare `TraitType` through,
+// while a union holding one is compared variant-by-variant against shapes and
+// every later `is` on it reports T3040. Its complement is already impl-aware, so
+// the implementors within the slot are `static − else_ty`.
+positive_of :: fn(n: IsNarrow) -> Type {
+    if n.then_ty is TraitType { return subtract_type(n.static_ty, n.else_ty) }
+    return n.then_ty
+}
+
+// Two narrowings addressing the same slot — the same binding, and the same field
+// chain under it (`""` for a bare ident).
+same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key == b.field_key
+
 // Merge the leaves that narrow ONE slot. The then side sees the union of their
-// types ; the else side sees the base minus that union, computed ONCE.
+// types ; the else side subtracts them ONE AT A TIME from the base.
 //
-// Subtracting once is the whole point : pushing each leaf's own `else_ty` in turn
-// would OVERWRITE rather than intersect, so `x is A || x is B` over `A | B | C`
-// would land on `A | C` (the last leaf's else) instead of `C`.
+// Both halves matter. Pushing each leaf's own `else_ty` in turn would OVERWRITE
+// rather than intersect, so `x is A || x is B` over `A | B | C` would land on
+// `A | C` (the last leaf's else) instead of `C` — hence one merged record.
+// Subtracting the merged UNION in one go would be just as wrong the other way :
+// `subtract_type_with_impls` also removes a trait's implementors, and it can only
+// see a trait it is handed directly, never one buried in a union. Folding keeps
+// each leaf's own removal, and the two compose — `(base − A) − B = base − (A ∪ B)`.
 merge_or_group :: fn(group: IsNarrow[], typed: TypedProgram!) -> IsNarrow {
     first :: group[0]
     tys: Type[]! = []
-    for n in group { tys.push(n.then_ty) }
-    merged :: union_of(tys)
+    remainder := first.static_ty
+    for n in group {
+        tys.push(positive_of(n))
+        remainder = subtract_type_with_impls(remainder, n.then_ty, typed)
+    }
     return IsNarrow {
-        .sym_id     = first.sym_id,
-        .static_ty  = first.static_ty,
-        .then_ty    = merged,
-        .else_ty    = subtract_type_with_impls(first.static_ty, merged, typed),
-        .field_key  = first.field_key,
-        .leaf_count = group.len(),
+        .sym_id    = first.sym_id,
+        .static_ty = first.static_ty,
+        .then_ty   = union_of(tys),
+        .else_ty   = remainder,
+        .field_key = first.field_key,
     }
 }
 
 // One merged record per slot the chain tests, in first-seen order.
 group_or_narrows :: fn(leaves: IsNarrow[], typed: TypedProgram!) -> IsNarrow[]! {
     out: IsNarrow[]! = []
-    seen: string[]! = []
     for lead in leaves {
-        key :: "${lead.sym_id}/${lead.field_key}"
-        if key in seen {
+        already := false
+        for done in out {
+            if same_slot(done, lead) {
+                already = true
+            }
+        }
+        if already {
             continue
         }
-        seen.push(key)
         group: IsNarrow[]! = []
         for n in leaves {
-            if n.sym_id == lead.sym_id && n.field_key == lead.field_key {
+            if same_slot(n, lead) {
                 group.push(n)
             }
         }
@@ -280,18 +299,25 @@ group_or_narrows :: fn(leaves: IsNarrow[], typed: TypedProgram!) -> IsNarrow[]! 
     return out
 }
 
+// Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
+// `""` addresses the binding itself, anything else a field chain under it.
+push_one_narrow :: fn(typed: TypedProgram!, n: IsNarrow, ty: Type) -> PushedNarrow {
+    if n.field_key == "" {
+        return PushedNarrow {
+            .sym_id = n.sym_id, .field_key = "", .prev = push_narrow(typed, n.sym_id, ty),
+        }
+    }
+    return PushedNarrow {
+        .sym_id    = n.sym_id,
+        .field_key = n.field_key,
+        .prev      = push_field_narrow(typed, n.field_key, ty),
+    }
+}
+
 // Push each narrowing's `then` type and return the records to unwind later.
 push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
     pushed: PushedNarrow[]! = []
-    for n in narrows {
-        if n.field_key == "" {
-            prev :: push_narrow(typed, n.sym_id, n.then_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = "", .prev = prev })
-        } else {
-            prev :: push_field_narrow(typed, n.field_key, n.then_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = n.field_key, .prev = prev })
-        }
-    }
+    for n in narrows { pushed.push(push_one_narrow(typed, n, n.then_ty)) }
     return pushed
 }
 
@@ -299,15 +325,7 @@ push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarr
 // slot they tested. A single `is` uses this too, with one record.
 push_else_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
     pushed: PushedNarrow[]! = []
-    for n in narrows {
-        if n.field_key == "" {
-            prev :: push_narrow(typed, n.sym_id, n.else_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = "", .prev = prev })
-        } else {
-            prev :: push_field_narrow(typed, n.field_key, n.else_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = n.field_key, .prev = prev })
-        }
-    }
+    for n in narrows { pushed.push(push_one_narrow(typed, n, n.else_ty)) }
     return pushed
 }
 

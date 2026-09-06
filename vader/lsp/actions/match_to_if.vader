@@ -59,6 +59,9 @@ mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
 // Exactly two arms, no guards, arm 0 reducible to an `if` condition, arm 1
 // droppable to the `else`. Everything else declines (lossy = refuse).
 is_convertible :: fn(m: AST.MatchExpr) -> bool {
+    // `match e as x` : an `if` has no place to put the alias, and dropping it
+    // leaves every `x` in the arms unbound.
+    if m.bind_as != "" { return false }
     if m.arms.len() != 2 { return false }
     a0 :: m.arms[0]
     a1 :: m.arms[1]

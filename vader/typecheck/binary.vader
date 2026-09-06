@@ -61,7 +61,8 @@ export infer_binary :: fn(
     right_ctx :: numeric_propagation(e.op, left)
     // `a is T && a.f` : the right operand of a conjunction sees the left's
     // scrutinee / field narrowings, so a flow-narrowed access type-checks.
-    // Conjunction only — `||` can't narrow its right (the left may be false).
+    // Conjunction only. A disjunction's right operand runs exactly when the left
+    // was false, so it could see the left's NEGATIVE narrowings ; not wired.
     cond_narrows: IsNarrow[] = []
     if e.op == AST.BinaryOp.And {
         cond_narrows = collect_and_narrows(e.left, typed)

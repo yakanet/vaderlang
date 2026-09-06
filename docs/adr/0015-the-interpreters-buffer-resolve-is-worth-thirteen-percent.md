@@ -5,6 +5,11 @@
 Accepted (2026-09-06). Amends [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) —
 its measurements, not its decision. Investigation only ; no code changed.
 
+**Superseded in part by
+[0016](0016-a-guards-continuation-is-duplicated-by-the-structurer.md) (2026-09-06)**: the
+doubling described below is real but is NOT the C emitter's — it is already in the
+bytecode. The counts stand ; the attribution does not.
+
 ⚠️ **Corrected the same day, in place, twice.** The write-barrier count below was WRONG
 and 0014's was right — see "The correction, and how the instrument lied" at the end. And
 **every static count over `exec_entry`, in this record and in 0014, is DOUBLE**: the C
