@@ -1,0 +1,286 @@
+# Lower
+
+## snippet
+  struct snippet$Dog { name: string }
+  struct snippet$Cat { name: string }
+  struct snippet$Bird { name: string }
+  fn snippet$pick(n: i32) -> Bird | Cat | Dog
+    if :void
+      cond:
+        eq :bool
+          l:
+            n :i32
+          r:
+            int(0) :i32
+      then:
+        return
+          Dog! {
+            name: "rex" :string
+          }
+    if :void
+      cond:
+        eq :bool
+          l:
+            n :i32
+          r:
+            int(1) :i32
+      then:
+        return
+          Cat! {
+            name: "mia" :string
+          }
+    return
+      Bird! {
+        name: "kiwi" :string
+      }
+  fn snippet$furry_name(f: Cat | Dog) -> string
+    ~>
+      if :string
+        cond:
+          is Dog! :bool
+            f :Cat | Dog
+        then:
+          ~>
+            .name :string
+              cast → Dog
+                f :Cat | Dog
+        else:
+          ~>
+            .name :string
+              cast → Cat
+                f :Cat | Dog
+  fn snippet$bird_name(b: Bird) -> string
+    ~>
+      .name :string
+        b :Bird
+  fn snippet$describe(n: i32) -> string
+    let p: Bird | Cat | Dog =
+      call :Bird | Cat | Dog
+        callee:
+          pick :fn(i32) -> Bird | Cat | Dog
+        arg0:
+          n :i32
+    ~>
+      if :never
+        cond:
+          or :bool
+            l:
+              is Dog! :bool
+                p :Bird | Cat | Dog
+            r:
+              is Cat! :bool
+                p :Bird | Cat | Dog
+        then:
+          return
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "furry " :string
+              arg1:
+                call :string
+                  callee:
+                    furry_name :fn(Cat | Dog) -> string
+                  arg0:
+                    cast → Cat | Dog
+                      p :Bird | Cat | Dog
+        else:
+          return
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "bird " :string
+              arg1:
+                call :string
+                  callee:
+                    bird_name :fn(Bird) -> string
+                  arg0:
+                    cast → Bird
+                      p :Bird | Cat | Dog
+  fn snippet$not_dog(n: i32, flag: bool) -> string
+    let p: Bird | Cat | Dog =
+      call :Bird | Cat | Dog
+        callee:
+          pick :fn(i32) -> Bird | Cat | Dog
+        arg0:
+          n :i32
+    if :void
+      cond:
+        or :bool
+          l:
+            is Dog! :bool
+              p :Bird | Cat | Dog
+          r:
+            flag :bool
+      then:
+        return "dog-or-flag" :string
+    return
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          "not a dog: " :string
+        arg1:
+          call :string
+            callee:
+              furry_or_bird :fn(Bird | Cat) -> string
+            arg0:
+              cast → Bird | Cat
+                p :Bird | Cat | Dog
+  fn snippet$furry_or_bird(p: Bird | Cat) -> string
+    ~>
+      if :string
+        cond:
+          is Cat! :bool
+            p :Bird | Cat
+        then:
+          ~>
+            .name :string
+              cast → Cat
+                p :Bird | Cat
+        else:
+          ~>
+            .name :string
+              cast → Bird
+                p :Bird | Cat
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                describe :fn(i32) -> string
+              arg0:
+                int(0) :i32
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                describe :fn(i32) -> string
+              arg0:
+                int(1) :i32
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                describe :fn(i32) -> string
+              arg0:
+                int(2) :i32
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                not_dog :fn(i32, bool) -> string
+              arg0:
+                int(1) :i32
+              arg1:
+                false
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                not_dog :fn(i32, bool) -> string
+              arg0:
+                int(2) :i32
+              arg1:
+                false
+          arg1:
+            "\n" :string
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -1604,7 +1604,27 @@ push_divergent_narrow_if :: fn(
     if_expr :: stmt.expr
     if if_expr.else_branch !is null                  { return }
     if !then_is_divergent(if_expr.then_block, typed) { return }
-    narrowing :: detect_is_narrow_for_block(if_expr.cond, typed) ?? return
+    push_guard_narrows(if_expr.cond, typed, stack)
+}
+
+// Push the complement narrowing(s) a guard condition leaves for the rest of the
+// block. A `||` contributes one per operand : reaching the fall-through means
+// EVERY operand was false. Subtraction composes — pushing them in sequence, each
+// detected against the narrowing the previous one left, lands on the same type as
+// subtracting their union at once — so no grouping is needed here, unlike the
+// `else` side in `expr_if.vader` where the pushes would overwrite.
+//
+// Split out of `push_divergent_narrow_if` so the `is AST.BinaryExpr` test below
+// gets its own narrowing scope.
+push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
+    if cond is AST.BinaryExpr as bc {
+        if bc.op == AST.BinaryOp.Or {
+            push_guard_narrows(bc.left, typed, stack)
+            push_guard_narrows(bc.right, typed, stack)
+            return
+        }
+    }
+    narrowing :: detect_is_narrow_for_block(cond, typed) ?? return
     if narrowing.field_key == "" {
         prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
         stack.push(

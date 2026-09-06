@@ -1,0 +1,61 @@
+// Flow narrowing through `||`, both directions.
+//
+// The true branch sees the UNION of the operands' narrowings, but only when every
+// operand tests the same binding. The false branch sees each tested binding minus
+// what its operands matched — every operand was false to get there.
+
+module "snippet"
+
+import "std/io"
+
+Dog  :: struct { name: string }
+Cat  :: struct { name: string }
+Bird :: struct { name: string }
+Pet  :: Dog | Cat | Bird
+
+Furry :: Dog | Cat
+
+pick :: fn(n: i32) -> Pet {
+    if n == 0 {
+        return Dog { .name = "rex" }
+    }
+    if n == 1 {
+        return Cat { .name = "mia" }
+    }
+    return Bird { .name = "kiwi" }
+}
+
+furry_name :: fn(f: Furry) -> string = if f is Dog { f.name } else { f.name }
+bird_name  :: fn(b: Bird) -> string = b.name
+
+// true branch : union of both narrowings. false branch : the complement.
+describe :: fn(n: i32) -> string {
+    p :: pick(n)
+    if p is Dog || p is Cat {
+        return "furry ${furry_name(p)}"
+    } else {
+        return "bird ${bird_name(p)}"
+    }
+}
+
+// The false branch narrows even when the true branch cannot : `flag` may have
+// been the true operand, but reaching the else means it was false AND p is not a
+// Dog.
+not_dog :: fn(n: i32, flag: bool) -> string {
+    p :: pick(n)
+    if p is Dog || flag {
+        return "dog-or-flag"
+    }
+    return "not a dog: ${furry_or_bird(p)}"
+}
+
+furry_or_bird :: fn(p: Cat | Bird) -> string = if p is Cat { p.name } else { p.name }
+
+main :: fn() -> i32 {
+    println(describe(0))
+    println(describe(1))
+    println(describe(2))
+    println(not_dog(1, false))
+    println(not_dog(2, false))
+    return 0
+}

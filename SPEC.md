@@ -370,6 +370,10 @@ Type casts (`Type(expr)`) are parsed as primary call expressions and naturally s
 
 Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
 
+Narrowing flows through a `||` condition in the mirror direction. The **false** branch of a disjunction narrows every binding its operands tested — reaching it means *each* operand was false — so `if x is A || x is B { … } else { … }` sees `x` as its declared type minus `A | B` in the else, and the same complement applies to the rest of the block after a divergent guard (`if x is A || x is B { return }`). The **true** branch narrows only when *every* operand tests the same binding, and then to the **union** of what they matched: `if x is A || x is B { … }` sees `x` as `A | B`. A disjunction with one non-narrowing operand (`if x is A || flag`) narrows nothing on the true side — a true condition doesn't reveal which operand fired — while the false side still narrows `x`; likewise `if x is A || y is B` narrows neither on the true side and both on the false one.
+
+The two operators are duals: a conjunction's **true** side applies each operand's positive narrowing and its false side applies none; a disjunction's **false** side applies each operand's negative narrowing and its true side applies one only in the single-binding case.
+
 ### Statement separators
 
 Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.

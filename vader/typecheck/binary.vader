@@ -68,7 +68,7 @@ export infer_binary :: fn(
     }
     pushed :: push_then_narrows(cond_narrows, typed)
     right := check_expr_fn(e.right, right_ctx, typed, diags)
-    pop_then_narrows(pushed, typed)
+    pop_narrows(pushed, typed)
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
     // repinning its recorded type (and any inner shift / bitwise leaves) and

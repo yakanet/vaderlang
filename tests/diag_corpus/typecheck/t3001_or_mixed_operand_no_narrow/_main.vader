@@ -1,0 +1,25 @@
+// The TRUE branch of a `||` narrows only when EVERY operand tests the same
+// binding. Here one operand is a plain bool, so a true condition does not say
+// which one fired and `p` keeps its declared type. The FALSE branch still
+// narrows (that case is pinned by `tests/snippets/or_narrowing`).
+//
+// This fixture is the SAFETY half of `||` narrowing : it fails if the rule is
+// ever loosened into unsoundness.
+module "snippet"
+
+Dog :: struct { name: string }
+Cat :: struct { name: string }
+Pet :: Dog | Cat
+
+dog_name :: fn(d: Dog) -> string = d.name
+
+describe :: fn(p: Pet, flag: bool) -> string {
+    if p is Dog || flag {
+        return dog_name(p)
+    }
+    return "other"
+}
+
+main :: fn() -> i32 {
+    return i32(describe(Dog { .name = "rex" }, false).byte_len())
+}

@@ -46,8 +46,8 @@
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     IdentExpr      :: bool | null
-  expr 30:87    IdentExpr      :: bool | null
-  expr 30:95    IdentExpr      :: bool | null
+  expr 30:87    IdentExpr      :: bool
+  expr 30:95    IdentExpr      :: bool
   expr 32:14    StructLitExpr  :: MutableMap<string, char>!
   expr 33:11    StringLitExpr  :: string
   expr 33:5     IdentExpr      :: MutableMap<string, char>!
