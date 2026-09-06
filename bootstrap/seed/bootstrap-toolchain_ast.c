@@ -5,15 +5,18 @@ static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1);
 static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
     void* l2 = NULL;
     vader_box_t l3 = vader_box_null();
+    void* t0 = NULL;
     vader_box_t* gc_roots[2] = { &l0, &l3 };
-    void** gc_raw_roots[2] = { &l1, &l2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[3] = { &l1, &l2, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0.tag == 396u) {
-        l2 = l0.payload.obj;
-        if (((vader_struct_toolchain_ast_BinaryExpr_t*) l2)->f_op == INT32_C(8)) {
-            toolchain_ast_append_bitor_variants(((vader_struct_toolchain_ast_BinaryExpr_t*) l2)->f_left, l1);
-            toolchain_ast_append_bitor_variants(((vader_struct_toolchain_ast_BinaryExpr_t*) l2)->f_right, l1);
+        t0 = l0.payload.obj;
+        if (((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_op == INT32_C(8)) {
+            t0 = l0.payload.obj;
+            toolchain_ast_append_bitor_variants(((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_left, l1);
+            t0 = l0.payload.obj;
+            toolchain_ast_append_bitor_variants(((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_right, l1);
             { vader_gc_top = gc_frame.prev; return; }
         }
         l2 = l0.payload.obj;
