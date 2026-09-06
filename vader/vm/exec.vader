@@ -144,6 +144,42 @@ arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
     return Trap { .message = "${op_label} at pc=${frame.pc}: expected numeric operand, got ${describe_value_tag(v)}" }
 }
 
+/// Integer→integer `convert`, straight on the stack columns. True when it applied.
+///
+/// The boxed route allocates TWICE per execution — `peek_val` to read the operand,
+/// `push_val` to carry the result back — to move a word that never leaves its
+/// column. Mirrors `convert_value`'s `.I32` / `.I64` arms EXACTLY, including the
+/// unsigned-source normalisation: a `u8` / `u16` / `u32` arrives tagged `I32`
+/// holding raw bits, so widening must ZERO-extend rather than sign-extend. Any
+/// other source tag or target falls through to the boxed path unchanged.
+convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) -> bool {
+    if !(target == .I32 || target == .I64) {
+        return false
+    }
+    idx :: frame.sp - 1
+    t :: frame.tag[idx]
+    n: i64 = 0
+    if t == StackTag.I32 {
+        n = if from_name.starts_with("u") { i64(u32(frame.payload[idx])) } else { i64(i32(frame.payload[idx])) }
+    } else if t == StackTag.I64 {
+        n = frame.payload[idx]
+    } else if t == StackTag.Char {
+        n = i64(u32(frame.payload[idx]))
+    } else if t == StackTag.Bool {
+        n = if frame.payload[idx] != 0 { 1 } else { 0 }
+    } else {
+        return false
+    }
+    if target == .I32 {
+        frame.payload[idx] = i64(i32(n))
+        frame.tag[idx] = StackTag.I32
+    } else {
+        frame.payload[idx] = n
+        frame.tag[idx] = StackTag.I64
+    }
+    return true
+}
+
 /// Grow the three stack columns by one slot — the cold half of a push.
 ///
 /// Kept OUT OF LINE, and out of the predicate beside it: three array pushes, each
@@ -1716,13 +1752,17 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                v :: peek_val(frame, frame.sp - 1)
-                converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
-                if converted is Trap {
-                    return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
+                if convert_int_fast(frame, instr.target, instr.from_name) {
+                    frame.pc = frame.pc + 1
+                } else {
+                    v :: peek_val(frame, frame.sp - 1)
+                    converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
+                    if converted is Trap {
+                        return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
+                    }
+                    push_val(frame, frame.sp - 1, converted)
+                    frame.pc = frame.pc + 1
                 }
-                push_val(frame, frame.sp - 1, converted)
-                frame.pc = frame.pc + 1
             }
             is bc.SizeOfType -> {
                 if frame.sp == 0 {
