@@ -59,8 +59,10 @@ export EmitterCtx :: struct {
     /// `same_intern_class`, so a 64-bit collision falls back to the string path
     /// instead of silently merging two slots.
     type_hash: MutableMap<u64, i32>
-    /// The type each `type_hash` entry was minted for — the verifier's subject.
-    type_hash_src: MutableMap<u64, Type>
+    /// The type each SLOT was minted for — the verifier's subject. An array
+    /// indexed by slot, not a second map: the verify already knows the index, so
+    /// probing a second hash table for it doubles the lookup it is guarding.
+    type_by_slot: Type[]!
 
     /// String literal pool. Deduplicated by content via `string_key`.
     strings: string[]!
@@ -138,13 +140,12 @@ export new_emitter_ctx :: fn() -> EmitterCtx! {
     type_key["null"] = 0
     type_hash :: MutableMap<u64, i32> {}
     type_hash[type_intern_hash(TY_NULL)] = 0
-    type_hash_src :: MutableMap<u64, Type> {}
-    type_hash_src[type_intern_hash(TY_NULL)] = TY_NULL
+    type_by_slot: Type[]! = [TY_NULL]
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
         .type_hash                   = type_hash,
-        .type_hash_src               = type_hash_src,
+        .type_by_slot                = type_by_slot,
         .strings                     = [],
         .string_key                  = MutableMap<string, i32> {},
         .functions                   = [],
@@ -177,9 +178,8 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     h :: type_intern_hash(t)
     fast :: ctx.type_hash[h]
     if fast is i32 {
-        src :: ctx.type_hash_src[h]
-        if src is Type {
-            if same_intern_class(t, src) { return fast }
+        if usize(fast) < ctx.type_by_slot.len() {
+            if same_intern_class(t, ctx.type_by_slot[usize(fast)]) { return fast }
         }
     }
     key :: type_intern_key(t)
@@ -187,7 +187,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     if existing is i32 {
         if ctx.type_hash[h] is null {
             ctx.type_hash[h] = existing
-            ctx.type_hash_src[h] = t
+            record_slot_type(ctx, existing, t)
         }
         return existing
     }
@@ -205,8 +205,8 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     ctx.type_key[key] = new_index
     if ctx.type_hash[h] is null {
         ctx.type_hash[h] = new_index
-        ctx.type_hash_src[h] = t
     }
+    record_slot_type(ctx, new_index, t)
     ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx, new_index)
     return new_index
 }
@@ -308,4 +308,14 @@ import "std/testing"
 @test test_default_emit_options :: fn() -> void {
     opts :: default_emit_options()
     assert_eq(opts.optimize, true)
+}
+
+/// Remember the type a slot was minted for, padding the array so the index is
+/// always addressable. Callers reach slots out of order (`reserve_struct` mints
+/// ahead of `intern_type`), so a plain `push` would desync.
+export record_slot_type :: fn(ctx: EmitterCtx!, index: i32, t: Type) -> void {
+    for _ in ctx.type_by_slot.len()..=usize(index) {
+        ctx.type_by_slot.push(TY_NULL)
+    }
+    ctx.type_by_slot[usize(index)] = t
 }
