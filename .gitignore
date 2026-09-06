@@ -65,10 +65,16 @@ poc/
 # Snippet artefacts — left behind when a dev runs `vader build` directly on
 # a `tests/snippets/<name>/_main.vader` to inspect the native output. The
 # C emitter writes `_main.c` next to the source and the linker emits a
-# `_main` binary ; `tests/native.test.ts` uses `native.c` / `native[.exe]`
-# for its own runs and those are listed separately just below.
+# `_main` binary ; a `--split` build writes one `_main-<module>.c` per module
+# plus its own header and objects. `tests/native.test.ts` uses `native.c` /
+# `native[.exe]` for its own runs and those are listed separately just below.
 tests/snippets/*/_main
 tests/snippets/*/_main.c
+tests/snippets/*/_main.imports.h
+tests/snippets/*/_main.split.*
+tests/snippets/*/_main-*.c
+tests/snippets/*/_main-*.o
+tests/snippets/*/_main.dSYM/
 tests/snippets/*/native
 tests/snippets/*/native.c
 

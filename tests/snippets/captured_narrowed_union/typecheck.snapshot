@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/captured_narrowed_union
+  FnDecl         corner               :: fn(i32 | Point) -> fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point!
+  FnDecl         scale                :: fn(i32 | Point) -> fn() -> i32
+  expr 12:10    IdentExpr      :: i32 | Point
+  expr 13:13    IdentExpr      :: i32
+  expr 13:5     IfExpr         :: void
+  expr 13:8     BinaryExpr     :: bool
+  expr 13:8     IdentExpr      :: i32 | Point
+  expr 14:16    LambdaExpr     :: fn() -> i32
+  expr 14:37    BinaryExpr     :: i32
+  expr 14:37    IdentExpr      :: i32
+  expr 16:12    LambdaExpr     :: fn() -> i32
+  expr 20:10    IdentExpr      :: i32 | Point
+  expr 21:13    IdentExpr      :: Point!
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: i32 | Point
+  expr 22:16    LambdaExpr     :: fn() -> i32
+  expr 22:37    BinaryExpr     :: i32
+  expr 22:37    FieldExpr      :: i32
+  expr 22:37    IdentExpr      :: Point
+  expr 22:43    FieldExpr      :: i32
+  expr 22:43    IdentExpr      :: Point
+  expr 24:12    LambdaExpr     :: fn() -> i32
+  expr 24:33    UnaryExpr      :: i32
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    CallExpr       :: fn() -> i32
+  expr 28:16    CallExpr       :: i32
+  expr 28:16    IdentExpr      :: fn(i32 | Point) -> fn() -> i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: fn() -> i32
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: fn(i32 | Point) -> fn() -> i32
+  expr 29:22    StructLitExpr  :: Point!
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: fn() -> i32
+  expr 30:16    CallExpr       :: i32
+  expr 30:16    IdentExpr      :: fn(i32 | Point) -> fn() -> i32
+  expr 30:23    StructLitExpr  :: Point!
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    CallExpr       :: fn() -> i32
+  expr 31:16    CallExpr       :: i32
+  expr 31:16    IdentExpr      :: fn(i32 | Point) -> fn() -> i32
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void

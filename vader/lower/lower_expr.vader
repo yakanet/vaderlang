@@ -247,10 +247,7 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
                 cell_ref :: LoweredIdent {
                     .span = ident.span, .type = type, .symbol = resolved,
                 }
-                return LoweredCellGet {
-                    .span = ident.span, .type = type,
-                    .target = cell_ref, .value_type = type,
-                }
+                return cell_value(ctx, resolved, cell_ref, ident.span, type)
             }
             // Scalar const inlining : when a `const` decl carries a
             // comptime-baked scalar (int / float / bool / char / string /
@@ -538,6 +535,27 @@ try_lower_common_union_field :: fn(
     return null
 }
 
+// Read a captured binding's value back out of its cell.
+//
+// `lower_cell_init` built the cell at the binding's DECLARED type, so that is the
+// type it has to be read at. Naming the cell after a NARROWED use instead reads a
+// union box's tag word as if it were the payload — a wrong scalar, or a wild
+// pointer once the use is a field access. The narrowing is then a cast over the
+// value, exactly as an uncaptured slot does in `lower_ident`.
+cell_value :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr, span: Span, use_type: Type,
+) -> LoweredExpr {
+    declared :: declared_type_of_symbol(ctx, symbol)
+    stored :: if declared is UnionType { declared } else { use_type }
+    got :: LoweredCellGet {
+        .span = span, .type = stored, .target = cell_ref, .value_type = stored,
+    }
+    if equals_type(stored, use_type) {
+        return got
+    }
+    return LoweredCast { .span = span, .type = use_type, .value = got }
+}
+
 try_route_through_env :: fn(
     ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
 ) -> LoweredExpr | null {
@@ -558,10 +576,7 @@ try_route_through_env :: fn(
             }
             // The env-struct slot holds a cell ref ; unwrap via
             // `LoweredCellGet` to materialise the value.
-            return LoweredCellGet {
-                .span = span, .type = type,
-                .target = cell_ref, .value_type = type,
-            }
+            return cell_value(ctx, symbol, cell_ref, span, type)
         }
     }
 }

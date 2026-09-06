@@ -1,0 +1,33 @@
+module "snippet"
+
+import "std/io"
+
+// A local holding a UNION, flow-narrowed, then captured by a lambda. The cell is
+// created at the declared type, so it has to be read back at that type — reading
+// it at the narrowed one takes the union box's tag word for the payload.
+
+Point :: struct { x: i32, y: i32 }
+
+scale :: fn(p: Point | i32) -> fn() -> i32 {
+    v :: p
+    if v is i32 {
+        return fn() -> i32 { return v * 2 }
+    }
+    return fn() -> i32 { return 0 }
+}
+
+corner :: fn(p: Point | i32) -> fn() -> i32 {
+    v :: p
+    if v is Point {
+        return fn() -> i32 { return v.x + v.y }
+    }
+    return fn() -> i32 { return -1 }
+}
+
+main :: fn() -> i32 {
+    println("${scale(21)()}")
+    println("${scale(Point { .x = 1, .y = 2 })()}")
+    println("${corner(Point { .x = 3, .y = 4 })()}")
+    println("${corner(9)()}")
+    return 0
+}
