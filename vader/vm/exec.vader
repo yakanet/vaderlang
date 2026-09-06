@@ -2592,11 +2592,38 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.Return -> {
                 has_value :: frame.sp > 0
-                return_value: Value = I32Val { .value = 0 }
-                // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
-                if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), body.signature.result) }
-                outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
-                if !(outcome is null) { return outcome }
+                // Fast path: the value moves from this frame's top slot to the
+                // caller's, and both are payload+tag columns. Boxing it in between
+                // allocated a `Value` that `push_val` took apart one call later —
+                // and the `I32Val` placeholder the slow path still builds was paid
+                // even by a void `return`, which never reads it.
+                //
+                // Deliberately NOT taken for a narrow result (it truncates, so it
+                // goes through `narrow_mask`), for the value-capturing entry, or
+                // for the outermost frame — those three keep the boxed route and
+                // its one implementation.
+                if has_value && frame_count[0] > 1 && capture == null && !is_narrow_valtype(body.signature.result) {
+                    src :: frame.sp - 1
+                    st  :: frame.tag[src]
+                    pay :: frame.payload[src]
+                    pop_frame(frame_count)
+                    caller :: frames[frame_count[0] - 1]
+                    if stack_needs_grow(caller, caller.sp) {
+                        stack_grow(caller)
+                    }
+                    caller.payload[caller.sp] = pay
+                    caller.tag[caller.sp] = st
+                    if st == StackTag.Ref {
+                        caller.stack[caller.sp] = frame.stack[src]
+                    }
+                    caller.sp = caller.sp + 1
+                } else {
+                    return_value: Value = I32Val { .value = 0 }
+                    // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
+                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), body.signature.result) }
+                    outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
+                    if !(outcome is null) { return outcome }
+                }
             }
             is bc.ReturnLit -> {
                 raw_ret :: const_op_value(instr.value, state.bc.strings, frame.pc)
