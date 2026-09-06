@@ -1399,7 +1399,8 @@ main :: fn() -> void { greet(42) }
 //
 // The nominal-arg clearing is older than that rule and pulls the other way — it is
 // why `gen_mut(h: Holder<Box!>)` accepts a `Holder<Box>` argument where the slot form
-// is T3077. Recorded in ADR 0017.
+// is T3077, and the callee then writes through it. Open ; ADR 0017 records why it is
+// not simply a matter of clearing less.
 arg_mutability_cleared :: fn(t: Type) -> Type = if t is ArrayType { t } else { element_bits_cleared(t) }
 
 // Whether the parameter's element bit, once substituted, says nothing the callee
@@ -1412,20 +1413,23 @@ arg_mutability_cleared :: fn(t: Type) -> Type = if t is ArrayType { t } else { e
 // Ignoring that claim costs nothing: inside a generic body the element is a `T`, and
 // `type_grants_mutation` answers false for a type param, so the callee cannot write
 // through a promise it never made. A written `Box![]` still has its element judged.
-substituted_element_fiction :: fn(declared: Type) -> bool {
-    if !(declared is ArrayType) {
-        return false
-    }
-    return type_contains_type_param(declared.element)
-}
+// The TOP level is excluded: a bare `T` is judged by `type_grants_mutation`, which
+// answers false for a type param, and a fn type carries no element bit to be fiction
+// about — its per-parameter marker rides `params_mutable`.
+substituted_element_fiction :: fn(
+    declared: Type,
+) -> bool = !(declared is TypeParamType | FnType) && type_contains_type_param(declared)
 
 // `arg_mutability_cleared`, descending into the array element too.
 element_bits_cleared :: fn(t: Type) -> Type = match t {
     is StructType -> mk_struct(t.symbol, arg_mutability_cleared_each(t.args), false)
+    is TraitType  -> mk_trait(t.symbol, arg_mutability_cleared_each(t.args))
     is TupleType  -> mk_tuple(arg_mutability_cleared_each(t.elements), false)
     is ArrayType  -> mk_array(element_bits_cleared(t.element), t.immutable)
     is UnionType  -> mk_union(arg_mutability_cleared_each(t.variants))
-    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+    // `FnType` sits in the identity group, where `strip_mutability` descends: a fn
+    // type carries no element bit to clear — its marker rides `params_mutable`.
+    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
      | NeverType | AnyType | DistinctType -> t
 }

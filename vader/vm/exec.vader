@@ -75,7 +75,11 @@ STEP_BUDGET_UNREACHABLE: i64: 1 << 62
 /// the function's `ops` array.
 Frame :: struct {
     function_index: i32
-    slots:          Value[]!
+    // `!` on the ELEMENT here reads as storage, not as mutation: nothing rewrites a
+    // `Value` in place. It is what lets a slot be re-lent through `stack`, which
+    // hands out writable `ArrayVal`s (`peek_array_mut`). Same for `slot_set`'s
+    // `value`, `build_main_args`, `build_entry_frame` and the `env` chain.
+    slots:          Value![]!
     /// Live handles, not copies: an `ArrayVal` here is the object `array.push`
     /// grows in place, so the ELEMENT carries the marker too.
     stack:          Value![]!
@@ -309,7 +313,7 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
 }
 
 /// Write a boxed `Value` into local slot `slot` (slot always exists).
-slot_set :: fn(frame: Frame!, slot: usize, value: Value) -> void = match value {
+slot_set :: fn(frame: Frame!, slot: usize, value: Value!) -> void = match value {
     is I32Val -> {
         frame.slot_payload[slot] = i64(value.value)
         frame.slot_tag[slot] = StackTag.I32
@@ -546,7 +550,7 @@ validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: 
 /// @param env             closure env for the callee, or `null`.
 /// @return                `null` on success ; `Trap` on frame-stack overflow.
 /// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
-dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!, callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
+dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!, callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value! | null) -> Trap | null {
     frame.sp = arg_base
     frame.pc = frame.pc + 1
     push_callee_frame(frames, frame_count, function_index, callee, frame, arg_base, env)
@@ -563,7 +567,7 @@ dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!
 /// than the parked frame grows them. Locals are re-zeroed explicitly (the
 /// parked frame's tail is stale) ; the stack columns are logically emptied by
 /// `sp = 0` and overwritten on push.
-push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> void {
+push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value! | null) -> void {
     if cursor[0] == frames.len() {
         frames.push(build_callee_frame(function_index, callee, caller, arg_base, env))
         cursor[0] = cursor[0] + 1
@@ -642,12 +646,12 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
 /// @param env             closure env — bound to `slot 0` when non-`null` ;
 ///                        `null` for direct / plain `fn.ref` calls.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> Frame {
+build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value! | null) -> Frame {
     // Copy the caller's SoA stack columns straight into the callee's slot
     // columns : no boxing, no materialisation, no per-slot decompose. Args
     // occupy `caller[arg_base ..]` ; `env` (closures) takes slot 0 ahead of them.
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value[]! = []
+    slots: Value![]! = []
     slot_payload: i64[]! = []
     slot_tag: StackTag[]! = []
     for _ in 0..<total {
@@ -686,9 +690,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
 
 /// Entry frame : args come from a host-built `Value[]` (argv), not a caller
 /// stack, so they are decomposed one-off through `slot_set`.
-build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value[]) -> Frame {
+build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value![]) -> Frame {
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value[]! = [NULL_VALUE] * total
+    slots: Value![]! = [NULL_VALUE] * total
     slot_payload: i64[]! = [0] * total
     slot_tag: StackTag[]! = [StackTag.Null] * total
     result :: Frame {
@@ -855,8 +859,8 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 /// @param string_array_type_id   the module's `string[]` type-table index, used
 ///                               to tag the boxed array.
 /// @return                       the `Value[]` to seed the main frame's slots.
-build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
-    out: Value[]! = []
+build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value![] {
+    out: Value![]! = []
     if parameter_count != 1 { return out }
     // Pushed per branch rather than through a joined local : the fallback is a fresh
     // literal (mutable) and `host_argv` is a read-only borrow, so a join would have

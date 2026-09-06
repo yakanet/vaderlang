@@ -1010,7 +1010,7 @@ export mutability_level_hint :: fn(
     }
     ann :: ident_annotation(value, typed)
     if ann !is null {
-        return level_differs_at_element(path_name(value, "the value"), got, ann.span)
+        return level_differs_at(path_name(value, "the value"), got, ann.span, mutability_level_name(got))
     }
     return field_annotate_hint(value, typed) + mutation_fix_hint(value, typed)
 }
@@ -1026,9 +1026,21 @@ ident_annotation :: fn(e: AST.Expr, typed: TypedProgram) -> AST.TypeExpr | null 
     return typed.local_annotation[sym.id]
 }
 
-level_differs_at_element :: fn(
-    name: string, written: Type, at: Span,
-) -> string = " — `${name}` is declared `${display_type(written)}` at ${where_of(at)} : the level that differs is the element"
+level_differs_at :: fn(
+    name: string, written: Type, at: Span, level: string,
+) -> string = " — `${name}` is declared `${display_type(written)}` at ${where_of(at)} : the level that differs is ${level}"
+
+// What to call the level a mutability mismatch sits at, in the reader's own words.
+// `annotate `xs!`` names the ROOT, which is never the answer here — the reader tries
+// it and the diagnostic does not move.
+mutability_level_name :: fn(t: Type) -> string = match t {
+    is ArrayType | TupleType   -> "the element"
+    is StructType | TraitType  -> "the type argument"
+    is UnionType               -> "the variant"
+    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | SelfType
+     | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
+     | AnyType | DistinctType  -> "the element"
+}
 
 // A write through `xs[0]` where `xs: Box[]` is fixed at the ELEMENT, never at the
 // root: `annotate `xs!`` produces `Box[]!`, which reopens the spine and leaves the
@@ -1050,7 +1062,7 @@ element_level_hint :: fn(value: AST.Expr, sym: Symbol, typed: TypedProgram) -> s
     if type_grants_mutation(arr.element) {
         return ""
     }
-    return level_differs_at_element(sym.name, ty, ann.span)
+    return level_differs_at(sym.name, ty, ann.span, mutability_level_name(ty))
 }
 
 // The array shape inside `t` — itself, the array a distinct newtype backs, or the

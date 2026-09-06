@@ -158,7 +158,7 @@ export select_target_bodies :: fn(
     report_uncovered(files, target, winners, covered, diags)
     out: SourceFile[]! = []
     for f in files {
-        kept: AST.Decl[]! = []
+        kept: AST.Decl![]! = []
         for d in f.program.decls {
             kept_decl :: resolve_decl(d, target, winners, bare)
             if kept_decl != null {

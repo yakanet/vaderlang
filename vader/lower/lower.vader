@@ -110,7 +110,7 @@ lower_project_impl :: fn(
         if !should_eager {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
-            imported_decls: LoweredDecl[]! = []
+            imported_decls: LoweredDecl![]! = []
             if imported_loaded is LoadedModule {
                 if imported_typed_opt is TypedProgram {
                     for d in module_decls(imported_loaded) {
@@ -285,7 +285,7 @@ lower_module :: fn(
     module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredModule {
-    out_decls: LoweredDecl[]! = []
+    out_decls: LoweredDecl![]! = []
     // First pass : every regular decl in source order. Impl members
     // surface as a multi-decl list right after their ImplDecl so the
     // dump's per-struct grouping follows source order.

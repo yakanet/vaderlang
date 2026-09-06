@@ -48,10 +48,10 @@
   expr 30:9     CallExpr       :: void
   expr 30:9     IdentExpr      :: fn(T) -> void
   expr 34:15    CallExpr       :: __genstate_flat_map<i32>!
-  expr 34:15    IdentExpr      :: fn(Iterator<T>, fn(T) -> U[]!) -> Iterator<U>
+  expr 34:15    IdentExpr      :: fn(Iterator<T>, fn(T) -> U[]) -> Iterator<U>
   expr 34:24    SeqLitExpr     :: i32[]!
-  expr 34:35    LambdaExpr     :: fn(i32) -> i32[]!
-  expr 34:47    SeqLitExpr     :: i32[]!
+  expr 34:35    LambdaExpr     :: fn(i32) -> i32[]
+  expr 34:47    SeqLitExpr     :: i32[]
   expr 34:48    IdentExpr      :: i32
   expr 34:51    BinaryExpr     :: i32
   expr 34:51    IdentExpr      :: i32

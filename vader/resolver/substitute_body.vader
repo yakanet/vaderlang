@@ -191,7 +191,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.BlockExpr -> { return substitute_block(e, subst) }
 
         is AST.StructLitExpr -> {
-            new_items: (AST.StructLitField | AST.StructLitSpread)[]! = []
+            new_items: (AST.StructLitField! | AST.StructLitSpread!)[]! = []
             for it in e.items {
                 match it {
                     is AST.StructLitField -> {
@@ -259,7 +259,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.StringLitExpr -> {
-            new_parts: AST.StringLitPart[]! = []
+            new_parts: AST.StringLitPart![]! = []
             for pt in e.parts {
                 match pt {
                     is AST.StringLitText -> {
@@ -356,7 +356,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
             }
         }
         is AST.ForStmt -> {
-            new_form: AST.ForForm = s.form
+            new_form: AST.ForForm! = s.form
             match s.form {
                 is AST.WhileFor as w -> {
                     new_form = AST.WhileFor { .cond = substitute_expr_full(w.cond, subst) }

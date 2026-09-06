@@ -77,7 +77,12 @@ export type_from_expr :: fn(
             return FnType {
                 .params         = params,
                 .params_mutable = if any_marked { marks } else { [] },
-                .return_type    = opt_or_void(expr.return_type, resolved, diags),
+                // The params took the default above ; `opt_or_void` bypasses it, and
+                // skipping the return made `fn(f: fn() -> Cfg)` hand out a MUTABLE `Cfg`
+                // where the same `-> Cfg` on an ordinary declaration is frozen.
+                .return_type    = apply_readonly_default(
+                    opt_or_void(expr.return_type, resolved, diags), expr.return_type,
+                ),
             }
         }
         // `T!` — one level of the written type is mutable. The marker is stripped

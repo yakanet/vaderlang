@@ -184,7 +184,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
     // Filter each module's fn decls ; keep structs + consts verbatim.
     out_modules :: MutableMap<string, LoweredModule> {}
     for [module_id, m] in lp.modules {
-        kept: LoweredDecl[]! = []
+        kept: LoweredDecl![]! = []
         for d in m.decls {
             if fn_survives(d, reachable_sym, reachable_mangle) { kept.push(d) }
         }

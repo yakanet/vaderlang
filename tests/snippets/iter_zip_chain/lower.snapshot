@@ -648,9 +648,9 @@
                     "\n" :string
     return int(0) :i32
   struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_25: __lambda_env_snippet_1!, x: i32) -> i32[]!
+  fn __lambda_snippet_0(__env_25: __lambda_env_snippet_1!, x: i32) -> i32[]
     ~>
-      array :i32[]!
+      array :i32[]
         x :i32
         mul :i32
           l:

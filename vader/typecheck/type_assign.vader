@@ -240,26 +240,6 @@ export mismatch_diagnostic_hinted :: fn(
     )
 }
 
-/// True when `from` would grant mutation permission that `to` does not — the one
-/// direction the `!` marker forbids between two fn types.
-///
-/// Handing a `fn(T!)` to a slot typed `fn(T)` lets the callee mutate a value its
-/// caller lent out read-only, so it is rejected. The reverse is fine: a fn that
-/// doesn't mutate simply promises less than the slot allows.
-///
-/// Answers false for anything that is not a pair of fn types, and for equal
-/// arities only — a genuine arity or param-type mismatch is reported by the
-/// ordinary assignability rules, not attributed to the marker.
-///
-/// @return `true` when the ONLY thing to say is "this fn mutates and the slot
-///         forbids it" — used both to reject and to pick the T3073 message.
-/// True when `from` is a read-only struct / tuple and `to` promises mutation — a
-/// WIDENING of rights, which assignability must refuse.
-///
-/// Same shape and same placement as `fn_mutability_widens` : ahead of the
-/// `equals_type` short-circuit, because the bit is deliberately outside identity
-/// (mangles, dispatch keys and union dedup must not fork on it).
-///
 /// True when `from` would GAIN mutation rights that `to` grants and it does not —
 /// the one direction the marker forbids, at every structural level.
 ///
@@ -268,7 +248,9 @@ export mismatch_diagnostic_hinted :: fn(
 /// `Cfg` are one type whether or not a borrow is read-only, which is what keeps
 /// caches, union dedup and monomorphisation keys stable). That makes the
 /// short-circuit blind to the marker at every level, so a guard built one shape at a
-/// time can never catch up — this walks the same positions `strip_mutability` does.
+/// time can never catch up — this walks the positions `strip_mutability` does, minus
+/// `FnType`: a fn parameter is CONTRAVARIANT, so widening there is the opposite
+/// question, and `fn_mutability_widens` owns it.
 ///
 /// Without this a read-only borrow launders through any slot promising mutation, a
 /// struct-literal field being the reachable one :
@@ -320,13 +302,23 @@ mutability_widens :: fn(from: Type, to: Type) -> bool {
         }
         return false
     }
+    // A union's variants pair by INDEX, and the pairing is EXACT : `union_of` sorts
+    // on `display_type_key`, which drops the marker at every level, and dedups with
+    // the marker-blind `equals_type` — so two unions of the same variants sort the
+    // same way whatever their markers, and one union can never hold both `Box` and
+    // `Box!`. The single key-tie, `T[] | T[]!`, is T3074 before it reaches here.
+    if from is UnionType {
+        if to is UnionType {
+            return any_widens(from.variants, to.variants)
+        }
+        return false
+    }
     return false
 }
 
 // Element-wise `mutability_widens`, for the positions that pair by INDEX — nominal
-// args and, since `union_of` orders both sides the same way, union variants. A
-// length mismatch is an ordinary type mismatch, not a mutability story, so it is left
-// to the shape check.
+// args, tuple elements and union variants. A length mismatch is an ordinary type
+// mismatch, not a mutability story, so it is left to the shape check.
 any_widens :: fn(from: Type[], to: Type[]) -> bool {
     if from.len() != to.len() {
         return false
@@ -339,6 +331,19 @@ any_widens :: fn(from: Type[], to: Type[]) -> bool {
     return false
 }
 
+/// True when `from` would grant mutation permission that `to` does not — the one
+/// direction the `!` marker forbids between two fn types.
+///
+/// Handing a `fn(T!)` to a slot typed `fn(T)` lets the callee mutate a value its
+/// caller lent out read-only, so it is rejected. The reverse is fine: a fn that
+/// doesn't mutate simply promises less than the slot allows.
+///
+/// Answers false for anything that is not a pair of fn types, and for equal
+/// arities only — a genuine arity or param-type mismatch is reported by the
+/// ordinary assignability rules, not attributed to the marker.
+///
+/// @return `true` when the ONLY thing to say is "this fn mutates and the slot
+///         forbids it" — used both to reject and to pick the T3073 message.
 export fn_mutability_widens :: fn(from: Type, to: Type) -> bool {
     if from is FnType {
         if to is FnType {

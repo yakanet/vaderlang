@@ -52,10 +52,15 @@ before the change, each independent of it:
    deliberately keeps a struct's read-only bit out of type identity (so caches,
    union dedup and monomorphisation keys stay stable), which makes `Box[]` and
    `Box![]` *one type*. `is_assignable` short-circuits on equality, so it never
-   reached the array rule. Three guards already existed to run ahead of that
-   short-circuit — for fn parameters, for struct/tuple, for the array spine. The
-   fourth, for the element, was missing. End to end: `lender(xs: Box[]) {
-   mutate(xs) }` where `mutate(xs: Box![]) { xs[0].n = 999 }` printed 999.
+   reached the array rule. Two guards already ran ahead of that short-circuit —
+   fn parameters, and struct/tuple at their OWN level — but the bit is outside
+   identity at EVERY level, so a guard built one shape at a time can never catch
+   up. `struct_mutability_widens` became `mutability_widens`, a lockstep walk over
+   the positions `strip_mutability` enumerates: array element, tuple element,
+   nominal type argument, union variant. End to end: `lender(xs: Box[]) {
+   mutate(xs) }` where `mutate(xs: Box![]) { xs[0].n = 999 }` printed 999, and so
+   did its tuple, `Holder<Box>` and `Box | null` siblings — at a SLOT. At a call
+   ARGUMENT the nominal position is still open; see below.
 
 2. **`| null` reopened every level below the top.** `apply_readonly_default`'s
    union branch set each variant's own bit and never descended into its children,
@@ -63,7 +68,15 @@ before the change, each independent of it:
    `Box![] | null`, and `xs[0].n = 999` went through. SPEC says the default is
    recursive; the implementation was not, inside a union.
 
-3. **The advice named the wrong lever.** `annotate `xs!`` on a `xs: Box[]`
+3. **A written fn type skipped the default entirely.** `readonly_children`
+   descended into an array element and a tuple element, never into a fn type's
+   params or return — so `fn(f: fn() -> Cfg)` handed out a MUTABLE `Cfg` where the
+   same `-> Cfg` on an ordinary declaration is frozen. Same family as (2), one
+   shape over. Fixing it moved two snippets in the right direction: `flat_map`
+   declares `f: fn(T) -> U[]` and its type now prints `U[]`, not the `U[]!` the
+   compiler used to invent. No `vm`, `bytecode` or `c` snapshot moved.
+
+4. **The advice named the wrong lever.** `annotate `xs!`` on a `xs: Box[]`
    produces `Box[]!` — the spine — which does not move the diagnostic. The reader
    loops. Same for `annotate `x!`` on a loop variable, which is not syntax.
 
@@ -104,8 +117,13 @@ cannot write through a claim it never made.
 
 ## Consequences
 
-The compiler tree needed **21 declarations widened**, in 12 files, all of one
-shape — `X[]!` → `X![]!` on a local, a return, or a chain of them. Every one was
+The compiler tree needed **declarations widened** — 25 in the first round, ~35 more
+once the union arm landed, across parser, resolver, lower, vm and `lib/toolchain`.
+The second wave is worth understanding, because its size was mis-predicted at "30,
+all in the lowerer": the union arm did not create a new rule, it made **per-variant
+`!` markers that AST and IR fields already carried**, dormant because nothing
+compared them, into a tree-wide constraint. All of one shape —
+`X[]!` → `X![]!` on a local, a return, or a chain of them. Every one was
 an under-declaration: the code already mutated those elements. Three signatures
 took a plain `!` (`walk_bodies`, `walk_fn_body`, `check_defer`). Not one existing
 snapshot moved.
@@ -133,26 +151,31 @@ Two constraints shaped the fixes and are worth remembering:
 ### Left open, with numbers
 
 - **The restrictive direction**, above: 584 sites.
-- **The widening guard covers three of four structural positions.** Array
-  element, tuple element and nominal type argument are checked; a UNION VARIANT
-  (`Box | null` → `Box! | null`) is not. The arm is four lines and costs **30
-  tree sites**, all the same `(A | B | C)[]!` → `(A! | B! | C!)[]` shape in the
-  lowerer. Measured, not taken.
-- **At an ARGUMENT, a nominal type argument is still erased.**
-  `arg_mutability_cleared` clears the bit inside `Holder<Box>` deliberately, so
-  `gen_mut(h)` widens where `a: Holder<Box!> = h` is caught. That erasure predates
-  this change and interacts with `apply_readonly_default` stopping at nominal
-  boundaries; it wants its own look.
+- **At a call ARGUMENT, a nominal type argument is still erased.**
+  `arg_mutability_cleared` clears the bit inside `Holder<Box>` on the argument path
+  deliberately — T3072 owns the top level there, and clearing was how the two
+  stopped double-reporting. So `gen_mut(h)` widens where `a: Holder<Box!> = h` is
+  T3077, and `h.v.n = 999` writes through. The erasure predates this change and
+  interacts with `apply_readonly_default` stopping at nominal boundaries; it wants
+  its own look, not a wider clear.
 - **`unify_type_param` canonicalises to the MAXIMAL rights**
   (`with_immutable(arg, false)`), which is the unsound direction, and
-  `substituted_element_fiction` exists to undo it at one gate. Normalising to
-  read-only is equally canonical and needs no special case — but generic RETURNS
-  would then hand out read-only elements, likely costing more widenings. Worth
-  measuring before doing.
+  `substituted_element_fiction` exists to undo it at every gate that judges a
+  substituted parameter. Normalising to read-only instead was MEASURED, and it is
+  not free: the tree stays at the same site count, and `filled(3, () -> [])` stops
+  handing back mutable rows — a factory's product silently loses its rights. Both
+  directions are wrong because erasing at all is; keeping the bit without forking
+  every generic is the real question, and it is a large one.
 - **A module const's inferred type is the one type source that never passes
   through `apply_readonly_default`**, which is why `rooted_in_storageless_const`
   has to exist and is consulted at three sites. Freezing it at `declare_const`
   collapses all three, but `decl_types` feeds `inline_consts` and lowering, and
   array identity does carry the bit — snapshots would move.
 - **`mutation_fix_hint` still names the root** for a write through a field of an
-  indexed element (two hops); the element-level advice covers one.
+  indexed element (two hops); the level-name advice covers one.
+- **`any_widens` pairs tuple elements on ARITY alone**, where the struct and trait
+  arms guard on `symbol.id`. Union variants reach it already sorted, so today the
+  pairing is exact — but `strip_distinct` rebuilds a union with bare `mk_union`
+  after changing display keys, and that result is unsorted. No path feeds it to
+  `is_assignable` yet. Guarding each pair with `equals_type` closes it whenever it
+  matters: the predicate ignores precisely the bit under test.

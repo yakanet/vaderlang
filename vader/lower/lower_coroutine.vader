@@ -33,7 +33,7 @@ GenBuild :: struct {
     yield_ty: Type            // `Yield<T>` StructType
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
-    states:   LoweredStmt![][]!
+    states:   LoweredStmt[]![]!
     /// Spilled symbol id → its `g$State` field name (params + all locals).
     field_map: MutableMap<i32, string>
     /// `g$State` fields for the spilled symbols (in declaration order),

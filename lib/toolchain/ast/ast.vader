@@ -123,7 +123,7 @@ export Program :: struct {
     /// The `module "..."` declaration. Null when absent — the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
     module:  ModuleDecl! | null = null
-    decls:   Decl[]
+    decls:   Decl![]
 }
 
 /// The `module "<name>"` decl that opens every `.vader` file. Carries

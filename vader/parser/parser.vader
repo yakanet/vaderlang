@@ -426,7 +426,7 @@ export describe_token :: fn(t: Token) -> string {
 
 parse_program :: fn(p: Parser!) -> Program {
     start_tok :: p.peek()
-    decls: Decl[]! = []
+    decls: Decl![]! = []
     p.skip_newlines()
     module :: p.parse_optional_module_decl()
     p.skip_newlines()
@@ -467,7 +467,7 @@ parse_program :: fn(p: Parser!) -> Program {
 // has `ident("module") + StringBegin`. Every other occurrence (struct
 // field name, field-access target) keeps the regular identifier
 // semantics. Parser stays tolerant ; resolver enforces presence.
-parse_optional_module_decl :: fn(p: Parser!) -> ModuleDecl | null {
+parse_optional_module_decl :: fn(p: Parser!) -> ModuleDecl! | null {
     t :: p.peek()
     if t.kind != .Ident { return null }
     if t.text != "module" { return null }
@@ -3298,8 +3298,8 @@ looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
     return false
 }
 
-parse_struct_lit_fields :: fn(p: Parser!) -> CommaList<StructLitField | StructLitSpread> {
-    out: (StructLitField | StructLitSpread)[]! = []
+parse_struct_lit_fields :: fn(p: Parser!) -> CommaList<StructLitField! | StructLitSpread!> {
+    out: (StructLitField! | StructLitSpread!)[]! = []
     trailing := false
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
@@ -3328,7 +3328,7 @@ parse_struct_lit_fields :: fn(p: Parser!) -> CommaList<StructLitField | StructLi
         trailing = p.check(.RBrace)   // comma consumed ; a `}` next means it was trailing
     }
     p.skip_newlines()
-    return CommaList<StructLitField | StructLitSpread> { .items = out, .trailing_comma = trailing }
+    return CommaList<StructLitField! | StructLitSpread!> { .items = out, .trailing_comma = trailing }
 }
 
 parse_paren :: fn(p: Parser!) -> Expr {
@@ -3446,7 +3446,7 @@ parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr {
 
 parse_string_lit :: fn(p: Parser!) -> StringLitExpr {
     begin :: p.advance()  // string_begin
-    parts: StringLitPart[]! = []
+    parts: StringLitPart![]! = []
     for !p.check(.StringEnd) && !p.check(.Eof) {
         t :: p.peek()
         if t.kind == .StringPart {
@@ -3722,7 +3722,7 @@ parse_struct_pattern :: fn(p: Parser!) -> StructPattern {
     for !p.check(.RBrace) && !p.check(.Eof) {
         f_start :: p.peek()
         name :: p.expect(.Ident, "field name in struct pattern")
-        value: PatternFieldValue = PatternBinding { .name = name.text, .span = name.span }
+        value: PatternFieldValue! = PatternBinding { .name = name.text, .span = name.span }
         if p.match_kind(.Colon) != null {
             // either rebinding `field: name` or literal `field: <expr>`
             if p.check(.Ident) && !is_literal_start(p.peek_at(1)) {
