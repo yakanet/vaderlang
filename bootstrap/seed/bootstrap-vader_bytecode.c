@@ -30,7 +30,6 @@ static bool vader_bytecode_is_ref_class(uint8_t l0);
 static bool vader_bytecode_is_u32_class(uint8_t l0);
 static bool vader_bytecode_is_u64_class(uint8_t l0);
 static vader_string_t vader_bytecode_key_join(void* l0, void* l1, vader_string_t l2);
-static void* vader_bytecode_mark_jump_targets(void* l0, size_t l1);
 static vader_box_t vader_bytecode_mod_op(uint8_t l0);
 static vader_box_t vader_bytecode_neg_op(uint8_t l0);
 static vader_box_t vader_bytecode_parse_val_type(vader_string_t l0);
@@ -41,7 +40,6 @@ static void vader_bytecode_push_scope(void* l0, void* l1, size_t l2, vader_strin
 static bool vader_bytecode_ranges_overlap(void* l0, void* l1);
 static void* vader_bytecode_remap_debug(void* l0, void* l1, size_t l2);
 static int32_t vader_bytecode_remap_idx(void* l0, int32_t l1);
-static void* vader_bytecode_remap_jump_table(void* l0, void* l1, size_t l2);
 static vader_box_t vader_bytecode_remap_type_in_op(vader_box_t l0, void* l1);
 static vader_box_t vader_bytecode_shl_op(uint8_t l0);
 static vader_box_t vader_bytecode_shr_op(uint8_t l0);
@@ -3691,7 +3689,7 @@ static vader_string_t vader_bytecode_key_join(void* l0, void* l1, vader_string_t
     vader_gc_top = gc_frame.prev;
 }
 
-static void* vader_bytecode_mark_jump_targets(void* l0, size_t l1) {
+void* vader_bytecode_mark_jump_targets(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l7;
     int32_t l5;
@@ -6348,7 +6346,7 @@ static int32_t vader_bytecode_remap_idx(void* l0, int32_t l1) {
     return t1;
 }
 
-static void* vader_bytecode_remap_jump_table(void* l0, void* l1, size_t l2) {
+void* vader_bytecode_remap_jump_table(void* l0, void* l1, size_t l2) {
     void* l3 = NULL;
     size_t l4, l6, l7, l8, l11, l12, l14;
     int32_t l5, l9, l10, l13;

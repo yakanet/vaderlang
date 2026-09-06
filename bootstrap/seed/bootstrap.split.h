@@ -5436,14 +5436,14 @@ struct vader_struct_vader_vm_FusedBody_t {
 };
 struct vader_struct_vader_vm_Get2_t {
     vader_obj_header_t header;
-    int32_t f_a;
-    int32_t f_b;
+    int32_t f_slot_a;
+    int32_t f_slot_b;
 };
 struct vader_struct_vader_vm_GetConst_t {
     vader_obj_header_t header;
     int32_t f_slot;
     int64_t f_value;
-    bool f_wide;
+    uint8_t f_tag;
 };
 struct vader_struct_vader_vm_HostOk_t {
     vader_obj_header_t header;
@@ -5835,6 +5835,8 @@ int32_t vader_bytecode_intern_type(vader_box_t l0, void* l1);
 void* vader_bytecode_build_intrinsic_wrapper_body(void* l0, int32_t l1);
 uint8_t vader_bytecode_val_type_of_type(vader_box_t l0);
 vader_box_t vader_bytecode_const_op_of(vader_box_t l0);
+void* vader_bytecode_remap_jump_table(void* l0, void* l1, size_t l2);
+void* vader_bytecode_mark_jump_targets(void* l0, size_t l1);
 uint8_t vader_bytecode_intrinsic_id_for(vader_string_t l0);
 bool vader_bytecode_is_string_val(uint8_t l0);
 void* vader_bytecode_c_struct_layout(void* l0, void* l1);
