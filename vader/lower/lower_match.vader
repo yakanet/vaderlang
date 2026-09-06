@@ -55,11 +55,23 @@ export lower_match :: fn(
     // guarded match keeps it. A non-trivial scrutinee (`match f(x)`, a
     // field/index access, a captured-cell / env read — none of which lower to
     // `LoweredIdent`) also still spills, evaluated exactly once.
-    elide_symbol :: if any_arm_guarded(expr.arms) { null } else { scrut_ident_symbol(scrut_value) }
+    // `match e as x { … }` names the slot the scrutinee spills into, so the arms'
+    // references to `x` resolve to it. Always spills — eliding onto the
+    // scrutinee's own local would leave the alias unbound.
+    alias_symbol :: if expr.bind_as == "" {
+        null
+    } else {
+        ctx.typed.resolved.idents[expr.span.hash()]
+    }
+    elide_symbol :: if alias_symbol != null || any_arm_guarded(expr.arms) {
+        null
+    } else {
+        scrut_ident_symbol(scrut_value)
+    }
     scrut_symbol :: if elide_symbol != null {
         elide_symbol
     } else {
-        spilled :: fresh_synthetic_symbol(ctx, "scrut")
+        spilled :: alias_symbol ?? fresh_synthetic_symbol(ctx, "scrut")
         stmts.push(LoweredLet {
             .span = span_of(scrut_value), .name = spilled.name, .symbol = spilled,
             .type = scrut_type, .value = scrut_value,

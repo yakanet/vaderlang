@@ -1698,6 +1698,10 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
     self.emit_condition(x.scrutinee)
+    if x.bind_as != "" {
+        self.write(" as ")
+        self.write(x.bind_as)
+    }
     self.write(" {")
     self.depth = self.depth + 1
     // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the

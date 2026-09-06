@@ -639,6 +639,16 @@ bind_cond_is_as :: fn(self: ResolveState!, cond: AST.Expr, in_conjunction: bool)
 
 walk_match :: fn(self: ResolveState!, e: AST.MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
+    // `match e as x { … }` — one scope around every arm, minted AFTER the
+    // scrutinee is walked so `x` cannot refer to itself. Registered in `idents`
+    // at the match's own span so the type-checker can find the symbol from the
+    // MatchExpr alone (mirrors the param / type-param declarations above).
+    self.scope.push()
+    if e.bind_as != "" {
+        sym :: self.mint_local(.Binding, e.bind_as, e.span)
+        self.scope.bind(e.bind_as, sym)
+        self.idents[e.span.hash()] = sym
+    }
     for arm in e.arms {
         self.scope.push()
         self.bind_pattern(arm.pattern)
@@ -646,6 +656,7 @@ walk_match :: fn(self: ResolveState!, e: AST.MatchExpr) -> void {
         self.walk_expr(arm.body)
         self.scope.pop()
     }
+    self.scope.pop()
 }
 
 bind_pattern :: fn(self: ResolveState!, p: AST.Pattern) -> void {

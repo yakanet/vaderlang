@@ -3526,6 +3526,12 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
     p.allow_struct_lit = false
     scrutinee :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
+    // `match e as x { … }` — name the scrutinee once for every arm. `as` is not an
+    // infix operator (it has no binding power), so it can only be consumed here.
+    bind_as := ""
+    if p.match_kind(.KwAs) != null {
+        bind_as = p.expect(.Ident, "binding name after `as`").text
+    }
 
     p.expect(.LBrace, "`{` to open match arms")
     p.skip_newlines()
@@ -3542,6 +3548,7 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
         .arms        = arms,
         .partial     = partial,
         .unreachable = unreachable,
+        .bind_as     = bind_as,
     }
 }
 

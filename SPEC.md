@@ -1165,6 +1165,17 @@ match value {
 }
 ```
 
+- **Scrutinee alias — `match e as x { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value the scrutinee evaluated to — once — and is narrowed by each arm to what that arm's pattern matched. It is the only place `as` introduces a binding.
+
+  The alias exists for an *expression* scrutinee. A scrutinee that is already a name needs none, since each arm narrows it in place:
+
+  ```vader
+  match shape_at(n) as s {        match shape {
+      is Circle -> s.radius           is Circle -> shape.radius
+      is Square -> s.side             is Square -> shape.side
+  }                               }
+  ```
+
 - `is Type` for type narrowing.
 - **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate.
 - **Range patterns**: `'a'..='z' -> …` / `0..<10 -> …` match a scalar scrutinee (char / integer) that falls in the range. `..=` includes the upper bound, `..<` excludes it (matching the range-expression operators). The bounds are scalar literals of the scrutinee's type; the lowerer emits `scrutinee >= lower && scrutinee <(=) upper`. Range patterns bind nothing and — like literals over an open scalar domain — exhaust nothing, so an unguarded catch-all is still required.

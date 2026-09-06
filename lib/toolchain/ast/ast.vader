@@ -842,6 +842,10 @@ export MatchExpr :: struct {
     // value. Mutually exclusive with `partial`. Defaulted so existing
     // `MatchExpr { … }` literals and old snapshots are unaffected.
     unreachable: bool = false
+    /// `match e as x { … }` — the name the scrutinee is aliased under, visible in
+    /// every arm and narrowed by each one. `""` when absent. The binding is minted
+    /// at the MatchExpr's own span (same convention as `IsPattern`).
+    bind_as: string = ""
 }
 
 /// One arm of a `match`, with its optional `if` guard.

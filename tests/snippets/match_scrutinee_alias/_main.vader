@@ -1,0 +1,46 @@
+// `match e as x { … }` — name the scrutinee once, for every arm.
+//
+// The alias exists so an EXPRESSION scrutinee can be referred to without being
+// re-evaluated; a scrutinee that is already a name needs no alias, since each arm
+// narrows it in place. The binding spans every arm and each one narrows it to what
+// its pattern matched.
+
+module "snippet"
+
+import "std/io"
+
+Circle :: struct { radius: i32 }
+Square :: struct { side: i32 }
+Point  :: struct {}
+Shape  :: Circle | Square | Point
+
+shape_at :: fn(n: i32) -> Shape {
+    if n == 0 {
+        return Circle { .radius = 3 }
+    }
+    if n == 1 {
+        return Square { .side = 4 }
+    }
+    return Point {}
+}
+
+// The scrutinee is a call : evaluated once, bound to `s`, narrowed per arm.
+area :: fn(n: i32) -> i32 = match shape_at(n) as s {
+    is Circle -> s.radius * s.radius * 3
+    is Square -> s.side * s.side
+    is Point  -> 0
+}
+
+// A guard sees the alias too.
+describe :: fn(n: i32) -> string = match shape_at(n) as s {
+    is Circle if s.radius > 10 -> "big circle"
+    is Circle                  -> "circle"
+    is Square                  -> "square"
+    is Point                   -> "point"
+}
+
+main :: fn() -> i32 {
+    println("${area(0)} ${area(1)} ${area(2)}")
+    println("${describe(0)} ${describe(1)} ${describe(2)}")
+    return 0
+}
