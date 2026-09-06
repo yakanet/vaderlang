@@ -1462,17 +1462,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.get needs array + index on stack at pc=${frame.pc}" }
                 }
-                index_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.get index")
-                if index_unwrap is Trap { return index_unwrap }
+                // Tag test then a raw `payload` read, the same shape the arithmetic
+                // arms use — `read_i32(peek_val(…))` boxed a `Value` for the sole
+                // purpose of unwrapping it on the next line, one allocation per
+                // execution to carry an index that was already a payload word.
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "array.get index") }
+                index :: i32(frame.payload[frame.sp - 1])
                 array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.get receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
+                if index < 0 || usize(index) >= array_unwrap.length {
                     if pending != null { return pending }
-                    pending = Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    pending = Trap { .message = "array.get index ${index} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
                     unwind_target = frame_count[0] - 1
                     continue
                 }
-                push_val(frame, frame.sp - 2, array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)])
+                push_val(frame, frame.sp - 2, array_unwrap.elements[array_unwrap.offset + usize(index)])
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1480,13 +1484,16 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 3 {
                     return Trap { .message = "array.set needs array + index + value on stack at pc=${frame.pc}" }
                 }
-                index_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.set index")
-                if index_unwrap is Trap { return index_unwrap }
+                // Index read direct off `payload`, as in `array.get`. The VALUE
+                // peek below stays boxed: it lands in a `Value[]` elements column,
+                // so that box is the storage, not a detour.
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "array.set index") }
+                index :: i32(frame.payload[frame.sp - 2])
                 array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.set receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
+                if index < 0 || usize(index) >= array_unwrap.length {
                     if pending != null { return pending }
-                    pending = Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    pending = Trap { .message = "array.set index ${index} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
                     unwind_target = frame_count[0] - 1
                     continue
                 }
@@ -1494,7 +1501,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // parent's backing buffer (Go-style). Users opt out by
                 // materializing a fresh array (via push-detach today ;
                 // `arr[r].clone()` once T[] Clone lands).
-                array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)] = peek_val(frame, frame.sp - 1)
+                array_unwrap.elements[array_unwrap.offset + usize(index)] = peek_val(frame, frame.sp - 1)
                 frame.sp = frame.sp - 3
                 frame.pc = frame.pc + 1
             }
