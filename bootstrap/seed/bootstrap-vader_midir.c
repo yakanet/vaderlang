@@ -13668,8 +13668,8 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
             t4 = std_collections_get__u64__i32(((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_type_hash, l10);
             if (t4.tag == 0u) {
                 std_collections_put__u64__i32(((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_type_hash, l10, l8);
-                std_collections_put__u64__Any(((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_type_hash_src, l10, l5);
             }
+            vader_bytecode_record_slot_type(l1, l8, l5);
             l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
             t5 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
             vader_struct_vader_bytecode_BcRef_t* _a1_obj = (vader_struct_vader_bytecode_BcRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcRef_t));

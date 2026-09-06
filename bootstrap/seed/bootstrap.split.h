@@ -3106,7 +3106,7 @@ struct vader_struct_vader_bytecode_EmitterCtx_t {
     void* f_types;
     void* f_type_key;
     void* f_type_hash;
-    void* f_type_hash_src;
+    void* f_type_by_slot;
     void* f_strings;
     void* f_string_key;
     void* f_functions;
@@ -5848,6 +5848,7 @@ void vader_bytecode_assert_host_import_wired(vader_string_t l0, bool l1);
 int32_t vader_bytecode_size_of_bc_type(vader_box_t l0);
 uint8_t vader_bytecode_array_kind_from_name(vader_string_t l0);
 uint64_t vader_bytecode_type_intern_hash(vader_box_t l0);
+void vader_bytecode_record_slot_type(void* l0, int32_t l1, vader_box_t l2);
 int32_t vader_bytecode_intern_type(vader_box_t l0, void* l1);
 void* vader_bytecode_build_intrinsic_wrapper_body(void* l0, int32_t l1);
 uint8_t vader_bytecode_val_type_of_type(vader_box_t l0);
