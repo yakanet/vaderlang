@@ -713,7 +713,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     }
     l2 = (l11 + l2);
     vader_struct_std_core_Dec64_t* _a4_obj = (vader_struct_std_core_Dec64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Dec64_t));
-    vader_obj_header_init(_a4_obj, 383u);
+    vader_obj_header_init(_a4_obj, 384u);
     _a4_obj->f_mantissa = l3;
     _a4_obj->f_exp = l2;
     t1 = (void*) _a4_obj;
@@ -1143,7 +1143,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
     }
     l2 = (l12 + l2);
     vader_struct_std_core_FloatDec32_t* _a0_obj = (vader_struct_std_core_FloatDec32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_FloatDec32_t));
-    vader_obj_header_init(_a0_obj, 385u);
+    vader_obj_header_init(_a0_obj, 386u);
     _a0_obj->f_mantissa = l3;
     _a0_obj->f_exp = l2;
     t3 = (void*) _a0_obj;
@@ -1190,7 +1190,7 @@ void* std_core_filled__MutableSet_i32_(size_t l0, void* l1) {
     void** gc_raw_roots[4] = { &l1, &l2, &l4, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(19u, 0u, 13u, 378u);
+    vader_array_t* _a0_arr = vader_array_new(19u, 0u, 13u, 379u);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l0);
     l2 = (void*) _a1_arr;
@@ -2484,7 +2484,7 @@ static vader_box_t std_core_scan_decimal(vader_string_t l0) {
         { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_std_core_DecimalParts_t* _a0_obj = (vader_struct_std_core_DecimalParts_t*) vader_gc_alloc(sizeof(vader_struct_std_core_DecimalParts_t));
-    vader_obj_header_init(_a0_obj, 384u);
+    vader_obj_header_init(_a0_obj, 385u);
     _a0_obj->f_w = l4;
     _a0_obj->f_q = l6;
     _a0_obj->f_negative = l3;
@@ -2700,7 +2700,7 @@ static void* std_core_sd_scan(vader_string_t l0) {
         }
     }
     vader_struct_std_core_SlowParts_t* _a1_obj = (vader_struct_std_core_SlowParts_t*) vader_gc_alloc(sizeof(vader_struct_std_core_SlowParts_t));
-    vader_obj_header_init(_a1_obj, 386u);
+    vader_obj_header_init(_a1_obj, 387u);
     _a1_obj->f_d = l4;
     _a1_obj->f_e = l5;
     t3 = (void*) _a1_obj;

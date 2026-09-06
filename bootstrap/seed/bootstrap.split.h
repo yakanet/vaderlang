@@ -192,6 +192,7 @@ typedef struct vader_struct_std_collections_MutableMap__string__usize_t vader_st
 typedef struct vader_struct_std_collections_MutableMap__u64__Any_t vader_struct_std_collections_MutableMap__u64__Any_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__Symbol_t vader_struct_std_collections_MutableMap__u64__Symbol_t;
+typedef struct vader_struct_std_collections_MutableMap__u64__i32_t vader_struct_std_collections_MutableMap__u64__i32_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__usize_t vader_struct_std_collections_MutableMap__u64__usize_t;
 typedef struct vader_struct_std_collections_MutableMap__usize__Any_t vader_struct_std_collections_MutableMap__usize__Any_t;
 typedef struct vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t;
@@ -2010,6 +2011,15 @@ struct vader_struct_std_collections_MutableMap__u64__Symbol_t {
     size_t f_size;
     size_t f_tombs;
 };
+struct vader_struct_std_collections_MutableMap__u64__i32_t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    size_t f_mask;
+    size_t f_size;
+    size_t f_tombs;
+};
 struct vader_struct_std_collections_MutableMap__u64__usize_t {
     vader_obj_header_t header;
     void* f_ekeys;
@@ -3095,6 +3105,8 @@ struct vader_struct_vader_bytecode_EmitterCtx_t {
     vader_obj_header_t header;
     void* f_types;
     void* f_type_key;
+    void* f_type_hash;
+    void* f_type_hash_src;
     void* f_strings;
     void* f_string_key;
     void* f_functions;
@@ -5614,6 +5626,7 @@ void std_collections_put__string__i64(void* l0, vader_string_t l1, int64_t l2);
 void std_collections_put__string__string(void* l0, vader_string_t l1, vader_string_t l2);
 void std_collections_put__string__usize(void* l0, vader_string_t l1, size_t l2);
 void std_collections_put__u64__Any(void* l0, uint64_t l1, vader_box_t l2);
+void std_collections_put__u64__i32(void* l0, uint64_t l1, int32_t l2);
 void std_collections_put__u64__usize(void* l0, uint64_t l1, size_t l2);
 void std_collections_put__usize__Any(void* l0, size_t l1, vader_box_t l2);
 void std_collections_put__usize__bool(void* l0, size_t l1, bool l2);
@@ -5634,6 +5647,7 @@ vader_box_t std_collections_get__string__i64(void* l0, vader_string_t l1);
 vader_box_t std_collections_get__string__string(void* l0, vader_string_t l1);
 vader_box_t std_collections_get__string__usize(void* l0, vader_string_t l1);
 vader_box_t std_collections_get__u64__Any(void* l0, uint64_t l1);
+vader_box_t std_collections_get__u64__i32(void* l0, uint64_t l1);
 vader_box_t std_collections_get__u64__usize(void* l0, uint64_t l1);
 vader_box_t std_collections_get__usize__Any(void* l0, size_t l1);
 vader_box_t std_collections_get__usize__bool(void* l0, size_t l1);
@@ -5833,6 +5847,7 @@ void vader_bytecode_prune_unused_types(void* l0);
 void vader_bytecode_assert_host_import_wired(vader_string_t l0, bool l1);
 int32_t vader_bytecode_size_of_bc_type(vader_box_t l0);
 uint8_t vader_bytecode_array_kind_from_name(vader_string_t l0);
+uint64_t vader_bytecode_type_intern_hash(vader_box_t l0);
 int32_t vader_bytecode_intern_type(vader_box_t l0, void* l1);
 void* vader_bytecode_build_intrinsic_wrapper_body(void* l0, int32_t l1);
 uint8_t vader_bytecode_val_type_of_type(vader_box_t l0);
