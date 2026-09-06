@@ -260,14 +260,7 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
 ///
 /// @param t  the parameter's declared type.
 /// @return   true when the callee may mutate through the slot.
-is_mutable_slot :: fn(t: Type) -> bool = match t {
-    is ArrayType  -> !t.immutable
-    is StructType -> !t.immutable
-    is TupleType  -> !t.immutable
-    is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
-     | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
-     | FreeCharType | NeverType | AnyType | DistinctType -> false
-}
+is_mutable_slot :: fn(t: Type) -> bool = type_grants_mutation(t)
 
 // ============================================================================
 // Project-level entry point

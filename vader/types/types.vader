@@ -372,6 +372,37 @@ export type_is_immutable :: fn(t: Type) -> bool = match t {
      | FreeCharType | NeverType | AnyType | DistinctType -> false
 }
 
+/// Whether `t` EXPLICITLY grants mutation at its own level — what `!` writes.
+///
+/// NOT the complement of `type_is_immutable`: a primitive carries no bit either
+/// way, so neither answers true for it. On a union the bit lives on the variants
+/// (`with_immutable` distributes it), so the union grants mutation only when EVERY
+/// variant does — the same "never grant more than you had" rule as
+/// `narrowing_immutability`.
+///
+/// @param t  the type to ask.
+export type_grants_mutation :: fn(t: Type) -> bool = match t {
+    is ArrayType  -> !t.immutable
+    is StructType -> !t.immutable
+    is TupleType  -> !t.immutable
+    is UnionType  -> variants_grant_mutation(t.variants)
+    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType | DistinctType -> false
+}
+
+variants_grant_mutation :: fn(variants: Type[]) -> bool {
+    if variants.len() == 0 {
+        return false
+    }
+    for v in variants {
+        if !type_grants_mutation(v) {
+            return false
+        }
+    }
+    return true
+}
+
 /// Raw union constructor. Callers that need flattening + dedup must go
 /// through `union_of` in `type_ops.vader`.
 export mk_union :: fn(variants: Type[]) -> Type = UnionType { .variants = variants }

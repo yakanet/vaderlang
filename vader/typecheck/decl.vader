@@ -1029,6 +1029,14 @@ declare_fn_param :: fn(
     }
     resolved_ty :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
     typed.param_types[p.span.hash()] = resolved_ty
+    // The parameter's written type is what a mutability-LEVEL mismatch has to point
+    // at — `xs: Box[]` needs `Box![]`, and `annotate `xs!`` would suggest `Box[]!`,
+    // the spine, leaving the reader in a loop. Same table, same lever, as an
+    // annotated local.
+    psym :: resolved.idents[p.span.hash()]
+    if psym is Symbol {
+        typed.local_annotation[psym.id] = ty
+    }
     return resolved_ty
 }
 

@@ -227,7 +227,7 @@ build_struct_lit_fields :: fn(
     ctx: FnLowerCtx!, type: Type,
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
     spread_sym: Symbol | null,
-) -> LoweredStructLitField[] {
+) -> LoweredStructLitField![] {
     out: LoweredStructLitField![]! = []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
     // field building walks the backing struct decl. A non-struct type (or a
@@ -340,7 +340,7 @@ find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> Lower
 
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
-fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField[] {
+fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField![] {
     out: LoweredStructLitField![]! = []
     for item in lit.items {
         match item {

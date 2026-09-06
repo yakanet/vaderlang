@@ -79,7 +79,7 @@ build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
     return fields
 }
 
-build_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField[] {
+build_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField![] {
     fields: LoweredStructLitField![]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]

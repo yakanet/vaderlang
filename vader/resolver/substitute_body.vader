@@ -91,7 +91,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 
         // Value-position composites : recurse children.
         is AST.CallExpr -> {
-            new_args: AST.CallArg[]! = []
+            new_args: AST.CallArg![]! = []
             for a in e.args {
                 new_args.push(AST.CallArg {
                     .span = a.span, .id = AST.UNASSIGNED_NODE_ID,

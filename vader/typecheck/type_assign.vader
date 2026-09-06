@@ -35,7 +35,7 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
     // That makes the equality short-circuit below blind to the marker, hence this
     // guard ahead of it. Assignability is a different question from identity.
     if fn_mutability_widens(from, to) { return false }
-    if struct_mutability_widens(from, to) { return false }
+    if mutability_widens(from, to) { return false }
     if equals_type(from, to) { return true }
 
     // TypeParam wildcard — accepts any concrete type. Lets a generic
@@ -219,7 +219,7 @@ export mismatch_diagnostic_hinted :: fn(
     // A read-only struct / tuple into a slot promising mutation. Same treatment as
     // the fn case below : a dedicated wording, because "expected Cfg!, got Cfg" says
     // nothing about WHY they differ nor where to fix it.
-    if struct_mutability_widens(got, expected) {
+    if mutability_widens(got, expected) {
         return typecheck_error(
             .ImmutableValueIntoMutableSlot,
             span,
@@ -260,6 +260,16 @@ export mismatch_diagnostic_hinted :: fn(
 /// `equals_type` short-circuit, because the bit is deliberately outside identity
 /// (mangles, dispatch keys and union dedup must not fork on it).
 ///
+/// True when `from` would GAIN mutation rights that `to` grants and it does not —
+/// the one direction the marker forbids, at every structural level.
+///
+/// It has to run ahead of `is_assignable`'s equality short-circuit, because
+/// `equals_type` leaves the struct / tuple bit out of type identity ON PURPOSE (two
+/// `Cfg` are one type whether or not a borrow is read-only, which is what keeps
+/// caches, union dedup and monomorphisation keys stable). That makes the
+/// short-circuit blind to the marker at every level, so a guard built one shape at a
+/// time can never catch up — this walks the same positions `strip_mutability` does.
+///
 /// Without this a read-only borrow launders through any slot promising mutation, a
 /// struct-literal field being the reachable one :
 /// `steal :: fn(c: Cfg) -> Holder! = Holder { .cfg = c }` where `cfg: Cfg!`, then
@@ -268,18 +278,62 @@ export mismatch_diagnostic_hinted :: fn(
 ///
 /// @param from  the value's type.
 /// @param to    the slot's type.
-struct_mutability_widens :: fn(from: Type, to: Type) -> bool {
+mutability_widens :: fn(from: Type, to: Type) -> bool {
     if from is StructType {
-        // The SAME struct at two mutabilities — without the symbol check this fired
-        // on any read-only struct against any mutable one (`Subst` vs `Scope!`),
-        // turning an ordinary type mismatch into a mutability story.
         if to is StructType {
-            return from.symbol.id == to.symbol.id && from.immutable && !to.immutable
+            // The SAME struct at two mutabilities — without the symbol check this fired
+            // on any read-only struct against any mutable one (`Subst` vs `Scope!`),
+            // turning an ordinary type mismatch into a mutability story.
+            if from.symbol.id != to.symbol.id {
+                return false
+            }
+            if from.immutable && !to.immutable {
+                return true
+            }
+            return any_widens(from.args, to.args)
         }
+        return false
     }
     if from is TupleType {
         if to is TupleType {
-            return from.elements.len() == to.elements.len() && from.immutable && !to.immutable
+            if from.elements.len() != to.elements.len() {
+                return false
+            }
+            if from.immutable && !to.immutable {
+                return true
+            }
+            return any_widens(from.elements, to.elements)
+        }
+        return false
+    }
+    // The array's own spine bit is `is_assignable_array`'s, which sees it. Its
+    // ELEMENT is what nothing else looks at.
+    if from is ArrayType {
+        if to is ArrayType {
+            return mutability_widens(from.element, to.element)
+        }
+        return false
+    }
+    if from is TraitType {
+        if to is TraitType {
+            return any_widens(from.args, to.args)
+        }
+        return false
+    }
+    return false
+}
+
+// Element-wise `mutability_widens`, for the positions that pair by INDEX — nominal
+// args and, since `union_of` orders both sides the same way, union variants. A
+// length mismatch is an ordinary type mismatch, not a mutability story, so it is left
+// to the shape check.
+any_widens :: fn(from: Type[], to: Type[]) -> bool {
+    if from.len() != to.len() {
+        return false
+    }
+    for i in 0..<from.len() {
+        if mutability_widens(from[i], to[i]) {
+            return true
         }
     }
     return false

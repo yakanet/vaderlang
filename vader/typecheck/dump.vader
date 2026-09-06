@@ -33,7 +33,7 @@ import "vader/types"
 /// The header omits the `# Typecheck` banner when `with_banner = false` so
 /// multi-module callers can compose without re-emitting it ; in single-module
 /// pipelines pass `true`.
-export dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
+export dump_typed_program :: fn(typed: TypedProgram!, with_banner: bool) -> string {
     return dump_program_with_others(typed, with_banner, [], [typed.resolved.display_path])
 }
 
@@ -43,15 +43,19 @@ export dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> strin
 /// always come first. Only modules in `scope` are rendered (the entry's
 /// subtree by default, `--module` to widen), so dependencies stay out.
 export dump_program_with_others :: fn(
-    typed: TypedProgram,
+    typed: TypedProgram!,
     with_banner: bool,
-    others: TypedProgram[],
+    others: TypedProgram![],
     scope: string[],
 ) -> string {
     sb :: StringBuilder {}
     if with_banner {
         sb.append("# Typecheck")
     }
+    // why: `typed`/`others` carry `!` for the COMMITTED SEED, not for this file —
+    // nothing here mutates a module. The seed's generic check demands mutable
+    // elements at `sort<T>(arr: T[])` where the current rule does not; the markers
+    // come off at the next reseed.
     sections: TypedProgram![]! = [typed]
     for o in others {
         sections.push(o)

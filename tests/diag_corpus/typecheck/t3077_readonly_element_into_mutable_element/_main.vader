@@ -1,0 +1,27 @@
+// `Box![]` freezes the ARRAY and hands out mutable elements, so a callee declaring it
+// may write through them. A `Box[]` therefore cannot fill that slot — the widening
+// would let `mutate` reach the caller's read-only elements.
+//
+// `equals_type` treats the two as ONE type (a struct's read-only bit is outside type
+// identity, so caches and monomorphisation keys stay stable), which is why the guard
+// runs ahead of the equality short-circuit rather than through it. T3077.
+
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+mutate :: fn(xs: Box![]) -> void {
+    xs[0].n = 999
+}
+
+lender :: fn(xs: Box[]) -> void {
+    mutate(xs)
+}
+
+main :: fn() -> i32 {
+    boxes :: [Box { .n = 1 }]
+    lender(boxes)
+    return boxes[0].n
+}

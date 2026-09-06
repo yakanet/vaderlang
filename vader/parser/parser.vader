@@ -755,7 +755,7 @@ parse_import_name_list_rest :: fn(p: Parser!) -> CommaList<ImportName!> {
     }
     p.skip_newlines()
     p.expect(.RBrace, "`}` to close import list")
-    return CommaList<ImportName> { .items = names, .trailing_comma = trailing }
+    return CommaList<ImportName!> { .items = names, .trailing_comma = trailing }
 }
 
 StringLitInfo :: struct { text: string, span: Span }
@@ -886,7 +886,7 @@ parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
         if deco.name == "intrinsic" { is_intrinsic = true }
     }
 
-    members: FnDecl[]! = []
+    members: FnDecl![]! = []
     end_tok: Token = trait_tok
     if p.check(.Arrow) {
         members.push(p.parse_sam_arrow_member())
@@ -1426,7 +1426,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
     //   `Foo :: trait<T> = A & B`            (alias, no own methods)
     //   `Foo :: trait<T> : A & B { ... }`    (composes A & B + own methods)
     requires: TypeExpr | null = null
-    members: FnDecl[]! = []
+    members: FnDecl![]! = []
     if p.match_kind(.Assign) != null {
         requires = p.parse_type()
         return TraitDecl {
@@ -3121,12 +3121,12 @@ parse_postfix :: fn(p: Parser!, left: Expr, t: Token) -> Expr {
     }
 }
 
-parse_call_args :: fn(p: Parser!) -> CommaList<CallArg> {
-    out: CallArg[]! = []
+parse_call_args :: fn(p: Parser!) -> CommaList<CallArg!> {
+    out: CallArg![]! = []
     trailing := false
     p.skip_newlines()
     if p.check(.RParen) {
-        return CommaList<CallArg> { .items = out, .trailing_comma = false }
+        return CommaList<CallArg!> { .items = out, .trailing_comma = false }
     }
     for {
         p.skip_newlines()
@@ -3156,7 +3156,7 @@ parse_call_args :: fn(p: Parser!) -> CommaList<CallArg> {
         p.skip_newlines()
         trailing = p.check(.RParen)   // comma consumed ; `)` next means trailing
     }
-    return CommaList<CallArg> { .items = out, .trailing_comma = trailing }
+    return CommaList<CallArg!> { .items = out, .trailing_comma = trailing }
 }
 
 parse_ident_or_struct_lit :: fn(p: Parser!) -> Expr {

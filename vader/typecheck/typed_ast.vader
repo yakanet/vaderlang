@@ -443,7 +443,7 @@ export TypedProgram :: struct {
     /// reaches `immutable_borrows` — and it is exactly the case with no guessable
     /// lever.
     loop_var_iterable: MutableMap<i32, AST.Expr>
-    /// Local Symbol.id → its written type, for an ANNOTATED local.
+    /// Local / PARAMETER Symbol.id → its written type.
     ///
     /// A mutability-only mismatch on such a local is fixed at its annotation, and at
     /// the LEVEL that differs — `out: X[]!` hands out read-only elements because the

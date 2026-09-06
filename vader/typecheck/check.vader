@@ -24,7 +24,7 @@ export CheckResult :: struct {
     /// Empty for the single-module shortcut. The CLI dump uses it
     /// to render `expr` lines from `std/iter` etc under the entry's
     /// header.
-    others: TypedProgram[]
+    others: TypedProgram![]
     /// Every typed module in the project including std/*. Populated
     /// when the orchestrator runs the full multi-module pipeline ;
     /// downstream passes that need impl-by-trait queries (lower,

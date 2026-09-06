@@ -155,15 +155,20 @@ reject_mutating_method_on_immutable :: fn(
     // A read-only `T[]` receiver is an EXPLICIT marker, so it errors regardless of what
     // the access path says.
     immutable_by_type :: if recv_ty is ArrayType as a { a.immutable } else { false }
-    root :: immutable_by_type || expr_is_immutable(e.target, typed)
-    // Return value ignored on purpose: the method's type is handed back either way
-    // (see the note above), so there is nothing to abandon here.
-    _ :: push_immutability_diag_at(
-        root, .MutatingMethodOnImmutable, e.span,
-        "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable"
-            + field_annotate_hint(e.target, typed)
-            + mutation_fix_hint(e.target, typed),
-        null, diags,
+    if !(immutable_by_type || expr_is_immutable(e.target, typed)) {
+        return
+    }
+    // Two hints, and only one can apply : the receiver is either reached through a
+    // field or rooted in a parameter / local. Both are built HERE rather than at the
+    // helper, so a `self!` dispatch on a mutable receiver — the overwhelming
+    // majority — pays for neither.
+    diags.push(
+        typecheck_error(
+            .MutatingMethodOnImmutable, e.span,
+            "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable"
+                + field_annotate_hint(e.target, typed)
+                + mutation_fix_hint(e.target, typed),
+        ),
     )
 }
 

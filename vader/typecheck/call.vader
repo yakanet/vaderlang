@@ -810,7 +810,12 @@ export infer_call :: fn(
             want :: substitute_map(callee_ty.params[i], bindings)
             reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
             if type_contains_type_param(want)                          { continue }
-            if is_assignable(arg_types[i], want)                 { continue }
+            // A SUBSTITUTED element bit is fiction — see `substituted_element_fiction`.
+            // Decided once : the guard walks the declared type recursively.
+            fiction :: substituted_element_fiction(callee_ty.params[i])
+            got_ty  :: if fiction { element_bits_cleared(arg_types[i]) } else { arg_types[i] }
+            want_ty :: if fiction { element_bits_cleared(want) } else { want }
+            if is_assignable(got_ty, want_ty)                          { continue }
             if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
             diags.push(mismatch_diagnostic_hinted(
                 arg_types[i], want, c.args[i].span, .TypeMismatch,
@@ -1384,26 +1389,41 @@ main :: fn() -> void { greet(42) }
     }
 }
 
-// T3072 — an immutable value cannot be handed to a `!` parameter, which grants
-// the callee permission to mutate it. The mirror of the covariance already
-// enforced type-side for arrays (read-only `T[]` doesn't fit a `T[]` slot), for the
-// roots that carry no marker in their type: a module-level const today, borrowed
-// params once the default flips.
-//
-// Only the ARGUMENT side is checked here — the receiver of a `self!` method is
-// An argument with its STRUCT / TUPLE read-only bits dropped at every level, the
-// array bits untouched.
+// An argument with its own top-level STRUCT / TUPLE read-only bit dropped, plus the
+// bits inside nominal args — never the ARRAY element's.
 //
 // T3072 owns struct mutability at an argument, and it reasons about the whole access
-// path — so letting it reach the generic check only double-reports. Depth matters
-// because `unify_type_param` binds `T` to the mutable form: a read-only `VtSlot`
-// element binds `T = VtSlot!`, and `arr: T[]` then demands `VtSlot![]` from the very
-// argument that produced the binding. ARRAY mutability stays: nothing else checks
-// that a read-only array is not handed to a `T[]!` parameter.
-arg_mutability_cleared :: fn(t: Type) -> Type = match t {
+// path — so letting the top-level bit reach the generic check only double-reports.
+// The ARRAY element stays: nothing else checks that a read-only `Box[]` is not handed
+// to a `Box![]` parameter, whose callee may write through it.
+//
+// The nominal-arg clearing is older than that rule and pulls the other way — it is
+// why `gen_mut(h: Holder<Box!>)` accepts a `Holder<Box>` argument where the slot form
+// is T3077. Recorded in ADR 0017.
+arg_mutability_cleared :: fn(t: Type) -> Type = if t is ArrayType { t } else { element_bits_cleared(t) }
+
+// Whether the parameter's element bit, once substituted, says nothing the callee
+// wrote. `unify_type_param` erases mutability when it binds `T` — a type argument is
+// not a slot of the program, and keeping it would fork every generic instantiated
+// from both a borrow and a local — so `sort<T>(arr: T[])` handed a read-only
+// `Diagnostic[]` substitutes to `Diagnostic![]` and would reject the very argument
+// that produced the binding.
+//
+// Ignoring that claim costs nothing: inside a generic body the element is a `T`, and
+// `type_grants_mutation` answers false for a type param, so the callee cannot write
+// through a promise it never made. A written `Box![]` still has its element judged.
+substituted_element_fiction :: fn(declared: Type) -> bool {
+    if !(declared is ArrayType) {
+        return false
+    }
+    return type_contains_type_param(declared.element)
+}
+
+// `arg_mutability_cleared`, descending into the array element too.
+element_bits_cleared :: fn(t: Type) -> Type = match t {
     is StructType -> mk_struct(t.symbol, arg_mutability_cleared_each(t.args), false)
     is TupleType  -> mk_tuple(arg_mutability_cleared_each(t.elements), false)
-    is ArrayType  -> mk_array(arg_mutability_cleared(t.element), t.immutable)
+    is ArrayType  -> mk_array(element_bits_cleared(t.element), t.immutable)
     is UnionType  -> mk_union(arg_mutability_cleared_each(t.variants))
     is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
@@ -1425,10 +1445,10 @@ reject_immutable_into_mutable_param :: fn(
         return
     }
     // Return value ignored: the remaining arguments must still be typed.
-    _ :: push_immutability_diag_at(
+    _ :: push_immutability_diag_for(
         expr_is_immutable(c.args[i].value, typed), .ImmutableBorrowIntoMutableParam,
         c.args[i].span,
         "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
-        immutable_root_param(c.args[i].value, typed), diags,
+        c.args[i].value, typed, diags,
     )
 }

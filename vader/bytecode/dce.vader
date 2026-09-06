@@ -171,7 +171,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
     // set is every fn (minus the folded duplicates) ; otherwise it's the
     // reachable set.
     new_idx_by_old :: MutableMap<i32, i32> {}
-    kept: BcFunction[]! = []
+    kept: BcFunction![]! = []
     for j in 0..<n {
         if (keep_all || reachable[i32(j)] is bool) && canon[j] == i32(j) {
             new_idx_by_old[i32(j)] = i32(kept.len())

@@ -67,7 +67,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
 // ---- producer -------------------------------------------------------------
 
 produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
-    raws: RawToken[]! = []
+    raws: RawToken![]! = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)
@@ -348,7 +348,7 @@ import "std/testing"
 build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
     // The colocated tests assert codepoint-equivalent columns, so index in
     // utf-16 (BMP codepoint == 1 utf-16 unit).
-    raws: RawToken[]! = []
+    raws: RawToken![]! = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)

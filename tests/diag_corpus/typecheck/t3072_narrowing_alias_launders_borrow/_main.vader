@@ -1,0 +1,44 @@
+// An `is T as x` binding BORROWS its scrutinee — same storage, narrower type — so it
+// answers the mutation checks exactly as the scrutinee does. Without that hop the
+// alias LAUNDERS the borrow: `bump(x.b)` would pass where the alias-free
+// `if w is Wrap { bump(w.b) }` is correctly rejected, and the callee would write
+// through a read-only parameter. T3072, at both sites.
+
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+Wrap :: struct {
+    b: Box
+}
+
+Other :: struct {
+    z: i32
+}
+
+bump :: fn(b: Box!) -> void {
+    b.n = b.n + 1
+}
+
+via_alias :: fn(w: Wrap | Other) -> i32 {
+    if w is Wrap as x {
+        bump(x.b)
+        return x.b.n
+    }
+    return -1
+}
+
+via_plain :: fn(w: Wrap | Other) -> i32 {
+    if w is Wrap {
+        bump(w.b)
+        return w.b.n
+    }
+    return -1
+}
+
+main :: fn() -> i32 {
+    w :: Wrap { .b = Box { .n = 1 } }
+    return via_alias(w) + via_plain(w)
+}
