@@ -865,7 +865,6 @@ static uint8_t vader_midir_array_element_val_type(vader_box_t l0) {
 
 static uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
     uint64_t l2;
-    void* l3 = NULL;
     void* t0 = NULL;
     int64_t t1;
     uint32_t t2;
@@ -873,9 +872,9 @@ static uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
     double t4;
     uint64_t t5;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[2] = { &l3, &t0 };
+    void** gc_raw_roots[1] = { &t0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0.tag == 761u) {
         t0 = l0.payload.obj;
@@ -898,13 +897,14 @@ static uint64_t vader_midir_bc_value_bits(vader_box_t l0, vader_string_t l1) {
         { uint64_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 756u) {
-        l3 = l0.payload.obj;
         if (l1 == 1540u) {
-            t4 = ((vader_struct_vader_lower_LoweredFloatLit_t*) l3)->f_value;
+            t0 = l0.payload.obj;
+            t4 = ((vader_struct_vader_lower_LoweredFloatLit_t*) t0)->f_value;
             t2 = std_core_f32_Float32Bits_to_bits_vt((float) (double) t4);
             { uint64_t __vret = (uint64_t) (int64_t) ((int64_t) (uint32_t) t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        t4 = ((vader_struct_vader_lower_LoweredFloatLit_t*) l3)->f_value;
+        t0 = l0.payload.obj;
+        t4 = ((vader_struct_vader_lower_LoweredFloatLit_t*) t0)->f_value;
         t5 = std_core_f64_FloatBits_to_bits_vt(t4);
         { uint64_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1135,97 +1135,100 @@ static vader_box_t vader_midir_build_array_slice(void* l0, void* l1) {
 }
 
 static void vader_midir_build_assign(void* l0, void* l1) {
-    vader_box_t l2 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null();
+    vader_box_t l2 = vader_box_null(), l5 = vader_box_null(), l6 = vader_box_null(), l9 = vader_box_null();
     void* l3 = NULL;
-    void* l4 = NULL;
-    int32_t l5, l8, l10;
-    vader_string_t l9 = 0;
+    int32_t l4, l7, l10;
+    vader_string_t l8 = 0;
     bool l11;
-    vader_box_t* gc_roots[3] = { &l2, &l6, &l7 };
-    void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
-    vader_string_t* gc_atom_roots[1] = { &l9 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    void* t0 = NULL;
+    vader_box_t* gc_roots[4] = { &l2, &l5, &l6, &l9 };
+    void** gc_raw_roots[4] = { &l0, &l1, &l3, &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l8 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_target;
     if (l2.tag == 758u) {
-        l3 = l2.payload.obj;
-        l4 = ((vader_struct_vader_midir_FnCtx_t*) l0)->f_local_by_sym_id;
-        l5 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l3)->f_symbol)->f_id;
-        l6 = std_collections_get__i32__i32(l4, l5);
-        l7 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
-        l7 = vader_midir_build_expr(l0, l7);
+        l3 = ((vader_struct_vader_midir_FnCtx_t*) l0)->f_local_by_sym_id;
+        t0 = l2.payload.obj;
+        l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) t0)->f_symbol)->f_id;
+        l5 = std_collections_get__i32__i32(l3, l4);
+        l6 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
+        l6 = vader_midir_build_expr(l0, l6);
+        if (l5.tag == 0u) {
+            { vader_gc_top = gc_frame.prev; return; }
+        }
         if (l6.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return; }
         }
-        if (l7.tag == 0u) {
-            { vader_gc_top = gc_frame.prev; return; }
-        }
         l3 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_span;
-        l5 = ((int32_t) l6.payload.i);
-        l8 = ((int32_t) l7.payload.i);
+        l4 = ((int32_t) l5.payload.i);
+        l7 = ((int32_t) l6.payload.i);
         vader_struct_vader_midir_InstrMove_t* _a0_obj = (vader_struct_vader_midir_InstrMove_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrMove_t));
         vader_obj_header_init(_a0_obj, 837u);
         _a0_obj->f_span = l3;
-        _a0_obj->f_dst = l5;
-        _a0_obj->f_src = l8;
+        _a0_obj->f_dst = l4;
+        _a0_obj->f_src = l7;
         l3 = (void*) _a0_obj;
         vader_midir_emit(l0, vader_ref_box(l3));
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l2.tag == 755u) {
-        l3 = l2.payload.obj;
-        l6 = ((vader_struct_vader_lower_LoweredFieldAccess_t*) l3)->f_target;
+        t0 = l2.payload.obj;
+        l5 = ((vader_struct_vader_lower_LoweredFieldAccess_t*) t0)->f_target;
+        l5 = vader_midir_build_expr(l0, l5);
+        l6 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
         l6 = vader_midir_build_expr(l0, l6);
-        l7 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
-        l7 = vader_midir_build_expr(l0, l7);
+        if (l5.tag == 0u) {
+            { vader_gc_top = gc_frame.prev; return; }
+        }
         if (l6.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return; }
         }
-        if (l7.tag == 0u) {
-            { vader_gc_top = gc_frame.prev; return; }
-        }
-        l4 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_span;
-        l5 = ((int32_t) l6.payload.i);
-        l9 = ((vader_struct_vader_lower_LoweredFieldAccess_t*) l3)->f_field;
-        l8 = ((int32_t) l7.payload.i);
+        l3 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_span;
+        l4 = ((int32_t) l5.payload.i);
+        t0 = l2.payload.obj;
+        l8 = ((vader_struct_vader_lower_LoweredFieldAccess_t*) t0)->f_field;
+        l7 = ((int32_t) l6.payload.i);
         vader_struct_vader_midir_InstrFieldSet_t* _a1_obj = (vader_struct_vader_midir_InstrFieldSet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFieldSet_t));
         vader_obj_header_init(_a1_obj, 832u);
-        _a1_obj->f_span = l4;
-        _a1_obj->f_target = l5;
-        _a1_obj->f_field = l9;
-        _a1_obj->f_value = l8;
+        _a1_obj->f_span = l3;
+        _a1_obj->f_target = l4;
+        _a1_obj->f_field = l8;
+        _a1_obj->f_value = l7;
         _a1_obj->f_barrierless = false;
         l3 = (void*) _a1_obj;
         vader_midir_emit(l0, vader_ref_box(l3));
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l2.tag == 760u) {
-        l3 = l2.payload.obj;
-        l2 = ((vader_struct_vader_lower_LoweredIndex_t*) l3)->f_target;
-        l2 = vader_midir_build_expr(l0, l2);
-        l6 = ((vader_struct_vader_lower_LoweredIndex_t*) l3)->f_index;
+        t0 = l2.payload.obj;
+        l5 = ((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_target;
+        l5 = vader_midir_build_expr(l0, l5);
+        t0 = l2.payload.obj;
+        l6 = ((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_index;
         l6 = vader_midir_build_expr(l0, l6);
-        l7 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
-        l7 = vader_midir_build_expr(l0, l7);
-        if (l2.tag == 0u) {
+        l9 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_value;
+        l9 = vader_midir_build_expr(l0, l9);
+        if (l5.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return; }
         }
         if (l6.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return; }
         }
-        if (l7.tag == 0u) {
+        if (l9.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return; }
         }
-        l4 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_span;
-        l5 = ((int32_t) l2.payload.i);
-        l8 = ((int32_t) l6.payload.i);
-        l10 = ((int32_t) l7.payload.i);
-        l11 = ((vader_struct_vader_lower_LoweredIndex_t*) l3)->f_bounds_safe;
+        l3 = ((vader_struct_vader_lower_LoweredAssign_t*) l1)->f_span;
+        l4 = ((int32_t) l5.payload.i);
+        l7 = ((int32_t) l6.payload.i);
+        l10 = ((int32_t) l9.payload.i);
+        t0 = l2.payload.obj;
+        l11 = ((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_bounds_safe;
         vader_struct_vader_midir_InstrArraySet_t* _a2_obj = (vader_struct_vader_midir_InstrArraySet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArraySet_t));
         vader_obj_header_init(_a2_obj, 818u);
-        _a2_obj->f_span = l4;
-        _a2_obj->f_target = l5;
-        _a2_obj->f_index = l8;
+        _a2_obj->f_span = l3;
+        _a2_obj->f_target = l4;
+        _a2_obj->f_index = l7;
         _a2_obj->f_value = l10;
         _a2_obj->f_bounds_safe = l11;
         l3 = (void*) _a2_obj;
@@ -2135,10 +2138,11 @@ static void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2) {
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
     bool l6;
     int32_t l7;
-    bool t0;
+    void* t0 = NULL;
+    bool t1;
     vader_box_t* gc_roots[3] = { &l1, &l4, &l5 };
-    void** gc_raw_roots[3] = { &l0, &l3, &l8 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[4] = { &l0, &l3, &l8, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l1.tag == 759u) {
         l3 = l1.payload.obj;
@@ -2151,9 +2155,10 @@ static void vader_midir_build_expr_into(void* l0, vader_box_t l1, int32_t l2) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 739u) {
-        l3 = l1.payload.obj;
-        t0 = vader_midir_is_short_circuit_op(((vader_struct_vader_lower_LoweredBinary_t*) l3)->f_op);
-        if (t0) {
+        t0 = l1.payload.obj;
+        t1 = vader_midir_is_short_circuit_op(((vader_struct_vader_lower_LoweredBinary_t*) t0)->f_op);
+        if (t1) {
+            l3 = l1.payload.obj;
             vader_midir_build_short_circuit(l0, l3, vader_box_i32(172u, l2));
             { vader_gc_top = gc_frame.prev; return; }
         }
@@ -2362,20 +2367,19 @@ static vader_box_t vader_midir_build_ident(void* l0, void* l1) {
     void* l2 = NULL;
     void* l8 = NULL;
     void* l9 = NULL;
-    void* l10 = NULL;
     int32_t l3, l7;
     vader_box_t l4 = vader_box_null(), l6 = vader_box_null();
     size_t l5;
-    vader_string_t l11 = 0;
+    vader_string_t l10 = 0;
     int32_t t0;
     int64_t t1;
     void* t2 = NULL;
     bool t3;
     vader_box_t t4 = vader_box_null();
     vader_box_t* gc_roots[3] = { &l4, &l6, &t4 };
-    void** gc_raw_roots[7] = { &l0, &l1, &l2, &l8, &l9, &l10, &t2 };
-    vader_string_t* gc_atom_roots[1] = { &l11 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    void** gc_raw_roots[6] = { &l0, &l1, &l2, &l8, &l9, &t2 };
+    vader_string_t* gc_atom_roots[1] = { &l10 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_vader_midir_FnCtx_t*) l0)->f_local_by_sym_id;
     l3 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_symbol)->f_id;
@@ -2440,20 +2444,22 @@ static vader_box_t vader_midir_build_ident(void* l0, void* l1) {
     l3 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_symbol)->f_id;
     l4 = std_collections_get__i32__Any(l2, l3);
     if (l4.tag == 715u) {
-        l2 = l4.payload.obj;
-        l4 = ((vader_struct_vader_lower_ConstFnWrap_t*) l2)->f_call_type;
-        l3 = vader_midir_fresh_tmp(l0, 1415u, l4);
+        t2 = l4.payload.obj;
+        l6 = ((vader_struct_vader_lower_ConstFnWrap_t*) t2)->f_call_type;
+        l3 = vader_midir_fresh_tmp(l0, 1415u, l6);
         vader_array_t* _a3_arr = vader_array_new(9u, 0u, 7u, 172u);
-        l8 = (void*) _a3_arr;
-        l9 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_span;
-        l10 = ((vader_struct_vader_lower_ConstFnWrap_t*) l2)->f_fn_symbol;
-        l4 = ((vader_struct_vader_lower_ConstFnWrap_t*) l2)->f_call_type;
+        l2 = (void*) _a3_arr;
+        l8 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_span;
+        t2 = l4.payload.obj;
+        l9 = ((vader_struct_vader_lower_ConstFnWrap_t*) t2)->f_fn_symbol;
+        t2 = l4.payload.obj;
+        l4 = ((vader_struct_vader_lower_ConstFnWrap_t*) t2)->f_call_type;
         vader_struct_vader_midir_InstrCall_t* _a4_obj = (vader_struct_vader_midir_InstrCall_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCall_t));
         vader_obj_header_init(_a4_obj, 821u);
-        _a4_obj->f_span = l9;
+        _a4_obj->f_span = l8;
         _a4_obj->f_dst = vader_box_i32(172u, l3);
-        _a4_obj->f_callee = l10;
-        _a4_obj->f_args = l8;
+        _a4_obj->f_callee = l9;
+        _a4_obj->f_args = l2;
         _a4_obj->f_type = l4;
         l2 = (void*) _a4_obj;
         vader_midir_emit(l0, vader_ref_box(l2));
@@ -2469,9 +2475,9 @@ static vader_box_t vader_midir_build_ident(void* l0, void* l1) {
     }
     l4 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_type;
     l2 = ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_span;
-    l11 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_symbol)->f_name;
-    l11 = concat_2(2280u, l11);
-    t4 = vader_midir_build_unreachable_type(l0, l4, l2, l11, false);
+    l10 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_lower_LoweredIdent_t*) l1)->f_symbol)->f_name;
+    l10 = concat_2(2280u, l10);
+    t4 = vader_midir_build_unreachable_type(l0, l4, l2, l10, false);
     { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4410,31 +4416,31 @@ static vader_box_t vader_midir_closure_header_type(vader_box_t l0) {
 }
 
 static void* vader_midir_compact_locals(void* l0) {
-    vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l11 = vader_box_null(), l13 = vader_box_null(), l18 = vader_box_null();
+    vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l11 = vader_box_null(), l13 = vader_box_null(), l17 = vader_box_null();
     void* l2 = NULL;
     void* l6 = NULL;
     void* l9 = NULL;
     void* l12 = NULL;
-    void* l16 = NULL;
-    void* l19 = NULL;
+    void* l15 = NULL;
+    void* l18 = NULL;
     void* l23 = NULL;
     void* l24 = NULL;
     void* l25 = NULL;
     void* l28 = NULL;
     void* l29 = NULL;
-    size_t l3, l5, l7, l8, l10, l15, l17, l26, l27;
-    int32_t l14, l21;
-    bool l20, l31;
+    size_t l3, l5, l7, l8, l10, l14, l16, l26, l27;
+    bool l19, l31;
+    int32_t l20, l21;
     vader_string_t l22 = 0;
     vader_string_t l30 = 0;
     size_t t0;
     void* t1 = NULL;
     int64_t t2;
     bool t3;
-    vader_box_t t4 = vader_box_null();
-    int32_t t5;
-    vader_box_t* gc_roots[6] = { &l1, &l4, &l11, &l13, &l18, &t4 };
-    void** gc_raw_roots[13] = { &l0, &l2, &l6, &l9, &l12, &l16, &l19, &l23, &l24, &l25, &l28, &l29, &t1 };
+    int32_t t4;
+    vader_box_t t5 = vader_box_null();
+    vader_box_t* gc_roots[6] = { &l1, &l4, &l11, &l13, &l17, &t5 };
+    void** gc_raw_roots[13] = { &l0, &l2, &l6, &l9, &l12, &l15, &l18, &l23, &l24, &l25, &l28, &l29, &t1 };
     vader_string_t* gc_atom_roots[2] = { &l22, &l30 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 6u, 13u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
@@ -4520,18 +4526,19 @@ static void* vader_midir_compact_locals(void* l0) {
                             if (t3) {
                                 l13 = vader_midir_dst_of(l11);
                                 if (l13.tag == 172u) {
-                                    l14 = ((int32_t) l13.payload.i);
-                                    t2 = ((int64_t) (int32_t) l14);
+                                    t4 = ((int32_t) l13.payload.i);
+                                    t2 = ((int64_t) (int32_t) t4);
                                     l10 = (size_t) (int64_t) t2;
-                                    l15 = ((vader_struct__Cell_usize_t*) l1.payload.obj)->f_value;
-                                    if ((l10 < l15)) {
-                                        l16 = ((vader_struct__Cell_Array_bool__t*) l4.payload.obj)->f_value;
-                                        t2 = ((int64_t) (int32_t) l14);
-                                        l17 = (size_t) (int64_t) t2;
-                                        vader_array_t* _a10_slotarr = ((vader_array_t*) l16);
+                                    l14 = ((vader_struct__Cell_usize_t*) l1.payload.obj)->f_value;
+                                    if ((l10 < l14)) {
+                                        l15 = ((vader_struct__Cell_Array_bool__t*) l4.payload.obj)->f_value;
+                                        t4 = ((int32_t) l13.payload.i);
+                                        t2 = ((int64_t) (int32_t) t4);
+                                        l16 = (size_t) (int64_t) t2;
+                                        vader_array_t* _a10_slotarr = ((vader_array_t*) l15);
                                         if (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = vader_array_buf_forward(_a10_slotarr->buf); }
-                                        if ((size_t) l17 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
-                                        ((uint8_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) l17] = (uint8_t) true;
+                                        if ((size_t) l16 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
+                                        ((uint8_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) l16] = (uint8_t) true;
                                     } else {
                                     }
                                 } else {
@@ -4545,7 +4552,7 @@ static void* vader_midir_compact_locals(void* l0) {
                         }
                     }
                 }
-                l18 = ((vader_struct_vader_midir_BasicBlock_t*) l6)->f_terminator;
+                l17 = ((vader_struct_vader_midir_BasicBlock_t*) l6)->f_terminator;
                 vader_struct___lambda_env_vader_midir_3_t* _a11_obj = (vader_struct___lambda_env_vader_midir_3_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_midir_3_t));
                 vader_obj_header_init(_a11_obj, 262u);
                 _a11_obj->f_cap_0 = l1;
@@ -4555,8 +4562,8 @@ static void* vader_midir_compact_locals(void* l0) {
                 vader_obj_header_init(_a12_closure, 143u);
                 _a12_closure->code = (void*) &vader_fn_lift___lambda_vader_midir_2;
                 _a12_closure->env = t1;
-                l19 = (void*) _a12_closure;
-                vader_midir_for_each_read_in_terminator(l18, l19);
+                l18 = (void*) _a12_closure;
+                vader_midir_for_each_read_in_terminator(l17, l18);
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
                 goto loop_66;
@@ -4564,7 +4571,7 @@ static void* vader_midir_compact_locals(void* l0) {
             }
         }
     }
-    l20 = false;
+    l19 = false;
     l3 = ((vader_struct__Cell_usize_t*) l1.payload.obj)->f_value;
     l5 = ((vader_array_t*) ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_params)->length;
     {
@@ -4573,10 +4580,10 @@ static void* vader_midir_compact_locals(void* l0) {
                 vader_array_t* _a13_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_bool__t*) l4.payload.obj)->f_value);
                 if (_a13_slotarr->buf != NULL && _a13_slotarr->buf->header.forward != NULL) { _a13_slotarr->buf = vader_array_buf_forward(_a13_slotarr->buf); }
                 if ((size_t) l5 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
-                t4 = vader_box_bool(167u, ((uint8_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l5]);
-                t3 = t4.payload.b;
+                t5 = vader_box_bool(167u, ((uint8_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l5]);
+                t3 = t5.payload.b;
                 if (!(t3)) {
-                    l20 = true;
+                    l19 = true;
                 } else {
                     t2 = (l5 + INT64_C(1));
                     l5 = (size_t) (int64_t) t2;
@@ -4586,7 +4593,7 @@ static void* vader_midir_compact_locals(void* l0) {
             }
         }
     }
-    if (!(l20)) {
+    if (!(l19)) {
         { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a14_arr = vader_array_new(9u, 0u, 7u, 172u);
@@ -4607,11 +4614,11 @@ static void* vader_midir_compact_locals(void* l0) {
                 vader_array_t* _a18_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_bool__t*) l4.payload.obj)->f_value);
                 if (_a18_slotarr->buf != NULL && _a18_slotarr->buf->header.forward != NULL) { _a18_slotarr->buf = vader_array_buf_forward(_a18_slotarr->buf); }
                 if ((size_t) l5 >= _a18_slotarr->length) { vader_trap("array index out of bounds"); }
-                t4 = vader_box_bool(167u, ((uint8_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) l5]);
-                t3 = t4.payload.b;
+                t5 = vader_box_bool(167u, ((uint8_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) l5]);
+                t3 = t5.payload.b;
                 if (!(t3)) {
-                    l14 = -(INT32_C(1));
-                    vader_array_push_i32((vader_array_t*) l2, l14);
+                    l20 = -(INT32_C(1));
+                    vader_array_push_i32((vader_array_t*) l2, l20);
                     t2 = (l5 + INT64_C(1));
                     l5 = (size_t) (int64_t) t2;
                     goto loop_220;
@@ -4645,22 +4652,22 @@ static void* vader_midir_compact_locals(void* l0) {
                 vader_array_t* _a22_slotarr = ((vader_array_t*) l12);
                 if (_a22_slotarr->buf != NULL && _a22_slotarr->buf->header.forward != NULL) { _a22_slotarr->buf = vader_array_buf_forward(_a22_slotarr->buf); }
                 if ((size_t) l5 >= _a22_slotarr->length) { vader_trap("array index out of bounds"); }
-                l16 = vader_array_ref_load_obj(_a22_slotarr->buf, _a22_slotarr->offset + (size_t) l5);
-                l22 = ((vader_struct_vader_midir_CFGParam_t*) l16)->f_name;
-                l19 = ((vader_struct_vader_midir_CFGParam_t*) l16)->f_symbol;
-                l1 = ((vader_struct_vader_midir_CFGParam_t*) l16)->f_type;
-                t2 = ((int64_t) (int32_t) ((vader_struct_vader_midir_CFGParam_t*) l16)->f_local);
+                l15 = vader_array_ref_load_obj(_a22_slotarr->buf, _a22_slotarr->offset + (size_t) l5);
+                l22 = ((vader_struct_vader_midir_CFGParam_t*) l15)->f_name;
+                l18 = ((vader_struct_vader_midir_CFGParam_t*) l15)->f_symbol;
+                l1 = ((vader_struct_vader_midir_CFGParam_t*) l15)->f_type;
+                t2 = ((int64_t) (int32_t) ((vader_struct_vader_midir_CFGParam_t*) l15)->f_local);
                 l7 = (size_t) (int64_t) t2;
                 vader_array_t* _a23_slotarr = ((vader_array_t*) l2);
                 if (_a23_slotarr->buf != NULL && _a23_slotarr->buf->header.forward != NULL) { _a23_slotarr->buf = vader_array_buf_forward(_a23_slotarr->buf); }
                 if ((size_t) l7 >= _a23_slotarr->length) { vader_trap("array index out of bounds"); }
-                l14 = ((int32_t*) _a23_slotarr->buf->slots)[_a23_slotarr->offset + (size_t) l7];
+                l20 = ((int32_t*) _a23_slotarr->buf->slots)[_a23_slotarr->offset + (size_t) l7];
                 vader_struct_vader_midir_CFGParam_t* _a24_obj = (vader_struct_vader_midir_CFGParam_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_CFGParam_t));
                 vader_obj_header_init(_a24_obj, 799u);
                 _a24_obj->f_name = l22;
-                _a24_obj->f_symbol = l19;
+                _a24_obj->f_symbol = l18;
                 _a24_obj->f_type = l1;
-                _a24_obj->f_local = l14;
+                _a24_obj->f_local = l20;
                 l23 = (void*) _a24_obj;
                 vader_array_push((vader_array_t*) l9, vader_ref_box(l23));
                 t2 = (l5 + INT64_C(1));
@@ -4675,22 +4682,22 @@ static void* vader_midir_compact_locals(void* l0) {
     l3 = ((vader_array_t*) ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_blocks)->length;
     vader_array_t* _a26_arr = vader_array_repeat((vader_array_t*) l12, (size_t) l3);
     l12 = (void*) _a26_arr;
-    l16 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_blocks;
-    l3 = ((vader_array_t*) l16)->length;
+    l15 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_blocks;
+    l3 = ((vader_array_t*) l15)->length;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
         loop_339: {
             if ((l5 < l3)) {
-                vader_array_t* _a27_slotarr = ((vader_array_t*) l16);
+                vader_array_t* _a27_slotarr = ((vader_array_t*) l15);
                 if (_a27_slotarr->buf != NULL && _a27_slotarr->buf->header.forward != NULL) { _a27_slotarr->buf = vader_array_buf_forward(_a27_slotarr->buf); }
                 if ((size_t) l5 >= _a27_slotarr->length) { vader_trap("array index out of bounds"); }
-                l19 = vader_array_ref_load_obj(_a27_slotarr->buf, _a27_slotarr->offset + (size_t) l5);
+                l18 = vader_array_ref_load_obj(_a27_slotarr->buf, _a27_slotarr->offset + (size_t) l5);
                 vader_array_t* _a28_arr = vader_array_new(133u, 0u, 13u, 1169u);
                 l23 = (void*) _a28_arr;
-                l7 = ((vader_array_t*) ((vader_struct_vader_midir_BasicBlock_t*) l19)->f_instructions)->length;
+                l7 = ((vader_array_t*) ((vader_struct_vader_midir_BasicBlock_t*) l18)->f_instructions)->length;
                 vader_array_t* _a29_arr = vader_array_repeat((vader_array_t*) l23, (size_t) l7);
                 l24 = (void*) _a29_arr;
-                l25 = ((vader_struct_vader_midir_BasicBlock_t*) l19)->f_instructions;
+                l25 = ((vader_struct_vader_midir_BasicBlock_t*) l18)->f_instructions;
                 l8 = ((vader_array_t*) l25)->length;
                 l10 = (size_t) (int64_t) INT64_C(0);
                 {
@@ -4702,22 +4709,23 @@ static void* vader_midir_compact_locals(void* l0) {
                             l1 = vader_array_ref_load_box(_a30_slotarr->buf, _a30_slotarr->offset + (size_t) l10);
                             l4 = vader_midir_dst_of(l1);
                             if (l4.tag == 172u) {
-                                l14 = ((int32_t) l4.payload.i);
-                                t2 = ((int64_t) (int32_t) l14);
-                                l15 = (size_t) (int64_t) t2;
-                                l17 = ((vader_array_t*) l2)->length;
-                                if ((l15 < l17)) {
-                                    t2 = ((int64_t) (int32_t) l14);
+                                t4 = ((int32_t) l4.payload.i);
+                                t2 = ((int64_t) (int32_t) t4);
+                                l14 = (size_t) (int64_t) t2;
+                                l16 = ((vader_array_t*) l2)->length;
+                                if ((l14 < l16)) {
+                                    t4 = ((int32_t) l4.payload.i);
+                                    t2 = ((int64_t) (int32_t) t4);
                                     l26 = (size_t) (int64_t) t2;
                                     vader_array_t* _a31_slotarr = ((vader_array_t*) l2);
                                     if (_a31_slotarr->buf != NULL && _a31_slotarr->buf->header.forward != NULL) { _a31_slotarr->buf = vader_array_buf_forward(_a31_slotarr->buf); }
                                     if ((size_t) l26 >= _a31_slotarr->length) { vader_trap("array index out of bounds"); }
-                                    t5 = ((int32_t*) _a31_slotarr->buf->slots)[_a31_slotarr->offset + (size_t) l26];
-                                    l20 = (t5 < INT32_C(0));
+                                    t4 = ((int32_t*) _a31_slotarr->buf->slots)[_a31_slotarr->offset + (size_t) l26];
+                                    l19 = (t4 < INT32_C(0));
                                 } else {
-                                    l20 = false;
+                                    l19 = false;
                                 }
-                                if (l20) {
+                                if (l19) {
                                     t3 = vader_midir_instruction_has_side_effect(l1);
                                     if (!(t3)) {
                                         t2 = (l10 + INT64_C(1));
@@ -4748,12 +4756,12 @@ static void* vader_midir_compact_locals(void* l0) {
                         }
                     }
                 }
-                l21 = ((vader_struct_vader_midir_BasicBlock_t*) l19)->f_id;
-                l13 = vader_midir_remap_terminator(((vader_struct_vader_midir_BasicBlock_t*) l19)->f_terminator, l2);
-                l28 = ((vader_struct_vader_midir_BasicBlock_t*) l19)->f_span;
+                l20 = ((vader_struct_vader_midir_BasicBlock_t*) l18)->f_id;
+                l13 = vader_midir_remap_terminator(((vader_struct_vader_midir_BasicBlock_t*) l18)->f_terminator, l2);
+                l28 = ((vader_struct_vader_midir_BasicBlock_t*) l18)->f_span;
                 vader_struct_vader_midir_BasicBlock_t* _a32_obj = (vader_struct_vader_midir_BasicBlock_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_BasicBlock_t));
                 vader_obj_header_init(_a32_obj, 794u);
-                _a32_obj->f_id = l21;
+                _a32_obj->f_id = l20;
                 _a32_obj->f_instructions = l24;
                 _a32_obj->f_terminator = l13;
                 _a32_obj->f_span = l28;
@@ -4768,10 +4776,10 @@ static void* vader_midir_compact_locals(void* l0) {
     }
     l22 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_mangled;
     l1 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_return_type;
-    l14 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_entry;
+    l20 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_entry;
     l2 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_origin;
     l30 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_extern_name;
-    l20 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_is_extern;
+    l19 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_is_extern;
     l31 = ((vader_struct_vader_midir_CFGFunction_t*) l0)->f_is_exported;
     vader_struct_vader_midir_CFGFunction_t* _a33_obj = (vader_struct_vader_midir_CFGFunction_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_CFGFunction_t));
     vader_obj_header_init(_a33_obj, 796u);
@@ -4780,10 +4788,10 @@ static void* vader_midir_compact_locals(void* l0) {
     _a33_obj->f_return_type = l1;
     _a33_obj->f_locals = l6;
     _a33_obj->f_blocks = l12;
-    _a33_obj->f_entry = l14;
+    _a33_obj->f_entry = l20;
     _a33_obj->f_origin = l2;
     _a33_obj->f_extern_name = l30;
-    _a33_obj->f_is_extern = l20;
+    _a33_obj->f_is_extern = l19;
     _a33_obj->f_is_exported = l31;
     t1 = (void*) _a33_obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -7460,25 +7468,24 @@ static void vader_midir_emit(void* l0, vader_box_t l1) {
 
 static int32_t vader_midir_emit_block_contents(void* l0, int32_t l1, int32_t l2) {
     void* l3 = NULL;
-    void* l9 = NULL;
-    void* l15 = NULL;
+    void* l14 = NULL;
     size_t l4, l5;
-    vader_box_t l6 = vader_box_null(), l10 = vader_box_null();
+    vader_box_t l6 = vader_box_null(), l9 = vader_box_null();
     int64_t l7;
-    int32_t l8, l16, l17;
-    uint8_t l11, l12;
-    bool l13, l14;
+    int32_t l8, l15, l16;
+    uint8_t l10, l11;
+    bool l12, l13;
     int64_t t0;
-    bool t1;
-    vader_box_t t2 = vader_box_null();
-    void* t3 = NULL;
+    void* t1 = NULL;
+    bool t2;
+    vader_box_t t3 = vader_box_null();
     int32_t t4;
     size_t t5;
     vader_string_t t6 = 0;
-    vader_box_t* gc_roots[3] = { &l6, &l10, &t2 };
-    void** gc_raw_roots[5] = { &l0, &l3, &l9, &l15, &t3 };
+    vader_box_t* gc_roots[3] = { &l6, &l9, &t3 };
+    void** gc_raw_roots[4] = { &l0, &l3, &l14, &t1 };
     vader_string_t* gc_atom_roots[1] = { &t6 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_blocks;
     t0 = ((int64_t) (int32_t) l1);
@@ -7507,212 +7514,236 @@ static int32_t vader_midir_emit_block_contents(void* l0, int32_t l1, int32_t l2)
     }
     l6 = ((vader_struct_vader_midir_BasicBlock_t*) l3)->f_terminator;
     if (l6.tag == 853u) {
-        l3 = l6.payload.obj;
-        if (!(((vader_struct_vader_midir_TermReturn_t*) l3)->f_value.tag == 0u)) {
-            t1 = std_collections_contains_key__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_terminator_get)->f_inner, l1);
-            if (!(t1)) {
-                t2 = ((vader_struct_vader_midir_TermReturn_t*) l3)->f_value;
-                l8 = ((int32_t) t2.payload.i);
-                l9 = ((vader_struct_vader_midir_TermReturn_t*) l3)->f_span;
-                vader_midir_emit_get(l0, l8, l9);
+        t1 = l6.payload.obj;
+        if (!(((vader_struct_vader_midir_TermReturn_t*) t1)->f_value.tag == 0u)) {
+            t2 = std_collections_contains_key__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_terminator_get)->f_inner, l1);
+            if (!(t2)) {
+                t1 = l6.payload.obj;
+                t3 = ((vader_struct_vader_midir_TermReturn_t*) t1)->f_value;
+                l8 = ((int32_t) t3.payload.i);
+                t1 = l6.payload.obj;
+                l3 = ((vader_struct_vader_midir_TermReturn_t*) t1)->f_span;
+                vader_midir_emit_get(l0, l8, l3);
             } else {
             }
-            l9 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-            t0 = ((int64_t) ((vader_struct_vader_midir_TermReturn_t*) l3)->f_value.payload.i);
+            l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+            t1 = l6.payload.obj;
+            t0 = ((int64_t) ((vader_struct_vader_midir_TermReturn_t*) t1)->f_value.payload.i);
             l4 = (size_t) (int64_t) t0;
-            vader_array_t* _a2_slotarr = ((vader_array_t*) l9);
+            vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
             if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
             if ((size_t) l4 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
-            l10 = ((vader_struct_vader_midir_CFGLocal_t*) t3)->f_type;
-            l11 = vader_bytecode_val_type_of_type(l10);
-            l12 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_return_type);
-            if (l12 == INT32_C(18)) {
+            t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
+            l9 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
+            l10 = vader_bytecode_val_type_of_type(l9);
+            l11 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_return_type);
+            if (l11 == INT32_C(18)) {
+                l12 = true;
+            } else {
+                l12 = l11 == INT32_C(19);
+            }
+            if (l10 == INT32_C(18)) {
                 l13 = true;
             } else {
-                l13 = l12 == INT32_C(19);
-            }
-            if (l11 == INT32_C(18)) {
-                l14 = true;
-            } else {
-                l14 = l11 == INT32_C(19);
-            }
-            if (l14) {
-                l14 = true;
-            } else {
-                l14 = l11 == INT32_C(16);
-            }
-            l14 = !(l14);
-            if (l13) {
-                l13 = l14;
-            } else {
-                l13 = false;
+                l13 = l10 == INT32_C(19);
             }
             if (l13) {
-                l9 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-                t4 = vader_bytecode_intern_type(l10, l9);
+                l13 = true;
+            } else {
+                l13 = l10 == INT32_C(16);
+            }
+            l13 = !(l13);
+            if (l12) {
+                l12 = l13;
+            } else {
+                l12 = false;
+            }
+            if (l12) {
+                l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+                t4 = vader_bytecode_intern_type(l9, l3);
                 vader_struct_vader_bytecode_Box_t* _a3_obj = (vader_struct_vader_bytecode_Box_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Box_t));
                 vader_obj_header_init(_a3_obj, 526u);
                 _a3_obj->f_type_id = t4;
-                l9 = (void*) _a3_obj;
-                l15 = ((vader_struct_vader_midir_TermReturn_t*) l3)->f_span;
-                vader_midir_push_emit(l0, vader_ref_box(l9), l15);
+                l3 = (void*) _a3_obj;
+                t1 = l6.payload.obj;
+                l14 = ((vader_struct_vader_midir_TermReturn_t*) t1)->f_span;
+                vader_midir_push_emit(l0, vader_ref_box(l3), l14);
             } else {
             }
         } else {
         }
-        l9 = ((vader_struct_vader_bytecode_BcFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_slot)->f_body;
-        t5 = ((vader_array_t*) l9)->length;
+        l3 = ((vader_struct_vader_bytecode_BcFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_slot)->f_body;
+        t5 = ((vader_array_t*) l3)->length;
         if ((t5 > INT64_C(0))) {
-            t5 = ((vader_array_t*) l9)->length;
+            t5 = ((vader_array_t*) l3)->length;
             t0 = (t5 - INT64_C(1));
             l4 = (size_t) (int64_t) t0;
-            vader_array_t* _a4_slotarr = ((vader_array_t*) l9);
+            vader_array_t* _a4_slotarr = ((vader_array_t*) l3);
             if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
             if ((size_t) l4 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-            t2 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4);
-            l10 = vader_bytecode_const_op_of(t2);
-            if (!(l10.tag == 0u)) {
-                t5 = ((vader_array_t*) l9)->length;
+            t3 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4);
+            l9 = vader_bytecode_const_op_of(t3);
+            if (!(l9.tag == 0u)) {
+                t5 = ((vader_array_t*) l3)->length;
                 t0 = (t5 - INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
                 vader_struct_vader_bytecode_ReturnLit_t* _a5_obj = (vader_struct_vader_bytecode_ReturnLit_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ReturnLit_t));
                 vader_obj_header_init(_a5_obj, 625u);
-                _a5_obj->f_value = l10;
-                l15 = (void*) _a5_obj;
-                vader_array_t* _a6_slotarr = ((vader_array_t*) l9);
+                _a5_obj->f_value = l9;
+                l14 = (void*) _a5_obj;
+                vader_array_t* _a6_slotarr = ((vader_array_t*) l3);
                 if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
                 if ((size_t) l4 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
-                vader_array_ref_store(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l4, l15);
+                vader_array_ref_store(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l4, l14);
                 VADER_WRITE_BARRIER(_a6_slotarr->buf);
                 { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
             }
             vader_struct_vader_bytecode_Return_t* _a7_obj = (vader_struct_vader_bytecode_Return_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Return_t));
             vader_obj_header_init(_a7_obj, 624u);
-            l9 = (void*) _a7_obj;
-            l15 = ((vader_struct_vader_midir_TermReturn_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l9), l15);
+            l3 = (void*) _a7_obj;
+            t1 = l6.payload.obj;
+            l14 = ((vader_struct_vader_midir_TermReturn_t*) t1)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l14);
             { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
         }
         vader_struct_vader_bytecode_Return_t* _a8_obj = (vader_struct_vader_bytecode_Return_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Return_t));
         vader_obj_header_init(_a8_obj, 624u);
-        l9 = (void*) _a8_obj;
-        l15 = ((vader_struct_vader_midir_TermReturn_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l9), l15);
+        l3 = (void*) _a8_obj;
+        t1 = l6.payload.obj;
+        l14 = ((vader_struct_vader_midir_TermReturn_t*) t1)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l14);
         { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l6.tag == 854u) {
-        l3 = l6.payload.obj;
-        t1 = ((vader_struct_vader_midir_TermUnreachable_t*) l3)->f_trap;
-        if (t1) {
-            t6 = ((vader_struct_vader_midir_TermUnreachable_t*) l3)->f_reason;
+        t1 = l6.payload.obj;
+        t2 = ((vader_struct_vader_midir_TermUnreachable_t*) t1)->f_trap;
+        if (t2) {
+            t1 = l6.payload.obj;
+            t6 = ((vader_struct_vader_midir_TermUnreachable_t*) t1)->f_reason;
             vader_struct_vader_bytecode_Unreachable_t* _a9_obj = (vader_struct_vader_bytecode_Unreachable_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Unreachable_t));
             vader_obj_header_init(_a9_obj, 656u);
             _a9_obj->f_reason = t6;
-            l9 = (void*) _a9_obj;
-            l15 = ((vader_struct_vader_midir_TermUnreachable_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l9), l15);
+            l3 = (void*) _a9_obj;
+            t1 = l6.payload.obj;
+            l14 = ((vader_struct_vader_midir_TermUnreachable_t*) t1)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l14);
         } else {
             vader_struct_vader_bytecode_Return_t* _a10_obj = (vader_struct_vader_bytecode_Return_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Return_t));
             vader_obj_header_init(_a10_obj, 624u);
-            l9 = (void*) _a10_obj;
-            l3 = ((vader_struct_vader_midir_TermUnreachable_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l9), l3);
+            l3 = (void*) _a10_obj;
+            t1 = l6.payload.obj;
+            l14 = ((vader_struct_vader_midir_TermUnreachable_t*) t1)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l14);
         }
         { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l6.tag == 851u) {
-        l3 = l6.payload.obj;
-        l8 = ((vader_struct_vader_midir_TermBranch_t*) l3)->f_target;
-        l16 = l2;
-        if (l8 == l16) {
+        t1 = l6.payload.obj;
+        l8 = ((vader_struct_vader_midir_TermBranch_t*) t1)->f_target;
+        l15 = l2;
+        if (l8 == l15) {
             { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        l8 = ((vader_struct_vader_midir_TermBranch_t*) l3)->f_target;
-        t1 = vader_midir_scope_contains_target(l0, l8);
-        if (t1) {
-            l9 = ((vader_struct_vader_midir_TermBranch_t*) l3)->f_span;
-            l8 = ((vader_struct_vader_midir_TermBranch_t*) l3)->f_target;
-            vader_midir_cf_br(l0, l9, l8);
+        t1 = l6.payload.obj;
+        l8 = ((vader_struct_vader_midir_TermBranch_t*) t1)->f_target;
+        t2 = vader_midir_scope_contains_target(l0, l8);
+        if (t2) {
+            t1 = l6.payload.obj;
+            l3 = ((vader_struct_vader_midir_TermBranch_t*) t1)->f_span;
+            t1 = l6.payload.obj;
+            l8 = ((vader_struct_vader_midir_TermBranch_t*) t1)->f_target;
+            vader_midir_cf_br(l0, l3, l8);
             { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        { int32_t __vret = ((vader_struct_vader_midir_TermBranch_t*) l3)->f_target; vader_gc_top = gc_frame.prev; return __vret; }
+        t1 = l6.payload.obj;
+        { int32_t __vret = ((vader_struct_vader_midir_TermBranch_t*) t1)->f_target; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l6.tag == 852u) {
-        l3 = l6.payload.obj;
         l8 = vader_midir_cond_branch_merge(l0, l1, l2);
-        t1 = std_collections_contains_key__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_terminator_get)->f_inner, l1);
-        if (!(t1)) {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_cond;
-            l9 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_span;
-            vader_midir_emit_get(l0, l16, l9);
+        t2 = std_collections_contains_key__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_terminator_get)->f_inner, l1);
+        if (!(t2)) {
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_cond;
+            t1 = l6.payload.obj;
+            l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_span;
+            vader_midir_emit_get(l0, l15, l3);
         } else {
         }
-        l9 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_span;
-        vader_midir_cf_if(l0, l9, l8);
+        t1 = l6.payload.obj;
+        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_span;
+        vader_midir_cf_if(l0, l3, l8);
         if ((l8 < INT32_C(0))) {
-            l13 = true;
+            l12 = true;
         } else {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_then_block;
-            l17 = l8;
-            l13 = !(l16 == l17);
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_then_block;
+            l16 = l8;
+            l12 = !(l15 == l16);
         }
-        if (l13) {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_then_block;
-            vader_midir_emit_range(l0, l16, l8);
+        if (l12) {
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_then_block;
+            vader_midir_emit_range(l0, l15, l8);
         } else {
         }
-        l9 = ((vader_struct_vader_bytecode_BcFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_slot)->f_body;
-        l4 = ((vader_array_t*) l9)->length;
-        l13 = false;
+        l3 = ((vader_struct_vader_bytecode_BcFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_slot)->f_body;
+        l4 = ((vader_array_t*) l3)->length;
+        l12 = false;
         if ((l4 > INT64_C(0))) {
             t0 = (l4 - INT64_C(1));
             l4 = (size_t) (int64_t) t0;
-            vader_array_t* _a11_slotarr = ((vader_array_t*) l9);
+            vader_array_t* _a11_slotarr = ((vader_array_t*) l3);
             if (_a11_slotarr->buf != NULL && _a11_slotarr->buf->header.forward != NULL) { _a11_slotarr->buf = vader_array_buf_forward(_a11_slotarr->buf); }
             if ((size_t) l4 >= _a11_slotarr->length) { vader_trap("array index out of bounds"); }
-            l6 = vader_array_ref_load_box(_a11_slotarr->buf, _a11_slotarr->offset + (size_t) l4);
-            if (l6.tag == 624u) {
-                l13 = true;
+            l9 = vader_array_ref_load_box(_a11_slotarr->buf, _a11_slotarr->offset + (size_t) l4);
+            if (l9.tag == 624u) {
+                l12 = true;
             } else {
             }
-            if (l6.tag == 625u) {
-                l13 = true;
+            if (l9.tag == 625u) {
+                l12 = true;
             } else {
             }
-            if (l6.tag == 527u) {
-                l13 = true;
+            if (l9.tag == 527u) {
+                l12 = true;
             } else {
             }
         } else {
         }
-        if (l13) {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_else_block;
-            l17 = l8;
-            l13 = !(l16 == l17);
+        if (l12) {
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_else_block;
+            l16 = l8;
+            l12 = !(l15 == l16);
         } else {
-            l13 = false;
+            l12 = false;
         }
-        if (l13) {
-            l9 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_span;
-            vader_midir_cf_end(l0, l9);
-            { int32_t __vret = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_else_block; vader_gc_top = gc_frame.prev; return __vret; }
+        if (l12) {
+            t1 = l6.payload.obj;
+            l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_span;
+            vader_midir_cf_end(l0, l3);
+            t1 = l6.payload.obj;
+            { int32_t __vret = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_else_block; vader_gc_top = gc_frame.prev; return __vret; }
         }
-        l9 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_span;
-        vader_midir_cf_else(l0, l9);
+        t1 = l6.payload.obj;
+        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_span;
+        vader_midir_cf_else(l0, l3);
         if ((l8 < INT32_C(0))) {
-            l13 = true;
+            l12 = true;
         } else {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_else_block;
-            l17 = l8;
-            l13 = !(l16 == l17);
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_else_block;
+            l16 = l8;
+            l12 = !(l15 == l16);
         }
-        if (l13) {
-            l16 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_else_block;
-            vader_midir_emit_range(l0, l16, l8);
+        if (l12) {
+            t1 = l6.payload.obj;
+            l15 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_else_block;
+            vader_midir_emit_range(l0, l15, l8);
         } else {
         }
-        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) l3)->f_span;
+        t1 = l6.payload.obj;
+        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t1)->f_span;
         vader_midir_cf_end(l0, l3);
         { int32_t __vret = l8; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -8218,8 +8249,9 @@ void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2) 
                     l42 = vader_bytecode_type_intern_key(((vader_struct_vader_lower_LoweredVtableEntry_t*) l10)->f_struct_type);
                     l21 = std_collections_get__string__i32(((vader_struct_vader_bytecode_EmitterCtx_t*) l3)->f_type_key, l42);
                     if (l21.tag == 172u) {
+                        l11 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l3)->f_pinned_types;
                         l20 = ((int32_t) l21.payload.i);
-                        vader_array_push_i32((vader_array_t*) ((vader_struct_vader_bytecode_EmitterCtx_t*) l3)->f_pinned_types, l20);
+                        vader_array_push_i32((vader_array_t*) l11, l20);
                     } else {
                     }
                     l24 = vader_midir_resolve_vtable_fn_index(((vader_struct_vader_lower_LoweredVtableEntry_t*) l10)->f_fn_symbol, l3);
@@ -8244,7 +8276,7 @@ void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2) 
         l7 = ((vader_array_t*) l4)->length;
         l8 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_724: {
+            loop_726: {
                 if ((l8 < l7)) {
                     vader_array_t* _a39_slotarr = ((vader_array_t*) l4);
                     if (_a39_slotarr->buf != NULL && _a39_slotarr->buf->header.forward != NULL) { _a39_slotarr->buf = vader_array_buf_forward(_a39_slotarr->buf); }
@@ -8255,7 +8287,7 @@ void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2) 
                     vader_bytecode_assert_host_import_wired(l9, l28);
                     t2 = (l8 + INT64_C(1));
                     l8 = (size_t) (int64_t) t2;
-                    goto loop_724;
+                    goto loop_726;
                 } else {
                 }
             }
@@ -8440,45 +8472,45 @@ static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
     vader_box_t l3 = vader_box_null();
     void* l4 = NULL;
     void* l5 = NULL;
-    void* l6 = NULL;
-    size_t l7;
-    int32_t l8;
+    size_t l6;
+    int32_t l7;
     uint8_t t0;
     bool t1;
-    int64_t t2;
-    void* t3 = NULL;
+    void* t2 = NULL;
+    int64_t t3;
     double t4;
     int32_t t5;
     vader_box_t* gc_roots[1] = { &l3 };
-    void** gc_raw_roots[6] = { &l0, &l1, &l4, &l5, &l6, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[5] = { &l0, &l1, &l4, &l5, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l3 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_value;
     if (l3.tag == 806u) {
-        l4 = l3.payload.obj;
         t0 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_InstrConst_t*) l1)->f_type);
         t1 = vader_bytecode_is_64_bit_int_val(t0);
         if (t1) {
-            t2 = ((vader_struct_vader_midir_ConstInt_t*) l4)->f_value;
+            t2 = l3.payload.obj;
+            t3 = ((vader_struct_vader_midir_ConstInt_t*) t2)->f_value;
             vader_struct_vader_bytecode_I64Const_t* _a0_obj = (vader_struct_vader_bytecode_I64Const_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_I64Const_t));
             vader_obj_header_init(_a0_obj, 589u);
-            _a0_obj->f_value = t2;
-            l5 = (void*) _a0_obj;
-            l6 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l6);
+            _a0_obj->f_value = t3;
+            l4 = (void*) _a0_obj;
+            l5 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l4), l5);
         } else {
-            t2 = ((vader_struct_vader_midir_ConstInt_t*) l4)->f_value;
+            t2 = l3.payload.obj;
+            t3 = ((vader_struct_vader_midir_ConstInt_t*) t2)->f_value;
             vader_struct_vader_bytecode_I32Const_t* _a1_obj = (vader_struct_vader_bytecode_I32Const_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_I32Const_t));
             vader_obj_header_init(_a1_obj, 569u);
-            _a1_obj->f_value = ((int32_t) (int64_t) t2);
+            _a1_obj->f_value = ((int32_t) (int64_t) t3);
             l4 = (void*) _a1_obj;
             l5 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_span;
             vader_midir_push_emit(l0, vader_ref_box(l4), l5);
         }
     } else {
         if (l3.tag == 805u) {
-            t3 = l3.payload.obj;
-            t4 = ((vader_struct_vader_midir_ConstFloat_t*) t3)->f_value;
+            t2 = l3.payload.obj;
+            t4 = ((vader_struct_vader_midir_ConstFloat_t*) t2)->f_value;
             vader_struct_vader_bytecode_F64Const_t* _a2_obj = (vader_struct_vader_bytecode_F64Const_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_F64Const_t));
             vader_obj_header_init(_a2_obj, 550u);
             _a2_obj->f_value = t4;
@@ -8487,8 +8519,8 @@ static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
             vader_midir_push_emit(l0, vader_ref_box(l4), l5);
         } else {
             if (l3.tag == 803u) {
-                t3 = l3.payload.obj;
-                t1 = ((vader_struct_vader_midir_ConstBool_t*) t3)->f_value;
+                t2 = l3.payload.obj;
+                t1 = ((vader_struct_vader_midir_ConstBool_t*) t2)->f_value;
                 vader_struct_vader_bytecode_BoolConst_t* _a3_obj = (vader_struct_vader_bytecode_BoolConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BoolConst_t));
                 vader_obj_header_init(_a3_obj, 521u);
                 _a3_obj->f_value = t1;
@@ -8497,8 +8529,8 @@ static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
                 vader_midir_push_emit(l0, vader_ref_box(l4), l5);
             } else {
                 if (l3.tag == 804u) {
-                    t3 = l3.payload.obj;
-                    t5 = ((vader_struct_vader_midir_ConstChar_t*) t3)->f_value;
+                    t2 = l3.payload.obj;
+                    t5 = ((vader_struct_vader_midir_ConstChar_t*) t2)->f_value;
                     vader_struct_vader_bytecode_CharConst_t* _a4_obj = (vader_struct_vader_bytecode_CharConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_CharConst_t));
                     vader_obj_header_init(_a4_obj, 537u);
                     _a4_obj->f_value = ((uint32_t) (int32_t) t5);
@@ -8514,15 +8546,15 @@ static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
                         vader_midir_push_emit(l0, vader_ref_box(l4), l5);
                     } else {
                         if (l3.tag == 808u) {
-                            l4 = l3.payload.obj;
-                            l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_string_index_map;
-                            t5 = ((vader_struct_vader_midir_ConstString_t*) l4)->f_index;
-                            t2 = ((int64_t) (int32_t) t5);
-                            l7 = (size_t) (int64_t) t2;
-                            vader_array_t* _a6_slotarr = ((vader_array_t*) l5);
+                            l4 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_string_index_map;
+                            t2 = l3.payload.obj;
+                            t5 = ((vader_struct_vader_midir_ConstString_t*) t2)->f_index;
+                            t3 = ((int64_t) (int32_t) t5);
+                            l6 = (size_t) (int64_t) t3;
+                            vader_array_t* _a6_slotarr = ((vader_array_t*) l4);
                             if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
-                            if ((size_t) l7 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
-                            t5 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l7];
+                            if ((size_t) l6 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
+                            t5 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l6];
                             vader_struct_vader_bytecode_StringConst_t* _a7_obj = (vader_struct_vader_bytecode_StringConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StringConst_t));
                             vader_obj_header_init(_a7_obj, 635u);
                             _a7_obj->f_index = t5;
@@ -8536,9 +8568,9 @@ static void vader_midir_emit_const_instr(void* l0, void* l1, int64_t l2) {
             }
         }
     }
-    l8 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_dst;
+    l7 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_dst;
     l4 = ((vader_struct_vader_midir_InstrConst_t*) l1)->f_span;
-    vader_midir_emit_result(l0, l2, l8, l4);
+    vader_midir_emit_result(l0, l2, l7, l4);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -8583,31 +8615,30 @@ static void vader_midir_emit_get(void* l0, int32_t l1, void* l2) {
 
 static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
     void* l3 = NULL;
-    void* l5 = NULL;
-    void* l10 = NULL;
-    void* l12 = NULL;
-    void* l14 = NULL;
-    int32_t l4, l15, l25;
-    size_t l6, l11, l13;
-    vader_box_t l7 = vader_box_null(), l20 = vader_box_null();
-    uint8_t l8, l9;
+    void* l9 = NULL;
+    void* l11 = NULL;
+    void* l13 = NULL;
+    int32_t l4, l14, l24;
+    size_t l5, l10, l12;
+    vader_box_t l6 = vader_box_null(), l18 = vader_box_null();
+    uint8_t l7, l8;
+    vader_string_t l15 = 0;
     vader_string_t l16 = 0;
-    vader_string_t l17 = 0;
+    vader_string_t l20 = 0;
     vader_string_t l21 = 0;
     vader_string_t l22 = 0;
-    vader_string_t l23 = 0;
-    int64_t l18;
-    bool l19, l24;
-    int64_t t0;
-    void* t1 = NULL;
+    int64_t l17;
+    bool l19, l23;
+    void* t0 = NULL;
+    int64_t t1;
     int32_t t2;
     vader_string_t t3 = 0;
     size_t t4;
     bool t5;
-    vader_box_t* gc_roots[3] = { &l1, &l7, &l20 };
-    void** gc_raw_roots[7] = { &l0, &l3, &l5, &l10, &l12, &l14, &t1 };
-    vader_string_t* gc_atom_roots[6] = { &l16, &l17, &l21, &l22, &l23, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots };
+    vader_box_t* gc_roots[3] = { &l1, &l6, &l18 };
+    void** gc_raw_roots[6] = { &l0, &l3, &l9, &l11, &l13, &t0 };
+    vader_string_t* gc_atom_roots[6] = { &l15, &l16, &l20, &l21, &l22, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l1.tag == 827u) {
         l3 = l1.payload.obj;
@@ -8615,1054 +8646,1273 @@ static void vader_midir_emit_instr(void* l0, vader_box_t l1, int64_t l2) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 837u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrMove_t*) l3)->f_src;
-        l5 = ((vader_struct_vader_midir_InstrMove_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l4 = ((vader_struct_vader_midir_InstrMove_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrMove_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_src;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 820u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_lhs;
-        l5 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_rhs;
-        l5 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l4, l5);
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_lhs);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_lhs;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_rhs;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l4, l3);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_lhs);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
         if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-        if ((size_t) l6 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-        l8 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_op;
-        l9 = vader_bytecode_val_type_of_type(l7);
-        l7 = vader_bytecode_binary_op_for(l8, l9);
-        l5 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_span;
-        vader_midir_push_emit(l0, l7, l5);
-        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) l3)->f_span;
+        if ((size_t) l5 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+        t0 = l1.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_op;
+        l8 = vader_bytecode_val_type_of_type(l6);
+        l6 = vader_bytecode_binary_op_for(l7, l8);
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
+        vader_midir_push_emit(l0, l6, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 821u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_pinned_types_bucket;
-        l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_args;
-        l6 = ((vader_array_t*) l10)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_pinned_types_bucket;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_args;
+        l5 = ((vader_array_t*) l9)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_113: {
-                if ((l11 < l6)) {
-                    vader_array_t* _a1_slotarr = ((vader_array_t*) l10);
+            loop_132: {
+                if ((l10 < l5)) {
+                    vader_array_t* _a1_slotarr = ((vader_array_t*) l9);
                     if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                    if ((size_t) l11 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                    l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l11];
-                    l12 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-                    t0 = ((int64_t) (int32_t) l4);
-                    l13 = (size_t) (int64_t) t0;
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) l12);
+                    if ((size_t) l10 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                    l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l10];
+                    l11 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+                    t1 = ((int64_t) (int32_t) l4);
+                    l12 = (size_t) (int64_t) t1;
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) l11);
                     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                    if ((size_t) l13 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l13);
-                    l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-                    l14 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-                    l15 = vader_bytecode_intern_type(l7, l14);
-                    vader_array_push_i32((vader_array_t*) l5, l15);
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_113;
+                    if ((size_t) l12 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                    t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l12);
+                    l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+                    l13 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+                    l14 = vader_bytecode_intern_type(l6, l13);
+                    vader_array_push_i32((vader_array_t*) l3, l14);
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_132;
                 } else {
                 }
             }
         }
-        if (((vader_struct_vader_midir_InstrCall_t*) l3)->f_dst.tag == 172u) {
-            l4 = ((int32_t) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_dst.payload.i);
-            l10 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-            t0 = ((int64_t) (int32_t) l4);
-            l6 = (size_t) (int64_t) t0;
-            vader_array_t* _a3_slotarr = ((vader_array_t*) l10);
+        t0 = l1.payload.obj;
+        if (((vader_struct_vader_midir_InstrCall_t*) t0)->f_dst.tag == 172u) {
+            t0 = l1.payload.obj;
+            l4 = ((int32_t) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_dst.payload.i);
+            l9 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+            t1 = ((int64_t) (int32_t) l4);
+            l5 = (size_t) (int64_t) t1;
+            vader_array_t* _a3_slotarr = ((vader_array_t*) l9);
             if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
-            if ((size_t) l6 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-            t1 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l6);
-            l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-            l10 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-            l4 = vader_bytecode_intern_type(l7, l10);
-            vader_array_push_i32((vader_array_t*) l5, l4);
+            if ((size_t) l5 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+            t0 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l5);
+            l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+            l9 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+            l4 = vader_bytecode_intern_type(l6, l9);
+            vader_array_push_i32((vader_array_t*) l3, l4);
         } else {
         }
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_args)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_args)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_185: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_args);
+            loop_210: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_args);
                         if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
-                        if ((size_t) l11 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l4 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l4, l5);
+                        if ((size_t) l10 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l4 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l4, l3);
                     } else {
-                        vader_array_t* _a5_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_args);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a5_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_args);
                         if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
-                        if ((size_t) l11 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l15, l10);
+                        if ((size_t) l10 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l14, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_185;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_210;
                 } else {
                 }
             }
         }
-        l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_mangle;
-        l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_name;
-        l7 = std_collections_get__string__i32(l5, l16);
-        if (l7.tag == 172u) {
-            t2 = ((int32_t) l7.payload.i);
+        l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_mangle;
+        t0 = l1.payload.obj;
+        l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_name;
+        l6 = std_collections_get__string__i32(l3, l15);
+        if (l6.tag == 172u) {
+            t2 = ((int32_t) l6.payload.i);
             vader_struct_vader_bytecode_Call_t* _a6_obj = (vader_struct_vader_bytecode_Call_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Call_t));
             vader_obj_header_init(_a6_obj, 534u);
             _a6_obj->f_function_index = t2;
-            l5 = (void*) _a6_obj;
-            l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a6_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
-            l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
-            l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_id;
-            l7 = std_collections_get__i32__i32(l5, l4);
-            if (l7.tag == 172u) {
-                t2 = ((int32_t) l7.payload.i);
+            l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
+            t0 = l1.payload.obj;
+            l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_id;
+            l6 = std_collections_get__i32__i32(l3, l4);
+            if (l6.tag == 172u) {
+                t2 = ((int32_t) l6.payload.i);
                 vader_struct_vader_bytecode_Call_t* _a7_obj = (vader_struct_vader_bytecode_Call_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Call_t));
                 vader_obj_header_init(_a7_obj, 534u);
                 _a7_obj->f_function_index = t2;
-                l5 = (void*) _a7_obj;
-                l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-                vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                l3 = (void*) _a7_obj;
+                t0 = l1.payload.obj;
+                l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+                vader_midir_push_emit(l0, vader_ref_box(l3), l9);
             } else {
-                l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_import_index_by_symbol_id;
-                l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_id;
-                l7 = std_collections_get__i32__i32(l5, l4);
-                if (l7.tag == 172u) {
-                    t2 = ((int32_t) l7.payload.i);
+                l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_import_index_by_symbol_id;
+                t0 = l1.payload.obj;
+                l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_id;
+                l6 = std_collections_get__i32__i32(l3, l4);
+                if (l6.tag == 172u) {
+                    t2 = ((int32_t) l6.payload.i);
                     vader_struct_vader_bytecode_CallImport_t* _a8_obj = (vader_struct_vader_bytecode_CallImport_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_CallImport_t));
                     vader_obj_header_init(_a8_obj, 535u);
                     _a8_obj->f_index = t2;
-                    l5 = (void*) _a8_obj;
-                    l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-                    vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                    l3 = (void*) _a8_obj;
+                    t0 = l1.payload.obj;
+                    l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+                    vader_midir_push_emit(l0, vader_ref_box(l3), l9);
                 } else {
-                    l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_import_index_by_mangle;
-                    l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_name;
-                    l7 = std_collections_get__string__i32(l5, l16);
-                    if (l7.tag == 172u) {
-                        t2 = ((int32_t) l7.payload.i);
+                    l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_import_index_by_mangle;
+                    t0 = l1.payload.obj;
+                    l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_name;
+                    l6 = std_collections_get__string__i32(l3, l15);
+                    if (l6.tag == 172u) {
+                        t2 = ((int32_t) l6.payload.i);
                         vader_struct_vader_bytecode_CallImport_t* _a9_obj = (vader_struct_vader_bytecode_CallImport_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_CallImport_t));
                         vader_obj_header_init(_a9_obj, 535u);
                         _a9_obj->f_index = t2;
-                        l5 = (void*) _a9_obj;
-                        l10 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-                        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                        l3 = (void*) _a9_obj;
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+                        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
                     } else {
-                        l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_name;
-                        l17 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-                        l6 = vader_host_std_core_byte_len(l16);
-                        l11 = vader_host_std_core_byte_len(l17);
-                        t0 = (l6 + l11);
-                        l6 = (size_t) (int64_t) t0;
-                        l5 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(117) + l6));
-                        l6 = (size_t) (int64_t) INT64_C(0);
-                        l6 = std_core_write_string_at(l5, l6, 1861u);
-                        l6 = std_core_write_string_at(l5, l6, l16);
-                        l6 = std_core_write_string_at(l5, l6, 263u);
-                        t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) l3)->f_callee)->f_id;
-                        l18 = ((int64_t) (int32_t) t2);
-                        l6 = std_core_write_int(l5, l6, l18);
-                        l6 = std_core_write_string_at(l5, l6, 333u);
-                        l6 = std_core_write_string_at(l5, l6, l17);
-                        l6 = std_core_write_string_at(l5, l6, 275u);
-                        t3 = std_core_finish_buffer(l5, l6);
+                        t0 = l1.payload.obj;
+                        l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_name;
+                        l16 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
+                        l5 = vader_host_std_core_byte_len(l15);
+                        l10 = vader_host_std_core_byte_len(l16);
+                        t1 = (l5 + l10);
+                        l5 = (size_t) (int64_t) t1;
+                        l3 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(117) + l5));
+                        l5 = (size_t) (int64_t) INT64_C(0);
+                        l5 = std_core_write_string_at(l3, l5, 1861u);
+                        l5 = std_core_write_string_at(l3, l5, l15);
+                        l5 = std_core_write_string_at(l3, l5, 263u);
+                        t0 = l1.payload.obj;
+                        t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee)->f_id;
+                        l17 = ((int64_t) (int32_t) t2);
+                        l5 = std_core_write_int(l3, l5, l17);
+                        l5 = std_core_write_string_at(l3, l5, 333u);
+                        l5 = std_core_write_string_at(l3, l5, l16);
+                        l5 = std_core_write_string_at(l3, l5, 275u);
+                        t3 = std_core_finish_buffer(l3, l5);
                         vader_host_std_abort_panic(t3);
                     }
                 }
             }
         }
-        l7 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrCall_t*) l3)->f_span;
-        vader_midir_emit_result_if_any(l0, l2, l7, l3);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+        vader_midir_emit_result_if_any(l0, l2, l6, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 842u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_operand;
-        l5 = ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_operand);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a10_slotarr = ((vader_array_t*) l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_operand;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_operand);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a10_slotarr = ((vader_array_t*) l3);
         if (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = vader_array_buf_forward(_a10_slotarr->buf); }
-        if ((size_t) l6 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) l6);
-        l8 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type);
-        l7 = vader_bytecode_unary_op_for(((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_op, l8);
-        l5 = ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_span;
-        vader_midir_push_emit(l0, l7, l5);
-        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) l3)->f_span;
+        if ((size_t) l5 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) l5);
+        l7 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type);
+        t0 = l1.payload.obj;
+        l6 = vader_bytecode_unary_op_for(((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_op, l7);
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_span;
+        vader_midir_push_emit(l0, l6, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 822u) {
-        l3 = l1.payload.obj;
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_args)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_args)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_467: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a11_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_args);
+            loop_534: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a11_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_args);
                         if (_a11_slotarr->buf != NULL && _a11_slotarr->buf->header.forward != NULL) { _a11_slotarr->buf = vader_array_buf_forward(_a11_slotarr->buf); }
-                        if ((size_t) l11 >= _a11_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l4 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l4, l5);
+                        if ((size_t) l10 >= _a11_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l4 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l4, l3);
                     } else {
-                        vader_array_t* _a12_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_args);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a12_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_args);
                         if (_a12_slotarr->buf != NULL && _a12_slotarr->buf->header.forward != NULL) { _a12_slotarr->buf = vader_array_buf_forward(_a12_slotarr->buf); }
-                        if ((size_t) l11 >= _a12_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a12_slotarr->buf->slots)[_a12_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l15, l10);
+                        if ((size_t) l10 >= _a12_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a12_slotarr->buf->slots)[_a12_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l14, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_467;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_534;
                 } else {
                 }
             }
         }
-        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_args)->length;
+        t0 = l1.payload.obj;
+        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_args)->length;
         if (t4 == INT64_C(0)) {
-            l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_callee;
-            l5 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-            vader_midir_emit_first_get(l0, l2, l4, l5);
+            t0 = l1.payload.obj;
+            l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_callee;
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+            vader_midir_emit_first_get(l0, l2, l4, l3);
         } else {
-            l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_callee;
-            l5 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-            vader_midir_emit_get(l0, l4, l5);
+            t0 = l1.payload.obj;
+            l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_callee;
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+            vader_midir_emit_get(l0, l4, l3);
         }
-        l7 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_fn_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        t2 = vader_bytecode_intern_type(l7, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_fn_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t2 = vader_bytecode_intern_type(l6, l3);
         vader_struct_vader_bytecode_CallIndirect_t* _a13_obj = (vader_struct_vader_bytecode_CallIndirect_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_CallIndirect_t));
         vader_obj_header_init(_a13_obj, 536u);
         _a13_obj->f_type_id = t2;
-        l5 = (void*) _a13_obj;
-        l10 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l7 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l3)->f_span;
-        vader_midir_emit_result_if_any(l0, l2, l7, l3);
+        l3 = (void*) _a13_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+        vader_midir_emit_result_if_any(l0, l2, l6, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 834u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
-        l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_fn_symbol)->f_id;
-        l7 = std_collections_get__i32__i32(l5, l4);
-        if (l7.tag == 172u) {
-            l4 = ((int32_t) l7.payload.i);
-            l7 = ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_type;
-            l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-            l15 = vader_bytecode_intern_type(l7, l5);
+        l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_fn_symbol)->f_id;
+        l6 = std_collections_get__i32__i32(l3, l4);
+        if (l6.tag == 172u) {
+            t0 = l1.payload.obj;
+            l18 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_type;
+            l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+            l4 = vader_bytecode_intern_type(l18, l3);
+            t2 = ((int32_t) l6.payload.i);
             vader_struct_vader_bytecode_FnRef_t* _a14_obj = (vader_struct_vader_bytecode_FnRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_FnRef_t));
             vader_obj_header_init(_a14_obj, 563u);
-            _a14_obj->f_function_index = l4;
-            _a14_obj->f_type_id = l15;
-            l5 = (void*) _a14_obj;
-            l10 = ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            _a14_obj->f_function_index = t2;
+            _a14_obj->f_type_id = l4;
+            l3 = (void*) _a14_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
-            l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_fn_symbol)->f_name;
-            l6 = vader_host_std_core_byte_len(l16);
-            l5 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(104) + l6));
-            l6 = (size_t) (int64_t) INT64_C(0);
-            l6 = std_core_write_string_at(l5, l6, 1864u);
-            l6 = std_core_write_string_at(l5, l6, l16);
-            l6 = std_core_write_string_at(l5, l6, 263u);
-            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_fn_symbol)->f_id;
-            l18 = ((int64_t) (int32_t) t2);
-            l6 = std_core_write_int(l5, l6, l18);
-            l6 = std_core_write_string_at(l5, l6, 340u);
-            t3 = std_core_finish_buffer(l5, l6);
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_fn_symbol)->f_name;
+            l5 = vader_host_std_core_byte_len(l15);
+            l3 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(104) + l5));
+            l5 = (size_t) (int64_t) INT64_C(0);
+            l5 = std_core_write_string_at(l3, l5, 1864u);
+            l5 = std_core_write_string_at(l3, l5, l15);
+            l5 = std_core_write_string_at(l3, l5, 263u);
+            t0 = l1.payload.obj;
+            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_fn_symbol)->f_id;
+            l17 = ((int64_t) (int32_t) t2);
+            l5 = std_core_write_int(l3, l5, l17);
+            l5 = std_core_write_string_at(l3, l5, 340u);
+            t3 = std_core_finish_buffer(l3, l5);
             vader_host_std_abort_panic(t3);
         }
-        l4 = ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 833u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
-        l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_fn_symbol)->f_id;
-        l7 = std_collections_get__i32__i32(l5, l4);
-        if (l7.tag == 172u) {
-            t2 = ((int32_t) l7.payload.i);
+        l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_fn_symbol)->f_id;
+        l6 = std_collections_get__i32__i32(l3, l4);
+        if (l6.tag == 172u) {
+            t2 = ((int32_t) l6.payload.i);
             vader_struct_vader_bytecode_FnAddr_t* _a15_obj = (vader_struct_vader_bytecode_FnAddr_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_FnAddr_t));
             vader_obj_header_init(_a15_obj, 562u);
             _a15_obj->f_function_index = t2;
-            l5 = (void*) _a15_obj;
-            l10 = ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a15_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
-            l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_fn_symbol)->f_name;
-            l6 = vader_host_std_core_byte_len(l16);
-            l5 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(102) + l6));
-            l6 = (size_t) (int64_t) INT64_C(0);
-            l6 = std_core_write_string_at(l5, l6, 1863u);
-            l6 = std_core_write_string_at(l5, l6, l16);
-            l6 = std_core_write_string_at(l5, l6, 263u);
-            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_fn_symbol)->f_id;
-            l18 = ((int64_t) (int32_t) t2);
-            l6 = std_core_write_int(l5, l6, l18);
-            l6 = std_core_write_string_at(l5, l6, 339u);
-            t3 = std_core_finish_buffer(l5, l6);
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_fn_symbol)->f_name;
+            l5 = vader_host_std_core_byte_len(l15);
+            l3 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(102) + l5));
+            l5 = (size_t) (int64_t) INT64_C(0);
+            l5 = std_core_write_string_at(l3, l5, 1863u);
+            l5 = std_core_write_string_at(l3, l5, l15);
+            l5 = std_core_write_string_at(l3, l5, 263u);
+            t0 = l1.payload.obj;
+            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_fn_symbol)->f_id;
+            l17 = ((int64_t) (int32_t) t2);
+            l5 = std_core_write_int(l3, l5, l17);
+            l5 = std_core_write_string_at(l3, l5, 339u);
+            t3 = std_core_finish_buffer(l3, l5);
             vader_host_std_abort_panic(t3);
         }
-        l4 = ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 843u) {
-        l3 = l1.payload.obj;
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_args)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_761: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a16_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_args);
+            loop_871: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a16_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args);
                         if (_a16_slotarr->buf != NULL && _a16_slotarr->buf->header.forward != NULL) { _a16_slotarr->buf = vader_array_buf_forward(_a16_slotarr->buf); }
-                        if ((size_t) l11 >= _a16_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l4 = ((int32_t*) _a16_slotarr->buf->slots)[_a16_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l4, l5);
+                        if ((size_t) l10 >= _a16_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l4 = ((int32_t*) _a16_slotarr->buf->slots)[_a16_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l4, l3);
                     } else {
-                        vader_array_t* _a17_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_args);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a17_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args);
                         if (_a17_slotarr->buf != NULL && _a17_slotarr->buf->header.forward != NULL) { _a17_slotarr->buf = vader_array_buf_forward(_a17_slotarr->buf); }
-                        if ((size_t) l11 >= _a17_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a17_slotarr->buf->slots)[_a17_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l15, l10);
+                        if ((size_t) l10 >= _a17_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a17_slotarr->buf->slots)[_a17_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l14, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_761;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_871;
                 } else {
                 }
             }
         }
-        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_args)->length;
+        t0 = l1.payload.obj;
+        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args)->length;
         if (t4 == INT64_C(0)) {
-            l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_receiver;
-            l5 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-            vader_midir_emit_first_get(l0, l2, l4, l5);
+            t0 = l1.payload.obj;
+            l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_receiver;
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+            vader_midir_emit_first_get(l0, l2, l4, l3);
         } else {
-            l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_receiver;
-            l5 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-            vader_midir_emit_get(l0, l4, l5);
+            t0 = l1.payload.obj;
+            l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_receiver;
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+            vader_midir_emit_get(l0, l4, l3);
         }
-        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_args)->length;
+        t0 = l1.payload.obj;
+        t4 = ((vader_array_t*) ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args)->length;
         l4 = ((int32_t) (int64_t) (t4 + INT64_C(1)));
-        l16 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_trait_name;
-        l17 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_method;
-        l16 = concat_3(l16, 408u, l17);
+        t0 = l1.payload.obj;
+        l15 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_trait_name;
+        t0 = l1.payload.obj;
+        l16 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_method;
+        l15 = concat_3(l15, 408u, l16);
         vader_struct_vader_bytecode_VirtualCall_t* _a18_obj = (vader_struct_vader_bytecode_VirtualCall_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_VirtualCall_t));
         vader_obj_header_init(_a18_obj, 657u);
         _a18_obj->f_parameter_count = l4;
-        _a18_obj->f_vtable_key = l16;
-        l5 = (void*) _a18_obj;
-        l10 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l7 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l3)->f_span;
-        vader_midir_emit_result_if_any(l0, l2, l7, l3);
+        _a18_obj->f_vtable_key = l15;
+        l3 = (void*) _a18_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+        vader_midir_emit_result_if_any(l0, l2, l6, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 831u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_target);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a19_slotarr = ((vader_array_t*) l5);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_target);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a19_slotarr = ((vader_array_t*) l3);
         if (_a19_slotarr->buf != NULL && _a19_slotarr->buf->header.forward != NULL) { _a19_slotarr->buf = vader_array_buf_forward(_a19_slotarr->buf); }
-        if ((size_t) l6 >= _a19_slotarr->length) { vader_trap("array index out of bounds"); }
-        l5 = vader_array_ref_load_obj(_a19_slotarr->buf, _a19_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) l5)->f_type;
-        l10 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l10);
+        if ((size_t) l5 >= _a19_slotarr->length) { vader_trap("array index out of bounds"); }
+        l3 = vader_array_ref_load_obj(_a19_slotarr->buf, _a19_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) l3)->f_type;
+        l9 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l9);
         l19 = std_collections_contains_key__i64__bool(((vader_struct_std_collections_MutableSet__i64_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_first_get)->f_inner, l2);
-        l15 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_target;
-        l10 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l10);
-        l10 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l16 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_field;
-        l20 = vader_midir_find_struct_field_index(l10, l4, l16);
-        if (l20.tag == 0u) {
-            l16 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_field;
-            l17 = vader_types_display_type(l7);
-            l21 = vader_vt_Display__to_string(vader_box_i32(172u, ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_target));
-            l22 = ((vader_struct_vader_midir_CFGLocal_t*) l5)->f_name;
-            l23 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_11(1858u, l16, 1011u, l17, 927u, l21, 93u, l22, 1049u, l23, 273u);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l9);
+        l9 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t0 = l1.payload.obj;
+        l15 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_field;
+        l18 = vader_midir_find_struct_field_index(l9, l4, l15);
+        if (l18.tag == 0u) {
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_field;
+            l16 = vader_types_display_type(l6);
+            t0 = l1.payload.obj;
+            l20 = vader_vt_Display__to_string(vader_box_i32(172u, ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_target));
+            l21 = ((vader_struct_vader_midir_CFGLocal_t*) l3)->f_name;
+            l22 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
+            t3 = concat_11(1858u, l15, 1011u, l16, 927u, l20, 93u, l21, 1049u, l22, 273u);
             vader_host_std_abort_panic(t3);
         } else {
         }
-        t4 = ((size_t) l20.payload.i);
-        l15 = ((int32_t) (size_t) t4);
-        l24 = false;
+        t4 = ((size_t) l18.payload.i);
+        l14 = ((int32_t) (size_t) t4);
+        l23 = false;
         if (!(l19)) {
-            l24 = vader_midir_try_fuse_local_field(l0, l4, l15);
+            l23 = vader_midir_try_fuse_local_field(l0, l4, l14);
         } else {
         }
-        if (!(l24)) {
+        if (!(l23)) {
             vader_struct_vader_bytecode_StructGet_t* _a20_obj = (vader_struct_vader_bytecode_StructGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructGet_t));
             vader_obj_header_init(_a20_obj, 639u);
             _a20_obj->f_type_id = l4;
-            _a20_obj->f_field_index = l15;
-            l5 = (void*) _a20_obj;
-            l10 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            _a20_obj->f_field_index = l14;
+            l3 = (void*) _a20_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
         }
-        t5 = vader_midir_needs_ref_cast(((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_type);
+        t0 = l1.payload.obj;
+        t5 = vader_midir_needs_ref_cast(((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_type);
         if (t5) {
-            l7 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_type;
-            l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-            t2 = vader_bytecode_intern_type(l7, l5);
+            t0 = l1.payload.obj;
+            l6 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_type;
+            l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+            t2 = vader_bytecode_intern_type(l6, l3);
             vader_struct_vader_bytecode_RefCast_t* _a21_obj = (vader_struct_vader_bytecode_RefCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_RefCast_t));
             vader_obj_header_init(_a21_obj, 621u);
             _a21_obj->f_type_id = t2;
-            l5 = (void*) _a21_obj;
-            l10 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a21_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
         }
-        l4 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 832u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_target);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a22_slotarr = ((vader_array_t*) l5);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_target);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a22_slotarr = ((vader_array_t*) l3);
         if (_a22_slotarr->buf != NULL && _a22_slotarr->buf->header.forward != NULL) { _a22_slotarr->buf = vader_array_buf_forward(_a22_slotarr->buf); }
-        if ((size_t) l6 >= _a22_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a22_slotarr->buf, _a22_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l16 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_field;
-        l20 = vader_midir_find_struct_field_index(l5, l4, l16);
-        if (l20.tag == 0u) {
-            l16 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_field;
-            l17 = vader_types_display_type(l7);
-            l21 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_7(1858u, l16, 1011u, l17, 964u, l21, 274u);
+        if ((size_t) l5 >= _a22_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a22_slotarr->buf, _a22_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t0 = l1.payload.obj;
+        l15 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_field;
+        l18 = vader_midir_find_struct_field_index(l3, l4, l15);
+        if (l18.tag == 0u) {
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_field;
+            l16 = vader_types_display_type(l6);
+            l20 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
+            t3 = concat_7(1858u, l15, 1011u, l16, 964u, l20, 274u);
             vader_host_std_abort_panic(t3);
         } else {
         }
-        t4 = ((size_t) l20.payload.i);
-        l15 = ((int32_t) (size_t) t4);
-        l19 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_barrierless;
+        t4 = ((size_t) l18.payload.i);
+        l14 = ((int32_t) (size_t) t4);
+        t0 = l1.payload.obj;
+        l19 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_barrierless;
         vader_struct_vader_bytecode_StructSet_t* _a23_obj = (vader_struct_vader_bytecode_StructSet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructSet_t));
         vader_obj_header_init(_a23_obj, 641u);
         _a23_obj->f_type_id = l4;
-        _a23_obj->f_field_index = l15;
+        _a23_obj->f_field_index = l14;
         _a23_obj->f_stack = l19;
-        l5 = (void*) _a23_obj;
-        l3 = ((vader_struct_vader_midir_InstrFieldSet_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l3);
+        l3 = (void*) _a23_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 814u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_target);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a24_slotarr = ((vader_array_t*) l5);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_target);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a24_slotarr = ((vader_array_t*) l3);
         if (_a24_slotarr->buf != NULL && _a24_slotarr->buf->header.forward != NULL) { _a24_slotarr->buf = vader_array_buf_forward(_a24_slotarr->buf); }
-        if ((size_t) l6 >= _a24_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a24_slotarr->buf, _a24_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_index;
-        l5 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
-        l8 = vader_midir_array_element_val_type(l7);
-        l19 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_bounds_safe;
-        l7 = vader_bytecode_slot_load_op_for(l8, l19);
-        if (l7.tag == 0u) {
-            l19 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_bounds_safe;
+        if ((size_t) l5 >= _a24_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a24_slotarr->buf, _a24_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_index;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
+        l7 = vader_midir_array_element_val_type(l6);
+        t0 = l1.payload.obj;
+        l19 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_bounds_safe;
+        l6 = vader_bytecode_slot_load_op_for(l7, l19);
+        if (l6.tag == 0u) {
+            t0 = l1.payload.obj;
+            l19 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_bounds_safe;
             vader_struct_vader_bytecode_ArrayGet_t* _a25_obj = (vader_struct_vader_bytecode_ArrayGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArrayGet_t));
             vader_obj_header_init(_a25_obj, 488u);
             _a25_obj->f_type_id = l4;
             _a25_obj->f_bounds_safe = l19;
-            l5 = (void*) _a25_obj;
-            l10 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-            t5 = vader_midir_needs_ref_cast(((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_type);
+            l3 = (void*) _a25_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+            t0 = l1.payload.obj;
+            t5 = vader_midir_needs_ref_cast(((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_type);
             if (t5) {
-                l20 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_type;
-                l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-                t2 = vader_bytecode_intern_type(l20, l5);
+                t0 = l1.payload.obj;
+                l18 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_type;
+                l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+                t2 = vader_bytecode_intern_type(l18, l3);
                 vader_struct_vader_bytecode_RefCast_t* _a26_obj = (vader_struct_vader_bytecode_RefCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_RefCast_t));
                 vader_obj_header_init(_a26_obj, 621u);
                 _a26_obj->f_type_id = t2;
-                l5 = (void*) _a26_obj;
-                l10 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
-                vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                l3 = (void*) _a26_obj;
+                t0 = l1.payload.obj;
+                l9 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+                vader_midir_push_emit(l0, vader_ref_box(l3), l9);
             } else {
             }
         } else {
-            l5 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, l7, l5);
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, l6, l3);
         }
-        l4 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 818u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_target);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a27_slotarr = ((vader_array_t*) l5);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_target);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a27_slotarr = ((vader_array_t*) l3);
         if (_a27_slotarr->buf != NULL && _a27_slotarr->buf->header.forward != NULL) { _a27_slotarr->buf = vader_array_buf_forward(_a27_slotarr->buf); }
-        if ((size_t) l6 >= _a27_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a27_slotarr->buf, _a27_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_index;
-        l5 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
-        l8 = vader_midir_array_element_val_type(l7);
-        l19 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_bounds_safe;
-        l7 = vader_bytecode_slot_store_op_for(l8, l19);
-        if (l7.tag == 0u) {
-            l19 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_bounds_safe;
+        if ((size_t) l5 >= _a27_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a27_slotarr->buf, _a27_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_index;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
+        l7 = vader_midir_array_element_val_type(l6);
+        t0 = l1.payload.obj;
+        l19 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_bounds_safe;
+        l6 = vader_bytecode_slot_store_op_for(l7, l19);
+        if (l6.tag == 0u) {
+            t0 = l1.payload.obj;
+            l19 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_bounds_safe;
             vader_struct_vader_bytecode_ArraySet_t* _a28_obj = (vader_struct_vader_bytecode_ArraySet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArraySet_t));
             vader_obj_header_init(_a28_obj, 495u);
             _a28_obj->f_type_id = l4;
             _a28_obj->f_bounds_safe = l19;
-            l5 = (void*) _a28_obj;
-            l10 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a28_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
-            l3 = ((vader_struct_vader_midir_InstrArraySet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, l7, l3);
+            t0 = l1.payload.obj;
+            l3 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, l6, l3);
         }
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 815u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        t5 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_resolve_buf;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        t5 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_resolve_buf;
         vader_struct_vader_bytecode_ArrayLen_t* _a29_obj = (vader_struct_vader_bytecode_ArrayLen_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArrayLen_t));
         vader_obj_header_init(_a29_obj, 489u);
         _a29_obj->f_resolve_buf = t5;
-        l5 = (void*) _a29_obj;
-        l10 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) l3)->f_span;
+        l3 = (void*) _a29_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 817u) {
-        l3 = l1.payload.obj;
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_value);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a30_slotarr = ((vader_array_t*) l5);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_value);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a30_slotarr = ((vader_array_t*) l3);
         if (_a30_slotarr->buf != NULL && _a30_slotarr->buf->header.forward != NULL) { _a30_slotarr->buf = vader_array_buf_forward(_a30_slotarr->buf); }
-        if ((size_t) l6 >= _a30_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a30_slotarr->buf, _a30_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type;
-        l4 = ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l4 = ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l4, l5);
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        t2 = vader_bytecode_intern_type(l7, l5);
+        if ((size_t) l5 >= _a30_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a30_slotarr->buf, _a30_slotarr->offset + (size_t) l5);
+        l6 = ((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l4, l3);
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t2 = vader_bytecode_intern_type(l6, l3);
         vader_struct_vader_bytecode_ArrayPush_t* _a31_obj = (vader_struct_vader_bytecode_ArrayPush_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArrayPush_t));
         vader_obj_header_init(_a31_obj, 491u);
         _a31_obj->f_type_id = t2;
-        l5 = (void*) _a31_obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayPush_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l3);
+        l3 = (void*) _a31_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 819u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_lo;
-        l5 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_hi;
-        l5 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_lo;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_hi;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
         vader_struct_vader_bytecode_ArraySlice_t* _a32_obj = (vader_struct_vader_bytecode_ArraySlice_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArraySlice_t));
         vader_obj_header_init(_a32_obj, 496u);
         _a32_obj->f_type_id = l4;
-        l5 = (void*) _a32_obj;
-        l10 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) l3)->f_span;
+        l3 = (void*) _a32_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 838u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_target;
-        l5 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_lo;
-        l5 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l4, l5);
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_hi;
-        l5 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l4, l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_target;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_lo;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l4, l3);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_hi;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l4, l3);
         vader_struct_vader_bytecode_StringSliceCodepoints_t* _a33_obj = (vader_struct_vader_bytecode_StringSliceCodepoints_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StringSliceCodepoints_t));
         vader_obj_header_init(_a33_obj, 638u);
-        l5 = (void*) _a33_obj;
-        l10 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) l3)->f_span;
+        l3 = (void*) _a33_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 839u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_fields)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_fields)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_1504: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a34_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_fields);
+            loop_1775: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a34_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_fields);
                         if (_a34_slotarr->buf != NULL && _a34_slotarr->buf->header.forward != NULL) { _a34_slotarr->buf = vader_array_buf_forward(_a34_slotarr->buf); }
-                        if ((size_t) l11 >= _a34_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a34_slotarr->buf->slots)[_a34_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l15, l5);
+                        if ((size_t) l10 >= _a34_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a34_slotarr->buf->slots)[_a34_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l14, l3);
                     } else {
-                        vader_array_t* _a35_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_fields);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a35_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_fields);
                         if (_a35_slotarr->buf != NULL && _a35_slotarr->buf->header.forward != NULL) { _a35_slotarr->buf = vader_array_buf_forward(_a35_slotarr->buf); }
-                        if ((size_t) l11 >= _a35_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l25 = ((int32_t*) _a35_slotarr->buf->slots)[_a35_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l25, l10);
+                        if ((size_t) l10 >= _a35_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l24 = ((int32_t*) _a35_slotarr->buf->slots)[_a35_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l24, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_1504;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_1775;
                 } else {
                 }
             }
         }
-        l19 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_stack;
+        t0 = l1.payload.obj;
+        l19 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_stack;
         vader_struct_vader_bytecode_StructNew_t* _a36_obj = (vader_struct_vader_bytecode_StructNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructNew_t));
         vader_obj_header_init(_a36_obj, 640u);
         _a36_obj->f_type_id = l4;
         _a36_obj->f_stack = l19;
-        l5 = (void*) _a36_obj;
-        l10 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) l3)->f_span;
+        l3 = (void*) _a36_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 816u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_elements)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_elements)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_1589: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a37_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_elements);
+            loop_1877: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a37_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_elements);
                         if (_a37_slotarr->buf != NULL && _a37_slotarr->buf->header.forward != NULL) { _a37_slotarr->buf = vader_array_buf_forward(_a37_slotarr->buf); }
-                        if ((size_t) l11 >= _a37_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a37_slotarr->buf->slots)[_a37_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l15, l5);
+                        if ((size_t) l10 >= _a37_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a37_slotarr->buf->slots)[_a37_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l14, l3);
                     } else {
-                        vader_array_t* _a38_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_elements);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a38_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_elements);
                         if (_a38_slotarr->buf != NULL && _a38_slotarr->buf->header.forward != NULL) { _a38_slotarr->buf = vader_array_buf_forward(_a38_slotarr->buf); }
-                        if ((size_t) l11 >= _a38_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l25 = ((int32_t*) _a38_slotarr->buf->slots)[_a38_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l25, l10);
+                        if ((size_t) l10 >= _a38_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l24 = ((int32_t*) _a38_slotarr->buf->slots)[_a38_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l24, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_1589;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_1877;
                 } else {
                 }
             }
         }
-        l15 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_length;
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_length;
         vader_struct_vader_bytecode_ArrayNew_t* _a39_obj = (vader_struct_vader_bytecode_ArrayNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ArrayNew_t));
         vader_obj_header_init(_a39_obj, 490u);
         _a39_obj->f_type_id = l4;
-        _a39_obj->f_length = l15;
-        l5 = (void*) _a39_obj;
-        l10 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) l3)->f_span;
+        _a39_obj->f_length = l14;
+        l3 = (void*) _a39_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 828u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrDataConst_t*) l3)->f_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        t2 = ((vader_struct_vader_midir_InstrDataConst_t*) l3)->f_pool_index;
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        t0 = l1.payload.obj;
+        t2 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_pool_index;
         vader_struct_vader_bytecode_DataConst_t* _a40_obj = (vader_struct_vader_bytecode_DataConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_DataConst_t));
         vader_obj_header_init(_a40_obj, 539u);
         _a40_obj->f_pool_index = t2;
         _a40_obj->f_type_id = l4;
-        l5 = (void*) _a40_obj;
-        l10 = ((vader_struct_vader_midir_InstrDataConst_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrDataConst_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) l3)->f_span;
+        l3 = (void*) _a40_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 840u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l7 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_check_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        t2 = vader_bytecode_intern_type(l7, l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_check_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t2 = vader_bytecode_intern_type(l6, l3);
         vader_struct_vader_bytecode_TypeCheck_t* _a41_obj = (vader_struct_vader_bytecode_TypeCheck_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_TypeCheck_t));
         vader_obj_header_init(_a41_obj, 642u);
         _a41_obj->f_type_id = t2;
-        l5 = (void*) _a41_obj;
-        l10 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l3)->f_span;
+        l3 = (void*) _a41_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 841u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrTypeConst_t*) l3)->f_value_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        t2 = vader_bytecode_intern_type(l7, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_value_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        t2 = vader_bytecode_intern_type(l6, l3);
         vader_struct_vader_bytecode_TypeConst_t* _a42_obj = (vader_struct_vader_bytecode_TypeConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_TypeConst_t));
         vader_obj_header_init(_a42_obj, 643u);
         _a42_obj->f_type_id = t2;
-        l5 = (void*) _a42_obj;
-        l10 = ((vader_struct_vader_midir_InstrTypeConst_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) l3)->f_span;
+        l3 = (void*) _a42_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 823u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l5 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
-        t0 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrCast_t*) l3)->f_value);
-        l6 = (size_t) (int64_t) t0;
-        vader_array_t* _a43_slotarr = ((vader_array_t*) l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        l3 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_locals;
+        t0 = l1.payload.obj;
+        t1 = ((int64_t) (int32_t) ((vader_struct_vader_midir_InstrCast_t*) t0)->f_value);
+        l5 = (size_t) (int64_t) t1;
+        vader_array_t* _a43_slotarr = ((vader_array_t*) l3);
         if (_a43_slotarr->buf != NULL && _a43_slotarr->buf->header.forward != NULL) { _a43_slotarr->buf = vader_array_buf_forward(_a43_slotarr->buf); }
-        if ((size_t) l6 >= _a43_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_ref_load_obj(_a43_slotarr->buf, _a43_slotarr->offset + (size_t) l6);
-        l8 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGLocal_t*) t1)->f_type);
-        l9 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_InstrCast_t*) l3)->f_type);
-        l4 = ((int32_t) (uint8_t) l8);
-        l15 = ((int32_t) (uint8_t) l9);
-        if (l4 != l15) {
-            l7 = vader_bytecode_convert_target_of(l9);
-            if (l7.tag == 0u) {
-                l20 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_type;
-                l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-                t2 = vader_bytecode_intern_type(l20, l5);
+        if ((size_t) l5 >= _a43_slotarr->length) { vader_trap("array index out of bounds"); }
+        t0 = vader_array_ref_load_obj(_a43_slotarr->buf, _a43_slotarr->offset + (size_t) l5);
+        l7 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_CFGLocal_t*) t0)->f_type);
+        t0 = l1.payload.obj;
+        l8 = vader_bytecode_val_type_of_type(((vader_struct_vader_midir_InstrCast_t*) t0)->f_type);
+        l4 = ((int32_t) (uint8_t) l7);
+        l14 = ((int32_t) (uint8_t) l8);
+        if (l4 != l14) {
+            l6 = vader_bytecode_convert_target_of(l8);
+            if (l6.tag == 0u) {
+                t0 = l1.payload.obj;
+                l18 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_type;
+                l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+                t2 = vader_bytecode_intern_type(l18, l3);
                 vader_struct_vader_bytecode_RefCast_t* _a44_obj = (vader_struct_vader_bytecode_RefCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_RefCast_t));
                 vader_obj_header_init(_a44_obj, 621u);
                 _a44_obj->f_type_id = t2;
-                l5 = (void*) _a44_obj;
-                l10 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_span;
-                vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                l3 = (void*) _a44_obj;
+                t0 = l1.payload.obj;
+                l9 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+                vader_midir_push_emit(l0, vader_ref_box(l3), l9);
             } else {
-                t5 = vader_midir_convert_eligible(l8);
+                t5 = vader_midir_convert_eligible(l7);
                 if (t5) {
-                    l16 = vader_bytecode_val_type_name(l8);
-                    l8 = ((uint8_t) l7.payload.i);
+                    l15 = vader_bytecode_val_type_name(l7);
+                    l7 = ((uint8_t) l6.payload.i);
                     vader_struct_vader_bytecode_Convert_t* _a45_obj = (vader_struct_vader_bytecode_Convert_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_Convert_t));
                     vader_obj_header_init(_a45_obj, 538u);
-                    _a45_obj->f_from_name = l16;
-                    _a45_obj->f_target = l8;
-                    l5 = (void*) _a45_obj;
-                    l10 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_span;
-                    vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                    _a45_obj->f_from_name = l15;
+                    _a45_obj->f_target = l7;
+                    l3 = (void*) _a45_obj;
+                    t0 = l1.payload.obj;
+                    l9 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+                    vader_midir_push_emit(l0, vader_ref_box(l3), l9);
                 } else {
-                    l7 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_type;
-                    l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-                    t2 = vader_bytecode_intern_type(l7, l5);
+                    t0 = l1.payload.obj;
+                    l6 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_type;
+                    l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+                    t2 = vader_bytecode_intern_type(l6, l3);
                     vader_struct_vader_bytecode_RefCast_t* _a46_obj = (vader_struct_vader_bytecode_RefCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_RefCast_t));
                     vader_obj_header_init(_a46_obj, 621u);
                     _a46_obj->f_type_id = t2;
-                    l5 = (void*) _a46_obj;
-                    l10 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_span;
-                    vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+                    l3 = (void*) _a46_obj;
+                    t0 = l1.payload.obj;
+                    l9 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+                    vader_midir_push_emit(l0, vader_ref_box(l3), l9);
                 }
             }
         } else {
         }
-        l4 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrCast_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 825u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_value_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_cell_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_cell_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
         vader_struct_vader_bytecode_StructNew_t* _a47_obj = (vader_struct_vader_bytecode_StructNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructNew_t));
         vader_obj_header_init(_a47_obj, 640u);
         _a47_obj->f_type_id = l4;
         _a47_obj->f_stack = false;
-        l5 = (void*) _a47_obj;
-        l10 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l10);
-        l4 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) l3)->f_span;
+        l3 = (void*) _a47_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 824u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_value_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_cell_type(l7, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_value_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_cell_type(l6, l3);
         l19 = std_collections_contains_key__i64__bool(((vader_struct_std_collections_MutableSet__i64_t*) ((vader_struct_vader_midir_ScheduleHints_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_hints)->f_skip_first_get)->f_inner, l2);
-        l15 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_cell;
-        l5 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l24 = false;
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_cell;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        l23 = false;
         if (!(l19)) {
-            l24 = vader_midir_try_fuse_local_field(l0, l4, INT32_C(0));
+            l23 = vader_midir_try_fuse_local_field(l0, l4, INT32_C(0));
         } else {
         }
-        if (!(l24)) {
+        if (!(l23)) {
             vader_struct_vader_bytecode_StructGet_t* _a48_obj = (vader_struct_vader_bytecode_StructGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructGet_t));
             vader_obj_header_init(_a48_obj, 639u);
             _a48_obj->f_type_id = l4;
             _a48_obj->f_field_index = INT32_C(0);
-            l5 = (void*) _a48_obj;
-            l10 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a48_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
         }
-        l4 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 826u) {
-        l3 = l1.payload.obj;
-        l7 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_value_type;
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_cell_type(l7, l5);
-        l15 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_cell;
-        l5 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l15, l5);
-        l15 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_span;
-        vader_midir_emit_get(l0, l15, l5);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_value_type;
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_cell_type(l6, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_cell;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l14, l3);
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_span;
+        vader_midir_emit_get(l0, l14, l3);
         vader_struct_vader_bytecode_StructSet_t* _a49_obj = (vader_struct_vader_bytecode_StructSet_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_StructSet_t));
         vader_obj_header_init(_a49_obj, 641u);
         _a49_obj->f_type_id = l4;
         _a49_obj->f_field_index = INT32_C(0);
         _a49_obj->f_stack = false;
-        l5 = (void*) _a49_obj;
-        l3 = ((vader_struct_vader_midir_InstrCellSet_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l3);
+        l3 = (void*) _a49_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 836u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_env;
-        l5 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
-        l7 = vader_midir_closure_header_type(((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_type);
-        l5 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
-        l4 = vader_bytecode_intern_type(l7, l5);
-        l5 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
-        l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_fn_symbol)->f_id;
-        l7 = std_collections_get__i32__i32(l5, l15);
-        if (l7.tag == 172u) {
-            t2 = ((int32_t) l7.payload.i);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_env;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
+        t0 = l1.payload.obj;
+        l6 = vader_midir_closure_header_type(((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_type);
+        l3 = ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project;
+        l4 = vader_bytecode_intern_type(l6, l3);
+        l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_project)->f_function_index_by_symbol_id;
+        t0 = l1.payload.obj;
+        l14 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_fn_symbol)->f_id;
+        l6 = std_collections_get__i32__i32(l3, l14);
+        if (l6.tag == 172u) {
+            t2 = ((int32_t) l6.payload.i);
             vader_struct_vader_bytecode_MakeClosure_t* _a50_obj = (vader_struct_vader_bytecode_MakeClosure_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_MakeClosure_t));
             vader_obj_header_init(_a50_obj, 618u);
             _a50_obj->f_function_index = t2;
             _a50_obj->f_env_type_id = l4;
-            l5 = (void*) _a50_obj;
-            l10 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_span;
-            vader_midir_push_emit(l0, vader_ref_box(l5), l10);
+            l3 = (void*) _a50_obj;
+            t0 = l1.payload.obj;
+            l9 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_span;
+            vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         } else {
-            l16 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_fn_symbol)->f_name;
-            l6 = vader_host_std_core_byte_len(l16);
-            l5 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(109) + l6));
-            l6 = (size_t) (int64_t) INT64_C(0);
-            l6 = std_core_write_string_at(l5, l6, 1862u);
-            l6 = std_core_write_string_at(l5, l6, l16);
-            l6 = std_core_write_string_at(l5, l6, 263u);
-            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_fn_symbol)->f_id;
-            l18 = ((int64_t) (int32_t) t2);
-            l6 = std_core_write_int(l5, l6, l18);
-            l6 = std_core_write_string_at(l5, l6, 341u);
-            t3 = std_core_finish_buffer(l5, l6);
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_fn_symbol)->f_name;
+            l5 = vader_host_std_core_byte_len(l15);
+            l3 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(109) + l5));
+            l5 = (size_t) (int64_t) INT64_C(0);
+            l5 = std_core_write_string_at(l3, l5, 1862u);
+            l5 = std_core_write_string_at(l3, l5, l15);
+            l5 = std_core_write_string_at(l3, l5, 263u);
+            t0 = l1.payload.obj;
+            t2 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_fn_symbol)->f_id;
+            l17 = ((int64_t) (int32_t) t2);
+            l5 = std_core_write_int(l3, l5, l17);
+            l5 = std_core_write_string_at(l3, l5, 341u);
+            t3 = std_core_finish_buffer(l3, l5);
             vader_host_std_abort_panic(t3);
         }
-        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l3)->f_span;
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_span;
         vader_midir_emit_result(l0, l2, l4, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 835u) {
-        l3 = l1.payload.obj;
-        l6 = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_args)->length;
-        l11 = (size_t) (int64_t) INT64_C(0);
+        t0 = l1.payload.obj;
+        l5 = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_args)->length;
+        l10 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_2150: {
-                if ((l11 < l6)) {
-                    if (l11 == INT64_C(0)) {
-                        vader_array_t* _a51_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_args);
+            loop_2535: {
+                if ((l10 < l5)) {
+                    if (l10 == INT64_C(0)) {
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a51_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_args);
                         if (_a51_slotarr->buf != NULL && _a51_slotarr->buf->header.forward != NULL) { _a51_slotarr->buf = vader_array_buf_forward(_a51_slotarr->buf); }
-                        if ((size_t) l11 >= _a51_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l4 = ((int32_t*) _a51_slotarr->buf->slots)[_a51_slotarr->offset + (size_t) l11];
-                        l5 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_span;
-                        vader_midir_emit_first_get(l0, l2, l4, l5);
+                        if ((size_t) l10 >= _a51_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l4 = ((int32_t*) _a51_slotarr->buf->slots)[_a51_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_span;
+                        vader_midir_emit_first_get(l0, l2, l4, l3);
                     } else {
-                        vader_array_t* _a52_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_args);
+                        t0 = l1.payload.obj;
+                        vader_array_t* _a52_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_args);
                         if (_a52_slotarr->buf != NULL && _a52_slotarr->buf->header.forward != NULL) { _a52_slotarr->buf = vader_array_buf_forward(_a52_slotarr->buf); }
-                        if ((size_t) l11 >= _a52_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l15 = ((int32_t*) _a52_slotarr->buf->slots)[_a52_slotarr->offset + (size_t) l11];
-                        l10 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_span;
-                        vader_midir_emit_get(l0, l15, l10);
+                        if ((size_t) l10 >= _a52_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l14 = ((int32_t*) _a52_slotarr->buf->slots)[_a52_slotarr->offset + (size_t) l10];
+                        t0 = l1.payload.obj;
+                        l9 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_span;
+                        vader_midir_emit_get(l0, l14, l9);
                     }
-                    t0 = (l11 + INT64_C(1));
-                    l11 = (size_t) (int64_t) t0;
-                    goto loop_2150;
+                    t1 = (l10 + INT64_C(1));
+                    l10 = (size_t) (int64_t) t1;
+                    goto loop_2535;
                 } else {
                 }
             }
         }
-        t3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_name;
-        l7 = vader_midir_intrinsic_op_for_name(t3);
-        if (l7.tag == 0u) {
-            l16 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_name;
-            l17 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
-            t3 = concat_5(1860u, l16, 964u, l17, 276u);
+        t0 = l1.payload.obj;
+        t3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_name;
+        l6 = vader_midir_intrinsic_op_for_name(t3);
+        if (l6.tag == 0u) {
+            t0 = l1.payload.obj;
+            l15 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_name;
+            l16 = ((vader_struct_vader_midir_CFGFunction_t*) ((vader_struct_vader_midir_FnEmitCfg_t*) l0)->f_fn_)->f_mangled;
+            t3 = concat_5(1860u, l15, 964u, l16, 276u);
             vader_host_std_abort_panic(t3);
         } else {
         }
-        l5 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_span;
-        vader_midir_push_emit(l0, l7, l5);
-        l7 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_dst;
-        l3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l3)->f_span;
-        vader_midir_emit_result_if_any(l0, l2, l7, l3);
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_span;
+        vader_midir_push_emit(l0, l6, l3);
+        t0 = l1.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_dst;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_span;
+        vader_midir_emit_result_if_any(l0, l2, l6, l3);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 830u) {
-        l3 = l1.payload.obj;
-        l4 = ((vader_struct_vader_midir_InstrDeferPush_t*) l3)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrDeferPush_t*) l3)->f_span;
-        vader_midir_emit_first_get(l0, l2, l4, l5);
+        t0 = l1.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrDeferPush_t*) t0)->f_value;
+        t0 = l1.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrDeferPush_t*) t0)->f_span;
+        vader_midir_emit_first_get(l0, l2, l4, l3);
         vader_struct_vader_bytecode_DeferPush_t* _a53_obj = (vader_struct_vader_bytecode_DeferPush_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_DeferPush_t));
         vader_obj_header_init(_a53_obj, 542u);
-        l5 = (void*) _a53_obj;
-        l3 = ((vader_struct_vader_midir_InstrDeferPush_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l3);
+        l3 = (void*) _a53_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrDeferPush_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l1.tag == 829u) {
-        l3 = l1.payload.obj;
-        t2 = ((vader_struct_vader_midir_InstrDeferPopExec_t*) l3)->f_count;
+        t0 = l1.payload.obj;
+        t2 = ((vader_struct_vader_midir_InstrDeferPopExec_t*) t0)->f_count;
         vader_struct_vader_bytecode_DeferPopExec_t* _a54_obj = (vader_struct_vader_bytecode_DeferPopExec_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_DeferPopExec_t));
         vader_obj_header_init(_a54_obj, 541u);
         _a54_obj->f_count = t2;
-        l5 = (void*) _a54_obj;
-        l3 = ((vader_struct_vader_midir_InstrDeferPopExec_t*) l3)->f_span;
-        vader_midir_push_emit(l0, vader_ref_box(l5), l3);
+        l3 = (void*) _a54_obj;
+        t0 = l1.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrDeferPopExec_t*) t0)->f_span;
+        vader_midir_push_emit(l0, vader_ref_box(l3), l9);
         { vader_gc_top = gc_frame.prev; return; }
     }
     vader_host_std_abort_panic(1859u);
@@ -9897,14 +10147,13 @@ static vader_string_t vader_midir_extern_symbol_name(void* l0) {
     void* l1;
     void* l4;
     void* l5;
-    void* l8;
-    size_t l2, l3, l6, l9;
+    size_t l2, l3, l6, l8;
     vader_box_t l7;
     vader_string_t t0;
     int64_t t1;
     size_t t2;
-    vader_box_t t3;
-    void* t4;
+    void* t3;
+    vader_box_t t4;
     l1 = ((vader_struct_toolchain_ast_FnDecl_t*) l0)->f_decorators;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
@@ -9936,34 +10185,36 @@ static vader_string_t vader_midir_extern_symbol_name(void* l0) {
                 if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l7 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
                 if (l7.tag == 460u) {
-                    l8 = l7.payload.obj;
-                    t2 = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) l8)->f_parts)->length;
+                    t3 = l7.payload.obj;
+                    t2 = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) t3)->f_parts)->length;
                     if (t2 == INT64_C(1)) {
-                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) l8)->f_parts);
+                        t3 = l7.payload.obj;
+                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) t3)->f_parts);
                         if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
                         if ((size_t) INT32_C(0) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                        t3 = vader_array_ref_load_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT32_C(0));
-                        if (t3.tag == 462u) {
-                            vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) l8)->f_parts);
+                        t4 = vader_array_ref_load_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT32_C(0));
+                        if (t4.tag == 462u) {
+                            t3 = l7.payload.obj;
+                            vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_toolchain_ast_StringLitExpr_t*) t3)->f_parts);
                             if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
                             if ((size_t) INT32_C(0) >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-                            t3 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) INT32_C(0));
-                            t4 = t3.payload.obj;
-                            t0 = ((vader_struct_toolchain_ast_StringLitText_t*) t4)->f_value;
+                            t4 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) INT32_C(0));
+                            t3 = t4.payload.obj;
+                            t0 = ((vader_struct_toolchain_ast_StringLitText_t*) t3)->f_value;
                             return t0;
                         }
-                        l9 = (size_t) (int64_t) INT64_C(1);
-                        t1 = (l3 + l9);
+                        l8 = (size_t) (int64_t) INT64_C(1);
+                        t1 = (l3 + l8);
                         l3 = (size_t) (int64_t) t1;
                         goto loop_7;
                     }
-                    l9 = (size_t) (int64_t) INT64_C(1);
-                    t1 = (l3 + l9);
+                    l8 = (size_t) (int64_t) INT64_C(1);
+                    t1 = (l3 + l8);
                     l3 = (size_t) (int64_t) t1;
                     goto loop_7;
                 }
-                l9 = (size_t) (int64_t) INT64_C(1);
-                t1 = (l3 + l9);
+                l8 = (size_t) (int64_t) INT64_C(1);
+                t1 = (l3 + l8);
                 l3 = (size_t) (int64_t) t1;
                 goto loop_7;
             } else {
@@ -10114,16 +10365,19 @@ static vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vad
     if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     l5 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     if (l5.tag == 511u) {
-        l3 = l5.payload.obj;
-        vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_vader_bytecode_BcStruct_t*) l3)->f_fields);
+        t1 = l5.payload.obj;
+        vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_vader_bytecode_BcStruct_t*) t1)->f_fields);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-        l4 = ((vader_array_t*) ((vader_struct_vader_bytecode_BcStruct_t*) l3)->f_fields)->length;
+        l4 = ((vader_array_t*) ((vader_struct_vader_bytecode_BcStruct_t*) t1)->f_fields)->length;
         l6 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_20: {
+            loop_19: {
                 if ((l6 < l4)) {
-                    if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
+                    t1 = l5.payload.obj;
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_vader_bytecode_BcStruct_t*) t1)->f_fields);
+                    if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
+                    if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                    t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
                     t2 = ((vader_struct_vader_bytecode_BcField_t*) t1)->f_name;
                     if (t2 == l2) {
                         t3 = vader_box_i64(179u, (int64_t)(uint64_t) l6);
@@ -10131,7 +10385,7 @@ static vader_box_t vader_midir_find_struct_field_index(void* l0, int32_t l1, vad
                     }
                     t0 = (l6 + INT64_C(1));
                     l6 = (size_t) (int64_t) t0;
-                    goto loop_20;
+                    goto loop_19;
                 } else {
                 }
             }
@@ -10535,27 +10789,26 @@ static void* vader_midir_fold_moves(void* l0) {
 static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
     void* l3 = NULL;
     void* l8 = NULL;
-    void* l9 = NULL;
-    void* l11 = NULL;
-    void* l15 = NULL;
-    void* l29 = NULL;
-    void* l32 = NULL;
-    void* l33 = NULL;
-    void* l37 = NULL;
-    void* l40 = NULL;
-    size_t l4, l5, l21, l38, l43, l44;
-    vader_box_t l6 = vader_box_null(), l7 = vader_box_null(), l13 = vader_box_null(), l16 = vader_box_null(), l19 = vader_box_null(), l22 = vader_box_null(), l23 = vader_box_null(), l39 = vader_box_null(), l42 = vader_box_null();
-    int32_t l10, l12, l14, l24, l25, l26, l27, l28, l30, l34, l41;
-    int64_t l17, l20, l35;
-    bool l18, l31, l36;
+    void* l10 = NULL;
+    void* l14 = NULL;
+    void* l27 = NULL;
+    void* l30 = NULL;
+    void* l31 = NULL;
+    void* l35 = NULL;
+    void* l38 = NULL;
+    size_t l4, l5, l20, l36, l41, l42;
+    vader_box_t l6 = vader_box_null(), l7 = vader_box_null(), l12 = vader_box_null(), l15 = vader_box_null(), l18 = vader_box_null(), l21 = vader_box_null(), l22 = vader_box_null(), l37 = vader_box_null(), l40 = vader_box_null();
+    int32_t l9, l11, l13, l23, l24, l25, l26, l28, l32, l39;
+    int64_t l16, l19, l33;
+    bool l17, l29, l34;
     int64_t t0;
-    bool t1;
-    void* t2 = NULL;
+    void* t1 = NULL;
+    bool t2;
     size_t t3;
     vader_box_t t4 = vader_box_null();
-    vader_box_t* gc_roots[10] = { &l6, &l7, &l13, &l16, &l19, &l22, &l23, &l39, &l42, &t4 };
-    void** gc_raw_roots[14] = { &l0, &l1, &l2, &l3, &l8, &l9, &l11, &l15, &l29, &l32, &l33, &l37, &l40, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 10u, 14u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t* gc_roots[10] = { &l6, &l7, &l12, &l15, &l18, &l21, &l22, &l37, &l40, &t4 };
+    void** gc_raw_roots[13] = { &l0, &l1, &l2, &l3, &l8, &l10, &l14, &l27, &l30, &l31, &l35, &l38, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 10u, 13u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(133u, 0u, 13u, 1169u);
     l3 = (void*) _a0_arr;
@@ -10576,184 +10829,187 @@ static void* vader_midir_fold_moves_in_block(void* l0, void* l1, void* l2) {
                     goto loop_8;
                 }
                 if (l6.tag == 837u) {
-                    l8 = l6.payload.obj;
-                    l9 = ((vader_struct_std_collections_MutableSet__i32_t*) l2)->f_inner;
-                    l10 = ((vader_struct_vader_midir_InstrMove_t*) l8)->f_src;
-                    t1 = std_collections_contains_key__i32__bool(l9, l10);
-                    if (t1) {
-                        l11 = l6.payload.obj;
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l11));
+                    l8 = ((vader_struct_std_collections_MutableSet__i32_t*) l2)->f_inner;
+                    t1 = l6.payload.obj;
+                    l9 = ((vader_struct_vader_midir_InstrMove_t*) t1)->f_src;
+                    t2 = std_collections_contains_key__i32__bool(l8, l9);
+                    if (t2) {
+                        l10 = l6.payload.obj;
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l10));
                         t0 = (l5 + INT64_C(1));
                         l5 = (size_t) (int64_t) t0;
                         goto loop_8;
                     }
-                    l12 = ((vader_struct_vader_midir_InstrMove_t*) l8)->f_src;
-                    l13 = std_collections_get__i32__i32(l1, l12);
-                    if (l13.tag == 172u) {
-                        l14 = ((int32_t) l13.payload.i);
+                    t1 = l6.payload.obj;
+                    l11 = ((vader_struct_vader_midir_InstrMove_t*) t1)->f_src;
+                    l12 = std_collections_get__i32__i32(l1, l11);
+                    if (l12.tag == 172u) {
+                        l13 = ((int32_t) l12.payload.i);
                     } else {
-                        l14 = INT32_C(0);
+                        l13 = INT32_C(0);
                     }
-                    if (l14 != INT32_C(1)) {
-                        l15 = l6.payload.obj;
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l15));
+                    if (l13 != INT32_C(1)) {
+                        l14 = l6.payload.obj;
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l14));
                         t0 = (l5 + INT64_C(1));
                         l5 = (size_t) (int64_t) t0;
                         goto loop_8;
                     }
+                    t1 = l6.payload.obj;
                     vader_struct__Cell_i32_t* _a2_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
                     vader_obj_header_init(_a2_obj, 200u);
-                    _a2_obj->f_value = ((vader_struct_vader_midir_InstrMove_t*) l8)->f_dst;
-                    t2 = (void*) _a2_obj;
-                    l16 = vader_ref_box(t2);
-                    l17 = -(INT64_C(1));
-                    l18 = false;
+                    _a2_obj->f_value = ((vader_struct_vader_midir_InstrMove_t*) t1)->f_dst;
+                    t1 = (void*) _a2_obj;
+                    l15 = vader_ref_box(t1);
+                    l16 = -(INT64_C(1));
+                    l17 = false;
                     vader_array_t* _a3_arr = vader_array_new(6u, 1u, 12u, 167u);
                     ((uint8_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (uint8_t) false;
-                    t2 = (void*) _a3_arr;
+                    t1 = (void*) _a3_arr;
                     vader_struct__Cell_Array_bool__t* _a4_obj = (vader_struct__Cell_Array_bool__t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_bool__t));
                     vader_obj_header_init(_a4_obj, 185u);
-                    _a4_obj->f_value = t2;
-                    t2 = (void*) _a4_obj;
-                    l19 = vader_ref_box(t2);
+                    _a4_obj->f_value = t1;
+                    t1 = (void*) _a4_obj;
+                    l18 = vader_ref_box(t1);
                     t3 = ((vader_array_t*) l3)->length;
-                    l20 = (((int64_t) (size_t) t3) - INT64_C(1));
+                    l19 = (((int64_t) (size_t) t3) - INT64_C(1));
                     {
-                        loop_107: {
-                            if ((l20 >= INT64_C(0))) {
-                                t0 = l20;
-                                l21 = (size_t) (int64_t) t0;
+                        loop_110: {
+                            if ((l19 >= INT64_C(0))) {
+                                t0 = l19;
+                                l20 = (size_t) (int64_t) t0;
                                 vader_array_t* _a5_slotarr = ((vader_array_t*) l3);
                                 if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
-                                if ((size_t) l21 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
-                                l22 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l21);
-                                l23 = vader_midir_dst_of(l22);
-                                if (l23.tag == 172u) {
-                                    l24 = ((int32_t) l23.payload.i);
-                                    l25 = l24;
-                                    l26 = ((vader_struct_vader_midir_InstrMove_t*) l8)->f_src;
-                                    if (l25 == l26) {
-                                        l17 = l20;
+                                if ((size_t) l20 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                                l21 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l20);
+                                l22 = vader_midir_dst_of(l21);
+                                if (l22.tag == 172u) {
+                                    l23 = ((int32_t) l22.payload.i);
+                                    t1 = l6.payload.obj;
+                                    l24 = ((vader_struct_vader_midir_InstrMove_t*) t1)->f_src;
+                                    if (l23 == l24) {
+                                        l16 = l19;
                                     } else {
-                                        l27 = l24;
-                                        l28 = ((vader_struct__Cell_i32_t*) l16.payload.obj)->f_value;
-                                        if (l27 == l28) {
-                                            l18 = true;
+                                        l25 = ((int32_t) l22.payload.i);
+                                        l26 = ((vader_struct__Cell_i32_t*) l15.payload.obj)->f_value;
+                                        if (l25 == l26) {
+                                            l17 = true;
                                         } else {
-                                            l29 = ((vader_struct__Cell_Array_bool__t*) l19.payload.obj)->f_value;
-                                            l30 = INT32_C(0);
-                                            l31 = false;
-                                            vader_array_t* _a6_slotarr = ((vader_array_t*) l29);
+                                            l27 = ((vader_struct__Cell_Array_bool__t*) l18.payload.obj)->f_value;
+                                            l28 = INT32_C(0);
+                                            l29 = false;
+                                            vader_array_t* _a6_slotarr = ((vader_array_t*) l27);
                                             if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
-                                            if ((size_t) l30 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
-                                            ((uint8_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l30] = (uint8_t) l31;
+                                            if ((size_t) l28 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
+                                            ((uint8_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l28] = (uint8_t) l29;
                                             vader_struct___lambda_env_vader_midir_11_t* _a7_obj = (vader_struct___lambda_env_vader_midir_11_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_midir_11_t));
                                             vader_obj_header_init(_a7_obj, 254u);
-                                            _a7_obj->f_cap_0 = l16;
-                                            _a7_obj->f_cap_1 = l19;
-                                            t2 = (void*) _a7_obj;
+                                            _a7_obj->f_cap_0 = l15;
+                                            _a7_obj->f_cap_1 = l18;
+                                            t1 = (void*) _a7_obj;
                                             vader_fn_t* _a8_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                                             vader_obj_header_init(_a8_closure, 143u);
                                             _a8_closure->code = (void*) &vader_fn_lift___lambda_vader_midir_10;
-                                            _a8_closure->env = t2;
-                                            l32 = (void*) _a8_closure;
-                                            vader_midir_for_each_read_local(l22, l32);
-                                            l33 = ((vader_struct__Cell_Array_bool__t*) l19.payload.obj)->f_value;
-                                            l34 = INT32_C(0);
-                                            vader_array_t* _a9_slotarr = ((vader_array_t*) l33);
+                                            _a8_closure->env = t1;
+                                            l30 = (void*) _a8_closure;
+                                            vader_midir_for_each_read_local(l21, l30);
+                                            l31 = ((vader_struct__Cell_Array_bool__t*) l18.payload.obj)->f_value;
+                                            l32 = INT32_C(0);
+                                            vader_array_t* _a9_slotarr = ((vader_array_t*) l31);
                                             if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
-                                            if ((size_t) l34 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
-                                            t4 = vader_box_bool(167u, ((uint8_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l34]);
-                                            t1 = t4.payload.b;
-                                            if (t1) {
-                                                l18 = true;
+                                            if ((size_t) l32 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
+                                            t4 = vader_box_bool(167u, ((uint8_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l32]);
+                                            t2 = t4.payload.b;
+                                            if (t2) {
+                                                l17 = true;
                                             } else {
-                                                l35 = INT64_C(1);
-                                                l20 = (l20 - l35);
-                                                goto loop_107;
+                                                l33 = INT64_C(1);
+                                                l19 = (l19 - l33);
+                                                goto loop_110;
                                             }
                                         }
                                     }
                                 } else {
-                                    l29 = ((vader_struct__Cell_Array_bool__t*) l19.payload.obj)->f_value;
-                                    l30 = INT32_C(0);
-                                    l31 = false;
-                                    vader_array_t* _a10_slotarr = ((vader_array_t*) l29);
+                                    l27 = ((vader_struct__Cell_Array_bool__t*) l18.payload.obj)->f_value;
+                                    l28 = INT32_C(0);
+                                    l29 = false;
+                                    vader_array_t* _a10_slotarr = ((vader_array_t*) l27);
                                     if (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = vader_array_buf_forward(_a10_slotarr->buf); }
-                                    if ((size_t) l30 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
-                                    ((uint8_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) l30] = (uint8_t) l31;
+                                    if ((size_t) l28 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
+                                    ((uint8_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) l28] = (uint8_t) l29;
                                     vader_struct___lambda_env_vader_midir_11_t* _a11_obj = (vader_struct___lambda_env_vader_midir_11_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_midir_11_t));
                                     vader_obj_header_init(_a11_obj, 254u);
-                                    _a11_obj->f_cap_0 = l16;
-                                    _a11_obj->f_cap_1 = l19;
-                                    t2 = (void*) _a11_obj;
+                                    _a11_obj->f_cap_0 = l15;
+                                    _a11_obj->f_cap_1 = l18;
+                                    t1 = (void*) _a11_obj;
                                     vader_fn_t* _a12_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                                     vader_obj_header_init(_a12_closure, 143u);
                                     _a12_closure->code = (void*) &vader_fn_lift___lambda_vader_midir_10;
-                                    _a12_closure->env = t2;
-                                    l32 = (void*) _a12_closure;
-                                    vader_midir_for_each_read_local(l22, l32);
-                                    l33 = ((vader_struct__Cell_Array_bool__t*) l19.payload.obj)->f_value;
-                                    l34 = INT32_C(0);
-                                    vader_array_t* _a13_slotarr = ((vader_array_t*) l33);
+                                    _a12_closure->env = t1;
+                                    l30 = (void*) _a12_closure;
+                                    vader_midir_for_each_read_local(l21, l30);
+                                    l31 = ((vader_struct__Cell_Array_bool__t*) l18.payload.obj)->f_value;
+                                    l32 = INT32_C(0);
+                                    vader_array_t* _a13_slotarr = ((vader_array_t*) l31);
                                     if (_a13_slotarr->buf != NULL && _a13_slotarr->buf->header.forward != NULL) { _a13_slotarr->buf = vader_array_buf_forward(_a13_slotarr->buf); }
-                                    if ((size_t) l34 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
-                                    t4 = vader_box_bool(167u, ((uint8_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l34]);
-                                    t1 = t4.payload.b;
-                                    if (t1) {
-                                        l18 = true;
+                                    if ((size_t) l32 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
+                                    t4 = vader_box_bool(167u, ((uint8_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l32]);
+                                    t2 = t4.payload.b;
+                                    if (t2) {
+                                        l17 = true;
                                     } else {
-                                        l35 = INT64_C(1);
-                                        l20 = (l20 - l35);
-                                        goto loop_107;
+                                        l33 = INT64_C(1);
+                                        l19 = (l19 - l33);
+                                        goto loop_110;
                                     }
                                 }
                             } else {
                             }
                         }
                     }
-                    if ((l17 < INT64_C(0))) {
-                        l36 = true;
+                    if ((l16 < INT64_C(0))) {
+                        l34 = true;
                     } else {
-                        l36 = l18;
+                        l34 = l17;
                     }
-                    if (l36) {
-                        l37 = l6.payload.obj;
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l37));
+                    if (l34) {
+                        l35 = l6.payload.obj;
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l35));
                         t0 = (l5 + INT64_C(1));
                         l5 = (size_t) (int64_t) t0;
                         goto loop_8;
                     }
-                    t0 = l17;
-                    l38 = (size_t) (int64_t) t0;
+                    t0 = l16;
+                    l36 = (size_t) (int64_t) t0;
                     vader_array_t* _a14_slotarr = ((vader_array_t*) l3);
                     if (_a14_slotarr->buf != NULL && _a14_slotarr->buf->header.forward != NULL) { _a14_slotarr->buf = vader_array_buf_forward(_a14_slotarr->buf); }
-                    if ((size_t) l38 >= _a14_slotarr->length) { vader_trap("array index out of bounds"); }
-                    l39 = vader_array_ref_load_box(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l38);
-                    t1 = vader_midir_instruction_has_side_effect(l39);
-                    if (t1) {
-                        l40 = l6.payload.obj;
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l40));
+                    if ((size_t) l36 >= _a14_slotarr->length) { vader_trap("array index out of bounds"); }
+                    l37 = vader_array_ref_load_box(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l36);
+                    t2 = vader_midir_instruction_has_side_effect(l37);
+                    if (t2) {
+                        l38 = l6.payload.obj;
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l38));
                         t0 = (l5 + INT64_C(1));
                         l5 = (size_t) (int64_t) t0;
                         goto loop_8;
                     }
-                    l41 = ((vader_struct_vader_midir_InstrMove_t*) l8)->f_dst;
-                    l42 = vader_midir_with_dst(l39, l41);
-                    t0 = l17;
-                    l43 = (size_t) (int64_t) t0;
+                    t1 = l6.payload.obj;
+                    l39 = ((vader_struct_vader_midir_InstrMove_t*) t1)->f_dst;
+                    l40 = vader_midir_with_dst(l37, l39);
+                    t0 = l16;
+                    l41 = (size_t) (int64_t) t0;
                     vader_array_t* _a15_slotarr = ((vader_array_t*) l3);
                     if (_a15_slotarr->buf != NULL && _a15_slotarr->buf->header.forward != NULL) { _a15_slotarr->buf = vader_array_buf_forward(_a15_slotarr->buf); }
-                    if ((size_t) l43 >= _a15_slotarr->length) { vader_trap("array index out of bounds"); }
-                    vader_array_ref_store(_a15_slotarr->buf, _a15_slotarr->offset + (size_t) l43, l42.payload.obj);
+                    if ((size_t) l41 >= _a15_slotarr->length) { vader_trap("array index out of bounds"); }
+                    vader_array_ref_store(_a15_slotarr->buf, _a15_slotarr->offset + (size_t) l41, l40.payload.obj);
                     VADER_WRITE_BARRIER(_a15_slotarr->buf);
-                    l44 = (size_t) (int64_t) INT64_C(1);
-                    t0 = (l5 + l44);
+                    l42 = (size_t) (int64_t) INT64_C(1);
+                    t0 = (l5 + l42);
                     l5 = (size_t) (int64_t) t0;
                     goto loop_8;
                 }
-                l44 = (size_t) (int64_t) INT64_C(1);
-                t0 = (l5 + l44);
+                l42 = (size_t) (int64_t) INT64_C(1);
+                t0 = (l5 + l42);
                 l5 = (size_t) (int64_t) t0;
                 goto loop_8;
             } else {
@@ -11542,21 +11798,20 @@ static bool vader_midir_loop_exit_present(void* l0, int32_t l1) {
 static vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
-    void* l3 = NULL;
-    size_t l4, l5;
-    vader_box_t l6 = vader_box_null();
-    vader_string_t l7 = 0;
-    uint8_t l8;
-    uint64_t l9;
+    size_t l3, l4;
+    vader_box_t l5 = vader_box_null();
+    vader_string_t l6 = 0;
+    uint8_t l7;
+    uint64_t l8;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     int64_t t2;
     int32_t t3;
     vader_box_t t4 = vader_box_null();
-    vader_box_t* gc_roots[3] = { &l0, &l6, &t4 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l3, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l7, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
+    vader_box_t* gc_roots[3] = { &l0, &l5, &t4 };
+    void** gc_raw_roots[3] = { &l1, &l2, &t0 };
+    vader_string_t* gc_atom_roots[2] = { &l6, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0.tag == 771u) {
         t0 = l0.payload.obj;
@@ -11568,75 +11823,77 @@ static vader_box_t vader_midir_lowered_to_bc_value(vader_box_t l0) {
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 775u) {
-        l1 = l0.payload.obj;
         vader_array_t* _a1_arr = vader_array_new(125u, 0u, 13u, 1100u);
-        l2 = (void*) _a1_arr;
-        l3 = ((vader_struct_vader_lower_LoweredStructLit_t*) l1)->f_fields;
-        l4 = ((vader_array_t*) l3)->length;
-        l5 = (size_t) (int64_t) INT64_C(0);
+        l1 = (void*) _a1_arr;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_lower_LoweredStructLit_t*) t0)->f_fields;
+        l3 = ((vader_array_t*) l2)->length;
+        l4 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_25: {
-                if ((l5 < l4)) {
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
+            loop_24: {
+                if ((l4 < l3)) {
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) l2);
                     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                    if ((size_t) l5 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l5);
-                    l6 = vader_midir_lowered_to_bc_value(((vader_struct_vader_lower_LoweredStructLitField_t*) t0)->f_value);
-                    vader_array_push((vader_array_t*) l2, l6);
-                    t2 = (l5 + INT64_C(1));
-                    l5 = (size_t) (int64_t) t2;
-                    goto loop_25;
+                    if ((size_t) l4 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                    t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
+                    l5 = vader_midir_lowered_to_bc_value(((vader_struct_vader_lower_LoweredStructLitField_t*) t0)->f_value);
+                    vader_array_push((vader_array_t*) l1, l5);
+                    t2 = (l4 + INT64_C(1));
+                    l4 = (size_t) (int64_t) t2;
+                    goto loop_24;
                 } else {
                 }
             }
         }
-        t3 = vader_midir_struct_symbol_id(((vader_struct_vader_lower_LoweredStructLit_t*) l1)->f_type);
+        t0 = l0.payload.obj;
+        t3 = vader_midir_struct_symbol_id(((vader_struct_vader_lower_LoweredStructLit_t*) t0)->f_type);
         vader_struct_vader_bytecode_BcValStruct_t* _a3_obj = (vader_struct_vader_bytecode_BcValStruct_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcValStruct_t));
         vader_obj_header_init(_a3_obj, 516u);
         _a3_obj->f_symbol_id = t3;
-        _a3_obj->f_fields = l2;
+        _a3_obj->f_fields = l1;
         t0 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 734u) {
-        l1 = l0.payload.obj;
         vader_array_t* _a4_arr = vader_array_new(125u, 0u, 13u, 1100u);
-        l2 = (void*) _a4_arr;
-        l3 = ((vader_struct_vader_lower_LoweredArrayLit_t*) l1)->f_elements;
-        l4 = ((vader_array_t*) l3)->length;
-        l5 = (size_t) (int64_t) INT64_C(0);
+        l1 = (void*) _a4_arr;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_lower_LoweredArrayLit_t*) t0)->f_elements;
+        l3 = ((vader_array_t*) l2)->length;
+        l4 = (size_t) (int64_t) INT64_C(0);
         {
             loop_69: {
-                if ((l5 < l4)) {
-                    vader_array_t* _a5_slotarr = ((vader_array_t*) l3);
+                if ((l4 < l3)) {
+                    vader_array_t* _a5_slotarr = ((vader_array_t*) l2);
                     if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
-                    if ((size_t) l5 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t4 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l5);
-                    l6 = vader_midir_lowered_to_bc_value(t4);
-                    vader_array_push((vader_array_t*) l2, l6);
-                    t2 = (l5 + INT64_C(1));
-                    l5 = (size_t) (int64_t) t2;
+                    if ((size_t) l4 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                    t4 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l4);
+                    l5 = vader_midir_lowered_to_bc_value(t4);
+                    vader_array_push((vader_array_t*) l1, l5);
+                    t2 = (l4 + INT64_C(1));
+                    l4 = (size_t) (int64_t) t2;
                     goto loop_69;
                 } else {
                 }
             }
         }
-        t1 = vader_midir_array_element_name(((vader_struct_vader_lower_LoweredArrayLit_t*) l1)->f_type);
+        t0 = l0.payload.obj;
+        t1 = vader_midir_array_element_name(((vader_struct_vader_lower_LoweredArrayLit_t*) t0)->f_type);
         vader_struct_vader_bytecode_BcValArray_t* _a6_obj = (vader_struct_vader_bytecode_BcValArray_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcValArray_t));
         vader_obj_header_init(_a6_obj, 513u);
         _a6_obj->f_element_type_name = t1;
-        _a6_obj->f_elements = l2;
+        _a6_obj->f_elements = l1;
         t0 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t4 = vader_lower_type_of(l0);
-    l7 = vader_types_display_type_key(t4);
-    l8 = vader_bytecode_array_kind_from_name(l7);
-    l9 = vader_midir_bc_value_bits(l0, l7);
+    l6 = vader_types_display_type_key(t4);
+    l7 = vader_bytecode_array_kind_from_name(l6);
+    l8 = vader_midir_bc_value_bits(l0, l6);
     vader_struct_vader_bytecode_BcValPrim_t* _a7_obj = (vader_struct_vader_bytecode_BcValPrim_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcValPrim_t));
     vader_obj_header_init(_a7_obj, 514u);
-    _a7_obj->f_kind = l8;
-    _a7_obj->f_bits = l9;
+    _a7_obj->f_kind = l7;
+    _a7_obj->f_bits = l8;
     t0 = (void*) _a7_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -11981,18 +12238,18 @@ static void* vader_midir_new_project_ctx(void* l0) {
     void* l15 = NULL;
     void* l16 = NULL;
     void* l17 = NULL;
-    void* l18 = NULL;
-    size_t l5, l6, l10, l11, l19, l20;
+    size_t l5, l6, l10, l11, l18, l19;
     vader_string_t l7 = 0;
     vader_box_t l12 = vader_box_null();
-    int32_t l21;
+    int32_t l20;
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
+    void* t3 = NULL;
     int64_t t2;
-    bool t3;
-    size_t t4;
+    bool t4;
+    size_t t5;
     vader_box_t* gc_roots[2] = { &l12, &t0 };
-    void** gc_raw_roots[14] = { &l0, &l1, &l2, &l3, &l4, &l8, &l9, &l13, &l14, &l15, &l16, &l17, &l18, &t1 };
+    void** gc_raw_roots[14] = { &l0, &l1, &l2, &l3, &l4, &l8, &l9, &l13, &l14, &l15, &l16, &l17, &t1, &t3 };
     vader_string_t* gc_atom_roots[1] = { &l7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 14u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
@@ -12048,23 +12305,25 @@ static void* vader_midir_new_project_ctx(void* l0) {
                             if ((size_t) l11 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
                             l12 = vader_array_ref_load_box(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) l11);
                             if (l12.tag == 757u) {
-                                l13 = l12.payload.obj;
-                                t1 = vader_midir_fn_metadata(l13);
-                                t3 = ((vader_struct_vader_midir_FnMetadata_t*) t1)->f_is_extern;
-                                if (t3) {
-                                    if (((vader_struct_vader_comptime_MonoEntry_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) l13)->f_origin)->f_symbol.tag == 889u) {
-                                        l14 = ((vader_struct_vader_comptime_MonoEntry_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) l13)->f_origin)->f_symbol.payload.obj;
+                                t1 = l12.payload.obj;
+                                t3 = vader_midir_fn_metadata(t1);
+                                t4 = ((vader_struct_vader_midir_FnMetadata_t*) t3)->f_is_extern;
+                                if (t4) {
+                                    t1 = l12.payload.obj;
+                                    if (((vader_struct_vader_comptime_MonoEntry_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) t1)->f_origin)->f_symbol.tag == 889u) {
+                                        t1 = l12.payload.obj;
+                                        l13 = ((vader_struct_vader_comptime_MonoEntry_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) t1)->f_origin)->f_symbol.payload.obj;
                                         vader_array_t* _a8_arr = vader_array_new(15u, 0u, 4u, 179u);
-                                        l15 = (void*) _a8_arr;
+                                        l14 = (void*) _a8_arr;
                                         vader_array_t* _a9_arr = vader_array_new(6u, 0u, 12u, 167u);
-                                        l16 = (void*) _a9_arr;
+                                        l15 = (void*) _a9_arr;
                                         vader_array_t* _a10_arr = vader_array_new(9u, 0u, 7u, 172u);
-                                        l17 = (void*) _a10_arr;
+                                        l16 = (void*) _a10_arr;
                                         vader_struct_std_collections_MutableMap__usize__bool_t* _a11_obj = (vader_struct_std_collections_MutableMap__usize__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__usize__bool_t));
                                         vader_obj_header_init(_a11_obj, 375u);
-                                        _a11_obj->f_ekeys = l15;
-                                        _a11_obj->f_evals = l16;
-                                        _a11_obj->f_index = l17;
+                                        _a11_obj->f_ekeys = l14;
+                                        _a11_obj->f_evals = l15;
+                                        _a11_obj->f_index = l16;
                                         _a11_obj->f_mask = (size_t) (int64_t) INT64_C(0);
                                         _a11_obj->f_size = (size_t) (int64_t) INT64_C(0);
                                         _a11_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
@@ -12072,31 +12331,33 @@ static void* vader_midir_new_project_ctx(void* l0) {
                                         vader_struct_std_collections_MutableSet__usize_t* _a12_obj = (vader_struct_std_collections_MutableSet__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__usize_t));
                                         vader_obj_header_init(_a12_obj, 381u);
                                         _a12_obj->f_inner = t1;
-                                        l18 = (void*) _a12_obj;
-                                        l19 = ((vader_array_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) l13)->f_params)->length;
-                                        l20 = (size_t) (int64_t) INT64_C(0);
+                                        l17 = (void*) _a12_obj;
+                                        t1 = l12.payload.obj;
+                                        l18 = ((vader_array_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) t1)->f_params)->length;
+                                        l19 = (size_t) (int64_t) INT64_C(0);
                                         {
-                                            loop_104: {
-                                                if ((l20 < l19)) {
-                                                    vader_array_t* _a13_slotarr = ((vader_array_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) l13)->f_params);
+                                            loop_109: {
+                                                if ((l19 < l18)) {
+                                                    t1 = l12.payload.obj;
+                                                    vader_array_t* _a13_slotarr = ((vader_array_t*) ((vader_struct_vader_lower_LoweredFnDecl_t*) t1)->f_params);
                                                     if (_a13_slotarr->buf != NULL && _a13_slotarr->buf->header.forward != NULL) { _a13_slotarr->buf = vader_array_buf_forward(_a13_slotarr->buf); }
-                                                    if ((size_t) l20 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
-                                                    t1 = vader_array_ref_load_obj(_a13_slotarr->buf, _a13_slotarr->offset + (size_t) l20);
+                                                    if ((size_t) l19 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
+                                                    t1 = vader_array_ref_load_obj(_a13_slotarr->buf, _a13_slotarr->offset + (size_t) l19);
                                                     if (((vader_struct_vader_lower_LoweredParam_t*) t1)->f_type.tag == 919u) {
-                                                        std_collections_add__usize(l18, l20);
+                                                        std_collections_add__usize(l17, l19);
                                                     } else {
                                                     }
-                                                    t2 = (l20 + INT64_C(1));
-                                                    l20 = (size_t) (int64_t) t2;
-                                                    goto loop_104;
+                                                    t2 = (l19 + INT64_C(1));
+                                                    l19 = (size_t) (int64_t) t2;
+                                                    goto loop_109;
                                                 } else {
                                                 }
                                             }
                                         }
-                                        t4 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) ((vader_struct_std_collections_MutableSet__usize_t*) l18)->f_inner)->f_size;
-                                        if ((t4 > INT64_C(0))) {
-                                            l21 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l14)->f_id;
-                                            std_collections_put__i32__Any(l1, l21, vader_ref_box(l18));
+                                        t5 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) ((vader_struct_std_collections_MutableSet__usize_t*) l17)->f_inner)->f_size;
+                                        if ((t5 > INT64_C(0))) {
+                                            l20 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l13)->f_id;
+                                            std_collections_put__i32__Any(l1, l20, vader_ref_box(l17));
                                         } else {
                                         }
                                     } else {
@@ -12335,19 +12596,20 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     void* l6 = NULL;
     void* l10 = NULL;
     void* l16 = NULL;
+    void* l20 = NULL;
     void* l21 = NULL;
-    void* l22 = NULL;
-    void* l24 = NULL;
-    size_t l7, l8, l11, l18, l19, l23;
-    int32_t l9, l20;
+    void* l23 = NULL;
+    size_t l7, l8, l11, l18, l19, l22;
+    int32_t l9;
     int64_t l13;
     bool l15, l17;
     void* t0 = NULL;
     int64_t t1;
-    vader_box_t t2 = vader_box_null();
-    bool t3;
-    vader_box_t* gc_roots[5] = { &l3, &l4, &l12, &l14, &t2 };
-    void** gc_raw_roots[10] = { &l0, &l1, &l5, &l6, &l10, &l16, &l21, &l22, &l24, &t0 };
+    int32_t t2;
+    vader_box_t t3 = vader_box_null();
+    bool t4;
+    vader_box_t* gc_roots[5] = { &l3, &l4, &l12, &l14, &t3 };
+    void** gc_raw_roots[10] = { &l0, &l1, &l5, &l6, &l10, &l16, &l20, &l21, &l23, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 10u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(6u, 1u, 12u, 167u);
@@ -12434,22 +12696,23 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
                 l14 = vader_midir_dst_of(l12);
                 l15 = true;
                 if (l14.tag == 172u) {
-                    l9 = ((int32_t) l14.payload.i);
                     l10 = ((vader_struct__Cell_Fn_i32___void_t*) l4.payload.obj)->f_value;
+                    t2 = ((int32_t) l14.payload.i);
                     vader_fn_t* _a14_fnobj = (vader_fn_t*) l10;
-                    ((vader_fn_erased_sig_1_t) _a14_fnobj->code)(_a14_fnobj->env, vader_box_i32(172u, l9));
+                    ((vader_fn_erased_sig_1_t) _a14_fnobj->code)(_a14_fnobj->env, vader_box_i32(172u, t2));
                     l16 = ((vader_struct__Cell_Array_bool__t*) l3.payload.obj)->f_value;
-                    t1 = ((int64_t) (int32_t) l9);
+                    t2 = ((int32_t) l14.payload.i);
+                    t1 = ((int64_t) (int32_t) t2);
                     l11 = (size_t) (int64_t) t1;
                     vader_array_t* _a15_slotarr = ((vader_array_t*) l16);
                     if (_a15_slotarr->buf != NULL && _a15_slotarr->buf->header.forward != NULL) { _a15_slotarr->buf = vader_array_buf_forward(_a15_slotarr->buf); }
                     if ((size_t) l11 >= _a15_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t2 = vader_box_bool(167u, ((uint8_t*) _a15_slotarr->buf->slots)[_a15_slotarr->offset + (size_t) l11]);
-                    l15 = t2.payload.b;
+                    t3 = vader_box_bool(167u, ((uint8_t*) _a15_slotarr->buf->slots)[_a15_slotarr->offset + (size_t) l11]);
+                    l15 = t3.payload.b;
                 } else {
                 }
-                t3 = vader_midir_instruction_has_side_effect(l12);
-                if (!(t3)) {
+                t4 = vader_midir_instruction_has_side_effect(l12);
+                if (!(t4)) {
                     l17 = !(l15);
                 } else {
                     l17 = false;
@@ -12469,17 +12732,18 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
                     if ((size_t) l19 >= _a17_slotarr->length) { vader_trap("array index out of bounds"); }
                     ((uint8_t*) _a17_slotarr->buf->slots)[_a17_slotarr->offset + (size_t) l19] = (uint8_t) true;
                     if (l14.tag == 172u) {
-                        l20 = ((int32_t) l14.payload.i);
-                        l21 = ((vader_struct__Cell_Fn_i32___void_t*) l4.payload.obj)->f_value;
-                        vader_fn_t* _a18_fnobj = (vader_fn_t*) l21;
-                        ((vader_fn_erased_sig_1_t) _a18_fnobj->code)(_a18_fnobj->env, vader_box_i32(172u, l20));
-                        l22 = ((vader_struct__Cell_Array_bool__t*) l3.payload.obj)->f_value;
-                        t1 = ((int64_t) (int32_t) l20);
-                        l23 = (size_t) (int64_t) t1;
-                        vader_array_t* _a19_slotarr = ((vader_array_t*) l22);
+                        l20 = ((vader_struct__Cell_Fn_i32___void_t*) l4.payload.obj)->f_value;
+                        t2 = ((int32_t) l14.payload.i);
+                        vader_fn_t* _a18_fnobj = (vader_fn_t*) l20;
+                        ((vader_fn_erased_sig_1_t) _a18_fnobj->code)(_a18_fnobj->env, vader_box_i32(172u, t2));
+                        l21 = ((vader_struct__Cell_Array_bool__t*) l3.payload.obj)->f_value;
+                        t2 = ((int32_t) l14.payload.i);
+                        t1 = ((int64_t) (int32_t) t2);
+                        l22 = (size_t) (int64_t) t1;
+                        vader_array_t* _a19_slotarr = ((vader_array_t*) l21);
                         if (_a19_slotarr->buf != NULL && _a19_slotarr->buf->header.forward != NULL) { _a19_slotarr->buf = vader_array_buf_forward(_a19_slotarr->buf); }
-                        if ((size_t) l23 >= _a19_slotarr->length) { vader_trap("array index out of bounds"); }
-                        ((uint8_t*) _a19_slotarr->buf->slots)[_a19_slotarr->offset + (size_t) l23] = (uint8_t) false;
+                        if ((size_t) l22 >= _a19_slotarr->length) { vader_trap("array index out of bounds"); }
+                        ((uint8_t*) _a19_slotarr->buf->slots)[_a19_slotarr->offset + (size_t) l22] = (uint8_t) false;
                     } else {
                     }
                     vader_struct___lambda_env_vader_midir_25_t* _a20_obj = (vader_struct___lambda_env_vader_midir_25_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_midir_25_t));
@@ -12491,8 +12755,8 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
                     vader_obj_header_init(_a21_closure, 143u);
                     _a21_closure->code = (void*) &vader_fn_lift___lambda_vader_midir_24;
                     _a21_closure->env = t0;
-                    l24 = (void*) _a21_closure;
-                    vader_midir_for_each_read_local(l12, l24);
+                    l23 = (void*) _a21_closure;
+                    vader_midir_for_each_read_local(l12, l23);
                 }
                 l13 = (l13 - INT64_C(1));
                 goto loop_78;
@@ -12504,14 +12768,14 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
     l6 = (void*) _a22_arr;
     l8 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_192: {
+        loop_190: {
             if ((l8 < l7)) {
                 vader_array_t* _a23_slotarr = ((vader_array_t*) l5);
                 if (_a23_slotarr->buf != NULL && _a23_slotarr->buf->header.forward != NULL) { _a23_slotarr->buf = vader_array_buf_forward(_a23_slotarr->buf); }
                 if ((size_t) l8 >= _a23_slotarr->length) { vader_trap("array index out of bounds"); }
-                t2 = vader_box_bool(167u, ((uint8_t*) _a23_slotarr->buf->slots)[_a23_slotarr->offset + (size_t) l8]);
-                t3 = t2.payload.b;
-                if (t3) {
+                t3 = vader_box_bool(167u, ((uint8_t*) _a23_slotarr->buf->slots)[_a23_slotarr->offset + (size_t) l8]);
+                t4 = t3.payload.b;
+                if (t4) {
                     vader_array_t* _a24_slotarr = ((vader_array_t*) ((vader_struct_vader_midir_BasicBlock_t*) l0)->f_instructions);
                     if (_a24_slotarr->buf != NULL && _a24_slotarr->buf->header.forward != NULL) { _a24_slotarr->buf = vader_array_buf_forward(_a24_slotarr->buf); }
                     if ((size_t) l8 >= _a24_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -12521,7 +12785,7 @@ static void* vader_midir_prune_block(void* l0, void* l1, size_t l2) {
                 }
                 t1 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t1;
-                goto loop_192;
+                goto loop_190;
             } else {
             }
         }
@@ -12607,552 +12871,657 @@ static void vader_midir_record_alias(void* l0, void* l1, int32_t l2, int32_t l3)
 
 static vader_box_t vader_midir_remap_instr(vader_box_t l0, void* l1) {
     void* l2 = NULL;
-    void* l3 = NULL;
+    void* l9 = NULL;
     void* l10 = NULL;
-    void* l11 = NULL;
-    int32_t l4, l7, l9, l16;
-    vader_box_t l5 = vader_box_null(), l6 = vader_box_null(), l12 = vader_box_null();
-    uint8_t l8;
+    int32_t l3, l6, l8, l15;
+    vader_box_t l4 = vader_box_null(), l5 = vader_box_null(), l11 = vader_box_null();
+    uint8_t l7;
+    vader_string_t l12 = 0;
     vader_string_t l13 = 0;
-    vader_string_t l14 = 0;
-    bool l15;
+    bool l14;
     void* t0 = NULL;
-    vader_box_t* gc_roots[4] = { &l0, &l5, &l6, &l12 };
-    void** gc_raw_roots[6] = { &l1, &l2, &l3, &l10, &l11, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l13, &l14 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
+    vader_box_t* gc_roots[4] = { &l0, &l4, &l5, &l11 };
+    void** gc_raw_roots[5] = { &l1, &l2, &l9, &l10, &t0 };
+    vader_string_t* gc_atom_roots[2] = { &l12, &l13 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0.tag == 827u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_value;
-        l6 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_value;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_type;
         vader_struct_vader_midir_InstrConst_t* _a0_obj = (vader_struct_vader_midir_InstrConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrConst_t));
         vader_obj_header_init(_a0_obj, 827u);
-        _a0_obj->f_span = l3;
-        _a0_obj->f_dst = l4;
-        _a0_obj->f_value = l5;
-        _a0_obj->f_type = l6;
+        _a0_obj->f_span = l2;
+        _a0_obj->f_dst = l3;
+        _a0_obj->f_value = l4;
+        _a0_obj->f_type = l5;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 837u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrMove_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrMove_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrMove_t*) l2)->f_src;
-        l7 = vader_midir_remap_local(l1, l7);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_src;
+        l6 = vader_midir_remap_local(l1, l6);
         vader_struct_vader_midir_InstrMove_t* _a1_obj = (vader_struct_vader_midir_InstrMove_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrMove_t));
         vader_obj_header_init(_a1_obj, 837u);
-        _a1_obj->f_span = l3;
-        _a1_obj->f_dst = l4;
-        _a1_obj->f_src = l7;
+        _a1_obj->f_span = l2;
+        _a1_obj->f_dst = l3;
+        _a1_obj->f_src = l6;
         t0 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 820u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l8 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_op;
-        l7 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_lhs;
-        l7 = vader_midir_remap_local(l1, l7);
-        l9 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_rhs;
-        l9 = vader_midir_remap_local(l1, l9);
-        l5 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_op;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_lhs;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_rhs;
+        l8 = vader_midir_remap_local(l1, l8);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_type;
         vader_struct_vader_midir_InstrBinOp_t* _a2_obj = (vader_struct_vader_midir_InstrBinOp_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrBinOp_t));
         vader_obj_header_init(_a2_obj, 820u);
-        _a2_obj->f_span = l3;
-        _a2_obj->f_dst = l4;
-        _a2_obj->f_op = l8;
-        _a2_obj->f_lhs = l7;
-        _a2_obj->f_rhs = l9;
-        _a2_obj->f_type = l5;
+        _a2_obj->f_span = l2;
+        _a2_obj->f_dst = l3;
+        _a2_obj->f_op = l7;
+        _a2_obj->f_lhs = l6;
+        _a2_obj->f_rhs = l8;
+        _a2_obj->f_type = l4;
         t0 = (void*) _a2_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 842u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l8 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_op;
-        l7 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_operand;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_op;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_operand;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_type;
         vader_struct_vader_midir_InstrUnOp_t* _a3_obj = (vader_struct_vader_midir_InstrUnOp_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrUnOp_t));
         vader_obj_header_init(_a3_obj, 842u);
-        _a3_obj->f_span = l3;
-        _a3_obj->f_dst = l4;
-        _a3_obj->f_op = l8;
-        _a3_obj->f_operand = l7;
-        _a3_obj->f_type = l5;
+        _a3_obj->f_span = l2;
+        _a3_obj->f_dst = l3;
+        _a3_obj->f_op = l7;
+        _a3_obj->f_operand = l6;
+        _a3_obj->f_type = l4;
         t0 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 821u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCall_t*) l2)->f_span;
-        l5 = ((vader_struct_vader_midir_InstrCall_t*) l2)->f_dst;
-        l5 = vader_midir_remap_local_opt(l1, l5);
-        l10 = ((vader_struct_vader_midir_InstrCall_t*) l2)->f_callee;
-        l11 = ((vader_struct_vader_midir_InstrCall_t*) l2)->f_args;
-        l11 = vader_midir_remap_locals(l1, l11);
-        l6 = ((vader_struct_vader_midir_InstrCall_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_dst;
+        l4 = vader_midir_remap_local_opt(l1, l4);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_callee;
+        t0 = l0.payload.obj;
+        l10 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_args;
+        l10 = vader_midir_remap_locals(l1, l10);
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrCall_t*) t0)->f_type;
         vader_struct_vader_midir_InstrCall_t* _a4_obj = (vader_struct_vader_midir_InstrCall_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCall_t));
         vader_obj_header_init(_a4_obj, 821u);
-        _a4_obj->f_span = l3;
-        _a4_obj->f_dst = l5;
-        _a4_obj->f_callee = l10;
-        _a4_obj->f_args = l11;
-        _a4_obj->f_type = l6;
+        _a4_obj->f_span = l2;
+        _a4_obj->f_dst = l4;
+        _a4_obj->f_callee = l9;
+        _a4_obj->f_args = l10;
+        _a4_obj->f_type = l5;
         t0 = (void*) _a4_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 822u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_span;
-        l5 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_dst;
-        l5 = vader_midir_remap_local_opt(l1, l5);
-        l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_callee;
-        l4 = vader_midir_remap_local(l1, l4);
-        l10 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_args;
-        l10 = vader_midir_remap_locals(l1, l10);
-        l6 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_fn_type;
-        l12 = ((vader_struct_vader_midir_InstrCallIndirect_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_dst;
+        l4 = vader_midir_remap_local_opt(l1, l4);
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_callee;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_args;
+        l9 = vader_midir_remap_locals(l1, l9);
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_fn_type;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrCallIndirect_t*) t0)->f_type;
         vader_struct_vader_midir_InstrCallIndirect_t* _a5_obj = (vader_struct_vader_midir_InstrCallIndirect_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCallIndirect_t));
         vader_obj_header_init(_a5_obj, 822u);
-        _a5_obj->f_span = l3;
-        _a5_obj->f_dst = l5;
-        _a5_obj->f_callee = l4;
-        _a5_obj->f_args = l10;
-        _a5_obj->f_fn_type = l6;
-        _a5_obj->f_type = l12;
+        _a5_obj->f_span = l2;
+        _a5_obj->f_dst = l4;
+        _a5_obj->f_callee = l3;
+        _a5_obj->f_args = l9;
+        _a5_obj->f_fn_type = l5;
+        _a5_obj->f_type = l11;
         t0 = (void*) _a5_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 843u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_span;
-        l5 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_dst;
-        l5 = vader_midir_remap_local_opt(l1, l5);
-        l13 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_trait_name;
-        l14 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_method;
-        l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_receiver;
-        l4 = vader_midir_remap_local(l1, l4);
-        l10 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_args;
-        l10 = vader_midir_remap_locals(l1, l10);
-        l6 = ((vader_struct_vader_midir_InstrVirtualCall_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_dst;
+        l4 = vader_midir_remap_local_opt(l1, l4);
+        t0 = l0.payload.obj;
+        l12 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_trait_name;
+        t0 = l0.payload.obj;
+        l13 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_method;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_receiver;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_args;
+        l9 = vader_midir_remap_locals(l1, l9);
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrVirtualCall_t*) t0)->f_type;
         vader_struct_vader_midir_InstrVirtualCall_t* _a6_obj = (vader_struct_vader_midir_InstrVirtualCall_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrVirtualCall_t));
         vader_obj_header_init(_a6_obj, 843u);
-        _a6_obj->f_span = l3;
-        _a6_obj->f_dst = l5;
-        _a6_obj->f_trait_name = l13;
-        _a6_obj->f_method = l14;
-        _a6_obj->f_receiver = l4;
-        _a6_obj->f_args = l10;
-        _a6_obj->f_type = l6;
+        _a6_obj->f_span = l2;
+        _a6_obj->f_dst = l4;
+        _a6_obj->f_trait_name = l12;
+        _a6_obj->f_method = l13;
+        _a6_obj->f_receiver = l3;
+        _a6_obj->f_args = l9;
+        _a6_obj->f_type = l5;
         t0 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 834u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l10 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_fn_symbol;
-        l5 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFnRef_t* _a7_obj = (vader_struct_vader_midir_InstrFnRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFnRef_t));
         vader_obj_header_init(_a7_obj, 834u);
-        _a7_obj->f_span = l3;
-        _a7_obj->f_dst = l4;
-        _a7_obj->f_fn_symbol = l10;
-        _a7_obj->f_type = l5;
+        _a7_obj->f_span = l2;
+        _a7_obj->f_dst = l3;
+        _a7_obj->f_fn_symbol = l9;
+        _a7_obj->f_type = l4;
         t0 = (void*) _a7_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 833u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l10 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_fn_symbol;
-        l5 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFnAddr_t* _a8_obj = (vader_struct_vader_midir_InstrFnAddr_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFnAddr_t));
         vader_obj_header_init(_a8_obj, 833u);
-        _a8_obj->f_span = l3;
-        _a8_obj->f_dst = l4;
-        _a8_obj->f_fn_symbol = l10;
-        _a8_obj->f_type = l5;
+        _a8_obj->f_span = l2;
+        _a8_obj->f_dst = l3;
+        _a8_obj->f_fn_symbol = l9;
+        _a8_obj->f_type = l4;
         t0 = (void*) _a8_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 831u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_target;
-        l7 = vader_midir_remap_local(l1, l7);
-        l13 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_field;
-        l5 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_target;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l12 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_field;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFieldGet_t* _a9_obj = (vader_struct_vader_midir_InstrFieldGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFieldGet_t));
         vader_obj_header_init(_a9_obj, 831u);
-        _a9_obj->f_span = l3;
-        _a9_obj->f_dst = l4;
-        _a9_obj->f_target = l7;
-        _a9_obj->f_field = l13;
-        _a9_obj->f_type = l5;
+        _a9_obj->f_span = l2;
+        _a9_obj->f_dst = l3;
+        _a9_obj->f_target = l6;
+        _a9_obj->f_field = l12;
+        _a9_obj->f_type = l4;
         t0 = (void*) _a9_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 832u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFieldSet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrFieldSet_t*) l2)->f_target;
-        l4 = vader_midir_remap_local(l1, l4);
-        l13 = ((vader_struct_vader_midir_InstrFieldSet_t*) l2)->f_field;
-        l7 = ((vader_struct_vader_midir_InstrFieldSet_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
-        l15 = ((vader_struct_vader_midir_InstrFieldSet_t*) l2)->f_barrierless;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_target;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l12 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_field;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrFieldSet_t*) t0)->f_barrierless;
         vader_struct_vader_midir_InstrFieldSet_t* _a10_obj = (vader_struct_vader_midir_InstrFieldSet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFieldSet_t));
         vader_obj_header_init(_a10_obj, 832u);
-        _a10_obj->f_span = l3;
-        _a10_obj->f_target = l4;
-        _a10_obj->f_field = l13;
-        _a10_obj->f_value = l7;
-        _a10_obj->f_barrierless = l15;
+        _a10_obj->f_span = l2;
+        _a10_obj->f_target = l3;
+        _a10_obj->f_field = l12;
+        _a10_obj->f_value = l6;
+        _a10_obj->f_barrierless = l14;
         t0 = (void*) _a10_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 814u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_target;
-        l7 = vader_midir_remap_local(l1, l7);
-        l9 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_index;
-        l9 = vader_midir_remap_local(l1, l9);
-        l5 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_type;
-        l15 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_bounds_safe;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_target;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_index;
+        l8 = vader_midir_remap_local(l1, l8);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_bounds_safe;
         vader_struct_vader_midir_InstrArrayGet_t* _a11_obj = (vader_struct_vader_midir_InstrArrayGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayGet_t));
         vader_obj_header_init(_a11_obj, 814u);
-        _a11_obj->f_span = l3;
-        _a11_obj->f_dst = l4;
-        _a11_obj->f_target = l7;
-        _a11_obj->f_index = l9;
-        _a11_obj->f_type = l5;
-        _a11_obj->f_bounds_safe = l15;
+        _a11_obj->f_span = l2;
+        _a11_obj->f_dst = l3;
+        _a11_obj->f_target = l6;
+        _a11_obj->f_index = l8;
+        _a11_obj->f_type = l4;
+        _a11_obj->f_bounds_safe = l14;
         t0 = (void*) _a11_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 818u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArraySet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArraySet_t*) l2)->f_target;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrArraySet_t*) l2)->f_index;
-        l7 = vader_midir_remap_local(l1, l7);
-        l9 = ((vader_struct_vader_midir_InstrArraySet_t*) l2)->f_value;
-        l9 = vader_midir_remap_local(l1, l9);
-        l15 = ((vader_struct_vader_midir_InstrArraySet_t*) l2)->f_bounds_safe;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_target;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_index;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_value;
+        l8 = vader_midir_remap_local(l1, l8);
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArraySet_t*) t0)->f_bounds_safe;
         vader_struct_vader_midir_InstrArraySet_t* _a12_obj = (vader_struct_vader_midir_InstrArraySet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArraySet_t));
         vader_obj_header_init(_a12_obj, 818u);
-        _a12_obj->f_span = l3;
-        _a12_obj->f_target = l4;
-        _a12_obj->f_index = l7;
-        _a12_obj->f_value = l9;
-        _a12_obj->f_bounds_safe = l15;
+        _a12_obj->f_span = l2;
+        _a12_obj->f_target = l3;
+        _a12_obj->f_index = l6;
+        _a12_obj->f_value = l8;
+        _a12_obj->f_bounds_safe = l14;
         t0 = (void*) _a12_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 815u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_target;
-        l7 = vader_midir_remap_local(l1, l7);
-        l15 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_resolve_buf;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_target;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_resolve_buf;
         vader_struct_vader_midir_InstrArrayLen_t* _a13_obj = (vader_struct_vader_midir_InstrArrayLen_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayLen_t));
         vader_obj_header_init(_a13_obj, 815u);
-        _a13_obj->f_span = l3;
-        _a13_obj->f_dst = l4;
-        _a13_obj->f_target = l7;
-        _a13_obj->f_resolve_buf = l15;
+        _a13_obj->f_span = l2;
+        _a13_obj->f_dst = l3;
+        _a13_obj->f_target = l6;
+        _a13_obj->f_resolve_buf = l14;
         t0 = (void*) _a13_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 817u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayPush_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArrayPush_t*) l2)->f_target;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrArrayPush_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_target;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArrayPush_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
         vader_struct_vader_midir_InstrArrayPush_t* _a14_obj = (vader_struct_vader_midir_InstrArrayPush_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayPush_t));
         vader_obj_header_init(_a14_obj, 817u);
-        _a14_obj->f_span = l3;
-        _a14_obj->f_target = l4;
-        _a14_obj->f_value = l7;
+        _a14_obj->f_span = l2;
+        _a14_obj->f_target = l3;
+        _a14_obj->f_value = l6;
         t0 = (void*) _a14_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 819u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_type;
-        l7 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_target;
-        l7 = vader_midir_remap_local(l1, l7);
-        l9 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_lo;
-        l9 = vader_midir_remap_local(l1, l9);
-        l16 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_hi;
-        l16 = vader_midir_remap_local(l1, l16);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_target;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_lo;
+        l8 = vader_midir_remap_local(l1, l8);
+        t0 = l0.payload.obj;
+        l15 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_hi;
+        l15 = vader_midir_remap_local(l1, l15);
         vader_struct_vader_midir_InstrArraySlice_t* _a15_obj = (vader_struct_vader_midir_InstrArraySlice_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArraySlice_t));
         vader_obj_header_init(_a15_obj, 819u);
-        _a15_obj->f_span = l3;
-        _a15_obj->f_dst = l4;
-        _a15_obj->f_type = l5;
-        _a15_obj->f_target = l7;
-        _a15_obj->f_lo = l9;
-        _a15_obj->f_hi = l16;
+        _a15_obj->f_span = l2;
+        _a15_obj->f_dst = l3;
+        _a15_obj->f_type = l4;
+        _a15_obj->f_target = l6;
+        _a15_obj->f_lo = l8;
+        _a15_obj->f_hi = l15;
         t0 = (void*) _a15_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 838u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_type;
-        l7 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_target;
-        l7 = vader_midir_remap_local(l1, l7);
-        l9 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_lo;
-        l9 = vader_midir_remap_local(l1, l9);
-        l16 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_hi;
-        l16 = vader_midir_remap_local(l1, l16);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_target;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_lo;
+        l8 = vader_midir_remap_local(l1, l8);
+        t0 = l0.payload.obj;
+        l15 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_hi;
+        l15 = vader_midir_remap_local(l1, l15);
         vader_struct_vader_midir_InstrStringSlice_t* _a16_obj = (vader_struct_vader_midir_InstrStringSlice_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrStringSlice_t));
         vader_obj_header_init(_a16_obj, 838u);
-        _a16_obj->f_span = l3;
-        _a16_obj->f_dst = l4;
-        _a16_obj->f_type = l5;
-        _a16_obj->f_target = l7;
-        _a16_obj->f_lo = l9;
-        _a16_obj->f_hi = l16;
+        _a16_obj->f_span = l2;
+        _a16_obj->f_dst = l3;
+        _a16_obj->f_type = l4;
+        _a16_obj->f_target = l6;
+        _a16_obj->f_lo = l8;
+        _a16_obj->f_hi = l15;
         t0 = (void*) _a16_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 839u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_type;
-        l10 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_fields;
-        l10 = vader_midir_remap_locals(l1, l10);
-        l15 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_stack;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_fields;
+        l9 = vader_midir_remap_locals(l1, l9);
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_stack;
         vader_struct_vader_midir_InstrStructNew_t* _a17_obj = (vader_struct_vader_midir_InstrStructNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrStructNew_t));
         vader_obj_header_init(_a17_obj, 839u);
-        _a17_obj->f_span = l3;
-        _a17_obj->f_dst = l4;
-        _a17_obj->f_type = l5;
-        _a17_obj->f_fields = l10;
-        _a17_obj->f_stack = l15;
+        _a17_obj->f_span = l2;
+        _a17_obj->f_dst = l3;
+        _a17_obj->f_type = l4;
+        _a17_obj->f_fields = l9;
+        _a17_obj->f_stack = l14;
         t0 = (void*) _a17_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 816u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_type;
-        l7 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_length;
-        l10 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_elements;
-        l10 = vader_midir_remap_locals(l1, l10);
-        l15 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_stack;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_length;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_elements;
+        l9 = vader_midir_remap_locals(l1, l9);
+        t0 = l0.payload.obj;
+        l14 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_stack;
         vader_struct_vader_midir_InstrArrayNew_t* _a18_obj = (vader_struct_vader_midir_InstrArrayNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayNew_t));
         vader_obj_header_init(_a18_obj, 816u);
-        _a18_obj->f_span = l3;
-        _a18_obj->f_dst = l4;
-        _a18_obj->f_type = l5;
-        _a18_obj->f_length = l7;
-        _a18_obj->f_elements = l10;
-        _a18_obj->f_stack = l15;
+        _a18_obj->f_span = l2;
+        _a18_obj->f_dst = l3;
+        _a18_obj->f_type = l4;
+        _a18_obj->f_length = l6;
+        _a18_obj->f_elements = l9;
+        _a18_obj->f_stack = l14;
         t0 = (void*) _a18_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 828u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_type;
-        l7 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_pool_index;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_pool_index;
         vader_struct_vader_midir_InstrDataConst_t* _a19_obj = (vader_struct_vader_midir_InstrDataConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrDataConst_t));
         vader_obj_header_init(_a19_obj, 828u);
-        _a19_obj->f_span = l3;
-        _a19_obj->f_dst = l4;
-        _a19_obj->f_type = l5;
-        _a19_obj->f_pool_index = l7;
+        _a19_obj->f_span = l2;
+        _a19_obj->f_dst = l3;
+        _a19_obj->f_type = l4;
+        _a19_obj->f_pool_index = l6;
         t0 = (void*) _a19_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 840u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_check_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_check_type;
         vader_struct_vader_midir_InstrTypeCheck_t* _a20_obj = (vader_struct_vader_midir_InstrTypeCheck_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrTypeCheck_t));
         vader_obj_header_init(_a20_obj, 840u);
-        _a20_obj->f_span = l3;
-        _a20_obj->f_dst = l4;
-        _a20_obj->f_value = l7;
-        _a20_obj->f_check_type = l5;
+        _a20_obj->f_span = l2;
+        _a20_obj->f_dst = l3;
+        _a20_obj->f_value = l6;
+        _a20_obj->f_check_type = l4;
         t0 = (void*) _a20_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 841u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_type;
-        l6 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrTypeConst_t* _a21_obj = (vader_struct_vader_midir_InstrTypeConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrTypeConst_t));
         vader_obj_header_init(_a21_obj, 841u);
-        _a21_obj->f_span = l3;
-        _a21_obj->f_dst = l4;
-        _a21_obj->f_type = l5;
-        _a21_obj->f_value_type = l6;
+        _a21_obj->f_span = l2;
+        _a21_obj->f_dst = l3;
+        _a21_obj->f_type = l4;
+        _a21_obj->f_value_type = l5;
         t0 = (void*) _a21_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 823u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_type;
         vader_struct_vader_midir_InstrCast_t* _a22_obj = (vader_struct_vader_midir_InstrCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCast_t));
         vader_obj_header_init(_a22_obj, 823u);
-        _a22_obj->f_span = l3;
-        _a22_obj->f_dst = l4;
-        _a22_obj->f_value = l7;
-        _a22_obj->f_type = l5;
+        _a22_obj->f_span = l2;
+        _a22_obj->f_dst = l3;
+        _a22_obj->f_value = l6;
+        _a22_obj->f_type = l4;
         t0 = (void*) _a22_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 825u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrCellNew_t* _a23_obj = (vader_struct_vader_midir_InstrCellNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCellNew_t));
         vader_obj_header_init(_a23_obj, 825u);
-        _a23_obj->f_span = l3;
-        _a23_obj->f_dst = l4;
-        _a23_obj->f_value = l7;
-        _a23_obj->f_value_type = l5;
+        _a23_obj->f_span = l2;
+        _a23_obj->f_dst = l3;
+        _a23_obj->f_value = l6;
+        _a23_obj->f_value_type = l4;
         t0 = (void*) _a23_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 824u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_cell;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_cell;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrCellGet_t* _a24_obj = (vader_struct_vader_midir_InstrCellGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCellGet_t));
         vader_obj_header_init(_a24_obj, 824u);
-        _a24_obj->f_span = l3;
-        _a24_obj->f_dst = l4;
-        _a24_obj->f_cell = l7;
-        _a24_obj->f_value_type = l5;
+        _a24_obj->f_span = l2;
+        _a24_obj->f_dst = l3;
+        _a24_obj->f_cell = l6;
+        _a24_obj->f_value_type = l4;
         t0 = (void*) _a24_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 826u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCellSet_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrCellSet_t*) l2)->f_cell;
-        l4 = vader_midir_remap_local(l1, l4);
-        l7 = ((vader_struct_vader_midir_InstrCellSet_t*) l2)->f_value;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrCellSet_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_cell;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_value;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrCellSet_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrCellSet_t* _a25_obj = (vader_struct_vader_midir_InstrCellSet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCellSet_t));
         vader_obj_header_init(_a25_obj, 826u);
-        _a25_obj->f_span = l3;
-        _a25_obj->f_cell = l4;
-        _a25_obj->f_value = l7;
-        _a25_obj->f_value_type = l5;
+        _a25_obj->f_span = l2;
+        _a25_obj->f_cell = l3;
+        _a25_obj->f_value = l6;
+        _a25_obj->f_value_type = l4;
         t0 = (void*) _a25_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 836u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_dst;
-        l4 = vader_midir_remap_local(l1, l4);
-        l10 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_fn_symbol;
-        l7 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_env;
-        l7 = vader_midir_remap_local(l1, l7);
-        l5 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_env_type;
-        l6 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_dst;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_env;
+        l6 = vader_midir_remap_local(l1, l6);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_env_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_type;
         vader_struct_vader_midir_InstrMakeClosure_t* _a26_obj = (vader_struct_vader_midir_InstrMakeClosure_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrMakeClosure_t));
         vader_obj_header_init(_a26_obj, 836u);
-        _a26_obj->f_span = l3;
-        _a26_obj->f_dst = l4;
-        _a26_obj->f_fn_symbol = l10;
-        _a26_obj->f_env = l7;
-        _a26_obj->f_env_type = l5;
-        _a26_obj->f_type = l6;
+        _a26_obj->f_span = l2;
+        _a26_obj->f_dst = l3;
+        _a26_obj->f_fn_symbol = l9;
+        _a26_obj->f_env = l6;
+        _a26_obj->f_env_type = l4;
+        _a26_obj->f_type = l5;
         t0 = (void*) _a26_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 835u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l2)->f_span;
-        l5 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l2)->f_dst;
-        l5 = vader_midir_remap_local_opt(l1, l5);
-        l13 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l2)->f_name;
-        l2 = ((vader_struct_vader_midir_InstrIntrinsic_t*) l2)->f_args;
-        l2 = vader_midir_remap_locals(l1, l2);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_dst;
+        l4 = vader_midir_remap_local_opt(l1, l4);
+        t0 = l0.payload.obj;
+        l12 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_name;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrIntrinsic_t*) t0)->f_args;
+        l9 = vader_midir_remap_locals(l1, l9);
         vader_struct_vader_midir_InstrIntrinsic_t* _a27_obj = (vader_struct_vader_midir_InstrIntrinsic_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrIntrinsic_t));
         vader_obj_header_init(_a27_obj, 835u);
-        _a27_obj->f_span = l3;
-        _a27_obj->f_dst = l5;
-        _a27_obj->f_name = l13;
-        _a27_obj->f_args = l2;
+        _a27_obj->f_span = l2;
+        _a27_obj->f_dst = l4;
+        _a27_obj->f_name = l12;
+        _a27_obj->f_args = l9;
         t0 = (void*) _a27_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 830u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrDeferPush_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrDeferPush_t*) l2)->f_value;
-        l4 = vader_midir_remap_local(l1, l4);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrDeferPush_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrDeferPush_t*) t0)->f_value;
+        l3 = vader_midir_remap_local(l1, l3);
         vader_struct_vader_midir_InstrDeferPush_t* _a28_obj = (vader_struct_vader_midir_InstrDeferPush_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrDeferPush_t));
         vader_obj_header_init(_a28_obj, 830u);
-        _a28_obj->f_span = l3;
-        _a28_obj->f_value = l4;
+        _a28_obj->f_span = l2;
+        _a28_obj->f_value = l3;
         t0 = (void*) _a28_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -13234,14 +13603,13 @@ static void* vader_midir_remap_locals(void* l0, void* l1) {
 
 static vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1) {
     void* l2 = NULL;
-    void* l3 = NULL;
-    int32_t l4, l5, l6;
-    vader_box_t l7 = vader_box_null();
+    int32_t l3, l4, l5;
+    vader_box_t l6 = vader_box_null();
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
-    vader_box_t* gc_roots[3] = { &l0, &l7, &t1 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l3, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t* gc_roots[3] = { &l0, &l6, &t1 };
+    void** gc_raw_roots[3] = { &l1, &l2, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0.tag == 851u) {
         t0 = l0.payload.obj;
@@ -13252,30 +13620,34 @@ static vader_box_t vader_midir_remap_terminator(vader_box_t l0, void* l1) {
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 852u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_TermCondBranch_t*) l2)->f_cond;
-        l4 = vader_midir_remap_local(l1, l4);
-        l5 = ((vader_struct_vader_midir_TermCondBranch_t*) l2)->f_then_block;
-        l6 = ((vader_struct_vader_midir_TermCondBranch_t*) l2)->f_else_block;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_TermCondBranch_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_TermCondBranch_t*) t0)->f_cond;
+        l3 = vader_midir_remap_local(l1, l3);
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_TermCondBranch_t*) t0)->f_then_block;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_TermCondBranch_t*) t0)->f_else_block;
         vader_struct_vader_midir_TermCondBranch_t* _a0_obj = (vader_struct_vader_midir_TermCondBranch_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_TermCondBranch_t));
         vader_obj_header_init(_a0_obj, 852u);
-        _a0_obj->f_span = l3;
-        _a0_obj->f_cond = l4;
-        _a0_obj->f_then_block = l5;
-        _a0_obj->f_else_block = l6;
+        _a0_obj->f_span = l2;
+        _a0_obj->f_cond = l3;
+        _a0_obj->f_then_block = l4;
+        _a0_obj->f_else_block = l5;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 853u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_TermReturn_t*) l2)->f_span;
-        l7 = ((vader_struct_vader_midir_TermReturn_t*) l2)->f_value;
-        l7 = vader_midir_remap_local_opt(l1, l7);
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_TermReturn_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_TermReturn_t*) t0)->f_value;
+        l6 = vader_midir_remap_local_opt(l1, l6);
         vader_struct_vader_midir_TermReturn_t* _a1_obj = (vader_struct_vader_midir_TermReturn_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_TermReturn_t));
         vader_obj_header_init(_a1_obj, 853u);
-        _a1_obj->f_span = l3;
-        _a1_obj->f_value = l7;
+        _a1_obj->f_span = l2;
+        _a1_obj->f_value = l6;
         t0 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -13398,12 +13770,12 @@ static void vader_midir_reserve_cfg_function(void* l0, void* l1) {
 }
 
 static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
-    int32_t l2, l7, l8;
+    int32_t l2, l7, l13;
     void* l3 = NULL;
     void* l4 = NULL;
+    void* l9 = NULL;
     void* l10 = NULL;
-    void* l11 = NULL;
-    void* l13 = NULL;
+    void* l12 = NULL;
     void* l14 = NULL;
     void* l16 = NULL;
     void* l20 = NULL;
@@ -13411,15 +13783,16 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
     vader_string_t l18 = 0;
     vader_string_t l19 = 0;
     vader_box_t l6 = vader_box_null();
-    size_t l9, l12, l15, l17;
+    size_t l8, l11, l15, l17;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     size_t t2;
-    int64_t t3;
-    vader_string_t t4 = 0;
+    int32_t t3;
+    int64_t t4;
+    vader_string_t t5 = 0;
     vader_box_t* gc_roots[2] = { &l6, &t1 };
-    void** gc_raw_roots[11] = { &l0, &l1, &l3, &l4, &l10, &l11, &l13, &l14, &l16, &l20, &t0 };
-    vader_string_t* gc_atom_roots[4] = { &l5, &l18, &l19, &t4 };
+    void** gc_raw_roots[11] = { &l0, &l1, &l3, &l4, &l9, &l10, &l12, &l14, &l16, &l20, &t0 };
+    vader_string_t* gc_atom_roots[4] = { &l5, &l18, &l19, &t5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 11u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = -(INT32_C(1));
@@ -13437,55 +13810,55 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
         t2 = ((vader_array_t*) ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types)->length;
         l7 = ((int32_t) (size_t) t2);
         if (l6.tag == 172u) {
-            l8 = ((int32_t) l6.payload.i);
             l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-            t3 = ((int64_t) (int32_t) l8);
-            l9 = (size_t) (int64_t) t3;
+            t3 = ((int32_t) l6.payload.i);
+            t4 = ((int64_t) (int32_t) t3);
+            l8 = (size_t) (int64_t) t4;
             vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
             if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-            if ((size_t) l9 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-            t1 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l9);
+            if ((size_t) l8 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+            t1 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l8);
             if (t1.tag == 511u) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
-            l7 = l8;
+            l7 = ((int32_t) l6.payload.i);
             vader_array_t* _a1_arr = vader_array_new(37u, 0u, 13u, 500u);
-            l10 = (void*) _a1_arr;
-            l11 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_fields;
-            l9 = ((vader_array_t*) l11)->length;
-            l12 = (size_t) (int64_t) INT64_C(0);
+            l9 = (void*) _a1_arr;
+            l10 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_fields;
+            l8 = ((vader_array_t*) l10)->length;
+            l11 = (size_t) (int64_t) INT64_C(0);
             {
-                loop_69: {
-                    if ((l12 < l9)) {
-                        vader_array_t* _a2_slotarr = ((vader_array_t*) l11);
+                loop_68: {
+                    if ((l11 < l8)) {
+                        vader_array_t* _a2_slotarr = ((vader_array_t*) l10);
                         if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                        if ((size_t) l12 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                        l13 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l12);
-                        l8 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l13)->f_type, l1);
-                        t4 = ((vader_struct_vader_midir_CFGStructField_t*) l13)->f_name;
+                        if ((size_t) l11 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                        l12 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l11);
+                        l13 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l12)->f_type, l1);
+                        t5 = ((vader_struct_vader_midir_CFGStructField_t*) l12)->f_name;
                         vader_struct_vader_bytecode_BcField_t* _a3_obj = (vader_struct_vader_bytecode_BcField_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcField_t));
                         vader_obj_header_init(_a3_obj, 500u);
-                        _a3_obj->f_name = t4;
-                        _a3_obj->f_type_index = l8;
+                        _a3_obj->f_name = t5;
+                        _a3_obj->f_type_index = l13;
                         l14 = (void*) _a3_obj;
-                        vader_array_push((vader_array_t*) l10, vader_ref_box(l14));
+                        vader_array_push((vader_array_t*) l9, vader_ref_box(l14));
                         l15 = (size_t) (int64_t) INT64_C(1);
-                        t3 = (l12 + l15);
-                        l12 = (size_t) (int64_t) t3;
-                        goto loop_69;
+                        t4 = (l11 + l15);
+                        l11 = (size_t) (int64_t) t4;
+                        goto loop_68;
                     } else {
                     }
                 }
             }
             l16 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-            t3 = ((int64_t) (int32_t) l7);
-            l17 = (size_t) (int64_t) t3;
+            t4 = ((int64_t) (int32_t) l7);
+            l17 = (size_t) (int64_t) t4;
             l18 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
             l19 = vader_midir_c_struct_of(((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_origin);
             vader_struct_vader_bytecode_BcStruct_t* _a4_obj = (vader_struct_vader_bytecode_BcStruct_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcStruct_t));
             vader_obj_header_init(_a4_obj, 511u);
             _a4_obj->f_name = l18;
-            _a4_obj->f_fields = l10;
+            _a4_obj->f_fields = l9;
             _a4_obj->f_c_name = l19;
             _a4_obj->f_symbol_id = l2;
             l20 = (void*) _a4_obj;
@@ -13498,49 +13871,49 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
         }
         std_collections_put__string__i32(((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_type_key, l5, l7);
         l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-        t4 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
+        t5 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
         vader_struct_vader_bytecode_BcRef_t* _a6_obj = (vader_struct_vader_bytecode_BcRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcRef_t));
         vader_obj_header_init(_a6_obj, 508u);
-        _a6_obj->f_trait_name = t4;
+        _a6_obj->f_trait_name = t5;
         l4 = (void*) _a6_obj;
         vader_array_push((vader_array_t*) l3, vader_ref_box(l4));
         vader_array_t* _a7_arr = vader_array_new(37u, 0u, 13u, 500u);
-        l10 = (void*) _a7_arr;
-        l11 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_fields;
-        l9 = ((vader_array_t*) l11)->length;
-        l12 = (size_t) (int64_t) INT64_C(0);
+        l9 = (void*) _a7_arr;
+        l10 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_fields;
+        l8 = ((vader_array_t*) l10)->length;
+        l11 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_146: {
-                if ((l12 < l9)) {
-                    vader_array_t* _a8_slotarr = ((vader_array_t*) l11);
+            loop_145: {
+                if ((l11 < l8)) {
+                    vader_array_t* _a8_slotarr = ((vader_array_t*) l10);
                     if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
-                    if ((size_t) l12 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
-                    l13 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l12);
-                    l8 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l13)->f_type, l1);
-                    t4 = ((vader_struct_vader_midir_CFGStructField_t*) l13)->f_name;
+                    if ((size_t) l11 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+                    l12 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l11);
+                    l13 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l12)->f_type, l1);
+                    t5 = ((vader_struct_vader_midir_CFGStructField_t*) l12)->f_name;
                     vader_struct_vader_bytecode_BcField_t* _a9_obj = (vader_struct_vader_bytecode_BcField_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcField_t));
                     vader_obj_header_init(_a9_obj, 500u);
-                    _a9_obj->f_name = t4;
-                    _a9_obj->f_type_index = l8;
+                    _a9_obj->f_name = t5;
+                    _a9_obj->f_type_index = l13;
                     l14 = (void*) _a9_obj;
-                    vader_array_push((vader_array_t*) l10, vader_ref_box(l14));
+                    vader_array_push((vader_array_t*) l9, vader_ref_box(l14));
                     l15 = (size_t) (int64_t) INT64_C(1);
-                    t3 = (l12 + l15);
-                    l12 = (size_t) (int64_t) t3;
-                    goto loop_146;
+                    t4 = (l11 + l15);
+                    l11 = (size_t) (int64_t) t4;
+                    goto loop_145;
                 } else {
                 }
             }
         }
         l16 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-        t3 = ((int64_t) (int32_t) l7);
-        l17 = (size_t) (int64_t) t3;
+        t4 = ((int64_t) (int32_t) l7);
+        l17 = (size_t) (int64_t) t4;
         l18 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
         l19 = vader_midir_c_struct_of(((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_origin);
         vader_struct_vader_bytecode_BcStruct_t* _a10_obj = (vader_struct_vader_bytecode_BcStruct_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcStruct_t));
         vader_obj_header_init(_a10_obj, 511u);
         _a10_obj->f_name = l18;
-        _a10_obj->f_fields = l10;
+        _a10_obj->f_fields = l9;
         _a10_obj->f_c_name = l19;
         _a10_obj->f_symbol_id = l2;
         l20 = (void*) _a10_obj;
@@ -13554,42 +13927,42 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
     t2 = ((vader_array_t*) ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types)->length;
     l7 = ((int32_t) (size_t) t2);
     l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-    t4 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
+    t5 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
     vader_struct_vader_bytecode_BcRef_t* _a12_obj = (vader_struct_vader_bytecode_BcRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcRef_t));
     vader_obj_header_init(_a12_obj, 508u);
-    _a12_obj->f_trait_name = t4;
+    _a12_obj->f_trait_name = t5;
     l4 = (void*) _a12_obj;
     vader_array_push((vader_array_t*) l3, vader_ref_box(l4));
     vader_array_t* _a13_arr = vader_array_new(37u, 0u, 13u, 500u);
     l3 = (void*) _a13_arr;
     l4 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_fields;
-    l9 = ((vader_array_t*) l4)->length;
-    l12 = (size_t) (int64_t) INT64_C(0);
+    l8 = ((vader_array_t*) l4)->length;
+    l11 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_223: {
-            if ((l12 < l9)) {
+        loop_222: {
+            if ((l11 < l8)) {
                 vader_array_t* _a14_slotarr = ((vader_array_t*) l4);
                 if (_a14_slotarr->buf != NULL && _a14_slotarr->buf->header.forward != NULL) { _a14_slotarr->buf = vader_array_buf_forward(_a14_slotarr->buf); }
-                if ((size_t) l12 >= _a14_slotarr->length) { vader_trap("array index out of bounds"); }
-                l10 = vader_array_ref_load_obj(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l12);
-                l8 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l10)->f_type, l1);
-                t4 = ((vader_struct_vader_midir_CFGStructField_t*) l10)->f_name;
+                if ((size_t) l11 >= _a14_slotarr->length) { vader_trap("array index out of bounds"); }
+                l9 = vader_array_ref_load_obj(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l11);
+                l13 = vader_bytecode_intern_type(((vader_struct_vader_midir_CFGStructField_t*) l9)->f_type, l1);
+                t5 = ((vader_struct_vader_midir_CFGStructField_t*) l9)->f_name;
                 vader_struct_vader_bytecode_BcField_t* _a15_obj = (vader_struct_vader_bytecode_BcField_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcField_t));
                 vader_obj_header_init(_a15_obj, 500u);
-                _a15_obj->f_name = t4;
-                _a15_obj->f_type_index = l8;
-                l11 = (void*) _a15_obj;
-                vader_array_push((vader_array_t*) l3, vader_ref_box(l11));
-                t3 = (l12 + INT64_C(1));
-                l12 = (size_t) (int64_t) t3;
-                goto loop_223;
+                _a15_obj->f_name = t5;
+                _a15_obj->f_type_index = l13;
+                l10 = (void*) _a15_obj;
+                vader_array_push((vader_array_t*) l3, vader_ref_box(l10));
+                t4 = (l11 + INT64_C(1));
+                l11 = (size_t) (int64_t) t4;
+                goto loop_222;
             } else {
             }
         }
     }
     l4 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_types;
-    t3 = ((int64_t) (int32_t) l7);
-    l9 = (size_t) (int64_t) t3;
+    t4 = ((int64_t) (int32_t) l7);
+    l8 = (size_t) (int64_t) t4;
     l5 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
     l18 = vader_midir_c_struct_of(((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_origin);
     vader_struct_vader_bytecode_BcStruct_t* _a16_obj = (vader_struct_vader_bytecode_BcStruct_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcStruct_t));
@@ -13601,8 +13974,8 @@ static void vader_midir_reserve_cfg_struct(void* l0, void* l1) {
     l3 = (void*) _a16_obj;
     vader_array_t* _a17_slotarr = ((vader_array_t*) l4);
     if (_a17_slotarr->buf != NULL && _a17_slotarr->buf->header.forward != NULL) { _a17_slotarr->buf = vader_array_buf_forward(_a17_slotarr->buf); }
-    if ((size_t) l9 >= _a17_slotarr->length) { vader_trap("array index out of bounds"); }
-    vader_array_ref_store(_a17_slotarr->buf, _a17_slotarr->offset + (size_t) l9, l3);
+    if ((size_t) l8 >= _a17_slotarr->length) { vader_trap("array index out of bounds"); }
+    vader_array_ref_store(_a17_slotarr->buf, _a17_slotarr->offset + (size_t) l8, l3);
     VADER_WRITE_BARRIER(_a17_slotarr->buf);
     l3 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l1)->f_type_key;
     l5 = ((vader_struct_vader_midir_CFGStructDecl_t*) l0)->f_mangled;
@@ -14412,324 +14785,377 @@ static void* vader_midir_with_by_address(void* l0, void* l1) {
 
 static vader_box_t vader_midir_with_dst(vader_box_t l0, int32_t l1) {
     void* l2 = NULL;
-    void* l3 = NULL;
-    void* l12 = NULL;
-    vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
-    int32_t l6, l8, l11;
-    uint8_t l7;
-    vader_string_t l9 = 0;
-    bool l10;
+    void* l11 = NULL;
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
+    int32_t l5, l7, l10;
+    uint8_t l6;
+    vader_string_t l8 = 0;
+    bool l9;
     void* t0 = NULL;
-    vader_box_t* gc_roots[3] = { &l0, &l4, &l5 };
-    void** gc_raw_roots[4] = { &l2, &l3, &l12, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &l9 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_box_t* gc_roots[3] = { &l0, &l3, &l4 };
+    void** gc_raw_roots[3] = { &l2, &l11, &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l8 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0.tag == 827u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_value;
-        l5 = ((vader_struct_vader_midir_InstrConst_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_value;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrConst_t*) t0)->f_type;
         vader_struct_vader_midir_InstrConst_t* _a0_obj = (vader_struct_vader_midir_InstrConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrConst_t));
         vader_obj_header_init(_a0_obj, 827u);
-        _a0_obj->f_span = l3;
+        _a0_obj->f_span = l2;
         _a0_obj->f_dst = l1;
-        _a0_obj->f_value = l4;
-        _a0_obj->f_type = l5;
+        _a0_obj->f_value = l3;
+        _a0_obj->f_type = l4;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 837u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrMove_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrMove_t*) l2)->f_src;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrMove_t*) t0)->f_src;
         vader_struct_vader_midir_InstrMove_t* _a1_obj = (vader_struct_vader_midir_InstrMove_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrMove_t));
         vader_obj_header_init(_a1_obj, 837u);
-        _a1_obj->f_span = l3;
+        _a1_obj->f_span = l2;
         _a1_obj->f_dst = l1;
-        _a1_obj->f_src = l6;
+        _a1_obj->f_src = l5;
         t0 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 820u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_span;
-        l7 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_op;
-        l6 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_lhs;
-        l8 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_rhs;
-        l4 = ((vader_struct_vader_midir_InstrBinOp_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_op;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_lhs;
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_rhs;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrBinOp_t*) t0)->f_type;
         vader_struct_vader_midir_InstrBinOp_t* _a2_obj = (vader_struct_vader_midir_InstrBinOp_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrBinOp_t));
         vader_obj_header_init(_a2_obj, 820u);
-        _a2_obj->f_span = l3;
+        _a2_obj->f_span = l2;
         _a2_obj->f_dst = l1;
-        _a2_obj->f_op = l7;
-        _a2_obj->f_lhs = l6;
-        _a2_obj->f_rhs = l8;
-        _a2_obj->f_type = l4;
+        _a2_obj->f_op = l6;
+        _a2_obj->f_lhs = l5;
+        _a2_obj->f_rhs = l7;
+        _a2_obj->f_type = l3;
         t0 = (void*) _a2_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 842u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_span;
-        l7 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_op;
-        l6 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_operand;
-        l4 = ((vader_struct_vader_midir_InstrUnOp_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l6 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_op;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_operand;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrUnOp_t*) t0)->f_type;
         vader_struct_vader_midir_InstrUnOp_t* _a3_obj = (vader_struct_vader_midir_InstrUnOp_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrUnOp_t));
         vader_obj_header_init(_a3_obj, 842u);
-        _a3_obj->f_span = l3;
+        _a3_obj->f_span = l2;
         _a3_obj->f_dst = l1;
-        _a3_obj->f_op = l7;
-        _a3_obj->f_operand = l6;
-        _a3_obj->f_type = l4;
+        _a3_obj->f_op = l6;
+        _a3_obj->f_operand = l5;
+        _a3_obj->f_type = l3;
         t0 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 831u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_target;
-        l9 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_field;
-        l4 = ((vader_struct_vader_midir_InstrFieldGet_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_target;
+        t0 = l0.payload.obj;
+        l8 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_field;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFieldGet_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFieldGet_t* _a4_obj = (vader_struct_vader_midir_InstrFieldGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFieldGet_t));
         vader_obj_header_init(_a4_obj, 831u);
-        _a4_obj->f_span = l3;
+        _a4_obj->f_span = l2;
         _a4_obj->f_dst = l1;
-        _a4_obj->f_target = l6;
-        _a4_obj->f_field = l9;
-        _a4_obj->f_type = l4;
+        _a4_obj->f_target = l5;
+        _a4_obj->f_field = l8;
+        _a4_obj->f_type = l3;
         t0 = (void*) _a4_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 814u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_target;
-        l8 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_index;
-        l4 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_type;
-        l10 = ((vader_struct_vader_midir_InstrArrayGet_t*) l2)->f_bounds_safe;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_target;
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_index;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayGet_t*) t0)->f_bounds_safe;
         vader_struct_vader_midir_InstrArrayGet_t* _a5_obj = (vader_struct_vader_midir_InstrArrayGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayGet_t));
         vader_obj_header_init(_a5_obj, 814u);
-        _a5_obj->f_span = l3;
+        _a5_obj->f_span = l2;
         _a5_obj->f_dst = l1;
-        _a5_obj->f_target = l6;
-        _a5_obj->f_index = l8;
-        _a5_obj->f_type = l4;
-        _a5_obj->f_bounds_safe = l10;
+        _a5_obj->f_target = l5;
+        _a5_obj->f_index = l7;
+        _a5_obj->f_type = l3;
+        _a5_obj->f_bounds_safe = l9;
         t0 = (void*) _a5_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 815u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_target;
-        l10 = ((vader_struct_vader_midir_InstrArrayLen_t*) l2)->f_resolve_buf;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_target;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayLen_t*) t0)->f_resolve_buf;
         vader_struct_vader_midir_InstrArrayLen_t* _a6_obj = (vader_struct_vader_midir_InstrArrayLen_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayLen_t));
         vader_obj_header_init(_a6_obj, 815u);
-        _a6_obj->f_span = l3;
+        _a6_obj->f_span = l2;
         _a6_obj->f_dst = l1;
-        _a6_obj->f_target = l6;
-        _a6_obj->f_resolve_buf = l10;
+        _a6_obj->f_target = l5;
+        _a6_obj->f_resolve_buf = l9;
         t0 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 819u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_type;
-        l6 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_target;
-        l8 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_lo;
-        l11 = ((vader_struct_vader_midir_InstrArraySlice_t*) l2)->f_hi;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_target;
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_lo;
+        t0 = l0.payload.obj;
+        l10 = ((vader_struct_vader_midir_InstrArraySlice_t*) t0)->f_hi;
         vader_struct_vader_midir_InstrArraySlice_t* _a7_obj = (vader_struct_vader_midir_InstrArraySlice_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArraySlice_t));
         vader_obj_header_init(_a7_obj, 819u);
-        _a7_obj->f_span = l3;
+        _a7_obj->f_span = l2;
         _a7_obj->f_dst = l1;
-        _a7_obj->f_type = l4;
-        _a7_obj->f_target = l6;
-        _a7_obj->f_lo = l8;
-        _a7_obj->f_hi = l11;
+        _a7_obj->f_type = l3;
+        _a7_obj->f_target = l5;
+        _a7_obj->f_lo = l7;
+        _a7_obj->f_hi = l10;
         t0 = (void*) _a7_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 838u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_type;
-        l6 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_target;
-        l8 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_lo;
-        l11 = ((vader_struct_vader_midir_InstrStringSlice_t*) l2)->f_hi;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_target;
+        t0 = l0.payload.obj;
+        l7 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_lo;
+        t0 = l0.payload.obj;
+        l10 = ((vader_struct_vader_midir_InstrStringSlice_t*) t0)->f_hi;
         vader_struct_vader_midir_InstrStringSlice_t* _a8_obj = (vader_struct_vader_midir_InstrStringSlice_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrStringSlice_t));
         vader_obj_header_init(_a8_obj, 838u);
-        _a8_obj->f_span = l3;
+        _a8_obj->f_span = l2;
         _a8_obj->f_dst = l1;
-        _a8_obj->f_type = l4;
-        _a8_obj->f_target = l6;
-        _a8_obj->f_lo = l8;
-        _a8_obj->f_hi = l11;
+        _a8_obj->f_type = l3;
+        _a8_obj->f_target = l5;
+        _a8_obj->f_lo = l7;
+        _a8_obj->f_hi = l10;
         t0 = (void*) _a8_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 839u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_type;
-        l12 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_fields;
-        l10 = ((vader_struct_vader_midir_InstrStructNew_t*) l2)->f_stack;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_fields;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrStructNew_t*) t0)->f_stack;
         vader_struct_vader_midir_InstrStructNew_t* _a9_obj = (vader_struct_vader_midir_InstrStructNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrStructNew_t));
         vader_obj_header_init(_a9_obj, 839u);
-        _a9_obj->f_span = l3;
+        _a9_obj->f_span = l2;
         _a9_obj->f_dst = l1;
-        _a9_obj->f_type = l4;
-        _a9_obj->f_fields = l12;
-        _a9_obj->f_stack = l10;
+        _a9_obj->f_type = l3;
+        _a9_obj->f_fields = l11;
+        _a9_obj->f_stack = l9;
         t0 = (void*) _a9_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 816u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_type;
-        l6 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_length;
-        l12 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_elements;
-        l10 = ((vader_struct_vader_midir_InstrArrayNew_t*) l2)->f_stack;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_length;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_elements;
+        t0 = l0.payload.obj;
+        l9 = ((vader_struct_vader_midir_InstrArrayNew_t*) t0)->f_stack;
         vader_struct_vader_midir_InstrArrayNew_t* _a10_obj = (vader_struct_vader_midir_InstrArrayNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrArrayNew_t));
         vader_obj_header_init(_a10_obj, 816u);
-        _a10_obj->f_span = l3;
+        _a10_obj->f_span = l2;
         _a10_obj->f_dst = l1;
-        _a10_obj->f_type = l4;
-        _a10_obj->f_length = l6;
-        _a10_obj->f_elements = l12;
-        _a10_obj->f_stack = l10;
+        _a10_obj->f_type = l3;
+        _a10_obj->f_length = l5;
+        _a10_obj->f_elements = l11;
+        _a10_obj->f_stack = l9;
         t0 = (void*) _a10_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 828u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_type;
-        l6 = ((vader_struct_vader_midir_InstrDataConst_t*) l2)->f_pool_index;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrDataConst_t*) t0)->f_pool_index;
         vader_struct_vader_midir_InstrDataConst_t* _a11_obj = (vader_struct_vader_midir_InstrDataConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrDataConst_t));
         vader_obj_header_init(_a11_obj, 828u);
-        _a11_obj->f_span = l3;
+        _a11_obj->f_span = l2;
         _a11_obj->f_dst = l1;
-        _a11_obj->f_type = l4;
-        _a11_obj->f_pool_index = l6;
+        _a11_obj->f_type = l3;
+        _a11_obj->f_pool_index = l5;
         t0 = (void*) _a11_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 840u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_value;
-        l4 = ((vader_struct_vader_midir_InstrTypeCheck_t*) l2)->f_check_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_value;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeCheck_t*) t0)->f_check_type;
         vader_struct_vader_midir_InstrTypeCheck_t* _a12_obj = (vader_struct_vader_midir_InstrTypeCheck_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrTypeCheck_t));
         vader_obj_header_init(_a12_obj, 840u);
-        _a12_obj->f_span = l3;
+        _a12_obj->f_span = l2;
         _a12_obj->f_dst = l1;
-        _a12_obj->f_value = l6;
-        _a12_obj->f_check_type = l4;
+        _a12_obj->f_value = l5;
+        _a12_obj->f_check_type = l3;
         t0 = (void*) _a12_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 841u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_span;
-        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_type;
-        l5 = ((vader_struct_vader_midir_InstrTypeConst_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_type;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrTypeConst_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrTypeConst_t* _a13_obj = (vader_struct_vader_midir_InstrTypeConst_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrTypeConst_t));
         vader_obj_header_init(_a13_obj, 841u);
-        _a13_obj->f_span = l3;
+        _a13_obj->f_span = l2;
         _a13_obj->f_dst = l1;
-        _a13_obj->f_type = l4;
-        _a13_obj->f_value_type = l5;
+        _a13_obj->f_type = l3;
+        _a13_obj->f_value_type = l4;
         t0 = (void*) _a13_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 823u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_value;
-        l4 = ((vader_struct_vader_midir_InstrCast_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_value;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCast_t*) t0)->f_type;
         vader_struct_vader_midir_InstrCast_t* _a14_obj = (vader_struct_vader_midir_InstrCast_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCast_t));
         vader_obj_header_init(_a14_obj, 823u);
-        _a14_obj->f_span = l3;
+        _a14_obj->f_span = l2;
         _a14_obj->f_dst = l1;
-        _a14_obj->f_value = l6;
-        _a14_obj->f_type = l4;
+        _a14_obj->f_value = l5;
+        _a14_obj->f_type = l3;
         t0 = (void*) _a14_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 825u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_value;
-        l4 = ((vader_struct_vader_midir_InstrCellNew_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellNew_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrCellNew_t* _a15_obj = (vader_struct_vader_midir_InstrCellNew_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCellNew_t));
         vader_obj_header_init(_a15_obj, 825u);
-        _a15_obj->f_span = l3;
+        _a15_obj->f_span = l2;
         _a15_obj->f_dst = l1;
-        _a15_obj->f_value = l6;
-        _a15_obj->f_value_type = l4;
+        _a15_obj->f_value = l5;
+        _a15_obj->f_value_type = l3;
         t0 = (void*) _a15_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 824u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_span;
-        l6 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_cell;
-        l4 = ((vader_struct_vader_midir_InstrCellGet_t*) l2)->f_value_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_cell;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrCellGet_t*) t0)->f_value_type;
         vader_struct_vader_midir_InstrCellGet_t* _a16_obj = (vader_struct_vader_midir_InstrCellGet_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrCellGet_t));
         vader_obj_header_init(_a16_obj, 824u);
-        _a16_obj->f_span = l3;
+        _a16_obj->f_span = l2;
         _a16_obj->f_dst = l1;
-        _a16_obj->f_cell = l6;
-        _a16_obj->f_value_type = l4;
+        _a16_obj->f_cell = l5;
+        _a16_obj->f_value_type = l3;
         t0 = (void*) _a16_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 836u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_span;
-        l12 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_fn_symbol;
-        l6 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_env;
-        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_env_type;
-        l5 = ((vader_struct_vader_midir_InstrMakeClosure_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l5 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_env;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_env_type;
+        t0 = l0.payload.obj;
+        l4 = ((vader_struct_vader_midir_InstrMakeClosure_t*) t0)->f_type;
         vader_struct_vader_midir_InstrMakeClosure_t* _a17_obj = (vader_struct_vader_midir_InstrMakeClosure_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrMakeClosure_t));
         vader_obj_header_init(_a17_obj, 836u);
-        _a17_obj->f_span = l3;
+        _a17_obj->f_span = l2;
         _a17_obj->f_dst = l1;
-        _a17_obj->f_fn_symbol = l12;
-        _a17_obj->f_env = l6;
-        _a17_obj->f_env_type = l4;
-        _a17_obj->f_type = l5;
+        _a17_obj->f_fn_symbol = l11;
+        _a17_obj->f_env = l5;
+        _a17_obj->f_env_type = l3;
+        _a17_obj->f_type = l4;
         t0 = (void*) _a17_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 834u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_span;
-        l12 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_fn_symbol;
-        l4 = ((vader_struct_vader_midir_InstrFnRef_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnRef_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFnRef_t* _a18_obj = (vader_struct_vader_midir_InstrFnRef_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFnRef_t));
         vader_obj_header_init(_a18_obj, 834u);
-        _a18_obj->f_span = l3;
+        _a18_obj->f_span = l2;
         _a18_obj->f_dst = l1;
-        _a18_obj->f_fn_symbol = l12;
-        _a18_obj->f_type = l4;
+        _a18_obj->f_fn_symbol = l11;
+        _a18_obj->f_type = l3;
         t0 = (void*) _a18_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 833u) {
-        l2 = l0.payload.obj;
-        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_span;
-        l12 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_fn_symbol;
-        l4 = ((vader_struct_vader_midir_InstrFnAddr_t*) l2)->f_type;
+        t0 = l0.payload.obj;
+        l2 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_span;
+        t0 = l0.payload.obj;
+        l11 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_fn_symbol;
+        t0 = l0.payload.obj;
+        l3 = ((vader_struct_vader_midir_InstrFnAddr_t*) t0)->f_type;
         vader_struct_vader_midir_InstrFnAddr_t* _a19_obj = (vader_struct_vader_midir_InstrFnAddr_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir_InstrFnAddr_t));
         vader_obj_header_init(_a19_obj, 833u);
-        _a19_obj->f_span = l3;
+        _a19_obj->f_span = l2;
         _a19_obj->f_dst = l1;
-        _a19_obj->f_fn_symbol = l12;
-        _a19_obj->f_type = l4;
+        _a19_obj->f_fn_symbol = l11;
+        _a19_obj->f_type = l3;
         t0 = (void*) _a19_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }

@@ -168,8 +168,8 @@ static vader_box_t vader_comptime_vm_int_scalar(int64_t l0, vader_string_t l1) {
 }
 
 static vader_string_t vader_comptime_vm_prim_name(vader_box_t l0, vader_string_t l1) {
-    void* l2;
     void* t0;
+    void* t2;
     vader_string_t t1;
     if (l0.tag == 925u) {
         t0 = l0.payload.obj;
@@ -177,10 +177,11 @@ static vader_string_t vader_comptime_vm_prim_name(vader_box_t l0, vader_string_t
         return t1;
     }
     if (l0.tag == 917u) {
-        l2 = l0.payload.obj;
-        if (((vader_struct_vader_types_DistinctType_t*) l2)->f_backing.tag == 925u) {
-            t0 = ((vader_struct_vader_types_DistinctType_t*) l2)->f_backing.payload.obj;
-            t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
+        t0 = l0.payload.obj;
+        if (((vader_struct_vader_types_DistinctType_t*) t0)->f_backing.tag == 925u) {
+            t0 = l0.payload.obj;
+            t2 = ((vader_struct_vader_types_DistinctType_t*) t0)->f_backing.payload.obj;
+            t1 = ((vader_struct_vader_types_PrimitiveType_t*) t2)->f_name;
             return t1;
         }
         return l1;
@@ -194,27 +195,26 @@ void vader_comptime_vm_resolve_vm_required_decls(void* l0, void* l1, void* l2, v
     void* l6 = NULL;
     void* l9 = NULL;
     void* l13 = NULL;
-    void* l14 = NULL;
+    void* l15 = NULL;
     void* l16 = NULL;
-    void* l17 = NULL;
-    void* l19 = NULL;
-    void* l22 = NULL;
-    void* l24 = NULL;
-    size_t l7, l8, l26;
+    void* l18 = NULL;
+    void* l21 = NULL;
+    void* l23 = NULL;
+    size_t l7, l8, l25;
     vader_string_t l10 = 0;
     vader_string_t l11 = 0;
-    vader_string_t l15 = 0;
-    vader_string_t l18 = 0;
-    vader_box_t l12 = vader_box_null(), l20 = vader_box_null(), l21 = vader_box_null(), l23 = vader_box_null(), l25 = vader_box_null();
+    vader_string_t l14 = 0;
+    vader_string_t l17 = 0;
+    vader_box_t l12 = vader_box_null(), l19 = vader_box_null(), l20 = vader_box_null(), l22 = vader_box_null(), l24 = vader_box_null();
     size_t t0;
     int64_t t1;
-    vader_string_t t2 = 0;
-    bool t3;
-    void* t4 = NULL;
-    vader_box_t* gc_roots[5] = { &l12, &l20, &l21, &l23, &l25 };
-    void** gc_raw_roots[16] = { &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l9, &l13, &l14, &l16, &l17, &l19, &l22, &l24, &t4 };
-    vader_string_t* gc_atom_roots[5] = { &l10, &l11, &l15, &l18, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 16u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots };
+    void* t2 = NULL;
+    vader_string_t t3 = 0;
+    bool t4;
+    vader_box_t* gc_roots[5] = { &l12, &l19, &l20, &l22, &l24 };
+    void** gc_raw_roots[15] = { &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l9, &l13, &l15, &l16, &l18, &l21, &l23, &t2 };
+    vader_string_t* gc_atom_roots[5] = { &l10, &l11, &l14, &l17, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 15u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) ((vader_struct_vader_comptime_EvaluatedProject_t*) l2)->f_vm_required)->length;
     if (t0 == INT64_C(0)) {
@@ -243,46 +243,48 @@ void vader_comptime_vm_resolve_vm_required_decls(void* l0, void* l1, void* l2, v
                 }
                 l12 = vader_vm_exec_fn_value(l5, l11);
                 if (l12.tag == 959u) {
-                    l13 = l12.payload.obj;
-                    t2 = ((vader_struct_vader_vm_Trap_t*) l13)->f_message;
-                    t3 = vader_vm_is_impure_comptime_trap_message(t2);
-                    if (t3) {
-                        l14 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
-                        l15 = ((vader_struct_vader_vm_Trap_t*) l13)->f_message;
-                        l16 = vader_diagnostics_comptime_error((uint8_t) (int32_t) INT32_C(15), l14, l15);
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l16));
+                    t2 = l12.payload.obj;
+                    t3 = ((vader_struct_vader_vm_Trap_t*) t2)->f_message;
+                    t4 = vader_vm_is_impure_comptime_trap_message(t3);
+                    if (t4) {
+                        l13 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
+                        t2 = l12.payload.obj;
+                        l14 = ((vader_struct_vader_vm_Trap_t*) t2)->f_message;
+                        l15 = vader_diagnostics_comptime_error((uint8_t) (int32_t) INT32_C(15), l13, l14);
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l15));
                     } else {
-                        l17 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
-                        l18 = ((vader_struct_vader_vm_Trap_t*) l13)->f_message;
-                        l19 = vader_diagnostics_comptime_error((uint8_t) (int32_t) INT32_C(1), l17, l18);
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l19));
+                        l16 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
+                        t2 = l12.payload.obj;
+                        l17 = ((vader_struct_vader_vm_Trap_t*) t2)->f_message;
+                        l18 = vader_diagnostics_comptime_error((uint8_t) (int32_t) INT32_C(1), l16, l17);
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l18));
                     }
                     t1 = (l8 + INT64_C(1));
                     l8 = (size_t) (int64_t) t1;
                     goto loop_24;
                 }
                 if (l12.tag == 961u) {
-                    t4 = l12.payload.obj;
-                    l20 = ((vader_struct_vader_vm_ValueOk_t*) t4)->f_value;
-                    l21 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_decl_type;
-                    l22 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
-                    l23 = vader_comptime_vm_value_to_comptime(l20, l21, l22);
-                    if (l23.tag == 700u) {
-                        l24 = l23.payload.obj;
-                        vader_array_push((vader_array_t*) l3, vader_ref_box(l24));
+                    t2 = l12.payload.obj;
+                    l19 = ((vader_struct_vader_vm_ValueOk_t*) t2)->f_value;
+                    l20 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_decl_type;
+                    l21 = ((vader_struct_vader_comptime_VmRequiredDecl_t*) l9)->f_span;
+                    l22 = vader_comptime_vm_value_to_comptime(l19, l20, l21);
+                    if (l22.tag == 700u) {
+                        l23 = l22.payload.obj;
+                        vader_array_push((vader_array_t*) l3, vader_ref_box(l23));
                         t1 = (l8 + INT64_C(1));
                         l8 = (size_t) (int64_t) t1;
                         goto loop_24;
                     }
-                    l25 = l23;
-                    vader_comptime_vm_inject(l2, l9, l25);
-                    l26 = (size_t) (int64_t) INT64_C(1);
-                    t1 = (l8 + l26);
+                    l24 = l22;
+                    vader_comptime_vm_inject(l2, l9, l24);
+                    l25 = (size_t) (int64_t) INT64_C(1);
+                    t1 = (l8 + l25);
                     l8 = (size_t) (int64_t) t1;
                     goto loop_24;
                 }
-                l26 = (size_t) (int64_t) INT64_C(1);
-                t1 = (l8 + l26);
+                l25 = (size_t) (int64_t) INT64_C(1);
+                t1 = (l8 + l25);
                 l8 = (size_t) (int64_t) t1;
                 goto loop_24;
             } else {

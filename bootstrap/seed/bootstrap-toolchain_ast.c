@@ -106,9 +106,9 @@ vader_box_t toolchain_ast_strip_mut_marker(vader_box_t l0) {
 }
 
 bool toolchain_ast_type_expr_marks_mutable(vader_box_t l0) {
-    void* l1;
-    bool l2;
-    bool t0;
+    bool l1;
+    void* t0;
+    bool t1;
     if (l0.tag == 0u) {
         return false;
     }
@@ -116,15 +116,17 @@ bool toolchain_ast_type_expr_marks_mutable(vader_box_t l0) {
         return true;
     }
     if (l0.tag == 396u) {
-        l1 = l0.payload.obj;
-        if (((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_op == INT32_C(8)) {
-            t0 = toolchain_ast_type_expr_marks_mutable(((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_left);
-            if (t0) {
-                l2 = true;
+        t0 = l0.payload.obj;
+        if (((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_op == INT32_C(8)) {
+            t0 = l0.payload.obj;
+            t1 = toolchain_ast_type_expr_marks_mutable(((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_left);
+            if (t1) {
+                l1 = true;
             } else {
-                l2 = toolchain_ast_type_expr_marks_mutable(((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_right);
+                t0 = l0.payload.obj;
+                l1 = toolchain_ast_type_expr_marks_mutable(((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_right);
             }
-            return l2;
+            return l1;
         }
         return false;
     }
