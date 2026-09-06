@@ -400,7 +400,7 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 vader_string_t std_core_bool_Display_to_string(bool l0) {
     vader_string_t l1;
     if (l0) {
-        l1 = 2175u;
+        l1 = 2176u;
     } else {
         l1 = 1565u;
     }
@@ -3016,7 +3016,7 @@ size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 2175u);
+        t0 = std_core_write_string_at(l0, l1, 2176u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = std_core_write_string_at(l0, l1, 1565u);

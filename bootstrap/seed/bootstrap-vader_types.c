@@ -1,6 +1,7 @@
 #include "bootstrap.split.h"
 
 static bool vader_types_contains_distinct(vader_box_t l0);
+static bool vader_types_variants_grant_mutation(void* l0);
 static void vader_types_write_named_mut(void* l0, vader_string_t l1, void* l2, bool l3);
 static void vader_types_write_type(void* l0, vader_box_t l1);
 static void vader_types_write_type_list_mut(void* l0, void* l1, vader_string_t l2, bool l3);
@@ -398,19 +399,19 @@ vader_string_t vader_types_display_type(vader_box_t l0) {
         { vader_gc_top = gc_frame.prev; return 1902u; }
     }
     if (l0.tag == 923u) {
-        { vader_gc_top = gc_frame.prev; return 2433u; }
+        { vader_gc_top = gc_frame.prev; return 2434u; }
     }
     if (l0.tag == 922u) {
-        { vader_gc_top = gc_frame.prev; return 2432u; }
+        { vader_gc_top = gc_frame.prev; return 2433u; }
     }
     if (l0.tag == 921u) {
-        { vader_gc_top = gc_frame.prev; return 2431u; }
+        { vader_gc_top = gc_frame.prev; return 2432u; }
     }
     if (l0.tag == 927u) {
         { vader_gc_top = gc_frame.prev; return 740u; }
     }
     if (l0.tag == 931u) {
-        { vader_gc_top = gc_frame.prev; return 2181u; }
+        { vader_gc_top = gc_frame.prev; return 2182u; }
     }
     if (l0.tag == 916u) {
         { vader_gc_top = gc_frame.prev; return 542u; }
@@ -1159,6 +1160,41 @@ vader_string_t vader_types_type_base_name(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
+bool vader_types_type_grants_mutation(vader_box_t l0) {
+    bool l1;
+    void* t0;
+    bool t1;
+    if (l0.tag == 917u) {
+        t0 = l0.payload.obj;
+        t1 = ((vader_struct_vader_types_ArrayType_t*) t0)->f_immutable;
+        l1 = !(t1);
+    } else {
+        if (l0.tag == 928u) {
+            t0 = l0.payload.obj;
+            t1 = ((vader_struct_vader_types_StructType_t*) t0)->f_immutable;
+            l1 = !(t1);
+        } else {
+            if (l0.tag == 930u) {
+                t0 = l0.payload.obj;
+                t1 = ((vader_struct_vader_types_TupleType_t*) t0)->f_immutable;
+                l1 = !(t1);
+            } else {
+                if (l0.tag == 933u) {
+                    t0 = l0.payload.obj;
+                    l1 = vader_types_variants_grant_mutation(((vader_struct_vader_types_UnionType_t*) t0)->f_variants);
+                } else {
+                    if ((l0.tag == 916u || l0.tag == 918u || l0.tag == 919u || l0.tag == 920u || l0.tag == 921u || l0.tag == 922u || l0.tag == 923u || l0.tag == 924u || l0.tag == 926u || l0.tag == 927u || l0.tag == 929u || l0.tag == 931u || l0.tag == 932u || l0.tag == 934u)) {
+                        l1 = false;
+                    } else {
+                        vader_unreachable("unreachable return in vader_types$type_grants_mutation");
+                    }
+                }
+            }
+        }
+    }
+    return l1;
+}
+
 bool vader_types_type_is_immutable(vader_box_t l0) {
     bool l1;
     void* t0;
@@ -1183,6 +1219,40 @@ bool vader_types_type_is_immutable(vader_box_t l0) {
         }
     }
     return l1;
+}
+
+static bool vader_types_variants_grant_mutation(void* l0) {
+    void* l1;
+    size_t l2, l3;
+    size_t t0;
+    vader_box_t t1;
+    bool t2;
+    int64_t t3;
+    t0 = ((vader_array_t*) l0)->length;
+    if (t0 == INT64_C(0)) {
+        return false;
+    }
+    l1 = l0;
+    l2 = ((vader_array_t*) l1)->length;
+    l3 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_14: {
+            if ((l3 < l2)) {
+                vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
+                if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+                if ((size_t) l3 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                t1 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
+                t2 = vader_types_type_grants_mutation(t1);
+                if (!(t2)) {
+                    return false;
+                }
+                t3 = (l3 + INT64_C(1));
+                l3 = (size_t) (int64_t) t3;
+                goto loop_14;
+            }
+        }
+    }
+    return true;
 }
 
 static void vader_types_write_named_mut(void* l0, vader_string_t l1, void* l2, bool l3) {
@@ -1309,7 +1379,7 @@ static void vader_types_write_type_mut(void* l0, vader_box_t l1, bool l2) {
                             std_string_builder_append(l0, l3);
                         } else {
                             if (l1.tag == 931u) {
-                                std_string_builder_append(l0, 2181u);
+                                std_string_builder_append(l0, 2182u);
                             } else {
                                 if (l1.tag == 927u) {
                                     std_string_builder_append(l0, 740u);
@@ -1321,13 +1391,13 @@ static void vader_types_write_type_mut(void* l0, vader_box_t l1, bool l2) {
                                             std_string_builder_append(l0, 1902u);
                                         } else {
                                             if (l1.tag == 923u) {
-                                                std_string_builder_append(l0, 2433u);
+                                                std_string_builder_append(l0, 2434u);
                                             } else {
                                                 if (l1.tag == 922u) {
-                                                    std_string_builder_append(l0, 2432u);
+                                                    std_string_builder_append(l0, 2433u);
                                                 } else {
                                                     if (l1.tag == 921u) {
-                                                        std_string_builder_append(l0, 2431u);
+                                                        std_string_builder_append(l0, 2432u);
                                                     } else {
                                                         if (l1.tag == 917u) {
                                                             t0 = l1.payload.obj;
