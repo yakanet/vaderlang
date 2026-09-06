@@ -2532,6 +2532,7 @@ struct vader_struct_toolchain_ast_MatchExpr_t {
     void* f_arms;
     bool f_partial;
     bool f_unreachable;
+    vader_string_t f_bind_as;
 };
 struct vader_struct_toolchain_ast_ModuleDecl_t {
     vader_obj_header_t header;
