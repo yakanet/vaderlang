@@ -137,6 +137,11 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
             idx = cached
         } else {
             ctx.type_key[key] = idx
+            struct_h :: type_intern_hash(struct_type)
+            if ctx.type_hash[struct_h] is null {
+                ctx.type_hash[struct_h] = idx
+                ctx.type_hash_src[struct_h] = struct_type
+            }
             ctx.types.push(BcRef { .trait_name = s.mangled })
         }
         fields: BcField[]! = []

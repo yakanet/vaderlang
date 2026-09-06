@@ -382,3 +382,114 @@ import "std/testing"
         i32(val_type_of_type(mk_tuple([i32_ty, i32_ty], true))),
     )
 }
+
+// ---- POC : structural hash key ---------------------------------------------
+
+FNV_OFFSET_64: u64: 14695981039346656037
+FNV_PRIME_64:  u64: 1099511628211
+
+// A single FNV-1a step over 64-bit WORDS barely avalanches — the multiply only
+// carries bits upward, so structurally similar inputs (sequential symbol ids,
+// neighbouring name hashes) collide. Finalise each step instead.
+mix64 :: fn(h: u64, v: u64) -> u64 {
+    x := (h ^ v) * FNV_PRIME_64
+    x = (x ^ (x >> 33)) * 18397679294719823053
+    x = (x ^ (x >> 29)) * 14181476777654086739
+    return x ^ (x >> 32)
+}
+
+/// `type_intern_key` as a 64-bit structural hash — same collapsing rules, no
+/// string. The key exists to index a table of ~1 600 slots and is rebuilt half a
+/// million times per self-build; every level of the recursion allocates and
+/// interns, so the string IS the cost.
+export type_intern_hash :: fn(t: Type) -> u64 = match t {
+    // The BARE cases carry no prefix in `type_intern_key`, so two of them with
+    // the same text collapse to one slot there and MUST collapse here too — no
+    // per-variant tag, or the table forks where the string merged.
+    is PrimitiveType  -> bare_hash(t.name)
+    is EnumType       -> bare_hash(t.repr)
+    is AnyType        -> bare_hash("Any")
+    is TypeParamType | TypeMetaType | SelfType | UnresolvedType
+     | FreeIntType | FreeCharType | FreeFloatType | NeverType -> bare_hash(display_type(t))
+    is DistinctType   -> type_intern_hash(t.backing)
+    // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, …),
+    // so a tag mirrors what the string already separates.
+    is StructType     -> type_args_hash(mix64(mix64(FNV_OFFSET_64, 1), symbol_hash(t.symbol)), t.args)
+    is TraitType      -> type_args_hash(mix64(mix64(FNV_OFFSET_64, 2), symbol_hash(t.symbol)), t.args)
+    is ArrayType      -> mix64(mix64(FNV_OFFSET_64, 3), type_intern_hash(t.element))
+    is UnionType      -> type_args_hash(mix64(FNV_OFFSET_64, 4), t.variants)
+    is TupleType      -> type_args_hash(mix64(FNV_OFFSET_64, 5), t.elements)
+    is FnType         -> mix64(type_args_hash(mix64(FNV_OFFSET_64, 6), t.params), type_intern_hash(t.return_type))
+}
+
+bare_hash :: fn(name: string) -> u64 = mix64(FNV_OFFSET_64, name.hash())
+
+symbol_hash :: fn(sym: Symbol) -> u64 {
+    if sym.module_name == "" {
+        return mix64(mix64(FNV_OFFSET_64, 101), u64(u32(sym.id)))
+    }
+    return mix64(mix64(FNV_OFFSET_64, sym.module_name.hash()), sym.name.hash())
+}
+
+type_args_hash :: fn(seed: u64, args: Type[]) -> u64 {
+    h := seed
+    for a in args {
+        h = mix64(h, type_intern_hash(a))
+    }
+    return mix64(h, u64(args.len()))
+}
+
+/// Do `a` and `b` land on the same type-table slot — i.e. would
+/// `type_intern_key` produce the same string for both?
+///
+/// Exists so a `type_intern_hash` hit can be VERIFIED without rebuilding the
+/// key. A 64-bit hash alone is not an identity: a collision would silently merge
+/// two slots, and the merge shows up as a mis-typed field access at runtime, far
+/// from here. This walk allocates nothing, so verifying stays far cheaper than
+/// the string it replaces.
+///
+/// It mirrors `type_intern_key`'s COLLAPSING, not structural equality: an enum
+/// and its repr primitive are the same slot, a distinct and its backing are, and
+/// immutability is invisible.
+export same_intern_class :: fn(a: Type, b: Type) -> bool {
+    if a is DistinctType { return same_intern_class(a.backing, b) }
+    if b is DistinctType { return same_intern_class(a, b.backing) }
+    if a is PrimitiveType | EnumType || b is PrimitiveType | EnumType {
+        return bare_intern_name(a) == bare_intern_name(b) && bare_intern_name(a) != ""
+    }
+    if a is StructType { return b is StructType && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }
+    if a is TraitType  { return b is TraitType  && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }
+    if a is ArrayType  { return b is ArrayType  && same_intern_class(a.element, b.element) }
+    if a is UnionType  { return b is UnionType  && same_class_list(a.variants, b.variants) }
+    if a is TupleType  { return b is TupleType  && same_class_list(a.elements, b.elements) }
+    if a is FnType {
+        return b is FnType && same_class_list(a.params, b.params) && same_intern_class(a.return_type, b.return_type)
+    }
+    return bare_intern_name(a) == bare_intern_name(b)
+}
+
+// The bare (prefix-less) key `type_intern_key` gives this type, or `""` when it
+// has a composite key instead.
+bare_intern_name :: fn(t: Type) -> string = match t {
+    is PrimitiveType -> t.name
+    is EnumType      -> t.repr
+    is AnyType       -> "Any"
+    is TypeParamType | TypeMetaType | SelfType | UnresolvedType
+     | FreeIntType | FreeCharType | FreeFloatType | NeverType -> display_type(t)
+    is StructType | TraitType | ArrayType | UnionType | TupleType | FnType | DistinctType -> ""
+}
+
+same_symbol_class :: fn(a: Symbol, b: Symbol) -> bool {
+    if a.module_name == "" || b.module_name == "" {
+        return a.module_name == b.module_name && a.id == b.id
+    }
+    return a.module_name == b.module_name && a.name == b.name
+}
+
+same_class_list :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !same_intern_class(a[i], b[i]) { return false }
+    }
+    return true
+}

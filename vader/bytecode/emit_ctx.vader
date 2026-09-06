@@ -52,6 +52,15 @@ export EmitterCtx :: struct {
     /// `type_intern_key(t)` → index into `types`. Pre-loaded with
     /// `"null"` at index 0 by `new_emitter_ctx`.
     type_key: MutableMap<string, i32>
+    /// `type_intern_hash(t)` → the same index, reached without building the key
+    /// string — which is the point: the key is rebuilt half a million times per
+    /// self-build to index ~1 600 slots, and every level of its recursion
+    /// allocates and interns. A hit is VERIFIED against `type_hash_src` by
+    /// `same_intern_class`, so a 64-bit collision falls back to the string path
+    /// instead of silently merging two slots.
+    type_hash: MutableMap<u64, i32>
+    /// The type each `type_hash` entry was minted for — the verifier's subject.
+    type_hash_src: MutableMap<u64, Type>
 
     /// String literal pool. Deduplicated by content via `string_key`.
     strings: string[]!
@@ -127,9 +136,15 @@ export new_emitter_ctx :: fn() -> EmitterCtx! {
     types.push(BcPrimitive { .val = ValType.Null })
     type_key :: MutableMap<string, i32> {}
     type_key["null"] = 0
+    type_hash :: MutableMap<u64, i32> {}
+    type_hash[type_intern_hash(TY_NULL)] = 0
+    type_hash_src :: MutableMap<u64, Type> {}
+    type_hash_src[type_intern_hash(TY_NULL)] = TY_NULL
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
+        .type_hash                   = type_hash,
+        .type_hash_src               = type_hash_src,
         .strings                     = [],
         .string_key                  = MutableMap<string, i32> {},
         .functions                   = [],
@@ -159,9 +174,23 @@ export new_emitter_ctx :: fn() -> EmitterCtx! {
 /// @param ctx  the emit context — its `types` + `type_key` get mutated.
 /// @return     the type table index.
 export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
+    h :: type_intern_hash(t)
+    fast :: ctx.type_hash[h]
+    if fast is i32 {
+        src :: ctx.type_hash_src[h]
+        if src is Type {
+            if same_intern_class(t, src) { return fast }
+        }
+    }
     key :: type_intern_key(t)
     existing :: ctx.type_key[key]
-    if existing is i32 { return existing }
+    if existing is i32 {
+        if ctx.type_hash[h] is null {
+            ctx.type_hash[h] = existing
+            ctx.type_hash_src[h] = t
+        }
+        return existing
+    }
     if ctx.types_frozen {
         panic("bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types — the table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
     }
@@ -174,6 +203,10 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     placeholder: BcType = BcRef { .trait_name = "" }
     ctx.types.push(placeholder)
     ctx.type_key[key] = new_index
+    if ctx.type_hash[h] is null {
+        ctx.type_hash[h] = new_index
+        ctx.type_hash_src[h] = t
+    }
     ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx, new_index)
     return new_index
 }
