@@ -67,12 +67,10 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                 t1 = ((uint8_t) t0.payload.i);
                 if (t1 == INT32_C(36)) {
                     l3 = ((int32_t) (size_t) l4);
-                } else {
                 }
                 t2 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t2;
                 goto loop_16;
-            } else {
             }
         }
     }
@@ -83,7 +81,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         l4 = (size_t) (int64_t) t2;
     }
     {
-        loop_56: {
+        loop_54: {
             if (((l4 + INT64_C(1)) < l2)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
@@ -110,8 +108,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
                 }
                 t2 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t2;
-                goto loop_56;
-            } else {
+                goto loop_54;
             }
         }
     }

@@ -57,7 +57,6 @@ static void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, v
                             t0 = (l6 - INT64_C(1));
                             l6 = (size_t) (int64_t) t0;
                             goto loop_17;
-                        } else {
                         }
                     }
                 }
@@ -69,7 +68,6 @@ static void std_sort_insertion_sort_range__Any(void* l0, size_t l1, size_t l2, v
                 t0 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -124,7 +122,6 @@ static void std_sort_insertion_sort_range__i32(void* l0, size_t l1, size_t l2, v
                             t0 = (l6 - INT64_C(1));
                             l6 = (size_t) (int64_t) t0;
                             goto loop_17;
-                        } else {
                         }
                     }
                 }
@@ -135,7 +132,6 @@ static void std_sort_insertion_sort_range__i32(void* l0, size_t l1, size_t l2, v
                 t0 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -197,7 +193,6 @@ static void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2
                             t0 = (l6 - INT64_C(1));
                             l6 = (size_t) (int64_t) t0;
                             goto loop_18;
-                        } else {
                         }
                     }
                 }
@@ -209,7 +204,6 @@ static void std_sort_insertion_sort_range__string(void* l0, size_t l1, size_t l2
                 t0 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -266,7 +260,6 @@ static void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2,
                             t0 = (l6 - INT64_C(1));
                             l6 = (size_t) (int64_t) t0;
                             goto loop_17;
-                        } else {
                         }
                     }
                 }
@@ -277,7 +270,6 @@ static void std_sort_insertion_sort_range__usize(void* l0, size_t l1, size_t l2,
                 t0 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -327,7 +319,6 @@ static void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___Enum
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 goto loop_43;
-            } else {
             }
         }
     }
@@ -335,7 +326,7 @@ static void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___Enum
     l8 = l5;
     l9 = l2;
     {
-        loop_72: {
+        loop_71: {
             if ((l9 < l3)) {
                 if ((l6 >= l5)) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
@@ -401,8 +392,7 @@ static void std_sort_merge_sort_range__AnyType___ArrayType___DistinctType___Enum
                 }
                 t0 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t0;
-                goto loop_72;
-            } else {
+                goto loop_71;
             }
         }
     }
@@ -451,7 +441,6 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, size_t l2, size_t
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 goto loop_43;
-            } else {
             }
         }
     }
@@ -459,7 +448,7 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, size_t l2, size_t
     l8 = l5;
     l9 = l2;
     {
-        loop_72: {
+        loop_71: {
             if ((l9 < l3)) {
                 if ((l6 >= l5)) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
@@ -521,8 +510,7 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, size_t l2, size_t
                 }
                 t0 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t0;
-                goto loop_72;
-            } else {
+                goto loop_71;
             }
         }
     }
@@ -579,7 +567,6 @@ static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, siz
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 goto loop_43;
-            } else {
             }
         }
     }
@@ -587,7 +574,7 @@ static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, siz
     l8 = l5;
     l9 = l2;
     {
-        loop_73: {
+        loop_72: {
             if ((l9 < l3)) {
                 if ((l6 >= l5)) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
@@ -659,8 +646,7 @@ static void std_sort_merge_sort_range__string(void* l0, void* l1, size_t l2, siz
                 }
                 t0 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t0;
-                goto loop_73;
-            } else {
+                goto loop_72;
             }
         }
     }
@@ -709,7 +695,6 @@ static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 goto loop_43;
-            } else {
             }
         }
     }
@@ -717,7 +702,7 @@ static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size
     l7 = l5;
     l8 = l2;
     {
-        loop_72: {
+        loop_71: {
             if ((l8 < l3)) {
                 if ((l6 >= l5)) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
@@ -785,8 +770,7 @@ static void std_sort_merge_sort_range__usize(void* l0, void* l1, size_t l2, size
                 }
                 t0 = (l8 + INT64_C(1));
                 l8 = (size_t) (int64_t) t0;
-                goto loop_72;
-            } else {
+                goto loop_71;
             }
         }
     }

@@ -21,27 +21,32 @@ static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
         }
         l2 = l0.payload.obj;
         vader_array_push((vader_array_t*) l1, vader_ref_box(l2));
-        { vader_gc_top = gc_frame.prev; return; }
+    } else {
+        l3 = l0;
+        vader_array_push((vader_array_t*) l1, l3);
     }
-    l3 = l0;
-    vader_array_push((vader_array_t*) l1, l3);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
 vader_box_t toolchain_ast_coalesce_fallback_expr(vader_box_t l0) {
+    vader_box_t l1;
     void* t0;
     if (l0.tag == 457u) {
         t0 = l0.payload.obj;
-        return ((vader_struct_toolchain_ast_ReturnStmt_t*) t0)->f_value;
+        l1 = ((vader_struct_toolchain_ast_ReturnStmt_t*) t0)->f_value;
+    } else {
+        if ((l0.tag == 400u || l0.tag == 406u)) {
+            l1 = vader_box_obj(0u, NULL);
+        } else {
+            if ((l0.tag == 392u || l0.tag == 395u || l0.tag == 396u || l0.tag == 398u || l0.tag == 399u || l0.tag == 402u || l0.tag == 403u || l0.tag == 404u || l0.tag == 414u || l0.tag == 419u || l0.tag == 420u || l0.tag == 423u || l0.tag == 425u || l0.tag == 426u || l0.tag == 429u || l0.tag == 434u || l0.tag == 436u || l0.tag == 437u || l0.tag == 439u || l0.tag == 443u || l0.tag == 445u || l0.tag == 448u || l0.tag == 449u || l0.tag == 454u || l0.tag == 458u || l0.tag == 460u || l0.tag == 465u || l0.tag == 475u)) {
+                l1 = l0;
+            } else {
+                vader_unreachable("unreachable return in toolchain_ast$coalesce_fallback_expr");
+            }
+        }
     }
-    if ((l0.tag == 400u || l0.tag == 406u)) {
-        return vader_box_obj(0u, NULL);
-    }
-    if ((l0.tag == 392u || l0.tag == 395u || l0.tag == 396u || l0.tag == 398u || l0.tag == 399u || l0.tag == 402u || l0.tag == 403u || l0.tag == 404u || l0.tag == 414u || l0.tag == 419u || l0.tag == 420u || l0.tag == 423u || l0.tag == 425u || l0.tag == 426u || l0.tag == 429u || l0.tag == 434u || l0.tag == 436u || l0.tag == 437u || l0.tag == 439u || l0.tag == 443u || l0.tag == 445u || l0.tag == 448u || l0.tag == 449u || l0.tag == 454u || l0.tag == 458u || l0.tag == 460u || l0.tag == 465u || l0.tag == 475u)) {
-        return l0;
-    }
-    vader_unreachable("unreachable return in toolchain_ast$coalesce_fallback_expr");
+    return l1;
 }
 
 void* toolchain_ast_collect_bitor_variants(vader_box_t l0) {
@@ -80,7 +85,6 @@ bool toolchain_ast_decorators_have(void* l0, vader_string_t l1) {
                 t2 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t2;
                 goto loop_7;
-            } else {
             }
         }
     }
@@ -131,7 +135,6 @@ bool toolchain_ast_type_expr_marks_mutable(vader_box_t l0) {
             }
             return l1;
         }
-        return false;
     }
     return false;
 }

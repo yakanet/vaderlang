@@ -43,7 +43,6 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
                 t2 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t2;
                 goto loop_27;
-            } else {
             }
         }
     }
@@ -53,7 +52,7 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
     l4 = ((vader_array_t*) l6)->length;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_63: {
+        loop_62: {
             if ((l5 < l4)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l6);
                 if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
@@ -66,8 +65,7 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
                 l3 = (size_t) (int64_t) t2;
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
-                goto loop_63;
-            } else {
+                goto loop_62;
             }
         }
     }
@@ -119,7 +117,6 @@ void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2) {
                 vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(169u, l3));
                 l4 = (l4 + INT32_C(1));
                 goto loop_7;
-            } else {
             }
         }
     }

@@ -1,52 +1,69 @@
 #include "bootstrap.split.h"
 
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
+    vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        return 1595u;
+        l1 = 1598u;
+    } else {
+        if (l0 == INT32_C(1)) {
+            l1 = 2116u;
+        } else {
+            if (l0 == INT32_C(2)) {
+                l1 = 1481u;
+            } else {
+                if (l0 == INT32_C(3)) {
+                    l1 = 2166u;
+                } else {
+                    if (l0 == INT32_C(4)) {
+                        l1 = 1705u;
+                    } else {
+                        if (l0 == INT32_C(5)) {
+                            l1 = 2185u;
+                        } else {
+                            if (l0 == INT32_C(6)) {
+                                l1 = 1402u;
+                            } else {
+                                if (l0 == INT32_C(7)) {
+                                    l1 = 1713u;
+                                } else {
+                                    if (l0 == INT32_C(8)) {
+                                        l1 = 1939u;
+                                    } else {
+                                        if (l0 == INT32_C(9)) {
+                                            l1 = 2186u;
+                                        } else {
+                                            if (l0 == INT32_C(10)) {
+                                                l1 = 1820u;
+                                            } else {
+                                                if (l0 == INT32_C(11)) {
+                                                    l1 = 1258u;
+                                                } else {
+                                                    if (l0 == INT32_C(12)) {
+                                                        l1 = 1308u;
+                                                    } else {
+                                                        if (l0 == INT32_C(13)) {
+                                                            l1 = 1307u;
+                                                        } else {
+                                                            if (l0 == INT32_C(14)) {
+                                                                l1 = 2135u;
+                                                            } else {
+                                                                vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    if (l0 == INT32_C(1)) {
-        return 2112u;
-    }
-    if (l0 == INT32_C(2)) {
-        return 1478u;
-    }
-    if (l0 == INT32_C(3)) {
-        return 2162u;
-    }
-    if (l0 == INT32_C(4)) {
-        return 1702u;
-    }
-    if (l0 == INT32_C(5)) {
-        return 2181u;
-    }
-    if (l0 == INT32_C(6)) {
-        return 1399u;
-    }
-    if (l0 == INT32_C(7)) {
-        return 1710u;
-    }
-    if (l0 == INT32_C(8)) {
-        return 1935u;
-    }
-    if (l0 == INT32_C(9)) {
-        return 2182u;
-    }
-    if (l0 == INT32_C(10)) {
-        return 1817u;
-    }
-    if (l0 == INT32_C(11)) {
-        return 1255u;
-    }
-    if (l0 == INT32_C(12)) {
-        return 1305u;
-    }
-    if (l0 == INT32_C(13)) {
-        return 1304u;
-    }
-    if (l0 == INT32_C(14)) {
-        return 2131u;
-    }
-    vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
+    return l1;
 }
 
 void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6) {
