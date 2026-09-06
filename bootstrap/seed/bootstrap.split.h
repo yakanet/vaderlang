@@ -5191,6 +5191,7 @@ struct vader_struct_vader_typecheck_IsNarrow_t {
     vader_box_t f_then_ty;
     vader_box_t f_else_ty;
     vader_string_t f_field_key;
+    size_t f_leaf_count;
 };
 struct vader_struct_vader_typecheck_NamedDeclLookup_t {
     vader_obj_header_t header;
