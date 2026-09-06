@@ -16,24 +16,24 @@
     },
     {
       "kind": "StructDecl",
-      "name": "A",
+      "name": "Aligned",
       "visibility": "private",
       "typeParams": [],
       "fields": [
-        {
-          "name": "tag",
-          "type": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          },
-          "visibility": "public",
-          "default": null
-        },
         {
           "name": "name",
           "type": {
             "kind": "IdentExpr",
             "name": "string"
+          },
+          "visibility": "public",
+          "default": null
+        },
+        {
+          "name": "tag",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
           },
           "visibility": "public",
           "default": null
@@ -43,7 +43,7 @@
     },
     {
       "kind": "StructDecl",
-      "name": "B",
+      "name": "AlsoAligned",
       "visibility": "private",
       "typeParams": [],
       "fields": [
@@ -57,34 +57,15 @@
           "default": null
         },
         {
-          "name": "tag",
+          "name": "extra",
           "type": {
             "kind": "IdentExpr",
-            "name": "i32"
+            "name": "bool"
           },
           "visibility": "public",
           "default": null
         }
       ],
-      "decorators": []
-    },
-    {
-      "kind": "ConstDecl",
-      "name": "Node",
-      "visibility": "private",
-      "type": null,
-      "value": {
-        "kind": "BinaryExpr",
-        "op": "bitor",
-        "left": {
-          "kind": "IdentExpr",
-          "name": "A"
-        },
-        "right": {
-          "kind": "IdentExpr",
-          "name": "B"
-        }
-      },
       "decorators": []
     },
     {
@@ -96,8 +77,16 @@
         {
           "name": "n",
           "type": {
-            "kind": "IdentExpr",
-            "name": "Node"
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Aligned"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "AlsoAligned"
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -117,6 +106,103 @@
             "name": "n"
           },
           "field": "name"
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Front",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "tag",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "public",
+          "default": null
+        },
+        {
+          "name": "label",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "string"
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Back",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "label",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "string"
+          },
+          "visibility": "public",
+          "default": null
+        },
+        {
+          "name": "tag",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "label_of",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "n",
+          "type": {
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Front"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "Back"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "FieldExpr",
+          "target": {
+            "kind": "IdentExpr",
+            "name": "n"
+          },
+          "field": "label"
         }
       },
       "decorators": [],
@@ -159,17 +245,9 @@
                           "kind": "StructLitExpr",
                           "typeName": {
                             "kind": "IdentExpr",
-                            "name": "A"
+                            "name": "Aligned"
                           },
                           "items": [
-                            {
-                              "kind": "field",
-                              "name": "tag",
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "1n"
-                              }
-                            },
                             {
                               "kind": "field",
                               "name": "name",
@@ -178,9 +256,17 @@
                                 "parts": [
                                   {
                                     "kind": "text",
-                                    "value": "from-A"
+                                    "value": "aligned-a"
                                   }
                                 ]
+                              }
+                            },
+                            {
+                              "kind": "field",
+                              "name": "tag",
+                              "value": {
+                                "kind": "IntLitExpr",
+                                "value": "1n"
                               }
                             }
                           ]
@@ -218,7 +304,7 @@
                           "kind": "StructLitExpr",
                           "typeName": {
                             "kind": "IdentExpr",
-                            "name": "B"
+                            "name": "AlsoAligned"
                           },
                           "items": [
                             {
@@ -229,17 +315,76 @@
                                 "parts": [
                                   {
                                     "kind": "text",
-                                    "value": "from-B"
+                                    "value": "aligned-b"
                                   }
                                 ]
                               }
                             },
                             {
                               "kind": "field",
+                              "name": "extra",
+                              "value": {
+                                "kind": "BoolLitExpr",
+                                "value": true
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "label_of"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StructLitExpr",
+                          "typeName": {
+                            "kind": "IdentExpr",
+                            "name": "Front"
+                          },
+                          "items": [
+                            {
+                              "kind": "field",
                               "name": "tag",
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "2n"
+                                "value": "1n"
+                              }
+                            },
+                            {
+                              "kind": "field",
+                              "name": "label",
+                              "value": {
+                                "kind": "StringLitExpr",
+                                "parts": [
+                                  {
+                                    "kind": "text",
+                                    "value": "front"
+                                  }
+                                ]
                               }
                             }
                           ]

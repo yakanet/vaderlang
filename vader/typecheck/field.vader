@@ -484,6 +484,24 @@ resolve_struct_field :: fn(
             )
             return TY_UNRESOLVED
         }
+        // Every variant DOES carry the field — they just declare it at different
+        // positions. The access lowers to one cast plus a fixed index, so there
+        // is no shape to read it at ; saying "non-struct" would send the reader
+        // looking for a missing field that is right there.
+        if target_ty is UnionType {
+            clash :: union_field_position_clash(target_ty, e.field, typed)
+            if clash is string {
+                diags.push(
+                    typecheck_error(
+                        .NotIndexable,
+                        e.span,
+                        "`.${e.field}` sits at a different position in each variant of "
+                            + "`${display_type(target_ty)}` (${clash}) — narrow with `if`/`match` first",
+                    ),
+                )
+                return TY_UNRESOLVED
+            }
+        }
         diags.push(
             typecheck_error(
                 .NotIndexable,
@@ -829,15 +847,61 @@ union_common_field :: fn(
     diags: Diagnostic[]!,
 ) -> Type | null {
     types: Type[]! = []
+    index := -1
     for v in u.variants {
         if v !is StructType {
             return null
         }
         decl :: typed.struct_decls[v.symbol.id] ?? return null
         ty :: resolved_field_type(v.symbol.id, decl, name, typed, diags) ?? return null
+        // The access lowers to ONE cast to the first variant plus a fixed field
+        // index (`lower_expr.vader::try_lower_common_union_field`), so the field
+        // has to sit at the same position in every variant. Two variants that
+        // declare it in a different order read each other's slot — silently, as
+        // whatever type the first variant put there.
+        at :: field_position(decl, name)
+        if at < 0 {
+            return null
+        }
+        if index < 0 {
+            index = at
+        } else if index != at {
+            return null
+        }
         types.push(substitute_struct_field(ty, decl, v))
     }
     return union_of(types)
+}
+
+// When every variant of `u` declares `name` but not all at the same position,
+// a human-readable account of who puts it where ; `null` otherwise (the field is
+// missing somewhere, or the positions agree and the access is fine).
+union_field_position_clash :: fn(u: UnionType, name: string, typed: TypedProgram) -> string | null {
+    parts: string[]! = []
+    index := -1
+    differs := false
+    for v in u.variants {
+        if !(v is StructType) { return null }
+        decl :: typed.struct_decls[v.symbol.id] ?? return null
+        at :: field_position(decl, name)
+        if at < 0 { return null }
+        if index < 0 {
+            index = at
+        } else if index != at {
+            differs = true
+        }
+        parts.push("`${v.symbol.name}` at ${at}")
+    }
+    if !differs { return null }
+    return parts.join(", ")
+}
+
+// Where `name` sits among `decl`'s fields, or `-1` when it has none.
+field_position :: fn(decl: AST.StructDecl, name: string) -> i32 {
+    for i in 0..<decl.fields.len() {
+        if decl.fields[i].name == name { return i32(i) }
+    }
+    return -1
 }
 
 // Replace every `SelfType` in `t` with `self_ty`. Used to specialise

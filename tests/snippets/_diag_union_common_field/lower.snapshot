@@ -1,13 +1,20 @@
 # Lower
 
 ## snippet
-  struct snippet$A { tag: i32, name: string }
-  struct snippet$B { name: string, tag: i32 }
-  fn snippet$name_of(n: A | B) -> string
+  struct snippet$Aligned { name: string, tag: i32 }
+  struct snippet$AlsoAligned { name: string, extra: bool }
+  fn snippet$name_of(n: Aligned | AlsoAligned) -> string
     ~>
       .name :string
-        cast → A
-          n :A | B
+        cast → Aligned
+          n :Aligned | AlsoAligned
+  struct snippet$Front { tag: i32, label: string }
+  struct snippet$Back { label: string, tag: i32 }
+  fn snippet$label_of(n: Back | Front) -> string
+    ~>
+      .label :?
+        cast → Back
+          n :Back | Front
   fn snippet$main() -> i32
     call :void
       callee:
@@ -21,11 +28,11 @@
           arg0:
             call :string
               callee:
-                name_of :fn(A | B) -> string
+                name_of :fn(Aligned | AlsoAligned) -> string
               arg0:
-                A! {
+                Aligned! {
+                  name: "aligned-a" :string
                   tag: int(1) :i32
-                  name: "from-A" :string
                 }
           arg1:
             "\n" :string
@@ -41,11 +48,31 @@
           arg0:
             call :string
               callee:
-                name_of :fn(A | B) -> string
+                name_of :fn(Aligned | AlsoAligned) -> string
               arg0:
-                B! {
-                  name: "from-B" :string
-                  tag: int(2) :i32
+                AlsoAligned! {
+                  name: "aligned-b" :string
+                  extra: true
+                }
+          arg1:
+            "\n" :string
+    call :void
+      callee:
+        write :fn(Stream, string) -> void
+      arg0:
+        int(0) :i32
+      arg1:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            call :string
+              callee:
+                label_of :fn(Back | Front) -> string
+              arg0:
+                Front! {
+                  tag: int(1) :i32
+                  label: "front" :string
                 }
           arg1:
             "\n" :string
@@ -99,3 +126,6 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+# Diagnostics
+[24:45] error[T3008] expression is not indexable: `.label` sits at a different position in each variant of `Back | Front` (`Back` at 0, `Front` at 1) — narrow with `if`/`match` first

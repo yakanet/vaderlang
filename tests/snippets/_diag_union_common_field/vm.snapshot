@@ -1,6 +1,4 @@
-# stdout
-from-A
 # stderr
-vader vm: byte_len at pc=1: expected string, got i32
+vader vm: no entry function (index=0)
 # exit
 1

@@ -1,22 +1,35 @@
 # Typecheck
 
 ## tests/snippets/_diag_union_common_field
-  StructDecl     A                    :: A!
-  StructDecl     B                    :: B!
+  StructDecl     Aligned              :: Aligned!
+  StructDecl     AlsoAligned          :: AlsoAligned!
+  StructDecl     Back                 :: Back!
+  StructDecl     Front                :: Front!
+  FnDecl         label_of             :: fn(Back | Front) -> string
   FnDecl         main                 :: fn() -> i32
-  FnDecl         name_of              :: fn(A | B) -> string
-  ConstDecl      Node                 :: type
-  expr 25:36    FieldExpr      :: string
-  expr 25:36    IdentExpr      :: A | B
+  FnDecl         name_of              :: fn(Aligned | AlsoAligned) -> string
+  expr 18:53    FieldExpr      :: string
+  expr 18:53    IdentExpr      :: Aligned | AlsoAligned
+  expr 24:45    FieldExpr      :: ?
+  expr 24:45    IdentExpr      :: Back | Front
+  expr 27:13    CallExpr       :: string
+  expr 27:13    IdentExpr      :: fn(Aligned | AlsoAligned) -> string
+  expr 27:21    StructLitExpr  :: Aligned!
+  expr 27:39    StringLitExpr  :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
   expr 28:13    CallExpr       :: string
-  expr 28:13    IdentExpr      :: fn(A | B) -> string
-  expr 28:21    StructLitExpr  :: A!
+  expr 28:13    IdentExpr      :: fn(Aligned | AlsoAligned) -> string
+  expr 28:21    StructLitExpr  :: AlsoAligned!
   expr 28:43    StringLitExpr  :: string
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
   expr 29:13    CallExpr       :: string
-  expr 29:13    IdentExpr      :: fn(A | B) -> string
-  expr 29:21    StructLitExpr  :: B!
-  expr 29:33    StringLitExpr  :: string
+  expr 29:13    IdentExpr      :: fn(Back | Front) -> string
+  expr 29:22    StructLitExpr  :: Front!
+  expr 29:49    StringLitExpr  :: string
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[24:45] error[T3008] expression is not indexable: `.label` sits at a different position in each variant of `Back | Front` (`Back` at 0, `Front` at 1) — narrow with `if`/`match` first

@@ -939,7 +939,7 @@ show :: fn(r: Result) -> string {
 
 #### Common-field access
 
-When every variant of a union carries a field of the same name, the field is accessible directly on the union value — no outer `match` required:
+When every variant of a union carries a field of the same name **at the same position**, the field is accessible directly on the union value — no outer `match` required:
 
 ```vader
 Cat :: struct { name: string, age: i32 }
@@ -953,7 +953,9 @@ animal_name :: fn(a: Animal) -> string {
 
 The resolution applies to inline unions (`a: Cat | Dog`), to `::` type-aliases (`Animal :: Cat | Dog`), and to discriminated unions of structs/tuples. When the field types match across variants (`Cat.name: string`, `Dog.name: string`), the result is that shared type. When they diverge (`Cat.age: i32`, `Dog.age: i64`), the result is their union (`i32 | i64`) — the caller narrows with `match` to discriminate.
 
-Lowering emits either a single same-offset read (when every variant stores the field at the same struct slot with the same resolved type) or a variant-dispatch cascade (`if a is Cat { (Cat) a.f } else if a is Dog { (Dog) a.f } else …`).
+Lowering emits a single same-offset read: one cast to the first variant, then a fixed field index. **The position must therefore agree across variants** — `Cat { name, age }` and `Dog { age, name }` put `name` at 0 and 1, and reading one as the other has no shape to work with. That is `T3008`, naming who declares it where, and the caller narrows with `if` / `match` instead.
+
+A variant-dispatch cascade (`if a is Cat { (Cat) a.f } else if a is Dog { (Dog) a.f } else …`) would lift the restriction. It is not implemented; this paragraph described it as shipped until 2026-09-06, while the compiler read the first variant's slot unconditionally and mis-typed every other variant in silence.
 
 #### Flow-narrowing on `T | null`
 
