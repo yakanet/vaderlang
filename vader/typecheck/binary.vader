@@ -837,7 +837,7 @@ import "vader/resolver"
 import "toolchain/span"
 
 binary_check_stub :: fn(
-    e: AST.Expr,
+    e: AST.Expr!,
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
@@ -847,8 +847,8 @@ binary_check_stub :: fn(
     @partial match e {
         is AST.IntLitExpr as x    -> { return narrow(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
-        is AST.BinaryExpr as x    -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
+        is AST.IdentExpr          -> { return infer_ident(e, typed) }
+        is AST.BinaryExpr         -> { return infer_binary(e, null, typed, diags, binary_check_stub) }
         _                         -> { return TY_UNRESOLVED }
     }
 }
@@ -879,8 +879,8 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
-        is AST.FnDecl as f -> {
-            match f.body {
+        is AST.FnDecl -> {
+            match last.body {
                 is null               -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_binary)

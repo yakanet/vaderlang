@@ -123,12 +123,12 @@ declare_decl :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     match decl {
-        is AST.FnDecl as fn_decl   -> { declare_fn(fn_decl, by_name, resolved, typed, diags) }
-        is AST.StructDecl as sd    -> {
+        is AST.FnDecl     -> { declare_fn(decl, by_name, resolved, typed, diags) }
+        is AST.StructDecl -> {
             declare_named_with_args(
-                sd.name,
-                sd.name_span,
-                sd.type_params,
+                decl.name,
+                decl.name_span,
+                decl.type_params,
                 by_name,
                 typed,
                 resolved.path,
@@ -139,9 +139,9 @@ declare_decl :: fn(
             )
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
-            sym :: by_name[sd.name]
+            sym :: by_name[decl.name]
             if sym is Symbol {
-                typed.struct_decls[sym.id] = sd
+                typed.struct_decls[sym.id] = decl
                 // Pre-resolve every field's type using THIS module's
                 // resolved.idents. Cross-module field lookups (entry
                 // struct lives in `std/collections` but `entry.value`
@@ -151,8 +151,8 @@ declare_decl :: fn(
                 // A private field (`@internal`) is invisible across the module
                 // boundary, so it never leaks — only public fields of an
                 // exported struct expose their type through the interface.
-                struct_public :: sd.visibility == Visibility.Public
-                for f in sd.fields {
+                struct_public :: decl.visibility == Visibility.Public
+                for f in decl.fields {
                     // A field is read-only unless its type says otherwise — same
                     // default as a parameter, and for the same reason : a field is
                     // a slot others reach through. `!` reopens the level that needs
@@ -161,35 +161,35 @@ declare_decl :: fn(
                     fty :: apply_readonly_default(type_from_expr(f.ty, resolved, diags), f.ty)
                     fields_map[f.name] = fty
                     if struct_public && f.visibility == Visibility.Public {
-                        report_private_leak(fty, f.ty.span, sd.name, "exposes a field of type", diags)
+                        report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
                     }
                 }
                 typed.struct_field_types[sym.id] = fields_map
             }
         }
-        is AST.EnumDecl as ed      -> { declare_enum(ed, by_name, resolved, typed, diags) }
-        is AST.TraitDecl as td     -> {
+        is AST.EnumDecl  -> { declare_enum(decl, by_name, resolved, typed, diags) }
+        is AST.TraitDecl -> {
             declare_named_with_args(
-                td.name,
-                td.name_span,
-                td.type_params,
+                decl.name,
+                decl.name_span,
+                decl.type_params,
                 by_name,
                 typed,
                 resolved.path,
                 factory,
                 mk_trait,
             )
-            sym :: by_name[td.name]
+            sym :: by_name[decl.name]
             if sym is Symbol {
-                typed.trait_decls[sym.id] = td
+                typed.trait_decls[sym.id] = decl
                 typed.trait_decl_owners[sym.id] = resolved
             }
         }
-        is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
-        is AST.ConstDecl as cd     -> { declare_const(cd, resolved, typed, diags) }
-        is AST.ImplDecl            -> {}
-        is AST.AssertDecl          -> {}
-        is AST.ImportDecl          -> {}
+        is AST.TypeAliasDecl -> { declare_type_alias(decl, resolved, typed, diags) }
+        is AST.ConstDecl     -> { declare_const(decl, resolved, typed, diags) }
+        is AST.ImplDecl      -> {}
+        is AST.AssertDecl    -> {}
+        is AST.ImportDecl    -> {}
     }
 }
 // ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
@@ -346,50 +346,50 @@ check_public_fn_visibility :: fn(
 // erasure/inference synthetics) is a leaf that contributes nothing → null.
 first_unexported_type :: fn(t: Type) -> Symbol | null {
     match t {
-        is StructType as s   -> {
-            if is_private_user_type(s.symbol) {
-                return s.symbol
+        is StructType   -> {
+            if is_private_user_type(t.symbol) {
+                return t.symbol
             }
-            return first_unexported_in(s.args)
+            return first_unexported_in(t.args)
         }
-        is EnumType as e     -> {
+        is EnumType     -> {
             // EnumType carries no generic args today ; if parametric enums land,
             // recurse into them here like StructType / TraitType.
-            if is_private_user_type(e.symbol) {
-                return e.symbol
+            if is_private_user_type(t.symbol) {
+                return t.symbol
             }
             return null
         }
-        is DistinctType as d -> {
+        is DistinctType -> {
             // A private distinct leaking through an exported signature is an
             // error just like a private struct ; the backing is a primitive
             // (always public) but recurse for generality.
-            if is_private_user_type(d.symbol) {
-                return d.symbol
+            if is_private_user_type(t.symbol) {
+                return t.symbol
             }
-            return first_unexported_type(d.backing)
+            return first_unexported_type(t.backing)
         }
-        is TraitType as tr   -> {
-            if is_private_user_type(tr.symbol) {
-                return tr.symbol
+        is TraitType   -> {
+            if is_private_user_type(t.symbol) {
+                return t.symbol
             }
-            return first_unexported_in(tr.args)
+            return first_unexported_in(t.args)
         }
-        is UnionType as u    -> {
-            return first_unexported_in(u.variants)
+        is UnionType    -> {
+            return first_unexported_in(t.variants)
         }
-        is ArrayType as a    -> {
-            return first_unexported_type(a.element)
+        is ArrayType    -> {
+            return first_unexported_type(t.element)
         }
-        is TupleType as p    -> {
-            return first_unexported_in(p.elements)
+        is TupleType    -> {
+            return first_unexported_in(t.elements)
         }
-        is FnType as f       -> {
-            in_params :: first_unexported_in(f.params)
+        is FnType       -> {
+            in_params :: first_unexported_in(t.params)
             if in_params != null {
                 return in_params
             }
-            return first_unexported_type(f.return_type)
+            return first_unexported_type(t.return_type)
         }
         is PrimitiveType     -> { return null }
         is TypeParamType     -> { return null }
@@ -788,17 +788,17 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
     // primitive-element arrays cross the C ABI; every other aggregate / ref /
     // synthetic variant is rejected.
     @partial match t {
-        is UnresolvedType     -> { return true }
-        is PrimitiveType as p -> {
-            if p.name == "void" { return is_return }
-            if p.name == "null" { return false }
+        is UnresolvedType -> { return true }
+        is PrimitiveType  -> {
+            if t.name == "void" { return is_return }
+            if t.name == "null" { return false }
             return true
         }
-        is DistinctType as d  -> {
+        is DistinctType  -> {
             // A newtype is zero-cost and stripped at lowering, so its ABI is
             // its backing's. `Handle :: CPointer` is the recommended idiom for
             // a foreign handle — it must cross.
-            return is_extern_abi_type(d.backing, is_return)
+            return is_extern_abi_type(t.backing, is_return)
         }
         is UnionType          -> {
             // Two union shapes cross. A nullable foreign pointer, because C has
@@ -807,7 +807,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             // that onto `""` would lose the distinction `getenv` rests on.
             return is_nullable_pointer(t) || (is_return && is_nullable_string(t))
         }
-        is ArrayType as a     -> {
+        is ArrayType     -> {
             // A borrowed array crosses as ONE bare pointer; a length, when the
             // callee wants one, is a parameter of its own. That shape only
             // exists on the way IN — C cannot fabricate a `vader_array_t`, so
@@ -815,9 +815,9 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             if is_return {
                 return false
             }
-            return is_extern_abi_element(a.element)
+            return is_extern_abi_element(t.element)
         }
-        is FnType as f        -> {
+        is FnType        -> {
             // A CALLBACK, in parameter position only. What crosses is the
             // function's ADDRESS (`bytecode/op::FnAddr`), so every part of its
             // signature has to cross too — C will call it with those very types.
@@ -833,10 +833,10 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             // callback DIRECTLY, with no shim anywhere. So only the types that
             // need no marshalling may appear in one; a `string` parameter would
             // hand the Vader body a `const char*` where it expects an atom id.
-            if !is_unmarshalled_scalar(f.return_type, true) {
+            if !is_unmarshalled_scalar(t.return_type, true) {
                 return false
             }
-            for pt in f.params {
+            for pt in t.params {
                 if !is_unmarshalled_scalar(pt, false) {
                     return false
                 }
@@ -942,9 +942,9 @@ is_nullable_pointer :: fn(t: Type) -> bool {
 /// @return   whether a `T[]` of it can be lent across the C ABI.
 is_extern_abi_element :: fn(t: Type) -> bool {
     @partial match t {
-        is UnresolvedType     -> { return true }
-        is PrimitiveType as p -> {
-            return p.name != "void" && p.name != "null" && p.name != "string"
+        is UnresolvedType -> { return true }
+        is PrimitiveType  -> {
+            return t.name != "void" && t.name != "null" && t.name != "string"
         }
         _                     -> { return false }
     }

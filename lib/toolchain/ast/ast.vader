@@ -80,9 +80,9 @@ export CoalesceFallback :: Expr | ReturnStmt | BreakStmt | ContinueStmt
 /// Passes that also need to visit the statement node itself (id assignment,
 /// typecheck, formatting) destructure `CoalesceFallback` directly instead.
 export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match f {
-    is ReturnStmt as r -> r.value
+    is ReturnStmt -> f.value
     is BreakStmt | ContinueStmt -> null
-    is Expr as e -> e
+    is Expr -> f
 }
 
 /// A type AS WRITTEN — the same node set as `Expr`, deliberately.
@@ -1201,10 +1201,10 @@ export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
 
 append_bitor_variants :: fn(e: Expr, out: Expr[]!) -> void {
     match e {
-        is BinaryExpr as b -> {
-            if b.op == .BitOr {
-                append_bitor_variants(b.left, out)
-                append_bitor_variants(b.right, out)
+        is BinaryExpr -> {
+            if e.op == .BitOr {
+                append_bitor_variants(e.left, out)
+                append_bitor_variants(e.right, out)
                 return
             }
             out.push(e)

@@ -140,19 +140,20 @@ evaluate_module_decls :: fn(
     // lowerer can inline scalar use sites. Failures are silently
     // swallowed — these decls don't promise comptime evaluability.
     for decl in decls {
-        match decl {
-            is AST.ConstDecl as cd -> {
-                if has_comptime_decorator(cd) { continue }
-                symbol :: lookup_const_symbol(cd, typed) ?? continue
-                if symbol is Symbol {
-                    if !(program.comptime_decls[symbol.id] is null) { continue }
-                    result :: evaluate_expr(cd.value, context)
-                    if result.value !is null {
-                        program.comptime_decls[symbol.id] = result.value
-                    }
+        if decl is AST.ConstDecl {
+            if has_comptime_decorator(decl) {
+                continue
+            }
+            symbol :: lookup_const_symbol(decl, typed) ?? continue
+            if symbol is Symbol {
+                if program.comptime_decls[symbol.id] !is null {
+                    continue
+                }
+                result :: evaluate_expr(decl.value, context)
+                if result.value !is null {
+                    program.comptime_decls[symbol.id] = result.value
                 }
             }
-            _ -> {}
         }
     }
 }
@@ -191,21 +192,18 @@ bake_file_exprs :: fn(
     // `@file`-baked consts out of the `@comptime` listing (the const
     // wasn't user-marked `@comptime`).
     for decl in decls {
-        match decl {
-            is AST.ConstDecl as cd -> {
-                if cd.value is AST.IntrinsicCallExpr as ic {
-                    if ic.name == "file" {
-                        baked :: project.file_exprs[ic.id]
-                        if baked is string {
-                            symbol :: lookup_const_symbol(cd, typed)
-                            if symbol is Symbol {
-                                project.file_baked_consts[symbol.id] = string_val(baked)
-                            }
+        if decl is AST.ConstDecl {
+            if decl.value is AST.IntrinsicCallExpr as ic {
+                if ic.name == "file" {
+                    baked :: project.file_exprs[ic.id]
+                    if baked is string {
+                        symbol :: lookup_const_symbol(decl, typed)
+                        if symbol is Symbol {
+                            project.file_baked_consts[symbol.id] = string_val(baked)
                         }
                     }
                 }
             }
-            _ -> {}
         }
     }
 }
@@ -221,8 +219,8 @@ bake_one_file_expr :: fn(
             content_opt :: read_relative_file(sv.value, typed.resolved.path)
             match content_opt {
                 is null -> {}
-                is string as content -> {
-                    project.file_exprs[ic.id] = content
+                is string -> {
+                    project.file_exprs[ic.id] = content_opt
                 }
             }
         }
@@ -256,22 +254,22 @@ import "std/string"
 // closures for portability — `out` accumulates the matches.
 collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]!) -> void {
     match decl {
-        is AST.FnDecl as fd -> {
-            match fd.body {
+        is AST.FnDecl -> {
+            match decl.body {
                 is null -> {}
                 is AST.BlockExpr as b -> { collect_in_block(b, out) }
             }
         }
-        is AST.ImplDecl as id -> {
-            for m in id.members {
+        is AST.ImplDecl -> {
+            for m in decl.members {
                 match m.body {
                     is null -> {}
                     is AST.BlockExpr as b -> { collect_in_block(b, out) }
                 }
             }
         }
-        is AST.ConstDecl as cd -> { collect_in_expr(cd.value, out) }
-        is AST.AssertDecl as ad -> { collect_in_expr(ad.condition, out) }
+        is AST.ConstDecl -> { collect_in_expr(decl.value, out) }
+        is AST.AssertDecl -> { collect_in_expr(decl.condition, out) }
         _ -> {}
     }
 }
@@ -285,27 +283,27 @@ collect_in_block :: fn(b: AST.BlockExpr, out: AST.IntrinsicCallExpr[]!) -> void 
 
 collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
     match s {
-        is AST.LetStmt as let_s -> { collect_in_expr(let_s.value, out) }
-        is AST.AssignStmt as as_s -> {
-            collect_in_expr(as_s.target, out)
-            collect_in_expr(as_s.value, out)
+        is AST.LetStmt -> { collect_in_expr(s.value, out) }
+        is AST.AssignStmt -> {
+            collect_in_expr(s.target, out)
+            collect_in_expr(s.value, out)
         }
-        is AST.ExprStmt as es -> { collect_in_expr(es.expr, out) }
-        is AST.ReturnStmt as rs -> {
-            if rs.value !is null {
-                collect_in_expr(rs.value, out)
+        is AST.ExprStmt -> { collect_in_expr(s.expr, out) }
+        is AST.ReturnStmt -> {
+            if s.value !is null {
+                collect_in_expr(s.value, out)
             }
         }
-        is AST.ForStmt as fs -> {
-            match fs.form {
+        is AST.ForStmt -> {
+            match s.form {
                 is AST.WhileFor as wf -> { collect_in_expr(wf.cond, out) }
                 is AST.InFor as inf -> { collect_in_expr(inf.iter, out) }
                 _ -> {}
             }
-            collect_in_block(fs.body, out)
+            collect_in_block(s.body, out)
         }
-        is AST.DeferStmt as ds -> {
-            match ds.body {
+        is AST.DeferStmt -> {
+            match s.body {
                 is AST.DeferStmtBody as dsb -> { collect_in_stmt(dsb.stmt, out) }
                 is AST.DeferBlockBody as dbb -> { collect_in_block(dbb.block, out) }
             }
@@ -319,35 +317,35 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]!) -> void {
         if e.name == "file" && e.args.len() == 1 { out.push(e) }
     }
     match e {
-        is AST.BlockExpr as b -> { collect_in_block(b, out) }
-        is AST.CallExpr as c -> {
-            collect_in_expr(c.callee, out)
-            for arg in c.args { collect_in_expr(arg.value, out) }
+        is AST.BlockExpr -> { collect_in_block(e, out) }
+        is AST.CallExpr -> {
+            collect_in_expr(e.callee, out)
+            for arg in e.args { collect_in_expr(arg.value, out) }
         }
-        is AST.FieldExpr as f -> { collect_in_expr(f.target, out) }
-        is AST.IndexExpr as ix -> {
-            collect_in_expr(ix.target, out)
-            collect_in_expr(ix.index, out)
+        is AST.FieldExpr -> { collect_in_expr(e.target, out) }
+        is AST.IndexExpr -> {
+            collect_in_expr(e.target, out)
+            collect_in_expr(e.index, out)
         }
-        is AST.UnaryExpr as u -> { collect_in_expr(u.operand, out) }
-        is AST.BinaryExpr as bn -> {
-            collect_in_expr(bn.left, out)
-            collect_in_expr(bn.right, out)
+        is AST.UnaryExpr -> { collect_in_expr(e.operand, out) }
+        is AST.BinaryExpr -> {
+            collect_in_expr(e.left, out)
+            collect_in_expr(e.right, out)
         }
-        is AST.IfExpr as ifx -> {
-            collect_in_expr(ifx.cond, out)
-            collect_in_block(ifx.then_block, out)
-            match ifx.else_branch {
+        is AST.IfExpr -> {
+            collect_in_expr(e.cond, out)
+            collect_in_block(e.then_block, out)
+            match e.else_branch {
                 is null -> {}
                 is AST.IfElseBlock as eb -> { collect_in_block(eb.block, out) }
                 is AST.IfElseIf as ei -> { collect_in_expr(ei.branch, out) }
             }
         }
-        is AST.IntrinsicCallExpr as ic -> {
-            for arg in ic.args { collect_in_expr(arg, out) }
+        is AST.IntrinsicCallExpr -> {
+            for arg in e.args { collect_in_expr(arg, out) }
         }
-        is AST.StringLitExpr as sle -> {
-            for part in sle.parts {
+        is AST.StringLitExpr -> {
+            for part in e.parts {
                 if part is AST.StringLitInterp { collect_in_expr(part.expr, out) }
             }
         }

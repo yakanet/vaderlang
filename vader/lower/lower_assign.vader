@@ -256,24 +256,24 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> L
     // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every
     // other Expr target → null (handled by the regular assign path).
     @partial match target {
-        is IndexExpr as idx -> {
+        is IndexExpr -> {
             // TypeParam-bounded `IndexSet` receiver : the typer recorded the
             // dispatch on this index expr (`check_assign`) — emit a virtual
             // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
             // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
-            if ctx.typed.bounded_dispatch_trait[idx.id] is string as bounded_trait {
+            if ctx.typed.bounded_dispatch_trait[target.id] is string as bounded_trait {
                 ctx.project.virtually_dispatched_traits.add(bounded_trait)
                 return LoweredExprStmt {
                     .span = assign_stmt.span,
                     .expr = LoweredVirtualCall {
                         .span = assign_stmt.span, .type = TY_VOID,
                         .trait_name = bounded_trait, .method = METHOD_SET_AT,
-                        .receiver = lower_expr(ctx, idx.target),
-                        .args = [lower_expr(ctx, idx.index), lower_expr(ctx, assign_stmt.value)],
+                        .receiver = lower_expr(ctx, target.target),
+                        .args = [lower_expr(ctx, target.index), lower_expr(ctx, assign_stmt.value)],
                     },
                 }
             }
-            target_type :: ctx.types.expr_type(idx.target)
+            target_type :: ctx.types.expr_type(target.target)
             // Resolve the write through the `IndexSet` impl by TRAIT identity —
             // never by a hard-coded `"set_at"` literal. This matches how the
             // typechecker routes `m[k] = v` (`orchestrate.vader`, TRAIT_INDEX_SET)
@@ -285,8 +285,8 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> L
             member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX_SET) ?? return null
             if member is UfcsMember {
                 // Build `set_at(target, index, value)` direct call.
-                receiver :: lower_expr(ctx, idx.target)
-                index :: lower_expr(ctx, idx.index)
+                receiver :: lower_expr(ctx, target.target)
+                index :: lower_expr(ctx, target.index)
                 value :: lower_expr(ctx, assign_stmt.value)
                 args: LoweredExpr[]! = []
                 args.push(receiver)

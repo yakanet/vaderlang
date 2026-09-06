@@ -151,16 +151,16 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
 // Unresolved / Free* / Never / void) report 0.
 // @partial: representable types have a fixed size; abstract types (TypeParam/Self/Unresolved/…) → 0.
 export byte_size :: fn(t: Type) -> i64 = @partial match t {
-    is PrimitiveType as p -> primitive_size(p.name)
-    is DistinctType as d -> byte_size(d.backing)
+    is PrimitiveType -> primitive_size(t.name)
+    is DistinctType -> byte_size(t.backing)
     is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 16
     _ -> 0
 }
 
 // @partial: representable types have a fixed alignment; abstract types → 0.
 export byte_align :: fn(t: Type) -> i64 = @partial match t {
-    is PrimitiveType as p -> primitive_align(p.name)
-    is DistinctType as d -> byte_align(d.backing)
+    is PrimitiveType -> primitive_align(t.name)
+    is DistinctType -> byte_align(t.backing)
     is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 8
     _ -> 0
 }
@@ -174,7 +174,7 @@ export byte_align :: fn(t: Type) -> i64 = @partial match t {
 // T3013 at BOTH sites on a new Type kind, so the two can't silently diverge.
 type_kind_label :: fn(t: Type) -> string = match t {
     is PrimitiveType  -> "primitive"
-    is DistinctType as d -> type_kind_label(d.backing)
+    is DistinctType   -> type_kind_label(t.backing)
     is StructType     -> "struct"
     is EnumType       -> "enum"
     is UnionType      -> "union"

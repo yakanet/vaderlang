@@ -131,9 +131,9 @@ member_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> 
     src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
-        is string as src -> {
+        is string -> {
             uri :: path_to_uri(path)
-            sub :: build_index(uri, src, encoding)
+            sub :: build_index(uri, src_or, encoding)
             d :: sub.find_member(name)
             if d == null {
                 return null
@@ -170,7 +170,7 @@ resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding
                 if full == from_path { continue }
                 hit :: lookup_in_file(full, name, encoding, false)
                 match hit {
-                    is ExternalHit as h -> { return h }
+                    is ExternalHit -> { return hit }
                     is null -> {}
                 }
             }
@@ -210,7 +210,7 @@ export resolve_in_module :: fn(state: ServerState, from_uri: string, module_path
                     full :: path_join(abs, fname)
                     hit :: lookup_in_file(full, name, state.position_encoding, exported_only)
                     match hit {
-                        is ExternalHit as h -> { return h }
+                        is ExternalHit -> { return hit }
                         is null -> {}
                     }
                 }
@@ -232,9 +232,9 @@ lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding, exp
     src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
-        is string as src -> {
+        is string -> {
             uri :: path_to_uri(path)
-            sub :: build_index(uri, src, encoding)
+            sub :: build_index(uri, src_or, encoding)
             // A wildcard exposes only the module's public surface, so restrict to
             // exported decls there; a same-module sibling sees private decls too.
             d :: if exported_only { sub.find_exported_toplevel(name) } else { sub.find_toplevel(name) }

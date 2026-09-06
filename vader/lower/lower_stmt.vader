@@ -150,12 +150,12 @@ trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
 // __tup binding + N leaf lets ; defer currently produces zero.
 lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void {
     match stmt {
-        is LetStmt      as let_stmt      -> { lower_let_into(ctx, let_stmt, out) }
-        is AssignStmt   as assign_stmt   -> { out.push(lower_assign(ctx, assign_stmt)) }
-        is ExprStmt     as expr_stmt     -> {
-            out.push(LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) })
+        is LetStmt    -> { lower_let_into(ctx, stmt, out) }
+        is AssignStmt -> { out.push(lower_assign(ctx, stmt)) }
+        is ExprStmt   -> {
+            out.push(LoweredExprStmt { .span = stmt.span, .expr = lower_expr(ctx, stmt.expr) })
         }
-        is ReturnStmt   as return_stmt   -> {
+        is ReturnStmt   -> {
             // Drain every pending defer in the enclosing scopes BEFORE
             // the actual return op. Count = sum of `defers` across every
             // open BlockCtx (the innermost block back up to the fn root).
@@ -164,81 +164,81 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             // `(block (pop_exec N) (return …))` shape rather than two
             // flat sibling stmts.
             drain: LoweredStmt[]! = []
-            drain_all_defers(ctx, return_stmt.span, drain)
-            exit :: lower_return(ctx, return_stmt)
+            drain_all_defers(ctx, stmt.span, drain)
+            exit :: lower_return(ctx, stmt)
             if drain.len() > 0 {
                 drain.push(exit)
-                out.push(wrap_stmts(return_stmt.span, drain))
+                out.push(wrap_stmts(stmt.span, drain))
             } else {
                 out.push(exit)
             }
         }
-        is YieldStmt    as yield_stmt    -> {
+        is YieldStmt    -> {
             if ctx.gen_inline_sink is GenInlineSink as sink {
                 // Couche 4 generator inline: `yield e` becomes the consumer's
                 // loop-var binding + its body, splicing the consumption site in
                 // place of the boxed `next()` dispatch. Multi-yield generators
                 // duplicate the sink body (v1 targets single-yield combinators).
-                value :: lower_expr(ctx, yield_stmt.value)
+                value :: lower_expr(ctx, stmt.value)
                 // The sink always binds a single element ; a `for [k, v]` destructure
                 // is baked into `sink.body`'s front (in the consumer ctx) at sink build.
-                out.push_all(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, null, value, sink.element_type, yield_stmt.span))
+                out.push_all(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, null, value, sink.element_type, stmt.span))
                 out.push_all(block_stmts_with_trailing(sink.body))
             } else if ctx.in_generator {
                 // Transient marker consumed by the generator state-machine
                 // transform (lower_generator.vader). Never reaches the backend.
                 out.push(LoweredYield {
-                    .span = yield_stmt.span,
-                    .value = lower_expr(ctx, yield_stmt.value),
+                    .span = stmt.span,
+                    .value = lower_expr(ctx, stmt.value),
                 })
             } else {
                 // A `yield` outside a generator is a T3059 typecheck error; if
                 // one still reaches here, trap rather than mis-compile.
                 out.push(LoweredExprStmt {
-                    .span = yield_stmt.span,
+                    .span = stmt.span,
                     .expr = LoweredUnreachable {
-                        .span = yield_stmt.span, .type = TY_VOID,
+                        .span = stmt.span, .type = TY_VOID,
                         .reason = "yield outside a generator body",
                     },
                 })
             }
         }
-        is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
-        is BreakStmt    as break_stmt    -> {
+        is ForStmt   -> { out.push(lower_for(ctx, stmt)) }
+        is BreakStmt -> {
             drain: LoweredStmt[]! = []
-            drain_defers_to_loop(ctx, break_stmt.span, drain)
-            exit :: LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
+            drain_defers_to_loop(ctx, stmt.span, drain)
+            exit :: LoweredBreak { .span = stmt.span, .label = stmt.label }
             if drain.len() > 0 {
                 drain.push(exit)
-                out.push(wrap_stmts(break_stmt.span, drain))
+                out.push(wrap_stmts(stmt.span, drain))
             } else {
                 out.push(exit)
             }
         }
-        is ContinueStmt as continue_stmt -> {
+        is ContinueStmt -> {
             drain: LoweredStmt[]! = []
-            drain_defers_to_loop(ctx, continue_stmt.span, drain)
-            exit :: LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
+            drain_defers_to_loop(ctx, stmt.span, drain)
+            exit :: LoweredContinue { .span = stmt.span, .label = stmt.label }
             if drain.len() > 0 {
                 drain.push(exit)
-                out.push(wrap_stmts(continue_stmt.span, drain))
+                out.push(wrap_stmts(stmt.span, drain))
             } else {
                 out.push(exit)
             }
         }
-        is DeferStmt    as defer_stmt    -> {
+        is DeferStmt    -> {
             // Lift to a synthetic `__defer_N` fn + emit
             // `LoweredDeferPush { LoweredMakeClosure }` at the source
             // site. Block-exit `defer.pop_exec N` emission is handled
             // by `lower_block` (counts defers via the BlockCtx).
-            push :: lower_defer(ctx, defer_stmt, lower_block)
+            push :: lower_defer(ctx, stmt, lower_block)
             out.push(push)
             // Track the defer count on the innermost open block ctx
             // so the matching fall-through / break / continue / return
             // can drain it with `defer.pop_exec N`.
             n_blocks :: ctx.blocks.len()
             if n_blocks > 0 {
-                ctx.blocks[n_blocks - 1].defers.push(defer_stmt)
+                ctx.blocks[n_blocks - 1].defers.push(stmt)
             }
         }
     }
@@ -255,7 +255,7 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
             // drift later `fresh_synthetic_symbol("sb")` / `("try")` /
             // … naming.
             symbol :: match symbol_or_null {
-                is Symbol as s -> s
+                is Symbol -> symbol_or_null
                 is null -> synth_unused_local(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
@@ -462,11 +462,11 @@ widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> Lowered
     // @partial: only scalar-literal nodes get retyped to the union context;
     // every other LoweredExpr is returned unchanged.
     @partial match expr {
-        is LoweredIntLit    as lit -> { return LoweredIntLit    { .span = lit.span, .type = context_type, .value = lit.value } }
-        is LoweredFloatLit  as lit -> { return LoweredFloatLit  { .span = lit.span, .type = context_type, .value = lit.value } }
-        is LoweredStringLit as lit -> { return LoweredStringLit { .span = lit.span, .type = context_type, .value = lit.value } }
-        is LoweredCharLit   as lit -> { return LoweredCharLit   { .span = lit.span, .type = context_type, .value = lit.value } }
-        is LoweredBoolLit   as lit -> { return LoweredBoolLit   { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredIntLit -> { return LoweredIntLit    { .span = expr.span, .type = context_type, .value = expr.value } }
+        is LoweredFloatLit -> { return LoweredFloatLit  { .span = expr.span, .type = context_type, .value = expr.value } }
+        is LoweredStringLit -> { return LoweredStringLit { .span = expr.span, .type = context_type, .value = expr.value } }
+        is LoweredCharLit -> { return LoweredCharLit   { .span = expr.span, .type = context_type, .value = expr.value } }
+        is LoweredBoolLit -> { return LoweredBoolLit   { .span = expr.span, .type = context_type, .value = expr.value } }
         _ -> { return expr }
     }
 }

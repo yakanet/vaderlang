@@ -548,9 +548,9 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
             // interpolation). Extract its decoded text from the single
             // `StringLitText` part, otherwise surface P1014.
             match msg_arg {
-                is StringLitExpr as s -> {
-                    if s.parts.len() == 1 {
-                        match s.parts[0] {
+                is StringLitExpr -> {
+                    if msg_arg.parts.len() == 1 {
+                        match msg_arg.parts[0] {
                             is StringLitText as t -> { message = t.value }
                             _ -> {
                                 p.error(.DecoratorArgumentForm, msg_arg.span,
@@ -897,12 +897,12 @@ parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
         for !p.check(.RBrace) && !p.check(.Eof) {
             fn_opt :: p.parse_fn_decl_inside_trait()
             match fn_opt {
-                is FnDecl as fd -> {
+                is FnDecl -> {
                     // An impl member is a `FnDecl` like any other by the time the
                     // resolver sees it, so this is the last point where the
                     // distinction still exists.
-                    p.reject_target_decorator(fd.decorators, "an impl member")
-                    members.push(fd)
+                    p.reject_target_decorator(fn_opt.decorators, "an impl member")
+                    members.push(fn_opt)
                 }
                 is null   -> {}
             }
@@ -2737,9 +2737,9 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
     // `arrow` follows immediately. Multi-param / typed-param lambdas
     // go through the `(params) -> body` path in parse_prefix.
     match left {
-        is IdentExpr as id -> {
+        is IdentExpr -> {
             if p.allow_bare_lambda && p.check(.Arrow) {
-                left = p.parse_single_param_lambda_tail(id)
+                left = p.parse_single_param_lambda_tail(left)
             }
         }
         _ -> {}
@@ -2993,8 +2993,8 @@ parse_prefix :: fn(p: Parser!) -> Expr {
                 // — which would cascade an R2006 the user can't act on.
                 return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
-            is IntrinsicSpec as sp -> {
-                p.expect(.LParen, "`(` after `@${sp.name}`")
+            is IntrinsicSpec -> {
+                p.expect(.LParen, "`(` after `@${spec.name}`")
                 args: Expr[]! = []
                 p.skip_newlines()
                 intr_trailing := false
@@ -3008,7 +3008,7 @@ parse_prefix :: fn(p: Parser!) -> Expr {
                         // value-shape args go through the regular expr
                         // parser.
                         is_type := false
-                        if idx < sp.args.len() && sp.args[idx] == IntrinsicArgKind.Type {
+                        if idx < spec.args.len() && spec.args[idx] == IntrinsicArgKind.Type {
                             is_type = true
                         }
                         if is_type {
@@ -3022,10 +3022,10 @@ parse_prefix :: fn(p: Parser!) -> Expr {
                         intr_trailing = p.check(.RParen)
                     }
                 }
-                end :: p.expect(.RParen, "`)` to close `@${sp.name}(...)`")
+                end :: p.expect(.RParen, "`)` to close `@${spec.name}(...)`")
                 return IntrinsicCallExpr {
                     .span      = p.span_of(at_tok, end),
-                    .name      = sp.name,
+                    .name      = spec.name,
                     .name_span = name_tok.span,
                     .args      = args,
                     .trailing_comma = intr_trailing,

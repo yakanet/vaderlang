@@ -103,8 +103,8 @@ test_scope_lookup_finds_root_binding :: fn() -> void {
     scope :: new_scope(root)
     hit :: scope.lookup("x")
     match hit {
-        is Symbol as s -> { assert_eq(s.name, "x") }
-        is null        -> { assert(false, "x should resolve in root scope") }
+        is Symbol -> { assert_eq(hit.name, "x") }
+        is null   -> { assert(false, "x should resolve in root scope") }
     }
 }
 
@@ -121,15 +121,15 @@ test_scope_push_pop_restores_outer :: fn() -> void {
     // Inside the inner scope, shadowing wins.
     inner_hit :: scope.lookup("x")
     match inner_hit {
-        is Symbol as s -> { assert_eq(s.id, inner.id) }
-        is null        -> { assert(false, "inner shadow should be visible") }
+        is Symbol -> { assert_eq(inner_hit.id, inner.id) }
+        is null   -> { assert(false, "inner shadow should be visible") }
     }
     scope.pop()
     // After pop, the outer binding is back.
     outer_hit :: scope.lookup("x")
     match outer_hit {
-        is Symbol as s -> { assert_eq(s.id, outer.id) }
-        is null        -> { assert(false, "outer binding should resurface after pop") }
+        is Symbol -> { assert_eq(outer_hit.id, outer.id) }
+        is null   -> { assert(false, "outer binding should resurface after pop") }
     }
 }
 

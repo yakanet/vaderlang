@@ -32,9 +32,9 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
     symbol :: lookup_core_symbol(ctx, name)
     match symbol {
         is null -> { return null }
-        is Symbol as s -> {
-            if s.kind != SymbolKind.Struct { return null }
-            return mk_struct(s, args, immutable = false)
+        is Symbol -> {
+            if symbol.kind != SymbolKind.Struct { return null }
+            return mk_struct(symbol, args, immutable = false)
         }
     }
 }
@@ -51,9 +51,9 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     raw :: ctx.core_symbols[name]
     match raw {
         is null -> { return null }
-        is Symbol as s -> {
-            if s.kind != SymbolKind.Trait { return null }
-            return s
+        is Symbol -> {
+            if raw.kind != SymbolKind.Trait { return null }
+            return raw
         }
     }
 }
@@ -94,7 +94,7 @@ export find_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_name: str
     trait_symbol :: find_core_trait(ctx, trait_name)
     match trait_symbol {
         is null -> { return find_via_all(ctx, for_symbol, trait_name) }
-        is Symbol as resolved -> { return ctx.impls.find_user(for_symbol, resolved) }
+        is Symbol -> { return ctx.impls.find_user(for_symbol, trait_symbol) }
     }
 }
 

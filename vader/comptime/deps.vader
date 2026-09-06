@@ -67,14 +67,13 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
         .by_symbol = MutableMap<i32, usize> {},
     }
     for decl in program_decls {
-        match decl {
-            is AST.ConstDecl as cd -> {
-                if !has_comptime_decorator(cd) { continue }
-                empty_deps: usize[]! = []
-                nodes.by_id[cd.id] = NodeRecord { .decl = cd, .dependency_ids = empty_deps }
-                nodes.order.push(cd.id)
+        if decl is AST.ConstDecl {
+            if !has_comptime_decorator(decl) {
+                continue
             }
-            _ -> {}
+            empty_deps: usize[]! = []
+            nodes.by_id[decl.id] = NodeRecord { .decl = decl, .dependency_ids = empty_deps }
+            nodes.order.push(decl.id)
         }
     }
     return nodes
@@ -203,61 +202,61 @@ collect_expr_deps :: fn(
     seen: MutableMap<usize, bool>!, record: NodeRecord!,
 ) -> void {
     match e {
-        is AST.IdentExpr as x -> {
-            symbol :: typed.resolved.idents[x.span.hash()] ?? return
+        is AST.IdentExpr -> {
+            symbol :: typed.resolved.idents[e.span.hash()] ?? return
             if symbol.kind != SymbolKind.Const { return }
             dependency_id :: nodes.by_symbol[symbol.id] ?? return
             if seen[dependency_id] is bool { return }
             seen[dependency_id] = true
             record.dependency_ids.push(dependency_id)
         }
-        is AST.CallExpr as x -> {
-            collect_expr_deps(x.callee, typed, nodes, seen, record)
-            for a in x.args { collect_expr_deps(a.value, typed, nodes, seen, record) }
+        is AST.CallExpr -> {
+            collect_expr_deps(e.callee, typed, nodes, seen, record)
+            for a in e.args { collect_expr_deps(a.value, typed, nodes, seen, record) }
         }
-        is AST.FieldExpr as x  -> { collect_expr_deps(x.target, typed, nodes, seen, record) }
-        is AST.IndexExpr as x  -> { collect_expr_deps(x.target, typed, nodes, seen, record) collect_expr_deps(x.index, typed, nodes, seen, record) }
-        is AST.UnaryExpr as x  -> { collect_expr_deps(x.operand, typed, nodes, seen, record) }
-        is AST.BinaryExpr as x -> { collect_expr_deps(x.left, typed, nodes, seen, record) collect_expr_deps(x.right, typed, nodes, seen, record) }
-        is AST.IfExpr as x     -> {
-            collect_expr_deps(x.cond, typed, nodes, seen, record)
-            collect_block_deps(x.then_block, typed, nodes, seen, record)
-            match x.else_branch {
+        is AST.FieldExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) }
+        is AST.IndexExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) collect_expr_deps(e.index, typed, nodes, seen, record) }
+        is AST.UnaryExpr  -> { collect_expr_deps(e.operand, typed, nodes, seen, record) }
+        is AST.BinaryExpr -> { collect_expr_deps(e.left, typed, nodes, seen, record) collect_expr_deps(e.right, typed, nodes, seen, record) }
+        is AST.IfExpr     -> {
+            collect_expr_deps(e.cond, typed, nodes, seen, record)
+            collect_block_deps(e.then_block, typed, nodes, seen, record)
+            match e.else_branch {
                 is null -> {}
                 is AST.IfElseIf    as else_if -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
                 is AST.IfElseBlock as else_block -> { collect_block_deps(else_block.block, typed, nodes, seen, record) }
             }
         }
-        is AST.MatchExpr as x  -> {
-            collect_expr_deps(x.scrutinee, typed, nodes, seen, record)
-            for arm in x.arms {
+        is AST.MatchExpr  -> {
+            collect_expr_deps(e.scrutinee, typed, nodes, seen, record)
+            for arm in e.arms {
                 if arm.guard !is null {
                     collect_expr_deps(arm.guard, typed, nodes, seen, record)
                 }
                 collect_expr_deps(arm.body, typed, nodes, seen, record)
             }
         }
-        is AST.BlockExpr as x  -> { collect_block_deps(x, typed, nodes, seen, record) }
-        is AST.StructLitExpr as x -> {
-            collect_expr_deps(x.type_name, typed, nodes, seen, record)
-            for item in x.items {
+        is AST.BlockExpr     -> { collect_block_deps(e, typed, nodes, seen, record) }
+        is AST.StructLitExpr -> {
+            collect_expr_deps(e.type_name, typed, nodes, seen, record)
+            for item in e.items {
                 match item {
-                    is AST.StructLitField  as field -> { collect_expr_deps(field.value, typed, nodes, seen, record) }
-                    is AST.StructLitSpread as spread  -> { collect_expr_deps(spread.expr, typed, nodes, seen, record) }
+                    is AST.StructLitField  -> { collect_expr_deps(item.value, typed, nodes, seen, record) }
+                    is AST.StructLitSpread -> { collect_expr_deps(item.expr, typed, nodes, seen, record) }
                 }
             }
         }
-        is AST.SeqLitExpr as x    -> { for el in x.elements { collect_expr_deps(el, typed, nodes, seen, record) } }
-        is AST.RangeExpr as x     -> { collect_expr_deps(x.lower, typed, nodes, seen, record) collect_expr_deps(x.upper, typed, nodes, seen, record) }
-        is AST.AwaitExpr as x     -> { collect_expr_deps(x.inner, typed, nodes, seen, record) }
-        is AST.CastExpr as x      -> { collect_expr_deps(x.value, typed, nodes, seen, record) }
-        is AST.LambdaExpr as x    -> { collect_block_deps(x.body, typed, nodes, seen, record) }
-        is AST.IntrinsicCallExpr as x -> { for a in x.args { collect_expr_deps(a, typed, nodes, seen, record) } }
-        is AST.GenericInstExpr as x   -> { collect_expr_deps(x.callee, typed, nodes, seen, record) }
-        is AST.StringLitExpr as x -> {
-            for p in x.parts {
+        is AST.SeqLitExpr        -> { for el in e.elements { collect_expr_deps(el, typed, nodes, seen, record) } }
+        is AST.RangeExpr         -> { collect_expr_deps(e.lower, typed, nodes, seen, record) collect_expr_deps(e.upper, typed, nodes, seen, record) }
+        is AST.AwaitExpr         -> { collect_expr_deps(e.inner, typed, nodes, seen, record) }
+        is AST.CastExpr          -> { collect_expr_deps(e.value, typed, nodes, seen, record) }
+        is AST.LambdaExpr        -> { collect_block_deps(e.body, typed, nodes, seen, record) }
+        is AST.IntrinsicCallExpr -> { for a in e.args { collect_expr_deps(a, typed, nodes, seen, record) } }
+        is AST.GenericInstExpr   -> { collect_expr_deps(e.callee, typed, nodes, seen, record) }
+        is AST.StringLitExpr     -> {
+            for p in e.parts {
                 match p {
-                    is AST.StringLitInterp as interp -> { collect_expr_deps(interp.expr, typed, nodes, seen, record) }
+                    is AST.StringLitInterp -> { collect_expr_deps(p.expr, typed, nodes, seen, record) }
                     _ -> {}
                 }
             }
@@ -281,21 +280,21 @@ collect_stmt_deps :: fn(
     seen: MutableMap<usize, bool>!, record: NodeRecord!,
 ) -> void {
     match s {
-        is AST.LetStmt as x    -> { collect_expr_deps(x.value, typed, nodes, seen, record) }
-        is AST.ExprStmt as x   -> { collect_expr_deps(x.expr, typed, nodes, seen, record) }
-        is AST.ReturnStmt as x -> {
-            if x.value !is null {
-                collect_expr_deps(x.value, typed, nodes, seen, record)
+        is AST.LetStmt    -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.ExprStmt   -> { collect_expr_deps(s.expr, typed, nodes, seen, record) }
+        is AST.ReturnStmt -> {
+            if s.value !is null {
+                collect_expr_deps(s.value, typed, nodes, seen, record)
             }
         }
-        is AST.AssignStmt as x -> { collect_expr_deps(x.target, typed, nodes, seen, record) collect_expr_deps(x.value, typed, nodes, seen, record) }
-        is AST.ForStmt as x    -> {
-            match x.form {
+        is AST.AssignStmt -> { collect_expr_deps(s.target, typed, nodes, seen, record) collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.ForStmt    -> {
+            match s.form {
                 is AST.WhileFor as while_for -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
                 is AST.InFor    as in_for -> { collect_expr_deps(in_for.iter, typed, nodes, seen, record) }
                 _ -> {}
             }
-            collect_block_deps(x.body, typed, nodes, seen, record)
+            collect_block_deps(s.body, typed, nodes, seen, record)
         }
         _ -> {}
     }

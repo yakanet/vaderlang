@@ -28,7 +28,7 @@ lower_string_lit :: fn(ctx: FnLowerCtx!, expr: StringLitExpr, type: Type) -> Low
         body := ""
         for part in expr.parts {
             match part {
-                is StringLitText as text -> { body = body + text.value }
+                is StringLitText -> { body = body + part.value }
                 _ -> {}
             }
         }
@@ -133,12 +133,12 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     has_direct := false
     for part in expr.parts {
         match part {
-            is StringLitText as t -> {
-                values.push(LoweredStringLit { .span = t.span, .type = string_type, .value = t.value })
+            is StringLitText -> {
+                values.push(LoweredStringLit { .span = part.span, .type = string_type, .value = part.value })
                 kinds.push(.Text)
             }
-            is StringLitInterp as interp -> {
-                inner :: lower_expr(ctx, interp.expr)
+            is StringLitInterp -> {
+                inner :: lower_expr(ctx, part.expr)
                 k :: classify_kind(type_of(inner))
                 if k == WriterKind.Signed || k == WriterKind.Unsigned || k == WriterKind.Bool { has_direct = true }
                 values.push(inner)

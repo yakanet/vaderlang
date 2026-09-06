@@ -27,8 +27,8 @@ export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> Js
     uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
-        is null              -> { return JsonArray { .items = [] } }
-        is DocIndex as index -> { return document_symbol_json(toplevel_symbols(index), index.line_index) }
+        is null     -> { return JsonArray { .items = [] } }
+        is DocIndex -> { return document_symbol_json(toplevel_symbols(idx), idx.line_index) }
     }
 }
 

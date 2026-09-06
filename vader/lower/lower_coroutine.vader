@@ -579,31 +579,31 @@ gb_collect_block :: fn(gb: GenBuild!, block: LoweredBlock) -> void {
 
 gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {
     match s {
-        is LoweredLet as lt -> {
-            gb_add_field(gb, lt.symbol, lt.type)
-            gb_collect_expr(gb, lt.value)
+        is LoweredLet -> {
+            gb_add_field(gb, s.symbol, s.type)
+            gb_collect_expr(gb, s.value)
         }
-        is LoweredLoop as lp -> { gb_collect_block(gb, lp.body) }
-        is LoweredAssign as a -> {
-            gb_collect_expr(gb, a.target)
-            gb_collect_expr(gb, a.value)
+        is LoweredLoop -> { gb_collect_block(gb, s.body) }
+        is LoweredAssign -> {
+            gb_collect_expr(gb, s.target)
+            gb_collect_expr(gb, s.value)
         }
-        is LoweredExprStmt as e -> { gb_collect_expr(gb, e.expr) }
-        is LoweredReturn as r -> { if r.value != null { gb_collect_expr(gb, r.value) } }
-        is LoweredYield as y -> { gb_collect_expr(gb, y.value) }
-        is LoweredAwait as a -> {
+        is LoweredExprStmt -> { gb_collect_expr(gb, s.expr) }
+        is LoweredReturn -> { if s.value != null { gb_collect_expr(gb, s.value) } }
+        is LoweredYield -> { gb_collect_expr(gb, s.value) }
+        is LoweredAwait -> {
             // The awaited value's resolved result binds to `target` — spill it
             // like a local, and descend the awaited expr for nested lets.
-            gb_add_field(gb, a.target, a.target_type)
-            gb_collect_expr(gb, a.awaited)
+            gb_add_field(gb, s.target, s.target_type)
+            gb_collect_expr(gb, s.awaited)
         }
-        is LoweredCellSet as cs -> {
-            gb_collect_expr(gb, cs.target)
-            gb_collect_expr(gb, cs.value)
+        is LoweredCellSet -> {
+            gb_collect_expr(gb, s.target)
+            gb_collect_expr(gb, s.value)
         }
-        is LoweredDeferPush as dp -> {
+        is LoweredDeferPush -> {
             gb.has_defers = true
-            gb_collect_expr(gb, dp.thunk)
+            gb_collect_expr(gb, s.thunk)
         }
         _ -> {}
     }
@@ -613,10 +613,10 @@ gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {
 // need descending ; the rest carry no lets.
 gb_collect_expr :: fn(gb: GenBuild!, e: LoweredExpr) -> void {
     match e {
-        is LoweredBlock as b -> { gb_collect_block(gb, b) }
-        is LoweredIf as i -> {
-            gb_collect_block(gb, i.then_block)
-            if i.else_block != null { gb_collect_block(gb, i.else_block) }
+        is LoweredBlock -> { gb_collect_block(gb, e) }
+        is LoweredIf -> {
+            gb_collect_block(gb, e.then_block)
+            if e.else_block != null { gb_collect_block(gb, e.else_block) }
         }
         _ -> {}
     }
@@ -648,109 +648,109 @@ gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
 
 gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]!) -> void {
     match s {
-        is LoweredLet as lt -> {
+        is LoweredLet -> {
             // Every local is spilled → `self.<field> = value`.
-            name :: gb.field_map[lt.symbol.id]
-            value :: gb_route_expr(gb, lt.value)
+            name :: gb.field_map[s.symbol.id]
+            value :: gb_route_expr(gb, s.value)
             if name == null {
-                out.push(LoweredLet { .span = lt.span, .name = lt.name, .symbol = lt.symbol, .type = lt.type, .value = value })
+                out.push(LoweredLet { .span = s.span, .name = s.name, .symbol = s.symbol, .type = s.type, .value = value })
             } else {
-                out.push(LoweredAssign { .span = lt.span, .target = gb_field(gb, name, lt.type), .value = value })
+                out.push(LoweredAssign { .span = s.span, .target = gb_field(gb, name, s.type), .value = value })
             }
         }
-        is LoweredAssign as a -> { out.push(LoweredAssign { .span = a.span, .target = gb_route_expr(gb, a.target), .value = gb_route_expr(gb, a.value) }) }
-        is LoweredExprStmt as e -> { out.push(LoweredExprStmt { .span = e.span, .expr = gb_route_expr(gb, e.expr) }) }
-        is LoweredReturn as r -> {
-            new_val :: if r.value == null { null } else { gb_route_expr(gb, r.value) }
-            out.push(LoweredReturn { .span = r.span, .value = new_val })
+        is LoweredAssign -> { out.push(LoweredAssign { .span = s.span, .target = gb_route_expr(gb, s.target), .value = gb_route_expr(gb, s.value) }) }
+        is LoweredExprStmt -> { out.push(LoweredExprStmt { .span = s.span, .expr = gb_route_expr(gb, s.expr) }) }
+        is LoweredReturn -> {
+            new_val :: if s.value == null { null } else { gb_route_expr(gb, s.value) }
+            out.push(LoweredReturn { .span = s.span, .value = new_val })
         }
-        is LoweredYield as y -> { out.push(LoweredYield { .span = y.span, .value = gb_route_expr(gb, y.value) }) }
-        is LoweredAwait as a -> { out.push(LoweredAwait { .span = a.span, .target = a.target, .target_type = a.target_type, .awaited = gb_route_expr(gb, a.awaited) }) }
-        is LoweredLoop as lp -> {
-            new_cond :: if lp.cond == null { null } else { gb_route_expr(gb, lp.cond) }
-            out.push(LoweredLoop { .span = lp.span, .label = lp.label, .cond = new_cond, .body = gb_route_block(gb, lp.body) })
+        is LoweredYield -> { out.push(LoweredYield { .span = s.span, .value = gb_route_expr(gb, s.value) }) }
+        is LoweredAwait -> { out.push(LoweredAwait { .span = s.span, .target = s.target, .target_type = s.target_type, .awaited = gb_route_expr(gb, s.awaited) }) }
+        is LoweredLoop  -> {
+            new_cond :: if s.cond == null { null } else { gb_route_expr(gb, s.cond) }
+            out.push(LoweredLoop { .span = s.span, .label = s.label, .cond = new_cond, .body = gb_route_block(gb, s.body) })
         }
         is LoweredBreak    -> { out.push(s) }
         is LoweredContinue -> { out.push(s) }
-        is LoweredCellSet as cs -> {
-            out.push(LoweredCellSet { .span = cs.span, .target = gb_route_expr(gb, cs.target), .value = gb_route_expr(gb, cs.value), .value_type = cs.value_type })
+        is LoweredCellSet  -> {
+            out.push(LoweredCellSet { .span = s.span, .target = gb_route_expr(gb, s.target), .value = gb_route_expr(gb, s.value), .value_type = s.value_type })
         }
-        is LoweredDeferPush as dp -> {
+        is LoweredDeferPush -> {
             // Push the thunk onto the per-frame stack instead of the global one.
             // Cast the (opaque-ref) closure to the `fn() -> void` element type so
             // the stored value and the array element agree.
-            thunk :: LoweredCast { .span = dp.span, .type = gb_defer_thunk_ty(), .value = gb_route_expr(gb, dp.thunk) }
-            push :: LoweredArrayPush { .span = dp.span, .type = TY_VOID, .target = gb_defers_field(gb), .value = thunk }
-            out.push(LoweredExprStmt { .span = dp.span, .expr = push })
+            thunk :: LoweredCast { .span = s.span, .type = gb_defer_thunk_ty(), .value = gb_route_expr(gb, s.thunk) }
+            push :: LoweredArrayPush { .span = s.span, .type = TY_VOID, .target = gb_defers_field(gb), .value = thunk }
+            out.push(LoweredExprStmt { .span = s.span, .expr = push })
         }
-        is LoweredDeferPopExec as dpe -> { gb_defer_drain(gb, dpe, out) }
+        is LoweredDeferPopExec -> { gb_defer_drain(gb, s, out) }
     }
 }
 
 gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
     match e {
-        is LoweredIdent as id -> {
-            name :: gb.field_map[id.symbol.id] ?? return id
+        is LoweredIdent -> {
+            name :: gb.field_map[e.symbol.id] ?? return e
             // A captured symbol's field holds a cell (opaque ref), not the value ;
             // type the `self.<field>` access at the cell type so the wrapping
             // CellGet / CellSet — and any closure-env slot fed from it — stays a
             // valid cell reference. A non-captured access keeps its use-site type
             // (`id.type`), which differs from the declared field type for erased
             // generic combinators — don't collapse the two.
-            field_ty :: if gb_is_captured(gb, id.symbol.id) { TY_UNRESOLVED } else { id.type }
+            field_ty :: if gb_is_captured(gb, e.symbol.id) { TY_UNRESOLVED } else { e.type }
             return gb_field(gb, name, field_ty)
         }
-        is LoweredCall as c -> {
+        is LoweredCall -> {
             new_args: LoweredExpr[]! = []
-            for a in c.args { new_args.push(gb_route_expr(gb, a)) }
-            return LoweredCall { .span = c.span, .type = c.type, .callee = gb_route_expr(gb, c.callee), .args = new_args }
+            for a in e.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredCall { .span = e.span, .type = e.type, .callee = gb_route_expr(gb, e.callee), .args = new_args }
         }
-        is LoweredVirtualCall as v -> {
+        is LoweredVirtualCall -> {
             new_args: LoweredExpr[]! = []
-            for a in v.args { new_args.push(gb_route_expr(gb, a)) }
-            return LoweredVirtualCall { .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method, .receiver = gb_route_expr(gb, v.receiver), .args = new_args }
+            for a in e.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredVirtualCall { .span = e.span, .type = e.type, .trait_name = e.trait_name, .method = e.method, .receiver = gb_route_expr(gb, e.receiver), .args = new_args }
         }
-        is LoweredFieldAccess as fa -> LoweredFieldAccess { .span = fa.span, .type = fa.type, .target = gb_route_expr(gb, fa.target), .field = fa.field }
-        is LoweredIndex as ix -> LoweredIndex { .span = ix.span, .type = ix.type, .target = gb_route_expr(gb, ix.target), .index = gb_route_expr(gb, ix.index), .bounds_safe = ix.bounds_safe, .bce_recheck = ix.bce_recheck }
-        is LoweredUnary as u -> LoweredUnary { .span = u.span, .type = u.type, .op = u.op, .operand = gb_route_expr(gb, u.operand) }
-        is LoweredBinary as b -> LoweredBinary { .span = b.span, .type = b.type, .op = b.op, .left = gb_route_expr(gb, b.left), .right = gb_route_expr(gb, b.right) }
-        is LoweredIf as ie -> {
-            new_else :: if ie.else_block == null { null } else { gb_route_block(gb, ie.else_block) }
-            return LoweredIf { .span = ie.span, .type = ie.type, .cond = gb_route_expr(gb, ie.cond), .then_block = gb_route_block(gb, ie.then_block), .else_block = new_else }
+        is LoweredFieldAccess -> LoweredFieldAccess { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .field = e.field }
+        is LoweredIndex -> LoweredIndex { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .index = gb_route_expr(gb, e.index), .bounds_safe = e.bounds_safe, .bce_recheck = e.bce_recheck }
+        is LoweredUnary -> LoweredUnary { .span = e.span, .type = e.type, .op = e.op, .operand = gb_route_expr(gb, e.operand) }
+        is LoweredBinary -> LoweredBinary { .span = e.span, .type = e.type, .op = e.op, .left = gb_route_expr(gb, e.left), .right = gb_route_expr(gb, e.right) }
+        is LoweredIf -> {
+            new_else :: if e.else_block == null { null } else { gb_route_block(gb, e.else_block) }
+            return LoweredIf { .span = e.span, .type = e.type, .cond = gb_route_expr(gb, e.cond), .then_block = gb_route_block(gb, e.then_block), .else_block = new_else }
         }
-        is LoweredBlock as bl -> gb_route_block(gb, bl)
-        is LoweredStructLit as sl -> {
+        is LoweredBlock -> gb_route_block(gb, e)
+        is LoweredStructLit -> {
             new_fields: LoweredStructLitField![]! = []
-            for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
-            return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
+            for f in e.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
+            return LoweredStructLit { .span = e.span, .type = e.type, .fields = new_fields }
         }
-        is LoweredArrayLit as al -> {
+        is LoweredArrayLit -> {
             new_elements: LoweredExpr[]! = []
-            for el in al.elements { new_elements.push(gb_route_expr(gb, el)) }
-            return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
+            for el in e.elements { new_elements.push(gb_route_expr(gb, el)) }
+            return LoweredArrayLit { .span = e.span, .type = e.type, .elements = new_elements }
         }
-        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = gb_route_expr(gb, al.target), .resolve_buf = al.resolve_buf, .bce_recheck = al.bce_recheck }
-        is LoweredArrayPush as ap -> LoweredArrayPush { .span = ap.span, .type = ap.type, .target = gb_route_expr(gb, ap.target), .value = gb_route_expr(gb, ap.value) }
-        is LoweredArraySlice as asl -> LoweredArraySlice { .span = asl.span, .type = asl.type, .target = gb_route_expr(gb, asl.target), .lo = gb_route_expr(gb, asl.lo), .hi = gb_route_expr(gb, asl.hi) }
-        is LoweredStringSlice as ssl -> LoweredStringSlice { .span = ssl.span, .type = ssl.type, .target = gb_route_expr(gb, ssl.target), .lo = gb_route_expr(gb, ssl.lo), .hi = gb_route_expr(gb, ssl.hi) }
-        is LoweredCast as cs -> LoweredCast { .span = cs.span, .type = cs.type, .value = gb_route_expr(gb, cs.value) }
-        is LoweredTypeCheck as tc -> LoweredTypeCheck { .span = tc.span, .type = tc.type, .value = gb_route_expr(gb, tc.value), .check_type = tc.check_type }
-        is LoweredIntrinsicCall as ic -> {
+        is LoweredArrayLen -> LoweredArrayLen { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .resolve_buf = e.resolve_buf, .bce_recheck = e.bce_recheck }
+        is LoweredArrayPush -> LoweredArrayPush { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .value = gb_route_expr(gb, e.value) }
+        is LoweredArraySlice -> LoweredArraySlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }
+        is LoweredStringSlice -> LoweredStringSlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }
+        is LoweredCast -> LoweredCast { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value) }
+        is LoweredTypeCheck -> LoweredTypeCheck { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value), .check_type = e.check_type }
+        is LoweredIntrinsicCall -> {
             new_args: LoweredExpr[]! = []
-            for a in ic.args { new_args.push(gb_route_expr(gb, a)) }
-            return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
+            for a in e.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredIntrinsicCall { .span = e.span, .type = e.type, .name = e.name, .args = new_args }
         }
-        is LoweredCellNew as cn -> LoweredCellNew { .span = cn.span, .type = cn.type, .value = gb_route_expr(gb, cn.value), .value_type = cn.value_type }
-        is LoweredCellGet as cg -> LoweredCellGet { .span = cg.span, .type = cg.type, .target = gb_route_expr(gb, cg.target), .value_type = cg.value_type }
-        is LoweredMakeClosure as mc -> LoweredMakeClosure { .span = mc.span, .type = mc.type, .fn_symbol = mc.fn_symbol, .env = gb_route_expr(gb, mc.env) }
-        is LoweredIntLit as l -> l
-        is LoweredFloatLit as l -> l
-        is LoweredBoolLit as l -> l
-        is LoweredNullLit as l -> l
-        is LoweredCharLit as l -> l
-        is LoweredStringLit as l -> l
-        is LoweredDataConst as l -> l
-        is LoweredTypeConst as l -> l
-        is LoweredUnreachable as l -> l
+        is LoweredCellNew -> LoweredCellNew { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value), .value_type = e.value_type }
+        is LoweredCellGet -> LoweredCellGet { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .value_type = e.value_type }
+        is LoweredMakeClosure -> LoweredMakeClosure { .span = e.span, .type = e.type, .fn_symbol = e.fn_symbol, .env = gb_route_expr(gb, e.env) }
+        is LoweredIntLit -> e
+        is LoweredFloatLit -> e
+        is LoweredBoolLit -> e
+        is LoweredNullLit -> e
+        is LoweredCharLit -> e
+        is LoweredStringLit -> e
+        is LoweredDataConst -> e
+        is LoweredTypeConst -> e
+        is LoweredUnreachable -> e
     }
 }

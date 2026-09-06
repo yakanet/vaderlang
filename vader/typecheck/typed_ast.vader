@@ -665,7 +665,7 @@ test_typed_program_stores_and_recovers_type :: fn() -> void {
     hit :: tp.expr_types[42]
     match hit {
         is null -> { assert(false, "expected to recover the stored type") }
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        is PrimitiveType -> { assert_eq(hit.name, "i32") }
         _ -> { assert(false, "expected a PrimitiveType") }
     }
 }

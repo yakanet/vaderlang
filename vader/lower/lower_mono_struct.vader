@@ -151,26 +151,26 @@ all_concrete_args :: fn(args: Type[]) -> bool {
 has_type_param :: fn(t: Type) -> bool {
     match t {
         is TypeParamType -> { return true }
-        is StructType as s -> {
-            for a in s.args { if has_type_param(a) { return true } }
+        is StructType -> {
+            for a in t.args { if has_type_param(a) { return true } }
             return false
         }
-        is TraitType as r -> {
-            for a in r.args { if has_type_param(a) { return true } }
+        is TraitType -> {
+            for a in t.args { if has_type_param(a) { return true } }
             return false
         }
-        is ArrayType as ar -> { return has_type_param(ar.element) }
-        is TupleType as tu -> {
-            for el in tu.elements { if has_type_param(el) { return true } }
+        is ArrayType -> { return has_type_param(t.element) }
+        is TupleType -> {
+            for el in t.elements { if has_type_param(el) { return true } }
             return false
         }
-        is UnionType as u -> {
-            for v in u.variants { if has_type_param(v) { return true } }
+        is UnionType -> {
+            for v in t.variants { if has_type_param(v) { return true } }
             return false
         }
-        is FnType as f -> {
-            for p in f.params { if has_type_param(p) { return true } }
-            return has_type_param(f.return_type)
+        is FnType -> {
+            for p in t.params { if has_type_param(p) { return true } }
+            return has_type_param(t.return_type)
         }
         // Scalar / nominal-without-args / sentinel variants nest no type
         // params. Listed explicitly (not `_`) so a new structural Type
@@ -562,15 +562,15 @@ materialize_bound_trait_impls :: fn(
 // callee name.
 flatten_trait_bound :: fn(bound: TypeExpr, out: string[]!) -> void {
     match bound {
-        is IdentExpr as id -> { out.push(id.name) }
-        is BinaryExpr as b -> {
-            if b.op == BinaryOp.BitAnd {
-                flatten_trait_bound(b.left, out)
-                flatten_trait_bound(b.right, out)
+        is IdentExpr  -> { out.push(bound.name) }
+        is BinaryExpr -> {
+            if bound.op == BinaryOp.BitAnd {
+                flatten_trait_bound(bound.left, out)
+                flatten_trait_bound(bound.right, out)
             }
         }
-        is GenericInstExpr as gi -> {
-            match gi.callee {
+        is GenericInstExpr -> {
+            match bound.callee {
                 is IdentExpr as cid -> { out.push(cid.name) }
                 _ -> {}
             }

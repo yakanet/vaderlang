@@ -161,9 +161,9 @@ for_type_symbol :: fn(
     // @partial: an impl target is a nominal name, optionally generic-instantiated;
     // every other type-expr shape (array / fn / tuple / …) carries no impl symbol.
     @partial match for_type {
-        is IdentExpr as id -> { return resolve_target(id.name, by_name) }
-        is GenericInstExpr as gi -> {
-            if gi.callee is IdentExpr as id {
+        is IdentExpr -> { return resolve_target(for_type.name, by_name) }
+        is GenericInstExpr -> {
+            if for_type.callee is IdentExpr as id {
                 return resolve_target(id.name, by_name)
             }
             return null
@@ -202,9 +202,9 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     // @partial: only the three nominal variants carry an impl target symbol;
     // every structural / primitive variant (Array, Fn, Union, …) carries none.
     @partial match t {
-        is StructType as st -> { return st.symbol }
-        is EnumType as et -> { return et.symbol }
-        is DistinctType as d -> { return d.symbol }
+        is StructType -> { return t.symbol }
+        is EnumType -> { return t.symbol }
+        is DistinctType -> { return t.symbol }
         _ -> { return null }
     }
 }
@@ -247,11 +247,12 @@ Point implements Display -> "point"
     disp :: lookup_named(rm, "Display")
     match point {
         is null -> { assert(false, "Point symbol should be resolved") }
-        is Symbol as ps -> {
+        is Symbol -> {
             match disp {
                 is null -> { assert(false, "Display symbol should be resolved") }
-                is Symbol as ds -> {
-                    assert(reg.has_user(ps, ds), "Point implements Display should be registered")
+                is Symbol -> {
+                    assert(reg.has_user(point, disp),
+                        "Point implements Display should be registered")
                 }
             }
         }

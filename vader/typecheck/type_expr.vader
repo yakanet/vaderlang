@@ -33,8 +33,8 @@ export type_from_expr :: fn(
     // @partial: only the type-shaped expr kinds below denote a type; every other
     // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
     @partial match expr {
-        is AST.IdentExpr as e -> {
-            ty :: lower_ident(e, resolved)
+        is AST.IdentExpr -> {
+            ty :: lower_ident(expr, resolved)
             // A bound ident that degrades to unresolved is a VALUE symbol (const /
             // fn / local) used in a type slot — e.g. `b: SomeValueConst`, or a
             // `Name :: [value, i32]` bracket that stayed a value const. Surface
@@ -42,21 +42,21 @@ export type_from_expr :: fn(
             // An unbound ident is already the resolver's R2006, and a primitive
             // never degrades — so gate on "resolved to a symbol, not a primitive".
             if ty is UnresolvedType {
-                if primitive_from_name(e.name) is null {
-                    if resolved.idents[e.span.hash()] !is null {
-                        diags.push(typecheck_error(.ExpectedKnownType, e.span,
-                            "`${e.name}` is not a type"))
+                if primitive_from_name(expr.name) is null {
+                    if resolved.idents[expr.span.hash()] !is null {
+                        diags.push(typecheck_error(.ExpectedKnownType, expr.span,
+                            "`${expr.name}` is not a type"))
                     }
                 }
             }
             return ty
         }
-        is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
+        is AST.GenericInstExpr -> { return lower_generic_inst(expr, resolved, diags) }
         // `Iterator(i32)` / `Pair<K, V>` parsed as CallExpr in type
         // position : lower the callee to a Type and apply its args.
-        is AST.CallExpr as e -> { return lower_call_in_type_position(e, resolved, diags) }
-        is AST.BinaryExpr as e -> { return lower_binary(e, resolved, diags) }
-        is AST.FnTypeExpr as e -> {
+        is AST.CallExpr -> { return lower_call_in_type_position(expr, resolved, diags) }
+        is AST.BinaryExpr -> { return lower_binary(expr, resolved, diags) }
+        is AST.FnTypeExpr -> {
             // Desugar the `!` of a fn TYPE (`fn(u8[]!) -> void`) the same way a
             // declaration's `!` is desugared : an unmarked slot is a read-only
             // borrow. Skipping this would leave every callback slot mutable, so
@@ -64,27 +64,27 @@ export type_from_expr :: fn(
             params: Type[]! = []
             marks: bool[]! = []
             any_marked := false
-            for i in 0..<e.params.len() {
+            for i in 0..<expr.params.len() {
                 // The marker now rides the TYPE (`fn(u8[]!)` parses as a
                 // `MutableTypeExpr`), so read it from there ; `params_mutable`
                 // stays consulted for the shape the older parser produced.
-                marked :: AST.type_expr_marks_mutable(e.params[i])
-                    || (i < e.params_mutable.len() && e.params_mutable[i])
+                marked :: AST.type_expr_marks_mutable(expr.params[i])
+                    || (i < expr.params_mutable.len() && expr.params_mutable[i])
                 if marked { any_marked = true }
                 marks.push(marked)
-                params.push(apply_readonly_default(type_from_expr(e.params[i], resolved, diags), e.params[i]))
+                params.push(apply_readonly_default(type_from_expr(expr.params[i], resolved, diags), expr.params[i]))
             }
             return FnType {
                 .params         = params,
                 .params_mutable = if any_marked { marks } else { [] },
-                .return_type    = opt_or_void(e.return_type, resolved, diags),
+                .return_type    = opt_or_void(expr.return_type, resolved, diags),
             }
         }
         // `T!` — one level of the written type is mutable. The marker is stripped
         // here and carried by the `Type` itself.
-        is AST.MutableTypeExpr as e -> {
-            inner :: type_from_expr(e.inner, resolved, diags)
-            reject_marker_on_value_type(inner, e.span, diags)
+        is AST.MutableTypeExpr -> {
+            inner :: type_from_expr(expr.inner, resolved, diags)
+            reject_marker_on_value_type(inner, expr.span, diags)
             // A type that arrives ALREADY read-only is not un-frozen by a marker —
             // the stricter side wins. A belt: with `const` gone the surface cannot
             // write a frozen type under a `!` (and P1031 rejects the legacy
@@ -95,13 +95,13 @@ export type_from_expr :: fn(
         // NOTE: the `!` marker vector for a DECLARATION (`fn(buf: u8[]!)`) comes
         // from `params_mutable_of` below, not from here — a declaration's params
         // are `FnParam`s, not `TypeExpr`s.
-        is AST.ArrayTypeExpr as e -> {
-            return mk_array(type_from_expr(e.element, resolved, diags), false)
+        is AST.ArrayTypeExpr -> {
+            return mk_array(type_from_expr(expr.element, resolved, diags), false)
         }
         is AST.NullLitExpr -> { return TY_NULL }
-        is AST.SeqLitExpr as e -> {
+        is AST.SeqLitExpr -> {
             elements: Type[]! = []
-            for el in e.elements { elements.push(type_from_expr(el, resolved, diags)) }
+            for el in expr.elements { elements.push(type_from_expr(el, resolved, diags)) }
             return mk_tuple(elements, false)
         }
         // `P.Decl` — namespace field access in type position.
@@ -109,7 +109,7 @@ export type_from_expr :: fn(
         // FieldExpr's span would collide with the inner IdentExpr's
         // key and return the wrong symbol ; the namespace-member
         // table sidesteps that collision.
-        is AST.FieldExpr as e -> { return namespace_member_type(e, resolved, diags) }
+        is AST.FieldExpr -> { return namespace_member_type(expr, resolved, diags) }
         _ -> {
             diags.push(typecheck_error(.ExpectedKnownType, expr.span,
                 "value-position expression not allowed in a type slot"))
@@ -193,38 +193,38 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
     // @partial: only TypeParam and the composite variants can carry a param to
     // substitute; every scalar / primitive variant has no inner type → as-is.
     @partial match t {
-        is TypeParamType as tp -> {
+        is TypeParamType -> {
             n :: min(params.len(), args.len())
             for i in 0..<n {
-                if params[i].name == tp.symbol.name { return args[i] }
+                if params[i].name == t.symbol.name { return args[i] }
             }
             return t
         }
-        is ArrayType as a -> { return mk_array(walk_substitute(a.element, params, args), a.immutable) }
-        is StructType as s -> {
+        is ArrayType -> { return mk_array(walk_substitute(t.element, params, args), t.immutable) }
+        is StructType -> {
             sargs: Type[]! = []
-            for a in s.args { sargs.push(walk_substitute(a, params, args)) }
-            return mk_struct(s.symbol, sargs, s.immutable)
+            for a in t.args { sargs.push(walk_substitute(a, params, args)) }
+            return mk_struct(t.symbol, sargs, t.immutable)
         }
-        is TraitType as tr -> {
+        is TraitType -> {
             sargs: Type[]! = []
-            for a in tr.args { sargs.push(walk_substitute(a, params, args)) }
-            return mk_trait(tr.symbol, sargs)
+            for a in t.args { sargs.push(walk_substitute(a, params, args)) }
+            return mk_trait(t.symbol, sargs)
         }
-        is UnionType as u -> {
+        is UnionType -> {
             vs: Type[]! = []
-            for v in u.variants { vs.push(walk_substitute(v, params, args)) }
+            for v in t.variants { vs.push(walk_substitute(v, params, args)) }
             return union_of(vs)
         }
-        is TupleType as t2 -> {
+        is TupleType -> {
             els: Type[]! = []
-            for el in t2.elements { els.push(walk_substitute(el, params, args)) }
-            return mk_tuple(els, t2.immutable)
+            for el in t.elements { els.push(walk_substitute(el, params, args)) }
+            return mk_tuple(els, t.immutable)
         }
-        is FnType as f -> {
+        is FnType -> {
             ps: Type[]! = []
-            for p in f.params { ps.push(walk_substitute(p, params, args)) }
-            return mk_fn_like(f, ps, walk_substitute(f.return_type, params, args))
+            for p in t.params { ps.push(walk_substitute(p, params, args)) }
+            return mk_fn_like(t, ps, walk_substitute(t.return_type, params, args))
         }
         _ -> { return t }
     }
@@ -240,7 +240,7 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
     target :: resolved.imports_to[sym.id]
     match target {
         is null -> { return sym }
-        is Symbol as s -> { return s }
+        is Symbol -> { return target }
     }
 }
 
@@ -254,16 +254,16 @@ lower_call_in_type_position :: fn(
         target :: lookup_type_name(id, resolved)
         match target {
             is null -> { return TY_UNRESOLVED }
-            is Symbol as s -> {
-                aliased :: resolved.alias_types[s.id]
+            is Symbol -> {
+                aliased :: resolved.alias_types[target.id]
                 if !(aliased is null) {
-                    alias_decl :: resolved.alias_decls[s.id]
+                    alias_decl :: resolved.alias_decls[target.id]
                     if !(alias_decl is null) {
                         return substitute_alias_args(aliased, alias_decl.type_params, args)
                     }
                     return aliased
                 }
-                return type_from_symbol(s, args)
+                return type_from_symbol(target, args)
             }
         }
     }
@@ -286,16 +286,16 @@ lower_generic_inst :: fn(
         target :: lookup_type_name(id, resolved)
         match target {
             is null -> { return TY_UNRESOLVED }
-            is Symbol as s -> {
-                aliased :: resolved.alias_types[s.id]
+            is Symbol -> {
+                aliased :: resolved.alias_types[target.id]
                 if !(aliased is null) {
-                    alias_decl :: resolved.alias_decls[s.id]
+                    alias_decl :: resolved.alias_decls[target.id]
                     if !(alias_decl is null) {
                         return substitute_alias_args(aliased, alias_decl.type_params, args)
                     }
                     return aliased
                 }
-                return type_from_symbol(s, args)
+                return type_from_symbol(target, args)
             }
         }
     }

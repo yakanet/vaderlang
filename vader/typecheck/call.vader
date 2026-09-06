@@ -596,35 +596,35 @@ collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out:
     // @partial: only these variants can hold a type-param ; every scalar /
     // primitive variant has no inner type to walk.
     @partial match t {
-        is TypeParamType as tp -> {
-            if bindings[tp.symbol.id] != null {
+        is TypeParamType -> {
+            if bindings[t.symbol.id] != null {
                 return
             }
             for seen in out {
-                if seen.id == tp.symbol.id {
+                if seen.id == t.symbol.id {
                     return
                 }
             }
-            out.push(tp.symbol)
+            out.push(t.symbol)
         }
-        is ArrayType as a -> { collect_unbound_type_params(a.element, bindings, out) }
-        is TupleType as tu -> {
-            for el in tu.elements { collect_unbound_type_params(el, bindings, out) }
+        is ArrayType -> { collect_unbound_type_params(t.element, bindings, out) }
+        is TupleType -> {
+            for el in t.elements { collect_unbound_type_params(el, bindings, out) }
         }
-        is StructType as st -> {
-            for a in st.args { collect_unbound_type_params(a, bindings, out) }
+        is StructType -> {
+            for a in t.args { collect_unbound_type_params(a, bindings, out) }
         }
-        is TraitType as tr -> {
-            for a in tr.args { collect_unbound_type_params(a, bindings, out) }
+        is TraitType -> {
+            for a in t.args { collect_unbound_type_params(a, bindings, out) }
         }
-        is FnType as f -> {
-            for p in f.params { collect_unbound_type_params(p, bindings, out) }
-            collect_unbound_type_params(f.return_type, bindings, out)
+        is FnType -> {
+            for p in t.params { collect_unbound_type_params(p, bindings, out) }
+            collect_unbound_type_params(t.return_type, bindings, out)
         }
-        is UnionType as u -> {
-            for v in u.variants { collect_unbound_type_params(v, bindings, out) }
+        is UnionType -> {
+            for v in t.variants { collect_unbound_type_params(v, bindings, out) }
         }
-        is DistinctType as d -> { collect_unbound_type_params(d.backing, bindings, out) }
+        is DistinctType -> { collect_unbound_type_params(t.backing, bindings, out) }
         _ -> {}
     }
 }
@@ -1401,10 +1401,10 @@ main :: fn() -> void { greet(42) }
 // argument that produced the binding. ARRAY mutability stays: nothing else checks
 // that a read-only array is not handed to a `T[]!` parameter.
 arg_mutability_cleared :: fn(t: Type) -> Type = match t {
-    is StructType as s -> mk_struct(s.symbol, arg_mutability_cleared_each(s.args), false)
-    is TupleType  as p -> mk_tuple(arg_mutability_cleared_each(p.elements), false)
-    is ArrayType  as a -> mk_array(arg_mutability_cleared(a.element), a.immutable)
-    is UnionType  as u -> mk_union(arg_mutability_cleared_each(u.variants))
+    is StructType -> mk_struct(t.symbol, arg_mutability_cleared_each(t.args), false)
+    is TupleType  -> mk_tuple(arg_mutability_cleared_each(t.elements), false)
+    is ArrayType  -> mk_array(arg_mutability_cleared(t.element), t.immutable)
+    is UnionType  -> mk_union(arg_mutability_cleared_each(t.variants))
     is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
      | NeverType | AnyType | DistinctType -> t

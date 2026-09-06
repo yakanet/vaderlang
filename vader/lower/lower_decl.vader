@@ -115,7 +115,7 @@ impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: Typed
 
 synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedProgram) -> Symbol {
     match symbol_or_null {
-        is Symbol as s -> { return s }
+        is Symbol -> { return symbol_or_null }
         is null -> {
             return Symbol {
                 .id         = 0,
@@ -152,11 +152,11 @@ impl_member_overload_suffix :: fn(
     counter := seen
     for d in decls {
         match d {
-            is ImplDecl as other -> {
-                other_target :: for_type_name_of(other.for_type)
+            is ImplDecl -> {
+                other_target :: for_type_name_of(d.for_type)
                 if other_target != target_name { continue }
-                if other.trait_name != owning_impl.trait_name { continue }
-                for m in other.members {
+                if d.trait_name != owning_impl.trait_name { continue }
+                for m in d.members {
                     if m.name != member.name { continue }
                     if m.name_span.start.offset == target_offset {
                         if counter == 0 { return "" }
@@ -175,9 +175,9 @@ for_type_name_of :: fn(for_type: TypeExpr) -> string {
     // @partial: only Ident / GenericInst<Ident> shapes name a nominal target;
     // every other TypeExpr → "" (no nominal name).
     @partial match for_type {
-        is IdentExpr as e -> { return e.name }
-        is GenericInstExpr as gi -> {
-            if gi.callee is IdentExpr as inner { return inner.name }
+        is IdentExpr -> { return for_type.name }
+        is GenericInstExpr -> {
+            if for_type.callee is IdentExpr as inner { return inner.name }
             return ""
         }
         _ -> { return "" }
@@ -192,9 +192,9 @@ for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
     // @partial: only Ident / GenericInst<Ident> shapes surface as nominal impls;
     // every other TypeExpr falls back to "<unknown>" (defensive — never expected).
     @partial match for_type {
-        is IdentExpr as e -> { return e.name }
-        is GenericInstExpr as e -> {
-            if e.callee is IdentExpr as inner { return inner.name }
+        is IdentExpr -> { return for_type.name }
+        is GenericInstExpr -> {
+            if for_type.callee is IdentExpr as inner { return inner.name }
             return "<unknown>"
         }
         _ -> { return "<unknown>" }
@@ -542,15 +542,15 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
 
 decl_name_span :: fn(decl: Decl) -> Span | null {
     match decl {
-        is FnDecl        as f -> { return f.name_span }
-        is StructDecl    as s -> { return s.name_span }
-        is ConstDecl     as c -> { return c.name_span }
-        is ImportDecl         -> { return null }
-        is EnumDecl           -> { return null }
-        is TraitDecl          -> { return null }
-        is ImplDecl           -> { return null }
-        is TypeAliasDecl      -> { return null }
-        is AssertDecl         -> { return null }
+        is FnDecl        -> { return decl.name_span }
+        is StructDecl    -> { return decl.name_span }
+        is ConstDecl     -> { return decl.name_span }
+        is ImportDecl    -> { return null }
+        is EnumDecl      -> { return null }
+        is TraitDecl     -> { return null }
+        is ImplDecl      -> { return null }
+        is TypeAliasDecl -> { return null }
+        is AssertDecl    -> { return null }
     }
 }
 
@@ -560,15 +560,15 @@ decl_name_span :: fn(decl: Decl) -> Span | null {
 // the final mangle for non-generic decls ; generic instances are mangled
 // separately by the mono pass (`lower_mono_fn.vader`).
 decl_name :: fn(decl: Decl) -> string = match decl {
-    is FnDecl        as f -> f.name
-    is StructDecl    as s -> s.name
-    is ConstDecl     as c -> c.name
-    is ImportDecl         -> ""
-    is EnumDecl           -> ""
-    is TraitDecl          -> ""
-    is ImplDecl           -> ""
-    is TypeAliasDecl      -> ""
-    is AssertDecl         -> ""
+    is FnDecl        -> decl.name
+    is StructDecl    -> decl.name
+    is ConstDecl     -> decl.name
+    is ImportDecl    -> ""
+    is EnumDecl      -> ""
+    is TraitDecl     -> ""
+    is ImplDecl      -> ""
+    is TypeAliasDecl -> ""
+    is AssertDecl    -> ""
 }
 
 is_main_decl :: fn(decl: Decl) -> bool {

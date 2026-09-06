@@ -23,7 +23,7 @@ export infer_lambda :: fn(
 ) -> Type {
     expected_fn: FnType | null = null
     match expected {
-        is FnType as f -> { expected_fn = f }
+        is FnType -> { expected_fn = expected }
         _ -> {}
     }
     param_types: Type[]! = []
@@ -59,13 +59,13 @@ infer_param :: fn(
         return t
     }
     match expected_fn {
-        is FnType as f -> {
-            if idx < f.params.len() {
+        is FnType -> {
+            if idx < expected_fn.params.len() {
                 // The expected slot supplies the SHAPE ; the marker on this
                 // lambda's own parameter supplies the mutability. A lambda that
                 // doesn't write `!` promises not to mutate even when handed to a
                 // slot that would allow it — it simply promises more.
-                t :: desugared_param_type(f.params[idx], AST.param_is_mutable(p))
+                t :: desugared_param_type(expected_fn.params[idx], AST.param_is_mutable(p))
                 typed.param_types[p.span.hash()] = t
                 return t
             }

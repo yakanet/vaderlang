@@ -211,42 +211,42 @@ pattern_predicate :: fn(
     match pattern {
         is WildcardPattern -> { return null }
         is BindingPattern  -> { return null }
-        is IsPattern as is_pattern -> {
-            check_type :: resolve_pattern_type(ctx, is_pattern.ty)
+        is IsPattern       -> {
+            check_type :: resolve_pattern_type(ctx, pattern.ty)
             return LoweredTypeCheck {
                 .span = span, .type = TY_BOOL,
                 .value = target,
                 .check_type = check_type,
             }
         }
-        is StructPattern as struct_pattern -> {
-            return struct_pattern_predicate(ctx, struct_pattern, target, span, recurse)
+        is StructPattern -> {
+            return struct_pattern_predicate(ctx, pattern, target, span, recurse)
         }
-        is EnumVariantPattern as variant_pattern -> {
-            variant_lit :: enum_variant_literal(target_type, variant_pattern.variant, span, ctx)
+        is EnumVariantPattern -> {
+            variant_lit :: enum_variant_literal(target_type, pattern.variant, span, ctx)
             return LoweredBinary {
                 .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
                 .left = target, .right = variant_lit,
             }
         }
-        is LiteralPattern as literal_pattern -> {
-            literal :: recurse(ctx, literal_pattern.value)
+        is LiteralPattern -> {
+            literal :: recurse(ctx, pattern.value)
             return LoweredBinary {
                 .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
                 .left = target, .right = literal,
             }
         }
-        is RangePattern as range_pattern -> {
+        is RangePattern -> {
             // `target >= lower && target <(=) upper`. `target` is the pre-bound
             // scrutinee temp — reusing it twice is the same shape the tuple /
             // struct predicates already rely on.
-            lo :: recurse(ctx, range_pattern.lower)
-            hi :: recurse(ctx, range_pattern.upper)
+            lo :: recurse(ctx, pattern.lower)
+            hi :: recurse(ctx, pattern.upper)
             lo_ok :: LoweredBinary {
                 .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
                 .left = target, .right = lo,
             }
-            hi_op :: if range_pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
+            hi_op :: if pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
             hi_ok :: LoweredBinary {
                 .span = span, .type = TY_BOOL, .op = hi_op,
                 .left = target, .right = hi,
@@ -256,15 +256,15 @@ pattern_predicate :: fn(
                 .left = lo_ok, .right = hi_ok,
             }
         }
-        is TuplePattern as tuple_pattern -> {
-            return tuple_pattern_predicate(ctx, tuple_pattern, target, target_type, span, recurse)
+        is TuplePattern -> {
+            return tuple_pattern_predicate(ctx, pattern, target, target_type, span, recurse)
         }
-        is OrPattern as or_pattern -> {
+        is OrPattern -> {
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
             // A null sub-predicate (an always-true alternative) collapses the
             // whole or-pattern to always-true.
             parts: LoweredExpr[]! = []
-            for sub in or_pattern.patterns {
+            for sub in pattern.patterns {
                 sub_pred :: pattern_predicate(ctx, sub, target, target_type, span, recurse)
                 if sub_pred == null { return null }
                 parts.push(sub_pred)
@@ -389,18 +389,18 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     // @partial: only EnumType carries variant indices; every other Type is
     // unresolved here (earlier diagnostics apply) → unreachable.
     @partial match resolved {
-        is EnumType as enum_type -> {
-            index :: enum_type.indices[name]
+        is EnumType -> {
+            index :: resolved.indices[name]
             match index {
                 is null -> {
                     return LoweredUnreachable {
                         .span = span, .type = TY_UNRESOLVED,
-                        .reason = "unknown variant `${name}` on `${enum_type.symbol.name}`",
+                        .reason = "unknown variant `${name}` on `${resolved.symbol.name}`",
                     }
                 }
-                is i64 as value -> {
+                is i64 -> {
                     return LoweredIntLit {
-                        .span = span, .type = mk_primitive(enum_type.repr), .value = value,
+                        .span = span, .type = mk_primitive(resolved.repr), .value = index,
                     }
                 }
             }
@@ -420,9 +420,9 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     // unwrapping; every other Type is returned verbatim.
     @partial match target_type {
         is EnumType -> { return target_type }
-        is StructType as st -> {
-            if st.symbol.kind != SymbolKind.Enum { return target_type }
-            real :: ctx.typed.decl_types[st.symbol.id]
+        is StructType -> {
+            if target_type.symbol.kind != SymbolKind.Enum { return target_type }
+            real :: ctx.typed.decl_types[target_type.symbol.id]
             if real is EnumType { return real }
             return target_type
         }
@@ -447,21 +447,21 @@ walk_pattern_bindings :: fn(
     out: LoweredStmt[]!, span: Span,
 ) -> void {
     match pattern {
-        is BindingPattern as binding -> {
-            symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+        is BindingPattern -> {
+            symbol :: resolve_pattern_symbol(ctx, pattern.span, pattern.name)
             init :: lower_cell_init(ctx, symbol, target, target_type, span)
             out.push(LoweredLet {
-                .span = span, .name = binding.name, .symbol = symbol,
+                .span = span, .name = pattern.name, .symbol = symbol,
                 .type = init.slot_type, .value = init.value,
             })
         }
-        is IsPattern as is_pattern -> {
-            inner_type :: resolve_pattern_type(ctx, is_pattern.ty)
+        is IsPattern -> {
+            inner_type :: resolve_pattern_type(ctx, pattern.ty)
             narrowed_target :: narrow_target(target, target_type, inner_type, span)
-            match is_pattern.bind_as {
+            match pattern.bind_as {
                 is null -> {}
                 is string as alias -> {
-                    symbol :: resolve_pattern_symbol(ctx, is_pattern.span, alias)
+                    symbol :: resolve_pattern_symbol(ctx, pattern.span, alias)
                     init :: lower_cell_init(ctx, symbol, narrowed_target, inner_type, span)
                     out.push(LoweredLet {
                         .span = span, .name = alias, .symbol = symbol,
@@ -469,12 +469,12 @@ walk_pattern_bindings :: fn(
                     })
                 }
             }
-            if is_pattern.inner !is null {
-                walk_pattern_bindings(ctx, is_pattern.inner, narrowed_target, inner_type, out, span)
+            if pattern.inner !is null {
+                walk_pattern_bindings(ctx, pattern.inner, narrowed_target, inner_type, out, span)
             }
         }
-        is StructPattern as struct_pattern -> {
-            for field in struct_pattern.fields {
+        is StructPattern -> {
+            for field in pattern.fields {
                 match field.value {
                     is PatternBinding as binding -> {
                         field_type :: struct_field_type(ctx, target_type, field.name)
@@ -493,17 +493,17 @@ walk_pattern_bindings :: fn(
                 }
             }
         }
-        is TuplePattern as tuple_pattern -> {
-            element_types :: tuple_element_types(target_type, tuple_pattern.elements.len())
+        is TuplePattern -> {
+            element_types :: tuple_element_types(target_type, pattern.elements.len())
             // Narrow a union scrutinee (`[i32, string] | null`) to the
             // tuple shape before reading slots, so `._0` lands on the
             // tuple variant rather than the bare union value.
-            tuple_ty :: tuple_variant_of(target_type, tuple_pattern.elements.len())
+            tuple_ty :: tuple_variant_of(target_type, pattern.elements.len())
             narrowed :: if tuple_ty is TupleType as tt {
-                narrow_target(target, target_type, tt, tuple_pattern.span)
+                narrow_target(target, target_type, tt, pattern.span)
             } else { target }
-            for i in 0..<tuple_pattern.elements.len() {
-                element_pattern :: tuple_pattern.elements[i]
+            for i in 0..<pattern.elements.len() {
+                element_pattern :: pattern.elements[i]
                 element_type :: element_types[i]
                 field_access :: LoweredFieldAccess {
                     .span = element_pattern.span, .type = element_type,

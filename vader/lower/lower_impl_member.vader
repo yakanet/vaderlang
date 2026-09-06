@@ -173,22 +173,22 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
     // (`string implements Display`) have no args → empty suffix.
     // @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
     recv_suffix :: @partial match target_type {
-        is StructType as s -> {
+        is StructType -> {
             // Generic impl : structure-free `__Any` × arity so the call-site
             // name matches the single deduped body regardless of the receiver's
             // concrete args (see `mixed_any_suffix`). Concrete-instantiation
             // impls keep their concrete args.
             if entry.is_generic {
-                mixed_any_suffix(s.args)
+                mixed_any_suffix(target_type.args)
             } else {
-                args_suffix(s.args)
+                args_suffix(target_type.args)
             }
         }
         // Blanket array impl (`T[] implements Contains`) : materialise one
         // CONCRETE body per element type (`contains__i32`) so the member's `==`
         // devirtualises to the element primop — distinct from the struct
         // generic-erasure path (`__Any`).
-        is ArrayType as a -> args_suffix([a.element])
+        is ArrayType -> args_suffix([target_type.element])
         _ -> ""
     }
     mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${method_name}${recv_suffix}"
@@ -270,12 +270,12 @@ impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
 // listing them trips T3013 if a new *nominal* Type variant is added that ought
 // to carry a UFCS surface.
 type_surface_name :: fn(t: Type) -> string = match t {
-    is PrimitiveType as p -> p.name
-    is StructType    as s -> s.symbol.name
-    is EnumType      as e -> e.symbol.name
+    is PrimitiveType -> t.name
+    is StructType    -> t.symbol.name
+    is EnumType      -> t.symbol.name
     // Distinct (newtype) dispatches operators / UFCS under its own nominal
     // name (opaque — an impl on the distinct, never the backing's).
-    is DistinctType  as d -> d.symbol.name
+    is DistinctType -> t.symbol.name
     // Generic-shape pattern + concrete receiver agree on a canonical token :
     // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
     is ArrayType          -> "[]"
@@ -299,9 +299,9 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
     // @partial: only Ident / GenericInst<Ident> / ArrayTypeExpr name an impl
     // target; every other Expr → false.
     @partial match for_type {
-        is IdentExpr        as e -> { return e.name == name }
-        is GenericInstExpr  as gi -> {
-            if gi.callee is IdentExpr as inner { return inner.name == name }
+        is IdentExpr -> { return for_type.name == name }
+        is GenericInstExpr -> {
+            if for_type.callee is IdentExpr as inner { return inner.name == name }
             return false
         }
         // Blanket array impl (`T[] implements ...`) — its for_type is an

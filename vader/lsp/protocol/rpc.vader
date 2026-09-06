@@ -24,7 +24,7 @@ export method_name :: fn(msg: JsonValue) -> string {
     // @partial: a JSON-RPC message is always an object ; any other variant has
     // no `method` field, so "" is the right answer.
     @partial match msg {
-        is JsonObject as o -> { return obj_string(o, "method") }
+        is JsonObject -> { return obj_string(msg, "method") }
         _ -> { return "" }
     }
 }
@@ -35,7 +35,7 @@ export request_id :: fn(msg: JsonValue) -> JsonValue {
     // @partial: a JSON-RPC message is always an object ; any other variant has
     // no `id` field, so the notification sentinel `JsonNull{}` is correct.
     @partial match msg {
-        is JsonObject as o -> { return get_field_or_null(o, "id") }
+        is JsonObject -> { return get_field_or_null(msg, "id") }
         _ -> { return JsonNull {} }
     }
 }
@@ -45,7 +45,7 @@ export params_value :: fn(msg: JsonValue) -> JsonValue {
     // @partial: a JSON-RPC message is always an object ; any other variant has
     // no `params` field, so `JsonNull{}` is correct.
     @partial match msg {
-        is JsonObject as o -> { return get_field_or_null(o, "params") }
+        is JsonObject -> { return get_field_or_null(msg, "params") }
         _ -> { return JsonNull {} }
     }
 }
@@ -115,24 +115,24 @@ get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {
     v :: o.entries[key]
     match v {
         is null -> { return JsonNull {} }
-        is JsonString  as x -> { return x }
-        is JsonNumber  as x -> { return x }
-        is JsonBool    as x -> { return x }
-        is JsonNull    as x -> { return x }
-        is JsonArray   as x -> { return x }
-        is JsonObject  as x -> { return x }
+        is JsonString -> { return v }
+        is JsonNumber -> { return v }
+        is JsonBool -> { return v }
+        is JsonNull -> { return v }
+        is JsonArray -> { return v }
+        is JsonObject -> { return v }
     }
 }
 
 obj_string :: fn(o: JsonObject, key: string) -> string {
     v :: o.entries[key]
     match v {
-        is null -> { return "" }
-        is JsonString as s -> { return s.value }
-        is JsonNumber  -> { return "" }
-        is JsonBool    -> { return "" }
-        is JsonNull    -> { return "" }
-        is JsonArray   -> { return "" }
-        is JsonObject  -> { return "" }
+        is null       -> { return "" }
+        is JsonString -> { return v.value }
+        is JsonNumber -> { return "" }
+        is JsonBool   -> { return "" }
+        is JsonNull   -> { return "" }
+        is JsonArray  -> { return "" }
+        is JsonObject -> { return "" }
     }
 }

@@ -162,15 +162,15 @@ arithmetic :: fn(
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
     match left {
-        is IntValue as li -> {
+        is IntValue -> {
             match right {
-                is IntValue as ri -> { return ok(int_val_typed(int_op(li.value, ri.value), li.type_name)) }
+                is IntValue -> { return ok(int_val_typed(int_op(left.value, right.value), left.type_name)) }
                 _ -> {}
             }
         }
-        is FloatValue as lf -> {
+        is FloatValue -> {
             match right {
-                is FloatValue as rf -> { return ok(float_val_typed(float_arith(expr.op, lf.value, rf.value), lf.type_name)) }
+                is FloatValue -> { return ok(float_val_typed(float_arith(expr.op, left.value, right.value), left.type_name)) }
                 _ -> {}
             }
         }
@@ -184,9 +184,9 @@ arithmetic_int :: fn(
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
     match left {
-        is IntValue as li -> {
+        is IntValue -> {
             match right {
-                is IntValue as ri -> { return ok(int_val_typed(int_op(li.value, ri.value), li.type_name)) }
+                is IntValue -> { return ok(int_val_typed(int_op(left.value, right.value), left.type_name)) }
                 _ -> {}
             }
         }
@@ -223,10 +223,10 @@ bool_op :: fn(
     op: fn(bool, bool) -> bool,
 ) -> EvalResult {
     match left {
-        is BoolValue as lb -> {
+        is BoolValue -> {
             match right {
-                is BoolValue as rb -> {
-                    if op(lb.value, rb.value) { return ok(VAL_TRUE) }
+                is BoolValue -> {
+                    if op(left.value, right.value) { return ok(VAL_TRUE) }
                     return ok(VAL_FALSE)
                 }
                 _ -> {}
@@ -245,27 +245,27 @@ compare :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, op: CompareOp,
 ) -> EvalResult {
     match left {
-        is IntValue as li -> {
+        is IntValue -> {
             match right {
-                is IntValue as ri -> { return ok(bool_value(int_compare(li.value, ri.value, op))) }
+                is IntValue -> { return ok(bool_value(int_compare(left.value, right.value, op))) }
                 _ -> {}
             }
         }
-        is FloatValue as lf -> {
+        is FloatValue -> {
             match right {
-                is FloatValue as rf -> { return ok(bool_value(float_compare(lf.value, rf.value, op))) }
+                is FloatValue -> { return ok(bool_value(float_compare(left.value, right.value, op))) }
                 _ -> {}
             }
         }
-        is BoolValue as lb -> {
+        is BoolValue -> {
             match right {
-                is BoolValue as rb -> { return equality_only(expr, lb.value == rb.value, op, "bool") }
+                is BoolValue -> { return equality_only(expr, left.value == right.value, op, "bool") }
                 _ -> {}
             }
         }
-        is StringValue as ls -> {
+        is StringValue -> {
             match right {
-                is StringValue as rs -> { return equality_only(expr, ls.value == rs.value, op, "string") }
+                is StringValue -> { return equality_only(expr, left.value == right.value, op, "string") }
                 _ -> {}
             }
         }
@@ -313,9 +313,9 @@ bool_value :: fn(b: bool) -> ComptimeValue {
 unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
     // @partial: only Int / Float negate; every other value kind is a type mismatch.
     @partial match inner {
-        is IntValue   as i -> { return ok(int_val_typed(-i.value, i.type_name)) }
-        is FloatValue as f -> { return ok(float_val_typed(-f.value, f.type_name)) }
-        _                  -> { return unary_type_mismatch(expr, "`-` requires numeric") }
+        is IntValue   -> { return ok(int_val_typed(-inner.value, inner.type_name)) }
+        is FloatValue -> { return ok(float_val_typed(-inner.value, inner.type_name)) }
+        _             -> { return unary_type_mismatch(expr, "`-` requires numeric") }
     }
 }
 

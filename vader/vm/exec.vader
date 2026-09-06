@@ -228,24 +228,24 @@ push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
         stack_grow(frame)
     }
     match value {
-        is I32Val as x -> {
-            frame.payload[cursor] = i64(x.value)
+        is I32Val -> {
+            frame.payload[cursor] = i64(value.value)
             frame.tag[cursor] = StackTag.I32
         }
-        is I64Val as x -> {
-            frame.payload[cursor] = x.value
+        is I64Val -> {
+            frame.payload[cursor] = value.value
             frame.tag[cursor] = StackTag.I64
         }
-        is F64Val as x -> {
-            frame.payload[cursor] = i64((x.value).to_bits())
+        is F64Val -> {
+            frame.payload[cursor] = i64((value.value).to_bits())
             frame.tag[cursor] = StackTag.F64
         }
-        is BoolVal as x -> {
-            frame.payload[cursor] = if x.value { 1 } else { 0 }
+        is BoolVal -> {
+            frame.payload[cursor] = if value.value { 1 } else { 0 }
             frame.tag[cursor] = StackTag.Bool
         }
-        is CharVal as x -> {
-            frame.payload[cursor] = i64(u32(x.value))
+        is CharVal -> {
+            frame.payload[cursor] = i64(u32(value.value))
             frame.tag[cursor] = StackTag.Char
         }
         is NullVal -> { frame.tag[cursor] = StackTag.Null }
@@ -310,24 +310,24 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
 
 /// Write a boxed `Value` into local slot `slot` (slot always exists).
 slot_set :: fn(frame: Frame!, slot: usize, value: Value) -> void = match value {
-    is I32Val as x -> {
-        frame.slot_payload[slot] = i64(x.value)
+    is I32Val -> {
+        frame.slot_payload[slot] = i64(value.value)
         frame.slot_tag[slot] = StackTag.I32
     }
-    is I64Val as x -> {
-        frame.slot_payload[slot] = x.value
+    is I64Val -> {
+        frame.slot_payload[slot] = value.value
         frame.slot_tag[slot] = StackTag.I64
     }
-    is F64Val as x -> {
-        frame.slot_payload[slot] = i64((x.value).to_bits())
+    is F64Val -> {
+        frame.slot_payload[slot] = i64((value.value).to_bits())
         frame.slot_tag[slot] = StackTag.F64
     }
-    is BoolVal as x -> {
-        frame.slot_payload[slot] = if x.value { 1 } else { 0 }
+    is BoolVal -> {
+        frame.slot_payload[slot] = if value.value { 1 } else { 0 }
         frame.slot_tag[slot] = StackTag.Bool
     }
-    is CharVal as x -> {
-        frame.slot_payload[slot] = i64(u32(x.value))
+    is CharVal -> {
+        frame.slot_payload[slot] = i64(u32(value.value))
         frame.slot_tag[slot] = StackTag.Char
     }
     is NullVal -> { frame.slot_tag[slot] = StackTag.Null }
@@ -721,17 +721,17 @@ build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value[
 /// @error          `StringConst` index out of range.
 const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap {
     match c {
-        is bc.I32Const  as v -> { return I32Val { .value = v.value } }
-        is bc.I64Const  as v -> { return I64Val { .value = v.value } }
-        is bc.F64Const  as v -> { return F64Val { .value = v.value } }
-        is bc.BoolConst as v -> { return BoolVal { .value = v.value } }
-        is bc.CharConst as v -> { return CharVal { .value = v.value } }
-        is bc.NullConst      -> { return NullVal {} }
-        is bc.StringConst as v -> {
-            if v.index < 0 || usize(v.index) >= strings.len() {
-                return Trap { .message = "return.lit string.const index ${v.index} out of range at pc=${pc}" }
+        is bc.I32Const    -> { return I32Val { .value = c.value } }
+        is bc.I64Const    -> { return I64Val { .value = c.value } }
+        is bc.F64Const    -> { return F64Val { .value = c.value } }
+        is bc.BoolConst   -> { return BoolVal { .value = c.value } }
+        is bc.CharConst   -> { return CharVal { .value = c.value } }
+        is bc.NullConst   -> { return NullVal {} }
+        is bc.StringConst -> {
+            if c.index < 0 || usize(c.index) >= strings.len() {
+                return Trap { .message = "return.lit string.const index ${c.index} out of range at pc=${pc}" }
             }
-            return StringVal { .value = strings[v.index] }
+            return StringVal { .value = strings[c.index] }
         }
     }
 }
@@ -1856,9 +1856,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // C-emit needs is irrelevant here — just bump pc, like RefCast.
                 frame.pc = frame.pc + 1
             }
-            is bc.Unreachable as u -> {
+            is bc.Unreachable -> {
                 if pending != null { return pending }
-                pending = Trap { .message = "reached unreachable: ${u.reason}" }
+                pending = Trap { .message = "reached unreachable: ${instr.reason}" }
                 unwind_target = frame_count[0] - 1
                 continue
             }
@@ -2615,7 +2615,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
                 frame.defer_count = frame.defer_count + 1
             }
-            is bc.DeferPopExec as instr -> {
+            is bc.DeferPopExec -> {
                 if instr.count <= 0 {
                     frame.pc = frame.pc + 1
                     continue

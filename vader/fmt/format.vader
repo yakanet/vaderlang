@@ -67,7 +67,7 @@ test_roundtrip_preserves_await_parens :: fn() -> void {
 fmt_keeps :: fn(decl: string, needle: string) -> void {
     r :: format_source("module \"t\"\n${decl}\n", "t.vader")
     match r {
-        is Formatted    as f -> { assert(needle in f.output, "fmt must keep `${needle}`") }
-        is ParseFailure     -> { assert(false, "must parse: ${decl}") }
+        is Formatted    -> { assert(needle in r.output, "fmt must keep `${needle}`") }
+        is ParseFailure -> { assert(false, "must parse: ${decl}") }
     }
 }

@@ -45,13 +45,13 @@ export read_frame :: fn() -> string | TransportError {
         b :: read_stdin(1)
         match b {
             is IOError -> { return TransportError { .msg = "EOF in header" } }
-            is string as s -> {
-                if s == "\r" {
+            is string -> {
+                if b == "\r" {
                     nl :: read_stdin(1)
                     match nl {
                         is IOError -> { return TransportError { .msg = "EOF after CR" } }
-                        is string as t -> {
-                            if t != "\n" {
+                        is string -> {
+                            if nl != "\n" {
                                 return TransportError { .msg = "expected LF after CR in header" }
                             }
                             line :: line_buf.to_string()
@@ -66,7 +66,7 @@ export read_frame :: fn() -> string | TransportError {
                                     parsed :: trimmed.parse_int()
                                     match parsed {
                                         is ParseError -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
-                                        is i32 as n -> { content_length = isize(n) }
+                                        is i32 -> { content_length = isize(parsed) }
                                     }
                                 }
                                 // Other headers (`Content-Type`, etc.) are
@@ -77,7 +77,7 @@ export read_frame :: fn() -> string | TransportError {
                         }
                     }
                 } else {
-                    line_buf.append(s)
+                    line_buf.append(b)
                 }
             }
         }
@@ -88,7 +88,7 @@ export read_frame :: fn() -> string | TransportError {
     body :: read_stdin(usize(content_length))
     match body {
         is IOError -> { return TransportError { .msg = "EOF in body" } }
-        is string as s -> { return s }
+        is string -> { return body }
     }
 }
 

@@ -301,8 +301,8 @@ try_wrap_array_iter :: fn(
     // @partial: only arrays and `string` need wrapping; every other Type is
     // returned verbatim (already an iterator or handled upstream).
     @partial match iter_type {
-        is ArrayType as arr -> {
-            wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
+        is ArrayType -> {
+            wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [iter_type.element])
             if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
             fields :: [
                 LoweredStructLitField { .name = "arr", .value = iter },
@@ -316,8 +316,10 @@ try_wrap_array_iter :: fn(
             wrapped :: build_core_struct_lit(ctx, wrapped_type, fields, span)
             return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
         }
-        is PrimitiveType as p -> {
-            if p.name != "string" { return WrapResult { .iter = iter, .iter_type = iter_type } }
+        is PrimitiveType -> {
+            if iter_type.name != "string" {
+                return WrapResult { .iter = iter, .iter_type = iter_type }
+            }
             chars_member :: find_free_fn_ufcs(ctx, iter_type, "chars")
             if chars_member is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
             chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
@@ -367,17 +369,17 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
         return from_typed_binding
     }
     match iter_type {
-        is StructType as st -> {
-            if st.args.len() > 0 { return st.args[0] }
+        is StructType -> {
+            if iter_type.args.len() > 0 { return iter_type.args[0] }
         }
         _ -> {}
     }
     match raw_iter_type {
-        is StructType as st -> {
-            if st.args.len() > 0 { return st.args[0] }
+        is StructType -> {
+            if raw_iter_type.args.len() > 0 { return raw_iter_type.args[0] }
         }
-        is TraitType as tt -> {
-            if tt.args.len() > 0 { return tt.args[0] }
+        is TraitType -> {
+            if raw_iter_type.args.len() > 0 { return raw_iter_type.args[0] }
         }
         _ -> {}
     }
@@ -415,8 +417,8 @@ build_step_call :: fn(
     ctx: FnLowerCtx!, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
 ) -> LoweredExpr {
     match iter_type {
-        is TraitType as tt -> {
-            if tt.symbol.name == TRAIT_ITERATOR {
+        is TraitType -> {
+            if iter_type.symbol.name == TRAIT_ITERATOR {
                 args: LoweredExpr[]! = []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
@@ -502,7 +504,7 @@ export lookup_for_binding :: fn(ctx: FnLowerCtx!, binding_span: Span) -> Symbol 
 resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Symbol {
     found :: lookup_for_binding(ctx, span)
     match found {
-        is Symbol as s -> { return s }
+        is Symbol -> { return found }
         is null -> {
             // Unused for-binding (never referenced in the body, so absent
             // from `resolved.idents`). Mint a FRESH unique id rather than a
@@ -536,12 +538,12 @@ LoopBinding :: struct { symbol: Symbol, name: string, pattern: AST.LetBinding | 
 /// int-range / map-set / iter-fusion / generator) stays uniform.
 resolve_loop_binding :: fn(ctx: FnLowerCtx!, loop_var: AST.LoopVar, fallback_span: Span) -> LoopBinding {
     match loop_var {
-        is AST.NamedVar as nv -> {
-            return LoopBinding { .symbol = resolve_or_synth_symbol(ctx, nv.name, nv.span), .name = nv.name, .pattern = null }
+        is AST.NamedVar -> {
+            return LoopBinding { .symbol = resolve_or_synth_symbol(ctx, loop_var.name, loop_var.span), .name = loop_var.name, .pattern = null }
         }
-        is AST.DestructureVar as dv -> {
+        is AST.DestructureVar -> {
             s :: fresh_synthetic_symbol(ctx, "for_pat")
-            return LoopBinding { .symbol = s, .name = s.name, .pattern = dv.pattern }
+            return LoopBinding { .symbol = s, .name = s.name, .pattern = loop_var.pattern }
         }
         is AST.DiscardVar -> {
             s :: fresh_synthetic_symbol(ctx, "for_discard")
@@ -648,40 +650,40 @@ bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32) -> bool {
 }
 
 bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match s {
-    is LoweredLet as st       -> bce_expr_unsafe(st.value, guard_sym, pctx)
-    is LoweredAssign as st    -> bce_is_reassign(st.target, guard_sym) || bce_expr_unsafe(st.target, guard_sym, pctx) || bce_expr_unsafe(st.value, guard_sym, pctx)
-    is LoweredCellSet as st   -> bce_expr_unsafe(st.target, guard_sym, pctx) || bce_expr_unsafe(st.value, guard_sym, pctx)
-    is LoweredExprStmt as st  -> bce_expr_unsafe(st.expr, guard_sym, pctx)
-    is LoweredReturn as st    -> bce_opt_expr_unsafe(st.value, guard_sym, pctx)
-    is LoweredYield           -> true
-    is LoweredAwait           -> true
-    is LoweredLoop as st      -> bce_opt_expr_unsafe(st.cond, guard_sym, pctx) || bce_block_unsafe(st.body, guard_sym, pctx)
-    is LoweredBreak           -> false
-    is LoweredContinue        -> false
-    is LoweredDeferPush       -> true
-    is LoweredDeferPopExec    -> true
+    is LoweredLet          -> bce_expr_unsafe(s.value, guard_sym, pctx)
+    is LoweredAssign       -> bce_is_reassign(s.target, guard_sym) || bce_expr_unsafe(s.target, guard_sym, pctx) || bce_expr_unsafe(s.value, guard_sym, pctx)
+    is LoweredCellSet      -> bce_expr_unsafe(s.target, guard_sym, pctx) || bce_expr_unsafe(s.value, guard_sym, pctx)
+    is LoweredExprStmt     -> bce_expr_unsafe(s.expr, guard_sym, pctx)
+    is LoweredReturn       -> bce_opt_expr_unsafe(s.value, guard_sym, pctx)
+    is LoweredYield        -> true
+    is LoweredAwait        -> true
+    is LoweredLoop         -> bce_opt_expr_unsafe(s.cond, guard_sym, pctx) || bce_block_unsafe(s.body, guard_sym, pctx)
+    is LoweredBreak        -> false
+    is LoweredContinue     -> false
+    is LoweredDeferPush    -> true
+    is LoweredDeferPopExec -> true
 }
 
 bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match e {
     // A call to a proven-pure fn is safe (recurse into its args) ; everything else
     // callable bails.
-    is LoweredCall as x        -> bce_call_unsafe(x, guard_sym, pctx)
+    is LoweredCall                                    -> bce_call_unsafe(e, guard_sym, pctx)
     is LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayPush -> true
     // Allocations : allocate ⟹ GC ⟹ the buffer moves.
     is LoweredArrayLit | LoweredStructLit | LoweredCellNew | LoweredMakeClosure | LoweredArraySlice | LoweredStringSlice -> true
     // Leaves : no allocation, no call.
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredUnreachable | LoweredTypeConst -> false
     // Pure composites : recurse (they don't allocate themselves).
-    is LoweredFieldAccess as x -> bce_expr_unsafe(x.target, guard_sym, pctx)
-    is LoweredIndex as x       -> bce_expr_unsafe(x.target, guard_sym, pctx) || bce_expr_unsafe(x.index, guard_sym, pctx)
-    is LoweredUnary as x       -> bce_expr_unsafe(x.operand, guard_sym, pctx)
-    is LoweredBinary as x      -> bce_expr_unsafe(x.left, guard_sym, pctx) || bce_expr_unsafe(x.right, guard_sym, pctx)
-    is LoweredIf as x          -> bce_expr_unsafe(x.cond, guard_sym, pctx) || bce_block_unsafe(x.then_block, guard_sym, pctx) || bce_opt_block_unsafe(x.else_block, guard_sym, pctx)
-    is LoweredBlock as x       -> bce_block_unsafe(x, guard_sym, pctx)
-    is LoweredCast as x        -> bce_expr_unsafe(x.value, guard_sym, pctx)
-    is LoweredTypeCheck as x   -> bce_expr_unsafe(x.value, guard_sym, pctx)
-    is LoweredArrayLen as x    -> bce_expr_unsafe(x.target, guard_sym, pctx)
-    is LoweredCellGet as x     -> bce_expr_unsafe(x.target, guard_sym, pctx)
+    is LoweredFieldAccess -> bce_expr_unsafe(e.target, guard_sym, pctx)
+    is LoweredIndex       -> bce_expr_unsafe(e.target, guard_sym, pctx) || bce_expr_unsafe(e.index, guard_sym, pctx)
+    is LoweredUnary       -> bce_expr_unsafe(e.operand, guard_sym, pctx)
+    is LoweredBinary      -> bce_expr_unsafe(e.left, guard_sym, pctx) || bce_expr_unsafe(e.right, guard_sym, pctx)
+    is LoweredIf          -> bce_expr_unsafe(e.cond, guard_sym, pctx) || bce_block_unsafe(e.then_block, guard_sym, pctx) || bce_opt_block_unsafe(e.else_block, guard_sym, pctx)
+    is LoweredBlock       -> bce_block_unsafe(e, guard_sym, pctx)
+    is LoweredCast        -> bce_expr_unsafe(e.value, guard_sym, pctx)
+    is LoweredTypeCheck   -> bce_expr_unsafe(e.value, guard_sym, pctx)
+    is LoweredArrayLen    -> bce_expr_unsafe(e.target, guard_sym, pctx)
+    is LoweredCellGet     -> bce_expr_unsafe(e.target, guard_sym, pctx)
 }
 
 bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
@@ -954,7 +956,7 @@ is_integer_type :: fn(t: Type) -> bool {
     // @partial: only primitive integers and the free int/char types are
     // integers; every other Type → false.
     @partial match t {
-        is PrimitiveType as p -> { return is_int_name(p.name) }
+        is PrimitiveType -> { return is_int_name(t.name) }
         is FreeIntType -> { return true }
         is FreeCharType -> { return true }
         _ -> { return false }
@@ -1016,69 +1018,69 @@ rewrite_continue_block :: fn(b: LoweredBlock, inside_nested_loop: bool, inc: Low
 }
 
 rewrite_continue_stmt :: fn(s: LoweredStmt, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredStmt = match s {
-    is LoweredContinue as c -> {
-        if continue_targets_loop(c.label, inside_nested_loop, loop_label) {
+    is LoweredContinue -> {
+        if continue_targets_loop(s.label, inside_nested_loop, loop_label) {
             LoweredExprStmt {
-                .span = c.span,
+                .span = s.span,
                 .expr = LoweredBlock {
-                    .span = c.span, .type = TY_VOID, .stmts = [inc, c], .trailing = null,
+                    .span = s.span, .type = TY_VOID, .stmts = [inc, s], .trailing = null,
                 },
             }
         } else {
-            c
+            s
         }
     }
-    is LoweredLoop as lp -> {
+    is LoweredLoop -> {
         // An inner loop intercepts unlabeled continues, so only recurse
         // into it when we carry a label a `continue label` could still
         // reach through it.
         if loop_label == null {
-            lp
+            s
         } else {
             LoweredLoop {
-                .span = lp.span, .label = lp.label, .cond = lp.cond,
-                .body = rewrite_continue_block(lp.body, true, inc, loop_label),
+                .span = s.span, .label = s.label, .cond = s.cond,
+                .body = rewrite_continue_block(s.body, true, inc, loop_label),
             }
         }
     }
-    is LoweredExprStmt as es -> LoweredExprStmt {
-        .span = es.span, .expr = rewrite_continue_expr(es.expr, inside_nested_loop, inc, loop_label),
+    is LoweredExprStmt -> LoweredExprStmt {
+        .span = s.span, .expr = rewrite_continue_expr(s.expr, inside_nested_loop, inc, loop_label),
     }
-    is LoweredLet as lt -> LoweredLet {
-        .span = lt.span, .name = lt.name, .symbol = lt.symbol, .type = lt.type,
-        .value = rewrite_continue_expr(lt.value, inside_nested_loop, inc, loop_label),
+    is LoweredLet -> LoweredLet {
+        .span = s.span, .name = s.name, .symbol = s.symbol, .type = s.type,
+        .value = rewrite_continue_expr(s.value, inside_nested_loop, inc, loop_label),
     }
-    is LoweredAssign as a -> LoweredAssign {
-        .span = a.span,
-        .target = rewrite_continue_expr(a.target, inside_nested_loop, inc, loop_label),
-        .value = rewrite_continue_expr(a.value, inside_nested_loop, inc, loop_label),
+    is LoweredAssign -> LoweredAssign {
+        .span = s.span,
+        .target = rewrite_continue_expr(s.target, inside_nested_loop, inc, loop_label),
+        .value = rewrite_continue_expr(s.value, inside_nested_loop, inc, loop_label),
     }
-    is LoweredCellSet as cs -> LoweredCellSet {
-        .span = cs.span,
-        .target = rewrite_continue_expr(cs.target, inside_nested_loop, inc, loop_label),
-        .value = rewrite_continue_expr(cs.value, inside_nested_loop, inc, loop_label),
-        .value_type = cs.value_type,
+    is LoweredCellSet -> LoweredCellSet {
+        .span = s.span,
+        .target = rewrite_continue_expr(s.target, inside_nested_loop, inc, loop_label),
+        .value = rewrite_continue_expr(s.value, inside_nested_loop, inc, loop_label),
+        .value_type = s.value_type,
     }
-    is LoweredReturn as r -> {
-        rv :: r.value
+    is LoweredReturn -> {
+        rv :: s.value
         if rv == null {
-            r
+            s
         } else {
-            LoweredReturn { .span = r.span, .value = rewrite_continue_expr(rv, inside_nested_loop, inc, loop_label) }
+            LoweredReturn { .span = s.span, .value = rewrite_continue_expr(rv, inside_nested_loop, inc, loop_label) }
         }
     }
-    is LoweredYield as y -> LoweredYield {
-        .span = y.span, .value = rewrite_continue_expr(y.value, inside_nested_loop, inc, loop_label),
+    is LoweredYield -> LoweredYield {
+        .span = s.span, .value = rewrite_continue_expr(s.value, inside_nested_loop, inc, loop_label),
     }
-    is LoweredAwait as a -> LoweredAwait {
-        .span = a.span, .target = a.target, .target_type = a.target_type,
-        .awaited = rewrite_continue_expr(a.awaited, inside_nested_loop, inc, loop_label),
+    is LoweredAwait -> LoweredAwait {
+        .span = s.span, .target = s.target, .target_type = s.target_type,
+        .awaited = rewrite_continue_expr(s.awaited, inside_nested_loop, inc, loop_label),
     }
-    is LoweredDeferPush as d -> LoweredDeferPush {
-        .span = d.span, .thunk = rewrite_continue_expr(d.thunk, inside_nested_loop, inc, loop_label),
+    is LoweredDeferPush -> LoweredDeferPush {
+        .span = s.span, .thunk = rewrite_continue_expr(s.thunk, inside_nested_loop, inc, loop_label),
     }
-    is LoweredBreak       as br -> br
-    is LoweredDeferPopExec as dp -> dp
+    is LoweredBreak -> s
+    is LoweredDeferPopExec -> s
 }
 
 // Only `LoweredBlock` / `LoweredIf` carry nested statements that can hold a

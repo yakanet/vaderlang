@@ -103,8 +103,8 @@ build_lifted_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, env_param_sym
         symbol :: find_param_symbol(ctx, ast_param)
         match symbol {
             is null -> {}
-            is Symbol as resolved -> {
-                params.push(LoweredParam { .name = ast_param.name, .symbol = resolved, .type = ctx.types.param_type(ast_param) })
+            is Symbol -> {
+                params.push(LoweredParam { .name = ast_param.name, .symbol = symbol, .type = ctx.types.param_type(ast_param) })
             }
         }
     }

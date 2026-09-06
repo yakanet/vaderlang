@@ -36,43 +36,43 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 
     idx :: state.index_for(uri)
     match idx {
-        is null              -> { return JsonNull {} }
-        is DocIndex as index -> {
+        is null     -> { return JsonNull {} }
+        is DocIndex -> {
             // A `break` / `continue` jumps to the loop it targets (bare →
             // innermost, `break <var>` / `<label>` → the named enclosing loop) —
             // the reader-clarity tool that replaced the retired W0004 nudge.
-            loop_target :: loop_jump_at(index, line, character)
+            loop_target :: loop_jump_at(idx, line, character)
             if loop_target != null {
-                origin :: index.span_at(line, character)
-                return def_response(state, origin, uri, loop_target, loop_target, index.line_index)
+                origin :: idx.span_at(line, character)
+                return def_response(state, origin, uri, loop_target, loop_target, idx.line_index)
             }
             // BEFORE the local index, and that ordering is the point: a
             // same-file `b.cond` matches the first `cond` entry the document
             // has, which is another struct's. The type lookup declines unless
             // the cursor really follows a dot, so ordinary names are untouched.
-            after_dot :: cursor_follows_a_dot(index, line, character)
-            by_type :: member_by_type(state, uri, index, line, character)
+            after_dot :: cursor_follows_a_dot(idx, line, character)
+            by_type :: member_by_type(state, uri, idx, line, character)
             if by_type != null {
-                origin_m :: index.span_at(line, character)
-                return def_response(state, origin_m, by_type.uri, by_type.target.name_span, by_type.target.full_span, index.line_index)
+                origin_m :: idx.span_at(line, character)
+                return def_response(state, origin_m, by_type.uri, by_type.target.name_span, by_type.target.full_span, idx.line_index)
             }
-            entry :: index.find_at(line, character)
+            entry :: idx.find_at(line, character)
             match entry {
-                is DeclEntry as found  -> {
-                    origin :: index.span_at(line, character)
-                    return def_response(state, origin, uri, found.name_span, found.full_span, index.line_index)
+                is DeclEntry  -> {
+                    origin :: idx.span_at(line, character)
+                    return def_response(state, origin, uri, entry.name_span, entry.full_span, idx.line_index)
                 }
                 is null -> {
-                    nm :: index.name_at(line, character)
-                    origin :: index.span_at(line, character)
+                    nm :: idx.name_at(line, character)
+                    origin :: idx.span_at(line, character)
                     // By name: imports, siblings, wildcards, and finally any
                     // member of that name. The typed lookup above already
                     // declined — the receiver has no declaring symbol (an array,
                     // a string), so its methods live on a built-in trait with no
                     // type to key on.
-                    ext :: resolve(state, index, nm, after_dot)
+                    ext :: resolve(state, idx, nm, after_dot)
                     if ext == null { return JsonNull {} }
-                    return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, index.line_index)
+                    return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, idx.line_index)
                 }
             }
         }
@@ -444,8 +444,8 @@ location_link_json :: fn(
     obj :: MutableMap<string, JsonValue> {}
     match origin {
         is null -> {}
-        is Span as sp -> {
-            obj["originSelectionRange"] = range_json(sp.span_to_range_json(origin_li))
+        is Span -> {
+            obj["originSelectionRange"] = range_json(origin.span_to_range_json(origin_li))
         }
     }
     obj["targetUri"]            = JsonString { .value = uri }

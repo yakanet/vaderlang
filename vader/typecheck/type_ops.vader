@@ -83,16 +83,16 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is FreeFloatType  -> b is FreeFloatType
     is FreeCharType   -> b is FreeCharType
     is AnyType        -> b is AnyType
-    is PrimitiveType as ax  -> if b is PrimitiveType as bx { ax.name == bx.name } else { false }
-    is TypeParamType as ax  -> if b is TypeParamType as bx { ax.symbol.id == bx.symbol.id } else { false }
+    is PrimitiveType  -> if b is PrimitiveType as bx { a.name == bx.name } else { false }
+    is TypeParamType  -> if b is TypeParamType as bx { a.symbol.id == bx.symbol.id } else { false }
     // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
     // for enum names ; treat it as equivalent to the real `EnumType` so
     // body-time assignability (annotation vs inferred) doesn't fight the
     // placeholder/proper distinction.
-    is EnumType      as ax  -> if b is EnumType as bx {
-        ax.symbol.id == bx.symbol.id
+    is EnumType  -> if b is EnumType as bx {
+        a.symbol.id == bx.symbol.id
     } else if b is StructType {
-        b.symbol.id == ax.symbol.id
+        b.symbol.id == a.symbol.id
     } else { false }
     // Immutability is NOT part of struct / tuple identity : the bit records a
     // promise made by one function about one parameter, not a different type.
@@ -100,20 +100,20 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // union dedup, monomorphisation keys and overlap tests all keep working
     // unchanged. `ArrayType` below is the exception — read-only `T[]` is a written
     // annotation that freezes the referent, hence a genuinely distinct type.
-    is StructType    as ax  -> if b is StructType as bx {
-        nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
+    is StructType  -> if b is StructType as bx {
+        nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args)
     } else if b is EnumType {
-        ax.symbol.id == b.symbol.id
+        a.symbol.id == b.symbol.id
     } else { false }
-    is TraitType     as ax  -> if b is TraitType as bx { nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) } else { false }
-    is ArrayType     as ax  -> if b is ArrayType as bx { ax.immutable == bx.immutable && equals_type(ax.element, bx.element) } else { false }
-    is TupleType     as ax  -> if b is TupleType as bx { type_list_equals(ax.elements, bx.elements) } else { false }
-    is FnType        as ax  -> if b is FnType as bx { type_list_equals(ax.params, bx.params) && equals_type(ax.return_type, bx.return_type) } else { false }
-    is UnionType     as ax  -> if b is UnionType as bx { type_list_equals(ax.variants, bx.variants) } else { false }
+    is TraitType -> if b is TraitType as bx { nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args) } else { false }
+    is ArrayType -> if b is ArrayType as bx { a.immutable == bx.immutable && equals_type(a.element, bx.element) } else { false }
+    is TupleType -> if b is TupleType as bx { type_list_equals(a.elements, bx.elements) } else { false }
+    is FnType    -> if b is FnType as bx { type_list_equals(a.params, bx.params) && equals_type(a.return_type, bx.return_type) } else { false }
+    is UnionType -> if b is UnionType as bx { type_list_equals(a.variants, bx.variants) } else { false }
     // Distinct (newtype) types : nominal identity by symbol id. A distinct
     // type equals only itself, never its backing primitive nor another
     // distinct over the same backing — that's the whole point.
-    is DistinctType  as ax  -> if b is DistinctType as bx { ax.symbol.id == bx.symbol.id } else { false }
+    is DistinctType  -> if b is DistinctType as bx { a.symbol.id == bx.symbol.id } else { false }
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
@@ -142,10 +142,10 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
 /// answers false for them) come back unchanged, and so does a type that already
 /// has the requested bit.
 export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
-    is ArrayType  as a -> if a.immutable == immutable { t } else { mk_array(a.element, immutable) }
-    is StructType as s -> if s.immutable == immutable { t } else { mk_struct(s.symbol, s.args, immutable) }
-    is TupleType  as p -> if p.immutable == immutable { t } else { mk_tuple(p.elements, immutable) }
-    is UnionType  as u -> union_of(with_immutable_each(u.variants, immutable))
+    is ArrayType  -> if t.immutable == immutable { t } else { mk_array(t.element, immutable) }
+    is StructType -> if t.immutable == immutable { t } else { mk_struct(t.symbol, t.args, immutable) }
+    is TupleType  -> if t.immutable == immutable { t } else { mk_tuple(t.elements, immutable) }
+    is UnionType  -> union_of(with_immutable_each(t.variants, immutable))
     is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
      | NeverType | AnyType | DistinctType -> t
@@ -338,8 +338,8 @@ export union_mixed_mutability :: fn(t: Type) -> Type | null {
 collect_variant :: fn(v: Type, into: Type[]!) -> void {
     if v is NeverType { return }
     match v {
-        is UnionType as u -> {
-            for inner in u.variants { inner.collect_variant(into) }
+        is UnionType -> {
+            for inner in v.variants { inner.collect_variant(into) }
         }
         _ -> {
             for i in 0..<into.len() {
@@ -463,15 +463,15 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
 /// @param t  the type to reduce to its shape.
 /// @return   `t` itself when nothing inside it carries a mutability bit.
 export strip_mutability :: fn(t: Type) -> Type = match t {
-    is ArrayType  as a -> mk_array(strip_mutability(a.element), true)
-    is TupleType  as p -> mk_tuple(strip_mutability_each(p.elements), true)
-    is StructType as s -> mk_struct(s.symbol, strip_mutability_each(s.args), true)
-    is TraitType  as x -> mk_trait(x.symbol, strip_mutability_each(x.args))
-    is UnionType  as u -> mk_union(strip_mutability_each(u.variants))
-    is FnType     as f -> FnType {
-        .params         = strip_mutability_each(f.params),
-        .params_mutable = f.params_mutable,
-        .return_type    = strip_mutability(f.return_type),
+    is ArrayType  -> mk_array(strip_mutability(t.element), true)
+    is TupleType  -> mk_tuple(strip_mutability_each(t.elements), true)
+    is StructType -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
+    is TraitType  -> mk_trait(t.symbol, strip_mutability_each(t.args))
+    is UnionType  -> mk_union(strip_mutability_each(t.variants))
+    is FnType     -> FnType {
+        .params         = strip_mutability_each(t.params),
+        .params_mutable = t.params_mutable,
+        .return_type    = strip_mutability(t.return_type),
     }
     is PrimitiveType | EnumType | TypeParamType | TypeMetaType | SelfType
      | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
@@ -599,7 +599,7 @@ test_union_of_dedup :: fn() -> void {
     // A | B | A should collapse to A | B
     u :: union_of([i32_t, str_t, i32_t])
     match u {
-        is UnionType as un -> { assert_eq(un.variants.len(), 2) }
+        is UnionType -> { assert_eq(u.variants.len(), 2) }
         _ -> { assert(false, "expected a Union after dedup") }
     }
 }
@@ -611,7 +611,7 @@ test_union_of_drops_never :: fn() -> void {
     // i32 | Never should collapse to i32
     u :: union_of([i32_t, never_t])
     match u {
-        is PrimitiveType as pt -> { assert_eq(pt.name, "i32") }
+        is PrimitiveType -> { assert_eq(u.name, "i32") }
         _ -> { assert(false, "Never should be absorbed") }
     }
 }
@@ -624,7 +624,7 @@ test_union_of_flattens :: fn() -> void {
     inner :: mk_union([i32_t, str_t])
     u :: union_of([inner, bool_t])
     match u {
-        is UnionType as un -> { assert_eq(un.variants.len(), 3) }
+        is UnionType -> { assert_eq(u.variants.len(), 3) }
         _ -> { assert(false, "flattened union should have 3 variants") }
     }
 }

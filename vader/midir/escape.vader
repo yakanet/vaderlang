@@ -45,13 +45,13 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
             for b in annotated.blocks {
                 for ins in b.instructions {
                     match ins {
-                        is InstrStructNew as s -> {
+                        is InstrStructNew -> {
                             total_allocs = total_allocs + 1
-                            if s.stack { stack_promoted = stack_promoted + 1 }
+                            if ins.stack { stack_promoted = stack_promoted + 1 }
                         }
-                        is InstrArrayNew as a -> {
+                        is InstrArrayNew -> {
                             total_allocs = total_allocs + 1
-                            if a.stack { stack_promoted = stack_promoted + 1 }
+                            if ins.stack { stack_promoted = stack_promoted + 1 }
                         }
                         _ -> {}
                     }
@@ -71,13 +71,13 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
-                is InstrStructNew as s -> {
+                is InstrStructNew -> {
                     // @partial: only struct/array allocs seed alloc_locals; other instrs are irrelevant.
 
-                    alloc_locals.add(s.dst)
-                    struct_news.push(s.dst)
+                    alloc_locals.add(ins.dst)
+                    struct_news.push(ins.dst)
                 }
-                is InstrArrayNew as a -> { alloc_locals.add(a.dst) }
+                is InstrArrayNew -> { alloc_locals.add(ins.dst) }
                 _ -> {}
             }
         }
@@ -128,40 +128,40 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         new_instrs: Instruction[]! = []
         for ins in b.instructions {
             match ins {
-                is InstrStructNew as s -> {
-                    if !alloc_locals.contains(s.dst) {
-                        new_instrs.push(s)
+                is InstrStructNew -> {
+                    if !alloc_locals.contains(ins.dst) {
+                        new_instrs.push(ins)
                         continue
                     }
-                    new_stack :: !res.escaping.contains(s.dst) && !carried.contains(s.dst)
-                    if new_stack == s.stack {
-                        new_instrs.push(s)
+                    new_stack :: !res.escaping.contains(ins.dst) && !carried.contains(ins.dst)
+                    if new_stack == ins.stack {
+                        new_instrs.push(ins)
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrStructNew { .span = s.span, .dst = s.dst, .type = s.type, .fields = s.fields, .stack = new_stack })
+                    new_instrs.push(InstrStructNew { .span = ins.span, .dst = ins.dst, .type = ins.type, .fields = ins.fields, .stack = new_stack })
                 }
-                is InstrArrayNew as a -> {
-                    if !alloc_locals.contains(a.dst) {
-                        new_instrs.push(a)
+                is InstrArrayNew -> {
+                    if !alloc_locals.contains(ins.dst) {
+                        new_instrs.push(ins)
                         continue
                     }
-                    new_stack :: !res.escaping.contains(a.dst) && !carried.contains(a.dst)
-                    if new_stack == a.stack {
-                        new_instrs.push(a)
+                    new_stack :: !res.escaping.contains(ins.dst) && !carried.contains(ins.dst)
+                    if new_stack == ins.stack {
+                        new_instrs.push(ins)
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrArrayNew { .span = a.span, .dst = a.dst, .type = a.type, .length = a.length, .elements = a.elements, .stack = new_stack })
+                    new_instrs.push(InstrArrayNew { .span = ins.span, .dst = ins.dst, .type = ins.type, .length = ins.length, .elements = ins.elements, .stack = new_stack })
                 }
-                is InstrFieldSet as f -> {
-                    barrierless :: stack_origin.contains(f.target)
-                    if barrierless == f.barrierless {
-                        new_instrs.push(f)
+                is InstrFieldSet -> {
+                    barrierless :: stack_origin.contains(ins.target)
+                    if barrierless == ins.barrierless {
+                        new_instrs.push(ins)
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrFieldSet { .span = f.span, .target = f.target, .field = f.field, .value = f.value, .barrierless = barrierless })
+                    new_instrs.push(InstrFieldSet { .span = ins.span, .target = ins.target, .field = ins.field, .value = ins.value, .barrierless = barrierless })
                 }
                 _ -> { new_instrs.push(ins) }
             }
@@ -234,42 +234,42 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
-                is InstrMove as m -> { record_alias(alias_of, alias_from, m.dst, m.src) }
-                is InstrCast as c -> { record_alias(alias_of, alias_from, c.dst, c.value) }
-                is InstrFieldSet as f -> { escaping.add(f.value) }
-                is InstrArraySet as a -> {
+                is InstrMove -> { record_alias(alias_of, alias_from, ins.dst, ins.src) }
+                is InstrCast -> { record_alias(alias_of, alias_from, ins.dst, ins.value) }
+                is InstrFieldSet -> { escaping.add(ins.value) }
+                is InstrArraySet -> {
                     // @partial: only reference-carrying instrs have an escape effect; others have none.
 
-                    escaping.add(a.value)
-                    escaping.add(a.target)
+                    escaping.add(ins.value)
+                    escaping.add(ins.target)
                 }
-                is InstrArrayPush as a -> {
-                    escaping.add(a.value)
-                    escaping.add(a.target)
+                is InstrArrayPush -> {
+                    escaping.add(ins.value)
+                    escaping.add(ins.target)
                 }
-                is InstrArraySlice as s -> {
-                    escaping.add(s.target)
-                    escaping.add(s.lo)
-                    escaping.add(s.hi)
+                is InstrArraySlice -> {
+                    escaping.add(ins.target)
+                    escaping.add(ins.lo)
+                    escaping.add(ins.hi)
                 }
-                is InstrCellNew as c -> { escaping.add(c.value) }
-                is InstrCellSet as c -> {
-                    escaping.add(c.value)
-                    escaping.add(c.cell)
+                is InstrCellNew -> { escaping.add(ins.value) }
+                is InstrCellSet -> {
+                    escaping.add(ins.value)
+                    escaping.add(ins.cell)
                 }
-                is InstrCall as c -> { for a in c.args { escaping.add(a) } }
-                is InstrCallIndirect as c -> {
-                    escaping.add(c.callee)
-                    for a in c.args { escaping.add(a) }
+                is InstrCall -> { for a in ins.args { escaping.add(a) } }
+                is InstrCallIndirect -> {
+                    escaping.add(ins.callee)
+                    for a in ins.args { escaping.add(a) }
                 }
-                is InstrVirtualCall as c -> {
-                    escaping.add(c.receiver)
-                    for a in c.args { escaping.add(a) }
+                is InstrVirtualCall -> {
+                    escaping.add(ins.receiver)
+                    for a in ins.args { escaping.add(a) }
                 }
-                is InstrIntrinsic as c -> { for a in c.args { escaping.add(a) } }
-                is InstrMakeClosure as c -> { escaping.add(c.env) }
-                is InstrStructNew as s -> { for f in s.fields { append_alias(alias_of, s.dst, f) } }
-                is InstrArrayNew as a -> { for e in a.elements { append_alias(alias_of, a.dst, e) } }
+                is InstrIntrinsic -> { for a in ins.args { escaping.add(a) } }
+                is InstrMakeClosure -> { escaping.add(ins.env) }
+                is InstrStructNew -> { for f in ins.fields { append_alias(alias_of, ins.dst, f) } }
+                is InstrArrayNew -> { for e in ins.elements { append_alias(alias_of, ins.dst, e) } }
                 // Reading a sub-object out of a container makes the result an
                 // alias of the container : if the read value escapes, the
                 // container (and, transitively, the alloc stored into it via
@@ -282,8 +282,8 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 // stack-origin (the field may hold a heap ref), so no
                 // alias_from edge — that would let the barrierless
                 // forward-prop skip a needed write barrier.
-                is InstrFieldGet | InstrArrayGet as g -> {
-                    if read_may_carry_ref(g.type) { append_alias(alias_of, g.dst, g.target) }
+                is InstrFieldGet | InstrArrayGet -> {
+                    if read_may_carry_ref(ins.type) { append_alias(alias_of, ins.dst, ins.target) }
                 }
                 _ -> {}
             }

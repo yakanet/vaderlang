@@ -98,42 +98,42 @@ analyze_block :: fn(b: LoweredBlock, ctx: AnalyzeCtx!) -> void {
 
 analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx!) -> void {
     match s {
-        is LoweredLet as st -> {
+        is LoweredLet -> {
             // A symbol bound more than once (the fusion reuses a combinator's param
             // symbol across sites) is ambiguous — escape it so it never devirtualizes.
-            if ctx.bound.contains(st.symbol.id) { _ :: ctx.escaped.add(st.symbol.id) }
-            _ :: ctx.bound.add(st.symbol.id)
+            if ctx.bound.contains(s.symbol.id) { _ :: ctx.escaped.add(s.symbol.id) }
+            _ :: ctx.bound.add(s.symbol.id)
             // `let L = <bare fn ref>` : record the named alias L -> S and DON'T scan
             // the value (the RHS fn ident is the alias binding, not an escaping use).
-            if st.value is LoweredIdent as v {
+            if s.value is LoweredIdent as v {
                 if v.symbol.kind == SymbolKind.Fn {
-                    ctx.aliases[st.symbol.id] = v.symbol
+                    ctx.aliases[s.symbol.id] = v.symbol
                     return
                 }
             }
             // `let L = LoweredMakeClosure { fn_symbol, env }` : record the closure
             // alias, then scan the env (its captured idents are genuine value uses).
-            if st.value is LoweredMakeClosure as mc {
-                ctx.closures[st.symbol.id] = ClosureAlias { .fn_sym = mc.fn_symbol, .env_type = type_of(mc.env) }
+            if s.value is LoweredMakeClosure as mc {
+                ctx.closures[s.symbol.id] = ClosureAlias { .fn_sym = mc.fn_symbol, .env_type = type_of(mc.env) }
                 analyze_expr(mc.env, ctx)
                 return
             }
-            analyze_expr(st.value, ctx)
+            analyze_expr(s.value, ctx)
         }
-        is LoweredAssign as st -> { analyze_expr(st.target, ctx) analyze_expr(st.value, ctx) }
-        is LoweredCellSet as st -> { analyze_expr(st.target, ctx) analyze_expr(st.value, ctx) }
-        is LoweredExprStmt as st -> { analyze_expr(st.expr, ctx) }
-        is LoweredReturn as st -> { v :: st.value  if v != null { analyze_expr(v, ctx) } }
-        is LoweredYield as st -> { analyze_expr(st.value, ctx) }
-        is LoweredAwait as st -> { analyze_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> {
-            c :: st.cond
+        is LoweredAssign -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
+        is LoweredCellSet -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
+        is LoweredExprStmt -> { analyze_expr(s.expr, ctx) }
+        is LoweredReturn -> { v :: s.value  if v != null { analyze_expr(v, ctx) } }
+        is LoweredYield -> { analyze_expr(s.value, ctx) }
+        is LoweredAwait -> { analyze_expr(s.awaited, ctx) }
+        is LoweredLoop -> {
+            c :: s.cond
             if c != null { analyze_expr(c, ctx) }
-            analyze_block(st.body, ctx)
+            analyze_block(s.body, ctx)
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
-        is LoweredDeferPush as st -> { analyze_expr(st.thunk, ctx) }
+        is LoweredDeferPush -> { analyze_expr(s.thunk, ctx) }
         is LoweredDeferPopExec -> {}
     }
 }
@@ -141,37 +141,37 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx!) -> void {
 analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx!) -> void {
     match e {
         // A bare ident in value position = an escaping use of that local.
-        is LoweredIdent as id -> { _ :: ctx.escaped.add(id.symbol.id) }
-        is LoweredCall as c -> {
+        is LoweredIdent -> { _ :: ctx.escaped.add(e.symbol.id) }
+        is LoweredCall -> {
             // Callee position: a bare-ident callee is the devirtualizable use, NOT
             // an escape — skip it. A composite callee is a value → recurse.
-            if !(c.callee is LoweredIdent) { analyze_expr(c.callee, ctx) }
-            for a in c.args { analyze_expr(a, ctx) }
+            if !(e.callee is LoweredIdent) { analyze_expr(e.callee, ctx) }
+            for a in e.args { analyze_expr(a, ctx) }
         }
-        is LoweredVirtualCall as v -> { analyze_expr(v.receiver, ctx)  for a in v.args { analyze_expr(a, ctx) } }
-        is LoweredFieldAccess as fa -> { analyze_expr(fa.target, ctx) }
-        is LoweredIndex as ix -> { analyze_expr(ix.target, ctx) analyze_expr(ix.index, ctx) }
-        is LoweredUnary as u -> { analyze_expr(u.operand, ctx) }
-        is LoweredBinary as b -> { analyze_expr(b.left, ctx) analyze_expr(b.right, ctx) }
-        is LoweredIf as ie -> {
-            analyze_expr(ie.cond, ctx)
-            analyze_block(ie.then_block, ctx)
-            eb :: ie.else_block
+        is LoweredVirtualCall -> { analyze_expr(e.receiver, ctx)  for a in e.args { analyze_expr(a, ctx) } }
+        is LoweredFieldAccess -> { analyze_expr(e.target, ctx) }
+        is LoweredIndex -> { analyze_expr(e.target, ctx) analyze_expr(e.index, ctx) }
+        is LoweredUnary -> { analyze_expr(e.operand, ctx) }
+        is LoweredBinary -> { analyze_expr(e.left, ctx) analyze_expr(e.right, ctx) }
+        is LoweredIf -> {
+            analyze_expr(e.cond, ctx)
+            analyze_block(e.then_block, ctx)
+            eb :: e.else_block
             if eb != null { analyze_block(eb, ctx) }
         }
-        is LoweredBlock as bl -> { analyze_block(bl, ctx) }
-        is LoweredStructLit as sl -> { for f in sl.fields { analyze_expr(f.value, ctx) } }
-        is LoweredArrayLit as al -> { for el in al.elements { analyze_expr(el, ctx) } }
-        is LoweredArrayLen as al -> { analyze_expr(al.target, ctx) }
-        is LoweredArrayPush as ap -> { analyze_expr(ap.target, ctx) analyze_expr(ap.value, ctx) }
-        is LoweredArraySlice as asl -> { analyze_expr(asl.target, ctx) analyze_expr(asl.lo, ctx) analyze_expr(asl.hi, ctx) }
-        is LoweredStringSlice as ssl -> { analyze_expr(ssl.target, ctx) analyze_expr(ssl.lo, ctx) analyze_expr(ssl.hi, ctx) }
-        is LoweredCast as cs -> { analyze_expr(cs.value, ctx) }
-        is LoweredTypeCheck as tc -> { analyze_expr(tc.value, ctx) }
-        is LoweredIntrinsicCall as ic -> { for a in ic.args { analyze_expr(a, ctx) } }
-        is LoweredCellNew as cn -> { analyze_expr(cn.value, ctx) }
-        is LoweredCellGet as cg -> { analyze_expr(cg.target, ctx) }
-        is LoweredMakeClosure as mc -> { analyze_expr(mc.env, ctx) }
+        is LoweredBlock -> { analyze_block(e, ctx) }
+        is LoweredStructLit -> { for f in e.fields { analyze_expr(f.value, ctx) } }
+        is LoweredArrayLit -> { for el in e.elements { analyze_expr(el, ctx) } }
+        is LoweredArrayLen -> { analyze_expr(e.target, ctx) }
+        is LoweredArrayPush -> { analyze_expr(e.target, ctx) analyze_expr(e.value, ctx) }
+        is LoweredArraySlice -> { analyze_expr(e.target, ctx) analyze_expr(e.lo, ctx) analyze_expr(e.hi, ctx) }
+        is LoweredStringSlice -> { analyze_expr(e.target, ctx) analyze_expr(e.lo, ctx) analyze_expr(e.hi, ctx) }
+        is LoweredCast -> { analyze_expr(e.value, ctx) }
+        is LoweredTypeCheck -> { analyze_expr(e.value, ctx) }
+        is LoweredIntrinsicCall -> { for a in e.args { analyze_expr(a, ctx) } }
+        is LoweredCellNew -> { analyze_expr(e.value, ctx) }
+        is LoweredCellGet -> { analyze_expr(e.target, ctx) }
+        is LoweredMakeClosure -> { analyze_expr(e.env, ctx) }
         is LoweredIntLit -> {}
         is LoweredFloatLit -> {}
         is LoweredBoolLit -> {}
@@ -197,33 +197,33 @@ rewrite_block :: fn(b: LoweredBlock!, ctx: AnalyzeCtx) -> void {
 
 rewrite_stmt :: fn(s: LoweredStmt!, ctx: AnalyzeCtx) -> void {
     match s {
-        is LoweredLet as st -> {
+        is LoweredLet -> {
             // A devirtualized closure binding is retyped to hold the ENV value
             // (`let f = E`), which each rewritten call passes as the lifted fn's
             // first arg. `f` stops being a fn-value ; the closure is never built.
-            clo :: ctx.closures[st.symbol.id]
-            if clo != null && !ctx.escaped.contains(st.symbol.id) {
-                if st.value is LoweredMakeClosure as mc {
-                    st.value = mc.env
-                    st.type = clo.env_type
+            clo :: ctx.closures[s.symbol.id]
+            if clo != null && !ctx.escaped.contains(s.symbol.id) {
+                if s.value is LoweredMakeClosure as mc {
+                    s.value = mc.env
+                    s.type = clo.env_type
                 }
             }
-            rewrite_expr(st.value, ctx)
+            rewrite_expr(s.value, ctx)
         }
-        is LoweredAssign as st -> { rewrite_expr(st.target, ctx) rewrite_expr(st.value, ctx) }
-        is LoweredCellSet as st -> { rewrite_expr(st.target, ctx) rewrite_expr(st.value, ctx) }
-        is LoweredExprStmt as st -> { rewrite_expr(st.expr, ctx) }
-        is LoweredReturn as st -> { v :: st.value  if v != null { rewrite_expr(v, ctx) } }
-        is LoweredYield as st -> { rewrite_expr(st.value, ctx) }
-        is LoweredAwait as st -> { rewrite_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> {
-            c :: st.cond
+        is LoweredAssign -> { rewrite_expr(s.target, ctx) rewrite_expr(s.value, ctx) }
+        is LoweredCellSet -> { rewrite_expr(s.target, ctx) rewrite_expr(s.value, ctx) }
+        is LoweredExprStmt -> { rewrite_expr(s.expr, ctx) }
+        is LoweredReturn -> { v :: s.value  if v != null { rewrite_expr(v, ctx) } }
+        is LoweredYield -> { rewrite_expr(s.value, ctx) }
+        is LoweredAwait -> { rewrite_expr(s.awaited, ctx) }
+        is LoweredLoop -> {
+            c :: s.cond
             if c != null { rewrite_expr(c, ctx) }
-            rewrite_block(st.body, ctx)
+            rewrite_block(s.body, ctx)
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
-        is LoweredDeferPush as st -> { rewrite_expr(st.thunk, ctx) }
+        is LoweredDeferPush -> { rewrite_expr(s.thunk, ctx) }
         is LoweredDeferPopExec -> {}
     }
 }
@@ -231,16 +231,16 @@ rewrite_stmt :: fn(s: LoweredStmt!, ctx: AnalyzeCtx) -> void {
 rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
     match e {
         is LoweredIdent -> {}
-        is LoweredCall as c -> {
-            if c.callee is LoweredIdent as old {
-                for a in c.args { rewrite_expr(a, ctx) }
+        is LoweredCall -> {
+            if e.callee is LoweredIdent as old {
+                for a in e.args { rewrite_expr(a, ctx) }
                 named :: ctx.aliases[old.symbol.id]
                 clo :: ctx.closures[old.symbol.id]
                 devirtable :: !ctx.escaped.contains(old.symbol.id)
                 if named != null && devirtable {
                     // Named fn : swap the fn-value callee for the concrete fn symbol —
                     // `build_call` then emits a direct typed call (no box).
-                    c.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = named }
+                    e.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = named }
                 } else if clo != null && devirtable {
                     // Lambda : direct call to the lifted fn with the env (now held by
                     // the retyped local) prepended as the FIRST arg — matches the
@@ -248,39 +248,39 @@ rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
                     // the env as param 0).
                     env_arg: LoweredExpr = LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
                     new_args: LoweredExpr[]! = [env_arg]
-                    new_args.push_all(c.args)
-                    c.args = new_args
-                    c.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = clo.fn_sym }
+                    new_args.push_all(e.args)
+                    e.args = new_args
+                    e.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = clo.fn_sym }
                 }
             } else {
-                rewrite_expr(c.callee, ctx)
-                for a in c.args { rewrite_expr(a, ctx) }
+                rewrite_expr(e.callee, ctx)
+                for a in e.args { rewrite_expr(a, ctx) }
             }
         }
-        is LoweredVirtualCall as v -> { rewrite_expr(v.receiver, ctx)  for a in v.args { rewrite_expr(a, ctx) } }
-        is LoweredFieldAccess as fa -> { rewrite_expr(fa.target, ctx) }
-        is LoweredIndex as ix -> { rewrite_expr(ix.target, ctx) rewrite_expr(ix.index, ctx) }
-        is LoweredUnary as u -> { rewrite_expr(u.operand, ctx) }
-        is LoweredBinary as b -> { rewrite_expr(b.left, ctx) rewrite_expr(b.right, ctx) }
-        is LoweredIf as ie -> {
-            rewrite_expr(ie.cond, ctx)
-            rewrite_block(ie.then_block, ctx)
-            eb :: ie.else_block
+        is LoweredVirtualCall -> { rewrite_expr(e.receiver, ctx)  for a in e.args { rewrite_expr(a, ctx) } }
+        is LoweredFieldAccess -> { rewrite_expr(e.target, ctx) }
+        is LoweredIndex -> { rewrite_expr(e.target, ctx) rewrite_expr(e.index, ctx) }
+        is LoweredUnary -> { rewrite_expr(e.operand, ctx) }
+        is LoweredBinary -> { rewrite_expr(e.left, ctx) rewrite_expr(e.right, ctx) }
+        is LoweredIf -> {
+            rewrite_expr(e.cond, ctx)
+            rewrite_block(e.then_block, ctx)
+            eb :: e.else_block
             if eb != null { rewrite_block(eb, ctx) }
         }
-        is LoweredBlock as bl -> { rewrite_block(bl, ctx) }
-        is LoweredStructLit as sl -> { for f in sl.fields { rewrite_expr(f.value, ctx) } }
-        is LoweredArrayLit as al -> { for el in al.elements { rewrite_expr(el, ctx) } }
-        is LoweredArrayLen as al -> { rewrite_expr(al.target, ctx) }
-        is LoweredArrayPush as ap -> { rewrite_expr(ap.target, ctx) rewrite_expr(ap.value, ctx) }
-        is LoweredArraySlice as asl -> { rewrite_expr(asl.target, ctx) rewrite_expr(asl.lo, ctx) rewrite_expr(asl.hi, ctx) }
-        is LoweredStringSlice as ssl -> { rewrite_expr(ssl.target, ctx) rewrite_expr(ssl.lo, ctx) rewrite_expr(ssl.hi, ctx) }
-        is LoweredCast as cs -> { rewrite_expr(cs.value, ctx) }
-        is LoweredTypeCheck as tc -> { rewrite_expr(tc.value, ctx) }
-        is LoweredIntrinsicCall as ic -> { for a in ic.args { rewrite_expr(a, ctx) } }
-        is LoweredCellNew as cn -> { rewrite_expr(cn.value, ctx) }
-        is LoweredCellGet as cg -> { rewrite_expr(cg.target, ctx) }
-        is LoweredMakeClosure as mc -> { rewrite_expr(mc.env, ctx) }
+        is LoweredBlock -> { rewrite_block(e, ctx) }
+        is LoweredStructLit -> { for f in e.fields { rewrite_expr(f.value, ctx) } }
+        is LoweredArrayLit -> { for el in e.elements { rewrite_expr(el, ctx) } }
+        is LoweredArrayLen -> { rewrite_expr(e.target, ctx) }
+        is LoweredArrayPush -> { rewrite_expr(e.target, ctx) rewrite_expr(e.value, ctx) }
+        is LoweredArraySlice -> { rewrite_expr(e.target, ctx) rewrite_expr(e.lo, ctx) rewrite_expr(e.hi, ctx) }
+        is LoweredStringSlice -> { rewrite_expr(e.target, ctx) rewrite_expr(e.lo, ctx) rewrite_expr(e.hi, ctx) }
+        is LoweredCast -> { rewrite_expr(e.value, ctx) }
+        is LoweredTypeCheck -> { rewrite_expr(e.value, ctx) }
+        is LoweredIntrinsicCall -> { for a in e.args { rewrite_expr(a, ctx) } }
+        is LoweredCellNew -> { rewrite_expr(e.value, ctx) }
+        is LoweredCellGet -> { rewrite_expr(e.target, ctx) }
+        is LoweredMakeClosure -> { rewrite_expr(e.env, ctx) }
         is LoweredIntLit -> {}
         is LoweredFloatLit -> {}
         is LoweredBoolLit -> {}

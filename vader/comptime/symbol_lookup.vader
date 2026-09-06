@@ -21,15 +21,15 @@ import "toolchain/span"
 /// @return              the matching `Symbol`, or `null` for decl kinds that
 ///                      introduce no top-level symbol (impl / assert / import).
 export symbol_for_decl :: fn(decl: Decl, module_typed: TypedProgram) -> Symbol | null = match decl {
-    is FnDecl as f        -> symbol_for_fn(f, module_typed)
-    is StructDecl as s    -> symbol_for_kind(s.name, SymbolKind.Struct, module_typed)
-    is ConstDecl as c     -> symbol_for_kind(c.name, SymbolKind.Const, module_typed)
-    is EnumDecl as e      -> symbol_for_kind(e.name, SymbolKind.Enum, module_typed)
-    is TraitDecl as t     -> symbol_for_kind(t.name, SymbolKind.Trait, module_typed)
-    is TypeAliasDecl as a -> symbol_for_kind(a.name, SymbolKind.TypeAlias, module_typed)
-    is ImplDecl           -> null
-    is AssertDecl         -> null
-    is ImportDecl         -> null
+    is FnDecl        -> symbol_for_fn(decl, module_typed)
+    is StructDecl    -> symbol_for_kind(decl.name, SymbolKind.Struct, module_typed)
+    is ConstDecl     -> symbol_for_kind(decl.name, SymbolKind.Const, module_typed)
+    is EnumDecl      -> symbol_for_kind(decl.name, SymbolKind.Enum, module_typed)
+    is TraitDecl     -> symbol_for_kind(decl.name, SymbolKind.Trait, module_typed)
+    is TypeAliasDecl -> symbol_for_kind(decl.name, SymbolKind.TypeAlias, module_typed)
+    is ImplDecl      -> null
+    is AssertDecl    -> null
+    is ImportDecl    -> null
 }
 
 symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {

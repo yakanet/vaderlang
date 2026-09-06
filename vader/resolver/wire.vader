@@ -82,13 +82,13 @@ wire_module :: fn(
                         project.diags.push(resolver_error(.ImportedNameNotExported,
                             info.binding_span, "`${imported}` from `${info.path}`"))
                     }
-                    is Symbol as e -> {
-                        if e.visibility == Visibility.Private {
+                    is Symbol -> {
+                        if exported.visibility == Visibility.Private {
                             out.missing[sym_id] = true
                             project.diags.push(resolver_error(.SymbolNotExported,
                                 info.binding_span, "`${imported}`"))
                         } else {
-                            out.symbol_targets[sym_id] = SymbolTarget { .symbol = e, .module_id = target_id }
+                            out.symbol_targets[sym_id] = SymbolTarget { .symbol = exported, .module_id = target_id }
                         }
                     }
                 }

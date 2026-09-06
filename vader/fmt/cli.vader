@@ -142,21 +142,21 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
             eprintln("vader fmt: cannot read ${path}")
             return FileResult.IoError
         }
-        is string as s -> { src = s }
+        is string -> { src = r }
     }
 
     out :: format_source(src, path)
     match out {
-        is ParseFailure as pf -> {
+        is ParseFailure -> {
             eprintln("vader fmt: skipped (parse errors): ${path}")
             // Route through the shared renderer every other command uses
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.
-            eprintln(pf.diagnostics.dump_diagnostics_with_file())
+            eprintln(out.diagnostics.dump_diagnostics_with_file())
             return FileResult.ParseSkip
         }
-        is Formatted as f -> {
-            if f.output == src {
+        is Formatted -> {
+            if out.output == src {
                 return FileResult.Ok
             }
             if mode == Mode.Check {
@@ -164,7 +164,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
                 return FileResult.Drift
             }
             // In-place. (Stdout case routes to run_one_stdout above.)
-            w :: write_file_string(path, f.output)
+            w :: write_file_string(path, out.output)
             match w {
                 is IOError -> {
                     eprintln("vader fmt: cannot write ${path}")
@@ -184,23 +184,23 @@ run_one_stdout :: fn(path: string) -> FileResult {
             eprintln("vader fmt: cannot read ${path}")
             return FileResult.IoError
         }
-        is string as s -> { src = s }
+        is string -> { src = r }
     }
     out :: format_source(src, path)
     match out {
-        is ParseFailure as pf -> {
+        is ParseFailure -> {
             eprintln("vader fmt: skipped (parse errors): ${path}")
             // Route through the shared renderer every other command uses
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.
-            eprintln(pf.diagnostics.dump_diagnostics_with_file())
+            eprintln(out.diagnostics.dump_diagnostics_with_file())
             return FileResult.ParseSkip
         }
-        is Formatted as f -> {
+        is Formatted -> {
             // The formatter already ends `f.output` with one trailing `\n`,
             // so use `print` (no extra newline) to keep stdout byte-identical
             // to the in-place output.
-            print(f.output)
+            print(out.output)
             return FileResult.Ok
         }
     }

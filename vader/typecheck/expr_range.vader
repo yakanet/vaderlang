@@ -46,9 +46,9 @@ pick_bound_or_default :: fn(t: Type) -> Type {
     @partial match t {
         is FreeIntType -> { return mk_primitive("i32") }
         is FreeCharType -> { return mk_primitive("char") }
-        is PrimitiveType as p -> {
-            if is_int_name(p.name) { return p }
-            if p.name == "char" { return p }
+        is PrimitiveType -> {
+            if is_int_name(t.name) { return t }
+            if t.name == "char" { return t }
             return mk_primitive("i32")
         }
         _ -> { return mk_primitive("i32") }

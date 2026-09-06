@@ -140,46 +140,46 @@ export build_reference_index :: fn(project: LoadedProject!, result: CheckResult)
 
 collect_decl_idents :: fn(d: AST.Decl, out: Span[]!) -> void {
     match d {
-        is AST.ImportDecl    as x -> { collect_decorators(x.decorators, out) }
-        is AST.FnDecl        as x -> { collect_fn(x, out) }
-        is AST.StructDecl    as x -> {
-            collect_decorators(x.decorators, out)
-            collect_type_params(x.type_params, out)
-            for fld in x.fields {
+        is AST.ImportDecl -> { collect_decorators(d.decorators, out) }
+        is AST.FnDecl     -> { collect_fn(d, out) }
+        is AST.StructDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_type_params(d.type_params, out)
+            for fld in d.fields {
                 collect_type(fld.ty, out)
                 collect_opt_expr(fld.default, out)
             }
         }
-        is AST.EnumDecl      as x -> {
-            collect_decorators(x.decorators, out)
-            collect_opt_type(x.repr, out)
+        is AST.EnumDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_opt_type(d.repr, out)
         }
-        is AST.TraitDecl     as x -> {
-            collect_decorators(x.decorators, out)
-            collect_type_params(x.type_params, out)
-            collect_opt_type(x.requires, out)
-            for m in x.members { collect_fn(m, out) }
+        is AST.TraitDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_type_params(d.type_params, out)
+            collect_opt_type(d.requires, out)
+            for m in d.members { collect_fn(m, out) }
         }
-        is AST.ImplDecl      as x -> {
-            collect_decorators(x.decorators, out)
-            collect_type_params(x.type_params, out)
-            collect_type(x.for_type, out)
-            for ta in x.trait_args { collect_type(ta, out) }
-            for m in x.members { collect_fn(m, out) }
+        is AST.ImplDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_type_params(d.type_params, out)
+            collect_type(d.for_type, out)
+            for ta in d.trait_args { collect_type(ta, out) }
+            for m in d.members { collect_fn(m, out) }
         }
-        is AST.TypeAliasDecl as x -> {
-            collect_decorators(x.decorators, out)
-            collect_type_params(x.type_params, out)
-            collect_type(x.aliased, out)
+        is AST.TypeAliasDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_type_params(d.type_params, out)
+            collect_type(d.aliased, out)
         }
-        is AST.ConstDecl     as x -> {
-            collect_decorators(x.decorators, out)
-            collect_opt_type(x.ty, out)
-            collect_expr(x.value, out)
+        is AST.ConstDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_opt_type(d.ty, out)
+            collect_expr(d.value, out)
         }
-        is AST.AssertDecl    as x -> {
-            collect_decorators(x.decorators, out)
-            collect_expr(x.condition, out)
+        is AST.AssertDecl -> {
+            collect_decorators(d.decorators, out)
+            collect_expr(d.condition, out)
         }
     }
 }
@@ -212,29 +212,29 @@ collect_fn :: fn(d: AST.FnDecl, out: Span[]!) -> void {
 
 collect_binding :: fn(b: AST.LetBinding, out: Span[]!) -> void {
     match b {
-        is AST.SimpleBinding   as x -> { out.push(x.name_span) }
-        is AST.TupleBinding    as x -> { for e in x.elements { collect_binding(e, out) } }
+        is AST.SimpleBinding -> { out.push(b.name_span) }
+        is AST.TupleBinding -> { for e in b.elements { collect_binding(e, out) } }
         is AST.WildcardBinding -> {}
-        is AST.RestBinding     as x -> { out.push(x.span) }
+        is AST.RestBinding -> { out.push(b.span) }
     }
 }
 
 collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
     match s {
-        is AST.LetStmt      as x -> {
-            collect_binding(x.binding, out)
-            collect_opt_type(x.ty, out)
-            collect_expr(x.value, out)
+        is AST.LetStmt -> {
+            collect_binding(s.binding, out)
+            collect_opt_type(s.ty, out)
+            collect_expr(s.value, out)
         }
-        is AST.AssignStmt   as x -> {
-            collect_expr(x.target, out)
-            collect_expr(x.value, out)
+        is AST.AssignStmt -> {
+            collect_expr(s.target, out)
+            collect_expr(s.value, out)
         }
-        is AST.ExprStmt     as x -> { collect_expr(x.expr, out) }
-        is AST.ReturnStmt   as x -> { collect_opt_expr(x.value, out) }
-        is AST.YieldStmt    as x -> { collect_expr(x.value, out) }
-        is AST.ForStmt      as x -> {
-            match x.form {
+        is AST.ExprStmt   -> { collect_expr(s.expr, out) }
+        is AST.ReturnStmt -> { collect_opt_expr(s.value, out) }
+        is AST.YieldStmt  -> { collect_expr(s.value, out) }
+        is AST.ForStmt    -> {
+            match s.form {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor as w -> { collect_expr(w.cond, out) }
                 is AST.InFor    as f -> {
@@ -246,12 +246,12 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
                     collect_expr(f.iter, out)
                 }
             }
-            collect_block(x.body, out)
+            collect_block(s.body, out)
         }
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}
-        is AST.DeferStmt    as x -> {
-            match x.body {
+        is AST.DeferStmt    -> {
+            match s.body {
                 is AST.DeferStmtBody  as b -> { collect_stmt(b.stmt, out) }
                 is AST.DeferBlockBody as b -> { collect_block(b.block, out) }
             }
@@ -266,94 +266,94 @@ collect_block :: fn(b: AST.BlockExpr, out: Span[]!) -> void {
 
 collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
     match e {
-        is AST.IdentExpr         as x -> { out.push(x.span) }
-        is AST.NullCoalesceExpr  as x -> {
-            collect_expr(x.left, out)
-            inner :: AST.coalesce_fallback_expr(x.fallback)
+        is AST.IdentExpr        -> { out.push(e.span) }
+        is AST.NullCoalesceExpr -> {
+            collect_expr(e.left, out)
+            inner :: AST.coalesce_fallback_expr(e.fallback)
             if inner != null { collect_expr(inner, out) }
         }
-        is AST.CallExpr          as x -> {
-            collect_expr(x.callee, out)
-            for a in x.args { collect_expr(a.value, out) }
+        is AST.CallExpr -> {
+            collect_expr(e.callee, out)
+            for a in e.args { collect_expr(a.value, out) }
         }
-        is AST.FieldExpr         as x -> { collect_expr(x.target, out) }
-        is AST.IndexExpr         as x -> {
-            collect_expr(x.target, out)
-            collect_expr(x.index, out)
+        is AST.FieldExpr -> { collect_expr(e.target, out) }
+        is AST.IndexExpr -> {
+            collect_expr(e.target, out)
+            collect_expr(e.index, out)
         }
-        is AST.UnaryExpr         as x -> { collect_expr(x.operand, out) }
-        is AST.BinaryExpr        as x -> {
-            collect_expr(x.left, out)
-            collect_expr(x.right, out)
+        is AST.UnaryExpr  -> { collect_expr(e.operand, out) }
+        is AST.BinaryExpr -> {
+            collect_expr(e.left, out)
+            collect_expr(e.right, out)
         }
-        is AST.IfExpr            as x -> {
-            collect_expr(x.cond, out)
-            collect_block(x.then_block, out)
-            match x.else_branch {
+        is AST.IfExpr -> {
+            collect_expr(e.cond, out)
+            collect_block(e.then_block, out)
+            match e.else_branch {
                 is null                 -> {}
                 is AST.IfElseIf    as b -> { collect_expr(b.branch, out) }
                 is AST.IfElseBlock as b -> { collect_block(b.block, out) }
             }
         }
-        is AST.MatchExpr         as x -> {
-            collect_expr(x.scrutinee, out)
-            for arm in x.arms {
+        is AST.MatchExpr -> {
+            collect_expr(e.scrutinee, out)
+            for arm in e.arms {
                 collect_pattern(arm.pattern, out)
                 collect_opt_expr(arm.guard, out)
                 collect_expr(arm.body, out)
             }
         }
-        is AST.BlockExpr         as x -> { collect_block(x, out) }
-        is AST.LambdaExpr        as x -> {
-            for p in x.params {
+        is AST.BlockExpr  -> { collect_block(e, out) }
+        is AST.LambdaExpr -> {
+            for p in e.params {
                 collect_opt_type(p.ty, out)
                 collect_opt_expr(p.default_value, out)
             }
-            collect_opt_type(x.return_type, out)
-            collect_block(x.body, out)
+            collect_opt_type(e.return_type, out)
+            collect_block(e.body, out)
         }
-        is AST.StructLitExpr     as x -> {
-            collect_type(x.type_name, out)
-            for it in x.items {
+        is AST.StructLitExpr -> {
+            collect_type(e.type_name, out)
+            for it in e.items {
                 match it {
-                    is AST.StructLitField  as f  -> { collect_expr(f.value, out) }
-                    is AST.StructLitSpread as sp -> { collect_expr(sp.expr, out) }
+                    is AST.StructLitField  -> { collect_expr(it.value, out) }
+                    is AST.StructLitSpread -> { collect_expr(it.expr, out) }
                 }
             }
         }
-        is AST.SeqLitExpr        as x -> { for it in x.elements { collect_expr(it, out) } }
-        is AST.RangeExpr         as x -> {
-            collect_expr(x.lower, out)
-            collect_expr(x.upper, out)
+        is AST.SeqLitExpr -> { for it in e.elements { collect_expr(it, out) } }
+        is AST.RangeExpr  -> {
+            collect_expr(e.lower, out)
+            collect_expr(e.upper, out)
         }
-        is AST.AwaitExpr         as x -> { collect_expr(x.inner, out) }
-        is AST.CastExpr          as x -> {
-            collect_expr(x.value, out)
-            collect_type(x.target, out)
+        is AST.AwaitExpr -> { collect_expr(e.inner, out) }
+        is AST.CastExpr  -> {
+            collect_expr(e.value, out)
+            collect_type(e.target, out)
         }
-        is AST.GenericInstExpr   as x -> {
-            collect_type(x.callee, out)
-            for a in x.type_args { collect_type(a, out) }
+        is AST.GenericInstExpr -> {
+            collect_type(e.callee, out)
+            for a in e.type_args { collect_type(a, out) }
         }
-        is AST.IntrinsicCallExpr as x -> { for a in x.args { collect_expr(a, out) } }
+        is AST.IntrinsicCallExpr -> { for a in e.args { collect_expr(a, out) } }
         is AST.DotVariantExpr    -> {}
-        is AST.FnTypeExpr        as x -> {
-            for p in x.params { collect_type(p, out) }
-            collect_opt_type(x.return_type, out)
+        is AST.FnTypeExpr        -> {
+            for p in e.params { collect_type(p, out) }
+            collect_opt_type(e.return_type, out)
         }
-        is AST.ArrayTypeExpr     as x -> { collect_type(x.element, out) }
-        is AST.MutableTypeExpr   as x -> { collect_type(x.inner, out) }
-        is AST.IntLitExpr    -> {}
-        is AST.FloatLitExpr  -> {}
-        is AST.BoolLitExpr   -> {}
-        is AST.NullLitExpr   -> {}
-        is AST.CharLitExpr   -> {}
+        is AST.ArrayTypeExpr   -> { collect_type(e.element, out) }
+        is AST.MutableTypeExpr -> { collect_type(e.inner, out) }
+        is AST.IntLitExpr      -> {}
+        is AST.FloatLitExpr    -> {}
+        is AST.BoolLitExpr     -> {}
+        is AST.NullLitExpr     -> {}
+        is AST.CharLitExpr     -> {}
         // An interpolated `${…}` holds a real expression, and rename REWRITES
         // what this collects — miss one and the edit deletes a binding whose
         // uses inside a string still name it, leaving source that no longer
         // compiles.
-        is AST.StringLitExpr as x -> {
-            for part in x.parts {
+        is AST.StringLitExpr -> {
+            for part in e.parts {
                 if part is AST.StringLitInterp { collect_expr(part.expr, out) }
             }
         }
@@ -362,28 +362,28 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
 
 collect_pattern :: fn(p: AST.Pattern, out: Span[]!) -> void {
     match p {
-        is AST.IsPattern as x -> {
-            collect_type(x.ty, out)
-            collect_opt_pattern(x.inner, out)
+        is AST.IsPattern -> {
+            collect_type(p.ty, out)
+            collect_opt_pattern(p.inner, out)
         }
-        is AST.StructPattern as x -> {
-            for f in x.fields {
+        is AST.StructPattern -> {
+            for f in p.fields {
                 match f.value {
                     is AST.PatternBinding        -> {}
                     is AST.PatternLiteral as lit -> { collect_expr(lit.value, out) }
                 }
             }
         }
-        is AST.TuplePattern       as x -> { for el in x.elements { collect_pattern(el, out) } }
-        is AST.WildcardPattern         -> {}
-        is AST.BindingPattern     as x -> { out.push(x.span) }
-        is AST.EnumVariantPattern      -> {}
-        is AST.LiteralPattern     as x -> { collect_expr(x.value, out) }
-        is AST.RangePattern       as x -> {
-            collect_expr(x.lower, out)
-            collect_expr(x.upper, out)
+        is AST.TuplePattern       -> { for el in p.elements { collect_pattern(el, out) } }
+        is AST.WildcardPattern    -> {}
+        is AST.BindingPattern     -> { out.push(p.span) }
+        is AST.EnumVariantPattern -> {}
+        is AST.LiteralPattern     -> { collect_expr(p.value, out) }
+        is AST.RangePattern       -> {
+            collect_expr(p.lower, out)
+            collect_expr(p.upper, out)
         }
-        is AST.OrPattern          as x -> { for alt in x.patterns { collect_pattern(alt, out) } }
+        is AST.OrPattern -> { for alt in p.patterns { collect_pattern(alt, out) } }
     }
 }
 
@@ -391,26 +391,26 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]!) -> void {
 // names a type that the body walker resolves into `idents`, so it's a reference.
 collect_type :: fn(e: AST.Expr, out: Span[]!) -> void {
     match e {
-        is AST.IdentExpr       as x -> { out.push(x.span) }
-        is AST.GenericInstExpr as x -> {
-            collect_type(x.callee, out)
-            for a in x.type_args { collect_type(a, out) }
+        is AST.IdentExpr       -> { out.push(e.span) }
+        is AST.GenericInstExpr -> {
+            collect_type(e.callee, out)
+            for a in e.type_args { collect_type(a, out) }
         }
-        is AST.CallExpr        as x -> {
-            collect_type(x.callee, out)
-            for a in x.args { collect_type(a.value, out) }
+        is AST.CallExpr -> {
+            collect_type(e.callee, out)
+            for a in e.args { collect_type(a.value, out) }
         }
-        is AST.FieldExpr       as x -> { collect_expr(x.target, out) }
-        is AST.BinaryExpr      as x -> {
-            collect_type(x.left, out)
-            collect_type(x.right, out)
+        is AST.FieldExpr  -> { collect_expr(e.target, out) }
+        is AST.BinaryExpr -> {
+            collect_type(e.left, out)
+            collect_type(e.right, out)
         }
-        is AST.FnTypeExpr      as x -> {
-            for p in x.params { collect_type(p, out) }
-            collect_opt_type(x.return_type, out)
+        is AST.FnTypeExpr -> {
+            for p in e.params { collect_type(p, out) }
+            collect_opt_type(e.return_type, out)
         }
-        is AST.ArrayTypeExpr   as x -> { collect_type(x.element, out) }
-        is AST.MutableTypeExpr as x -> { collect_type(x.inner, out) }
+        is AST.ArrayTypeExpr -> { collect_type(e.element, out) }
+        is AST.MutableTypeExpr -> { collect_type(e.inner, out) }
         _ -> { collect_expr(e, out) }
     }
 }

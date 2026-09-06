@@ -74,68 +74,69 @@ dump_block :: fn(b: BasicBlock, sb: StringBuilder!) -> void {
 
 dump_instr :: fn(ins: Instruction) -> string {
     match ins {
-        is InstrConst        as i -> { return "%${i.dst} = const ${dump_const(i.value)} :${display_type(i.type)}" }
-        is InstrBinOp        as i -> { return "%${i.dst} = binop ${i32(i.op)} %${i.lhs} %${i.rhs} :${display_type(i.type)}" }
-        is InstrUnOp         as i -> { return "%${i.dst} = unop ${i32(i.op)} %${i.operand} :${display_type(i.type)}" }
-        is InstrCall         as i -> { return "${dump_dst(i.dst)}call ${i.callee.name}(${dump_args(i.args)}) :${display_type(i.type)}" }
-        is InstrCallIndirect as i -> { return "${dump_dst(i.dst)}call_indirect %${i.callee}(${dump_args(i.args)}) :${display_type(i.type)}" }
-        is InstrFnRef        as i -> { return "%${i.dst} = fn_ref ${i.fn_symbol.name} :${display_type(i.type)}" }
-        is InstrFnAddr       as i -> { return "%${i.dst} = fn_addr ${i.fn_symbol.name} :${display_type(i.type)}" }
-        is InstrVirtualCall  as i -> {
-            extra :: if i.args.len() > 0 { ", ${dump_args(i.args)}" } else { "" }
-            return "${dump_dst(i.dst)}vcall ${i.trait_name}.${i.method}(recv=%${i.receiver}${extra}) :${display_type(i.type)}"
+        is InstrConst        -> { return "%${ins.dst} = const ${dump_const(ins.value)} :${display_type(ins.type)}" }
+        is InstrBinOp        -> { return "%${ins.dst} = binop ${i32(ins.op)} %${ins.lhs} %${ins.rhs} :${display_type(ins.type)}" }
+        is InstrUnOp         -> { return "%${ins.dst} = unop ${i32(ins.op)} %${ins.operand} :${display_type(ins.type)}" }
+        is InstrCall         -> { return "${dump_dst(ins.dst)}call ${ins.callee.name}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
+        is InstrCallIndirect -> { return "${dump_dst(ins.dst)}call_indirect %${ins.callee}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
+        is InstrFnRef        -> { return "%${ins.dst} = fn_ref ${ins.fn_symbol.name} :${display_type(ins.type)}" }
+        is InstrFnAddr       -> { return "%${ins.dst} = fn_addr ${ins.fn_symbol.name} :${display_type(ins.type)}" }
+        is InstrVirtualCall  -> {
+            extra :: if ins.args.len() > 0 { ", ${dump_args(ins.args)}" } else { "" }
+            return "${dump_dst(ins.dst)}vcall ${ins.trait_name}.${ins.method}(recv=%${ins.receiver}${extra}) :${display_type(ins.type)}"
         }
-        is InstrFieldGet     as i -> { return "%${i.dst} = field_get %${i.target}.${i.field} :${display_type(i.type)}" }
-        is InstrFieldSet     as i -> { return "field_set %${i.target}.${i.field} = %${i.value}" }
-        is InstrArrayGet     as i -> { return "%${i.dst} = array_get %${i.target}[%${i.index}] :${display_type(i.type)}" }
-        is InstrArraySet     as i -> { return "array_set %${i.target}[%${i.index}] = %${i.value}" }
-        is InstrArrayLen     as i -> { return "%${i.dst} = array_len %${i.target}" }
-        is InstrArrayPush    as i -> { return "array_push %${i.target}, %${i.value}" }
-        is InstrArraySlice   as i -> { return "%${i.dst} = array_slice %${i.target}[%${i.lo}..%${i.hi}] :${display_type(i.type)}" }
-        is InstrStringSlice  as i -> { return "%${i.dst} = string_slice_cp %${i.target}[%${i.lo}..%${i.hi}] :${display_type(i.type)}" }
-        is InstrStructNew    as i -> {
-            tag :: if i.stack { "[stack]" } else { "" }
-            return "%${i.dst} = struct_new${tag} ${display_type(i.type)}(${dump_args(i.fields)})"
+        is InstrFieldGet    -> { return "%${ins.dst} = field_get %${ins.target}.${ins.field} :${display_type(ins.type)}" }
+        is InstrFieldSet    -> { return "field_set %${ins.target}.${ins.field} = %${ins.value}" }
+        is InstrArrayGet    -> { return "%${ins.dst} = array_get %${ins.target}[%${ins.index}] :${display_type(ins.type)}" }
+        is InstrArraySet    -> { return "array_set %${ins.target}[%${ins.index}] = %${ins.value}" }
+        is InstrArrayLen    -> { return "%${ins.dst} = array_len %${ins.target}" }
+        is InstrArrayPush   -> { return "array_push %${ins.target}, %${ins.value}" }
+        is InstrArraySlice  -> { return "%${ins.dst} = array_slice %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
+        is InstrStringSlice -> { return "%${ins.dst} = string_slice_cp %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
+        is InstrStructNew   -> {
+            tag :: if ins.stack { "[stack]" } else { "" }
+            args :: dump_args(ins.fields)
+            return "%${ins.dst} = struct_new${tag} ${display_type(ins.type)}(${args})"
         }
-        is InstrArrayNew     as i -> {
-            tag :: if i.stack { "[stack]" } else { "" }
-            return "%${i.dst} = array_new${tag} ${display_type(i.type)}[${i.length}](${dump_args(i.elements)})"
+        is InstrArrayNew -> {
+            tag :: if ins.stack { "[stack]" } else { "" }
+            return "%${ins.dst} = array_new${tag} ${display_type(ins.type)}[${ins.length}](${dump_args(ins.elements)})"
         }
-        is InstrDataConst    as i -> { return "%${i.dst} = data_const ${i.pool_index} :${display_type(i.type)}" }
-        is InstrTypeCheck    as i -> { return "%${i.dst} = type_check %${i.value} is ${display_type(i.check_type)}" }
-        is InstrTypeConst    as i -> { return "%${i.dst} = type_const ${display_type(i.value_type)}" }
-        is InstrCast         as i -> { return "%${i.dst} = cast %${i.value} :${display_type(i.type)}" }
-        is InstrCellNew      as i -> { return "%${i.dst} = cell_new %${i.value} :${display_type(i.value_type)}" }
-        is InstrCellGet      as i -> { return "%${i.dst} = cell_get %${i.cell} :${display_type(i.value_type)}" }
-        is InstrCellSet      as i -> { return "cell_set %${i.cell} = %${i.value} :${display_type(i.value_type)}" }
-        is InstrMakeClosure  as i -> { return "%${i.dst} = make_closure ${i.fn_symbol.name} env=%${i.env} :${display_type(i.type)}" }
-        is InstrIntrinsic    as i -> { return "${dump_dst(i.dst)}intrinsic ${i.name}(${dump_args(i.args)})" }
-        is InstrMove         as i -> { return "%${i.dst} = move %${i.src}" }
-        is InstrDeferPush    as i -> { return "defer.push %${i.value}" }
-        is InstrDeferPopExec as i -> { return "defer.pop_exec ${i.count}" }
+        is InstrDataConst    -> { return "%${ins.dst} = data_const ${ins.pool_index} :${display_type(ins.type)}" }
+        is InstrTypeCheck    -> { return "%${ins.dst} = type_check %${ins.value} is ${display_type(ins.check_type)}" }
+        is InstrTypeConst    -> { return "%${ins.dst} = type_const ${display_type(ins.value_type)}" }
+        is InstrCast         -> { return "%${ins.dst} = cast %${ins.value} :${display_type(ins.type)}" }
+        is InstrCellNew      -> { return "%${ins.dst} = cell_new %${ins.value} :${display_type(ins.value_type)}" }
+        is InstrCellGet      -> { return "%${ins.dst} = cell_get %${ins.cell} :${display_type(ins.value_type)}" }
+        is InstrCellSet      -> { return "cell_set %${ins.cell} = %${ins.value} :${display_type(ins.value_type)}" }
+        is InstrMakeClosure  -> { return "%${ins.dst} = make_closure ${ins.fn_symbol.name} env=%${ins.env} :${display_type(ins.type)}" }
+        is InstrIntrinsic    -> { return "${dump_dst(ins.dst)}intrinsic ${ins.name}(${dump_args(ins.args)})" }
+        is InstrMove         -> { return "%${ins.dst} = move %${ins.src}" }
+        is InstrDeferPush    -> { return "defer.push %${ins.value}" }
+        is InstrDeferPopExec -> { return "defer.pop_exec ${ins.count}" }
     }
 }
 
 dump_terminator :: fn(t: Terminator) -> string {
     match t {
-        is TermBranch      as br -> { return "branch -> bb${br.target}" }
-        is TermCondBranch  as cb -> { return "cond_branch %${cb.cond} ? bb${cb.then_block} : bb${cb.else_block}" }
-        is TermReturn      as r  -> {
-            if r.value == null { return "return" }
-            return "return %${r.value}"
+        is TermBranch     -> { return "branch -> bb${t.target}" }
+        is TermCondBranch -> { return "cond_branch %${t.cond} ? bb${t.then_block} : bb${t.else_block}" }
+        is TermReturn     -> {
+            if t.value == null { return "return" }
+            return "return %${t.value}"
         }
-        is TermUnreachable as u  -> { return "unreachable ; ${u.reason}" }
+        is TermUnreachable  -> { return "unreachable ; ${t.reason}" }
     }
 }
 
 dump_const :: fn(v: ConstValue) -> string {
     match v {
-        is ConstInt    as c -> { return "int(${c.value})" }
-        is ConstFloat  as c -> { return "float(${c.value})" }
-        is ConstBool   as c -> { return "bool(${c.value})" }
-        is ConstChar   as c -> { return "char(${c.value})" }
-        is ConstString as c -> { return "string(#${c.index})" }
-        is ConstNull        -> { return "null" }
+        is ConstInt    -> { return "int(${v.value})" }
+        is ConstFloat  -> { return "float(${v.value})" }
+        is ConstBool   -> { return "bool(${v.value})" }
+        is ConstChar   -> { return "char(${v.value})" }
+        is ConstString -> { return "string(#${v.index})" }
+        is ConstNull   -> { return "null" }
     }
 }
 

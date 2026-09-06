@@ -153,8 +153,8 @@ export load_project_with_overlay :: fn(
     project_root :: find_manifest_root(entry)
     // Read the project manifest once (the LSP re-loads on every didOpen).
     manifest :: match project_root {
-        is string as pr -> read_manifest(pr)
-        is null          -> Manifest { .include_paths = [] }
+        is string -> read_manifest(project_root)
+        is null   -> Manifest { .include_paths = [] }
     }
     entry_folder :: entry_folder_of(entry)
     plain_roots :: project_include_paths(project_root, manifest, include_path_flags)
@@ -185,8 +185,9 @@ export load_project_with_overlay :: fn(
                 .diags = loader_diags,
             }
         }
-        is DiscoveredModule as em -> {
-            bases :: include_paths(em.name, em.folder, plain_roots, generated_root)
+        is DiscoveredModule -> {
+            bases :: include_paths(
+                entry_module.name, entry_module.folder, plain_roots, generated_root)
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
             // name, so this finds the same primary — and then applies the merge
@@ -194,12 +195,13 @@ export load_project_with_overlay :: fn(
             // `seed_entry` re-implementing the rule. Falls back to the discovered
             // module if resolution somehow misses, which it cannot: `paths[0]`
             // matches by construction.
-            entry_resolved :: resolve_lazy(em.name, bases, index, loader_diags) ?? em
+            entry_resolved :: resolve_lazy(
+                entry_module.name, bases, index, loader_diags) ?? entry_module
             queue: DiscoveredModule[]! = [entry_resolved]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
-                is DiscoveredModule as cm -> {
-                    if cm.folder != em.folder { queue.push(cm) }
+                is DiscoveredModule -> {
+                    if core.folder != entry_module.folder { queue.push(core) }
                 }
                 _ -> {}
             }
@@ -214,9 +216,9 @@ export load_project_with_overlay :: fn(
             // in bootstrap.vader.
             string_builder :: resolve_lazy("std/string_builder", bases, index, loader_diags)
             match string_builder {
-                is DiscoveredModule as sbm -> {
-                    if !has_module(modules, sbm.folder) {
-                        sb_queue: DiscoveredModule[]! = [sbm]
+                is DiscoveredModule -> {
+                    if !has_module(modules, string_builder.folder) {
+                        sb_queue: DiscoveredModule[]! = [string_builder]
                         drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
                     }
                 }
@@ -238,7 +240,7 @@ export load_project_with_overlay :: fn(
                 factory, node_factory, bake_target)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
-                .entry = em.folder, .modules = modules, .factory = factory,
+                .entry = entry_module.folder, .modules = modules, .factory = factory,
                 .project_root = project_root,
                 .diags = loader_diags,
             }
@@ -300,12 +302,12 @@ drain_load_queue :: fn(
         ingested :: modules[id]
         match ingested {
             is null -> {}
-            is LoadedModule as lm -> {
-                for raw in lm.collected.import_paths {
+            is LoadedModule -> {
+                for raw in ingested.collected.import_paths {
                     dep :: index[raw]
                     match dep {
-                        is DiscoveredModule as t -> {
-                            if !has_module(modules, t.folder) { queue.push(t) }
+                        is DiscoveredModule -> {
+                            if !has_module(modules, dep.folder) { queue.push(dep) }
                         }
                         _ -> {}
                     }
@@ -481,15 +483,15 @@ project_include_paths :: fn(
         roots.push(plain_root(bundled, .Toolchain))
     }
     match project_root {
-        is string as pr -> {
-            roots.push(plain_root(pr, .Build))
+        is string -> {
+            roots.push(plain_root(project_root, .Build))
             // A manifest entry can be either, and the MARKER is what says which —
             // never the spelling. This repo's own `includePaths: ["lib"]` is how a
             // checkout reaches the shipped namespaces, while a project keeping its
             // own code under a directory of any name is its own. One probe per
             // entry, once per load.
             for p in manifest.include_paths {
-                dir :: join_path(pr, p)
+                dir :: join_path(project_root, p)
                 roots.push(plain_root(dir, origin_of_root(dir)))
             }
         }
@@ -532,8 +534,8 @@ plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
 /// @return              the generated tree's directory, or `""` when none exists.
 export generated_root_for :: fn(project_root: string | null) -> string {
     anchor :: match project_root {
-        is string as pr -> pr
-        is null         -> current_working_directory()
+        is string -> project_root
+        is null   -> current_working_directory()
     }
     candidate :: join_path(anchor, GENERATED_ROOT_DIR)
     if !is_dir(candidate) {
@@ -578,7 +580,7 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
         existing :: dst.symbols[name]
         match existing {
             is null -> { dst.symbols[name] = sym }
-            is Symbol as e -> {
+            is Symbol -> {
                 // Two cross-file collisions are legitimate. Fn-vs-fn goes
                 // to `fn_overloads` below — the primary slot keeps its
                 // first-wins binding (`add_fn_symbol`'s policy), the
@@ -591,8 +593,8 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
                 // Every other non-fn kind duplicated across files breaks the
                 // one-module-owns-one-declaration invariant: R2026 (module
                 // redesign, decision #28).
-                fn_pair     :: e.kind == SymbolKind.Fn && sym.kind == SymbolKind.Fn
-                import_pair :: e.kind == SymbolKind.ImportBinding && sym.kind == SymbolKind.ImportBinding
+                fn_pair     :: existing.kind == SymbolKind.Fn && sym.kind == SymbolKind.Fn
+                import_pair :: existing.kind == SymbolKind.ImportBinding && sym.kind == SymbolKind.ImportBinding
                 if !fn_pair && !import_pair {
                     span :: match sym.defined_at {
                         is Span as s -> s

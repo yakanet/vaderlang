@@ -26,13 +26,13 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     spread_sym: Symbol | null = null
     for item in lit.items {
         match item {
-            is StructLitField as field -> { provided[field.name] = field.value }
-            is StructLitSpread as sp -> {
-                value :: lower_expr(ctx, sp.expr)
+            is StructLitField -> { provided[item.name] = item.value }
+            is StructLitSpread -> {
+                value :: lower_expr(ctx, item.expr)
                 sym :: fresh_synthetic_symbol(ctx, "spread")
                 spread_sym = sym
                 spread_stmts.push(LoweredLet {
-                    .span = sp.span, .name = sym.name, .symbol = sym,
+                    .span = item.span, .name = sym.name, .symbol = sym,
                     .type = type, .value = value,
                 })
             }
@@ -120,13 +120,13 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
     // @partial: only EnumType carries variant indices; every other Type is a
     // non-enum context here → stub (earlier diagnostics apply).
     @partial match resolved {
-        is EnumType as enum_type -> {
-            index :: enum_type.indices[expr.variant]
+        is EnumType -> {
+            index :: resolved.indices[expr.variant]
             match index {
-                is null -> { return stub(expr.span, type, "unknown variant `${expr.variant}` on `${enum_type.symbol.name}`") }
-                is i64 as value -> {
+                is null -> { return stub(expr.span, type, "unknown variant `${expr.variant}` on `${resolved.symbol.name}`") }
+                is i64 -> {
                     return LoweredIntLit {
-                        .span = expr.span, .type = mk_primitive(enum_type.repr), .value = value,
+                        .span = expr.span, .type = mk_primitive(resolved.repr), .value = index,
                     }
                 }
             }
@@ -189,9 +189,9 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
     // unwrapping; every other Type is returned verbatim.
     @partial match type {
         is EnumType -> { return type }
-        is StructType as st -> {
-            if st.symbol.kind != SymbolKind.Enum { return type }
-            real :: ctx.typed.decl_types[st.symbol.id]
+        is StructType -> {
+            if type.symbol.kind != SymbolKind.Enum { return type }
+            real :: ctx.typed.decl_types[type.symbol.id]
             if real is EnumType { return real }
             return type
         }
@@ -344,9 +344,9 @@ fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredSt
     out: LoweredStructLitField![]! = []
     for item in lit.items {
         match item {
-            is StructLitField as field -> {
+            is StructLitField -> {
                 out.push(LoweredStructLitField {
-                    .name = field.name, .value = lower_expr(ctx, field.value),
+                    .name = item.name, .value = lower_expr(ctx, item.value),
                 })
             }
             is StructLitSpread -> {}

@@ -1138,17 +1138,17 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
 register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> void {
     for decl in decls {
         match decl {
-            is AST.TypeAliasDecl as ta -> {
-                aliased :: type_from_expr(ta.aliased, typed.resolved, diag_sink())
+            is AST.TypeAliasDecl -> {
+                aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
                 for s in typed.resolved.symbols {
-                    if s.name == ta.name {
+                    if s.name == decl.name {
                         typed.resolved.alias_types[s.id] = aliased
-                        typed.resolved.alias_decls[s.id] = ta
+                        typed.resolved.alias_decls[s.id] = decl
                     }
                 }
             }
-            is AST.ConstDecl as cd     -> {
-                if cd.ty is null && register_alias_const(cd, typed) {}
+            is AST.ConstDecl     -> {
+                if decl.ty is null && register_alias_const(decl, typed) {}
             }
             _                          -> {}
         }
@@ -1424,35 +1424,35 @@ pull_referenced_external_types :: fn(
     per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     match t {
-        is StructType as st -> {
-            register_external(st.symbol, entry, per_module)
-            for a in st.args {
+        is StructType -> {
+            register_external(t.symbol, entry, per_module)
+            for a in t.args {
                 pull_referenced_external_types(a, entry, per_module)
             }
         }
-        is TraitType as tr  -> {
-            register_external(tr.symbol, entry, per_module)
-            for a in tr.args {
+        is TraitType  -> {
+            register_external(t.symbol, entry, per_module)
+            for a in t.args {
                 pull_referenced_external_types(a, entry, per_module)
             }
         }
-        is EnumType as en   -> { register_external(en.symbol, entry, per_module) }
-        is ArrayType as a   -> { pull_referenced_external_types(a.element, entry, per_module) }
-        is TupleType as p   -> {
-            for el in p.elements {
+        is EnumType  -> { register_external(t.symbol, entry, per_module) }
+        is ArrayType -> { pull_referenced_external_types(t.element, entry, per_module) }
+        is TupleType -> {
+            for el in t.elements {
                 pull_referenced_external_types(el, entry, per_module)
             }
         }
-        is UnionType as u   -> {
-            for v in u.variants {
+        is UnionType   -> {
+            for v in t.variants {
                 pull_referenced_external_types(v, entry, per_module)
             }
         }
-        is FnType as f      -> {
-            for p in f.params {
+        is FnType      -> {
+            for p in t.params {
                 pull_referenced_external_types(p, entry, per_module)
             }
-            pull_referenced_external_types(f.return_type, entry, per_module)
+            pull_referenced_external_types(t.return_type, entry, per_module)
         }
         _                   -> {}
     }
@@ -2041,9 +2041,13 @@ export walk_bodies :: fn(
     // silently to `unreachable`. Worse, it meant those sites were never type
     // CHECKED at all.
     for decl in decls {
-        if decl is AST.ConstDecl {
-            if is_body_independent_value(decl.value) {
-                check_const_value(decl, typed, diags)
+        // The alias is load-bearing here, not decoration: a `for` variable comes
+        // out read-only even over mutable elements, and `check_const_value`
+        // repins the value node. Until a mutable loop variable is expressible,
+        // this is the only way to say it.
+        if decl is AST.ConstDecl as cd {
+            if is_body_independent_value(cd.value) {
+                check_const_value(cd, typed, diags)
             }
         }
     }
@@ -2114,7 +2118,8 @@ register_impl_metadata :: fn(
                     typecheck_error(
                         .IntoIdentityForbidden,
                         id.span,
-                        "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>` — source and target must differ",
+                        "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>`"
+                            + " — source and target must differ",
                     ),
                 )
             }
@@ -2206,7 +2211,8 @@ check_impl_missing_methods :: fn(
                     typecheck_error(
                         .ImplMissingRequiredMethod,
                         id.trait_name_span,
-                        "`${id.trait_name}` requires method `${required.name}` — not provided in this impl block",
+                        "`${id.trait_name}` requires method `${required.name}`"
+                            + " — not provided in this impl block",
                     ),
                 )
             }
@@ -2436,7 +2442,7 @@ is_body_independent_value :: fn(e: AST.Expr) -> bool {
     return false
 }
 
-check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
+check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
     annot :: typed.decl_types[sym.id]
     expected: Type | null = null

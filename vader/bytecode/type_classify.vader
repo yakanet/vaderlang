@@ -33,34 +33,34 @@ import "vader/diagnostics"
 /// @param t  the type to key.
 /// @return   the key string ; pass to `MutableMap<string, i32>`.
 export type_intern_key :: fn(t: Type) -> string = match t {
-    is PrimitiveType as p -> p.name
+    is PrimitiveType -> t.name
     // Key structs / traits by source position (`symbol_key`) + recursive
     // arg keys, NOT by `display_type` (bare name). Two import shapes of the
     // same decl resolve to distinct symbols but share a source position, so
     // they collapse to one slot — and `reserve_struct` keys identically, so
     // a referenced struct dedupes with its reserved definition instead of
     // minting an orphan `ref`.
-    is StructType as s    -> "Struct#${symbol_key(s.symbol)}<${type_key_join(s.args, "|")}>"
-    is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
+    is StructType -> "Struct#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
+    is TraitType  -> "Trait#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
-    is EnumType as e      -> e.repr
+    is EnumType      -> t.repr
     // Distinct (newtype) shares its backing primitive's slot, exactly like an
     // enum shares its `repr` — no separate type-table entry, so it rides the
     // backing's zero-cost representation end to end.
-    is DistinctType as d  -> type_intern_key(d.backing)
-    is ArrayType as a     -> "Array<${type_intern_key(a.element)}>"
-    is UnionType as u     -> "Union<${type_key_join(u.variants, "|")}>"
-    is TupleType as p     -> "Tuple<${type_key_join(p.elements, "|")}>"
-    is FnType as f        -> "Fn(${type_key_join(f.params, ",")})->${type_intern_key(f.return_type)}"
-    is TypeParamType      -> display_type(t)
-    is TypeMetaType       -> display_type(t)
-    is SelfType           -> display_type(t)
-    is UnresolvedType     -> display_type(t)
-    is FreeIntType        -> display_type(t)
-    is FreeCharType       -> display_type(t)
-    is FreeFloatType      -> display_type(t)
-    is NeverType          -> display_type(t)
-    is AnyType            -> "Any"
+    is DistinctType   -> type_intern_key(t.backing)
+    is ArrayType      -> "Array<${type_intern_key(t.element)}>"
+    is UnionType      -> "Union<${type_key_join(t.variants, "|")}>"
+    is TupleType      -> "Tuple<${type_key_join(t.elements, "|")}>"
+    is FnType         -> "Fn(${type_key_join(t.params, ",")})->${type_intern_key(t.return_type)}"
+    is TypeParamType  -> display_type(t)
+    is TypeMetaType   -> display_type(t)
+    is SelfType       -> display_type(t)
+    is UnresolvedType -> display_type(t)
+    is FreeIntType    -> display_type(t)
+    is FreeCharType   -> display_type(t)
+    is FreeFloatType  -> display_type(t)
+    is NeverType      -> display_type(t)
+    is AnyType        -> "Any"
 }
 
 /// A tuple's ELEMENT keys as a C-safe identifier fragment: `[i32, string]`
@@ -185,18 +185,18 @@ type_key_join :: fn(args: Type[], sep: string) -> string {
 /// @param t  the type to classify.
 /// @return   the `ValType` the operand stack carries for this slot.
 export val_type_of_type :: fn(t: Type) -> ValType = match t {
-    is PrimitiveType as p -> val_type_of_primitive_name(p.name)
-    is StructType         -> ValType.Ref
+    is PrimitiveType -> val_type_of_primitive_name(t.name)
+    is StructType    -> ValType.Ref
     // Enums ride the operand stack as their backing integer repr, not a boxed
     // ref.
-    is EnumType      as e -> val_type_of_primitive_name(e.repr)
+    is EnumType -> val_type_of_primitive_name(t.repr)
     // Distinct (newtype) rides its backing primitive's stack repr — zero-cost,
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
-    is DistinctType  as d -> val_type_of_type(d.backing)
-    is ArrayType          -> ValType.Ref
-    is FnType             -> ValType.Ref
-    is TupleType          -> ValType.Ref
+    is DistinctType -> val_type_of_type(t.backing)
+    is ArrayType    -> ValType.Ref
+    is FnType       -> ValType.Ref
+    is TupleType    -> ValType.Ref
     // Erased / dynamic → `.Any` (tagged box). A trait object may box a
     // distinct-primitive impl; a union carries a variable variant; generic
     // type-params / meta / self / `any` are erased.
@@ -237,23 +237,23 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 /// @return            the `BcType` for the type table.
 export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> BcType {
     match t {
-        is PrimitiveType as p -> { return BcPrimitive { .val = val_type_of_primitive_name(p.name) } }
-        is EnumType as e      -> { return BcPrimitive { .val = val_type_of_primitive_name(e.repr) } }
-        is DistinctType as d  -> { return bc_type_of_with_ctx(d.backing, ctx, slot_index) }
-        is StructType as s    -> { return BcRef { .trait_name = s.symbol.name } }
-        is TraitType as tt    -> { return BcRef { .trait_name = tt.symbol.name } }
-        is ArrayType as a     -> { return BcArray { .element = intern_type(a.element, ctx) } }
-        is UnionType as u     -> {
+        is PrimitiveType -> { return BcPrimitive { .val = val_type_of_primitive_name(t.name) } }
+        is EnumType      -> { return BcPrimitive { .val = val_type_of_primitive_name(t.repr) } }
+        is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
+        is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
+        is TraitType     -> { return BcRef { .trait_name = t.symbol.name } }
+        is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
+        is UnionType     -> {
             variant_indices: i32[]! = []
-            for v in u.variants { variant_indices.push(intern_type(v, ctx)) }
+            for v in t.variants { variant_indices.push(intern_type(v, ctx)) }
             return BcUnion { .variants = variant_indices }
         }
-        is FnType as f -> {
+        is FnType -> {
             param_indices: i32[]! = []
-            for p in f.params { param_indices.push(intern_type(p, ctx)) }
+            for p in t.params { param_indices.push(intern_type(p, ctx)) }
             return BcFn {
                 .params = param_indices,
-                .return_type = intern_type(f.return_type, ctx),
+                .return_type = intern_type(t.return_type, ctx),
             }
         }
         // Anonymous struct with positional fields `_0`, `_1`, … , named after
@@ -265,16 +265,16 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         // makes identical modules emit different C. `type_intern_key` is the
         // same key `intern_type` dedupes on, so two tuples share a name exactly
         // when they share a slot.
-        is TupleType as p -> {
+        is TupleType -> {
             fields: BcField[]! = []
-            for i in 0..<p.elements.len() {
+            for i in 0..<t.elements.len() {
                 fields.push(BcField {
                     .name       = "_${i}",
-                    .type_index = intern_type(p.elements[i], ctx),
+                    .type_index = intern_type(t.elements[i], ctx),
                 })
             }
             return BcStruct {
-                .name      = "__Tuple_${tuple_shape_name(p.elements)}",
+                .name      = "__Tuple_${tuple_shape_name(t.elements)}",
                 .fields    = fields,
                 .c_name    = "",
                 .symbol_id = -1,
@@ -349,7 +349,7 @@ import "std/testing"
     lit :: LoweredIntLit { .span = sp, .type = mk_primitive("i32"), .value = 42 }
     t :: type_of(lit)
     match t {
-        is PrimitiveType as prim -> assert_eq(prim.name, "i32")
+        is PrimitiveType -> assert_eq(t.name, "i32")
         _ -> assert_eq("expected primitive", "")
     }
 }

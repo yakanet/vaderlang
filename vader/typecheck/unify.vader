@@ -33,7 +33,7 @@ export unify_type_param :: fn(
     param_type: Type, arg_type: Type, out: MutableMap<i32, Type>!,
 ) -> void {
     match param_type {
-        is TypeParamType as tp -> {
+        is TypeParamType -> {
             // An arg that is itself unresolved carries no information : binding
             // to it would freeze the type-param at `?` and, since first binding
             // wins, lock out the argument that actually knows. That is what a
@@ -48,7 +48,7 @@ export unify_type_param :: fn(
             // the still-abstract `T`. Left recorded, first-binding-wins would
             // lock the type-param onto itself.
             if arg_type is TypeParamType {
-                if arg_type.symbol.id == tp.symbol.id {
+                if arg_type.symbol.id == param_type.symbol.id {
                     return
                 }
             }
@@ -62,42 +62,42 @@ export unify_type_param :: fn(
             // would fail to unify everywhere downstream. Matches the level-1 depth
             // rule — the bit only ever lives at the root of a slot.
             bound :: with_immutable(arg_type, false)
-            existing :: out[tp.symbol.id]
-            if existing is null { out[tp.symbol.id] = bound  return }
+            existing :: out[param_type.symbol.id]
+            if existing is null { out[param_type.symbol.id] = bound  return }
             // Tighten Free* bindings when a later arg pins the same
             // type-param to a concrete numeric. Lets
             // `fold([1,2,3], 1, (a, b) -> a + b)` re-bind U from
             // FreeInt (init=1) to i32 (the lambda body returns i32)
             // so the post-loop assignability check accepts the lambda.
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
-                out[tp.symbol.id] = bound
+                out[param_type.symbol.id] = bound
             }
             // Same reasoning as above for a binding that was recorded before
             // this rule existed elsewhere in the tree : an unresolved binding
             // yields to anything that carries real information.
             if type_contains_unresolved(existing) {
-                out[tp.symbol.id] = bound
+                out[param_type.symbol.id] = bound
             }
             if existing is TypeParamType {
-                if existing.symbol.id == tp.symbol.id {
-                    out[tp.symbol.id] = bound
+                if existing.symbol.id == param_type.symbol.id {
+                    out[param_type.symbol.id] = bound
                 }
             }
             return
         }
-        is ArrayType as pa -> {
+        is ArrayType -> {
             match arg_type {
-                is ArrayType as aa -> { unify_type_param(pa.element, aa.element, out) }
+                is ArrayType -> { unify_type_param(param_type.element, arg_type.element, out) }
                 _ -> {}
             }
             return
         }
-        is TupleType as pt -> {
+        is TupleType -> {
             match arg_type {
-                is TupleType as at -> {
-                    if pt.elements.len() == at.elements.len() {
-                        for i in 0..<pt.elements.len() {
-                            unify_type_param(pt.elements[i], at.elements[i], out)
+                is TupleType -> {
+                    if param_type.elements.len() == arg_type.elements.len() {
+                        for i in 0..<param_type.elements.len() {
+                            unify_type_param(param_type.elements[i], arg_type.elements[i], out)
                         }
                     }
                 }
@@ -105,19 +105,23 @@ export unify_type_param :: fn(
             }
             return
         }
-        is StructType as ps -> {
+        is StructType -> {
             match arg_type {
-                is StructType as as_ -> {
-                    if ps.symbol.id == as_.symbol.id { unify_args(ps.args, as_.args, out) }
+                is StructType -> {
+                    if param_type.symbol.id == arg_type.symbol.id {
+                        unify_args(param_type.args, arg_type.args, out)
+                    }
                 }
                 _ -> {}
             }
             return
         }
-        is TraitType as pt -> {
+        is TraitType -> {
             match arg_type {
-                is TraitType as at -> {
-                    if pt.symbol.id == at.symbol.id { unify_args(pt.args, at.args, out) }
+                is TraitType -> {
+                    if param_type.symbol.id == arg_type.symbol.id {
+                        unify_args(param_type.args, arg_type.args, out)
+                    }
                 }
                 // An array argument satisfies an `Iterator<T>` parameter through
                 // the blanket `T[] -> Iterator<T>` `into` coercion. That coercion
@@ -125,29 +129,31 @@ export unify_type_param :: fn(
                 // unified with `T` *here* or the type param stays unbound — the
                 // callee then infers `Iterator<T>` (T3008 downstream) and the
                 // generic body is never specialised. Bind `T = element`.
-                is ArrayType as aa -> {
-                    if pt.symbol.name == TRAIT_ITERATOR && pt.args.len() == 1 {
-                        unify_type_param(pt.args[0], aa.element, out)
+                is ArrayType -> {
+                    if param_type.symbol.name == TRAIT_ITERATOR && param_type.args.len() == 1 {
+                        unify_type_param(param_type.args[0], arg_type.element, out)
                     }
                 }
                 _ -> {}
             }
             return
         }
-        is FnType as pf -> {
+        is FnType -> {
             match arg_type {
-                is FnType as af -> {
-                    n :: min(pf.params.len(), af.params.len())
-                    for i in 0..<n { unify_type_param(pf.params[i], af.params[i], out) }
-                    unify_type_param(pf.return_type, af.return_type, out)
+                is FnType -> {
+                    n :: min(param_type.params.len(), arg_type.params.len())
+                    for i in 0..<n {
+                        unify_type_param(param_type.params[i], arg_type.params[i], out)
+                    }
+                    unify_type_param(param_type.return_type, arg_type.return_type, out)
                 }
                 _ -> {}
             }
             return
         }
-        is UnionType as pu -> {
+        is UnionType -> {
             match arg_type {
-                is UnionType as au -> { unify_unions(pu, au, out) }
+                is UnionType -> { unify_unions(param_type, arg_type, out) }
                 _ -> {}
             }
             return
@@ -164,28 +170,28 @@ export type_contains_unresolved :: fn(t: Type) -> bool {
     // primitive variant carries nothing unresolved.
     @partial match t {
         is UnresolvedType -> { return true }
-        is ArrayType as a -> { return type_contains_unresolved(a.element) }
-        is TupleType as tu -> {
-            for el in tu.elements { if type_contains_unresolved(el) { return true } }
+        is ArrayType -> { return type_contains_unresolved(t.element) }
+        is TupleType -> {
+            for el in t.elements { if type_contains_unresolved(el) { return true } }
             return false
         }
-        is StructType as s -> {
-            for a in s.args { if type_contains_unresolved(a) { return true } }
+        is StructType -> {
+            for a in t.args { if type_contains_unresolved(a) { return true } }
             return false
         }
-        is TraitType as tr -> {
-            for a in tr.args { if type_contains_unresolved(a) { return true } }
+        is TraitType -> {
+            for a in t.args { if type_contains_unresolved(a) { return true } }
             return false
         }
-        is FnType as f -> {
-            for p in f.params { if type_contains_unresolved(p) { return true } }
-            return type_contains_unresolved(f.return_type)
+        is FnType -> {
+            for p in t.params { if type_contains_unresolved(p) { return true } }
+            return type_contains_unresolved(t.return_type)
         }
-        is UnionType as u -> {
-            for v in u.variants { if type_contains_unresolved(v) { return true } }
+        is UnionType -> {
+            for v in t.variants { if type_contains_unresolved(v) { return true } }
             return false
         }
-        is DistinctType as d -> { return type_contains_unresolved(d.backing) }
+        is DistinctType -> { return type_contains_unresolved(t.backing) }
         _ -> { return false }
     }
 }
@@ -198,19 +204,19 @@ export type_contains_type_param :: fn(t: Type) -> bool {
     // every scalar / primitive variant has no inner type → false.
     @partial match t {
         is TypeParamType -> { return true }
-        is ArrayType as a -> { return type_contains_type_param(a.element) }
-        is TupleType as tu -> {
-            for el in tu.elements { if type_contains_type_param(el) { return true } }
+        is ArrayType -> { return type_contains_type_param(t.element) }
+        is TupleType -> {
+            for el in t.elements { if type_contains_type_param(el) { return true } }
             return false
         }
-        is StructType as s -> { return any_contains(s.args) }
-        is TraitType as tr -> { return any_contains(tr.args) }
-        is FnType as f -> {
-            for p in f.params { if type_contains_type_param(p) { return true } }
-            return type_contains_type_param(f.return_type)
+        is StructType -> { return any_contains(t.args) }
+        is TraitType -> { return any_contains(t.args) }
+        is FnType -> {
+            for p in t.params { if type_contains_type_param(p) { return true } }
+            return type_contains_type_param(t.return_type)
         }
-        is UnionType as u -> {
-            for v in u.variants { if type_contains_type_param(v) { return true } }
+        is UnionType -> {
+            for v in t.variants { if type_contains_type_param(v) { return true } }
             return false
         }
         _ -> { return false }
@@ -275,18 +281,18 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     // @partial: only TypeParam and the composite variants can carry a binding to
     // substitute; every scalar / primitive variant is returned unchanged.
     @partial match t {
-        is TypeParamType as tp -> {
-            repl :: subst[tp.symbol.id] ?? return t
+        is TypeParamType -> {
+            repl :: subst[t.symbol.id] ?? return t
             return repl
         }
-        is ArrayType as a -> { return mk_array(substitute_map(a.element, subst), a.immutable) }
-        is TupleType as tu -> { return mk_tuple(substitute_each_map(tu.elements, subst), tu.immutable) }
-        is StructType as s -> { return mk_struct(s.symbol, substitute_each_map(s.args, subst), s.immutable) }
-        is TraitType as tr -> { return mk_trait(tr.symbol, substitute_each_map(tr.args, subst)) }
-        is FnType as f -> {
-            return mk_fn_like(f, substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
+        is ArrayType -> { return mk_array(substitute_map(t.element, subst), t.immutable) }
+        is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst), t.immutable) }
+        is StructType -> { return mk_struct(t.symbol, substitute_each_map(t.args, subst), t.immutable) }
+        is TraitType -> { return mk_trait(t.symbol, substitute_each_map(t.args, subst)) }
+        is FnType -> {
+            return mk_fn_like(t, substitute_each_map(t.params, subst), substitute_map(t.return_type, subst))
         }
-        is UnionType as u -> { return union_of(substitute_each_map(u.variants, subst)) }
+        is UnionType -> { return union_of(substitute_each_map(t.variants, subst)) }
         _ -> { return t }
     }
 }

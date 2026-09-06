@@ -36,17 +36,17 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
-        is null              -> { return completion_list([]) }
-        is DocIndex as index -> {
+        is null     -> { return completion_list([]) }
+        is DocIndex -> {
             line0 :: position_line(params)
             char0 :: position_character(params)
 
             // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
             // struct fields + impl methods, resolved through the typed cache.
-            dot :: member_context(index.line_index, line0, char0)
+            dot :: member_context(idx.line_index, line0, char0)
             if dot != null {
-                lead :: is_leading_dot(index.line_index, line0, dot)
-                skey :: dot_after_brace_or_comma(index.line_index, line0, dot)
+                lead :: is_leading_dot(idx.line_index, line0, dot)
+                skey :: dot_after_brace_or_comma(idx.line_index, line0, dot)
                 return member_completion(state, uri, line0, dot, lead, skey)
             }
 
@@ -63,13 +63,13 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
             // slice — see `decl_detail`.
             ctx :: detail_ctx(state, uri_to_path(uri))
 
-            for d in visible_decls(index, line, col) {
+            for d in visible_decls(idx, line, col) {
                 if seen[d.name] != null { continue }
                 seen[d.name] = true
                 items.push(completion_item(d.name, ci_kind(d.kind), decl_detail(d, ctx.decls, ctx.typed)))
             }
 
-            for imp in index.imports {
+            for imp in idx.imports {
                 if seen[imp.local_name] != null { continue }
                 seen[imp.local_name] = true
                 items.push(completion_item(imp.local_name, import_ci_kind(imp.local_name), "import \"${imp.module_path}\""))
@@ -77,7 +77,7 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 
             // Names a bare `import "p"` wildcard brings into scope — the index
             // records only the paths, so their exports are enumerated here.
-            append_wildcard_completions(state, uri_to_path(uri), index.wildcard_paths, seen, items)
+            append_wildcard_completions(state, uri_to_path(uri), idx.wildcard_paths, seen, items)
 
             for kw in KEYWORDS {
                 if seen[kw] != null { continue }

@@ -75,25 +75,25 @@ export observe :: fn(registry: InstanceRegistry!, t: Type) -> void {
 
 walk_type :: fn(registry: InstanceRegistry!, t: Type) -> void {
     match t {
-        is StructType as s -> {
-            if s.args.len() > 0 && all_concrete_enough(s.args) {
-                registry.add(s.symbol, s.args)
+        is StructType -> {
+            if t.args.len() > 0 && all_concrete_enough(t.args) {
+                registry.add(t.symbol, t.args)
             }
-            for arg in s.args { walk_type(registry, arg) }
+            for arg in t.args { walk_type(registry, arg) }
         }
         is EnumType -> {}
-        is TraitType as t2 -> {
-            if t2.args.len() > 0 && all_concrete_enough(t2.args) {
-                registry.add(t2.symbol, t2.args)
+        is TraitType -> {
+            if t.args.len() > 0 && all_concrete_enough(t.args) {
+                registry.add(t.symbol, t.args)
             }
-            for arg in t2.args { walk_type(registry, arg) }
+            for arg in t.args { walk_type(registry, arg) }
         }
-        is ArrayType as a -> { walk_type(registry, a.element) }
-        is TupleType as tu -> { for el in tu.elements { walk_type(registry, el) } }
-        is UnionType as u  -> { for v in u.variants { walk_type(registry, v) } }
-        is FnType as f -> {
-            for p in f.params { walk_type(registry, p) }
-            walk_type(registry, f.return_type)
+        is ArrayType -> { walk_type(registry, t.element) }
+        is TupleType -> { for el in t.elements { walk_type(registry, el) } }
+        is UnionType -> { for v in t.variants { walk_type(registry, v) } }
+        is FnType    -> {
+            for p in t.params { walk_type(registry, p) }
+            walk_type(registry, t.return_type)
         }
         _ -> {}
     }
@@ -145,19 +145,19 @@ export instance_args_key :: fn(args: Type[]) -> string {
 }
 
 canonical_type_key :: fn(t: Type) -> string = match t {
-    is PrimitiveType  as p  -> "P:${p.name}"
-    is StructType     as s  -> "S:${s.symbol.id}(${instance_args_key(s.args)})"
-    is EnumType       as e  -> "E:${e.symbol.id}"
+    is PrimitiveType -> "P:${t.name}"
+    is StructType    -> "S:${t.symbol.id}(${instance_args_key(t.args)})"
+    is EnumType      -> "E:${t.symbol.id}"
     // A distinct has no backend identity — its dedup key is the backing's, so a
     // display_key built from a distinct-bearing type reconciles with the
     // source-stripped instance entries (no separate slot, no name desync).
-    is DistinctType   as d  -> canonical_type_key(d.backing)
-    is TraitType      as r  -> "T:${r.symbol.id}(${instance_args_key(r.args)})"
-    is ArrayType      as a  -> "A:${canonical_type_key(a.element)}"
-    is TupleType      as tu -> "U:(${instance_args_key(tu.elements)})"
-    is FnType         as f  -> "F:(${instance_args_key(f.params)})->${canonical_type_key(f.return_type)}"
-    is TypeParamType  as p  -> "X:${p.symbol.id}"
-    is UnionType      as u  -> "N:(${instance_args_key(u.variants)})"
+    is DistinctType  -> canonical_type_key(t.backing)
+    is TraitType     -> "T:${t.symbol.id}(${instance_args_key(t.args)})"
+    is ArrayType     -> "A:${canonical_type_key(t.element)}"
+    is TupleType     -> "U:(${instance_args_key(t.elements)})"
+    is FnType        -> "F:(${instance_args_key(t.params)})->${canonical_type_key(t.return_type)}"
+    is TypeParamType -> "X:${t.symbol.id}"
+    is UnionType     -> "N:(${instance_args_key(t.variants)})"
     // Sentinel / metatype variants get a distinct constant key each — a single
     // shared `_ -> "?"` collapsed all of them, colliding e.g. Never with Any
     // and dropping the dedup distinction.

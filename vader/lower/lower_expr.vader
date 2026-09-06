@@ -46,19 +46,19 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
 export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
     type :: ctx.types.expr_type(expr)
     match expr {
-        is IntLitExpr     as e -> { return LoweredIntLit { .span = e.span, .type = default_if_free(type), .value = i64(e.value) } }
-        is FloatLitExpr   as e -> { return LoweredFloatLit { .span = e.span, .type = default_if_free(type), .value = e.value } }
-        is BoolLitExpr    as e -> { return LoweredBoolLit { .span = e.span, .type = TY_BOOL, .value = e.value } }
-        is NullLitExpr    as e -> { return LoweredNullLit { .span = e.span, .type = TY_NULL } }
-        is CharLitExpr    as e -> { return lower_char_lit(e, default_if_free(type)) }
-        is StringLitExpr  as e -> { return lower_string_lit(ctx, e, type) }
-        is IdentExpr      as e -> { return lower_ident(ctx, e, type) }
-        is CallExpr       as e -> { return lower_call(ctx, e, type) }
-        is FieldExpr      as e -> {
+        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = i64(expr.value) } }
+        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = default_if_free(type), .value = expr.value } }
+        is BoolLitExpr   -> { return LoweredBoolLit { .span = expr.span, .type = TY_BOOL, .value = expr.value } }
+        is NullLitExpr   -> { return LoweredNullLit { .span = expr.span, .type = TY_NULL } }
+        is CharLitExpr   -> { return lower_char_lit(expr, default_if_free(type)) }
+        is StringLitExpr -> { return lower_string_lit(ctx, expr, type) }
+        is IdentExpr     -> { return lower_ident(ctx, expr, type) }
+        is CallExpr      -> { return lower_call(ctx, expr, type) }
+        is FieldExpr     -> {
             // `Enum.Variant` — the target is the enum's type name in
             // value position. Lower to the variant's integer index
             // (matches `lower_dot_variant`'s context-resolved path).
-            enum_variant :: try_lower_enum_field(ctx, e, type)
+            enum_variant :: try_lower_enum_field(ctx, expr, type)
             if enum_variant != null { return enum_variant }
             // `alias.CONST` — a const reached through a namespace import
             // (`AST.UNASSIGNED_NODE_ID`). The `alias` ident is an ImportBinding,
@@ -66,26 +66,26 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             // bare const reference instead, else the `alias` ident is unresolved
             // and the enclosing expression (a struct literal `.id = AST.UNASSIGNED_
             // NODE_ID`, …) degrades to a drop.
-            ns_const :: try_lower_namespace_const(ctx, e, type)
+            ns_const :: try_lower_namespace_const(ctx, expr, type)
             if ns_const != null { return ns_const }
             // `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the
             // member fn symbol, mirroring the direct-ident fn-value path ; else
             // it degrades to a bogus field access on the import binding.
-            ns_fn_value :: try_lower_namespace_fn_value(ctx, e, type)
+            ns_fn_value :: try_lower_namespace_fn_value(ctx, expr, type)
             if ns_fn_value != null { return ns_fn_value }
             // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
             // struct whose slots are named `_0`, `_1`, … — rewrite the
             // numeric field so the dump shows `._0`.
-            field_name :: if e.is_numeric { "_${e.field}" } else { e.field }
+            field_name :: if expr.is_numeric { "_${expr.field}" } else { expr.field }
             // Union-typed receiver with a common field (every variant
             // carries `f` at the same offset+type) — emit a single cast
             // to the first variant, then a regular field access. The
             // boxed values share `ref` ValType so the cast is free at the
             // bytecode level.
-            target_type :: ctx.types.expr_type(e.target)
-            shortcut :: try_lower_common_union_field(ctx, e, type, target_type, field_name)
+            target_type :: ctx.types.expr_type(expr.target)
+            shortcut :: try_lower_common_union_field(ctx, expr, type, target_type, field_name)
             if shortcut != null { return shortcut }
-            lowered_target :: lower_expr(ctx, e.target)
+            lowered_target :: lower_expr(ctx, expr.target)
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
             // at lower time (typically via @comptime for substitution
@@ -98,28 +98,28 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             // `LoweredFieldAccess` over the re-materialised tuple lit
             // (`._0 :i32`). Only `@comptime`-substituted loop-var lits fold.
             if lowered_target is LoweredStructLit {
-                if !field_target_is_comptime_const(ctx, e.target) {
+                if !field_target_is_comptime_const(ctx, expr.target) {
                     for f in lowered_target.fields {
                         if f.name == field_name { return f.value }
                     }
                 }
             }
             return LoweredFieldAccess {
-                .span = e.span, .type = type,
+                .span = expr.span, .type = type,
                 .target = lowered_target, .field = field_name,
             }
         }
-        is IndexExpr      as e -> { return lower_index(ctx, e, type) }
-        is UnaryExpr      as e -> {
+        is IndexExpr -> { return lower_index(ctx, expr, type) }
+        is UnaryExpr -> {
             return LoweredUnary {
-                .span = e.span, .type = type,
-                .op = lower_unary_op(e.op),
-                .operand = lower_expr(ctx, e.operand),
+                .span = expr.span, .type = type,
+                .op = lower_unary_op(expr.op),
+                .operand = lower_expr(ctx, expr.operand),
             }
         }
-        is BinaryExpr     as e -> { return lower_binary(ctx, e, type) }
-        is NullCoalesceExpr as e -> { return lower_null_coalesce(ctx, e) }
-        is IfExpr         as e -> {
+        is BinaryExpr -> { return lower_binary(ctx, expr, type) }
+        is NullCoalesceExpr -> { return lower_null_coalesce(ctx, expr) }
+        is IfExpr -> {
             // ANF (async) : an `if`-EXPRESSION used as a value (non-void) whose
             // arms contain an `await` can't stay a leaf `let`-RHS — the block-
             // split never descends into it and the suspension is lost. Lift it
@@ -127,50 +127,52 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             // awaits split correctly. Void ifs (statements) go the normal path —
             // the block-split already descends `ExprStmt(LoweredIf)`.
             if ctx.in_async && !is_void(type) {
-                lowered :: lower_if(ctx, e, type)
-                lifted :: lift_value_if(ctx, lowered, type, e.span)
+                lowered :: lower_if(ctx, expr, type)
+                lifted :: lift_value_if(ctx, lowered, type, expr.span)
                 if lifted != null { return lifted }
                 return lowered
             }
-            return lower_if(ctx, e, type)
+            return lower_if(ctx, expr, type)
         }
-        is BlockExpr      as e -> { return lower_block(ctx, e, false, false) }
-        is StructLitExpr  as e -> { return lower_struct_lit(ctx, e, type) }
-        is SeqLitExpr     as e -> { return lower_seq_lit(ctx, e, type) }
-        is CastExpr       as e -> {
-            return LoweredCast { .span = e.span, .type = type, .value = lower_expr(ctx, e.value) }
+        is BlockExpr     -> { return lower_block(ctx, expr, false, false) }
+        is StructLitExpr -> { return lower_struct_lit(ctx, expr, type) }
+        is SeqLitExpr    -> { return lower_seq_lit(ctx, expr, type) }
+        is CastExpr      -> {
+            return LoweredCast {
+                .span = expr.span, .type = type, .value = lower_expr(ctx, expr.value),
+            }
         }
-        is IntrinsicCallExpr as e -> { return lower_intrinsic(ctx, e, type) }
+        is IntrinsicCallExpr -> { return lower_intrinsic(ctx, expr, type) }
         // Match / try / lambda / range / for-in are deferred to phases
         // 4 / 5. Until then, emit an unreachable so the dump shape is
         // consistent and downstream phases can spot the gap.
-        is MatchExpr     as e -> { return lower_match(ctx, e, type, lower_expr) }
-        is AwaitExpr as e -> {
+        is MatchExpr -> { return lower_match(ctx, expr, type, lower_expr) }
+        is AwaitExpr -> {
             // ANF (async only) : hoist `await e` to a `LoweredAwait` statement
             // on the pending sink, yield an ident to its bound target. Drained
             // into statement position by `lower_block`. A non-async context is a
             // T3064 typecheck error already reported ; trap if one still reaches.
             if !ctx.in_async {
                 return LoweredUnreachable {
-                    .span = e.span, .type = type, .reason = "await outside an async coroutine", .trap = true,
+                    .span = expr.span, .type = type, .reason = "await outside an async coroutine", .trap = true,
                 }
             }
-            awaited :: lower_expr(ctx, e.inner)
+            awaited :: lower_expr(ctx, expr.inner)
             target :: fresh_synthetic_symbol(ctx, "await")
             ctx.pending_awaits.push(LoweredAwait {
-                .span = e.span, .target = target, .target_type = type, .awaited = awaited,
+                .span = expr.span, .target = target, .target_type = type, .awaited = awaited,
             })
-            return LoweredIdent { .span = e.span, .type = type, .symbol = target }
+            return LoweredIdent { .span = expr.span, .type = type, .symbol = target }
         }
-        is LambdaExpr    as e -> { return lower_lambda(ctx, e, lower_block) }
-        is RangeExpr     as e -> { return lower_range_expr(ctx, e, type, lower_expr) }
-        is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
-        is DotVariantExpr   as e -> { return lower_dot_variant(ctx, e, type) }
+        is LambdaExpr -> { return lower_lambda(ctx, expr, lower_block) }
+        is RangeExpr -> { return lower_range_expr(ctx, expr, type, lower_expr) }
+        is GenericInstExpr -> { return stub(expr.span, type, "generic-inst expression not lowered") }
+        is DotVariantExpr -> { return lower_dot_variant(ctx, expr, type) }
         // Type-position expressions in value position — earlier phases
         // emit T3035 ; the lowerer just emits a stub.
-        is FnTypeExpr    as e -> { return stub(e.span, type, "type-valued slot not lowered") }
-        is ArrayTypeExpr as e -> { return stub(e.span, type, "type-valued slot not lowered") }
-        is MutableTypeExpr as e -> { return stub(e.span, type, "type-valued slot not lowered") }
+        is FnTypeExpr -> { return stub(expr.span, type, "type-valued slot not lowered") }
+        is ArrayTypeExpr -> { return stub(expr.span, type, "type-valued slot not lowered") }
+        is MutableTypeExpr -> { return stub(expr.span, type, "type-valued slot not lowered") }
     }
 }
 
@@ -212,7 +214,7 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             }
             return stub(ident.span, type, "unresolved ident ${ident.name}")
         }
-        is Symbol as resolved -> {
+        is Symbol -> {
             // `@comptime for x in arr { ... }` substitution : every
             // reference to the loop var inside the unrolled body
             // resolves to the per-iter literal. Checked before the
@@ -222,14 +224,14 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             // every fn that doesn't use `@comptime for`, so skip the
             // hash probe in the 99% case. Per-ident hot path.
             if !ctx.comptime_bindings.is_empty() {
-                comptime_val :: ctx.comptime_bindings[resolved.id]
+                comptime_val :: ctx.comptime_bindings[symbol.id]
                 if !(comptime_val is null) { return comptime_val }
             }
             // TypeMeta-typed ident in value position — reify the
             // underlying Type so the bytecode emit can lower it to
             // `type.const N`.
             if type is TypeMetaType {
-                meta :: resolve_type_meta_symbol(ctx, resolved)
+                meta :: resolve_type_meta_symbol(ctx, symbol)
                 if !(meta is null) {
                     return LoweredTypeConst {
                         .span = ident.span, .type = type, .value = arg_ty_or_unresolved(meta),
@@ -239,15 +241,15 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             // When we're lowering inside a lifted lambda body, captured
             // outer symbols don't have a local slot — read them off the
             // env-struct param via `env.cap_N`.
-            via_env :: try_route_through_env(ctx, resolved, ident.span, type)
+            via_env :: try_route_through_env(ctx, symbol, ident.span, type)
             if via_env != null { return via_env }
             // Local captured by an inner lambda : the slot stores a cell
             // ref, the value lives behind a `LoweredCellGet`.
-            if ctx.project.closures.captured_symbols.contains(resolved.id) {
+            if ctx.project.closures.captured_symbols.contains(symbol.id) {
                 cell_ref :: LoweredIdent {
-                    .span = ident.span, .type = type, .symbol = resolved,
+                    .span = ident.span, .type = type, .symbol = symbol,
                 }
-                return cell_value(ctx, resolved, cell_ref, ident.span, type)
+                return cell_value(ctx, symbol, cell_ref, ident.span, type)
             }
             // Scalar const inlining : when a `const` decl carries a
             // comptime-baked scalar (int / float / bool / char / string /
@@ -256,20 +258,20 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             // data-pool / fn-wrap routing for byte-parity. Also covers
             // param / import-binding symbols when the resolver chained the
             // ident to the original const symbol via aliasing.
-            folded :: fold_const_symbol(ctx, resolved, type, ident.span)
+            folded :: fold_const_symbol(ctx, symbol, type, ident.span)
             if folded != null { return folded }
             // Match-arm narrowing : the slot stores the declared union
             // (e.g. `Error | string`), the typed-AST narrows this use to a
             // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
             // dump and the runtime unbox via the variant layout instead of
             // the union slot.
-            declared :: declared_type_of_symbol(ctx, resolved)
+            declared :: declared_type_of_symbol(ctx, symbol)
             if declared is UnionType {
                 if !equals_type(declared, type) {
                     return LoweredCast {
                         .span = ident.span, .type = type,
                         .value = LoweredIdent {
-                            .span = ident.span, .type = declared, .symbol = resolved,
+                            .span = ident.span, .type = declared, .symbol = symbol,
                         },
                     }
                 }
@@ -277,7 +279,7 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             // Named import-binding redirect : `import "p" { foo as bar }`
             // means every `bar` reference dumps with the target's
             // identity.
-            final_sym :: follow_import_binding(ctx, resolved)
+            final_sym :: follow_import_binding(ctx, symbol)
             // A fn used as a VALUE (passed as a `fn(...)` arg, stored, etc.)
             // lowers to a `FnRef`. If it's a non-generic stdlib free fn,
             // harvest it so `materialize_nongeneric_imported_fns` emits its body —
@@ -390,8 +392,8 @@ is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     // literal, so no dependency on another unbaked const), so a const like
     // `UNASSIGNED_NODE_ID :: usize(0)` resolves at its use sites in imported
     // bodies instead of degrading to an unresolved ident.
-    is CallExpr as c -> is_numeric_conversion_of_literal(c)
-    _                -> false
+    is CallExpr -> is_numeric_conversion_of_literal(e)
+    _           -> false
 }
 
 is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
@@ -405,30 +407,30 @@ is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
 /// values (arrays, structs) recurse field-by-field.
 export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
     match v {
-        is IntValue    as iv -> { return LoweredIntLit { .span = span, .type = type_hint, .value = iv.value } }
-        is FloatValue  as fv -> { return LoweredFloatLit { .span = span, .type = type_hint, .value = fv.value } }
-        is BoolValue   as bv -> { return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = bv.value } }
-        is CharValue   as cv -> { return LoweredCharLit { .span = span, .type = mk_primitive("char"), .value = cv.value } }
-        is StringValue as sv -> { return LoweredStringLit { .span = span, .type = TY_STRING, .value = sv.value } }
-        is NullValue         -> { return LoweredNullLit { .span = span, .type = TY_NULL } }
-        is VoidValue         -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
-        is ArrayValue as av -> {
+        is IntValue    -> { return LoweredIntLit { .span = span, .type = type_hint, .value = v.value } }
+        is FloatValue  -> { return LoweredFloatLit { .span = span, .type = type_hint, .value = v.value } }
+        is BoolValue   -> { return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = v.value } }
+        is CharValue   -> { return LoweredCharLit { .span = span, .type = mk_primitive("char"), .value = v.value } }
+        is StringValue -> { return LoweredStringLit { .span = span, .type = TY_STRING, .value = v.value } }
+        is NullValue   -> { return LoweredNullLit { .span = span, .type = TY_NULL } }
+        is VoidValue   -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
+        is ArrayValue  -> {
             element_type :: array_element_type(type_hint)
             elements: LoweredExpr[]! = []
-            for e in av.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
+            for e in v.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
-        is StructValue as sv -> {
+        is StructValue -> {
             // `sv.fields.keys()` iterates in MutableMap hash-bucket
             // order, which doesn't match the field declaration order
             // tuples / structs rely on for dump parity. Sort the
             // names alphabetically — for tuples (`_0`, `_1`, `_2`)
             // that matches the positional order ; for named structs
             // the same ordering keeps the dump stable.
-            sorted_names :: sort(sv.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
+            sorted_names :: sort(v.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
             fields: LoweredStructLitField![]! = []
             for name in sorted_names {
-                val :: sv.fields[name]
+                val :: v.fields[name]
                 if val !is null {
                     fields.push(LoweredStructLitField {
                         .name = name,
@@ -563,7 +565,7 @@ try_route_through_env :: fn(
     field_name :: lifted.capture_fields[symbol.id]
     match field_name {
         is null -> { return null }
-        is string as name -> {
+        is string -> {
             env_ident :: LoweredIdent {
                 .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
             }
@@ -572,7 +574,7 @@ try_route_through_env :: fn(
             // bytecode emit doesn't synthesise a primitive-typed
             // `ref.cast` over what is in fact an opaque cell pointer.
             cell_ref :: LoweredFieldAccess {
-                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = name,
+                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = field_name,
             }
             // The env-struct slot holds a cell ref ; unwrap via
             // `LoweredCellGet` to materialise the value.
@@ -612,8 +614,8 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx!, e: NullCoalesceExpr) -> LoweredExpr 
 // Then-branch block for a `??` : the fallback value wrapped in a block, or the
 // lowered divergent statement followed by a provably-dead `unreachable`.
 lower_coalesce_fallback :: fn(ctx: FnLowerCtx!, f: CoalesceFallback, result: Type) -> LoweredBlock = match f {
-    is ReturnStmt | BreakStmt | ContinueStmt as s -> coalesce_diverge_block(ctx, s, result)
-    is Expr as fe -> wrap_block(fe.span, lower_expr(ctx, fe))
+    is ReturnStmt | BreakStmt | ContinueStmt -> coalesce_diverge_block(ctx, f, result)
+    is Expr -> wrap_block(f.span, lower_expr(ctx, f))
 }
 
 coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> LoweredBlock {
@@ -774,14 +776,14 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
 lower_if_else :: fn(ctx: FnLowerCtx!, branch: IfElse | null) -> LoweredBlock | null {
     match branch {
         is null -> { return null }
-        is IfElseIf as if_else_if -> {
-            chained :: lower_if(ctx, if_else_if.branch, ctx.types.expr_type(if_else_if.branch))
+        is IfElseIf -> {
+            chained :: lower_if(ctx, branch.branch, ctx.types.expr_type(branch.branch))
             return LoweredBlock {
-                .span = if_else_if.branch.span, .type = type_of(chained),
+                .span = branch.branch.span, .type = type_of(chained),
                 .stmts = [], .trailing = chained,
             }
         }
-        is IfElseBlock as if_else_block -> { return lower_block(ctx, if_else_block.block, false, false) }
+        is IfElseBlock -> { return lower_block(ctx, branch.block, false, false) }
     }
 }
 

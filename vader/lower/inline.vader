@@ -174,93 +174,93 @@ collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx!) -> void {
     // inlineable single expression (see `CollectCtx.has_stmt`).
     ctx.has_stmt = true
     match s {
-        is LoweredLet as st -> { collect_expr(st.value, ctx) }
-        is LoweredAssign as st -> {
-            collect_expr(st.target, ctx)
-            collect_expr(st.value, ctx)
+        is LoweredLet -> { collect_expr(s.value, ctx) }
+        is LoweredAssign -> {
+            collect_expr(s.target, ctx)
+            collect_expr(s.value, ctx)
         }
-        is LoweredCellSet as st -> {
-            collect_expr(st.target, ctx)
-            collect_expr(st.value, ctx)
+        is LoweredCellSet -> {
+            collect_expr(s.target, ctx)
+            collect_expr(s.value, ctx)
         }
-        is LoweredExprStmt as st -> { collect_expr(st.expr, ctx) }
-        is LoweredReturn as st -> {
-            v :: st.value
+        is LoweredExprStmt -> { collect_expr(s.expr, ctx) }
+        is LoweredReturn -> {
+            v :: s.value
             if v != null { collect_expr(v, ctx) }
         }
-        is LoweredYield as st -> { collect_expr(st.value, ctx) }
-        is LoweredAwait as st -> { collect_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> {
-            c :: st.cond
+        is LoweredYield -> { collect_expr(s.value, ctx) }
+        is LoweredAwait -> { collect_expr(s.awaited, ctx) }
+        is LoweredLoop -> {
+            c :: s.cond
             if c != null { collect_expr(c, ctx) }
-            collect_block(st.body, ctx)
+            collect_block(s.body, ctx)
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
-        is LoweredDeferPush as st -> { collect_expr(st.thunk, ctx) }
+        is LoweredDeferPush -> { collect_expr(s.thunk, ctx) }
         is LoweredDeferPopExec -> {}
     }
 }
 
 collect_expr :: fn(e: LoweredExpr, ctx: CollectCtx!) -> void {
     match e {
-        is LoweredIdent as id -> {
-            if ctx.param_ids.contains(id.symbol.id) {
-                prev :: ctx.counts[id.symbol.id]
-                ctx.counts[id.symbol.id] = if prev == null { 1 } else { prev + 1 }
+        is LoweredIdent -> {
+            if ctx.param_ids.contains(e.symbol.id) {
+                prev :: ctx.counts[e.symbol.id]
+                ctx.counts[e.symbol.id] = if prev == null { 1 } else { prev + 1 }
             }
         }
-        is LoweredCall as c -> {
-            if c.callee is LoweredIdent as cid {
+        is LoweredCall -> {
+            if e.callee is LoweredIdent as cid {
                 if cid.symbol.name == ctx.self_mangle { ctx.self_call = true }
             }
-            collect_expr(c.callee, ctx)
-            for a in c.args { collect_expr(a, ctx) }
+            collect_expr(e.callee, ctx)
+            for a in e.args { collect_expr(a, ctx) }
         }
-        is LoweredVirtualCall as v -> {
-            collect_expr(v.receiver, ctx)
-            for a in v.args { collect_expr(a, ctx) }
+        is LoweredVirtualCall -> {
+            collect_expr(e.receiver, ctx)
+            for a in e.args { collect_expr(a, ctx) }
         }
-        is LoweredFieldAccess as fa -> { collect_expr(fa.target, ctx) }
-        is LoweredIndex as ix -> {
-            collect_expr(ix.target, ctx)
-            collect_expr(ix.index, ctx)
+        is LoweredFieldAccess -> { collect_expr(e.target, ctx) }
+        is LoweredIndex -> {
+            collect_expr(e.target, ctx)
+            collect_expr(e.index, ctx)
         }
-        is LoweredUnary as u -> { collect_expr(u.operand, ctx) }
-        is LoweredBinary as b -> {
-            collect_expr(b.left, ctx)
-            collect_expr(b.right, ctx)
+        is LoweredUnary -> { collect_expr(e.operand, ctx) }
+        is LoweredBinary -> {
+            collect_expr(e.left, ctx)
+            collect_expr(e.right, ctx)
         }
-        is LoweredIf as ie -> {
-            collect_expr(ie.cond, ctx)
-            collect_block(ie.then_block, ctx)
-            eb :: ie.else_block
+        is LoweredIf -> {
+            collect_expr(e.cond, ctx)
+            collect_block(e.then_block, ctx)
+            eb :: e.else_block
             if eb != null { collect_block(eb, ctx) }
         }
-        is LoweredBlock as bl -> { collect_block(bl, ctx) }
-        is LoweredStructLit as sl -> { for f in sl.fields { collect_expr(f.value, ctx) } }
-        is LoweredArrayLit as al -> { for el in al.elements { collect_expr(el, ctx) } }
-        is LoweredArrayLen as al -> { collect_expr(al.target, ctx) }
-        is LoweredArrayPush as ap -> {
-            collect_expr(ap.target, ctx)
-            collect_expr(ap.value, ctx)
+        is LoweredBlock -> { collect_block(e, ctx) }
+        is LoweredStructLit -> { for f in e.fields { collect_expr(f.value, ctx) } }
+        is LoweredArrayLit -> { for el in e.elements { collect_expr(el, ctx) } }
+        is LoweredArrayLen -> { collect_expr(e.target, ctx) }
+        is LoweredArrayPush -> {
+            collect_expr(e.target, ctx)
+            collect_expr(e.value, ctx)
         }
-        is LoweredArraySlice as asl -> {
-            collect_expr(asl.target, ctx)
-            collect_expr(asl.lo, ctx)
-            collect_expr(asl.hi, ctx)
+        is LoweredArraySlice -> {
+            collect_expr(e.target, ctx)
+            collect_expr(e.lo, ctx)
+            collect_expr(e.hi, ctx)
         }
-        is LoweredStringSlice as ssl -> {
-            collect_expr(ssl.target, ctx)
-            collect_expr(ssl.lo, ctx)
-            collect_expr(ssl.hi, ctx)
+        is LoweredStringSlice -> {
+            collect_expr(e.target, ctx)
+            collect_expr(e.lo, ctx)
+            collect_expr(e.hi, ctx)
         }
-        is LoweredCast as cs -> { collect_expr(cs.value, ctx) }
-        is LoweredTypeCheck as tc -> { collect_expr(tc.value, ctx) }
-        is LoweredIntrinsicCall as ic -> { for a in ic.args { collect_expr(a, ctx) } }
-        is LoweredCellNew as cn -> { collect_expr(cn.value, ctx) }
-        is LoweredCellGet as cg -> { collect_expr(cg.target, ctx) }
-        is LoweredMakeClosure as mc -> { collect_expr(mc.env, ctx) }
+        is LoweredCast -> { collect_expr(e.value, ctx) }
+        is LoweredTypeCheck -> { collect_expr(e.value, ctx) }
+        is LoweredIntrinsicCall -> { for a in e.args { collect_expr(a, ctx) } }
+        is LoweredCellNew -> { collect_expr(e.value, ctx) }
+        is LoweredCellGet -> { collect_expr(e.target, ctx) }
+        is LoweredMakeClosure -> { collect_expr(e.env, ctx) }
         is LoweredIntLit -> {}
         is LoweredFloatLit -> {}
         is LoweredBoolLit -> {}
@@ -289,136 +289,136 @@ transform_opt :: fn(e: LoweredExpr | null, ctx: TransformCtx) -> LoweredExpr | n
 
 transform_stmt :: fn(s: LoweredStmt, ctx: TransformCtx) -> LoweredStmt {
     match s {
-        is LoweredLet as st -> LoweredLet {
-            .span = st.span, .name = st.name, .symbol = st.symbol, .type = st.type,
-            .value = transform_expr(st.value, ctx),
+        is LoweredLet -> LoweredLet {
+            .span = s.span, .name = s.name, .symbol = s.symbol, .type = s.type,
+            .value = transform_expr(s.value, ctx),
         }
-        is LoweredAssign as st -> LoweredAssign {
-            .span = st.span, .target = transform_expr(st.target, ctx), .value = transform_expr(st.value, ctx),
+        is LoweredAssign -> LoweredAssign {
+            .span = s.span, .target = transform_expr(s.target, ctx), .value = transform_expr(s.value, ctx),
         }
-        is LoweredCellSet as st -> LoweredCellSet {
-            .span = st.span, .target = transform_expr(st.target, ctx),
-            .value = transform_expr(st.value, ctx), .value_type = st.value_type,
+        is LoweredCellSet -> LoweredCellSet {
+            .span = s.span, .target = transform_expr(s.target, ctx),
+            .value = transform_expr(s.value, ctx), .value_type = s.value_type,
         }
-        is LoweredExprStmt as st -> LoweredExprStmt { .span = st.span, .expr = transform_expr(st.expr, ctx) }
-        is LoweredReturn as st -> LoweredReturn { .span = st.span, .value = transform_opt(st.value, ctx) }
-        is LoweredYield as st -> LoweredYield { .span = st.span, .value = transform_expr(st.value, ctx) }
-        is LoweredAwait as st -> LoweredAwait { .span = st.span, .target = st.target, .target_type = st.target_type, .awaited = transform_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> LoweredLoop {
-            .span = st.span, .label = st.label, .cond = transform_opt(st.cond, ctx),
-            .body = transform_block(st.body, ctx),
+        is LoweredExprStmt -> LoweredExprStmt { .span = s.span, .expr = transform_expr(s.expr, ctx) }
+        is LoweredReturn -> LoweredReturn { .span = s.span, .value = transform_opt(s.value, ctx) }
+        is LoweredYield -> LoweredYield { .span = s.span, .value = transform_expr(s.value, ctx) }
+        is LoweredAwait -> LoweredAwait { .span = s.span, .target = s.target, .target_type = s.target_type, .awaited = transform_expr(s.awaited, ctx) }
+        is LoweredLoop -> LoweredLoop {
+            .span = s.span, .label = s.label, .cond = transform_opt(s.cond, ctx),
+            .body = transform_block(s.body, ctx),
         }
-        is LoweredBreak as st -> st
-        is LoweredContinue as st -> st
-        is LoweredDeferPush as st -> LoweredDeferPush { .span = st.span, .thunk = transform_expr(st.thunk, ctx) }
-        is LoweredDeferPopExec as st -> st
+        is LoweredBreak -> s
+        is LoweredContinue -> s
+        is LoweredDeferPush -> LoweredDeferPush { .span = s.span, .thunk = transform_expr(s.thunk, ctx) }
+        is LoweredDeferPopExec -> s
     }
 }
 
 transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
     match e {
-        is LoweredIdent as id -> {
+        is LoweredIdent -> {
             if !ctx.param_map.is_empty() {
-                sub :: ctx.param_map[id.symbol.id]
+                sub :: ctx.param_map[e.symbol.id]
                 if sub != null { return sub }
             }
-            return id
+            return e
         }
-        is LoweredCall as c -> {
-            new_callee :: transform_expr(c.callee, ctx)
+        is LoweredCall -> {
+            new_callee :: transform_expr(e.callee, ctx)
             new_args: LoweredExpr[]! = []
-            for a in c.args { new_args.push(transform_expr(a, ctx)) }
+            for a in e.args { new_args.push(transform_expr(a, ctx)) }
             // Inline when the (original) callee names an inlineable single-expr fn.
-            if c.callee is LoweredIdent as cid {
+            if e.callee is LoweredIdent as cid {
                 info :: ctx.index[cid.symbol.name]
                 if info != null && ctx.depth < INLINE_DEPTH_CAP {
                     inlined :: inline_call(info, new_args, ctx)
                     if inlined != null { return inlined }
                 }
             }
-            return LoweredCall { .span = c.span, .type = c.type, .callee = new_callee, .args = new_args }
+            return LoweredCall { .span = e.span, .type = e.type, .callee = new_callee, .args = new_args }
         }
-        is LoweredVirtualCall as v -> {
+        is LoweredVirtualCall -> {
             new_args: LoweredExpr[]! = []
-            for a in v.args { new_args.push(transform_expr(a, ctx)) }
+            for a in e.args { new_args.push(transform_expr(a, ctx)) }
             return LoweredVirtualCall {
-                .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method,
-                .receiver = transform_expr(v.receiver, ctx), .args = new_args,
+                .span = e.span, .type = e.type, .trait_name = e.trait_name, .method = e.method,
+                .receiver = transform_expr(e.receiver, ctx), .args = new_args,
             }
         }
-        is LoweredFieldAccess as fa -> LoweredFieldAccess {
-            .span = fa.span, .type = fa.type, .target = transform_expr(fa.target, ctx), .field = fa.field,
+        is LoweredFieldAccess -> LoweredFieldAccess {
+            .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx), .field = e.field,
         }
-        is LoweredIndex as ix -> LoweredIndex {
-            .span = ix.span, .type = ix.type,
-            .target = transform_expr(ix.target, ctx), .index = transform_expr(ix.index, ctx),
-            .bounds_safe = ix.bounds_safe, .bce_recheck = ix.bce_recheck,
+        is LoweredIndex -> LoweredIndex {
+            .span = e.span, .type = e.type,
+            .target = transform_expr(e.target, ctx), .index = transform_expr(e.index, ctx),
+            .bounds_safe = e.bounds_safe, .bce_recheck = e.bce_recheck,
         }
-        is LoweredUnary as u -> LoweredUnary {
-            .span = u.span, .type = u.type, .op = u.op, .operand = transform_expr(u.operand, ctx),
+        is LoweredUnary -> LoweredUnary {
+            .span = e.span, .type = e.type, .op = e.op, .operand = transform_expr(e.operand, ctx),
         }
-        is LoweredBinary as b -> LoweredBinary {
-            .span = b.span, .type = b.type, .op = b.op,
-            .left = transform_expr(b.left, ctx), .right = transform_expr(b.right, ctx),
+        is LoweredBinary -> LoweredBinary {
+            .span = e.span, .type = e.type, .op = e.op,
+            .left = transform_expr(e.left, ctx), .right = transform_expr(e.right, ctx),
         }
-        is LoweredIf as ie -> {
-            eb :: ie.else_block
+        is LoweredIf -> {
+            eb :: e.else_block
             new_else :: if eb == null { null } else { transform_block(eb, ctx) }
             return LoweredIf {
-                .span = ie.span, .type = ie.type, .cond = transform_expr(ie.cond, ctx),
-                .then_block = transform_block(ie.then_block, ctx), .else_block = new_else,
+                .span = e.span, .type = e.type, .cond = transform_expr(e.cond, ctx),
+                .then_block = transform_block(e.then_block, ctx), .else_block = new_else,
             }
         }
-        is LoweredBlock as bl -> transform_block(bl, ctx)
-        is LoweredStructLit as sl -> {
+        is LoweredBlock -> transform_block(e, ctx)
+        is LoweredStructLit -> {
             new_fields: LoweredStructLitField![]! = []
-            for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = transform_expr(f.value, ctx) }) }
-            return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
+            for f in e.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = transform_expr(f.value, ctx) }) }
+            return LoweredStructLit { .span = e.span, .type = e.type, .fields = new_fields }
         }
-        is LoweredArrayLit as al -> {
+        is LoweredArrayLit -> {
             new_elements: LoweredExpr[]! = []
-            for el in al.elements { new_elements.push(transform_expr(el, ctx)) }
-            return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
+            for el in e.elements { new_elements.push(transform_expr(el, ctx)) }
+            return LoweredArrayLit { .span = e.span, .type = e.type, .elements = new_elements }
         }
-        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = transform_expr(al.target, ctx), .resolve_buf = al.resolve_buf, .bce_recheck = al.bce_recheck }
-        is LoweredArrayPush as ap -> LoweredArrayPush {
-            .span = ap.span, .type = ap.type, .target = transform_expr(ap.target, ctx), .value = transform_expr(ap.value, ctx),
+        is LoweredArrayLen -> LoweredArrayLen { .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx), .resolve_buf = e.resolve_buf, .bce_recheck = e.bce_recheck }
+        is LoweredArrayPush -> LoweredArrayPush {
+            .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx), .value = transform_expr(e.value, ctx),
         }
-        is LoweredArraySlice as asl -> LoweredArraySlice {
-            .span = asl.span, .type = asl.type, .target = transform_expr(asl.target, ctx),
-            .lo = transform_expr(asl.lo, ctx), .hi = transform_expr(asl.hi, ctx),
+        is LoweredArraySlice -> LoweredArraySlice {
+            .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx),
+            .lo = transform_expr(e.lo, ctx), .hi = transform_expr(e.hi, ctx),
         }
-        is LoweredStringSlice as ssl -> LoweredStringSlice {
-            .span = ssl.span, .type = ssl.type, .target = transform_expr(ssl.target, ctx),
-            .lo = transform_expr(ssl.lo, ctx), .hi = transform_expr(ssl.hi, ctx),
+        is LoweredStringSlice -> LoweredStringSlice {
+            .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx),
+            .lo = transform_expr(e.lo, ctx), .hi = transform_expr(e.hi, ctx),
         }
-        is LoweredCast as cs -> LoweredCast { .span = cs.span, .type = cs.type, .value = transform_expr(cs.value, ctx) }
-        is LoweredTypeCheck as tc -> LoweredTypeCheck {
-            .span = tc.span, .type = tc.type, .value = transform_expr(tc.value, ctx), .check_type = tc.check_type,
+        is LoweredCast -> LoweredCast { .span = e.span, .type = e.type, .value = transform_expr(e.value, ctx) }
+        is LoweredTypeCheck -> LoweredTypeCheck {
+            .span = e.span, .type = e.type, .value = transform_expr(e.value, ctx), .check_type = e.check_type,
         }
-        is LoweredIntrinsicCall as ic -> {
+        is LoweredIntrinsicCall -> {
             new_args: LoweredExpr[]! = []
-            for a in ic.args { new_args.push(transform_expr(a, ctx)) }
-            return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
+            for a in e.args { new_args.push(transform_expr(a, ctx)) }
+            return LoweredIntrinsicCall { .span = e.span, .type = e.type, .name = e.name, .args = new_args }
         }
-        is LoweredCellNew as cn -> LoweredCellNew {
-            .span = cn.span, .type = cn.type, .value = transform_expr(cn.value, ctx), .value_type = cn.value_type,
+        is LoweredCellNew -> LoweredCellNew {
+            .span = e.span, .type = e.type, .value = transform_expr(e.value, ctx), .value_type = e.value_type,
         }
-        is LoweredCellGet as cg -> LoweredCellGet {
-            .span = cg.span, .type = cg.type, .target = transform_expr(cg.target, ctx), .value_type = cg.value_type,
+        is LoweredCellGet -> LoweredCellGet {
+            .span = e.span, .type = e.type, .target = transform_expr(e.target, ctx), .value_type = e.value_type,
         }
-        is LoweredMakeClosure as mc -> LoweredMakeClosure {
-            .span = mc.span, .type = mc.type, .fn_symbol = mc.fn_symbol, .env = transform_expr(mc.env, ctx),
+        is LoweredMakeClosure -> LoweredMakeClosure {
+            .span = e.span, .type = e.type, .fn_symbol = e.fn_symbol, .env = transform_expr(e.env, ctx),
         }
-        is LoweredIntLit as l -> l
-        is LoweredFloatLit as l -> l
-        is LoweredBoolLit as l -> l
-        is LoweredNullLit as l -> l
-        is LoweredCharLit as l -> l
-        is LoweredStringLit as l -> l
-        is LoweredDataConst as l -> l
-        is LoweredTypeConst as l -> l
-        is LoweredUnreachable as l -> l
+        is LoweredIntLit -> e
+        is LoweredFloatLit -> e
+        is LoweredBoolLit -> e
+        is LoweredNullLit -> e
+        is LoweredCharLit -> e
+        is LoweredStringLit -> e
+        is LoweredDataConst -> e
+        is LoweredTypeConst -> e
+        is LoweredUnreachable -> e
     }
 }
 

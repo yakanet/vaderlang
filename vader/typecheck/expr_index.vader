@@ -77,8 +77,9 @@ export infer_index :: fn(
     // @partial: structs index by their Index impl; the string case is handled
     // above, and every other type kind is not indexable.
     @partial match target {
-        is StructType as st -> {
-            result_ty :: resolve_index_param(st, typed.index_target_types[st.symbol.name], typed)
+        is StructType -> {
+            declared :: typed.index_target_types[target.symbol.name]
+            result_ty :: resolve_index_param(target, declared, typed)
             if result_ty == null {
                 diags.push(typecheck_error(.NotIndexable, e.span,
                     "${display_type(target)} is not indexable"))

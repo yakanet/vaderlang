@@ -24,9 +24,9 @@ lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type
         baked :: lookup_file_baked(ctx, intrinsic)
         match baked {
             is null -> {}
-            is string as text -> {
+            is string -> {
                 return LoweredStringLit {
-                    .span = intrinsic.span, .type = TY_STRING, .value = text,
+                    .span = intrinsic.span, .type = TY_STRING, .value = baked,
                 }
             }
         }
@@ -422,7 +422,7 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
             v :: ctx.project.comptime_value_by_symbol_id[sym.id]
             match v {
                 is null -> {}
-                is TypeValue as tv -> { return tv.value }
+                is TypeValue -> { return v.value }
                 _ -> {}
             }
         }
@@ -436,7 +436,7 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
 // Type kind.
 kind_string_of_type :: fn(t: Type) -> string = match t {
     is PrimitiveType  -> "primitive"
-    is DistinctType as d -> kind_string_of_type(d.backing)
+    is DistinctType   -> kind_string_of_type(t.backing)
     is StructType     -> "struct"
     is EnumType       -> "enum"
     is UnionType      -> "union"

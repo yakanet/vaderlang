@@ -124,12 +124,12 @@ any_leaves_of :: fn(t: Type) -> Type {
 /// mangled name.
 // @partial: only arg-bearing / composite type shapes render a suffix; every other type → "Any".
 display_any_arg :: fn(t: Type) -> string = @partial match t {
-    is StructType as s -> if s.args.is_empty() { s.symbol.name } else { joined_named(s.symbol.name, s.args, "_") }
-    is TraitType  as t -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
-    is ArrayType  as a -> "${display_any_arg(a.element)}_arr"
-    is UnionType  as u -> joined_unnamed(u.variants, "__")
-    is TupleType  as t -> joined_named("Tup", t.elements, "_")
-    _                  -> "Any"
+    is StructType -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
+    is TraitType  -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
+    is ArrayType  -> "${display_any_arg(t.element)}_arr"
+    is UnionType  -> joined_unnamed(t.variants, "__")
+    is TupleType  -> joined_named("Tup", t.elements, "_")
+    _             -> "Any"
 }
 
 joined_named :: fn(name: string, args: Type[], sep: string) -> string {
@@ -269,7 +269,7 @@ build_struct_subst :: fn(decl: StructDecl, args: Type[], typed: TypedProgram) ->
         bound :: find_type_param_in_resolved(typed.resolved, tp_name, tp_span)
         match bound {
             is null -> {}
-            is Symbol as s -> { subst.type_params[s.id] = args[i] }
+            is Symbol -> { subst.type_params[bound.id] = args[i] }
         }
     }
     return subst
@@ -436,7 +436,7 @@ type_expr_simple_name :: fn(e: TypeExpr) -> string {
 find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null {
     for d in decls {
         match d {
-            is StructDecl as sd -> { if sd.name == name { return sd } }
+            is StructDecl -> { if d.name == name { return d } }
             _ -> {}
         }
     }

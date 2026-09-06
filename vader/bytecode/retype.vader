@@ -189,29 +189,29 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
     // No type index to rewrite — a primitive names itself, and an opaque ref
     // carries only a trait name.
     is BcPrimitive | BcRef -> t
-    is BcStruct as s -> {
+    is BcStruct -> {
         fields: BcField[]! = []
-        for f in s.fields {
+        for f in t.fields {
             fields.push(BcField {
                 .name = f.name, .type_index = remap_idx(remap, f.type_index),
             })
         }
-        BcStruct { .name = s.name, .fields = fields, .c_name = s.c_name, .symbol_id = s.symbol_id }
+        BcStruct { .name = t.name, .fields = fields, .c_name = t.c_name, .symbol_id = t.symbol_id }
     }
-    is BcArray as a -> BcArray { .element = remap_idx(remap, a.element) }
-    is BcUnion as u -> {
+    is BcArray -> BcArray { .element = remap_idx(remap, t.element) }
+    is BcUnion -> {
         vs: i32[]! = []
-        for v in u.variants {
+        for v in t.variants {
             vs.push(remap_idx(remap, v))
         }
         BcUnion { .variants = vs }
     }
-    is BcFn as f -> {
+    is BcFn -> {
         ps: i32[]! = []
-        for p in f.params {
+        for p in t.params {
             ps.push(remap_idx(remap, p))
         }
-        BcFn { .params = ps, .return_type = remap_idx(remap, f.return_type) }
+        BcFn { .params = ps, .return_type = remap_idx(remap, t.return_type) }
     }
 }
 

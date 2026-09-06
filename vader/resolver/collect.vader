@@ -185,15 +185,15 @@ collect_decl :: fn(
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> void {
     match d {
-        is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, paths, diags) }
-        is FnDecl        as x -> { self.add_fn(x, module_path, module_name, factory, diags) }
-        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
-        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
-        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
-        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
-        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, module_name, factory, diags) }
-        is ImplDecl  -> {}   // contributes methods to a type, not new top-level names
-        is AssertDecl -> {}  // @assert doesn't introduce a name
+        is ImportDecl    -> { self.collect_import(d, module_path, module_name, factory, index, paths, diags) }
+        is FnDecl        -> { self.add_fn(d, module_path, module_name, factory, diags) }
+        is StructDecl    -> { self.add_named(.Struct,    d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
+        is EnumDecl      -> { self.add_named(.Enum,      d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
+        is TraitDecl     -> { self.add_named(.Trait,     d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
+        is TypeAliasDecl -> { self.add_named(.TypeAlias, d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
+        is ConstDecl     -> { self.add_named(.Const,     d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
+        is ImplDecl      -> {}   // contributes methods to a type, not new top-level names
+        is AssertDecl    -> {}  // @assert doesn't introduce a name
     }
 }
 
@@ -236,10 +236,10 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
 
     match existing {
         is null -> { self.symbols[d.name] = sym }
-        is Symbol as e -> {
+        is Symbol -> {
             // Local fn coexisting with a same-named import : local takes
             // the primary slot so unqualified refs resolve to it.
-            if e.kind == SymbolKind.ImportBinding {
+            if existing.kind == SymbolKind.ImportBinding {
                 self.symbols[d.name] = sym
             }
             // For two fn decls with the same name, the FIRST wins as primary.
@@ -290,9 +290,9 @@ collect_import :: fn(
     }
     b :: d.binding
     match b {
-        is NamedNamespaceImport as ns -> {
+        is NamedNamespaceImport -> {
             // `name :: import "p"` — namespace binding ; imported_name = null.
-            self.bind_import(ns.name, d.span, d.path, null, module_path, factory, diags)
+            self.bind_import(b.name, d.span, d.path, null, module_path, factory, diags)
         }
         is WildcardImport -> {
             // bare `import "p"` — wildcard : record the path so the resolver
@@ -300,18 +300,18 @@ collect_import :: fn(
             // binding (the path is also in `import_paths` above).
             self.wildcards[0].paths.push(d.path)
         }
-        is DestructureImport as de -> {
+        is DestructureImport -> {
             // `import "p" { … }` — WILDCARD of p PLUS per-name modifiers:
             //   `x as _` excludes x ; `x as y` excludes x under its own name and
             //   binds it as y. A plain name (no `as`) is an error — the wildcard
             //   already brings every export.
             self.wildcards[0].paths.push(d.path)
             // `import "p" {}` — an empty modifier list is just the bare wildcard.
-            if de.names.len() == 0 {
+            if b.names.len() == 0 {
                 diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
             }
             excluded: string[]! = []
-            for n in de.names {
+            for n in b.names {
                 match n.alias {
                     is null -> {
                         diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
@@ -340,19 +340,19 @@ bind_import :: fn(
 ) -> void {
     existing :: self.symbols[local]
     match existing {
-        is Symbol as e -> {
-            if e.kind == SymbolKind.ImportBinding {
+        is Symbol -> {
+            if existing.kind == SymbolKind.ImportBinding {
                 // Import↔import : silent only for a TRUE re-import — identical
                 // source (same path AND same imported name), e.g. the same name
                 // imported twice or a duplicated wildcard path. A DIFFERENT source
                 // binding the same local name (two modules' `foo`, or a destructure
                 // shadowing a namespace alias) is a genuine collision: R2011, no
                 // silent first-wins (SPEC §Imports).
-                prev :: self.imports[e.id]
+                prev :: self.imports[existing.id]
                 if prev != null && !(prev.path == import_path && names_equal(prev.imported_name, imported_name)) {
                     diags.push(resolver_error(.DuplicateImportBinding, span, "`${local}`"))
                 }
-            } else if e.kind == SymbolKind.Fn {
+            } else if existing.kind == SymbolKind.Fn {
                 // fn↔import : coexist (order-independent with `add_fn`). The
                 // import may be a free-fn overload of the local fn — a different
                 // signature dispatched by receiver type via UFCS ; a genuine
@@ -458,7 +458,7 @@ diagnose_import_path :: fn(
     if index.is_empty() { return null }
     target :: index[raw_path]
     match target {
-        is DiscoveredModule as dm -> { return dm.folder }
+        is DiscoveredModule -> { return target.folder }
         is null -> {
             // A folder at `raw_path`'s canonical location declaring a different
             // module is the actionable case : surface the misplacement rather
@@ -490,16 +490,18 @@ main :: fn() -> i32 { return 0 }
     collected :: collect_module_no_index(parsed.program, "test", factory)
     greet :: collected.symbols["greet"]
     match greet {
-        is Symbol as s -> {
-            assert_eq(s.name, "greet")
-            assert(s.visibility == Visibility.Public, "exported fn should be public")
+        is Symbol -> {
+            assert_eq(greet.name, "greet")
+            assert(greet.visibility == Visibility.Public, "exported fn should be public")
         }
         is null -> { assert(false, "greet should be collected") }
     }
     main_sym :: collected.symbols["main"]
     match main_sym {
-        is Symbol as s -> { assert(s.visibility == Visibility.Public, "main is implicitly public") }
-        is null        -> { assert(false, "main should be collected") }
+        is Symbol -> {
+            assert(main_sym.visibility == Visibility.Public, "main is implicitly public")
+        }
+        is null   -> { assert(false, "main should be collected") }
     }
 }
 
@@ -522,8 +524,8 @@ import "x" { keep as kept, drop as _ }
     // The rename `keep as kept` binds `kept` as an import-binding.
     kept :: collected.symbols["kept"]
     match kept {
-        is Symbol as s -> { assert(s.kind == SymbolKind.ImportBinding, "rename binds an import-binding") }
-        is null        -> { assert(false, "kept should be a rename binding") }
+        is Symbol -> { assert(kept.kind == SymbolKind.ImportBinding, "rename binds an import-binding") }
+        is null   -> { assert(false, "kept should be a rename binding") }
     }
     // The pure exclusion `drop as _` binds nothing.
     assert(collected.symbols["drop"] == null, "`drop as _` binds no name")

@@ -87,8 +87,8 @@ lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null
     // recovery would need a second-pass field-resolution table. Out of scope
     // for this MVP, so those callees yield no signature.
     @partial match callee {
-        is AST.IdentExpr as id -> {
-            sym :: typed.resolved.idents[id.span.hash()] ?? return null
+        is AST.IdentExpr -> {
+            sym :: typed.resolved.idents[callee.span.hash()] ?? return null
             return typed.fn_decls[sym.id]
         }
         _ -> { return null }
@@ -120,35 +120,35 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
     // expression form a parser might surface in type position falls back to
     // "?" so the caller still gets a label instead of failing.
     @partial match e {
-        is AST.IdentExpr as id -> { return id.name }
-        is AST.GenericInstExpr as g -> {
-            base :: render_type_expr(g.callee)
+        is AST.IdentExpr -> { return e.name }
+        is AST.GenericInstExpr -> {
+            base :: render_type_expr(e.callee)
             args := ""
             first := true
-            for a in g.type_args {
+            for a in e.type_args {
                 if !first { args = args + ", " }
                 first = false
                 args = args + render_type_expr(a)
             }
             return "${base}<${args}>"
         }
-        is AST.ArrayTypeExpr as a -> { return "${render_type_expr(a.element)}[]" }
-        is AST.FnTypeExpr as f -> {
+        is AST.ArrayTypeExpr -> { return "${render_type_expr(e.element)}[]" }
+        is AST.FnTypeExpr -> {
             ps := ""
             first := true
-            for p in f.params {
+            for p in e.params {
                 if !first { ps = ps + ", " }
                 first = false
                 ps = ps + render_type_expr(p)
             }
             ret := ""
-            if f.return_type !is null {
-                ret = " -> " + render_type_expr(f.return_type)
+            if e.return_type !is null {
+                ret = " -> " + render_type_expr(e.return_type)
             }
             return "fn(${ps})${ret}"
         }
-        is AST.BinaryExpr as b -> {
-            return "${render_type_expr(b.left)} | ${render_type_expr(b.right)}"
+        is AST.BinaryExpr -> {
+            return "${render_type_expr(e.left)} | ${render_type_expr(e.right)}"
         }
         is AST.NullLitExpr -> { return "null" }
         // Fallback for unsupported shapes — caller sees the label,

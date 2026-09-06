@@ -664,51 +664,51 @@ export substitute_by_name :: fn(
     // @partial: only TypeParam and the composite variants can carry a param to
     // rewrite; every scalar / primitive variant has no inner type → return as-is.
     @partial match t {
-        is TypeParamType as tp -> {
+        is TypeParamType -> {
             for i in 0..<min(tps.len(), args.len()) {
-                if tps[i].name == tp.symbol.name {
+                if tps[i].name == t.symbol.name {
                     return args[i]
                 }
             }
             return t
         }
-        is ArrayType as a -> {
-            return mk_array(substitute_by_name(a.element, tps, args), a.immutable)
+        is ArrayType -> {
+            return mk_array(substitute_by_name(t.element, tps, args), t.immutable)
         }
-        is TupleType as tu -> {
+        is TupleType -> {
             els: Type[]! = []
-            for el in tu.elements {
+            for el in t.elements {
                 els.push(substitute_by_name(el, tps, args))
             }
-            return mk_tuple(els, tu.immutable)
+            return mk_tuple(els, t.immutable)
         }
-        is StructType as s -> {
+        is StructType -> {
             sargs: Type[]! = []
-            for a in s.args {
+            for a in t.args {
                 sargs.push(substitute_by_name(a, tps, args))
             }
-            return mk_struct(s.symbol, sargs, s.immutable)
+            return mk_struct(t.symbol, sargs, t.immutable)
         }
-        is TraitType as r -> {
+        is TraitType -> {
             rargs: Type[]! = []
-            for a in r.args {
+            for a in t.args {
                 rargs.push(substitute_by_name(a, tps, args))
             }
-            return mk_trait(r.symbol, rargs)
+            return mk_trait(t.symbol, rargs)
         }
-        is UnionType as u -> {
+        is UnionType -> {
             vs: Type[]! = []
-            for v in u.variants {
+            for v in t.variants {
                 vs.push(substitute_by_name(v, tps, args))
             }
             return union_of(vs)
         }
-        is FnType as f -> {
+        is FnType -> {
             ps: Type[]! = []
-            for p in f.params {
+            for p in t.params {
                 ps.push(substitute_by_name(p, tps, args))
             }
-            return mk_fn_like(f, ps, substitute_by_name(f.return_type, tps, args))
+            return mk_fn_like(t, ps, substitute_by_name(t.return_type, tps, args))
         }
         _ -> { return t }
     }
@@ -771,31 +771,31 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
     // scalars have no inner type → return as-is.
     @partial match t {
         is TypeParamType -> { return element }
-        is ArrayType as a -> { return mk_array(substitute_array_element(a.element, element), a.immutable) }
-        is TupleType as tu -> {
+        is ArrayType -> { return mk_array(substitute_array_element(t.element, element), t.immutable) }
+        is TupleType -> {
             els: Type[]! = []
-            for el in tu.elements { els.push(substitute_array_element(el, element)) }
-            return mk_tuple(els, tu.immutable)
+            for el in t.elements { els.push(substitute_array_element(el, element)) }
+            return mk_tuple(els, t.immutable)
         }
-        is StructType as s -> {
+        is StructType -> {
             sargs: Type[]! = []
-            for a in s.args { sargs.push(substitute_array_element(a, element)) }
-            return mk_struct(s.symbol, sargs, s.immutable)
+            for a in t.args { sargs.push(substitute_array_element(a, element)) }
+            return mk_struct(t.symbol, sargs, t.immutable)
         }
-        is TraitType as r -> {
+        is TraitType -> {
             rargs: Type[]! = []
-            for a in r.args { rargs.push(substitute_array_element(a, element)) }
-            return mk_trait(r.symbol, rargs)
+            for a in t.args { rargs.push(substitute_array_element(a, element)) }
+            return mk_trait(t.symbol, rargs)
         }
-        is UnionType as u -> {
+        is UnionType -> {
             vs: Type[]! = []
-            for v in u.variants { vs.push(substitute_array_element(v, element)) }
+            for v in t.variants { vs.push(substitute_array_element(v, element)) }
             return union_of(vs)
         }
-        is FnType as f -> {
+        is FnType -> {
             ps: Type[]! = []
-            for p in f.params { ps.push(substitute_array_element(p, element)) }
-            return mk_fn_like(f, ps, substitute_array_element(f.return_type, element))
+            for p in t.params { ps.push(substitute_array_element(p, element)) }
+            return mk_fn_like(t, ps, substitute_array_element(t.return_type, element))
         }
         _ -> { return t }
     }
@@ -848,34 +848,34 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     // leaf; every scalar / primitive variant has no `Self` to replace.
     @partial match t {
         is SelfType -> { return self_ty }
-        is ArrayType as a -> { return mk_array(substitute_self(a.element, self_ty), a.immutable) }
-        is StructType as s -> {
+        is ArrayType -> { return mk_array(substitute_self(t.element, self_ty), t.immutable) }
+        is StructType -> {
             args: Type[]! = []
-            for a in s.args {
+            for a in t.args {
                 args.push(substitute_self(a, self_ty))
             }
-            return mk_struct(s.symbol, args, s.immutable)
+            return mk_struct(t.symbol, args, t.immutable)
         }
-        is FnType as f -> {
+        is FnType -> {
             ps: Type[]! = []
-            for p in f.params {
+            for p in t.params {
                 ps.push(substitute_self(p, self_ty))
             }
-            return mk_fn_like(f, ps, substitute_self(f.return_type, self_ty))
+            return mk_fn_like(t, ps, substitute_self(t.return_type, self_ty))
         }
-        is UnionType as u -> {
+        is UnionType -> {
             vs: Type[]! = []
-            for v in u.variants {
+            for v in t.variants {
                 vs.push(substitute_self(v, self_ty))
             }
             return union_of(vs)
         }
-        is TupleType as t2 -> {
+        is TupleType -> {
             els: Type[]! = []
-            for el in t2.elements {
+            for el in t.elements {
                 els.push(substitute_self(el, self_ty))
             }
-            return mk_tuple(els, t2.immutable)
+            return mk_tuple(els, t.immutable)
         }
         _ -> { return t }
     }
@@ -1358,7 +1358,7 @@ import "toolchain/span"
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
 field_check_stub :: fn(
-    e: AST.Expr,
+    e: AST.Expr!,
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
@@ -1368,8 +1368,8 @@ field_check_stub :: fn(
     @partial match e {
         is AST.IntLitExpr as x -> { return TY_FREE_INT }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x -> { return infer_ident(x, typed) }
-        is AST.FieldExpr as x -> { return infer_field(x, typed, diags, field_check_stub) }
+        is AST.IdentExpr -> { return infer_ident(e, typed) }
+        is AST.FieldExpr -> { return infer_field(e, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }

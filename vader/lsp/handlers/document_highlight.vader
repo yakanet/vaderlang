@@ -33,11 +33,11 @@ export handle_document_highlight :: fn(state: ServerState, params: JsonValue) ->
     uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
-        is null              -> { return JsonNull {} }
-        is DocIndex as index -> {
-            name :: index.name_at(position_line(params), position_character(params))
+        is null     -> { return JsonNull {} }
+        is DocIndex -> {
+            name :: idx.name_at(position_line(params), position_character(params))
             if name == "" { return JsonNull {} }
-            return highlight_json(ident_occurrences(index, name), index.line_index)
+            return highlight_json(ident_occurrences(idx, name), idx.line_index)
         }
     }
 }

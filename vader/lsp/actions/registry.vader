@@ -230,11 +230,11 @@ t_find_in_block :: fn(b: AST.BlockExpr, pred: fn(AST.Expr) -> bool) -> AST.Expr 
 
 t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
     match s {
-        is AST.LetStmt    as ls -> { if pred(ls.value) { return ls.value } }
-        is AST.ExprStmt   as es -> { if pred(es.expr)  { return es.expr } }
-        is AST.YieldStmt  as ys -> { if pred(ys.value) { return ys.value } }
-        is AST.ReturnStmt as rs -> {
-            v :: rs.value ?? return null
+        is AST.LetStmt    -> { if pred(s.value) { return s.value } }
+        is AST.ExprStmt   -> { if pred(s.expr)  { return s.expr } }
+        is AST.YieldStmt  -> { if pred(s.value) { return s.value } }
+        is AST.ReturnStmt -> {
+            v :: s.value ?? return null
             if pred(v) { return v }
         }
         _ -> {}

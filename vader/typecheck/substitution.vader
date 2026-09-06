@@ -49,38 +49,38 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
     // @partial: only TypeParam / Self and the composite variants can be rewritten;
     // every scalar / primitive variant has no inner binding → returned unchanged.
     @partial match t {
-        is TypeParamType as tp -> {
-            replacement :: subst.type_params[tp.symbol.id] ?? return t
+        is TypeParamType -> {
+            replacement :: subst.type_params[t.symbol.id] ?? return t
             return replacement
         }
         is SelfType -> {
             if subst.self_type == null { return t }
             return subst.self_type
         }
-        is StructType as st -> {
-            new_args :: substitute_each(st.args, subst)
-            return StructType { .symbol = st.symbol, .args = new_args, .immutable = st.immutable }
+        is StructType -> {
+            new_args :: substitute_each(t.args, subst)
+            return StructType { .symbol = t.symbol, .args = new_args, .immutable = t.immutable }
         }
-        is TraitType as tr -> {
-            new_args :: substitute_each(tr.args, subst)
-            return TraitType { .symbol = tr.symbol, .args = new_args }
+        is TraitType -> {
+            new_args :: substitute_each(t.args, subst)
+            return TraitType { .symbol = t.symbol, .args = new_args }
         }
-        is ArrayType as arr -> {
-            return mk_array(substitute(arr.element, subst), arr.immutable)
+        is ArrayType -> {
+            return mk_array(substitute(t.element, subst), t.immutable)
         }
-        is TupleType as tup -> {
-            return mk_tuple(substitute_each(tup.elements, subst), tup.immutable)
+        is TupleType -> {
+            return mk_tuple(substitute_each(t.elements, subst), t.immutable)
         }
-        is FnType as fty -> {
-            return mk_fn_like(fty, substitute_each(fty.params, subst), substitute(fty.return_type, subst))
+        is FnType -> {
+            return mk_fn_like(t, substitute_each(t.params, subst), substitute(t.return_type, subst))
         }
-        is UnionType as un -> {
+        is UnionType -> {
             // Re-normalise through `union_of` (dedup + sort) after
             // substituting.
             // `T | null` erased to `Any | null` must re-sort by the
             // substituted display ("Any" < "null"), not keep the
             // pre-substitution order ("null" < "T").
-            return union_of(substitute_each(un.variants, subst))
+            return union_of(substitute_each(t.variants, subst))
         }
         _ -> { return t }
     }

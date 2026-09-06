@@ -268,14 +268,14 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
             is null -> {
                 diags.push(resolver_error(.ModuleDeclMissing, empty_span(), "`${path}`"))
             }
-            is ModuleHeader as h -> {
+            is ModuleHeader -> {
                 if bucket.name == "" {
-                    bucket.name = h.name
-                    bucket.first_decl_span = h.name_span
+                    bucket.name = header.name
+                    bucket.first_decl_span = header.name_span
                 } else {
-                    if h.name != bucket.name {
-                        diags.push(resolver_error(.MixedModuleNamesInFolder, h.name_span,
-                            "`${h.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
+                    if header.name != bucket.name {
+                        diags.push(resolver_error(.MixedModuleNamesInFolder, header.name_span,
+                            "`${header.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
                     }
                 }
             }

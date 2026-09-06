@@ -24,8 +24,8 @@ export handle_folding_range :: fn(state: ServerState, params: JsonValue) -> Json
     uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
-        is null              -> { return JsonArray { .items = [] } }
-        is DocIndex as index -> { return folding_range_json(foldable_decls(index)) }
+        is null     -> { return JsonArray { .items = [] } }
+        is DocIndex -> { return folding_range_json(foldable_decls(idx)) }
     }
 }
 

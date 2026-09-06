@@ -68,7 +68,7 @@ drain_generic_fn_instances :: fn(
             built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
             match built {
                 is null -> {}
-                is PendingFnInstance as p -> { project_ctx.generic_collected.push(p) }
+                is PendingFnInstance -> { project_ctx.generic_collected.push(built) }
             }
         }
         // Materialise each queued erased generic-struct instance's impl members
@@ -384,11 +384,11 @@ call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: 
 find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {
     for d in decls {
         match d {
-            is FnDecl as f -> {
-                if f.name != name { continue }
-                if f.type_params.len() == 0 { continue }
-                if f.type_params.len() != arity { continue }
-                return f
+            is FnDecl -> {
+                if d.name != name { continue }
+                if d.type_params.len() == 0 { continue }
+                if d.type_params.len() != arity { continue }
+                return d
             }
             _ -> {}
         }

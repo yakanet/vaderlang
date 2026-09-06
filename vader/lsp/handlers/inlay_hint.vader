@@ -71,24 +71,24 @@ HintCtx :: struct {
 
 collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
     match d {
-        is AST.FnDecl as fd -> {
-            match fd.body {
+        is AST.FnDecl -> {
+            match d.body {
                 is null -> {}
                 is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
             }
         }
-        is AST.ImplDecl as id -> {
-            for m in id.members {
+        is AST.ImplDecl -> {
+            for m in d.members {
                 match m.body {
                     is null -> {}
                     is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
                 }
             }
         }
-        is AST.ConstDecl as cd -> {
+        is AST.ConstDecl -> {
             // Skip when the user already annotated the type.
-            match cd.ty {
-                is null -> { emit_const_hint(cd, ctx, out) }
+            match d.ty {
+                is null -> { emit_const_hint(d, ctx, out) }
                 _       -> {}
             }
         }
@@ -105,37 +105,37 @@ collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]!) -> v
 
 collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
     match s {
-        is AST.LetStmt as ls -> {
+        is AST.LetStmt -> {
             // Skip when the user already annotated the binding type.
-            match ls.ty {
-                is null -> { emit_let_hint(ls, ctx, out) }
+            match s.ty {
+                is null -> { emit_let_hint(s, ctx, out) }
                 _       -> {}
             }
-            collect_from_expr(ls.value, ctx, out)
+            collect_from_expr(s.value, ctx, out)
         }
-        is AST.ExprStmt as es -> { collect_from_expr(es.expr, ctx, out) }
-        is AST.ReturnStmt as rs -> {
-            if rs.value !is null {
-                collect_from_expr(rs.value, ctx, out)
+        is AST.ExprStmt -> { collect_from_expr(s.expr, ctx, out) }
+        is AST.ReturnStmt -> {
+            if s.value !is null {
+                collect_from_expr(s.value, ctx, out)
             }
         }
-        is AST.YieldStmt as ys -> { collect_from_expr(ys.value, ctx, out) }
-        is AST.AssignStmt as as_ -> {
-            collect_from_expr(as_.target, ctx, out)
-            collect_from_expr(as_.value, ctx, out)
+        is AST.YieldStmt -> { collect_from_expr(s.value, ctx, out) }
+        is AST.AssignStmt -> {
+            collect_from_expr(s.target, ctx, out)
+            collect_from_expr(s.value, ctx, out)
         }
-        is AST.ForStmt as fs -> {
-            match fs.form {
+        is AST.ForStmt -> {
+            match s.form {
                 is AST.WhileFor as w -> { collect_from_expr(w.cond, ctx, out) }
                 is AST.InFor    as i -> { collect_from_expr(i.iter, ctx, out) }
                 is AST.InfiniteFor -> {}
             }
-            collect_from_block(fs.body, ctx, out)
+            collect_from_block(s.body, ctx, out)
         }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
-        is AST.DeferStmt as ds -> {
-            match ds.body {
+        is AST.DeferStmt -> {
+            match s.body {
                 is AST.DeferStmtBody  as dsb -> { collect_from_stmt(dsb.stmt, ctx, out) }
                 is AST.DeferBlockBody as dbb -> { collect_from_block(dbb.block, ctx, out) }
             }
@@ -150,61 +150,61 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
     // inside `f(g(arr))`) and nested `let`/`const` type hints inside
     // block-bearing exprs both need the full walk.
     match e {
-        is AST.CallExpr as c -> {
-            collect_from_expr(c.callee, ctx, out)
-            for a in c.args { collect_from_expr(a.value, ctx, out) }
+        is AST.CallExpr -> {
+            collect_from_expr(e.callee, ctx, out)
+            for a in e.args { collect_from_expr(a.value, ctx, out) }
         }
-        is AST.FieldExpr as f -> { collect_from_expr(f.target, ctx, out) }
-        is AST.IndexExpr as ix -> {
-            collect_from_expr(ix.target, ctx, out)
-            collect_from_expr(ix.index, ctx, out)
+        is AST.FieldExpr -> { collect_from_expr(e.target, ctx, out) }
+        is AST.IndexExpr -> {
+            collect_from_expr(e.target, ctx, out)
+            collect_from_expr(e.index, ctx, out)
         }
-        is AST.UnaryExpr as u -> { collect_from_expr(u.operand, ctx, out) }
-        is AST.BinaryExpr as b -> {
-            collect_from_expr(b.left, ctx, out)
-            collect_from_expr(b.right, ctx, out)
+        is AST.UnaryExpr -> { collect_from_expr(e.operand, ctx, out) }
+        is AST.BinaryExpr -> {
+            collect_from_expr(e.left, ctx, out)
+            collect_from_expr(e.right, ctx, out)
         }
-        is AST.BlockExpr as blk -> { collect_from_block(blk, ctx, out) }
-        is AST.IfExpr as ifx -> {
-            collect_from_expr(ifx.cond, ctx, out)
-            collect_from_block(ifx.then_block, ctx, out)
-            match ifx.else_branch {
+        is AST.BlockExpr -> { collect_from_block(e, ctx, out) }
+        is AST.IfExpr -> {
+            collect_from_expr(e.cond, ctx, out)
+            collect_from_block(e.then_block, ctx, out)
+            match e.else_branch {
                 is null -> {}
                 is AST.IfElseIf    as ei -> { collect_from_expr(ei.branch, ctx, out) }
                 is AST.IfElseBlock as eb -> { collect_from_block(eb.block, ctx, out) }
             }
         }
-        is AST.MatchExpr as m -> {
-            collect_from_expr(m.scrutinee, ctx, out)
-            for arm in m.arms {
+        is AST.MatchExpr -> {
+            collect_from_expr(e.scrutinee, ctx, out)
+            for arm in e.arms {
                 if arm.guard != null { collect_from_expr(arm.guard, ctx, out) }
                 collect_from_expr(arm.body, ctx, out)
             }
         }
-        is AST.LambdaExpr as l -> { collect_from_block(l.body, ctx, out) }
-        is AST.StructLitExpr as sl -> {
-            for item in sl.items {
+        is AST.LambdaExpr -> { collect_from_block(e.body, ctx, out) }
+        is AST.StructLitExpr -> {
+            for item in e.items {
                 match item {
-                    is AST.StructLitField  as fld -> { collect_from_expr(fld.value, ctx, out) }
-                    is AST.StructLitSpread as sp  -> { collect_from_expr(sp.expr, ctx, out) }
+                    is AST.StructLitField  -> { collect_from_expr(item.value, ctx, out) }
+                    is AST.StructLitSpread -> { collect_from_expr(item.expr, ctx, out) }
                 }
             }
         }
-        is AST.SeqLitExpr as seq -> {
-            for el in seq.elements { collect_from_expr(el, ctx, out) }
+        is AST.SeqLitExpr -> {
+            for el in e.elements { collect_from_expr(el, ctx, out) }
         }
-        is AST.RangeExpr as r -> {
-            collect_from_expr(r.lower, ctx, out)
-            collect_from_expr(r.upper, ctx, out)
+        is AST.RangeExpr -> {
+            collect_from_expr(e.lower, ctx, out)
+            collect_from_expr(e.upper, ctx, out)
         }
-        is AST.AwaitExpr as t -> { collect_from_expr(t.inner, ctx, out) }
-        is AST.CastExpr as cast -> { collect_from_expr(cast.value, ctx, out) }
-        is AST.GenericInstExpr as g -> { collect_from_expr(g.callee, ctx, out) }
-        is AST.IntrinsicCallExpr as ic -> {
-            for a in ic.args { collect_from_expr(a, ctx, out) }
+        is AST.AwaitExpr -> { collect_from_expr(e.inner, ctx, out) }
+        is AST.CastExpr -> { collect_from_expr(e.value, ctx, out) }
+        is AST.GenericInstExpr -> { collect_from_expr(e.callee, ctx, out) }
+        is AST.IntrinsicCallExpr -> {
+            for a in e.args { collect_from_expr(a, ctx, out) }
         }
-        is AST.StringLitExpr as s -> {
-            for part in s.parts {
+        is AST.StringLitExpr -> {
+            for part in e.parts {
                 if part is AST.StringLitInterp { collect_from_expr(part.expr, ctx, out) }
             }
         }

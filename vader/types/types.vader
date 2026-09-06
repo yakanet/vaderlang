@@ -364,9 +364,9 @@ export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
 /// backing, and every `strip_distinct` / `array_backing` unwrap site would have
 /// to preserve it. Known phase-1 gap, deliberately not covered.
 export type_is_immutable :: fn(t: Type) -> bool = match t {
-    is ArrayType  as a -> a.immutable
-    is StructType as s -> s.immutable
-    is TupleType  as p -> p.immutable
+    is ArrayType  -> t.immutable
+    is StructType -> t.immutable
+    is TupleType  -> t.immutable
     is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType | DistinctType -> false
@@ -405,19 +405,19 @@ export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 /// whose name was already a canonical `.rodata` literal.
 export display_type :: fn(t: Type) -> string {
     match t {
-        is PrimitiveType  as p -> { return p.name }
-        is TypeParamType  as p -> { return p.symbol.name }
-        is EnumType       as e -> { return e.symbol.name }
-        is DistinctType   as d -> { return d.symbol.name }
-        is UnresolvedType      -> { return "?" }
-        is NeverType           -> { return "never" }
-        is FreeIntType         -> { return "{integer}" }
-        is FreeFloatType       -> { return "{float}" }
-        is FreeCharType        -> { return "{char}" }
-        is SelfType            -> { return "Self" }
-        is TypeMetaType        -> { return "type" }
-        is AnyType             -> { return "Any" }
-        _ -> {}  // fall through for composite types
+        is PrimitiveType  -> { return t.name }
+        is TypeParamType  -> { return t.symbol.name }
+        is EnumType       -> { return t.symbol.name }
+        is DistinctType   -> { return t.symbol.name }
+        is UnresolvedType -> { return "?" }
+        is NeverType      -> { return "never" }
+        is FreeIntType    -> { return "{integer}" }
+        is FreeFloatType  -> { return "{float}" }
+        is FreeCharType   -> { return "{char}" }
+        is SelfType       -> { return "Self" }
+        is TypeMetaType   -> { return "type" }
+        is AnyType        -> { return "Any" }
+        _                 -> {}  // fall through for composite types
     }
     sb :: StringBuilder {}
     sb.write_type(t)
@@ -454,11 +454,11 @@ export type_base_name :: fn(t: Type) -> string {
     // hard-coded `is ArrayType` branch in `check_in`/`check_arith`. There are no
     // concrete array impls (`i32[] implements …`), so the collapse can't mis-match.
     @partial match t {
-        is StructType   as st -> { return st.symbol.name }
-        is TraitType    as tr -> { return tr.symbol.name }
-        is EnumType     as en -> { return en.symbol.name }
-        is DistinctType as dt -> { return dt.symbol.name }
-        is ArrayType          -> { return "[]" }
+        is StructType   -> { return t.symbol.name }
+        is TraitType    -> { return t.symbol.name }
+        is EnumType     -> { return t.symbol.name }
+        is DistinctType -> { return t.symbol.name }
+        is ArrayType    -> { return "[]" }
         // A KEY, so the mutability-free rendering : a tuple / fn / union receiver
         // must key the same whether or not its slot is mutable, else registration
         // and lookup drift and the dispatch misses in silence.
@@ -472,29 +472,29 @@ write_type :: fn(sb: StringBuilder!, t: Type) -> void { sb.write_type_mut(t, tru
 // `show_mut = false` renders the SHAPE only — see `display_type_key`.
 write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
     match t {
-        is PrimitiveType as x -> { sb.append(x.name) }
-        is StructType    as x -> {
-            sb.write_named_mut(x.symbol.name, x.args, show_mut)
-            if show_mut && !x.immutable { sb.append_char('!') }
+        is PrimitiveType -> { sb.append(t.name) }
+        is StructType    -> {
+            sb.write_named_mut(t.symbol.name, t.args, show_mut)
+            if show_mut && !t.immutable { sb.append_char('!') }
         }
-        is EnumType      as x -> { sb.append(x.symbol.name) }
-        is DistinctType  as x -> { sb.append(x.symbol.name) }
-        is TraitType     as x -> { sb.write_named_mut(x.symbol.name, x.args, show_mut) }
-        is TypeParamType as x -> { sb.append(x.symbol.name) }
-        is TypeMetaType       -> { sb.append("type") }
-        is SelfType           -> { sb.append("Self") }
-        is UnresolvedType     -> { sb.append("?") }
-        is NeverType          -> { sb.append("never") }
-        is FreeIntType        -> { sb.append("{integer}") }
-        is FreeFloatType      -> { sb.append("{float}") }
-        is FreeCharType       -> { sb.append("{char}") }
-        is ArrayType as x -> {
+        is EnumType       -> { sb.append(t.symbol.name) }
+        is DistinctType   -> { sb.append(t.symbol.name) }
+        is TraitType      -> { sb.write_named_mut(t.symbol.name, t.args, show_mut) }
+        is TypeParamType  -> { sb.append(t.symbol.name) }
+        is TypeMetaType   -> { sb.append("type") }
+        is SelfType       -> { sb.append("Self") }
+        is UnresolvedType -> { sb.append("?") }
+        is NeverType      -> { sb.append("never") }
+        is FreeIntType    -> { sb.append("{integer}") }
+        is FreeFloatType  -> { sb.append("{float}") }
+        is FreeCharType   -> { sb.append("{char}") }
+        is ArrayType      -> {
             // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
             // `A | (B[])` since `[]` binds tighter than `|`. Same for
             // bare fn types like `fn() -> A`.
-            needs_parens :: x.element is UnionType || x.element is FnType
+            needs_parens :: t.element is UnionType || t.element is FnType
             if needs_parens { sb.append_char('(') }
-            sb.write_type_mut(x.element, show_mut)
+            sb.write_type_mut(t.element, show_mut)
             if needs_parens { sb.append_char(')') }
             sb.append("[]")
             // A SUFFIX, and on the mutable form — exactly what the source spells.
@@ -503,30 +503,30 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
             // marks only the array — the bit is distributed), and on a nested
             // array it attached to the wrong level (`Array(const Array(i32))`
             // printed `i32[][]`, suggesting the OUTER array was frozen).
-            if show_mut && !x.immutable { sb.append_char('!') }
+            if show_mut && !t.immutable { sb.append_char('!') }
         }
-        is TupleType as x -> {
+        is TupleType -> {
             sb.append_char('[')
-            sb.write_type_list_mut(x.elements, ", ", show_mut)
+            sb.write_type_list_mut(t.elements, ", ", show_mut)
             sb.append_char(']')
-            if show_mut && !x.immutable { sb.append_char('!') }
+            if show_mut && !t.immutable { sb.append_char('!') }
         }
-        is FnType as x -> {
+        is FnType -> {
             sb.append("fn(")
             first := true
-            for i in 0..<x.params.len() {
+            for i in 0..<t.params.len() {
                 if !first { sb.append(", ") }
                 first = false
                 // The marker now rides the param's TYPE, which renders its own
                 // `!` just above — `params_mutable` is the same fact recorded a
                 // second time, so rendering it too printed `Cfg[]!!`.
-                sb.write_type_mut(x.params[i], show_mut)
+                sb.write_type_mut(t.params[i], show_mut)
             }
             sb.append(") -> ")
-            sb.write_type_mut(x.return_type, show_mut)
+            sb.write_type_mut(t.return_type, show_mut)
         }
-        is UnionType as x -> { sb.write_type_list_mut(x.variants, " | ", show_mut) }
-        is AnyType            -> { sb.append("Any") }
+        is UnionType -> { sb.write_type_list_mut(t.variants, " | ", show_mut) }
+        is AnyType   -> { sb.append("Any") }
     }
 }
 
@@ -554,30 +554,30 @@ write_type_list_mut :: fn(sb: StringBuilder!, items: Type[], sep: string, show_m
 /// produce distinct keys ; equivalent types always produce equal keys.
 export canonical_key :: fn(t: Type) -> string {
     match t {
-        is PrimitiveType  as p -> { return "p${p.name}" }
+        is PrimitiveType -> { return "p${t.name}" }
         // No immutability marker: the bit is outside struct / tuple identity
         // (`equals_type`), so it must stay out of the key too — else one type
         // would answer to two keys and every side-table keyed on it would split.
-        is StructType     as s -> { return "s${s.symbol.id}<${canonical_args_key(s.args)}>" }
-        is TraitType      as r -> { return "t${r.symbol.id}<${canonical_args_key(r.args)}>" }
-        is ArrayType      as a -> {
-            if a.immutable { return "ac(${canonical_key(a.element)})" }
-            return "am(${canonical_key(a.element)})"
+        is StructType -> { return "s${t.symbol.id}<${canonical_args_key(t.args)}>" }
+        is TraitType  -> { return "t${t.symbol.id}<${canonical_args_key(t.args)}>" }
+        is ArrayType  -> {
+            if t.immutable { return "ac(${canonical_key(t.element)})" }
+            return "am(${canonical_key(t.element)})"
         }
-        is TupleType      as p -> { return "T<${canonical_args_key(p.elements)}>" }
-        is FnType         as f -> { return "F<${canonical_args_key(f.params)}>>${canonical_key(f.return_type)}" }
-        is UnionType      as u -> { return "U<${canonical_args_key(u.variants)}>" }
-        is TypeParamType  as p -> { return "P${p.symbol.id}" }
-        is EnumType       as e -> { return "e${e.symbol.id}" }
-        is DistinctType   as d -> { return "d${d.symbol.id}" }
-        is TypeMetaType        -> { return "M" }
-        is SelfType            -> { return "S" }
-        is UnresolvedType      -> { return "?" }
-        is NeverType           -> { return "!" }
-        is FreeIntType         -> { return "FI" }
-        is FreeCharType        -> { return "FC" }
-        is FreeFloatType       -> { return "FF" }
-        is AnyType             -> { return "A" }
+        is TupleType      -> { return "T<${canonical_args_key(t.elements)}>" }
+        is FnType         -> { return "F<${canonical_args_key(t.params)}>>${canonical_key(t.return_type)}" }
+        is UnionType      -> { return "U<${canonical_args_key(t.variants)}>" }
+        is TypeParamType  -> { return "P${t.symbol.id}" }
+        is EnumType       -> { return "e${t.symbol.id}" }
+        is DistinctType   -> { return "d${t.symbol.id}" }
+        is TypeMetaType   -> { return "M" }
+        is SelfType       -> { return "S" }
+        is UnresolvedType -> { return "?" }
+        is NeverType      -> { return "!" }
+        is FreeIntType    -> { return "FI" }
+        is FreeCharType   -> { return "FC" }
+        is FreeFloatType  -> { return "FF" }
+        is AnyType        -> { return "A" }
     }
 }
 
@@ -601,16 +601,16 @@ export canonical_args_key :: fn(args: Type[]) -> string {
 export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
     visit(t)
     match t {
-        is StructType as s -> { for a in s.args { for_each_type(a, visit) } }
-        is TraitType  as r -> { for a in r.args { for_each_type(a, visit) } }
-        is ArrayType  as a -> { for_each_type(a.element, visit) }
-        is TupleType  as p -> { for el in p.elements { for_each_type(el, visit) } }
-        is FnType     as f -> {
-            for p in f.params { for_each_type(p, visit) }
-            for_each_type(f.return_type, visit)
+        is StructType -> { for a in t.args { for_each_type(a, visit) } }
+        is TraitType  -> { for a in t.args { for_each_type(a, visit) } }
+        is ArrayType  -> { for_each_type(t.element, visit) }
+        is TupleType  -> { for el in t.elements { for_each_type(el, visit) } }
+        is FnType     -> {
+            for p in t.params { for_each_type(p, visit) }
+            for_each_type(t.return_type, visit)
         }
-        is UnionType  as u -> { for v in u.variants { for_each_type(v, visit) } }
-        is DistinctType as d -> { for_each_type(d.backing, visit) }
+        is UnionType -> { for v in t.variants { for_each_type(v, visit) } }
+        is DistinctType -> { for_each_type(t.backing, visit) }
         _ -> {}
     }
 }

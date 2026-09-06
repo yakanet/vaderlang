@@ -137,15 +137,15 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
         struct_decls: CFGStructDecl[]! = []
         for d in m.decls {
             match d {
-                is LoweredFnDecl as fn_decl -> {
-                    if fn_decl.body is null {
-                        externs.push(make_extern_decl(fn_decl))
+                is LoweredFnDecl -> {
+                    if d.body is null {
+                        externs.push(make_extern_decl(d))
                     } else {
-                        cfg_opt :: convert_function(fn_decl, ctx)
+                        cfg_opt :: convert_function(d, ctx)
                         if cfg_opt !is null { functions.push(cfg_opt) }
                     }
                 }
-                is LoweredStructDecl as sd -> { struct_decls.push(make_struct_decl(sd)) }
+                is LoweredStructDecl -> { struct_decls.push(make_struct_decl(d)) }
                 is LoweredConstDecl -> {
                     // Inlined-out at lowering time ; nothing to carry forward.
                 }
@@ -181,23 +181,23 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[]! = []
     for e in entries {
         match e {
-            is StrDataPoolEntry as se -> { out.push(BcStrData { .values = se.values, .mutable = se.mutable }) }
-            is PrimDataPoolEntry as pe -> {
+            is StrDataPoolEntry -> { out.push(BcStrData { .values = e.values, .mutable = e.mutable }) }
+            is PrimDataPoolEntry -> {
                 items: u64[]! = []
-                for v in pe.items { items.push(u64(v)) }
+                for v in e.items { items.push(u64(v)) }
                 out.push(BcPrimData {
-                    .kind    = array_kind_from_name(pe.element_type_name),
+                    .kind    = array_kind_from_name(e.element_type_name),
                     .items   = items,
-                    .mutable = pe.mutable,
+                    .mutable = e.mutable,
                 })
             }
-            is AggregateDataPoolEntry as ae -> {
+            is AggregateDataPoolEntry -> {
                 elements: BcDataValue[]! = []
-                for el in ae.literal.elements { elements.push(lowered_to_bc_value(el)) }
+                for el in e.literal.elements { elements.push(lowered_to_bc_value(el)) }
                 out.push(BcAggregateData {
-                    .element_type_name = ae.element_type_name,
+                    .element_type_name = e.element_type_name,
                     .elements          = elements,
-                    .mutable           = ae.mutable,
+                    .mutable           = e.mutable,
                 })
             }
         }
@@ -520,71 +520,71 @@ build_block_body :: fn(fn_ctx: FnCtx!, b: LoweredBlock) -> LocalId | null {
 // were exactly such a silent drop (midir-1).
 build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
     match s {
-        is LoweredLet as let_stmt -> {
-            v :: let_stmt.value
+        is LoweredLet -> {
+            v :: s.value
             if is_dest_passing_shape(v) {
                 // Destination-passing : declare the slot first and build the
                 // value-`if` / `match` / `&&` `||` straight into it — no
                 // intermediate result temp, no copy. Only these join-slot shapes
                 // take this path, so a plain `let` keeps its build-then-bind slot
                 // order (declaring first would renumber every let's slots).
-                dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
-                fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
+                dst :: declare_local(fn_ctx, s.name, s.type, s.symbol)
+                fn_ctx.local_by_sym_id[s.symbol.id] = dst
                 if fn_ctx.current !is null {
                     build_expr_into(fn_ctx, v, dst)
                 }
             } else {
                 value_local :: build_expr(fn_ctx, v)
-                dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
-                fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
+                dst :: declare_local(fn_ctx, s.name, s.type, s.symbol)
+                fn_ctx.local_by_sym_id[s.symbol.id] = dst
                 if value_local !is null {
                     if fn_ctx.current !is null {
-                        emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+                        emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = s.span })
                     }
                 }
             }
         }
-        is LoweredAssign as a -> { build_assign(fn_ctx, a) }
-        is LoweredCellSet as cs -> {
-            cell :: build_expr(fn_ctx, cs.target)
-            value :: build_expr(fn_ctx, cs.value)
+        is LoweredAssign -> { build_assign(fn_ctx, s) }
+        is LoweredCellSet -> {
+            cell :: build_expr(fn_ctx, s.target)
+            value :: build_expr(fn_ctx, s.value)
             if cell !is null {
                 if value !is null {
                     emit(fn_ctx, InstrCellSet {
-                        .cell = cell, .value = value, .value_type = cs.value_type, .span = cs.span,
+                        .cell = cell, .value = value, .value_type = s.value_type, .span = s.span,
                     })
                 }
             }
         }
-        is LoweredDeferPush as dp -> {
+        is LoweredDeferPush -> {
             // `thunk` builds to a closure (make-closure) in `value` ; push it onto
             // the frame's defer-stack. Drained by `InstrDeferPopExec` at each exit.
-            value :: build_expr(fn_ctx, dp.thunk)
+            value :: build_expr(fn_ctx, s.thunk)
             if value !is null {
-                emit(fn_ctx, InstrDeferPush { .value = value, .span = dp.span })
+                emit(fn_ctx, InstrDeferPush { .value = value, .span = s.span })
             }
         }
-        is LoweredDeferPopExec as dpe -> {
-            emit(fn_ctx, InstrDeferPopExec { .count = dpe.count, .span = dpe.span })
+        is LoweredDeferPopExec -> {
+            emit(fn_ctx, InstrDeferPopExec { .count = s.count, .span = s.span })
         }
-        is LoweredExprStmt as e -> {
+        is LoweredExprStmt -> {
             // Side-effect only ; discard the resulting local (keeps the arm void
             // so the match stays a statement, not a value).
-            _ :: build_expr(fn_ctx, e.expr)
+            _ :: build_expr(fn_ctx, s.expr)
         }
-        is LoweredReturn as r -> {
+        is LoweredReturn -> {
             value: LocalId | null = null
-            if r.value !is null { value = build_expr(fn_ctx, r.value) }
-            terminate(fn_ctx, TermReturn { .value = value, .span = r.span })
+            if s.value !is null { value = build_expr(fn_ctx, s.value) }
+            terminate(fn_ctx, TermReturn { .value = value, .span = s.span })
         }
-        is LoweredLoop as l -> { build_loop(fn_ctx, l) }
-        is LoweredBreak as br -> {
-            frame :: resolve_loop_frame(fn_ctx, br.label) ?? return
-            terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = br.span })
+        is LoweredLoop -> { build_loop(fn_ctx, s) }
+        is LoweredBreak -> {
+            frame :: resolve_loop_frame(fn_ctx, s.label) ?? return
+            terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = s.span })
         }
-        is LoweredContinue as cont -> {
-            frame :: resolve_loop_frame(fn_ctx, cont.label) ?? return
-            terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = cont.span })
+        is LoweredContinue -> {
+            frame :: resolve_loop_frame(fn_ctx, s.label) ?? return
+            terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = s.span })
         }
         is LoweredYield | LoweredAwait -> {
             // Transient coroutine-suspension markers. `lower_coroutine` rewrites
@@ -704,39 +704,39 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | nul
 build_expr :: fn(fn_ctx: FnCtx!, e: LoweredExpr) -> LocalId | null {
     if fn_ctx.current is null { return null }
     match e {
-        is LoweredIntLit as v   -> { return emit_const(fn_ctx, v.type, ConstInt { .value = v.value }, v.span) }
-        is LoweredFloatLit as v -> { return emit_const(fn_ctx, v.type, ConstFloat { .value = v.value }, v.span) }
-        is LoweredBoolLit as v  -> { return emit_const(fn_ctx, v.type, ConstBool { .value = v.value }, v.span) }
-        is LoweredNullLit as v  -> { return emit_const(fn_ctx, v.type, ConstNull {}, v.span) }
-        is LoweredCharLit as v  -> { return emit_const(fn_ctx, v.type, ConstChar { .value = i32(u32(v.value)) }, v.span) }
-        is LoweredStringLit as v -> {
-            idx :: intern_string_pool(fn_ctx.project, v.value)
-            return emit_const(fn_ctx, v.type, ConstString { .index = idx }, v.span)
+        is LoweredIntLit    -> { return emit_const(fn_ctx, e.type, ConstInt { .value = e.value }, e.span) }
+        is LoweredFloatLit  -> { return emit_const(fn_ctx, e.type, ConstFloat { .value = e.value }, e.span) }
+        is LoweredBoolLit   -> { return emit_const(fn_ctx, e.type, ConstBool { .value = e.value }, e.span) }
+        is LoweredNullLit   -> { return emit_const(fn_ctx, e.type, ConstNull {}, e.span) }
+        is LoweredCharLit   -> { return emit_const(fn_ctx, e.type, ConstChar { .value = i32(u32(e.value)) }, e.span) }
+        is LoweredStringLit -> {
+            idx :: intern_string_pool(fn_ctx.project, e.value)
+            return emit_const(fn_ctx, e.type, ConstString { .index = idx }, e.span)
         }
-        is LoweredIdent as v        -> { return build_ident(fn_ctx, v) }
-        is LoweredCall as v         -> { return build_call(fn_ctx, v) }
-        is LoweredVirtualCall as v  -> { return build_virtual_call(fn_ctx, v) }
-        is LoweredFieldAccess as v  -> { return build_field_access(fn_ctx, v) }
-        is LoweredIndex as v        -> { return build_index(fn_ctx, v) }
-        is LoweredUnary as v        -> { return build_unary(fn_ctx, v) }
-        is LoweredBinary as v       -> { return build_binary(fn_ctx, v) }
-        is LoweredIf as v           -> { return build_if(fn_ctx, v, null) }
-        is LoweredBlock as v        -> { return build_block_body(fn_ctx, v) }
-        is LoweredStructLit as v    -> { return build_struct_lit(fn_ctx, v) }
-        is LoweredArrayLit as v     -> { return build_array_lit(fn_ctx, v) }
-        is LoweredCast as v         -> { return build_cast(fn_ctx, v) }
-        is LoweredTypeCheck as v    -> { return build_type_check(fn_ctx, v) }
-        is LoweredUnreachable as v  -> { return build_unreachable_type(fn_ctx, v.type, v.span, v.reason, v.trap) }
-        is LoweredIntrinsicCall as v -> { return build_intrinsic_call(fn_ctx, v) }
-        is LoweredArrayLen as v     -> { return build_array_len(fn_ctx, v) }
-        is LoweredArrayPush as v    -> { return build_array_push(fn_ctx, v) }
-        is LoweredArraySlice as v   -> { return build_array_slice(fn_ctx, v) }
-        is LoweredStringSlice as v  -> { return build_string_slice(fn_ctx, v) }
-        is LoweredCellNew as v      -> { return build_cell_new(fn_ctx, v) }
-        is LoweredCellGet as v      -> { return build_cell_get(fn_ctx, v) }
-        is LoweredMakeClosure as v  -> { return build_make_closure(fn_ctx, v) }
-        is LoweredDataConst as v    -> { return build_data_const(fn_ctx, v) }
-        is LoweredTypeConst as v    -> { return build_type_const(fn_ctx, v) }
+        is LoweredIdent         -> { return build_ident(fn_ctx, e) }
+        is LoweredCall          -> { return build_call(fn_ctx, e) }
+        is LoweredVirtualCall   -> { return build_virtual_call(fn_ctx, e) }
+        is LoweredFieldAccess   -> { return build_field_access(fn_ctx, e) }
+        is LoweredIndex         -> { return build_index(fn_ctx, e) }
+        is LoweredUnary         -> { return build_unary(fn_ctx, e) }
+        is LoweredBinary        -> { return build_binary(fn_ctx, e) }
+        is LoweredIf            -> { return build_if(fn_ctx, e, null) }
+        is LoweredBlock         -> { return build_block_body(fn_ctx, e) }
+        is LoweredStructLit     -> { return build_struct_lit(fn_ctx, e) }
+        is LoweredArrayLit      -> { return build_array_lit(fn_ctx, e) }
+        is LoweredCast          -> { return build_cast(fn_ctx, e) }
+        is LoweredTypeCheck     -> { return build_type_check(fn_ctx, e) }
+        is LoweredUnreachable   -> { return build_unreachable_type(fn_ctx, e.type, e.span, e.reason, e.trap) }
+        is LoweredIntrinsicCall -> { return build_intrinsic_call(fn_ctx, e) }
+        is LoweredArrayLen      -> { return build_array_len(fn_ctx, e) }
+        is LoweredArrayPush     -> { return build_array_push(fn_ctx, e) }
+        is LoweredArraySlice    -> { return build_array_slice(fn_ctx, e) }
+        is LoweredStringSlice   -> { return build_string_slice(fn_ctx, e) }
+        is LoweredCellNew       -> { return build_cell_new(fn_ctx, e) }
+        is LoweredCellGet       -> { return build_cell_get(fn_ctx, e) }
+        is LoweredMakeClosure   -> { return build_make_closure(fn_ctx, e) }
+        is LoweredDataConst     -> { return build_data_const(fn_ctx, e) }
+        is LoweredTypeConst     -> { return build_type_const(fn_ctx, e) }
     }
 }
 

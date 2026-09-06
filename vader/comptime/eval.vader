@@ -45,19 +45,19 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext!) -> EvalRes
     }
     context.depth = context.depth + 1
     result :: @partial match expr {
-        is AST.IntLitExpr    as x -> evaluate_int_lit(x)
-        is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
-        is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
-        is AST.CharLitExpr   as x -> evaluate_char_lit(x)
-        is AST.NullLitExpr   as x -> evaluate_null_lit(x)
-        is AST.StringLitExpr as x -> evaluate_string_lit(x, context, evaluate_expr)
-        is AST.IdentExpr     as x -> evaluate_ident(x, context)
-        is AST.BinaryExpr        as x -> evaluate_binary_expr(x, context, evaluate_expr)
-        is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
-        is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
-        is AST.CallExpr          as x -> evaluate_call_expr(x, context)
-        is AST.SeqLitExpr        as x -> evaluate_seq_lit(x, context, evaluate_expr)
-        _                             -> vm_required(span_of(expr), expr_kind_label(expr))
+        is AST.IntLitExpr        -> evaluate_int_lit(expr)
+        is AST.FloatLitExpr      -> evaluate_float_lit(expr)
+        is AST.BoolLitExpr       -> evaluate_bool_lit(expr)
+        is AST.CharLitExpr       -> evaluate_char_lit(expr)
+        is AST.NullLitExpr       -> evaluate_null_lit(expr)
+        is AST.StringLitExpr     -> evaluate_string_lit(expr, context, evaluate_expr)
+        is AST.IdentExpr         -> evaluate_ident(expr, context)
+        is AST.BinaryExpr        -> evaluate_binary_expr(expr, context, evaluate_expr)
+        is AST.UnaryExpr         -> evaluate_unary_expr(expr, context, evaluate_expr)
+        is AST.IntrinsicCallExpr -> evaluate_intrinsic_call(expr, context)
+        is AST.CallExpr          -> evaluate_call_expr(expr, context)
+        is AST.SeqLitExpr        -> evaluate_seq_lit(expr, context, evaluate_expr)
+        _                        -> vm_required(span_of(expr), expr_kind_label(expr))
     }
     context.depth = context.depth - 1
     return result
@@ -67,34 +67,34 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext!) -> EvalRes
 /// Every Expr variant carries a `span` field, so the match list mirrors
 /// the AST.Expr union exactly.
 export span_of :: fn(expr: AST.Expr) -> Span = match expr {
-    is AST.IntLitExpr        as x -> x.span
-    is AST.NullCoalesceExpr  as x -> x.span
-    is AST.FloatLitExpr      as x -> x.span
-    is AST.BoolLitExpr       as x -> x.span
-    is AST.NullLitExpr       as x -> x.span
-    is AST.CharLitExpr       as x -> x.span
-    is AST.StringLitExpr     as x -> x.span
-    is AST.IdentExpr         as x -> x.span
-    is AST.CallExpr          as x -> x.span
-    is AST.FieldExpr         as x -> x.span
-    is AST.IndexExpr         as x -> x.span
-    is AST.UnaryExpr         as x -> x.span
-    is AST.BinaryExpr        as x -> x.span
-    is AST.IfExpr            as x -> x.span
-    is AST.MatchExpr         as x -> x.span
-    is AST.BlockExpr         as x -> x.span
-    is AST.LambdaExpr        as x -> x.span
-    is AST.StructLitExpr     as x -> x.span
-    is AST.SeqLitExpr        as x -> x.span
-    is AST.RangeExpr         as x -> x.span
-    is AST.AwaitExpr         as x -> x.span
-    is AST.CastExpr          as x -> x.span
-    is AST.GenericInstExpr   as x -> x.span
-    is AST.IntrinsicCallExpr as x -> x.span
-    is AST.DotVariantExpr    as x -> x.span
-    is AST.FnTypeExpr        as x -> x.span
-    is AST.ArrayTypeExpr     as x -> x.span
-    is AST.MutableTypeExpr   as x -> x.span
+    is AST.IntLitExpr        -> expr.span
+    is AST.NullCoalesceExpr  -> expr.span
+    is AST.FloatLitExpr      -> expr.span
+    is AST.BoolLitExpr       -> expr.span
+    is AST.NullLitExpr       -> expr.span
+    is AST.CharLitExpr       -> expr.span
+    is AST.StringLitExpr     -> expr.span
+    is AST.IdentExpr         -> expr.span
+    is AST.CallExpr          -> expr.span
+    is AST.FieldExpr         -> expr.span
+    is AST.IndexExpr         -> expr.span
+    is AST.UnaryExpr         -> expr.span
+    is AST.BinaryExpr        -> expr.span
+    is AST.IfExpr            -> expr.span
+    is AST.MatchExpr         -> expr.span
+    is AST.BlockExpr         -> expr.span
+    is AST.LambdaExpr        -> expr.span
+    is AST.StructLitExpr     -> expr.span
+    is AST.SeqLitExpr        -> expr.span
+    is AST.RangeExpr         -> expr.span
+    is AST.AwaitExpr         -> expr.span
+    is AST.CastExpr          -> expr.span
+    is AST.GenericInstExpr   -> expr.span
+    is AST.IntrinsicCallExpr -> expr.span
+    is AST.DotVariantExpr    -> expr.span
+    is AST.FnTypeExpr        -> expr.span
+    is AST.ArrayTypeExpr     -> expr.span
+    is AST.MutableTypeExpr   -> expr.span
 }
 
 // Human-readable label for unsupported variants. Surfaces in the C4001
@@ -146,10 +146,7 @@ import "toolchain/span"
     expr :: AST.CallExpr { .span = empty_span(), .id = 0, .callee = callee, .args = [] }
     context :: empty_context()
     result :: evaluate_expr(expr, context)
-    match result.diag {
-        is null -> { assert_eq("expected C4001 diag", "got null") }
-        _       -> {}
-    }
+    if result.diag is null { assert_eq("expected C4001 diag", "got null") }
 }
 
 // Recursion guard : a cyclic / non-terminating comptime expression must report

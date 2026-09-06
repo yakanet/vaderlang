@@ -215,7 +215,7 @@ register_fn_instance_mangle :: fn(
     inst_key :: "${fn_sym.id}::${suffix}"
     existing :: ctx.project.fn_instances[inst_key]
     match existing {
-        is GenericFnInstance as gi -> { return gi.mangled }
+        is GenericFnInstance -> { return existing.mangled }
         is null -> {
             fresh :: uniq(ctx.project.seen_mangled, base_mangled)
             new_inst :: GenericFnInstance {
@@ -438,18 +438,18 @@ type_contains_param :: fn(t: Type) -> bool {
     // param; every other Type is a leaf with no params → false.
     @partial match t {
         is TypeParamType -> { return true }
-        is StructType as s -> {
-            for a in s.args { if type_contains_param(a) { return true } }
+        is StructType -> {
+            for a in t.args { if type_contains_param(a) { return true } }
             return false
         }
-        is TraitType as tr -> {
-            for a in tr.args { if type_contains_param(a) { return true } }
+        is TraitType -> {
+            for a in t.args { if type_contains_param(a) { return true } }
             return false
         }
-        is ArrayType as ar -> { return type_contains_param(ar.element) }
-        is FnType as ft -> { return type_has_param(ft) }
-        is TupleType as tup -> {
-            for e in tup.elements { if type_contains_param(e) { return true } }
+        is ArrayType -> { return type_contains_param(t.element) }
+        is FnType -> { return type_has_param(t) }
+        is TupleType -> {
+            for e in t.elements { if type_contains_param(e) { return true } }
             return false
         }
         _ -> { return false }

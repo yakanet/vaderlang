@@ -745,9 +745,9 @@ storage_qualifier :: fn(mutable: bool) -> string = if mutable { "" } else { "con
 // Storage class of a pool entry. Aggregates are always read-only (T3076 keeps a
 // mutable module const to value elements), so only the two flat kinds carry a bit.
 data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
-    is BcPrimData as pd -> pd.mutable
-    is BcStrData  as sd -> sd.mutable
-    is BcAggregateData as ad -> ad.mutable
+    is BcPrimData -> e.mutable
+    is BcStrData -> e.mutable
+    is BcAggregateData -> e.mutable
 }
 
 // One string-array buffer + array header. A string is a `vader_string_t`

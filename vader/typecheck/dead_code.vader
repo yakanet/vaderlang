@@ -108,11 +108,11 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
             collect_expr_names(e.type_name, out)
             for it in e.items {
                 match it {
-                    is AST.StructLitField as f   -> {
-                        collect_expr_names(f.value, out)
+                    is AST.StructLitField  -> {
+                        collect_expr_names(it.value, out)
                     }
-                    is AST.StructLitSpread as sp -> {
-                        collect_expr_names(sp.expr, out)
+                    is AST.StructLitSpread -> {
+                        collect_expr_names(it.expr, out)
                     }
                 }
             }

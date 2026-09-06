@@ -610,7 +610,7 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
 /// @param t  the bytecode type-table entry.
 /// @return   the byte size in the runtime layout.
 export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
-    is BcPrimitive as p -> size_of_val_type(p.val)
+    is BcPrimitive -> size_of_val_type(t.val)
     is BcStruct -> 16
     is BcArray -> 16
     is BcUnion -> 16
@@ -630,10 +630,10 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     is BcStruct -> true
     is BcArray -> true
     is BcFn -> true
-    is BcPrimitive as p -> p.val == ValType.Null
+    is BcPrimitive -> t.val == ValType.Null
     is BcRef -> false
-    is BcUnion as u -> {
-        for v in u.variants {
+    is BcUnion -> {
+        for v in t.variants {
             if !is_ref_only_element(types[usize(v)], types) { return false }
         }
         return true
@@ -653,7 +653,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// @param types    the module type table (to resolve union variant indices).
 /// @return         the storage discriminator the runtime reads off the buffer.
 export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
-    is BcPrimitive as p -> array_kind_of_val(p.val)
+    is BcPrimitive -> array_kind_of_val(element.val)
     is BcStruct -> ArrayKind.Ref
     is BcArray -> ArrayKind.Ref
     is BcFn -> ArrayKind.Ref

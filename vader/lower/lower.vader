@@ -338,11 +338,11 @@ lower_decl :: fn(
     // Only Fn/Struct/Const/Impl produce runtime slots; every other decl kind
     // (Enum, Trait, TypeAlias, Import, Assert) lowers to null.
     match decl {
-        is FnDecl     as fn_decl     -> { return lower_fn_decl(fn_decl, typed, project_ctx, diags) }
-        is StructDecl as struct_decl -> { return lower_struct_decl(struct_decl, typed, project_ctx, diags) }
-        is ConstDecl  as const_decl  -> { return lower_const_decl(const_decl, typed, project_ctx, diags) }
-        is ImplDecl   as impl_decl   -> {
-            lower_impl_members(impl_decl, typed, project_ctx, diags, module_decls)
+        is FnDecl     -> { return lower_fn_decl(decl, typed, project_ctx, diags) }
+        is StructDecl -> { return lower_struct_decl(decl, typed, project_ctx, diags) }
+        is ConstDecl  -> { return lower_const_decl(decl, typed, project_ctx, diags) }
+        is ImplDecl   -> {
+            lower_impl_members(decl, typed, project_ctx, diags, module_decls)
             return null
         }
         is EnumDecl | TraitDecl | TypeAliasDecl | ImportDecl | AssertDecl -> { return null }

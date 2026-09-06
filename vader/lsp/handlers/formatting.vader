@@ -31,8 +31,10 @@ export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonVal
     // and we discard that branch, so its exact form doesn't matter here.
     result :: format_source(src, uri)
     match result {
-        is ParseFailure   -> { return JsonArray { .items = [] } }
-        is Formatted as f -> { return JsonArray { .items = [full_doc_edit_json(src, f.output)] } }
+        is ParseFailure -> { return JsonArray { .items = [] } }
+        is Formatted    -> {
+            return JsonArray { .items = [full_doc_edit_json(src, result.output)] }
+        }
     }
 }
 
@@ -82,7 +84,7 @@ test_format_source_smoke :: fn() -> void {
     // A messy-but-parseable source formats to something non-empty.
     r :: format_source("x::1\n", "t.vader")
     match r {
-        is Formatted as f -> { assert(f.output.bytes().len() > 0, "formatted output is empty") }
-        is ParseFailure   -> { assert(false, "simple source should parse") }
+        is Formatted    -> { assert(r.output.bytes().len() > 0, "formatted output is empty") }
+        is ParseFailure -> { assert(false, "simple source should parse") }
     }
 }

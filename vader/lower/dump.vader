@@ -52,21 +52,21 @@ export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
 
 emit_decl :: fn(lines: string[]!, decl: LoweredDecl, indent: string) -> void {
     match decl {
-        is LoweredFnDecl as fn_decl -> {
-            params :: render_params(fn_decl.params)
-            lines.push("${indent}fn ${fn_decl.mangled}(${params}) -> ${display_type(fn_decl.return_type)}")
-            match fn_decl.body {
+        is LoweredFnDecl -> {
+            params :: render_params(decl.params)
+            lines.push("${indent}fn ${decl.mangled}(${params}) -> ${display_type(decl.return_type)}")
+            match decl.body {
                 is null -> { lines.push("${indent}  <extern / signature only>") }
                 is LoweredBlock as body -> { emit_block(lines, body, "${indent}  ") }
             }
         }
-        is LoweredStructDecl as struct_decl -> {
-            fields :: render_fields(struct_decl.fields)
-            lines.push("${indent}struct ${struct_decl.mangled} { ${fields} }")
+        is LoweredStructDecl -> {
+            fields :: render_fields(decl.fields)
+            lines.push("${indent}struct ${decl.mangled} { ${fields} }")
         }
-        is LoweredConstDecl as const_decl -> {
-            lines.push("${indent}const ${const_decl.mangled}: ${display_type(const_decl.type)} =")
-            emit_expr(lines, const_decl.value, "${indent}  ")
+        is LoweredConstDecl -> {
+            lines.push("${indent}const ${decl.mangled}: ${display_type(decl.type)} =")
+            emit_expr(lines, decl.value, "${indent}  ")
         }
     }
 }
@@ -102,85 +102,85 @@ emit_block :: fn(lines: string[]!, block: LoweredBlock, indent: string) -> void 
 
 emit_stmt :: fn(lines: string[]!, stmt: LoweredStmt, indent: string) -> void {
     match stmt {
-        is LoweredLet as let_stmt -> {
-            inline_value :: expr_inline(let_stmt.value)
+        is LoweredLet -> {
+            inline_value :: expr_inline(stmt.value)
             match inline_value {
-                is string as single -> {
-                    lines.push("${indent}let ${let_stmt.name}: ${display_type(let_stmt.type)} = ${single}")
+                is string -> {
+                    lines.push("${indent}let ${stmt.name}: ${display_type(stmt.type)} = ${inline_value}")
                 }
                 is null -> {
-                    lines.push("${indent}let ${let_stmt.name}: ${display_type(let_stmt.type)} =")
-                    emit_expr(lines, let_stmt.value, "${indent}  ")
+                    lines.push("${indent}let ${stmt.name}: ${display_type(stmt.type)} =")
+                    emit_expr(lines, stmt.value, "${indent}  ")
                 }
             }
         }
-        is LoweredAssign as assign -> {
+        is LoweredAssign -> {
             lines.push("${indent}assign")
             lines.push("${indent}  target:")
-            emit_expr(lines, assign.target, "${indent}    ")
+            emit_expr(lines, stmt.target, "${indent}    ")
             lines.push("${indent}  value:")
-            emit_expr(lines, assign.value, "${indent}    ")
+            emit_expr(lines, stmt.value, "${indent}    ")
         }
         is LoweredCellSet -> {
             // `LoweredCellSet` is intentionally not rendered — it carries no
             // surface syntax, so the dump omits it to stay readable.
         }
-        is LoweredExprStmt as expr_stmt -> {
-            emit_expr(lines, expr_stmt.expr, indent)
+        is LoweredExprStmt -> {
+            emit_expr(lines, stmt.expr, indent)
         }
-        is LoweredReturn as ret -> {
-            match ret.value {
+        is LoweredReturn -> {
+            match stmt.value {
                 is null -> { lines.push("${indent}return") }
                 _ -> {
-                    inline_value :: expr_inline(ret.value)
+                    inline_value :: expr_inline(stmt.value)
                     match inline_value {
-                        is string as single -> { lines.push("${indent}return ${single}") }
+                        is string -> { lines.push("${indent}return ${inline_value}") }
                         is null -> {
                             lines.push("${indent}return")
-                            emit_expr(lines, ret.value, "${indent}  ")
+                            emit_expr(lines, stmt.value, "${indent}  ")
                         }
                     }
                 }
             }
         }
-        is LoweredYield as y -> {
-            inline_value :: expr_inline(y.value)
+        is LoweredYield -> {
+            inline_value :: expr_inline(stmt.value)
             match inline_value {
-                is string as single -> { lines.push("${indent}yield ${single}") }
+                is string -> { lines.push("${indent}yield ${inline_value}") }
                 is null -> {
                     lines.push("${indent}yield")
-                    emit_expr(lines, y.value, "${indent}  ")
+                    emit_expr(lines, stmt.value, "${indent}  ")
                 }
             }
         }
-        is LoweredAwait as a -> {
-            inline_awaited :: expr_inline(a.awaited)
+        is LoweredAwait -> {
+            inline_awaited :: expr_inline(stmt.awaited)
             match inline_awaited {
-                is string as single -> { lines.push("${indent}await ${single} -> ${a.target.name}") }
+                is string -> { lines.push("${indent}await ${inline_awaited} -> ${stmt.target.name}") }
                 is null -> {
-                    lines.push("${indent}await -> ${a.target.name}")
-                    emit_expr(lines, a.awaited, "${indent}  ")
+                    lines.push("${indent}await -> ${stmt.target.name}")
+                    emit_expr(lines, stmt.awaited, "${indent}  ")
                 }
             }
         }
-        is LoweredLoop as loop_stmt -> {
-            cond_suffix :: render_loop_cond(loop_stmt.cond)
-            label_suffix :: render_label(loop_stmt.label)
+        is LoweredLoop -> {
+            cond_suffix :: render_loop_cond(stmt.cond)
+            label_suffix :: render_label(stmt.label)
             lines.push("${indent}loop${cond_suffix}${label_suffix}")
-            emit_block(lines, loop_stmt.body, "${indent}  ")
+            emit_block(lines, stmt.body, "${indent}  ")
         }
-        is LoweredBreak as break_stmt -> {
-            lines.push("${indent}break${render_label(break_stmt.label)}")
+        is LoweredBreak -> {
+            lines.push("${indent}break${render_label(stmt.label)}")
         }
-        is LoweredContinue as continue_stmt -> {
-            lines.push("${indent}continue${render_label(continue_stmt.label)}")
+        is LoweredContinue -> {
+            lines.push("${indent}continue${render_label(stmt.label)}")
         }
-        is LoweredDeferPush as dp -> {
+        is LoweredDeferPush -> {
             lines.push("${indent}defer.push")
-            emit_expr(lines, dp.thunk, "${indent}  ")
+            emit_expr(lines, stmt.thunk, "${indent}  ")
         }
-        is LoweredDeferPopExec as dpe -> {
-            lines.push("${indent}defer.pop_exec ${dpe.count}")
+        is LoweredDeferPopExec -> {
+            lines.push("${indent}defer.pop_exec ${stmt.count}")
         }
     }
 }
@@ -189,7 +189,7 @@ render_loop_cond :: fn(cond: LoweredExpr | null) -> string {
     if cond == null { return "" }
     inline_value :: expr_inline(cond)
     match inline_value {
-        is string as single -> { return " while (${single})" }
+        is string -> { return " while (${inline_value})" }
         is null -> { return " while (<…>)" }
     }
 }
@@ -197,67 +197,67 @@ render_loop_cond :: fn(cond: LoweredExpr | null) -> string {
 render_label :: fn(label: string | null) -> string {
     match label {
         is null -> { return "" }
-        is string as text -> { return " :${text}" }
+        is string -> { return " :${label}" }
     }
 }
 
 emit_expr :: fn(lines: string[]!, expr: LoweredExpr, indent: string) -> void {
     inline_value :: expr_inline(expr)
     match inline_value {
-        is string as single -> { lines.push("${indent}${single}") }
+        is string -> { lines.push("${indent}${inline_value}") }
         is null -> { emit_expr_compound(lines, expr, indent) }
     }
 }
 
 emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) -> void {
     match expr {
-        is LoweredCall as call_expr -> {
-            lines.push("${indent}call :${display_type(call_expr.type)}")
+        is LoweredCall -> {
+            lines.push("${indent}call :${display_type(expr.type)}")
             lines.push("${indent}  callee:")
-            emit_expr(lines, call_expr.callee, "${indent}    ")
-            for i in 0..<call_expr.args.len() {
+            emit_expr(lines, expr.callee, "${indent}    ")
+            for i in 0..<expr.args.len() {
                 lines.push("${indent}  arg${i}:")
-                emit_expr(lines, call_expr.args[i], "${indent}    ")
+                emit_expr(lines, expr.args[i], "${indent}    ")
             }
         }
-        is LoweredVirtualCall as vcall -> {
-            lines.push("${indent}vcall ${vcall.trait_name}.${vcall.method} :${display_type(vcall.type)}")
+        is LoweredVirtualCall -> {
+            lines.push("${indent}vcall ${expr.trait_name}.${expr.method} :${display_type(expr.type)}")
             lines.push("${indent}  recv:")
-            emit_expr(lines, vcall.receiver, "${indent}    ")
-            for i in 0..<vcall.args.len() {
+            emit_expr(lines, expr.receiver, "${indent}    ")
+            for i in 0..<expr.args.len() {
                 lines.push("${indent}  arg${i}:")
-                emit_expr(lines, vcall.args[i], "${indent}    ")
+                emit_expr(lines, expr.args[i], "${indent}    ")
             }
         }
-        is LoweredFieldAccess as field -> {
-            lines.push("${indent}.${field.field} :${display_type(field.type)}")
-            emit_expr(lines, field.target, "${indent}  ")
+        is LoweredFieldAccess -> {
+            lines.push("${indent}.${expr.field} :${display_type(expr.type)}")
+            emit_expr(lines, expr.target, "${indent}  ")
         }
-        is LoweredIndex as idx -> {
-            lines.push("${indent}index :${display_type(idx.type)}")
+        is LoweredIndex -> {
+            lines.push("${indent}index :${display_type(expr.type)}")
             lines.push("${indent}  on:")
-            emit_expr(lines, idx.target, "${indent}    ")
+            emit_expr(lines, expr.target, "${indent}    ")
             lines.push("${indent}  ix:")
-            emit_expr(lines, idx.index, "${indent}    ")
+            emit_expr(lines, expr.index, "${indent}    ")
         }
-        is LoweredUnary as unary -> {
-            lines.push("${indent}${unary_op_name(unary.op)} :${display_type(unary.type)}")
-            emit_expr(lines, unary.operand, "${indent}  ")
+        is LoweredUnary -> {
+            lines.push("${indent}${unary_op_name(expr.op)} :${display_type(expr.type)}")
+            emit_expr(lines, expr.operand, "${indent}  ")
         }
-        is LoweredBinary as binary -> {
-            lines.push("${indent}${binary_op_name(binary.op)} :${display_type(binary.type)}")
+        is LoweredBinary -> {
+            lines.push("${indent}${binary_op_name(expr.op)} :${display_type(expr.type)}")
             lines.push("${indent}  l:")
-            emit_expr(lines, binary.left, "${indent}    ")
+            emit_expr(lines, expr.left, "${indent}    ")
             lines.push("${indent}  r:")
-            emit_expr(lines, binary.right, "${indent}    ")
+            emit_expr(lines, expr.right, "${indent}    ")
         }
-        is LoweredIf as if_expr -> {
-            lines.push("${indent}if :${display_type(if_expr.type)}")
+        is LoweredIf -> {
+            lines.push("${indent}if :${display_type(expr.type)}")
             lines.push("${indent}  cond:")
-            emit_expr(lines, if_expr.cond, "${indent}    ")
+            emit_expr(lines, expr.cond, "${indent}    ")
             lines.push("${indent}  then:")
-            emit_block(lines, if_expr.then_block, "${indent}    ")
-            match if_expr.else_block {
+            emit_block(lines, expr.then_block, "${indent}    ")
+            match expr.else_block {
                 is null -> {}
                 is LoweredBlock as else_block -> {
                     lines.push("${indent}  else:")
@@ -265,16 +265,16 @@ emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) ->
                 }
             }
         }
-        is LoweredBlock as block -> {
-            lines.push("${indent}block :${display_type(block.type)}")
-            emit_block(lines, block, "${indent}  ")
+        is LoweredBlock -> {
+            lines.push("${indent}block :${display_type(expr.type)}")
+            emit_block(lines, expr, "${indent}  ")
         }
-        is LoweredStructLit as struct_lit -> {
-            lines.push("${indent}${display_type(struct_lit.type)} {")
-            for field in struct_lit.fields {
+        is LoweredStructLit -> {
+            lines.push("${indent}${display_type(expr.type)} {")
+            for field in expr.fields {
                 inline_field :: expr_inline(field.value)
                 match inline_field {
-                    is string as single -> { lines.push("${indent}  ${field.name}: ${single}") }
+                    is string -> { lines.push("${indent}  ${field.name}: ${inline_field}") }
                     is null -> {
                         lines.push("${indent}  ${field.name}:")
                         emit_expr(lines, field.value, "${indent}    ")
@@ -283,37 +283,37 @@ emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) ->
             }
             lines.push("${indent}}")
         }
-        is LoweredArrayLit as array_lit -> {
-            lines.push("${indent}array :${display_type(array_lit.type)}")
-            for element in array_lit.elements {
+        is LoweredArrayLit -> {
+            lines.push("${indent}array :${display_type(expr.type)}")
+            for element in expr.elements {
                 emit_expr(lines, element, "${indent}  ")
             }
         }
-        is LoweredDataConst as data_const -> {
-            lines.push("${indent}data_const #${data_const.pool_index} :${display_type(data_const.type)}")
+        is LoweredDataConst -> {
+            lines.push("${indent}data_const #${expr.pool_index} :${display_type(expr.type)}")
         }
-        is LoweredCast as cast -> {
-            lines.push("${indent}cast → ${display_type(cast.type)}")
-            emit_expr(lines, cast.value, "${indent}  ")
+        is LoweredCast -> {
+            lines.push("${indent}cast → ${display_type(expr.type)}")
+            emit_expr(lines, expr.value, "${indent}  ")
         }
-        is LoweredTypeCheck as type_check -> {
-            lines.push("${indent}is ${display_type(type_check.check_type)} :bool")
-            emit_expr(lines, type_check.value, "${indent}  ")
+        is LoweredTypeCheck -> {
+            lines.push("${indent}is ${display_type(expr.check_type)} :bool")
+            emit_expr(lines, expr.value, "${indent}  ")
         }
-        is LoweredIntrinsicCall as intrinsic -> {
-            lines.push("${indent}@${intrinsic.name} :${display_type(intrinsic.type)}")
-            for arg in intrinsic.args {
+        is LoweredIntrinsicCall -> {
+            lines.push("${indent}@${expr.name} :${display_type(expr.type)}")
+            for arg in expr.args {
                 emit_expr(lines, arg, "${indent}  ")
             }
         }
-        is LoweredArraySlice as slice -> {
-            lines.push("${indent}slice :${display_type(slice.type)}")
+        is LoweredArraySlice -> {
+            lines.push("${indent}slice :${display_type(expr.type)}")
             lines.push("${indent}  on:")
-            emit_expr(lines, slice.target, "${indent}    ")
+            emit_expr(lines, expr.target, "${indent}    ")
             lines.push("${indent}  lo:")
-            emit_expr(lines, slice.lo, "${indent}    ")
+            emit_expr(lines, expr.lo, "${indent}    ")
             lines.push("${indent}  hi:")
-            emit_expr(lines, slice.hi, "${indent}    ")
+            emit_expr(lines, expr.hi, "${indent}    ")
         }
         // Variants rendered via the fallback — render
         // their canonical kind tag so they don't show up empty.
@@ -327,15 +327,15 @@ emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) ->
 // expansion (`emit_expr_compound` handles those). Renders literals,
 // ident, unreachable → single line ; everything else returns null.
 expr_inline :: fn(expr: LoweredExpr) -> string | null = @partial match expr {
-    is LoweredIntLit as lit    -> { "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
-    is LoweredFloatLit as lit  -> { "float(${lit.value}) :${display_type(lit.type)}" }
-    is LoweredBoolLit as lit   -> { "${lit.value}" }
-    is LoweredNullLit          -> { "null" }
-    is LoweredCharLit as lit   -> { "char(0x${hex_string(lit.value)})" }
-    is LoweredStringLit as lit -> { "${quote_simple(lit.value)} :string" }
-    is LoweredIdent as ident   -> { "${ident.symbol.name} :${display_type(ident.type)}" }
-    is LoweredUnreachable as u -> { "unreachable(\"${u.reason}\") :${display_type(u.type)}" }
-    _ -> { null }
+    is LoweredIntLit      -> { "int(${format_int_value(expr.value, expr.type)}) :${display_type(expr.type)}" }
+    is LoweredFloatLit    -> { "float(${expr.value}) :${display_type(expr.type)}" }
+    is LoweredBoolLit     -> { "${expr.value}" }
+    is LoweredNullLit     -> { "null" }
+    is LoweredCharLit     -> { "char(0x${hex_string(expr.value)})" }
+    is LoweredStringLit   -> { "${quote_simple(expr.value)} :string" }
+    is LoweredIdent       -> { "${expr.symbol.name} :${display_type(expr.type)}" }
+    is LoweredUnreachable -> { "unreachable(\"${expr.reason}\") :${display_type(expr.type)}" }
+    _                     -> { null }
 }
 
 import "std/numbers"

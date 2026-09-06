@@ -474,28 +474,28 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
     // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
     // `generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
-        is AST.RangeExpr as range -> {
-            bound :: ctx.types.expr_type(range.lower)
+        is AST.RangeExpr -> {
+            bound :: ctx.types.expr_type(expr.lower)
             if !is_integer_type(bound) { return null }
             element :: default_if_free(bound)
             return IterChain {
                 .kind = IterChainKind.Range,
-                .range_lower = range.lower,
-                .range_upper = range.upper,
-                .inclusive = range.inclusive,
+                .range_lower = expr.lower,
+                .range_upper = expr.upper,
+                .inclusive = expr.inclusive,
                 .element_type = element,
-                .source = null, .span = range.span,
+                .source = null, .span = expr.span,
             }
         }
-        is AST.CallExpr as call -> {
+        is AST.CallExpr -> {
             // Array cursor bottom: `arr.iter()` (or `iter(arr)`) → an
             // `ArrayIterator<T>` heading the chain; fuse over `arr` directly.
-            arr_bottom :: descend_array_call(ctx, call)
+            arr_bottom :: descend_array_call(ctx, expr)
             if arr_bottom != null { return arr_bottom }
             // Generator combinator (`generator` whose first param is the source
             // iterator) — recognised by callee. map / filter / take / skip all
             // lower through here now the hand-written *Iterator structs are gone.
-            return try_descend_gen_combinator(ctx, call)
+            return try_descend_gen_combinator(ctx, expr)
         }
         _ -> {
             // A BARE array-typed expr heading a lazy chain (`arr.map(f)` — the
@@ -541,10 +541,10 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
         // UFCS form `it.map(f)` / `it.enumerate()` : the FieldExpr resolved as a
         // free-fn UFCS dispatch (the typer stashed the receiver type under its id).
         // The callee's target is the receiver ; the first arg (if any) is the transform.
-        is AST.FieldExpr as fe -> {
-            recv_ty :: ctx.typed.ufcs_receiver_types[fe.id] ?? return null
+        is AST.FieldExpr -> {
+            recv_ty :: ctx.typed.ufcs_receiver_types[callee.id] ?? return null
             fn_arg :: if call.args.len() > 0 { call.args[0].value } else { null }
-            return FluentCombinator { .receiver = fe.target, .fn_arg = fn_arg }
+            return FluentCombinator { .receiver = callee.target, .fn_arg = fn_arg }
         }
         // Direct-call form `map(it, f)` [2 args] or `enumerate(it)` [1 arg] :
         // first arg is the receiver, the second (if any) is the transform / predicate.
@@ -687,14 +687,14 @@ body_breaks_this_loop :: fn(body: AST.BlockExpr) -> bool {
 
 stmt_breaks_this_loop :: fn(stmt: AST.Stmt) -> bool = match stmt {
     is AST.BreakStmt -> true
-    is AST.ExprStmt as e -> expr_breaks_this_loop(e.expr)
-    is AST.LetStmt as l -> expr_breaks_this_loop(l.value)
-    is AST.AssignStmt as a -> expr_breaks_this_loop(a.value)
-    is AST.ReturnStmt as r ->
-        if r.value is AST.Expr as rv { expr_breaks_this_loop(rv) } else { false }
-    is AST.YieldStmt as y ->
-        if y.value is AST.Expr as yv { expr_breaks_this_loop(yv) } else { false }
-    is AST.DeferStmt as d -> match d.body {
+    is AST.ExprStmt -> expr_breaks_this_loop(stmt.expr)
+    is AST.LetStmt -> expr_breaks_this_loop(stmt.value)
+    is AST.AssignStmt -> expr_breaks_this_loop(stmt.value)
+    is AST.ReturnStmt ->
+        if stmt.value is AST.Expr as rv { expr_breaks_this_loop(rv) } else { false }
+    is AST.YieldStmt ->
+        if stmt.value is AST.Expr as yv { expr_breaks_this_loop(yv) } else { false }
+    is AST.DeferStmt -> match stmt.body {
         is AST.DeferStmtBody as ds -> stmt_breaks_this_loop(ds.stmt)
         is AST.DeferBlockBody as db -> body_breaks_this_loop(db.block)
     }

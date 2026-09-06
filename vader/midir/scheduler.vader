@@ -105,50 +105,50 @@ can_pass_through_terminator :: fn(
 /// Returns null for instructions that take no operands.
 first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
     match ins {
-        is InstrConst             -> { return null }
-        is InstrFnRef             -> { return null }
-        is InstrFnAddr            -> { return null }
-        is InstrDataConst         -> { return null }
-        is InstrTypeConst         -> { return null }
-        is InstrMove         as i -> { return i.src }
-        is InstrBinOp        as i -> { return i.lhs }
-        is InstrUnOp         as i -> { return i.operand }
-        is InstrCall         as i -> { if i.args.len() > 0 { return i.args[0] }
+        is InstrConst     -> { return null }
+        is InstrFnRef     -> { return null }
+        is InstrFnAddr    -> { return null }
+        is InstrDataConst -> { return null }
+        is InstrTypeConst -> { return null }
+        is InstrMove      -> { return ins.src }
+        is InstrBinOp     -> { return ins.lhs }
+        is InstrUnOp      -> { return ins.operand }
+        is InstrCall      -> { if ins.args.len() > 0 { return ins.args[0] }
             return null }
-        is InstrCallIndirect as i -> { if i.args.len() > 0 { return i.args[0] }
-            return i.callee }
-        is InstrVirtualCall  as i -> { if i.args.len() > 0 { return i.args[0] }
-            return i.receiver }
-        is InstrFieldGet     as i -> { return i.target }
-        is InstrFieldSet     as i -> { return i.target }
-        is InstrArrayGet     as i -> { return i.target }
-        is InstrArraySet     as i -> { return i.target }
-        is InstrArrayLen     as i -> { return i.target }
-        is InstrArrayPush    as i -> { return i.target }
-        is InstrArraySlice   as i -> { return i.target }
-        is InstrStringSlice  as i -> { return i.target }
-        is InstrStructNew    as i -> { if i.fields.len() > 0 { return i.fields[0] }
+        is InstrCallIndirect -> { if ins.args.len() > 0 { return ins.args[0] }
+            return ins.callee }
+        is InstrVirtualCall -> { if ins.args.len() > 0 { return ins.args[0] }
+            return ins.receiver }
+        is InstrFieldGet    -> { return ins.target }
+        is InstrFieldSet    -> { return ins.target }
+        is InstrArrayGet    -> { return ins.target }
+        is InstrArraySet    -> { return ins.target }
+        is InstrArrayLen    -> { return ins.target }
+        is InstrArrayPush   -> { return ins.target }
+        is InstrArraySlice  -> { return ins.target }
+        is InstrStringSlice -> { return ins.target }
+        is InstrStructNew   -> { if ins.fields.len() > 0 { return ins.fields[0] }
             return null }
-        is InstrArrayNew     as i -> { if i.elements.len() > 0 { return i.elements[0] }
+        is InstrArrayNew -> { if ins.elements.len() > 0 { return ins.elements[0] }
             return null }
-        is InstrTypeCheck    as i -> { return i.value }
-        is InstrCast         as i -> { return i.value }
-        is InstrCellNew      as i -> { return i.value }
-        is InstrCellGet      as i -> { return i.cell }
-        is InstrCellSet      as i -> { return i.cell }
-        is InstrMakeClosure  as i -> { return i.env }
-        is InstrIntrinsic    as i -> { if i.args.len() > 0 { return i.args[0] }
+        is InstrTypeCheck   -> { return ins.value }
+        is InstrCast        -> { return ins.value }
+        is InstrCellNew     -> { return ins.value }
+        is InstrCellGet     -> { return ins.cell }
+        is InstrCellSet     -> { return ins.cell }
+        is InstrMakeClosure -> { return ins.env }
+        is InstrIntrinsic   -> { if ins.args.len() > 0 { return ins.args[0] }
             return null }
-        is InstrDeferPush    as i -> { return i.value }
-        is InstrDeferPopExec      -> { return null }
+        is InstrDeferPush    -> { return ins.value }
+        is InstrDeferPopExec -> { return null }
     }
 }
 
 first_terminator_operand :: fn(t: Terminator) -> LocalId | null {
     match t {
-        is TermBranch          -> { return null }
-        is TermUnreachable     -> { return null }
-        is TermCondBranch as c -> { return c.cond }
-        is TermReturn     as r -> { return r.value }
+        is TermBranch      -> { return null }
+        is TermUnreachable -> { return null }
+        is TermCondBranch  -> { return t.cond }
+        is TermReturn      -> { return t.value }
     }
 }

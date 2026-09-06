@@ -99,22 +99,22 @@ export check_block :: fn(
 /// Type-check a single statement. Reads `ctx` for `return` / `break` /
 /// `continue` validation ; writes `local_types` for let-bindings.
 export check_stmt :: fn(
-    stmt: AST.Stmt,
+    stmt: AST.Stmt!,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
     ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match stmt {
-        is AST.LetStmt as s      -> { check_let(s, typed, diags, check_expr_fn) }
-        is AST.AssignStmt as s   -> { check_assign(s, typed, diags, check_expr_fn) }
-        is AST.ExprStmt as s     -> { check_expr_fn(s.expr, null, typed, diags) }
-        is AST.ReturnStmt as s   -> { check_return(s, typed, diags, ctx, check_expr_fn) }
-        is AST.YieldStmt as s    -> { check_yield(s, typed, diags, ctx, check_expr_fn) }
-        is AST.ForStmt as s      -> { check_for(s, typed, diags, ctx, check_expr_fn) }
-        is AST.BreakStmt as s    -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
-        is AST.ContinueStmt as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
-        is AST.DeferStmt as s    -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
+        is AST.LetStmt      -> { check_let(stmt, typed, diags, check_expr_fn) }
+        is AST.AssignStmt   -> { check_assign(stmt, typed, diags, check_expr_fn) }
+        is AST.ExprStmt     -> { check_expr_fn(stmt.expr, null, typed, diags) }
+        is AST.ReturnStmt   -> { check_return(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.YieldStmt    -> { check_yield(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.ForStmt      -> { check_for(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.BreakStmt    -> { check_loop_jump(stmt.span, stmt.label, typed, ctx, diags) }
+        is AST.ContinueStmt -> { check_loop_jump(stmt.span, stmt.label, typed, ctx, diags) }
+        is AST.DeferStmt    -> { check_defer(stmt, typed, diags, ctx, check_expr_fn) }
     }
     return
 }
@@ -176,59 +176,59 @@ for_form_has_await :: fn(form: AST.ForForm) -> bool = match form {
 }
 
 expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
-    is AST.AwaitExpr          -> { return true }
-    is AST.BinaryExpr as x    -> { return expr_has_await(x.left) || expr_has_await(x.right) }
-    is AST.UnaryExpr as x     -> { return expr_has_await(x.operand) }
-    is AST.CastExpr as x      -> { return expr_has_await(x.value) }
-    is AST.IndexExpr as x     -> { return expr_has_await(x.target) || expr_has_await(x.index) }
-    is AST.FieldExpr as x     -> { return expr_has_await(x.target) }
-    is AST.RangeExpr as x     -> { return expr_has_await(x.lower) || expr_has_await(x.upper) }
-    is AST.BlockExpr as x     -> { return block_has_await(x) }
-    is AST.CallExpr as x      -> {
+    is AST.AwaitExpr  -> { return true }
+    is AST.BinaryExpr -> { return expr_has_await(e.left) || expr_has_await(e.right) }
+    is AST.UnaryExpr  -> { return expr_has_await(e.operand) }
+    is AST.CastExpr   -> { return expr_has_await(e.value) }
+    is AST.IndexExpr  -> { return expr_has_await(e.target) || expr_has_await(e.index) }
+    is AST.FieldExpr  -> { return expr_has_await(e.target) }
+    is AST.RangeExpr  -> { return expr_has_await(e.lower) || expr_has_await(e.upper) }
+    is AST.BlockExpr  -> { return block_has_await(e) }
+    is AST.CallExpr   -> {
         // @partial: leaf/type-position exprs can't carry a top-level `await`, and
         // LambdaExpr is deliberately NOT descended (a lambda can't be async in v1,
         // and an await inside it doesn't color the enclosing fn).
 
-        if expr_has_await(x.callee) {
+        if expr_has_await(e.callee) {
             return true
         }
-        for a in x.args {
+        for a in e.args {
             if expr_has_await(a.value) {
                 return true
             }
         }
         return false
     }
-    is AST.IfExpr as x        -> {
-        if expr_has_await(x.cond)        { return true }
-        if block_has_await(x.then_block) { return true }
-        match x.else_branch {
+    is AST.IfExpr        -> {
+        if expr_has_await(e.cond)        { return true }
+        if block_has_await(e.then_block) { return true }
+        match e.else_branch {
             is AST.IfElseIf as ei    -> { return expr_has_await(ei.branch) }
             is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
             is null                  -> { return false }
         }
     }
-    is AST.MatchExpr as x     -> {
-        if expr_has_await(x.scrutinee) {
+    is AST.MatchExpr     -> {
+        if expr_has_await(e.scrutinee) {
             return true
         }
-        for a in x.arms {
+        for a in e.arms {
             if expr_has_await(a.body) {
                 return true
             }
         }
         return false
     }
-    is AST.StructLitExpr as x -> {
-        for item in x.items {
+    is AST.StructLitExpr -> {
+        for item in e.items {
             match item {
-                is AST.StructLitField as fld -> {
-                    if expr_has_await(fld.value) {
+                is AST.StructLitField -> {
+                    if expr_has_await(item.value) {
                         return true
                     }
                 }
-                is AST.StructLitSpread as sp -> {
-                    if expr_has_await(sp.expr) {
+                is AST.StructLitSpread -> {
+                    if expr_has_await(item.expr) {
                         return true
                     }
                 }
@@ -236,8 +236,8 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
         }
         return false
     }
-    is AST.SeqLitExpr as x    -> {
-        for el in x.elements {
+    is AST.SeqLitExpr    -> {
+        for el in e.elements {
             if expr_has_await(el) {
                 return true
             }
@@ -288,22 +288,22 @@ block_has_yield :: fn(block: AST.BlockExpr) -> bool {
 }
 
 stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
-    is AST.YieldStmt       -> { return true }
-    is AST.ForStmt as f    -> { return block_has_yield(f.body) }
-    is AST.DeferStmt as d  -> {
-        match d.body {
+    is AST.YieldStmt -> { return true }
+    is AST.ForStmt   -> { return block_has_yield(s.body) }
+    is AST.DeferStmt -> {
+        match s.body {
             is AST.DeferStmtBody as b  -> { return stmt_has_yield(b.stmt) }
             is AST.DeferBlockBody as b -> { return block_has_yield(b.block) }
         }
     }
-    is AST.LetStmt         -> { return false }
-    is AST.AssignStmt      -> { return false }
-    is AST.ExprStmt as e   -> { return expr_has_yield(e.expr) }
-    is AST.ReturnStmt as r -> {
-        if r.value == null {
+    is AST.LetStmt    -> { return false }
+    is AST.AssignStmt -> { return false }
+    is AST.ExprStmt   -> { return expr_has_yield(s.expr) }
+    is AST.ReturnStmt -> {
+        if s.value == null {
             return false
         }
-        return expr_has_yield(r.value)
+        return expr_has_yield(s.value)
     }
     is AST.BreakStmt       -> { return false }
     is AST.ContinueStmt    -> { return false }
@@ -313,21 +313,21 @@ stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
 /// (`yield` is a statement, so it only appears in a block's stmt list) —
 /// descend the expression forms that carry blocks, skipping lambdas.
 expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
-    is AST.BlockExpr as b -> { return block_has_yield(b) }
-    is AST.IfExpr as i -> { return if_has_yield(i) }
-    is AST.MatchExpr as m -> {
-        for arm in m.arms {
+    is AST.BlockExpr -> { return block_has_yield(e) }
+    is AST.IfExpr -> { return if_has_yield(e) }
+    is AST.MatchExpr -> {
+        for arm in e.arms {
             if expr_has_yield(arm.body) {
                 return true
             }
         }
         return false
     }
-    is AST.NullCoalesceExpr as nc -> {
-        if expr_has_yield(nc.left) {
+    is AST.NullCoalesceExpr -> {
+        if expr_has_yield(e.left) {
             return true
         }
-        inner :: AST.coalesce_fallback_expr(nc.fallback) ?? return false
+        inner :: AST.coalesce_fallback_expr(e.fallback) ?? return false
         return expr_has_yield(inner)
     }
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
@@ -434,11 +434,11 @@ export check_fn_body :: fn(
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram!) -> void {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     match sym {
-        is Symbol as s -> {
-            cur :: typed.decl_types[s.id]
+        is Symbol -> {
+            cur :: typed.decl_types[sym.id]
             match cur {
-                is FnType as ft -> { typed.decl_types[s.id] = mk_fn_like(ft, ft.params, ret) }
-                _               -> {}
+                is FnType -> { typed.decl_types[sym.id] = mk_fn_like(cur, cur.params, ret) }
+                _         -> {}
             }
         }
         is null        -> {
@@ -446,8 +446,8 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram!)
             sp_key :: fn_decl.name_span.hash()
             cur :: typed.impl_method_decl_types[sp_key]
             match cur {
-                is FnType as ft -> { typed.impl_method_decl_types[sp_key] = mk_fn(ft.params, ret) }
-                _               -> {}
+                is FnType -> { typed.impl_method_decl_types[sp_key] = mk_fn(cur.params, ret) }
+                _         -> {}
             }
         }
     }
@@ -473,37 +473,37 @@ lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbo
 }
 
 contains_unresolved :: fn(t: Type) -> bool = @partial match t {
-    is UnresolvedType  -> { return true }
-    is UnionType as u  -> {
+    is UnresolvedType -> { return true }
+    is UnionType      -> {
         // @partial: only the composite type variants can carry an Unresolved leaf;
         // every scalar / primitive variant is unresolved-free, so `false` is right.
 
-        for v in u.variants {
+        for v in t.variants {
             if contains_unresolved(v) {
                 return true
             }
         }
         return false
     }
-    is ArrayType as a  -> { return contains_unresolved(a.element) }
-    is FnType as f     -> {
-        for p in f.params {
+    is ArrayType -> { return contains_unresolved(t.element) }
+    is FnType    -> {
+        for p in t.params {
             if contains_unresolved(p) {
                 return true
             }
         }
-        return contains_unresolved(f.return_type)
+        return contains_unresolved(t.return_type)
     }
-    is TupleType as p  -> {
-        for el in p.elements {
+    is TupleType  -> {
+        for el in t.elements {
             if contains_unresolved(el) {
                 return true
             }
         }
         return false
     }
-    is StructType as s -> {
-        for a in s.args {
+    is StructType -> {
+        for a in t.args {
             if contains_unresolved(a) {
                 return true
             }
@@ -1180,10 +1180,10 @@ export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | 
 }
 
 immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null = @partial match e {
-    is AST.IdentExpr as x  -> typed.resolved.idents[x.span.hash()]
-    is AST.FieldExpr as f  -> immutable_root_symbol(f.target, typed)
-    is AST.IndexExpr as ix -> immutable_root_symbol(ix.target, typed)
-    _                      -> null
+    is AST.IdentExpr -> typed.resolved.idents[e.span.hash()]
+    is AST.FieldExpr -> immutable_root_symbol(e.target, typed)
+    is AST.IndexExpr -> immutable_root_symbol(e.target, typed)
+    _                -> null
 }
 
 /// True when writing THROUGH `e` must be rejected.
@@ -1231,10 +1231,10 @@ rooted_in_storageless_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
 /// @partial: only an access path can be immutable — an ident, or a field / element
 /// reached from one. Every other expression form yields a fresh owned value.
 export expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
-    is AST.IdentExpr as x  -> ident_is_immutable(x, typed)
-    is AST.FieldExpr as f  -> expr_is_immutable(f.target, typed)
-    is AST.IndexExpr as ix -> expr_is_immutable(ix.target, typed)
-    _                      -> false
+    is AST.IdentExpr -> ident_is_immutable(e, typed)
+    is AST.FieldExpr -> expr_is_immutable(e.target, typed)
+    is AST.IndexExpr -> expr_is_immutable(e.target, typed)
+    _                -> false
 }
 
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
@@ -1673,15 +1673,15 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
 
 stmt_span :: fn(s: AST.Stmt) -> Span {
     match s {
-        is AST.LetStmt as x      -> { return x.span }
-        is AST.AssignStmt as x   -> { return x.span }
-        is AST.ExprStmt as x     -> { return x.span }
-        is AST.ReturnStmt as x   -> { return x.span }
-        is AST.YieldStmt as x    -> { return x.span }
-        is AST.ForStmt as x      -> { return x.span }
-        is AST.BreakStmt as x    -> { return x.span }
-        is AST.ContinueStmt as x -> { return x.span }
-        is AST.DeferStmt as x    -> { return x.span }
+        is AST.LetStmt      -> { return s.span }
+        is AST.AssignStmt   -> { return s.span }
+        is AST.ExprStmt     -> { return s.span }
+        is AST.ReturnStmt   -> { return s.span }
+        is AST.YieldStmt    -> { return s.span }
+        is AST.ForStmt      -> { return s.span }
+        is AST.BreakStmt    -> { return s.span }
+        is AST.ContinueStmt -> { return s.span }
+        is AST.DeferStmt    -> { return s.span }
     }
 }
 
@@ -1838,22 +1838,22 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     // — `array_backing` already returned for every array ; other types yield an
     // unresolved element.
     @partial match iter_ty {
-        is StructType as st -> {
+        is StructType -> {
             // A `generator`'s `<fn>$State<E>` carries the concrete element as its
             // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic
             // struct has no `struct_decl` for the generic-substitution path below, so
             // read the arg directly (else a captured loop var over a generator chain
             // erases to the impl's generic `E`).
             if is_gen_state_struct(iter_ty) {
-                if st.args.len() >= 1 {
-                    return st.args[0]
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
                 }
                 return TY_UNRESOLVED
             }
-            elem :: typed.iter_element_types[st.symbol.name]
+            elem :: typed.iter_element_types[iter_ty.symbol.name]
             if elem == null {
-                if st.args.len() >= 1 {
-                    return st.args[0]
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
                 }
                 return TY_UNRESOLVED
             }
@@ -1862,10 +1862,10 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // (`Range<T> implements Iterator<T>` records the
             // impl-side `T` — substitute_by_name swaps it
             // for the call-site's concrete arg by name).
-            decl :: typed.struct_decls[st.symbol.id] ?? return elem
-            return substitute_by_name(elem, decl.type_params, st.args)
+            decl :: typed.struct_decls[iter_ty.symbol.id] ?? return elem
+            return substitute_by_name(elem, decl.type_params, iter_ty.args)
         }
-        is TraitType as tt  -> {
+        is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
             // result stored as the trait) carries its element as the sole type arg.
             // Without this a `for x in it` over such a value leaves the loop var
@@ -1878,7 +1878,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's
             // `Substitution` binds `T`, and `resolve_element_type` applies it.
-            return iterator_element_of(tt) ?? TY_UNRESOLVED
+            return iterator_element_of(iter_ty) ?? TY_UNRESOLVED
         }
         _                   -> { return TY_UNRESOLVED }
     }
@@ -1887,8 +1887,8 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     decl_ty :: match sym {
-        is Symbol as s -> typed.decl_types[s.id]
-        is null        -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
+        is Symbol -> typed.decl_types[sym.id]
+        is null   -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
     }
     if decl_ty is null   { return TY_UNRESOLVED }
     if decl_ty is FnType { return decl_ty.return_type }
@@ -2057,7 +2057,7 @@ stmt_check_stub :: fn(
     @partial match e {
         is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
+        is AST.IdentExpr          -> { return infer_ident(e, typed) }
         _                         -> { return TY_UNRESOLVED }
     }
 }

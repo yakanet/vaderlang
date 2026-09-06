@@ -205,8 +205,8 @@ export compiler_source_root :: fn(root: string) -> string {
 driver_input_key :: fn(driver_path: string) -> string {
     src :: read_file_string(driver_path)
     driver_hash :: match src {
-        is string as text -> text.hash()
-        is IOError        -> 0
+        is string  -> src.hash()
+        is IOError -> 0
     }
     exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT)
     compiler_hash :: match exe {

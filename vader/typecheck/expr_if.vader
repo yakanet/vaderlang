@@ -512,15 +512,15 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 expr_if_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
+    e: AST.Expr!, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the literal / ident / if expr kinds the if
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
         is AST.IntLitExpr  as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.BoolLitExpr as x -> { return TY_BOOL }
-        is AST.IdentExpr   as x -> { return infer_ident(x, typed) }
-        is AST.IfExpr      as x -> { return infer_if(x, expected, typed, diags, null, expr_if_check_stub) }
+        is AST.IdentExpr -> { return infer_ident(e, typed) }
+        is AST.IfExpr -> { return infer_if(e, expected, typed, diags, null, expr_if_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -534,8 +534,8 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     parsed :: parse_source(src, "t.vader")
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
-        is AST.FnDecl as f -> {
-            match f.body {
+        is AST.FnDecl -> {
+            match last.body {
                 is null -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_if)

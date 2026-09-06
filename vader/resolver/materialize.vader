@@ -70,11 +70,11 @@ export materialize_default_members :: fn(
     for method in trait_.members {
         body :: method.body
         match body {
-            is null         -> {}     // not a default method
-            is AST.BlockExpr as b -> {
+            is null          -> {}     // not a default method
+            is AST.BlockExpr -> {
                 if method.name in provided { continue }
                 no_decorators: AST.Decorator[] = []
-                cloned :: substitute_block_materialized(b, subst, host_factory, stamp)
+                cloned :: substitute_block_materialized(body, subst, host_factory, stamp)
                 impl_.members.push(synth_with_body(method, subst, no_decorators, cloned, stamp))
             }
         }
@@ -329,13 +329,13 @@ Point implements Equals -> true
     impl_decl  :: find_impl(parsed.program.decls)
     match trait_decl {
         is null -> { assert(false, "Equals trait should be parsed") }
-        is AST.TraitDecl as t -> {
+        is AST.TraitDecl -> {
             match impl_decl {
                 is null -> { assert(false, "Point implements Equals should be parsed") }
-                is AST.ImplDecl as im -> {
-                    materialize_sam_members(im, t, new_node_id_factory())
+                is AST.ImplDecl -> {
+                    materialize_sam_members(impl_decl, trait_decl, new_node_id_factory())
                     found := false
-                    for m in im.members {
+                    for m in impl_decl.members {
                         if m.name == "equals" { found = true }
                     }
                     assert(found, "SAM-synthetic member should be named after the trait's method")
@@ -362,16 +362,16 @@ Iter :: trait {
     impl_decl  :: find_impl(parsed.program.decls)
     match trait_decl {
         is null -> { assert(false, "Iter trait should be parsed") }
-        is AST.TraitDecl as t -> {
+        is AST.TraitDecl -> {
             match impl_decl {
                 is null -> { assert(false, "i32 implements Iter should be parsed") }
-                is AST.ImplDecl as im -> {
-                    before :: im.members.len()
+                is AST.ImplDecl -> {
+                    before :: impl_decl.members.len()
                     assert_eq(before, 0)
-                    materialize_intrinsic_members(im, t)
-                    after :: im.members.len()
+                    materialize_intrinsic_members(impl_decl, trait_decl)
+                    after :: impl_decl.members.len()
                     assert_eq(after, 1)
-                    assert_eq(im.members[0].name, "next")
+                    assert_eq(impl_decl.members[0].name, "next")
                 }
             }
         }
@@ -381,7 +381,7 @@ Iter :: trait {
 find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
     for d in decls {
         match d {
-            is AST.TraitDecl as t -> { if t.name == name { return t } }
+            is AST.TraitDecl -> { if d.name == name { return d } }
             _ -> {}
         }
     }
@@ -391,7 +391,7 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
 find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl | null {
     for d in decls {
         match d {
-            is AST.ImplDecl as im -> { return im }
+            is AST.ImplDecl -> { return d }
             _ -> {}
         }
     }

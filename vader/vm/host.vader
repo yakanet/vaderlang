@@ -248,8 +248,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             v :: stack[arg_base]
             // @partial: integer carriers reinterpret as unsigned; other tags trap.
             return @partial match v {
-                is I64Val as i -> HostOk { .value = StringVal { .value = u64(i.value).to_string() } }
-                is I32Val as i -> HostOk { .value = StringVal { .value = u64(u32(i.value)).to_string() } }
+                is I64Val -> HostOk { .value = StringVal { .value = u64(v.value).to_string() } }
+                is I32Val -> HostOk { .value = StringVal { .value = u64(u32(v.value)).to_string() } }
                 // Any other Value tag means the lowerer routed a non-
                 // integer through `<u_width>$Display$to_string`. Trap
                 // loudly so the regression surfaces here instead of as a

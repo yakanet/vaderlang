@@ -38,27 +38,27 @@ export infer_seq_lit :: fn(
     // @partial: only a tuple- or array-shaped expectation drives contextual
     // disambiguation; for every other (or absent) slot type we infer freely.
     @partial match expected {
-        is TupleType as tup -> {
-            return infer_against_tuple(e, tup, typed, diags, check_expr_fn)
+        is TupleType -> {
+            return infer_against_tuple(e, expected, typed, diags, check_expr_fn)
         }
-        is ArrayType as arr -> {
-            return infer_against_array(e, arr, typed, diags, check_expr_fn)
+        is ArrayType -> {
+            return infer_against_array(e, expected, typed, diags, check_expr_fn)
         }
-        is DistinctType as d -> {
+        is DistinctType -> {
             // Composite-backed distinct newtype (`f: BigInt = [1]`,
             // `p: Coord = [3, 4]`) : check the elements against the backing array /
             // tuple, but the literal's type is the nominal distinct itself, not the
             // raw composite.
 
-            ab :: array_backing(d)
+            ab :: array_backing(expected)
             if ab != null {
                 infer_against_array(e, ab, typed, diags, check_expr_fn)
-                return d
+                return expected
             }
-            tb :: tuple_backing(d)
+            tb :: tuple_backing(expected)
             if tb != null {
                 infer_against_tuple(e, tb, typed, diags, check_expr_fn)
-                return d
+                return expected
             }
             return infer_no_expected(e, typed, diags, check_expr_fn)
         }
@@ -200,7 +200,7 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 seq_lit_check_stub :: fn(
-    e: AST.Expr,
+    e: AST.Expr!,
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
@@ -210,9 +210,9 @@ seq_lit_check_stub :: fn(
     @partial match e {
         is AST.IntLitExpr as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x -> { return infer_ident(x, typed) }
-        is AST.SeqLitExpr as x -> { return infer_seq_lit(
-            x,
+        is AST.IdentExpr -> { return infer_ident(e, typed) }
+        is AST.SeqLitExpr -> { return infer_seq_lit(
+            e,
             expected,
             typed,
             diags,
@@ -242,8 +242,8 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
-        is AST.FnDecl as f -> {
-            match f.body {
+        is AST.FnDecl -> {
+            match last.body {
                 is null -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_seq)

@@ -155,26 +155,26 @@ bind_local_checked :: fn(self: ResolveState!, kind: SymbolKind, name: string, sp
 walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
     match d {
         is AST.ImportDecl    -> {}
-        is AST.FnDecl as x   -> { self.walk_fn_decl(x) }
-        is AST.StructDecl as x -> { self.walk_struct_decl(x) }
-        is AST.EnumDecl    -> {}
-        is AST.TraitDecl as x -> { self.walk_trait_decl(x) }
-        is AST.ImplDecl as x -> { self.walk_impl_decl(x) }
-        is AST.TypeAliasDecl as x -> {
+        is AST.FnDecl        -> { self.walk_fn_decl(d) }
+        is AST.StructDecl    -> { self.walk_struct_decl(d) }
+        is AST.EnumDecl      -> {}
+        is AST.TraitDecl     -> { self.walk_trait_decl(d) }
+        is AST.ImplDecl      -> { self.walk_impl_decl(d) }
+        is AST.TypeAliasDecl -> {
             self.scope.push()
-            for tp in x.type_params {
+            for tp in d.type_params {
                 sym :: self.mint_local(.TypeParam, tp.name, tp.span)
                 self.scope.bind(tp.name, sym)
                 self.walk_opt_expr(tp.bound)
             }
-            self.walk_opt_expr(x.aliased)
+            self.walk_opt_expr(d.aliased)
             self.scope.pop()
         }
-        is AST.ConstDecl as x -> {
-            self.walk_opt_expr(x.ty)
-            self.walk_expr(x.value)
+        is AST.ConstDecl -> {
+            self.walk_opt_expr(d.ty)
+            self.walk_expr(d.value)
         }
-        is AST.AssertDecl as x -> { self.walk_expr(x.condition) }
+        is AST.AssertDecl -> { self.walk_expr(d.condition) }
     }
 }
 
@@ -319,10 +319,10 @@ walk_decorators :: fn(self: ResolveState!, decs: AST.Decorator[]) -> void {
 check_target_selectors :: fn(self: ResolveState!, d: AST.Decorator) -> void {
     for a in d.args {
         match a {
-            is AST.DotVariantExpr as dv -> {
-                if parse_os(dv.variant.to_lower()) == null {
-                    self.diags.push(resolver_error(.UnknownTargetSelector, dv.span,
-                        "`.${dv.variant}` names no operating system"))
+            is AST.DotVariantExpr -> {
+                if parse_os(a.variant.to_lower()) == null {
+                    self.diags.push(resolver_error(.UnknownTargetSelector, a.span,
+                        "`.${a.variant}` names no operating system"))
                 }
             }
             _ -> {
@@ -369,23 +369,23 @@ walk_block :: fn(self: ResolveState!, b: AST.BlockExpr) -> void {
 
 walk_stmt :: fn(self: ResolveState!, s: AST.Stmt) -> void {
     match s {
-        is AST.LetStmt as x -> {
-            self.walk_opt_expr(x.ty)
-            self.walk_expr(x.value)
-            self.bind_let_binding(x.binding)
-            if !x.mutable { self.mark_binding_immutable(x.binding) }
+        is AST.LetStmt -> {
+            self.walk_opt_expr(s.ty)
+            self.walk_expr(s.value)
+            self.bind_let_binding(s.binding)
+            if !s.mutable { self.mark_binding_immutable(s.binding) }
         }
-        is AST.AssignStmt as x -> {
-            self.walk_expr(x.target)
-            self.walk_expr(x.value)
+        is AST.AssignStmt -> {
+            self.walk_expr(s.target)
+            self.walk_expr(s.value)
         }
-        is AST.ExprStmt as x -> { self.walk_expr(x.expr) }
-        is AST.ReturnStmt as x -> { self.walk_opt_expr(x.value) }
-        is AST.YieldStmt as x -> { self.walk_expr(x.value) }
-        is AST.ForStmt as x -> { self.walk_for(x) }
+        is AST.ExprStmt -> { self.walk_expr(s.expr) }
+        is AST.ReturnStmt -> { self.walk_opt_expr(s.value) }
+        is AST.YieldStmt -> { self.walk_expr(s.value) }
+        is AST.ForStmt -> { self.walk_for(s) }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
-        is AST.DeferStmt as x -> { self.walk_defer(x) }
+        is AST.DeferStmt -> { self.walk_defer(s) }
     }
 }
 
@@ -417,18 +417,18 @@ mark_param_borrow :: fn(self: ResolveState!, p: AST.FnParam, sym: Symbol) -> voi
 
 mark_binding_immutable :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
     match b {
-        is AST.SimpleBinding as sb -> {
-            sym :: self.scope.lookup(sb.name)
+        is AST.SimpleBinding -> {
+            sym :: self.scope.lookup(b.name)
             match sym {
-                is Symbol as s -> { self.immutable_locals[s.id] = true }
+                is Symbol -> { self.immutable_locals[sym.id] = true }
                 is null -> {}
             }
         }
-        is AST.TupleBinding as tb -> {
-            for inner in tb.elements { self.mark_binding_immutable(inner) }
+        is AST.TupleBinding -> {
+            for inner in b.elements { self.mark_binding_immutable(inner) }
         }
-        is AST.RestBinding as rb -> {
-            sym :: self.scope.lookup(rb.name)
+        is AST.RestBinding -> {
+            sym :: self.scope.lookup(b.name)
             if sym is Symbol {
                 self.immutable_locals[sym.id] = true
             }
@@ -439,23 +439,23 @@ mark_binding_immutable :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
 
 bind_let_binding :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
     match b {
-        is AST.SimpleBinding as x -> {
-            sym :: self.bind_local_checked(.Local, x.name, x.name_span)
+        is AST.SimpleBinding -> {
+            sym :: self.bind_local_checked(.Local, b.name, b.name_span)
             // Park the Symbol against the binding's name_span so
             // downstream passes (typecheck → let_type_aliases stash,
             // lower → ident-to-binding lookup) can recover the
             // local's Symbol.id without re-walking the body's scope.
             // Mirrors the Param / TypeParam pattern at the top of
             // this file (mint then index into `idents`).
-            self.idents[x.name_span.hash()] = sym
+            self.idents[b.name_span.hash()] = sym
         }
-        is AST.TupleBinding as x -> {
-            for e in x.elements { self.bind_let_binding(e) }
+        is AST.TupleBinding -> {
+            for e in b.elements { self.bind_let_binding(e) }
         }
         is AST.WildcardBinding -> {}
-        is AST.RestBinding as x -> {
-            sym :: self.bind_local_checked(.Local, x.name, x.span)
-            self.idents[x.span.hash()] = sym
+        is AST.RestBinding -> {
+            sym :: self.bind_local_checked(.Local, b.name, b.span)
+            self.idents[b.span.hash()] = sym
         }
     }
 }
@@ -511,79 +511,79 @@ check_wildcard_ambiguity :: fn(self: ResolveState!, x: AST.IdentExpr, s: Symbol)
 
 walk_expr :: fn(self: ResolveState!, e: AST.Expr) -> void {
     match e {
-        is AST.IdentExpr as x -> {
-            v :: self.scope.lookup(x.name)
+        is AST.IdentExpr -> {
+            v :: self.scope.lookup(e.name)
             match v {
-                is Symbol as s -> {
-                    self.idents[x.span.hash()] = s
-                    self.check_wildcard_ambiguity(x, s)
+                is Symbol -> {
+                    self.idents[e.span.hash()] = v
+                    self.check_wildcard_ambiguity(e, v)
                 }
                 // R2006 — caller must seed `core_symbols` via
                 // `resolve_module_with_collected_dp_seeded` ; otherwise
                 // bare references to `Range`, `Display`, `Iterator`, …
                 // would over-fire here.
                 is null   -> {
-                    self.diags.push(resolver_error(.UnresolvedIdent, x.span, "`${x.name}`"))
+                    self.diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
                 }
             }
         }
-        is AST.CallExpr as x -> {
-            self.walk_expr(x.callee)
-            for a in x.args { self.walk_expr(a.value) }
+        is AST.CallExpr -> {
+            self.walk_expr(e.callee)
+            for a in e.args { self.walk_expr(a.value) }
         }
-        is AST.FieldExpr as x -> { self.walk_expr(x.target) }
-        is AST.IndexExpr as x -> {
-            self.walk_expr(x.target)
-            self.walk_expr(x.index)
+        is AST.FieldExpr -> { self.walk_expr(e.target) }
+        is AST.IndexExpr -> {
+            self.walk_expr(e.target)
+            self.walk_expr(e.index)
         }
-        is AST.UnaryExpr as x -> { self.walk_expr(x.operand) }
-        is AST.BinaryExpr as x -> {
-            self.walk_expr(x.left)
-            self.walk_expr(x.right)
+        is AST.UnaryExpr -> { self.walk_expr(e.operand) }
+        is AST.BinaryExpr -> {
+            self.walk_expr(e.left)
+            self.walk_expr(e.right)
         }
-        is AST.NullCoalesceExpr as x -> {
-            self.walk_expr(x.left)
-            match x.fallback {
+        is AST.NullCoalesceExpr -> {
+            self.walk_expr(e.left)
+            match e.fallback {
                 is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt as s -> { self.walk_stmt(s) }
                 is AST.Expr as e -> { self.walk_expr(e) }
             }
         }
-        is AST.IfExpr as x -> { self.walk_if(x) }
-        is AST.MatchExpr as x -> { self.walk_match(x) }
-        is AST.BlockExpr as x -> { self.walk_block(x) }
-        is AST.LambdaExpr as x -> { self.walk_lambda(x) }
-        is AST.StructLitExpr as x -> { self.walk_struct_lit(x) }
-        is AST.SeqLitExpr as x -> { for it in x.elements { self.walk_expr(it) } }
-        is AST.RangeExpr as x -> {
-            self.walk_expr(x.lower)
-            self.walk_expr(x.upper)
+        is AST.IfExpr -> { self.walk_if(e) }
+        is AST.MatchExpr -> { self.walk_match(e) }
+        is AST.BlockExpr -> { self.walk_block(e) }
+        is AST.LambdaExpr -> { self.walk_lambda(e) }
+        is AST.StructLitExpr -> { self.walk_struct_lit(e) }
+        is AST.SeqLitExpr -> { for it in e.elements { self.walk_expr(it) } }
+        is AST.RangeExpr -> {
+            self.walk_expr(e.lower)
+            self.walk_expr(e.upper)
         }
-        is AST.AwaitExpr as x -> { self.walk_expr(x.inner) }
-        is AST.CastExpr as x -> {
-            self.walk_expr(x.value)
-            self.walk_expr(x.target)
+        is AST.AwaitExpr -> { self.walk_expr(e.inner) }
+        is AST.CastExpr -> {
+            self.walk_expr(e.value)
+            self.walk_expr(e.target)
         }
-        is AST.GenericInstExpr as x -> {
-            self.walk_expr(x.callee)
-            for a in x.type_args { self.walk_expr(a) }
+        is AST.GenericInstExpr -> {
+            self.walk_expr(e.callee)
+            for a in e.type_args { self.walk_expr(a) }
         }
-        is AST.IntrinsicCallExpr as x -> { for a in x.args { self.walk_expr(a) } }
+        is AST.IntrinsicCallExpr -> { for a in e.args { self.walk_expr(a) } }
         is AST.DotVariantExpr -> {}
-        is AST.FnTypeExpr as x -> {
-            for p in x.params { self.walk_expr(p) }
-            self.walk_opt_expr(x.return_type)
+        is AST.FnTypeExpr -> {
+            for p in e.params { self.walk_expr(p) }
+            self.walk_opt_expr(e.return_type)
         }
-        is AST.ArrayTypeExpr as x -> { self.walk_expr(x.element) }
-        is AST.MutableTypeExpr as x -> { self.walk_expr(x.inner) }
+        is AST.ArrayTypeExpr -> { self.walk_expr(e.element) }
+        is AST.MutableTypeExpr -> { self.walk_expr(e.inner) }
         is AST.IntLitExpr -> {}
         is AST.FloatLitExpr -> {}
         is AST.BoolLitExpr -> {}
         is AST.NullLitExpr -> {}
         is AST.CharLitExpr -> {}
-        is AST.StringLitExpr as s -> {
-            for part in s.parts {
+        is AST.StringLitExpr -> {
+            for part in e.parts {
                 match part {
-                    is AST.StringLitInterp as p -> { self.walk_expr(p.expr) }
+                    is AST.StringLitInterp -> { self.walk_expr(part.expr) }
                     _ -> {}
                 }
             }
@@ -661,21 +661,21 @@ walk_match :: fn(self: ResolveState!, e: AST.MatchExpr) -> void {
 
 bind_pattern :: fn(self: ResolveState!, p: AST.Pattern) -> void {
     match p {
-        is AST.IsPattern as x -> {
-            self.walk_expr(x.ty)
-            match x.bind_as {
+        is AST.IsPattern -> {
+            self.walk_expr(p.ty)
+            match p.bind_as {
                 is null -> {}
                 is string as name -> {
-                    sym :: self.mint_local(.Binding, name, x.span)
+                    sym :: self.mint_local(.Binding, name, p.span)
                     self.scope.bind(name, sym)
                 }
             }
-            if x.inner !is null {
-                self.bind_pattern(x.inner)
+            if p.inner !is null {
+                self.bind_pattern(p.inner)
             }
         }
-        is AST.StructPattern as x -> {
-            for f in x.fields {
+        is AST.StructPattern -> {
+            for f in p.fields {
                 match f.value {
                     is AST.PatternBinding -> {
                         sym :: self.mint_local(.Binding, f.name, f.name_span)
@@ -685,19 +685,19 @@ bind_pattern :: fn(self: ResolveState!, p: AST.Pattern) -> void {
                 }
             }
         }
-        is AST.TuplePattern as x -> { for el in x.elements { self.bind_pattern(el) } }
+        is AST.TuplePattern -> { for el in p.elements { self.bind_pattern(el) } }
         is AST.WildcardPattern -> {}
-        is AST.BindingPattern as x -> {
-            sym :: self.mint_local(.Binding, x.name, x.span)
-            self.scope.bind(x.name, sym)
+        is AST.BindingPattern -> {
+            sym :: self.mint_local(.Binding, p.name, p.span)
+            self.scope.bind(p.name, sym)
         }
         is AST.EnumVariantPattern -> {}
-        is AST.LiteralPattern as x -> { self.walk_expr(x.value) }
-        is AST.RangePattern as x -> {
-            self.walk_expr(x.lower)
-            self.walk_expr(x.upper)
+        is AST.LiteralPattern -> { self.walk_expr(p.value) }
+        is AST.RangePattern -> {
+            self.walk_expr(p.lower)
+            self.walk_expr(p.upper)
         }
-        is AST.OrPattern as x -> { for alt in x.patterns { self.bind_pattern(alt) } }
+        is AST.OrPattern -> { for alt in p.patterns { self.bind_pattern(alt) } }
     }
 }
 
@@ -723,8 +723,8 @@ walk_struct_lit :: fn(self: ResolveState!, s: AST.StructLitExpr) -> void {
     self.walk_expr(s.type_name)
     for it in s.items {
         match it {
-            is AST.StructLitField as f -> { self.walk_expr(f.value) }
-            is AST.StructLitSpread as sp -> { self.walk_expr(sp.expr) }
+            is AST.StructLitField -> { self.walk_expr(it.value) }
+            is AST.StructLitSpread -> { self.walk_expr(it.expr) }
         }
     }
 }
@@ -754,9 +754,9 @@ main :: fn() -> i32 {
     resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]!> {})
     hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
-        is Symbol as s -> {
-            assert_eq(s.name, "x")
-            assert(s.kind == SymbolKind.Local, "should resolve to a Local")
+        is Symbol -> {
+            assert_eq(hit.name, "x")
+            assert(hit.kind == SymbolKind.Local, "should resolve to a Local")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 3:12")
@@ -778,8 +778,8 @@ f :: fn(x: i32) -> i32 {
     resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]!> {})
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
-        is Symbol as s -> {
-            assert(s.kind == SymbolKind.Param, "should resolve to a Param")
+        is Symbol -> {
+            assert(hit.kind == SymbolKind.Param, "should resolve to a Param")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 2:12")

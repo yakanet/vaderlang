@@ -293,7 +293,7 @@ key_mentions_local :: fn(k: string, slot: i32) -> bool {
 // here. Keep the two arms in sync with the runtime — an op belongs in the `true`
 // arm iff its emitted C reaches `vader_gc_alloc` (directly or transitively).
 op_allocates :: fn(op: vm.Op) -> bool = match op {
-    is vm.StructNew as sn -> !sn.stack
+    is vm.StructNew -> !op.stack
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.FnAddr | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
@@ -740,13 +740,13 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
 /// @param c    the constant op to render.
 /// @return     a C expression (no trailing `;`).
 const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> string = match c {
-    is vm.I32Const as v    -> i32_lit_c(v.value)
-    is vm.I64Const as v    -> i64_lit_c(v.value)
-    is vm.F64Const as v    -> float_lit(v.value)
-    is vm.BoolConst as v   -> if v.value { "true" } else { "false" }
-    is vm.CharConst as v   -> "${u32(v.value)}u"
-    is vm.NullConst        -> "vader_box_obj(${ctx.null_tag}u, NULL)"
-    is vm.StringConst as v -> "${ctx.atom_ids[usize(v.index)]}u"
+    is vm.I32Const    -> i32_lit_c(c.value)
+    is vm.I64Const    -> i64_lit_c(c.value)
+    is vm.F64Const    -> float_lit(c.value)
+    is vm.BoolConst   -> if c.value { "true" } else { "false" }
+    is vm.CharConst   -> "${u32(c.value)}u"
+    is vm.NullConst   -> "vader_box_obj(${ctx.null_tag}u, NULL)"
+    is vm.StringConst -> "${ctx.atom_ids[usize(c.index)]}u"
 }
 
 /// C literal for an i32 value. `INT32_MIN` can't be spelled

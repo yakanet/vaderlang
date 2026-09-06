@@ -35,8 +35,8 @@ export lower_range_expr :: fn(
                 .reason = "`std/core::Range` not reachable — cannot lower range expression",
             }
         }
-        is Symbol as symbol -> {
-            if symbol.kind != SymbolKind.Struct {
+        is Symbol -> {
+            if range_symbol.kind != SymbolKind.Struct {
                 return LoweredUnreachable {
                     .span = expr.span, .type = result_type,
                     .reason = "`std/core::Range` resolved to a non-struct symbol",

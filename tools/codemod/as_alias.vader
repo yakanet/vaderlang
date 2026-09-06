@@ -11,6 +11,11 @@
 //   B <file> <line> <col> <symbol-id> <name>     a narrowing binding's DECL span
 //   U <file> <start> <end> <symbol-id>           one use, as a byte range
 //
+// With `--arms <positions>` (TSV `file line col`, one per match arm) it answers
+// instead, per position, the enclosing match's SCRUTINEE :
+//
+//   M <file> <line> <col> <start> <end> <ident?>  the innermost `match`'s scrutinee
+//
 // A `B` line's (line, col) is the span the resolver minted the binding at — the
 // TYPE expression of `x is T as s`, and the whole `is T as s` pattern in a match
 // arm. That is the join key: find `is … as …` in the source, compute the same
@@ -22,7 +27,9 @@ module "codemod"
 import "std/collections"
 import "std/io"
 import "std/string_builder"
+import "std/string"
 import "vader/lsp/analysis"
+AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "toolchain/span"
@@ -34,6 +41,11 @@ main :: fn(args: string[]) -> i32 {
         return 1
     }
     fc :: check_file(args[1], MutableMap<string, string> {}, [], false)
+    if args.len() >= 4 {
+        if args[2] == "--arms" {
+            return scrutinees_for(fc, args[3])
+        }
+    }
     out :: StringBuilder {}
 
     seen :: MutableMap<i32, bool> {}
@@ -54,6 +66,49 @@ main :: fn(args: string[]) -> i32 {
     index :: build_reference_index(fc.project, fc.result)
     for s in index.sites {
         out.append("U\t${s.span.start.file}\t${s.span.start.offset}\t${s.span.end.offset}\t${s.symbol_id}\n")
+    }
+    println(out.to_string())
+    return 0
+}
+
+// Answer each requested arm position with the scrutinee of the innermost `match`
+// enclosing it. `enclosing_exprs` returns the containing chain innermost-first,
+// so the first `MatchExpr` in it is the arm's own — a nested match's arm never
+// picks up the outer one.
+scrutinees_for :: fn(fc: FileCheck, positions_path: string) -> i32 {
+    decls_by_file :: MutableMap<string, AST.Decl[]> {}
+    for [_, mod] in fc.project.modules {
+        for f in mod.module.files {
+            decls_by_file[f.path] = f.program.decls
+        }
+    }
+    text :: read_file_string(positions_path, 8 * 1024 * 1024)
+    if text is IOError {
+        eprintln("as_alias: cannot read ${positions_path}")
+        return 1
+    }
+    out :: StringBuilder {}
+    for line in text.split("\n") {
+        if line == "" {
+            continue
+        }
+        parts :: line.split("\t")
+        if parts.len() < 3 {
+            continue
+        }
+        decls :: decls_by_file[parts[0]] ?? continue
+        row :: parse_int(parts[1])
+        col :: parse_int(parts[2])
+        if row is ParseError { continue }
+        if col is ParseError { continue }
+        for e in enclosing_exprs(decls, row, col) {
+            if e is AST.MatchExpr as m {
+                sc :: m.scrutinee
+                kind :: if sc is AST.IdentExpr { 1 } else { 0 }
+                out.append("M\t${parts[0]}\t${row}\t${col}\t${sc.span.start.offset}\t${sc.span.end.offset}\t${kind}\n")
+                break
+            }
+        }
     }
     println(out.to_string())
     return 0

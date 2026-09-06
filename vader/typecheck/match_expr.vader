@@ -348,7 +348,7 @@ arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Ty
     // Only `is T` / wildcard / binding arms narrow the scrutinee; literal /
     // range / enum-variant / struct / tuple / or patterns carry no slot narrowing.
     match p {
-        is AST.IsPattern as ip -> { return pattern_type_of(ip.ty, remaining, typed, scratch_diags()) }
+        is AST.IsPattern -> { return pattern_type_of(p.ty, remaining, typed, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
         is AST.BindingPattern -> { return remaining }
         is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
@@ -395,39 +395,39 @@ bind_pattern_types :: fn(
     p: AST.Pattern, scrut: Type, scrut_expr: AST.Expr, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> void {
     match p {
-        is AST.TuplePattern as tp   -> {
-            tu :: pick_tuple_variant(scrut, tp.elements.len())
+        is AST.TuplePattern   -> {
+            tu :: pick_tuple_variant(scrut, p.elements.len())
             if tu !is null {
-                for i in 0..<tp.elements.len() {
-                    bind_pattern_types(tp.elements[i], tu.elements[i], scrut_expr, typed, diags)
+                for i in 0..<p.elements.len() {
+                    bind_pattern_types(p.elements[i], tu.elements[i], scrut_expr, typed, diags)
                 }
             }
         }
-        is AST.BindingPattern as bp -> {
-            typed.local_types[bp.span.hash()] = scrut
+        is AST.BindingPattern -> {
+            typed.local_types[p.span.hash()] = scrut
         }
-        is AST.IsPattern as ip      -> {
+        is AST.IsPattern      -> {
             // `is T as a` binds `a` to T (the narrowed type). The
             // resolver mints the binding at `ip.span` when bind_as
             // is non-null ; write the lowered T as its type.
-            narrowed :: pattern_type_of(ip.ty, scrut, typed, diags)
-            if ip.bind_as !is null {
-                typed.local_types[ip.span.hash()] = narrowed
+            narrowed :: pattern_type_of(p.ty, scrut, typed, diags)
+            if p.bind_as !is null {
+                typed.local_types[p.span.hash()] = narrowed
                 // Same hop as the `if … is T as x` form (`expr_if.vader`): the binding
                 // inherits the scrutinee's mutability, so a rejected write through it
                 // is fixed wherever the SCRUTINEE's own lever is.
-                typed.narrow_binding_scrutinee[ip.span.hash()] = scrut_expr
+                typed.narrow_binding_scrutinee[p.span.hash()] = scrut_expr
             }
             // Nested pattern (e.g. `is T as a { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
-            if ip.inner !is null {
-                bind_pattern_types(ip.inner, narrowed, scrut_expr, typed, diags)
+            if p.inner !is null {
+                bind_pattern_types(p.inner, narrowed, scrut_expr, typed, diags)
             }
         }
-        is AST.StructPattern as sp  -> { bind_struct_pattern(sp, scrut, typed, diags) }
-        is AST.OrPattern as op      -> {
-            for sub in op.patterns {
+        is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags) }
+        is AST.OrPattern     -> {
+            for sub in p.patterns {
                 bind_pattern_types(sub, scrut, scrut_expr, typed, diags)
             }
         }
@@ -442,16 +442,16 @@ bind_struct_pattern :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     match scrut {
-        is StructType as st -> {
-            decl :: typed.struct_decls[st.symbol.id] ?? return
+        is StructType -> {
+            decl :: typed.struct_decls[scrut.symbol.id] ?? return
             for field in sp.fields {
                 // T3054 : reject binding an `@internal` field in a struct
                 // pattern from outside its declaring module.
-                check_internal_field(st, decl, field.name, field.name_span, typed, diags)
+                check_internal_field(scrut, decl, field.name, field.name_span, typed, diags)
                 match field.value {
                     is AST.PatternBinding as pb -> {
                         ft :: resolved_field_type(
-                            st.symbol.id,
+                            scrut.symbol.id,
                             decl,
                             field.name,
                             typed,
@@ -478,18 +478,18 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
     // @partial: a tuple variant of the given arity can only live in a bare
     // TupleType or a union of them; no other type kind carries one.
     @partial match t {
-        is TupleType as tu -> {
-            if tu.elements.len() == arity {
-                return tu
+        is TupleType -> {
+            if t.elements.len() == arity {
+                return t
             }
             return null
         }
-        is UnionType as u  -> {
-            for v in u.variants {
+        is UnionType  -> {
+            for v in t.variants {
                 match v {
-                    is TupleType as tu -> {
-                        if tu.elements.len() == arity {
-                            return tu
+                    is TupleType -> {
+                        if v.elements.len() == arity {
+                            return v
                         }
                     }
                     _                  -> {}
@@ -510,7 +510,7 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 match_expr_check_stub :: fn(
-    e: AST.Expr,
+    e: AST.Expr!,
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
@@ -521,9 +521,9 @@ match_expr_check_stub :: fn(
         is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.BoolLitExpr as x   -> { return TY_BOOL }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
-        is AST.MatchExpr as x     -> { return infer_match(
-            x,
+        is AST.IdentExpr          -> { return infer_ident(e, typed) }
+        is AST.MatchExpr          -> { return infer_match(
+            e,
             expected,
             typed,
             diags,
@@ -554,8 +554,8 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
-        is AST.FnDecl as f -> {
-            match f.body {
+        is AST.FnDecl -> {
+            match last.body {
                 is null               -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_match)

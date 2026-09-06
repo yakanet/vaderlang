@@ -170,10 +170,10 @@ collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
 
 lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
     match d {
-        is FnDecl   as f  -> { lj_fn_body(f.body, out) }
-        is ImplDecl as ib -> { for m in ib.members { lj_fn_body(m.body, out) } }
-        is TraitDecl as t -> { for m in t.members  { lj_fn_body(m.body, out) } }
-        _ -> {}
+        is FnDecl    -> { lj_fn_body(d.body, out) }
+        is ImplDecl  -> { for m in d.members { lj_fn_body(m.body, out) } }
+        is TraitDecl -> { for m in d.members  { lj_fn_body(m.body, out) } }
+        _            -> {}
     }
 }
 
@@ -192,9 +192,9 @@ lj_block :: fn(b: BlockExpr, stack: LjFrame[]!, out: LoopJump[]!) -> void {
 
 lj_stmt :: fn(s: Stmt, stack: LjFrame[]!, out: LoopJump[]!) -> void {
     match s {
-        is ForStmt as f -> {
-            stack.push(LjFrame { .span = f.span, .binding = lj_for_binding(f), .label = f.label })
-            lj_block(f.body, stack, out)
+        is ForStmt -> {
+            stack.push(LjFrame { .span = s.span, .binding = lj_for_binding(s), .label = s.label })
+            lj_block(s.body, stack, out)
             _ :: stack.remove_last()   // discard the popped frame — arm stays void
         }
         is BreakStmt    -> { lj_record(s.span, s.label, stack, out) }
@@ -431,7 +431,7 @@ collect_decl :: fn(
     namespace_aliases: MutableMap<string, string>!,
 ) -> void {
     match d {
-        is FnDecl as f -> {
+        is FnDecl -> {
             // `__comptime_NAME` synthetic fns (from the `NAME :: @comptime …`
             // desugar, parser.vader::desugar_comptime_const) are compiler-internal
             // — the user's symbol is the CONST, indexed separately below. Don't
@@ -440,13 +440,13 @@ collect_decl :: fn(
             // `DocumentSymbol` over it trips the client's "selectionRange must be
             // contained in fullRange" check and drops the WHOLE response. Still
             // walk the body so goto-def works on locals inside the block.
-            if !f.name.starts_with("__comptime_") {
-                entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, f.visibility == .Public, source, cmap))
+            if !d.name.starts_with("__comptime_") {
+                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
             }
-            ix_walk_fn_body(f, source, entries)
+            ix_walk_fn_body(d, source, entries)
         }
-        is StructDecl as s -> {
-            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, s.visibility == .Public, source, cmap))
+        is StructDecl -> {
+            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
@@ -455,35 +455,35 @@ collect_decl :: fn(
             // `f.span` twice: `StructField` records no separate name span, so
             // the jump lands on the field's line and the highlight covers the
             // whole declaration rather than just the name.
-            for f in s.fields {
-                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap, s.name))
+            for f in d.fields {
+                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap, d.name))
             }
         }
-        is EnumDecl as e -> {
-            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, e.visibility == .Public, source, cmap))
-            for v in e.variants {
-                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, [], false, source, cmap, e.name))
+        is EnumDecl -> {
+            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            for v in d.variants {
+                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, [], false, source, cmap, d.name))
             }
         }
-        is TraitDecl as t -> {
-            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, t.decorators, t.visibility == .Public, source, cmap))
+        is TraitDecl -> {
+            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
-            for m in t.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, t.name))
+            for m in d.members {
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, d.name))
             }
         }
-        is TypeAliasDecl as ta -> {
-            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, ta.decorators, ta.visibility == .Public, source, cmap))
+        is TypeAliasDecl -> {
+            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
         }
-        is ConstDecl as c -> {
-            entries.push(top_entry(c.name, .Const, c.name_span, c.span, c.decorators, c.visibility == .Public, source, cmap))
+        is ConstDecl -> {
+            entries.push(top_entry(d.name, .Const, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
         }
-        is ImplDecl as ib -> {
+        is ImplDecl -> {
             // Impl members are fn decls on the target type. They
             // contribute method names (for UFCS goto-def) and their
             // own params + body bindings.
-            for m in ib.members {
+            for m in d.members {
                 // SAM-sugar members (`Type implements Trait -> expr`) are
                 // synthetic and nameless — the method name is resolved from the
                 // trait later, not in the AST. Don't surface them as outline
@@ -497,12 +497,12 @@ collect_decl :: fn(
                     // yields a name — a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, impl_owner_name(ib.for_type)))
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, impl_owner_name(d.for_type)))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
         }
-        is ImportDecl as i -> { collect_import(i, imports, wildcard_paths, namespace_aliases) }
+        is ImportDecl -> { collect_import(d, imports, wildcard_paths, namespace_aliases) }
         is AssertDecl -> {}
     }
 }
@@ -618,32 +618,32 @@ ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]!) -> void
 
 ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]!) -> void {
     match s {
-        is LetStmt as l -> {
+        is LetStmt -> {
             // Local scope : from the let down to the end of the
             // enclosing block. Anything before the let in the same
             // block stays unresolved against this name.
-            local_scope :: Span { .start = l.span.start, .end = block_span.end }
-            type_hint :: local_type_hint(l, source)
-            collect_let_binding(l.binding, local_scope, source, type_hint, entries)
-            ix_walk_expr(l.value, source, entries)
+            local_scope :: Span { .start = s.span.start, .end = block_span.end }
+            type_hint :: local_type_hint(s, source)
+            collect_let_binding(s.binding, local_scope, source, type_hint, entries)
+            ix_walk_expr(s.value, source, entries)
         }
-        is AssignStmt as a -> {
-            ix_walk_expr(a.target, source, entries)
-            ix_walk_expr(a.value, source, entries)
+        is AssignStmt -> {
+            ix_walk_expr(s.target, source, entries)
+            ix_walk_expr(s.value, source, entries)
         }
-        is ExprStmt as e -> { ix_walk_expr(e.expr, source, entries) }
-        is ReturnStmt as r -> {
-            match r.value {
+        is ExprStmt -> { ix_walk_expr(s.expr, source, entries) }
+        is ReturnStmt -> {
+            match s.value {
                 is null -> {}
                 e       -> { ix_walk_expr(e, source, entries) }
             }
         }
-        is YieldStmt as y -> { ix_walk_expr(y.value, source, entries) }
-        is ForStmt as f -> { ix_walk_for(f, source, entries) }
+        is YieldStmt -> { ix_walk_expr(s.value, source, entries) }
+        is ForStmt -> { ix_walk_for(s, source, entries) }
         is BreakStmt -> {}
         is ContinueStmt -> {}
-        is DeferStmt as d -> {
-            match d.body {
+        is DeferStmt -> {
+            match s.body {
                 is DeferStmtBody as ds -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
                 is DeferBlockBody as db -> { ix_walk_block(db.block, source, entries) }
             }
@@ -656,20 +656,20 @@ collect_let_binding :: fn(
     entries: DeclEntry[]!,
 ) -> void {
     match b {
-        is SimpleBinding as sb -> {
-            sig :: local_sig(sb.name, type_hint, sb.span.start.offset, scope.end.offset, source)
-            entries.push(binding_entry(sb.name, .Local, sb.name_span, scope, sig))
+        is SimpleBinding -> {
+            sig :: local_sig(b.name, type_hint, b.span.start.offset, scope.end.offset, source)
+            entries.push(binding_entry(b.name, .Local, b.name_span, scope, sig))
         }
-        is RestBinding as rb -> {
-            sig :: local_sig(rb.name, type_hint, rb.span.start.offset, scope.end.offset, source)
-            entries.push(binding_entry(rb.name, .Local, rb.name_span, scope, sig))
+        is RestBinding -> {
+            sig :: local_sig(b.name, type_hint, b.span.start.offset, scope.end.offset, source)
+            entries.push(binding_entry(b.name, .Local, b.name_span, scope, sig))
         }
-        is TupleBinding as tb -> {
+        is TupleBinding -> {
             // Destructuring : we can't decompose a single annotation/
             // literal-suffix into per-element types without the
             // typechecker, so every element gets the fallback source
             // slice as its signature.
-            for elt in tb.elements {
+            for elt in b.elements {
                 collect_let_binding(elt, scope, source, "", entries)
             }
         }
@@ -712,34 +712,34 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
     // Every Expr variant shares a `.span` field, but `Expr` is a
     // union — match exhaustively and slice the corresponding span.
     sp: Span = match t {
-        is IntLitExpr as x       -> x.span
-        is NullCoalesceExpr as x -> x.span
-        is FloatLitExpr as x     -> x.span
-        is BoolLitExpr as x      -> x.span
-        is NullLitExpr as x      -> x.span
-        is CharLitExpr as x      -> x.span
-        is StringLitExpr as x    -> x.span
-        is IdentExpr as x        -> x.span
-        is CallExpr as x         -> x.span
-        is FieldExpr as x        -> x.span
-        is IndexExpr as x        -> x.span
-        is UnaryExpr as x        -> x.span
-        is BinaryExpr as x       -> x.span
-        is IfExpr as x           -> x.span
-        is MatchExpr as x        -> x.span
-        is BlockExpr as x        -> x.span
-        is LambdaExpr as x       -> x.span
-        is StructLitExpr as x    -> x.span
-        is SeqLitExpr as x       -> x.span
-        is RangeExpr as x        -> x.span
-        is AwaitExpr as x        -> x.span
-        is CastExpr as x         -> x.span
-        is GenericInstExpr as x  -> x.span
-        is IntrinsicCallExpr as x -> x.span
-        is DotVariantExpr as x   -> x.span
-        is FnTypeExpr as x       -> x.span
-        is ArrayTypeExpr as x    -> x.span
-        is MutableTypeExpr as x  -> x.span
+        is IntLitExpr        -> t.span
+        is NullCoalesceExpr  -> t.span
+        is FloatLitExpr      -> t.span
+        is BoolLitExpr       -> t.span
+        is NullLitExpr       -> t.span
+        is CharLitExpr       -> t.span
+        is StringLitExpr     -> t.span
+        is IdentExpr         -> t.span
+        is CallExpr          -> t.span
+        is FieldExpr         -> t.span
+        is IndexExpr         -> t.span
+        is UnaryExpr         -> t.span
+        is BinaryExpr        -> t.span
+        is IfExpr            -> t.span
+        is MatchExpr         -> t.span
+        is BlockExpr         -> t.span
+        is LambdaExpr        -> t.span
+        is StructLitExpr     -> t.span
+        is SeqLitExpr        -> t.span
+        is RangeExpr         -> t.span
+        is AwaitExpr         -> t.span
+        is CastExpr          -> t.span
+        is GenericInstExpr   -> t.span
+        is IntrinsicCallExpr -> t.span
+        is DotVariantExpr    -> t.span
+        is FnTypeExpr        -> t.span
+        is ArrayTypeExpr     -> t.span
+        is MutableTypeExpr   -> t.span
     }
     if sp.end.offset > sp.start.offset {
         return source.bytes()[sp.start.offset..<sp.end.offset].bytes_to_string().trim()
@@ -773,24 +773,24 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]!) -> void {
 // into every child that might host a binding.
 ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
     match e {
-        is BlockExpr as b -> { ix_walk_block(b, source, entries) }
-        is NullCoalesceExpr as x -> {
-            ix_walk_expr(x.left, source, entries)
-            inner :: coalesce_fallback_expr(x.fallback)
+        is BlockExpr -> { ix_walk_block(e, source, entries) }
+        is NullCoalesceExpr -> {
+            ix_walk_expr(e.left, source, entries)
+            inner :: coalesce_fallback_expr(e.fallback)
             if inner != null { ix_walk_expr(inner, source, entries) }
         }
-        is IfExpr as i -> {
-            ix_walk_expr(i.cond, source, entries)
-            ix_walk_block(i.then_block, source, entries)
-            match i.else_branch {
+        is IfExpr -> {
+            ix_walk_expr(e.cond, source, entries)
+            ix_walk_block(e.then_block, source, entries)
+            match e.else_branch {
                 is null -> {}
                 is IfElseIf as ei -> { ix_walk_expr(ei.branch, source, entries) }
                 is IfElseBlock as eb -> { ix_walk_block(eb.block, source, entries) }
             }
         }
-        is MatchExpr as m -> {
-            ix_walk_expr(m.scrutinee, source, entries)
-            for arm in m.arms {
+        is MatchExpr -> {
+            ix_walk_expr(e.scrutinee, source, entries)
+            for arm in e.arms {
                 match arm.guard {
                     is null -> {}
                     g       -> { ix_walk_expr(g, source, entries) }
@@ -798,56 +798,56 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
                 ix_walk_expr(arm.body, source, entries)
             }
         }
-        is LambdaExpr as l -> {
+        is LambdaExpr -> {
             // Lambdas open a fresh scope ; their params live for the
             // lambda body just like a fn's params do.
-            scope :: l.body.span
-            for p in l.params {
+            scope :: e.body.span
+            for p in e.params {
                 sig :: param_signature_slice(p.span, p.name, source)
                 entries.push(binding_entry(p.name, .Param, p.span, scope, sig))
             }
-            ix_walk_block(l.body, source, entries)
+            ix_walk_block(e.body, source, entries)
         }
-        is CallExpr as c -> {
-            ix_walk_expr(c.callee, source, entries)
-            for a in c.args { ix_walk_expr(a.value, source, entries) }
+        is CallExpr -> {
+            ix_walk_expr(e.callee, source, entries)
+            for a in e.args { ix_walk_expr(a.value, source, entries) }
         }
-        is FieldExpr as fe -> { ix_walk_expr(fe.target, source, entries) }
-        is IndexExpr as ie -> {
-            ix_walk_expr(ie.target, source, entries)
-            ix_walk_expr(ie.index, source, entries)
+        is FieldExpr -> { ix_walk_expr(e.target, source, entries) }
+        is IndexExpr -> {
+            ix_walk_expr(e.target, source, entries)
+            ix_walk_expr(e.index, source, entries)
         }
-        is UnaryExpr as u -> { ix_walk_expr(u.operand, source, entries) }
-        is BinaryExpr as b -> {
-            ix_walk_expr(b.left, source, entries)
-            ix_walk_expr(b.right, source, entries)
+        is UnaryExpr -> { ix_walk_expr(e.operand, source, entries) }
+        is BinaryExpr -> {
+            ix_walk_expr(e.left, source, entries)
+            ix_walk_expr(e.right, source, entries)
         }
-        is StructLitExpr as sl -> {
-            for it in sl.items {
+        is StructLitExpr -> {
+            for it in e.items {
                 match it {
-                    is StructLitField as fl -> { ix_walk_expr(fl.value, source, entries) }
-                    is StructLitSpread as sp -> { ix_walk_expr(sp.expr, source, entries) }
+                    is StructLitField -> { ix_walk_expr(it.value, source, entries) }
+                    is StructLitSpread -> { ix_walk_expr(it.expr, source, entries) }
                 }
             }
         }
-        is SeqLitExpr as sq -> {
-            for elt in sq.elements { ix_walk_expr(elt, source, entries) }
+        is SeqLitExpr -> {
+            for elt in e.elements { ix_walk_expr(elt, source, entries) }
         }
-        is RangeExpr as r -> {
-            ix_walk_expr(r.lower, source, entries)
-            ix_walk_expr(r.upper, source, entries)
+        is RangeExpr -> {
+            ix_walk_expr(e.lower, source, entries)
+            ix_walk_expr(e.upper, source, entries)
         }
-        is AwaitExpr as t -> { ix_walk_expr(t.inner, source, entries) }
-        is CastExpr as cs -> { ix_walk_expr(cs.value, source, entries) }
-        is GenericInstExpr as gi -> { ix_walk_expr(gi.callee, source, entries) }
-        is IntrinsicCallExpr as ic -> {
-            for a in ic.args { ix_walk_expr(a, source, entries) }
+        is AwaitExpr -> { ix_walk_expr(e.inner, source, entries) }
+        is CastExpr -> { ix_walk_expr(e.value, source, entries) }
+        is GenericInstExpr -> { ix_walk_expr(e.callee, source, entries) }
+        is IntrinsicCallExpr -> {
+            for a in e.args { ix_walk_expr(a, source, entries) }
         }
-        is StringLitExpr as st -> {
-            for p in st.parts {
+        is StringLitExpr -> {
+            for p in e.parts {
                 match p {
                     is StringLitText -> {}
-                    is StringLitInterp as si -> { ix_walk_expr(si.expr, source, entries) }
+                    is StringLitInterp -> { ix_walk_expr(p.expr, source, entries) }
                 }
             }
         }

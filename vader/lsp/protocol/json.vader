@@ -21,19 +21,19 @@ export get_field :: fn(v: JsonValue, key: string) -> JsonValue {
     // @partial: only an object carries fields ; every scalar / array JSON
     // variant has no `key` to pluck, so `JsonNull{}` is the right answer.
     @partial match v {
-        is JsonObject as o -> {
-            f :: o.entries[key]
+        is JsonObject -> {
+            f :: v.entries[key]
             match f {
-                is null            -> { return JsonNull {} }
-                is JsonString as x -> { return x }
-                is JsonNumber as x -> { return x }
-                is JsonBool   as x -> { return x }
-                is JsonNull   as x -> { return x }
-                is JsonArray  as x -> { return x }
-                is JsonObject as x -> { return x }
+                is null       -> { return JsonNull {} }
+                is JsonString -> { return f }
+                is JsonNumber -> { return f }
+                is JsonBool   -> { return f }
+                is JsonNull   -> { return f }
+                is JsonArray  -> { return f }
+                is JsonObject -> { return f }
             }
         }
-        _ -> { return JsonNull {} }
+        _             -> { return JsonNull {} }
     }
 }
 
@@ -43,8 +43,8 @@ export get_string :: fn(v: JsonValue, key: string) -> string {
     // @partial: only a `JsonString` yields a string ; any other JSON variant
     // (number, bool, null, array, object) defaults to "".
     @partial match f {
-        is JsonString as s -> { return s.value }
-        _ -> { return "" }
+        is JsonString -> { return f.value }
+        _             -> { return "" }
     }
 }
 
@@ -55,8 +55,8 @@ export get_number :: fn(v: JsonValue, key: string) -> i32 {
     // @partial: only a `JsonNumber` yields a number ; any other JSON variant
     // (string, bool, null, array, object) defaults to 0.
     @partial match f {
-        is JsonNumber as n -> { return i32(n.value) }
-        _ -> { return 0 }
+        is JsonNumber -> { return i32(f.value) }
+        _             -> { return 0 }
     }
 }
 
@@ -67,7 +67,7 @@ export get_bool :: fn(v: JsonValue, key: string) -> bool {
     // @partial: only a `JsonBool` yields a bool ; any other JSON variant
     // (string, number, null, array, object) defaults to false.
     @partial match f {
-        is JsonBool as b -> { return b.value }
-        _ -> { return false }
+        is JsonBool -> { return f.value }
+        _           -> { return false }
     }
 }

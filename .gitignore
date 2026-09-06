@@ -97,3 +97,4 @@ tools/codemod/as_alias.imports.h
 tools/codemod/as_alias.split.*
 tools/codemod/as_alias-*.c
 tools/codemod/as_alias-*.o
+tools/codemod/as_alias.dSYM/

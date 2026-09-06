@@ -12,16 +12,16 @@ import "vader/resolver/symbol"
 /// struct, so it stays on the working closure-call path.
 for_each_lowered_type :: fn(decl: LoweredDecl, visit: fn(Type) -> void) -> void {
     match decl {
-        is LoweredFnDecl as d -> {
-            for p in d.params { for_each_type(p.type, visit) }
-            for_each_type(d.return_type, visit)
-            body :: d.body
+        is LoweredFnDecl -> {
+            for p in decl.params { for_each_type(p.type, visit) }
+            for_each_type(decl.return_type, visit)
+            body :: decl.body
             if body != null { for_each_lowered_block(body, visit) }
         }
-        is LoweredStructDecl as d -> { for f in d.fields { for_each_type(f.type, visit) } }
-        is LoweredConstDecl as d -> {
-            for_each_type(d.type, visit)
-            for_each_lowered_expr(d.value, visit)
+        is LoweredStructDecl -> { for f in decl.fields { for_each_type(f.type, visit) } }
+        is LoweredConstDecl -> {
+            for_each_type(decl.type, visit)
+            for_each_lowered_expr(decl.value, visit)
         }
     }
 }
@@ -35,34 +35,34 @@ for_each_lowered_block :: fn(b: LoweredBlock, visit: fn(Type) -> void) -> void {
 
 for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
     match s {
-        is LoweredLet as st -> {
-            for_each_type(st.type, visit)
-            for_each_lowered_expr(st.value, visit)
+        is LoweredLet -> {
+            for_each_type(s.type, visit)
+            for_each_lowered_expr(s.value, visit)
         }
-        is LoweredAssign as st -> {
-            for_each_lowered_expr(st.target, visit)
-            for_each_lowered_expr(st.value, visit)
+        is LoweredAssign -> {
+            for_each_lowered_expr(s.target, visit)
+            for_each_lowered_expr(s.value, visit)
         }
-        is LoweredExprStmt as st -> { for_each_lowered_expr(st.expr, visit) }
-        is LoweredReturn as st -> {
-            value :: st.value
+        is LoweredExprStmt -> { for_each_lowered_expr(s.expr, visit) }
+        is LoweredReturn -> {
+            value :: s.value
             if value != null { for_each_lowered_expr(value, visit) }
         }
-        is LoweredYield as st -> { for_each_lowered_expr(st.value, visit) }
-        is LoweredAwait as st -> { for_each_lowered_expr(st.awaited, visit) }
-        is LoweredLoop as st -> {
-            cond :: st.cond
+        is LoweredYield -> { for_each_lowered_expr(s.value, visit) }
+        is LoweredAwait -> { for_each_lowered_expr(s.awaited, visit) }
+        is LoweredLoop -> {
+            cond :: s.cond
             if cond != null { for_each_lowered_expr(cond, visit) }
-            for_each_lowered_block(st.body, visit)
+            for_each_lowered_block(s.body, visit)
         }
         is LoweredBreak    -> {}
         is LoweredContinue -> {}
-        is LoweredCellSet as st -> {
-            for_each_lowered_expr(st.target, visit)
-            for_each_lowered_expr(st.value, visit)
-            for_each_type(st.value_type, visit)
+        is LoweredCellSet  -> {
+            for_each_lowered_expr(s.target, visit)
+            for_each_lowered_expr(s.value, visit)
+            for_each_type(s.value_type, visit)
         }
-        is LoweredDeferPush as st -> { for_each_lowered_expr(st.thunk, visit) }
+        is LoweredDeferPush -> { for_each_lowered_expr(s.thunk, visit) }
         is LoweredDeferPopExec -> {}
     }
 }
@@ -71,69 +71,69 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
     for_each_type(e.type, visit)
     match e {
         is LoweredIdent -> {}
-        is LoweredCall as c -> {
-            for_each_lowered_expr(c.callee, visit)
-            for a in c.args { for_each_lowered_expr(a, visit) }
+        is LoweredCall -> {
+            for_each_lowered_expr(e.callee, visit)
+            for a in e.args { for_each_lowered_expr(a, visit) }
         }
-        is LoweredVirtualCall as v -> {
-            for_each_lowered_expr(v.receiver, visit)
-            for a in v.args { for_each_lowered_expr(a, visit) }
+        is LoweredVirtualCall -> {
+            for_each_lowered_expr(e.receiver, visit)
+            for a in e.args { for_each_lowered_expr(a, visit) }
         }
-        is LoweredFieldAccess as fa -> { for_each_lowered_expr(fa.target, visit) }
-        is LoweredIndex as ix -> {
-            for_each_lowered_expr(ix.target, visit)
-            for_each_lowered_expr(ix.index, visit)
+        is LoweredFieldAccess -> { for_each_lowered_expr(e.target, visit) }
+        is LoweredIndex -> {
+            for_each_lowered_expr(e.target, visit)
+            for_each_lowered_expr(e.index, visit)
         }
-        is LoweredUnary as u -> { for_each_lowered_expr(u.operand, visit) }
-        is LoweredBinary as b -> {
-            for_each_lowered_expr(b.left, visit)
-            for_each_lowered_expr(b.right, visit)
+        is LoweredUnary -> { for_each_lowered_expr(e.operand, visit) }
+        is LoweredBinary -> {
+            for_each_lowered_expr(e.left, visit)
+            for_each_lowered_expr(e.right, visit)
         }
-        is LoweredIf as ie -> {
-            for_each_lowered_expr(ie.cond, visit)
-            for_each_lowered_block(ie.then_block, visit)
-            else_block :: ie.else_block
+        is LoweredIf -> {
+            for_each_lowered_expr(e.cond, visit)
+            for_each_lowered_block(e.then_block, visit)
+            else_block :: e.else_block
             if else_block != null { for_each_lowered_block(else_block, visit) }
         }
-        is LoweredBlock as bl -> { for_each_lowered_block(bl, visit) }
-        is LoweredStructLit as sl -> { for f in sl.fields { for_each_lowered_expr(f.value, visit) } }
-        is LoweredArrayLit as al -> { for el in al.elements { for_each_lowered_expr(el, visit) } }
-        is LoweredArrayLen as al -> { for_each_lowered_expr(al.target, visit) }
-        is LoweredArrayPush as ap -> {
-            for_each_lowered_expr(ap.target, visit)
-            for_each_lowered_expr(ap.value, visit)
+        is LoweredBlock -> { for_each_lowered_block(e, visit) }
+        is LoweredStructLit -> { for f in e.fields { for_each_lowered_expr(f.value, visit) } }
+        is LoweredArrayLit -> { for el in e.elements { for_each_lowered_expr(el, visit) } }
+        is LoweredArrayLen -> { for_each_lowered_expr(e.target, visit) }
+        is LoweredArrayPush -> {
+            for_each_lowered_expr(e.target, visit)
+            for_each_lowered_expr(e.value, visit)
         }
-        is LoweredArraySlice as asl -> {
-            for_each_lowered_expr(asl.target, visit)
-            for_each_lowered_expr(asl.lo, visit)
-            for_each_lowered_expr(asl.hi, visit)
+        is LoweredArraySlice -> {
+            for_each_lowered_expr(e.target, visit)
+            for_each_lowered_expr(e.lo, visit)
+            for_each_lowered_expr(e.hi, visit)
         }
-        is LoweredStringSlice as ssl -> {
-            for_each_lowered_expr(ssl.target, visit)
-            for_each_lowered_expr(ssl.lo, visit)
-            for_each_lowered_expr(ssl.hi, visit)
+        is LoweredStringSlice -> {
+            for_each_lowered_expr(e.target, visit)
+            for_each_lowered_expr(e.lo, visit)
+            for_each_lowered_expr(e.hi, visit)
         }
-        is LoweredCast as cs -> { for_each_lowered_expr(cs.value, visit) }
-        is LoweredTypeCheck as tc -> {
-            for_each_lowered_expr(tc.value, visit)
-            for_each_type(tc.check_type, visit)
+        is LoweredCast -> { for_each_lowered_expr(e.value, visit) }
+        is LoweredTypeCheck -> {
+            for_each_lowered_expr(e.value, visit)
+            for_each_type(e.check_type, visit)
         }
-        is LoweredIntrinsicCall as ic -> {
-            for a in ic.args { for_each_lowered_expr(a, visit) }
+        is LoweredIntrinsicCall -> {
+            for a in e.args { for_each_lowered_expr(a, visit) }
         }
-        is LoweredCellNew as cn -> {
-            for_each_lowered_expr(cn.value, visit)
-            for_each_type(cn.value_type, visit)
+        is LoweredCellNew -> {
+            for_each_lowered_expr(e.value, visit)
+            for_each_type(e.value_type, visit)
         }
-        is LoweredCellGet as cg -> {
-            for_each_lowered_expr(cg.target, visit)
-            for_each_type(cg.value_type, visit)
+        is LoweredCellGet -> {
+            for_each_lowered_expr(e.target, visit)
+            for_each_type(e.value_type, visit)
         }
-        is LoweredMakeClosure as mc -> { for_each_lowered_expr(mc.env, visit) }
-        is LoweredDataConst as dc -> { for_each_type(dc.type, visit) }
-        is LoweredTypeConst as tcst -> {
-            for_each_type(tcst.type, visit)
-            for_each_type(tcst.value, visit)
+        is LoweredMakeClosure -> { for_each_lowered_expr(e.env, visit) }
+        is LoweredDataConst -> { for_each_type(e.type, visit) }
+        is LoweredTypeConst -> {
+            for_each_type(e.type, visit)
+            for_each_type(e.value, visit)
         }
         // Remaining variants are leaf literals (Int/Float/Bool/Null/Char/
         // String/Unreachable) carrying no nested expr. A future variant that
@@ -169,11 +169,11 @@ export for_each_lowered_ref :: fn(
     visit_virtual: fn(string, string) -> void,
 ) -> void {
     match decl {
-        is LoweredFnDecl as d -> {
-            body :: d.body
+        is LoweredFnDecl -> {
+            body :: decl.body
             if body != null { ref_block(body, visit_fn, visit_virtual) }
         }
-        is LoweredConstDecl as d -> ref_expr(d.value, visit_fn, visit_virtual)
+        is LoweredConstDecl -> ref_expr(decl.value, visit_fn, visit_virtual)
         is LoweredStructDecl -> {}
     }
 }
@@ -186,90 +186,90 @@ ref_block :: fn(b: LoweredBlock, visit_fn: fn(i32, string) -> void, visit_virtua
 
 ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual: fn(string, string) -> void) -> void {
     match s {
-        is LoweredLet as st -> ref_expr(st.value, visit_fn, visit_virtual)
-        is LoweredAssign as st -> {
-            ref_expr(st.target, visit_fn, visit_virtual)
-            ref_expr(st.value, visit_fn, visit_virtual)
+        is LoweredLet -> ref_expr(s.value, visit_fn, visit_virtual)
+        is LoweredAssign -> {
+            ref_expr(s.target, visit_fn, visit_virtual)
+            ref_expr(s.value, visit_fn, visit_virtual)
         }
-        is LoweredExprStmt as st -> ref_expr(st.expr, visit_fn, visit_virtual)
-        is LoweredReturn as st -> {
-            value :: st.value
+        is LoweredExprStmt -> ref_expr(s.expr, visit_fn, visit_virtual)
+        is LoweredReturn -> {
+            value :: s.value
             if value != null { ref_expr(value, visit_fn, visit_virtual) }
         }
-        is LoweredYield as st -> ref_expr(st.value, visit_fn, visit_virtual)
-        is LoweredAwait as st -> ref_expr(st.awaited, visit_fn, visit_virtual)
-        is LoweredLoop as st -> {
-            cond :: st.cond
+        is LoweredYield -> ref_expr(s.value, visit_fn, visit_virtual)
+        is LoweredAwait -> ref_expr(s.awaited, visit_fn, visit_virtual)
+        is LoweredLoop -> {
+            cond :: s.cond
             if cond != null { ref_expr(cond, visit_fn, visit_virtual) }
-            ref_block(st.body, visit_fn, visit_virtual)
+            ref_block(s.body, visit_fn, visit_virtual)
         }
         is LoweredBreak    -> {}
         is LoweredContinue -> {}
-        is LoweredCellSet as st -> {
-            ref_expr(st.target, visit_fn, visit_virtual)
-            ref_expr(st.value, visit_fn, visit_virtual)
+        is LoweredCellSet  -> {
+            ref_expr(s.target, visit_fn, visit_virtual)
+            ref_expr(s.value, visit_fn, visit_virtual)
         }
-        is LoweredDeferPush as st -> ref_expr(st.thunk, visit_fn, visit_virtual)
+        is LoweredDeferPush -> ref_expr(s.thunk, visit_fn, visit_virtual)
         is LoweredDeferPopExec -> {}
     }
 }
 
 ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual: fn(string, string) -> void) -> void {
     match e {
-        is LoweredCall as c -> {
-            if c.callee is LoweredIdent as callee_ident {
+        is LoweredCall -> {
+            if e.callee is LoweredIdent as callee_ident {
                 visit_fn(callee_ident.symbol.id, callee_ident.symbol.name)
             }
-            ref_expr(c.callee, visit_fn, visit_virtual)
-            for a in c.args { ref_expr(a, visit_fn, visit_virtual) }
+            ref_expr(e.callee, visit_fn, visit_virtual)
+            for a in e.args { ref_expr(a, visit_fn, visit_virtual) }
         }
-        is LoweredVirtualCall as v -> {
-            visit_virtual(v.trait_name, v.method)
-            ref_expr(v.receiver, visit_fn, visit_virtual)
-            for a in v.args { ref_expr(a, visit_fn, visit_virtual) }
+        is LoweredVirtualCall -> {
+            visit_virtual(e.trait_name, e.method)
+            ref_expr(e.receiver, visit_fn, visit_virtual)
+            for a in e.args { ref_expr(a, visit_fn, visit_virtual) }
         }
-        is LoweredFieldAccess as fa -> ref_expr(fa.target, visit_fn, visit_virtual)
-        is LoweredIndex as ix -> {
-            ref_expr(ix.target, visit_fn, visit_virtual)
-            ref_expr(ix.index, visit_fn, visit_virtual)
+        is LoweredFieldAccess -> ref_expr(e.target, visit_fn, visit_virtual)
+        is LoweredIndex -> {
+            ref_expr(e.target, visit_fn, visit_virtual)
+            ref_expr(e.index, visit_fn, visit_virtual)
         }
-        is LoweredUnary as u -> ref_expr(u.operand, visit_fn, visit_virtual)
-        is LoweredBinary as b -> {
-            ref_expr(b.left, visit_fn, visit_virtual)
-            ref_expr(b.right, visit_fn, visit_virtual)
+        is LoweredUnary -> ref_expr(e.operand, visit_fn, visit_virtual)
+        is LoweredBinary -> {
+            ref_expr(e.left, visit_fn, visit_virtual)
+            ref_expr(e.right, visit_fn, visit_virtual)
         }
-        is LoweredIf as ie -> {
-            ref_expr(ie.cond, visit_fn, visit_virtual)
-            ref_block(ie.then_block, visit_fn, visit_virtual)
-            else_block :: ie.else_block
+        is LoweredIf -> {
+            ref_expr(e.cond, visit_fn, visit_virtual)
+            ref_block(e.then_block, visit_fn, visit_virtual)
+            else_block :: e.else_block
             if else_block != null { ref_block(else_block, visit_fn, visit_virtual) }
         }
-        is LoweredBlock as bl -> ref_block(bl, visit_fn, visit_virtual)
-        is LoweredStructLit as sl -> { for f in sl.fields { ref_expr(f.value, visit_fn, visit_virtual) } }
-        is LoweredArrayLit as al -> { for el in al.elements { ref_expr(el, visit_fn, visit_virtual) } }
-        is LoweredArrayLen as al -> ref_expr(al.target, visit_fn, visit_virtual)
-        is LoweredArrayPush as ap -> {
-            ref_expr(ap.target, visit_fn, visit_virtual)
-            ref_expr(ap.value, visit_fn, visit_virtual)
+        is LoweredBlock -> ref_block(e, visit_fn, visit_virtual)
+        is LoweredStructLit -> { for f in e.fields { ref_expr(f.value, visit_fn, visit_virtual) } }
+        is LoweredArrayLit -> { for el in e.elements { ref_expr(el, visit_fn, visit_virtual) } }
+        is LoweredArrayLen -> ref_expr(e.target, visit_fn, visit_virtual)
+        is LoweredArrayPush -> {
+            ref_expr(e.target, visit_fn, visit_virtual)
+            ref_expr(e.value, visit_fn, visit_virtual)
         }
-        is LoweredArraySlice as asl -> {
-            ref_expr(asl.target, visit_fn, visit_virtual)
-            ref_expr(asl.lo, visit_fn, visit_virtual)
-            ref_expr(asl.hi, visit_fn, visit_virtual)
+        is LoweredArraySlice -> {
+            ref_expr(e.target, visit_fn, visit_virtual)
+            ref_expr(e.lo, visit_fn, visit_virtual)
+            ref_expr(e.hi, visit_fn, visit_virtual)
         }
-        is LoweredStringSlice as ssl -> {
-            ref_expr(ssl.target, visit_fn, visit_virtual)
-            ref_expr(ssl.lo, visit_fn, visit_virtual)
-            ref_expr(ssl.hi, visit_fn, visit_virtual)
+        is LoweredStringSlice -> {
+            ref_expr(e.target, visit_fn, visit_virtual)
+            ref_expr(e.lo, visit_fn, visit_virtual)
+            ref_expr(e.hi, visit_fn, visit_virtual)
         }
-        is LoweredCast as cs -> ref_expr(cs.value, visit_fn, visit_virtual)
-        is LoweredTypeCheck as tc -> ref_expr(tc.value, visit_fn, visit_virtual)
-        is LoweredIntrinsicCall as ic -> { for a in ic.args { ref_expr(a, visit_fn, visit_virtual) } }
-        is LoweredCellNew as cn -> ref_expr(cn.value, visit_fn, visit_virtual)
-        is LoweredCellGet as cg -> ref_expr(cg.target, visit_fn, visit_virtual)
-        is LoweredMakeClosure as mc -> {
-            visit_fn(mc.fn_symbol.id, mc.fn_symbol.name)
-            ref_expr(mc.env, visit_fn, visit_virtual)
+        is LoweredCast -> ref_expr(e.value, visit_fn, visit_virtual)
+        is LoweredTypeCheck -> ref_expr(e.value, visit_fn, visit_virtual)
+        is LoweredIntrinsicCall -> { for a in e.args { ref_expr(a, visit_fn, visit_virtual) } }
+        is LoweredCellNew -> ref_expr(e.value, visit_fn, visit_virtual)
+        is LoweredCellGet -> ref_expr(e.target, visit_fn, visit_virtual)
+        is LoweredMakeClosure -> {
+            visit_fn(e.fn_symbol.id, e.fn_symbol.name)
+            ref_expr(e.env, visit_fn, visit_virtual)
         }
         // A bare `LoweredIdent` whose symbol resolves to a `Fn` is a fn-value
         // reference (e.g. `let f = add`) — visit the target so DCE keeps it alive.
@@ -282,9 +282,9 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         // (`inline_consts::const_accessor_symbol`), so nothing reachable from a
         // const ident would match it. The DCE seeds those accessors as roots
         // outright instead.
-        is LoweredIdent as ident -> {
-            if ident.symbol.kind == SymbolKind.Fn {
-                visit_fn(ident.symbol.id, ident.symbol.name)
+        is LoweredIdent -> {
+            if e.symbol.kind == SymbolKind.Fn {
+                visit_fn(e.symbol.id, e.symbol.name)
             }
         }
         _ -> {}

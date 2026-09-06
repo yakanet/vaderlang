@@ -239,7 +239,7 @@ import "std/testing"
     assert_eq(ctx.types.len(), 1)
     null_idx :: ctx.type_key["null"]
     match null_idx {
-        is i32 as i -> assert_eq(i, 0)
+        is i32 -> assert_eq(null_idx, 0)
         _ -> assert_eq("null missing", "")
     }
 }

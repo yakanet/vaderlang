@@ -127,9 +127,9 @@ export uniq :: fn(seen: MutableMap<string, bool>!, candidate: string) -> string 
 /// @return   the bare type name, or `"?"` when not extractable.
 // @partial: only Ident / GenericInst callees yield a mangled name; other type-expr shapes → "?".
 export for_type_name :: fn(t: TypeExpr) -> string = @partial match t {
-    is IdentExpr as ident    -> ident.name
-    is GenericInstExpr as gi -> generic_callee_name(gi)
-    _                        -> "?"
+    is IdentExpr       -> t.name
+    is GenericInstExpr -> generic_callee_name(t)
+    _                  -> "?"
 }
 
 /// Pull the bare name out of a `GenericInstExpr` whose callee is an

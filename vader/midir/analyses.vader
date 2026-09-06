@@ -64,81 +64,81 @@ export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
 /// Apply `visit` to every local read by the instruction (its operands).
 export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -> void {
     match ins {
-        is InstrConst        -> {}
-        is InstrFnRef        -> {}
-        is InstrFnAddr       -> {}
-        is InstrMove         as i -> { visit(i.src) }
-        is InstrBinOp        as i -> {
-            visit(i.lhs)
-            visit(i.rhs)
+        is InstrConst  -> {}
+        is InstrFnRef  -> {}
+        is InstrFnAddr -> {}
+        is InstrMove   -> { visit(ins.src) }
+        is InstrBinOp  -> {
+            visit(ins.lhs)
+            visit(ins.rhs)
         }
-        is InstrUnOp         as i -> { visit(i.operand) }
-        is InstrCall         as i -> { for a in i.args { visit(a) } }
-        is InstrCallIndirect as i -> {
-            visit(i.callee)
-            for a in i.args { visit(a) }
+        is InstrUnOp         -> { visit(ins.operand) }
+        is InstrCall         -> { for a in ins.args { visit(a) } }
+        is InstrCallIndirect -> {
+            visit(ins.callee)
+            for a in ins.args { visit(a) }
         }
-        is InstrVirtualCall  as i -> {
-            visit(i.receiver)
-            for a in i.args { visit(a) }
+        is InstrVirtualCall -> {
+            visit(ins.receiver)
+            for a in ins.args { visit(a) }
         }
-        is InstrFieldGet     as i -> { visit(i.target) }
-        is InstrFieldSet     as i -> {
-            visit(i.target)
-            visit(i.value)
+        is InstrFieldGet -> { visit(ins.target) }
+        is InstrFieldSet -> {
+            visit(ins.target)
+            visit(ins.value)
         }
-        is InstrArrayGet     as i -> {
-            visit(i.target)
-            visit(i.index)
+        is InstrArrayGet -> {
+            visit(ins.target)
+            visit(ins.index)
         }
-        is InstrArraySet     as i -> {
-            visit(i.target)
-            visit(i.index)
-            visit(i.value)
+        is InstrArraySet -> {
+            visit(ins.target)
+            visit(ins.index)
+            visit(ins.value)
         }
-        is InstrArrayLen     as i -> { visit(i.target) }
-        is InstrArrayPush    as i -> {
-            visit(i.target)
-            visit(i.value)
+        is InstrArrayLen  -> { visit(ins.target) }
+        is InstrArrayPush -> {
+            visit(ins.target)
+            visit(ins.value)
         }
-        is InstrArraySlice   as i -> {
-            visit(i.target)
-            visit(i.lo)
-            visit(i.hi)
+        is InstrArraySlice -> {
+            visit(ins.target)
+            visit(ins.lo)
+            visit(ins.hi)
         }
-        is InstrStringSlice  as i -> {
-            visit(i.target)
-            visit(i.lo)
-            visit(i.hi)
+        is InstrStringSlice -> {
+            visit(ins.target)
+            visit(ins.lo)
+            visit(ins.hi)
         }
-        is InstrStructNew    as i -> { for f in i.fields { visit(f) } }
-        is InstrArrayNew     as i -> { for e in i.elements { visit(e) } }
-        is InstrTypeCheck    as i -> { visit(i.value) }
-        is InstrTypeConst         -> {}
-        is InstrDataConst         -> {}
-        is InstrCast         as i -> { visit(i.value) }
-        is InstrCellNew      as i -> { visit(i.value) }
-        is InstrCellGet      as i -> { visit(i.cell) }
-        is InstrCellSet      as i -> {
-            visit(i.cell)
-            visit(i.value)
+        is InstrStructNew -> { for f in ins.fields { visit(f) } }
+        is InstrArrayNew  -> { for e in ins.elements { visit(e) } }
+        is InstrTypeCheck -> { visit(ins.value) }
+        is InstrTypeConst -> {}
+        is InstrDataConst -> {}
+        is InstrCast      -> { visit(ins.value) }
+        is InstrCellNew   -> { visit(ins.value) }
+        is InstrCellGet   -> { visit(ins.cell) }
+        is InstrCellSet   -> {
+            visit(ins.cell)
+            visit(ins.value)
         }
-        is InstrMakeClosure  as i -> { visit(i.env) }
-        is InstrIntrinsic    as i -> { for a in i.args { visit(a) } }
-        is InstrDeferPush    as i -> { visit(i.value) }
-        is InstrDeferPopExec      -> {}
+        is InstrMakeClosure  -> { visit(ins.env) }
+        is InstrIntrinsic    -> { for a in ins.args { visit(a) } }
+        is InstrDeferPush    -> { visit(ins.value) }
+        is InstrDeferPopExec -> {}
     }
 }
 
 /// Apply `visit` to every local read by the terminator.
 export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> void) -> void {
     match t {
-        is TermCondBranch as c -> {
-            visit(c.cond)
+        is TermCondBranch -> {
+            visit(t.cond)
         }
-        is TermReturn     as r -> {
-            if r.value !is null {
-                visit(r.value)
+        is TermReturn -> {
+            if t.value !is null {
+                visit(t.value)
             }
         }
         is TermBranch          -> {}

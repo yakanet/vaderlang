@@ -341,7 +341,7 @@ export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_b
 /// @return   the stack-machine value class — primitive name for
 ///           `BcPrimitive`, `Ref` for every heap shape.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
-    is BcPrimitive as p -> p.val
+    is BcPrimitive -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type` (T12).
     is BcStruct -> ValType.Ref

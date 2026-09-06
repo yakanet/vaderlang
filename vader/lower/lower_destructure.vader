@@ -147,8 +147,8 @@ emit_array_destructure :: fn(
     }
     rest_leaf :: binding.elements[rest_index]
     match rest_leaf {
-        is RestBinding as rest -> {
-            emit_rest_loop(ctx, rest, rest_index, target, elem_type, span, out)
+        is RestBinding -> {
+            emit_rest_loop(ctx, rest_leaf, rest_index, target, elem_type, span, out)
         }
         _ -> {}
     }
@@ -233,16 +233,16 @@ emit_let_leaf_array :: fn(
     span: Span, out: LoweredStmt[]!,
 ) -> void {
     match leaf {
-        is SimpleBinding as simple -> {
-            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+        is SimpleBinding -> {
+            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, leaf.name_span)
             if symbol is null { return }
             out.push(LoweredLet {
-                .span = simple.span, .name = simple.name, .symbol = symbol,
+                .span = leaf.span, .name = leaf.name, .symbol = symbol,
                 .type = elem_type, .value = access,
             })
         }
-        is TupleBinding as nested -> {
-            emit_let_binding_leaves(ctx, nested, access, elem_type, span, out)
+        is TupleBinding -> {
+            emit_let_binding_leaves(ctx, leaf, access, elem_type, span, out)
         }
         _ -> {}
     }
@@ -268,20 +268,20 @@ emit_let_leaf :: fn(
                 },
             })
         }
-        is SimpleBinding as simple -> {
-            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+        is SimpleBinding -> {
+            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, leaf.name_span)
             if symbol is null { return }
-            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple)
-            access :: build_leaf_access(target, target_type, elem_type, simple.span, index, field_names)
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, leaf)
+            access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)
             out.push(LoweredLet {
-                .span = simple.span, .name = simple.name, .symbol = symbol,
+                .span = leaf.span, .name = leaf.name, .symbol = symbol,
                 .type = elem_type, .value = access,
             })
         }
-        is TupleBinding as nested -> {
-            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(nested))
-            access :: build_leaf_access(target, target_type, elem_type, nested.span, index, field_names)
-            emit_let_binding_leaves(ctx, nested, access, elem_type, nested.span, out)
+        is TupleBinding -> {
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(leaf))
+            access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)
+            emit_let_binding_leaves(ctx, leaf, access, elem_type, leaf.span, out)
         }
     }
 }
@@ -309,11 +309,11 @@ tuple_or_array_element_type :: fn(
     // @partial: only tuple / array targets have positional element types;
     // every other Type → unresolved.
     @partial match target_type {
-        is TupleType as tup -> {
-            if index < tup.elements.len() { return tup.elements[index] }
+        is TupleType -> {
+            if index < target_type.elements.len() { return target_type.elements[index] }
             return TY_UNRESOLVED
         }
-        is ArrayType as arr -> { return arr.element }
+        is ArrayType -> { return target_type.element }
         _ -> { return TY_UNRESOLVED }
     }
 }

@@ -37,19 +37,19 @@ import "toolchain/span"
 ///               bridgeable at comptime (struct / tuple / fn / type / error /
 ///               heap object).
 export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic = match value {
-    is Vm.I32Val    as x -> int_scalar(i64(x.value), prim_name(ty, "i32"))
-    is Vm.I64Val    as x -> int_scalar(x.value, prim_name(ty, "i64"))
-    is Vm.F64Val    as x -> Ct.float_val_typed(x.value, prim_name(ty, "f64"))
-    is Vm.BoolVal   as x -> Ct.BoolValue { .value = x.value }
-    is Vm.CharVal   as x -> Ct.CharValue { .value = u32(x.value) }
-    is Vm.StringVal as x -> Ct.string_val(x.value)
-    is Vm.NullVal        -> Ct.VAL_NULL
-    is Vm.ArrayVal  as x -> array_to_comptime(x, ty, span)
-    is Vm.StructVal      -> unsupported(span, "struct")
-    is Vm.FnVal          -> unsupported(span, "function reference")
-    is Vm.TypeVal        -> unsupported(span, "type value")
-    is Vm.ErrorVal       -> unsupported(span, "error value")
-    is Vm.ObjVal         -> unsupported(span, "heap object (set / map)")
+    is Vm.I32Val    -> int_scalar(i64(value.value), prim_name(ty, "i32"))
+    is Vm.I64Val    -> int_scalar(value.value, prim_name(ty, "i64"))
+    is Vm.F64Val    -> Ct.float_val_typed(value.value, prim_name(ty, "f64"))
+    is Vm.BoolVal   -> Ct.BoolValue { .value = value.value }
+    is Vm.CharVal   -> Ct.CharValue { .value = u32(value.value) }
+    is Vm.StringVal -> Ct.string_val(value.value)
+    is Vm.NullVal   -> Ct.VAL_NULL
+    is Vm.ArrayVal  -> array_to_comptime(value, ty, span)
+    is Vm.StructVal -> unsupported(span, "struct")
+    is Vm.FnVal     -> unsupported(span, "function reference")
+    is Vm.TypeVal   -> unsupported(span, "type value")
+    is Vm.ErrorVal  -> unsupported(span, "error value")
+    is Vm.ObjVal    -> unsupported(span, "heap object (set / map)")
 }
 
 // Build an `IntValue`, zero-extending unsigned ≤32-bit widths. The VM carries

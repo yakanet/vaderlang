@@ -167,27 +167,27 @@ scan_stmt_for_ident :: fn(s: AST.Stmt, target: string) -> AST.IdentExpr | null {
     // @partial: test walker — only return / expr statements carry a scannable
     // expression; let / assign / for / break / continue / defer are skipped.
     @partial match s {
-        is AST.ReturnStmt as r -> {
-            if r.value == null { return null }
-            return scan_expr_for_ident(r.value, target)
+        is AST.ReturnStmt -> {
+            if s.value == null { return null }
+            return scan_expr_for_ident(s.value, target)
         }
-        is AST.ExprStmt as es -> { return scan_expr_for_ident(es.expr, target) }
+        is AST.ExprStmt -> { return scan_expr_for_ident(s.expr, target) }
         _ -> { return null }
     }
 }
 
 scan_expr_for_ident :: fn(e: AST.Expr, target: string) -> AST.IdentExpr | null {
     match e {
-        is AST.IdentExpr as id -> { if id.name == target { return id } }
-        is AST.BinaryExpr as b -> {
-            l :: scan_expr_for_ident(b.left, target)
+        is AST.IdentExpr  -> { if e.name == target { return e } }
+        is AST.BinaryExpr -> {
+            l :: scan_expr_for_ident(e.left, target)
             if l is AST.IdentExpr { return l }
-            return scan_expr_for_ident(b.right, target)
+            return scan_expr_for_ident(e.right, target)
         }
-        is AST.CallExpr as c -> {
-            callee :: scan_expr_for_ident(c.callee, target)
+        is AST.CallExpr -> {
+            callee :: scan_expr_for_ident(e.callee, target)
             if callee is AST.IdentExpr { return callee }
-            for a in c.args {
+            for a in e.args {
                 hit :: scan_expr_for_ident(a.value, target)
                 if hit is AST.IdentExpr { return hit }
             }

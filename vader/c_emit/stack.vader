@@ -57,18 +57,18 @@ StackExpr :: struct {
 
 /// How to spell `sv` at its consumer.
 name_of :: fn(sv: StackVal) -> string = match sv {
-    is StackTmp as t      -> t.name
-    is StackLit as l      -> l.text
-    is StackLocalRef as r -> "l${r.slot}"
-    is StackExpr as e     -> e.text
+    is StackTmp      -> sv.name
+    is StackLit      -> sv.text
+    is StackLocalRef -> "l${sv.slot}"
+    is StackExpr     -> sv.text
 }
 
 /// Static C-storage type of `sv`.
 val_of :: fn(sv: StackVal) -> ValType = match sv {
-    is StackTmp as t      -> t.val
-    is StackLit as l      -> l.val
-    is StackLocalRef as r -> r.val
-    is StackExpr as e     -> e.val
+    is StackTmp      -> sv.val
+    is StackLit      -> sv.val
+    is StackLocalRef -> sv.val
+    is StackExpr     -> sv.val
 }
 
 // ---- FnState --------------------------------------------------------------
@@ -299,10 +299,10 @@ materialise_entry :: fn(s: FnState!, e: StackVal) -> StackVal {
 /// slot) and any `StackLocalRef` aliasing `slot`. Literals and existing
 /// temps are stable.
 entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
-    is StackExpr          -> true
-    is StackLocalRef as r -> r.slot == slot
-    is StackTmp           -> false
-    is StackLit           -> false
+    is StackExpr     -> true
+    is StackLocalRef -> e.slot == slot
+    is StackTmp      -> false
+    is StackLit      -> false
 }
 
 /// Materialise every stack entry that a write to slot `slot` would

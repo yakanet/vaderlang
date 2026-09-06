@@ -28,7 +28,7 @@ import "toolchain/span"
 /// `null` for fresh-position uses. The returned `Type` is the post-
 /// narrowing type ; it's also written into `typed.expr_types`.
 export check_expr :: fn(
-    expr: AST.Expr, expected: Type | null,
+    expr: AST.Expr!, expected: Type | null,
     typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
@@ -118,7 +118,7 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
 }
 
 infer_expr :: fn(
-    expr: AST.Expr, expected: Type | null,
+    expr: AST.Expr!, expected: Type | null,
     typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     // Every Expr variant has a dedicated arm — the match is exhaustive, so
@@ -129,49 +129,49 @@ infer_expr :: fn(
         is AST.BoolLitExpr   -> { return TY_BOOL }
         is AST.NullLitExpr   -> { return TY_NULL }
         is AST.CharLitExpr   -> { return TY_FREE_CHAR }
-        is AST.StringLitExpr as e -> {
+        is AST.StringLitExpr -> {
             // Walk interpolation parts so `"${x}"`'s `x` lands in
             // `expr_types`. T3018 Display
             // check is deferred — currently we just type the inner.
-            for part in e.parts {
+            for part in expr.parts {
                 if part is AST.StringLitInterp { check_expr(part.expr, null, typed, diags) }
             }
             return TY_STRING
         }
-        is AST.IdentExpr     as e -> {
-            sym :: typed.resolved.idents[e.span.hash()]
+        is AST.IdentExpr -> {
+            sym :: typed.resolved.idents[expr.span.hash()]
             if !(sym is null) {
                 // W0001 : reference to a `@deprecated` decl.
                 msg :: typed.resolved.deprecated_messages[sym.id]
                 if !(msg is null) {
-                    detail: string = "`${e.name}`"
-                    if msg != "" { detail = "`${e.name}`: ${msg}" }
-                    diags.push(warning(.UseOfDeprecated, e.span, detail))
+                    detail: string = "`${expr.name}`"
+                    if msg != "" { detail = "`${expr.name}`: ${msg}" }
+                    diags.push(warning(.UseOfDeprecated, expr.span, detail))
                 }
             }
-            return infer_ident(e, typed)
+            return infer_ident(expr, typed)
         }
-        is AST.BlockExpr     as e -> { return check_block(e, expected, typed, diags, null, check_expr) }
-        is AST.IfExpr        as e -> { return infer_if(e, expected, typed, diags, null, check_expr) }
-        is AST.MatchExpr     as e -> { return infer_match(e, expected, typed, diags, null, check_expr) }
-        is AST.CallExpr      as e -> { return infer_call(e, expected, typed, diags, check_expr) }
-        is AST.BinaryExpr    as e -> { return infer_binary(e, expected, typed, diags, check_expr) }
-        is AST.NullCoalesceExpr as e -> { return infer_null_coalesce(e, expected, typed, diags, check_expr) }
-        is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
-        is AST.StructLitExpr as e -> { return infer_struct_lit(e, typed, diags, check_expr) }
-        is AST.SeqLitExpr    as e -> { return infer_seq_lit(e, expected, typed, diags, check_expr) }
-        is AST.UnaryExpr     as e -> { return infer_unary(e, expected, typed, diags, check_expr) }
-        is AST.IndexExpr     as e -> { return infer_index(e, typed, diags, check_expr) }
-        is AST.CastExpr      as e -> { return infer_cast(e, typed, diags, check_expr) }
-        is AST.RangeExpr     as e -> { return infer_range(e, typed, diags, check_expr) }
-        is AST.DotVariantExpr as e -> { return infer_dot_variant(e, expected, typed, diags) }
-        is AST.LambdaExpr    as e -> { return infer_lambda(e, expected, typed, diags, check_expr) }
-        is AST.AwaitExpr     as e -> { return infer_await(e, typed, diags, check_expr) }
-        is AST.IntrinsicCallExpr as e -> { return infer_intrinsic(e, typed, diags, check_expr) }
-        is AST.GenericInstExpr as e -> { return infer_generic_inst(e, typed, diags, check_expr) }
-        is AST.ArrayTypeExpr as e -> { return infer_array_type_value(e, typed, diags) }
-        is AST.MutableTypeExpr as e -> { return infer_mutable_type_value(e, typed, diags) }
-        is AST.FnTypeExpr    as e -> { return infer_fn_type_value(e, typed, diags) }
+        is AST.BlockExpr -> { return check_block(expr, expected, typed, diags, null, check_expr) }
+        is AST.IfExpr -> { return infer_if(expr, expected, typed, diags, null, check_expr) }
+        is AST.MatchExpr -> { return infer_match(expr, expected, typed, diags, null, check_expr) }
+        is AST.CallExpr -> { return infer_call(expr, expected, typed, diags, check_expr) }
+        is AST.BinaryExpr -> { return infer_binary(expr, expected, typed, diags, check_expr) }
+        is AST.NullCoalesceExpr -> { return infer_null_coalesce(expr, expected, typed, diags, check_expr) }
+        is AST.FieldExpr -> { return infer_field(expr, typed, diags, check_expr) }
+        is AST.StructLitExpr -> { return infer_struct_lit(expr, typed, diags, check_expr) }
+        is AST.SeqLitExpr -> { return infer_seq_lit(expr, expected, typed, diags, check_expr) }
+        is AST.UnaryExpr -> { return infer_unary(expr, expected, typed, diags, check_expr) }
+        is AST.IndexExpr -> { return infer_index(expr, typed, diags, check_expr) }
+        is AST.CastExpr -> { return infer_cast(expr, typed, diags, check_expr) }
+        is AST.RangeExpr -> { return infer_range(expr, typed, diags, check_expr) }
+        is AST.DotVariantExpr -> { return infer_dot_variant(expr, expected, typed, diags) }
+        is AST.LambdaExpr -> { return infer_lambda(expr, expected, typed, diags, check_expr) }
+        is AST.AwaitExpr -> { return infer_await(expr, typed, diags, check_expr) }
+        is AST.IntrinsicCallExpr -> { return infer_intrinsic(expr, typed, diags, check_expr) }
+        is AST.GenericInstExpr -> { return infer_generic_inst(expr, typed, diags, check_expr) }
+        is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }
+        is AST.MutableTypeExpr -> { return infer_mutable_type_value(expr, typed, diags) }
+        is AST.FnTypeExpr -> { return infer_fn_type_value(expr, typed, diags) }
     }
 }
 

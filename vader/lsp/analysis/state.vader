@@ -283,9 +283,9 @@ export handle_did_change :: fn(self: ServerState!, params: JsonValue) -> void {
     if uri.bytes().len() == 0 { return }
     changes :: get_field(params, "contentChanges")
     match changes {
-        is JsonArray as a -> {
-            if a.items.len() > 0 {
-                first :: a.items[0]
+        is JsonArray -> {
+            if changes.items.len() > 0 {
+                first :: changes.items[0]
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 self.indices[uri] = build_index(uri, text, self.position_encoding)

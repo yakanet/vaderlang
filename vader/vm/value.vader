@@ -218,11 +218,11 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
 read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
     // @partial: numeric/bool values convert; every other Value variant traps.
     return @partial match v {
-        is I64Val  as i -> i.value
-        is I32Val  as i -> i64(i.value)
-        is F64Val  as f -> i64(f.value)
-        is CharVal as c -> i64(u32(c.value))
-        is BoolVal as b -> if b.value { i64(1) } else { i64(0) }
+        is I64Val -> v.value
+        is I32Val -> i64(v.value)
+        is F64Val -> i64(v.value)
+        is CharVal -> i64(u32(v.value))
+        is BoolVal -> if v.value { i64(1) } else { i64(0) }
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as numeric" }
     }
 }
@@ -232,10 +232,10 @@ read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
 read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
     // @partial: numeric values convert; every other Value variant traps.
     return @partial match v {
-        is I32Val  as i -> f64(i.value)
-        is I64Val  as i -> f64(i.value)
-        is F64Val  as f -> f.value
-        is CharVal as c -> f64(u32(c.value))
+        is I32Val -> f64(v.value)
+        is I64Val -> f64(v.value)
+        is F64Val -> v.value
+        is CharVal -> f64(u32(v.value))
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as f64" }
     }
 }
@@ -247,9 +247,9 @@ read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
 export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     // @partial: i32/char/i64 carriers unwrap; every other Value variant traps.
     return @partial match v {
-        is I32Val  as i -> i
-        is CharVal as c -> I32Val { .value = i32(u32(c.value)) }
-        is I64Val  as i -> I32Val { .value = i32(i.value) }
+        is I32Val -> v
+        is CharVal -> I32Val { .value = i32(u32(v.value)) }
+        is I64Val -> I32Val { .value = i32(v.value) }
         _ -> Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
     }
 }
@@ -260,9 +260,9 @@ export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
 export read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
     // @partial: i64/i32 carriers unwrap; every other Value variant traps.
     return @partial match v {
-        is I64Val as i -> i
-        is I32Val as i -> I64Val { .value = i64(i.value) }
-        _                 -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
+        is I64Val -> v
+        is I32Val -> I64Val { .value = i64(v.value) }
+        _         -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
     }
 }
 
@@ -349,12 +349,12 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
     // @partial: null + primitive operands compare; heap-allocated variants trap.
     return @partial match a {
-        is NullVal         -> b is NullVal
-        is I32Val    as ai -> if b is I32Val    as bi { ai.value == bi.value } else { false }
-        is BoolVal   as ab -> if b is BoolVal   as bb { ab.value == bb.value } else { false }
-        is CharVal   as ac -> if b is CharVal   as bc { ac.value == bc.value } else { false }
-        is StringVal as ax -> if b is StringVal as bx { ax.value == bx.value } else { false }
-        _                  -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
+        is NullVal   -> b is NullVal
+        is I32Val    -> if b is I32Val    as bi { a.value == bi.value } else { false }
+        is BoolVal   -> if b is BoolVal   as bb { a.value == bb.value } else { false }
+        is CharVal   -> if b is CharVal   as bc { a.value == bc.value } else { false }
+        is StringVal -> if b is StringVal as bx { a.value == bx.value } else { false }
+        _            -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
     }
 }
 
@@ -364,20 +364,20 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || usize(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[usize(type_id)]
     return match type_decl {
-        is bc.BcPrimitive as p -> primitive_matches(v, p.val)
+        is bc.BcPrimitive -> primitive_matches(v, type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value → false.
         is bc.BcStruct        -> @partial match v {
-            is StructVal as s -> s.type_id == type_id || struct_siblings_match(state, s.type_id, type_id)
-            _                 -> false
+            is StructVal -> v.type_id == type_id || struct_siblings_match(state, v.type_id, type_id)
+            _            -> false
         }
         // @partial: only ArrayVal carries a matchable tag; every other Value → false.
         is bc.BcArray         -> @partial match v {
-            is ArrayVal as a  -> a.type_id == type_id
-            _                 -> false
+            is ArrayVal -> v.type_id == type_id
+            _           -> false
         }
-        is bc.BcUnion    as u -> union_matches(state, v, u.variants)
-        is bc.BcRef      as r -> ref_type_matches(state, v, r.trait_name)
-        is bc.BcFn            -> false
+        is bc.BcUnion -> union_matches(state, v, type_decl.variants)
+        is bc.BcRef   -> ref_type_matches(state, v, type_decl.trait_name)
+        is bc.BcFn    -> false
     }
 }
 
@@ -426,8 +426,8 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
         if v is ErrorVal { return true }
         // @partial: only a StructVal can implement Error via the impl table; else false.
         return @partial match v {
-            is StructVal as s -> trait_implemented_by(state, TRAIT_ERROR, s.type_id)
-            _                    -> false
+            is StructVal -> trait_implemented_by(state, TRAIT_ERROR, v.type_id)
+            _            -> false
         }
     }
     if trait_name == "" {
@@ -441,8 +441,8 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
     }
     // @partial: only a StructVal can implement a named trait via the impl table; else false.
     return @partial match v {
-        is StructVal as s -> trait_implemented_by(state, trait_name, s.type_id)
-        _                    -> false
+        is StructVal -> trait_implemented_by(state, trait_name, v.type_id)
+        _            -> false
     }
 }
 
@@ -477,9 +477,9 @@ export trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i
 export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
     // @partial: struct/array receivers carry a type_id; primitives resolve via the table.
     return @partial match v {
-        is StructVal as s -> s.type_id
-        is ArrayVal  as a -> a.type_id
-        _                    -> primitive_type_id(state, v)
+        is StructVal -> v.type_id
+        is ArrayVal  -> v.type_id
+        _            -> primitive_type_id(state, v)
     }
 }
 
@@ -806,17 +806,17 @@ ArrayVal implements Display {
 /// @return   the human-readable representation, computed by the variant's
 ///           `to_string` impl.
 export display_value :: fn(v: Value) -> string = match v {
-    is I32Val as i -> i.to_string()
-    is I64Val as i -> i.to_string()
-    is F64Val as f -> f.to_string()
-    is StringVal as s -> s.to_string()
-    is StructVal as s -> s.to_string()
-    is ArrayVal as a -> a.to_string()
-    is FnVal as f -> f.to_string()
-    is NullVal as n -> n.to_string()
-    is BoolVal as b -> b.to_string()
-    is CharVal as c -> c.to_string()
-    is ErrorVal as e -> e.to_string()
-    is TypeVal as t -> t.to_string()
-    is ObjVal as o -> o.to_string()
+    is I32Val -> v.to_string()
+    is I64Val -> v.to_string()
+    is F64Val -> v.to_string()
+    is StringVal -> v.to_string()
+    is StructVal -> v.to_string()
+    is ArrayVal -> v.to_string()
+    is FnVal -> v.to_string()
+    is NullVal -> v.to_string()
+    is BoolVal -> v.to_string()
+    is CharVal -> v.to_string()
+    is ErrorVal -> v.to_string()
+    is TypeVal -> v.to_string()
+    is ObjVal -> v.to_string()
 }

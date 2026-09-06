@@ -87,7 +87,7 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
     out := ""
     for p in e.parts {
         match p {
-            is AST.StringLitText as c -> { out = "${out}${c.value}" }
+            is AST.StringLitText -> { out = "${out}${p.value}" }
             _ -> { return "" }
         }
     }
@@ -109,7 +109,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
         field_sym :: typed.field_symbol
         match field_sym {
             is null -> { return TY_UNRESOLVED }
-            is Symbol as fs -> { return mk_array(mk_struct(fs, [], immutable = false), immutable = false) }
+            is Symbol -> { return mk_array(mk_struct(field_sym, [], immutable = false), immutable = false) }
         }
     }
     return TY_UNRESOLVED

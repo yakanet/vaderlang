@@ -119,7 +119,7 @@ read_and_process :: fn(state: A.ServerState!, shutdown_received: bool) -> Dispat
             eprintln("lsp: transport error, exiting")
             return DispatchResult.ExitAbnormal
         }
-        is string as body -> { return process_frame(state, body, shutdown_received) }
+        is string -> { return process_frame(state, frame, shutdown_received) }
     }
 }
 
@@ -128,7 +128,7 @@ read_and_process :: fn(state: A.ServerState!, shutdown_received: bool) -> Dispat
 process_frame :: fn(state: A.ServerState!, body: string, shutdown_received: bool) -> DispatchResult {
     msg :: parse(body)
     match msg {
-        is JsonObject as obj -> { return dispatch(state, obj, shutdown_received) }
+        is JsonObject -> { return dispatch(state, msg, shutdown_received) }
         is JsonError -> {
             eprintln("lsp: malformed JSON, dropping frame")
             return DispatchResult.Continue
@@ -310,13 +310,13 @@ doc_uri :: fn(params: JsonValue) -> string {
     // any other JSON variant (or a missing/non-object/non-string entry) has
     // no URI, so "" is the right answer for every case but the matched one.
     @partial match params {
-        is JsonObject as o -> {
-            td :: o.entries["textDocument"]
+        is JsonObject -> {
+            td :: params.entries["textDocument"]
             @partial match td {
-                is JsonObject as tdo -> {
-                    uri :: tdo.entries["uri"]
+                is JsonObject -> {
+                    uri :: td.entries["uri"]
                     @partial match uri {
-                        is JsonString as s -> { return s.value }
+                        is JsonString -> { return uri.value }
                         _ -> { return "" }
                     }
                 }

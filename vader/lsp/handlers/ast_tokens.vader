@@ -109,12 +109,12 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, 
         probe :: Span { .start = probe_pos, .end = probe_pos }
         hit :: resolved.idents[probe.hash()]
         match hit {
-            is Symbol as s -> {
+            is Symbol -> {
                 // Only the token type + modifiers are refined ; offsets stay
                 // canonical and col/length are still derived later by
                 // `reencode_columns`.
-                out[i].tok_type = i32(token_type_of_symbol(s.kind))
-                out[i].modifiers = modifiers_of_symbol(s.kind)
+                out[i].tok_type = i32(token_type_of_symbol(hit.kind))
+                out[i].modifiers = modifiers_of_symbol(hit.kind)
             }
             is null -> {}
         }
@@ -225,17 +225,17 @@ walk_opt_pattern :: fn(p: AST.Pattern | null, out: RawToken![]!) -> void {
 
 walk_decl :: fn(d: AST.Decl, out: RawToken![]!) -> void {
     match d {
-        is AST.ImportDecl    as x -> { walk_import_decl(x, out) }
-        is AST.FnDecl        as x -> { walk_fn_decl(x, out) }
-        is AST.StructDecl    as x -> { walk_struct_decl(x, out) }
-        is AST.EnumDecl      as x -> { walk_enum_decl(x, out) }
-        is AST.TraitDecl     as x -> { walk_trait_decl(x, out) }
-        is AST.ImplDecl      as x -> { walk_impl_decl(x, out) }
-        is AST.TypeAliasDecl as x -> { walk_type_alias(x, out) }
-        is AST.ConstDecl     as x -> { walk_const_decl(x, out) }
-        is AST.AssertDecl    as x -> {
-            walk_decorators(x.decorators, out)
-            walk_expr(x.condition, out)
+        is AST.ImportDecl    -> { walk_import_decl(d, out) }
+        is AST.FnDecl        -> { walk_fn_decl(d, out) }
+        is AST.StructDecl    -> { walk_struct_decl(d, out) }
+        is AST.EnumDecl      -> { walk_enum_decl(d, out) }
+        is AST.TraitDecl     -> { walk_trait_decl(d, out) }
+        is AST.ImplDecl      -> { walk_impl_decl(d, out) }
+        is AST.TypeAliasDecl -> { walk_type_alias(d, out) }
+        is AST.ConstDecl     -> { walk_const_decl(d, out) }
+        is AST.AssertDecl    -> {
+            walk_decorators(d.decorators, out)
+            walk_expr(d.condition, out)
         }
     }
 }
@@ -353,18 +353,18 @@ walk_const_decl :: fn(d: AST.ConstDecl, out: RawToken![]!) -> void {
 
 walk_stmt :: fn(s: AST.Stmt, out: RawToken![]!) -> void {
     match s {
-        is AST.LetStmt      as x -> { walk_let(x, out) }
-        is AST.AssignStmt   as x -> {
-            walk_expr(x.target, out)
-            walk_expr(x.value, out)
+        is AST.LetStmt    -> { walk_let(s, out) }
+        is AST.AssignStmt -> {
+            walk_expr(s.target, out)
+            walk_expr(s.value, out)
         }
-        is AST.ExprStmt     as x -> { walk_expr(x.expr, out) }
-        is AST.ReturnStmt   as x -> { walk_opt_expr(x.value, out) }
-        is AST.YieldStmt    as x -> { walk_expr(x.value, out) }
-        is AST.ForStmt      as x -> { walk_for(x, out) }
+        is AST.ExprStmt     -> { walk_expr(s.expr, out) }
+        is AST.ReturnStmt   -> { walk_opt_expr(s.value, out) }
+        is AST.YieldStmt    -> { walk_expr(s.value, out) }
+        is AST.ForStmt      -> { walk_for(s, out) }
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}
-        is AST.DeferStmt    as x -> { walk_defer(x, out) }
+        is AST.DeferStmt    -> { walk_defer(s, out) }
     }
 }
 
@@ -376,10 +376,10 @@ walk_let :: fn(s: AST.LetStmt, out: RawToken![]!) -> void {
 
 walk_binding :: fn(b: AST.LetBinding, out: RawToken![]!) -> void {
     match b {
-        is AST.SimpleBinding   as x -> { push_span(out, x.name_span, .Variable) }
-        is AST.TupleBinding    as x -> { for e in x.elements { walk_binding(e, out) } }
+        is AST.SimpleBinding -> { push_span(out, b.name_span, .Variable) }
+        is AST.TupleBinding -> { for e in b.elements { walk_binding(e, out) } }
         is AST.WildcardBinding -> {}
-        is AST.RestBinding     as x -> { push_span(out, x.span, .Variable) }
+        is AST.RestBinding -> { push_span(out, b.span, .Variable) }
     }
 }
 
@@ -417,72 +417,72 @@ walk_block :: fn(b: AST.BlockExpr, out: RawToken![]!) -> void {
 // the `CallExpr` walker upgrades its callee ident to Function.
 walk_expr :: fn(e: AST.Expr, out: RawToken![]!) -> void {
     match e {
-        is AST.NullCoalesceExpr as x -> {
-            walk_expr(x.left, out)
-            inner :: AST.coalesce_fallback_expr(x.fallback)
+        is AST.NullCoalesceExpr -> {
+            walk_expr(e.left, out)
+            inner :: AST.coalesce_fallback_expr(e.fallback)
             if inner != null { walk_expr(inner, out) }
         }
-        is AST.IdentExpr        as x -> {
+        is AST.IdentExpr -> {
             // Primitives in value position (the receiver of a TypeMeta
             // method call, e.g. `i32.MAX`) paint as Type instead of the
             // catch-all Variable.
-            if x.name.is_primitive_type_name() {
-                push_span(out, x.span, .Type)
+            if e.name.is_primitive_type_name() {
+                push_span(out, e.span, .Type)
             } else {
-                push_span(out, x.span, .Variable)
+                push_span(out, e.span, .Variable)
             }
         }
-        is AST.CallExpr         as x -> { walk_call(x, out) }
-        is AST.FieldExpr        as x -> {
-            walk_expr(x.target, out)
+        is AST.CallExpr  -> { walk_call(e, out) }
+        is AST.FieldExpr -> {
+            walk_expr(e.target, out)
             // Field READ. `Mode.Fast` and `Prof.PHASE` are also FieldExprs and land
             // here rather than on `EnumMember` / a const: telling them apart needs
             // the target's resolved type, which this walker doesn't have. Clients
             // colour property and enum-member from the same family (LSP4IJ maps them
             // to `INSTANCE_FIELD` / `STATIC_FIELD`), so the two are visually alike.
-            push_span(out, x.field_span, .Property)
+            push_span(out, e.field_span, .Property)
         }
-        is AST.IndexExpr        as x -> {
-            walk_expr(x.target, out)
-            walk_expr(x.index, out)
+        is AST.IndexExpr -> {
+            walk_expr(e.target, out)
+            walk_expr(e.index, out)
         }
-        is AST.UnaryExpr        as x -> { walk_expr(x.operand, out) }
-        is AST.BinaryExpr       as x -> {
-            walk_expr(x.left, out)
-            walk_expr(x.right, out)
+        is AST.UnaryExpr  -> { walk_expr(e.operand, out) }
+        is AST.BinaryExpr -> {
+            walk_expr(e.left, out)
+            walk_expr(e.right, out)
         }
-        is AST.IfExpr           as x -> { walk_if(x, out) }
-        is AST.MatchExpr        as x -> { walk_match(x, out) }
-        is AST.BlockExpr        as x -> { walk_block(x, out) }
-        is AST.LambdaExpr       as x -> { walk_lambda(x, out) }
-        is AST.StructLitExpr    as x -> { walk_struct_lit(x, out) }
-        is AST.SeqLitExpr       as x -> { for it in x.elements { walk_expr(it, out) } }
-        is AST.RangeExpr        as x -> {
-            walk_expr(x.lower, out)
-            walk_expr(x.upper, out)
+        is AST.IfExpr        -> { walk_if(e, out) }
+        is AST.MatchExpr     -> { walk_match(e, out) }
+        is AST.BlockExpr     -> { walk_block(e, out) }
+        is AST.LambdaExpr    -> { walk_lambda(e, out) }
+        is AST.StructLitExpr -> { walk_struct_lit(e, out) }
+        is AST.SeqLitExpr    -> { for it in e.elements { walk_expr(it, out) } }
+        is AST.RangeExpr     -> {
+            walk_expr(e.lower, out)
+            walk_expr(e.upper, out)
         }
-        is AST.AwaitExpr        as x -> { walk_expr(x.inner, out) }
-        is AST.CastExpr         as x -> {
-            walk_expr(x.value, out)
-            walk_type_expr(x.target, out)
+        is AST.AwaitExpr -> { walk_expr(e.inner, out) }
+        is AST.CastExpr  -> {
+            walk_expr(e.value, out)
+            walk_type_expr(e.target, out)
         }
-        is AST.GenericInstExpr  as x -> {
-            walk_type_expr(x.callee, out)
-            for a in x.type_args { walk_type_expr(a, out) }
+        is AST.GenericInstExpr -> {
+            walk_type_expr(e.callee, out)
+            for a in e.type_args { walk_type_expr(a, out) }
         }
-        is AST.IntrinsicCallExpr as x -> {
+        is AST.IntrinsicCallExpr -> {
             // Tag `@name` as Decorator so intrinsics colour like decorators
             // (`@test`, `@extern`) rather than falling through uncoloured.
-            push_name_token(out, x.span.start, 1, x.name, .Decorator)
-            for a in x.args { walk_expr(a, out) }
+            push_name_token(out, e.span.start, 1, e.name, .Decorator)
+            for a in e.args { walk_expr(a, out) }
         }
-        is AST.DotVariantExpr   as x -> { push_span(out, x.span, .EnumMember) }
-        is AST.FnTypeExpr       as x -> {
-            for p in x.params { walk_type_expr(p, out) }
-            walk_opt_type(x.return_type, out)
+        is AST.DotVariantExpr -> { push_span(out, e.span, .EnumMember) }
+        is AST.FnTypeExpr     -> {
+            for p in e.params { walk_type_expr(p, out) }
+            walk_opt_type(e.return_type, out)
         }
-        is AST.ArrayTypeExpr    as x -> { walk_type_expr(x.element, out) }
-        is AST.MutableTypeExpr  as x -> { walk_type_expr(x.inner, out) }
+        is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
+        is AST.MutableTypeExpr -> { walk_type_expr(e.inner, out) }
         // Literals carry no identifiers worth tagging.
         is AST.IntLitExpr   -> {}
         is AST.FloatLitExpr -> {}
@@ -542,12 +542,12 @@ walk_match :: fn(e: AST.MatchExpr, out: RawToken![]!) -> void {
 
 walk_pattern :: fn(p: AST.Pattern, out: RawToken![]!) -> void {
     match p {
-        is AST.IsPattern as x -> {
-            walk_type_expr(x.ty, out)
-            walk_opt_pattern(x.inner, out)
+        is AST.IsPattern -> {
+            walk_type_expr(p.ty, out)
+            walk_opt_pattern(p.inner, out)
         }
-        is AST.StructPattern as x -> {
-            for f in x.fields {
+        is AST.StructPattern -> {
+            for f in p.fields {
                 push_span(out, f.name_span, .Variable)
                 match f.value {
                     is AST.PatternBinding         -> {}
@@ -555,16 +555,16 @@ walk_pattern :: fn(p: AST.Pattern, out: RawToken![]!) -> void {
                 }
             }
         }
-        is AST.TuplePattern       as x -> { for el in x.elements { walk_pattern(el, out) } }
-        is AST.WildcardPattern         -> {}
-        is AST.BindingPattern     as x -> { push_span(out, x.span, .Variable) }
-        is AST.EnumVariantPattern as x -> { push_span(out, x.span, .EnumMember) }
-        is AST.LiteralPattern     as x -> { walk_expr(x.value, out) }
-        is AST.RangePattern       as x -> {
-            walk_expr(x.lower, out)
-            walk_expr(x.upper, out)
+        is AST.TuplePattern       -> { for el in p.elements { walk_pattern(el, out) } }
+        is AST.WildcardPattern    -> {}
+        is AST.BindingPattern     -> { push_span(out, p.span, .Variable) }
+        is AST.EnumVariantPattern -> { push_span(out, p.span, .EnumMember) }
+        is AST.LiteralPattern     -> { walk_expr(p.value, out) }
+        is AST.RangePattern       -> {
+            walk_expr(p.lower, out)
+            walk_expr(p.upper, out)
         }
-        is AST.OrPattern          as x -> { for alt in x.patterns { walk_pattern(alt, out) } }
+        is AST.OrPattern -> { for alt in p.patterns { walk_pattern(alt, out) } }
     }
 }
 
@@ -578,11 +578,11 @@ walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken![]!) -> void {
     walk_type_expr(s.type_name, out)
     for it in s.items {
         match it {
-            is AST.StructLitField as f -> {
-                push_span(out, f.name_span, .Property)
-                walk_expr(f.value, out)
+            is AST.StructLitField -> {
+                push_span(out, it.name_span, .Property)
+                walk_expr(it.value, out)
             }
-            is AST.StructLitSpread as sp -> { walk_expr(sp.expr, out) }
+            is AST.StructLitSpread -> { walk_expr(it.expr, out) }
         }
     }
 }
@@ -592,33 +592,33 @@ walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken![]!) -> void {
 // `Map<string, List<i32>>` paints each layer with Type colour.
 walk_type_expr :: fn(e: AST.Expr, out: RawToken![]!) -> void {
     match e {
-        is AST.IdentExpr        as x -> { push_span(out, x.span, .Type) }
-        is AST.GenericInstExpr  as x -> {
-            walk_type_expr(x.callee, out)
-            for a in x.type_args { walk_type_expr(a, out) }
+        is AST.IdentExpr       -> { push_span(out, e.span, .Type) }
+        is AST.GenericInstExpr -> {
+            walk_type_expr(e.callee, out)
+            for a in e.type_args { walk_type_expr(a, out) }
         }
-        is AST.CallExpr         as x -> {
+        is AST.CallExpr -> {
             // `Map<K, V>` in type position parses as a call ; the callee is
             // a type, the args are types.
-            walk_type_expr(x.callee, out)
-            for a in x.args { walk_type_expr(a.value, out) }
+            walk_type_expr(e.callee, out)
+            for a in e.args { walk_type_expr(a.value, out) }
         }
-        is AST.FieldExpr        as x -> {
+        is AST.FieldExpr -> {
             // `pkg.Type` — walk receiver in value position (it's a module
             // namespace) and the field as Type.
-            walk_expr(x.target, out)
-            push_span(out, x.field_span, .Type)
+            walk_expr(e.target, out)
+            push_span(out, e.field_span, .Type)
         }
-        is AST.BinaryExpr       as x -> {
-            walk_type_expr(x.left, out)
-            walk_type_expr(x.right, out)
+        is AST.BinaryExpr -> {
+            walk_type_expr(e.left, out)
+            walk_type_expr(e.right, out)
         }
-        is AST.FnTypeExpr       as x -> {
-            for p in x.params { walk_type_expr(p, out) }
-            walk_opt_type(x.return_type, out)
+        is AST.FnTypeExpr -> {
+            for p in e.params { walk_type_expr(p, out) }
+            walk_opt_type(e.return_type, out)
         }
-        is AST.ArrayTypeExpr    as x -> { walk_type_expr(x.element, out) }
-        is AST.MutableTypeExpr  as x -> { walk_type_expr(x.inner, out) }
+        is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
+        is AST.MutableTypeExpr -> { walk_type_expr(e.inner, out) }
         // Anything else — literal in a type position (`null`, `0..<N` etc.)
         // — defer to the value walker so spans still get classified.
         _ -> { walk_expr(e, out) }

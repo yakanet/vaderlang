@@ -256,9 +256,9 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
 /// @param t  the parameter's declared type.
 /// @return   true when the callee may mutate through the slot.
 is_mutable_slot :: fn(t: Type) -> bool = match t {
-    is ArrayType  as a -> !a.immutable
-    is StructType as s -> !s.immutable
-    is TupleType  as p -> !p.immutable
+    is ArrayType  -> !t.immutable
+    is StructType -> !t.immutable
+    is TupleType  -> !t.immutable
     is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType | DistinctType -> false

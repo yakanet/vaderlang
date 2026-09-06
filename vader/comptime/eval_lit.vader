@@ -57,9 +57,9 @@ export evaluate_string_lit :: fn(
     sb := StringBuilder {}
     for part in literal.parts {
         match part {
-            is AST.StringLitText as text -> { sb.append(text.value) }
-            is AST.StringLitInterp as interp -> {
-                inner :: recurse(interp.expr, context)
+            is AST.StringLitText -> { sb.append(part.value) }
+            is AST.StringLitInterp -> {
+                inner :: recurse(part.expr, context)
                 if inner.value is null { return inner }
                 sb.append(interp_value(inner.value))
             }
@@ -74,18 +74,18 @@ export evaluate_string_lit :: fn(
 // string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
 // `"c=${'A'}"` to `"c=A"`, matching the runtime `Display` of the same code.
 interp_value :: fn(v: ComptimeValue) -> string = match v {
-    is IntValue    as x -> "${x.value}"
-    is FloatValue  as x -> "${x.value}"
-    is BoolValue   as x -> "${x.value}"
-    is StringValue as x -> x.value
+    is IntValue    -> "${v.value}"
+    is FloatValue  -> "${v.value}"
+    is BoolValue   -> "${v.value}"
+    is StringValue -> v.value
     // `char`'s Display is `utf8_encode(self).bytes_to_string()` — cast the
     // stored codepoint back to `char` to borrow it (glyph, not `65`).
-    is CharValue   as x -> "${char(x.value)}"
-    is NullValue        -> "null"
-    is VoidValue        -> ""
-    is ArrayValue       -> display_value(v)
-    is StructValue      -> display_value(v)
-    is TypeValue        -> display_value(v)
+    is CharValue   -> "${char(v.value)}"
+    is NullValue   -> "null"
+    is VoidValue   -> ""
+    is ArrayValue  -> display_value(v)
+    is StructValue -> display_value(v)
+    is TypeValue   -> display_value(v)
 }
 
 // ---- tests ----------------------------------------------------------------

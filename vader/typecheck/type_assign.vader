@@ -46,16 +46,16 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
 
     // @partial: variants with a bespoke rule are listed; everything else shares check_common.
     return @partial match from {
-        is StructType    as s -> is_assignable_struct(from, s, to)
-        is TraitType     as t -> is_assignable_trait_from(from, t, to)
-        is TupleType     as t -> is_assignable_tuple(from, t, to)
-        is ArrayType     as a -> is_assignable_array(from, a, to)
-        is FnType        as f -> is_assignable_fn(from, f, to)
-        is UnionType     as u -> is_assignable_union(from, u, to)
-        is FreeIntType        -> is_assignable_freeint(from, to)
-        is FreeCharType       -> is_assignable_freechar(from, to)
-        is FreeFloatType      -> is_assignable_freefloat(from, to)
-        _ -> check_common(from, to)
+        is StructType    -> is_assignable_struct(from, from, to)
+        is TraitType     -> is_assignable_trait_from(from, from, to)
+        is TupleType     -> is_assignable_tuple(from, from, to)
+        is ArrayType     -> is_assignable_array(from, from, to)
+        is FnType        -> is_assignable_fn(from, from, to)
+        is UnionType     -> is_assignable_union(from, from, to)
+        is FreeIntType   -> is_assignable_freeint(from, to)
+        is FreeCharType  -> is_assignable_freechar(from, to)
+        is FreeFloatType -> is_assignable_freefloat(from, to)
+        _                -> check_common(from, to)
     }
 }
 
@@ -64,8 +64,8 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
 /// handled — see `is_assignable`'s note on why that answer lives elsewhere.
 export check_common :: fn(from: Type, to: Type) -> bool {
     match to {
-        is UnionType as tu -> {
-            for v in tu.variants {
+        is UnionType -> {
+            for v in to.variants {
                 if is_assignable(from, v) { return true }
             }
         }
@@ -90,9 +90,9 @@ export check_common :: fn(from: Type, to: Type) -> bool {
 /// views), so it stays covariant in `is_assignable_array`.
 export is_assignable_struct :: fn(from: Type, self: StructType, to: Type) -> bool {
     match to {
-        is StructType as ts -> {
-            if self.symbol.id == ts.symbol.id {
-                if struct_args_compatible(self.args, ts.args) { return true }
+        is StructType -> {
+            if self.symbol.id == to.symbol.id {
+                if struct_args_compatible(self.args, to.args) { return true }
             }
         }
         _ -> {}
@@ -103,9 +103,9 @@ export is_assignable_struct :: fn(from: Type, self: StructType, to: Type) -> boo
 /// `from is TraitType`. Same nominal-with-args shape as StructType.
 export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type) -> bool {
     match to {
-        is TraitType as tt -> {
-            if self.symbol.id == tt.symbol.id {
-                if struct_args_compatible(self.args, tt.args) { return true }
+        is TraitType -> {
+            if self.symbol.id == to.symbol.id {
+                if struct_args_compatible(self.args, to.args) { return true }
             }
         }
         _ -> {}
@@ -117,10 +117,10 @@ export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type) -> 
 /// Immutability is not part of assignability — see `is_assignable_struct`.
 export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool {
     match to {
-        is TupleType as tt -> {
-            if self.elements.len() != tt.elements.len() { return false }
+        is TupleType -> {
+            if self.elements.len() != to.elements.len() { return false }
             for i in 0..<self.elements.len() {
-                if !is_assignable(self.elements[i], tt.elements[i]) {
+                if !is_assignable(self.elements[i], to.elements[i]) {
                     return false
                 }
             }
@@ -166,17 +166,17 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
 /// on either side is a wildcard (MVP — bound enforcement lives in unify).
 export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     match to {
-        is FnType as ft -> {
-            if self.params.len() != ft.params.len() { return false }
+        is FnType -> {
+            if self.params.len() != to.params.len() { return false }
             for i in 0..<self.params.len() {
-                if !fn_param_compatible(ft.params[i], self.params[i]) { return false }
+                if !fn_param_compatible(to.params[i], self.params[i]) { return false }
                 // `!` markers are contravariant, like the param types around them:
                 // a fn that does NOT mutate fits a slot that would allow it (it
                 // simply promises less), while one that DOES mutate cannot be
                 // handed to a caller expecting a read-only borrow.
-                if param_mutable_at(self, i) && !param_mutable_at(ft, i) { return false }
+                if param_mutable_at(self, i) && !param_mutable_at(to, i) { return false }
             }
-            return fn_param_compatible(self.return_type, ft.return_type)
+            return fn_param_compatible(self.return_type, to.return_type)
         }
         _ -> {}
     }
@@ -318,7 +318,7 @@ export is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool 
 /// `from is FreeIntType`. Widens to any integer primitive.
 export is_assignable_freeint :: fn(from: Type, to: Type) -> bool {
     match to {
-        is PrimitiveType as tp -> { if is_int_name(tp.name) { return true } }
+        is PrimitiveType -> { if is_int_name(to.name) { return true } }
         _ -> {}
     }
     return check_common(from, to)
@@ -328,7 +328,7 @@ export is_assignable_freeint :: fn(from: Type, to: Type) -> bool {
 /// (the codepoint, bounds-checked separately at the pin site) or to `char`.
 export is_assignable_freechar :: fn(from: Type, to: Type) -> bool {
     match to {
-        is PrimitiveType as tp -> { if is_int_name(tp.name) || tp.name == "char" { return true } }
+        is PrimitiveType -> { if is_int_name(to.name) || to.name == "char" { return true } }
         _ -> {}
     }
     return check_common(from, to)
@@ -337,7 +337,7 @@ export is_assignable_freechar :: fn(from: Type, to: Type) -> bool {
 /// `from is FreeFloatType`. Widens to any float primitive.
 export is_assignable_freefloat :: fn(from: Type, to: Type) -> bool {
     match to {
-        is PrimitiveType as tp -> { if is_float_name(tp.name) { return true } }
+        is PrimitiveType -> { if is_float_name(to.name) { return true } }
         _ -> {}
     }
     return check_common(from, to)

@@ -55,39 +55,39 @@ export publish_default_resolutions :: fn(
 // which is the form a value-position block actually takes.
 copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!) -> void {
     match e {
-        is AST.IdentExpr as id -> {
-            sym :: from.resolved.idents[id.span.hash()]
+        is AST.IdentExpr -> {
+            sym :: from.resolved.idents[e.span.hash()]
             if sym is Symbol {
-                into.resolved.idents[id.span.hash()] = sym
+                into.resolved.idents[e.span.hash()] = sym
             }
         }
-        is AST.CallExpr as c -> {
-            copy_expr_resolutions(c.callee, from, into)
-            for a in c.args {
+        is AST.CallExpr -> {
+            copy_expr_resolutions(e.callee, from, into)
+            for a in e.args {
                 copy_expr_resolutions(a.value, from, into)
             }
         }
-        is AST.FieldExpr        as f -> { copy_expr_resolutions(f.target, from, into) }
-        is AST.IndexExpr        as ix -> {
-            copy_expr_resolutions(ix.target, from, into)
-            copy_expr_resolutions(ix.index, from, into)
+        is AST.FieldExpr -> { copy_expr_resolutions(e.target, from, into) }
+        is AST.IndexExpr -> {
+            copy_expr_resolutions(e.target, from, into)
+            copy_expr_resolutions(e.index, from, into)
         }
-        is AST.UnaryExpr        as u -> { copy_expr_resolutions(u.operand, from, into) }
-        is AST.BinaryExpr       as b -> {
-            copy_expr_resolutions(b.left, from, into)
-            copy_expr_resolutions(b.right, from, into)
+        is AST.UnaryExpr  -> { copy_expr_resolutions(e.operand, from, into) }
+        is AST.BinaryExpr -> {
+            copy_expr_resolutions(e.left, from, into)
+            copy_expr_resolutions(e.right, from, into)
         }
-        is AST.NullCoalesceExpr as nc -> {
-            copy_expr_resolutions(nc.left, from, into)
-            fb :: AST.coalesce_fallback_expr(nc.fallback)
+        is AST.NullCoalesceExpr -> {
+            copy_expr_resolutions(e.left, from, into)
+            fb :: AST.coalesce_fallback_expr(e.fallback)
             if fb != null {
                 copy_expr_resolutions(fb, from, into)
             }
         }
-        is AST.IfExpr           as f -> { copy_if_resolutions(f, from, into) }
-        is AST.MatchExpr        as m -> {
-            copy_expr_resolutions(m.scrutinee, from, into)
-            for arm in m.arms {
+        is AST.IfExpr    -> { copy_if_resolutions(e, from, into) }
+        is AST.MatchExpr -> {
+            copy_expr_resolutions(e.scrutinee, from, into)
+            for arm in e.arms {
                 g :: arm.guard
                 if g != null {
                     copy_expr_resolutions(g, from, into)
@@ -95,15 +95,15 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
                 copy_expr_resolutions(arm.body, from, into)
             }
         }
-        is AST.BlockExpr        as bl -> {
-            t :: bl.trailing
+        is AST.BlockExpr -> {
+            t :: e.trailing
             if t != null {
                 copy_expr_resolutions(t, from, into)
             }
         }
-        is AST.StructLitExpr    as sl -> {
-            copy_expr_resolutions(sl.type_name, from, into)
-            for item in sl.items {
+        is AST.StructLitExpr -> {
+            copy_expr_resolutions(e.type_name, from, into)
+            for item in e.items {
                 if item is AST.StructLitField {
                     copy_expr_resolutions(item.value, from, into)
                 } else if item is AST.StructLitSpread {
@@ -111,49 +111,49 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
                 }
             }
         }
-        is AST.SeqLitExpr       as sq -> {
-            for el in sq.elements {
+        is AST.SeqLitExpr -> {
+            for el in e.elements {
                 copy_expr_resolutions(el, from, into)
             }
         }
-        is AST.RangeExpr        as r -> {
-            copy_expr_resolutions(r.lower, from, into)
-            copy_expr_resolutions(r.upper, from, into)
+        is AST.RangeExpr -> {
+            copy_expr_resolutions(e.lower, from, into)
+            copy_expr_resolutions(e.upper, from, into)
         }
-        is AST.CastExpr         as cx -> {
-            copy_expr_resolutions(cx.target, from, into)
-            copy_expr_resolutions(cx.value, from, into)
+        is AST.CastExpr -> {
+            copy_expr_resolutions(e.target, from, into)
+            copy_expr_resolutions(e.value, from, into)
         }
-        is AST.GenericInstExpr  as gi -> {
-            copy_expr_resolutions(gi.callee, from, into)
-            for ta in gi.type_args {
+        is AST.GenericInstExpr -> {
+            copy_expr_resolutions(e.callee, from, into)
+            for ta in e.type_args {
                 copy_expr_resolutions(ta, from, into)
             }
         }
-        is AST.IntrinsicCallExpr as ic -> {
-            for a in ic.args {
+        is AST.IntrinsicCallExpr -> {
+            for a in e.args {
                 copy_expr_resolutions(a, from, into)
             }
         }
-        is AST.StringLitExpr    as st -> {
-            for part in st.parts {
+        is AST.StringLitExpr -> {
+            for part in e.parts {
                 if part is AST.StringLitInterp {
                     copy_expr_resolutions(part.expr, from, into)
                 }
             }
         }
-        is AST.FnTypeExpr       as ft -> {
-            for pt in ft.params {
+        is AST.FnTypeExpr -> {
+            for pt in e.params {
                 copy_expr_resolutions(pt, from, into)
             }
-            rt :: ft.return_type
+            rt :: e.return_type
             if rt != null {
                 copy_expr_resolutions(rt, from, into)
             }
         }
-        is AST.ArrayTypeExpr    as at -> { copy_expr_resolutions(at.element, from, into) }
-        is AST.MutableTypeExpr  as mt -> { copy_expr_resolutions(mt.inner, from, into) }
-        is AST.AwaitExpr        as aw -> { copy_expr_resolutions(aw.inner, from, into) }
+        is AST.ArrayTypeExpr   -> { copy_expr_resolutions(e.element, from, into) }
+        is AST.MutableTypeExpr -> { copy_expr_resolutions(e.inner, from, into) }
+        is AST.AwaitExpr       -> { copy_expr_resolutions(e.inner, from, into) }
         // Leaves, and the one form whose body is a statement list.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
          | AST.CharLitExpr | AST.DotVariantExpr | AST.LambdaExpr -> {}

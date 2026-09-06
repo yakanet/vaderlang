@@ -54,9 +54,9 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
     source :: state.source_for(uri)
     match source {
         is null -> { return JsonNull {} }
-        is string as src -> {
-            if src.bytes().len() == 0 { return JsonNull {} }
-            data :: produce_tokens(src, uri, new_line_index(src, state.position_encoding))
+        is string -> {
+            if source.bytes().len() == 0 { return JsonNull {} }
+            data :: produce_tokens(source, uri, new_line_index(source, state.position_encoding))
             result :: MutableMap<string, JsonValue> {}
             result["data"] = data
             return JsonObject { .entries = result }

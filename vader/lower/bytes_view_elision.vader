@@ -171,54 +171,54 @@ bve_analyze_block :: fn(b: LoweredBlock, ctx: BveCtx!) -> void {
 
 bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
     match s {
-        is LoweredLet as st -> {
+        is LoweredLet -> {
             // A symbol bound more than once is ambiguous — disqualify it.
-            if ctx.bound.contains(st.symbol.id) {
-                _ :: ctx.disq.add(st.symbol.id)
+            if ctx.bound.contains(s.symbol.id) {
+                _ :: ctx.disq.add(s.symbol.id)
             }
-            _ :: ctx.bound.add(st.symbol.id)
-            x :: bve_bytes_receiver(st.value, ctx.bytes_id)
+            _ :: ctx.bound.add(s.symbol.id)
+            x :: bve_bytes_receiver(s.value, ctx.bytes_id)
             if x != null {
                 // Record the alias, DON'T scan the RHS: its only content is the
                 // receiver `X`, kept live by the rewritten reads (not an escape).
-                ctx.candidates[st.symbol.id] = x
+                ctx.candidates[s.symbol.id] = x
                 return
             }
-            bve_analyze_expr(st.value, ctx)
+            bve_analyze_expr(s.value, ctx)
         }
-        is LoweredAssign as st -> {
-            if st.target is LoweredIdent as tid {
+        is LoweredAssign -> {
+            if s.target is LoweredIdent as tid {
                 _ :: ctx.reassigned.add(tid.symbol.id)
             }
-            bve_analyze_expr(st.target, ctx)
-            bve_analyze_expr(st.value, ctx)
+            bve_analyze_expr(s.target, ctx)
+            bve_analyze_expr(s.value, ctx)
         }
-        is LoweredCellSet as st -> {
-            if st.target is LoweredIdent as tid {
+        is LoweredCellSet -> {
+            if s.target is LoweredIdent as tid {
                 _ :: ctx.reassigned.add(tid.symbol.id)
             }
-            bve_analyze_expr(st.target, ctx)
-            bve_analyze_expr(st.value, ctx)
+            bve_analyze_expr(s.target, ctx)
+            bve_analyze_expr(s.value, ctx)
         }
-        is LoweredExprStmt as st -> { bve_analyze_expr(st.expr, ctx) }
-        is LoweredReturn as st -> {
-            v :: st.value
+        is LoweredExprStmt -> { bve_analyze_expr(s.expr, ctx) }
+        is LoweredReturn -> {
+            v :: s.value
             if v != null {
                 bve_analyze_expr(v, ctx)
             }
         }
-        is LoweredYield as st -> { bve_analyze_expr(st.value, ctx) }
-        is LoweredAwait as st -> { bve_analyze_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> {
-            c :: st.cond
+        is LoweredYield -> { bve_analyze_expr(s.value, ctx) }
+        is LoweredAwait -> { bve_analyze_expr(s.awaited, ctx) }
+        is LoweredLoop -> {
+            c :: s.cond
             if c != null {
                 bve_analyze_expr(c, ctx)
             }
-            bve_analyze_block(st.body, ctx)
+            bve_analyze_block(s.body, ctx)
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
-        is LoweredDeferPush as st -> { bve_analyze_expr(st.thunk, ctx) }
+        is LoweredDeferPush -> { bve_analyze_expr(s.thunk, ctx) }
         is LoweredDeferPopExec -> {}
     }
 }
@@ -226,88 +226,88 @@ bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
 bve_analyze_expr :: fn(e: LoweredExpr, ctx: BveCtx!) -> void {
     match e {
         // A bare ident in value position = an escaping use of that local.
-        is LoweredIdent as id -> { _ :: ctx.disq.add(id.symbol.id) }
+        is LoweredIdent -> { _ :: ctx.disq.add(e.symbol.id) }
         // `.len()` on a candidate view is an allowed use — don't scan the target.
-        is LoweredArrayLen as al -> {
-            if al.target is LoweredIdent as tid {
+        is LoweredArrayLen -> {
+            if e.target is LoweredIdent as tid {
                 if ctx.candidates[tid.symbol.id] != null {
                     return
                 }
             }
-            bve_analyze_expr(al.target, ctx)
+            bve_analyze_expr(e.target, ctx)
         }
         // `view[i]` on a candidate is allowed — scan only the index expression.
-        is LoweredIndex as ix -> {
-            if ix.target is LoweredIdent as tid {
+        is LoweredIndex -> {
+            if e.target is LoweredIdent as tid {
                 if ctx.candidates[tid.symbol.id] != null {
-                    bve_analyze_expr(ix.index, ctx)
+                    bve_analyze_expr(e.index, ctx)
                     return
                 }
             }
-            bve_analyze_expr(ix.target, ctx)
-            bve_analyze_expr(ix.index, ctx)
+            bve_analyze_expr(e.target, ctx)
+            bve_analyze_expr(e.index, ctx)
         }
-        is LoweredCall as c -> {
-            bve_analyze_expr(c.callee, ctx)
-            for a in c.args {
+        is LoweredCall -> {
+            bve_analyze_expr(e.callee, ctx)
+            for a in e.args {
                 bve_analyze_expr(a, ctx)
             }
         }
-        is LoweredVirtualCall as v -> {
-            bve_analyze_expr(v.receiver, ctx)
-            for a in v.args {
+        is LoweredVirtualCall -> {
+            bve_analyze_expr(e.receiver, ctx)
+            for a in e.args {
                 bve_analyze_expr(a, ctx)
             }
         }
-        is LoweredFieldAccess as fa -> { bve_analyze_expr(fa.target, ctx) }
-        is LoweredUnary as u -> { bve_analyze_expr(u.operand, ctx) }
-        is LoweredBinary as b -> {
-            bve_analyze_expr(b.left, ctx)
-            bve_analyze_expr(b.right, ctx)
+        is LoweredFieldAccess -> { bve_analyze_expr(e.target, ctx) }
+        is LoweredUnary -> { bve_analyze_expr(e.operand, ctx) }
+        is LoweredBinary -> {
+            bve_analyze_expr(e.left, ctx)
+            bve_analyze_expr(e.right, ctx)
         }
-        is LoweredIf as ie -> {
-            bve_analyze_expr(ie.cond, ctx)
-            bve_analyze_block(ie.then_block, ctx)
-            eb :: ie.else_block
+        is LoweredIf -> {
+            bve_analyze_expr(e.cond, ctx)
+            bve_analyze_block(e.then_block, ctx)
+            eb :: e.else_block
             if eb != null {
                 bve_analyze_block(eb, ctx)
             }
         }
-        is LoweredBlock as bl -> { bve_analyze_block(bl, ctx) }
-        is LoweredStructLit as sl -> {
-            for f in sl.fields {
+        is LoweredBlock -> { bve_analyze_block(e, ctx) }
+        is LoweredStructLit -> {
+            for f in e.fields {
                 bve_analyze_expr(f.value, ctx)
             }
         }
-        is LoweredArrayLit as al -> {
-            for el in al.elements {
+        is LoweredArrayLit -> {
+            for el in e.elements {
                 bve_analyze_expr(el, ctx)
             }
         }
-        is LoweredArrayPush as ap -> {
-            bve_analyze_expr(ap.target, ctx)
-            bve_analyze_expr(ap.value, ctx)
+        is LoweredArrayPush -> {
+            bve_analyze_expr(e.target, ctx)
+            bve_analyze_expr(e.value, ctx)
         }
-        is LoweredArraySlice as asl -> {
-            bve_analyze_expr(asl.target, ctx)
-            bve_analyze_expr(asl.lo, ctx)
-            bve_analyze_expr(asl.hi, ctx)
+        is LoweredArraySlice -> {
+            bve_analyze_expr(e.target, ctx)
+            bve_analyze_expr(e.lo, ctx)
+            bve_analyze_expr(e.hi, ctx)
         }
-        is LoweredStringSlice as ssl -> {
-            bve_analyze_expr(ssl.target, ctx)
-            bve_analyze_expr(ssl.lo, ctx)
-            bve_analyze_expr(ssl.hi, ctx)
+        is LoweredStringSlice -> {
+            bve_analyze_expr(e.target, ctx)
+            bve_analyze_expr(e.lo, ctx)
+            bve_analyze_expr(e.hi, ctx)
         }
-        is LoweredCast as cs -> { bve_analyze_expr(cs.value, ctx) }
-        is LoweredTypeCheck as tc -> { bve_analyze_expr(tc.value, ctx) }
-        is LoweredIntrinsicCall as ic -> {
-            for a in ic.args {
+        is LoweredCast -> { bve_analyze_expr(e.value, ctx) }
+        is LoweredTypeCheck -> { bve_analyze_expr(e.value, ctx) }
+        is LoweredIntrinsicCall -> {
+            for a in e.args {
                 bve_analyze_expr(a, ctx)
             }
         }
-        is LoweredCellNew as cn -> { bve_analyze_expr(cn.value, ctx) }
-        is LoweredCellGet as cg -> { bve_analyze_expr(cg.target, ctx) }
-        is LoweredMakeClosure as mc -> { bve_analyze_expr(mc.env, ctx) }
+        is LoweredCellNew -> { bve_analyze_expr(e.value, ctx) }
+        is LoweredCellGet -> { bve_analyze_expr(e.target, ctx) }
+        is LoweredMakeClosure -> { bve_analyze_expr(e.env, ctx) }
         is LoweredIntLit -> {}
         is LoweredFloatLit -> {}
         is LoweredBoolLit -> {}
@@ -360,148 +360,148 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
 
 bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
     match s {
-        is LoweredLet as st -> { st.value = bve_rewrite_expr(st.value, ctx) }
-        is LoweredAssign as st -> {
-            st.target = bve_rewrite_expr(st.target, ctx)
-            st.value = bve_rewrite_expr(st.value, ctx)
+        is LoweredLet -> { s.value = bve_rewrite_expr(s.value, ctx) }
+        is LoweredAssign -> {
+            s.target = bve_rewrite_expr(s.target, ctx)
+            s.value = bve_rewrite_expr(s.value, ctx)
         }
-        is LoweredCellSet as st -> {
-            st.target = bve_rewrite_expr(st.target, ctx)
-            st.value = bve_rewrite_expr(st.value, ctx)
+        is LoweredCellSet -> {
+            s.target = bve_rewrite_expr(s.target, ctx)
+            s.value = bve_rewrite_expr(s.value, ctx)
         }
-        is LoweredExprStmt as st -> { st.expr = bve_rewrite_expr(st.expr, ctx) }
-        is LoweredReturn as st -> {
-            v :: st.value
+        is LoweredExprStmt -> { s.expr = bve_rewrite_expr(s.expr, ctx) }
+        is LoweredReturn -> {
+            v :: s.value
             if v != null {
-                st.value = bve_rewrite_expr(v, ctx)
+                s.value = bve_rewrite_expr(v, ctx)
             }
         }
-        is LoweredYield as st -> { st.value = bve_rewrite_expr(st.value, ctx) }
-        is LoweredAwait as st -> { st.awaited = bve_rewrite_expr(st.awaited, ctx) }
-        is LoweredLoop as st -> {
-            c :: st.cond
+        is LoweredYield -> { s.value = bve_rewrite_expr(s.value, ctx) }
+        is LoweredAwait -> { s.awaited = bve_rewrite_expr(s.awaited, ctx) }
+        is LoweredLoop -> {
+            c :: s.cond
             if c != null {
-                st.cond = bve_rewrite_expr(c, ctx)
+                s.cond = bve_rewrite_expr(c, ctx)
             }
-            bve_rewrite_block(st.body, ctx)
+            bve_rewrite_block(s.body, ctx)
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
-        is LoweredDeferPush as st -> { st.thunk = bve_rewrite_expr(st.thunk, ctx) }
+        is LoweredDeferPush -> { s.thunk = bve_rewrite_expr(s.thunk, ctx) }
         is LoweredDeferPopExec -> {}
     }
 }
 
 bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr {
     match e {
-        is LoweredArrayLen as al -> {
-            if al.target is LoweredIdent as tid {
+        is LoweredArrayLen -> {
+            if e.target is LoweredIdent as tid {
                 x :: bve_valid_receiver(ctx, tid.symbol.id)
                 if x != null {
-                    return mk_lowered_call(ctx.byte_len_sym, [synth_ident(x.symbol, x.type, x.span)], ctx.usize_ty, al.span)
+                    return mk_lowered_call(ctx.byte_len_sym, [synth_ident(x.symbol, x.type, x.span)], ctx.usize_ty, e.span)
                 }
             }
-            al.target = bve_rewrite_expr(al.target, ctx)
-            return al
+            e.target = bve_rewrite_expr(e.target, ctx)
+            return e
         }
-        is LoweredIndex as ix -> {
-            if ix.target is LoweredIdent as tid {
+        is LoweredIndex -> {
+            if e.target is LoweredIdent as tid {
                 x :: bve_valid_receiver(ctx, tid.symbol.id)
                 if x != null {
-                    new_index :: bve_rewrite_expr(ix.index, ctx)
-                    return mk_lowered_call(ctx.byte_at_sym, [synth_ident(x.symbol, x.type, x.span), new_index], ctx.u8_ty, ix.span)
+                    new_index :: bve_rewrite_expr(e.index, ctx)
+                    return mk_lowered_call(ctx.byte_at_sym, [synth_ident(x.symbol, x.type, x.span), new_index], ctx.u8_ty, e.span)
                 }
             }
-            ix.target = bve_rewrite_expr(ix.target, ctx)
-            ix.index = bve_rewrite_expr(ix.index, ctx)
-            return ix
+            e.target = bve_rewrite_expr(e.target, ctx)
+            e.index = bve_rewrite_expr(e.index, ctx)
+            return e
         }
-        is LoweredCall as c -> {
-            c.callee = bve_rewrite_expr(c.callee, ctx)
-            bve_rewrite_exprs(c.args, ctx)
-            return c
+        is LoweredCall -> {
+            e.callee = bve_rewrite_expr(e.callee, ctx)
+            bve_rewrite_exprs(e.args, ctx)
+            return e
         }
-        is LoweredVirtualCall as v -> {
-            v.receiver = bve_rewrite_expr(v.receiver, ctx)
-            bve_rewrite_exprs(v.args, ctx)
-            return v
+        is LoweredVirtualCall -> {
+            e.receiver = bve_rewrite_expr(e.receiver, ctx)
+            bve_rewrite_exprs(e.args, ctx)
+            return e
         }
-        is LoweredFieldAccess as fa -> {
-            fa.target = bve_rewrite_expr(fa.target, ctx)
-            return fa
+        is LoweredFieldAccess -> {
+            e.target = bve_rewrite_expr(e.target, ctx)
+            return e
         }
-        is LoweredUnary as u -> {
-            u.operand = bve_rewrite_expr(u.operand, ctx)
-            return u
+        is LoweredUnary -> {
+            e.operand = bve_rewrite_expr(e.operand, ctx)
+            return e
         }
-        is LoweredBinary as b -> {
-            b.left = bve_rewrite_expr(b.left, ctx)
-            b.right = bve_rewrite_expr(b.right, ctx)
-            return b
+        is LoweredBinary -> {
+            e.left = bve_rewrite_expr(e.left, ctx)
+            e.right = bve_rewrite_expr(e.right, ctx)
+            return e
         }
-        is LoweredIf as ie -> {
-            ie.cond = bve_rewrite_expr(ie.cond, ctx)
-            bve_rewrite_block(ie.then_block, ctx)
-            eb :: ie.else_block
+        is LoweredIf -> {
+            e.cond = bve_rewrite_expr(e.cond, ctx)
+            bve_rewrite_block(e.then_block, ctx)
+            eb :: e.else_block
             if eb != null {
                 bve_rewrite_block(eb, ctx)
             }
-            return ie
+            return e
         }
-        is LoweredBlock as bl -> {
-            bve_rewrite_block(bl, ctx)
-            return bl
+        is LoweredBlock -> {
+            bve_rewrite_block(e, ctx)
+            return e
         }
-        is LoweredStructLit as sl -> {
-            for f in sl.fields {
+        is LoweredStructLit -> {
+            for f in e.fields {
                 f.value = bve_rewrite_expr(f.value, ctx)
             }
-            return sl
+            return e
         }
-        is LoweredArrayLit as al -> {
-            bve_rewrite_exprs(al.elements, ctx)
-            return al
+        is LoweredArrayLit -> {
+            bve_rewrite_exprs(e.elements, ctx)
+            return e
         }
-        is LoweredArrayPush as ap -> {
-            ap.target = bve_rewrite_expr(ap.target, ctx)
-            ap.value = bve_rewrite_expr(ap.value, ctx)
-            return ap
+        is LoweredArrayPush -> {
+            e.target = bve_rewrite_expr(e.target, ctx)
+            e.value = bve_rewrite_expr(e.value, ctx)
+            return e
         }
-        is LoweredArraySlice as asl -> {
-            asl.target = bve_rewrite_expr(asl.target, ctx)
-            asl.lo = bve_rewrite_expr(asl.lo, ctx)
-            asl.hi = bve_rewrite_expr(asl.hi, ctx)
-            return asl
+        is LoweredArraySlice -> {
+            e.target = bve_rewrite_expr(e.target, ctx)
+            e.lo = bve_rewrite_expr(e.lo, ctx)
+            e.hi = bve_rewrite_expr(e.hi, ctx)
+            return e
         }
-        is LoweredStringSlice as ssl -> {
-            ssl.target = bve_rewrite_expr(ssl.target, ctx)
-            ssl.lo = bve_rewrite_expr(ssl.lo, ctx)
-            ssl.hi = bve_rewrite_expr(ssl.hi, ctx)
-            return ssl
+        is LoweredStringSlice -> {
+            e.target = bve_rewrite_expr(e.target, ctx)
+            e.lo = bve_rewrite_expr(e.lo, ctx)
+            e.hi = bve_rewrite_expr(e.hi, ctx)
+            return e
         }
-        is LoweredCast as cs -> {
-            cs.value = bve_rewrite_expr(cs.value, ctx)
-            return cs
+        is LoweredCast -> {
+            e.value = bve_rewrite_expr(e.value, ctx)
+            return e
         }
-        is LoweredTypeCheck as tc -> {
-            tc.value = bve_rewrite_expr(tc.value, ctx)
-            return tc
+        is LoweredTypeCheck -> {
+            e.value = bve_rewrite_expr(e.value, ctx)
+            return e
         }
-        is LoweredIntrinsicCall as ic -> {
-            bve_rewrite_exprs(ic.args, ctx)
-            return ic
+        is LoweredIntrinsicCall -> {
+            bve_rewrite_exprs(e.args, ctx)
+            return e
         }
-        is LoweredCellNew as cn -> {
-            cn.value = bve_rewrite_expr(cn.value, ctx)
-            return cn
+        is LoweredCellNew -> {
+            e.value = bve_rewrite_expr(e.value, ctx)
+            return e
         }
-        is LoweredCellGet as cg -> {
-            cg.target = bve_rewrite_expr(cg.target, ctx)
-            return cg
+        is LoweredCellGet -> {
+            e.target = bve_rewrite_expr(e.target, ctx)
+            return e
         }
-        is LoweredMakeClosure as mc -> {
-            mc.env = bve_rewrite_expr(mc.env, ctx)
-            return mc
+        is LoweredMakeClosure -> {
+            e.env = bve_rewrite_expr(e.env, ctx)
+            return e
         }
         is LoweredIdent -> { return e }
         is LoweredIntLit -> { return e }

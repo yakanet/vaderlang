@@ -136,16 +136,16 @@ export type_val :: fn(value: Type) -> ComptimeValue {
 /// @param value  the value to render.
 /// @return       the printable form.
 export display_value :: fn(value: ComptimeValue) -> string = match value {
-    is IntValue    as x -> "${x.value}_${x.type_name}"
-    is FloatValue  as x -> "${x.value}_${x.type_name}"
-    is BoolValue   as x -> "${x.value}"
-    is CharValue   as x -> "'\\u${pad_start(to_hex(u64(x.value)), 4, '0')}'"
-    is StringValue as x -> "\"${x.value}\""
-    is NullValue        -> "null"
-    is VoidValue        -> "void"
-    is ArrayValue  as x -> render_array(x)
-    is StructValue as x -> render_struct(x)
-    is TypeValue   as x -> display_type_key(x.value)
+    is IntValue    -> "${value.value}_${value.type_name}"
+    is FloatValue  -> "${value.value}_${value.type_name}"
+    is BoolValue   -> "${value.value}"
+    is CharValue   -> "'\\u${pad_start(to_hex(u64(value.value)), 4, '0')}'"
+    is StringValue -> "\"${value.value}\""
+    is NullValue   -> "null"
+    is VoidValue   -> "void"
+    is ArrayValue  -> render_array(value)
+    is StructValue -> render_struct(value)
+    is TypeValue   -> display_type_key(value.value)
 }
 
 // Arrays longer than this are truncated in the dump: a comptime snapshot
