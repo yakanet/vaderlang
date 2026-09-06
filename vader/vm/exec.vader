@@ -1235,6 +1235,54 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
+            // `local.set A ; local.get B`, second most frequent pair. Only ever
+            // built for a fn with no narrow slot, so the mask branch cannot apply.
+            is SetGet -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
+                }
+                if instr.set_slot < 0 || usize(instr.set_slot) >= cur_slot_count || instr.get_slot < 0 || usize(instr.get_slot) >= cur_slot_count {
+                    return Trap { .message = "local slot out of range at pc=${frame.pc} in '${body.name}'" }
+                }
+                si :: usize(instr.set_slot)
+                ss :: frame.tag[frame.sp - 1]
+                frame.slot_payload[si] = frame.payload[frame.sp - 1]
+                frame.slot_tag[si] = ss
+                if ss == StackTag.Ref {
+                    frame.slots[si] = frame.stack[frame.sp - 1]
+                }
+                gi :: usize(instr.get_slot)
+                gs :: frame.slot_tag[gi]
+                frame.payload[frame.sp - 1] = frame.slot_payload[gi]
+                frame.tag[frame.sp - 1] = gs
+                if gs == StackTag.Ref {
+                    frame.stack[frame.sp - 1] = frame.slots[gi]
+                }
+                frame.pc = frame.pc + 1
+            }
+            // `local.get A ; <int>.const V`.
+            is GetConst -> {
+                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
+                    return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
+                }
+                if stack_needs_grow(frame, frame.sp) {
+                    stack_grow(frame)
+                }
+                gj :: usize(instr.slot)
+                gt :: frame.slot_tag[gj]
+                frame.payload[frame.sp] = frame.slot_payload[gj]
+                frame.tag[frame.sp] = gt
+                if gt == StackTag.Ref {
+                    frame.stack[frame.sp] = frame.slots[gj]
+                }
+                if stack_needs_grow(frame, frame.sp + 1) {
+                    stack_grow(frame)
+                }
+                frame.payload[frame.sp + 1] = instr.value
+                frame.tag[frame.sp + 1] = if instr.wide { StackTag.I64 } else { StackTag.I32 }
+                frame.sp = frame.sp + 2
+                frame.pc = frame.pc + 1
+            }
             is bc.LocalGet -> {
                 if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
                     return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }

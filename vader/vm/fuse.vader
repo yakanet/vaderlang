@@ -37,9 +37,26 @@ export Get2 :: struct {
     b: i32
 }
 
+/// `local.set A ; local.get B` — the second most frequent pair, 16 371. Only fused
+/// in a function with no NARROW slot: a narrow one routes `local.set` through
+/// `narrow_mask`, which needs `body` and the slot's valtype. That is a per-function
+/// fact, known at `prepare` time, so the gate costs nothing at dispatch.
+export SetGet :: struct {
+    set_slot: i32
+    get_slot: i32
+}
+
+/// `local.get A ; <int>.const V` — 9 292 across the two widths. `wide` picks the
+/// tag the constant lands with.
+export GetConst :: struct {
+    slot:  i32
+    value: i64
+    wide:  bool
+}
+
 /// What the interpreter actually dispatches: every shipped op, plus the fused
 /// ones. `Op` is unchanged, so this widening is invisible outside `vader/vm`.
-export VmOp :: Op | Get2
+export VmOp :: Op | Get2 | SetGet | GetConst
 
 /// A function's dispatch-ready body, with its jump table rebuilt against it.
 export FusedBody :: struct {
@@ -56,7 +73,7 @@ export FusedBody :: struct {
 export fuse_module :: fn(mod: BytecodeModule) -> FusedBody[]! {
     out: FusedBody[]! = []
     for f in mod.functions {
-        out.push(fuse_body(f))
+        out.push(fuse_body(f, fn_has_narrow_slot(f)))
     }
     return out
 }
@@ -65,7 +82,7 @@ export fuse_module :: fn(mod: BytecodeModule) -> FusedBody[]! {
 ///
 /// @param f  the function to rewrite ; not mutated.
 /// @return   its fused body and the jump table remapped to the new pc space.
-fuse_body :: fn(f: BcFunction) -> FusedBody {
+fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
     n :: f.body.len()
     // An op a branch lands on keeps its own index, so it is never absorbed into
     // the pair before it — otherwise the branch would arrive mid-superop.
@@ -86,16 +103,15 @@ fuse_body :: fn(f: BcFunction) -> FusedBody {
         if i + 1 < n && !is_target[i + 1] {
             a :: f.body[i]
             b :: f.body[i + 1]
-            if a is LocalGet as ga {
-                if b is LocalGet as gb {
-                    origin.push(i32(i))
-                    ops.push(Get2 { .a = ga.slot, .b = gb.slot })
-                    // The absorbed op answers with the pair's index: nothing
-                    // branches to it (checked above), but `remap` must stay total.
-                    remap[i + 1] = i32(ops.len()) - 1
-                    i = i + 2
-                    continue
-                }
+            fused :: fuse_pair(a, b, narrow)
+            if fused != null {
+                origin.push(i32(i))
+                ops.push(fused)
+                // The absorbed op answers with the pair's index: nothing branches
+                // to it (checked above), but `remap` must stay total.
+                remap[i + 1] = i32(ops.len()) - 1
+                i = i + 2
+                continue
             }
         }
         origin.push(i32(i))
@@ -108,4 +124,43 @@ fuse_body :: fn(f: BcFunction) -> FusedBody {
         jump.push(if old >= 0 && usize(old) < n { remap[usize(old)] } else { old })
     }
     return FusedBody { .ops = ops, .jump_table = jump }
+}
+
+/// The fused op for `a ; b`, or null when the pair has no rule.
+///
+/// @param a       the first op of the adjacent pair.
+/// @param b       the second — already known not to be a branch target.
+/// @param narrow  true when the owning fn has a narrow (u8/i8/u16/i16) slot, which
+///                puts every `local.set` through `narrow_mask` and rules out
+///                `SetGet`.
+fuse_pair :: fn(a: Op, b: Op, narrow: bool) -> VmOp | null {
+    if a is LocalGet as ga {
+        return get_pair(ga.slot, b)
+    }
+    if a is LocalSet as sa {
+        if narrow {
+            return null
+        }
+        if b is LocalGet as gb {
+            return SetGet { .set_slot = sa.slot, .get_slot = gb.slot }
+        }
+    }
+    return null
+}
+
+// Split out rather than nested in `fuse_pair`: testing `b` against several
+// variants in one fn body and returning from each subtracts them from `b`'s type
+// for the REST of the fn, so a later `b is LocalGet` in a sibling branch reports
+// T3040 "test can never match". A separate fn is a separate narrowing scope.
+get_pair :: fn(slot: i32, b: Op) -> VmOp | null {
+    if b is LocalGet as gb {
+        return Get2 { .a = slot, .b = gb.slot }
+    }
+    if b is I64Const as c64 {
+        return GetConst { .slot = slot, .value = c64.value, .wide = true }
+    }
+    if b is I32Const as c32 {
+        return GetConst { .slot = slot, .value = i64(c32.value), .wide = false }
+    }
+    return null
 }
