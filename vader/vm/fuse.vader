@@ -11,8 +11,10 @@
 // `.virt` dumps, the C backend and every committed snapshot reading the same ops
 // they always did.
 //
-// Fusing renumbers the pc space, so `jump_table` is rebuilt against the new
-// indices, and an op that any branch LANDS ON is never absorbed.
+// Two rewrites, both renumbering the pc space: adjacent pairs folded into one
+// op, and the structural nops dropped. `jump_table` is rebuilt against the new
+// indices, and an op that any branch LANDS ON is never absorbed into the pair
+// before it.
 //
 // The debugger reads `body.debug[frame.pc]`, which is indexed in the ORIGINAL pc
 // space. `exec_entry` therefore dispatches the unfused body whenever a
@@ -34,11 +36,15 @@ Get2 :: struct {
     slot_b: i32
 }
 
-/// `local.set A ; local.get B` — the second most frequent pair. Only fused in a
-/// function with no NARROW slot: a narrow one routes `local.set` through
-/// `narrow_mask`, which needs `body` and the slot's valtype. That is a
-/// per-function fact, known at `prepare` time, so the gate costs nothing at
-/// dispatch.
+/// `local.set A ; local.get B` — the statement boundary: finish storing into A,
+/// begin reading B. `set N ; get N` never reaches here, the bytecode peephole
+/// having already folded it to `local.tee`.
+///
+/// Fused unless slot A is NARROW: a narrow store routes through `narrow_mask`,
+/// which the arm does not carry. The gate is per SLOT, not per function —
+/// masking a wide valtype is identity (`narrow_mask` returns its argument), so a
+/// wide store inside a function that merely contains a narrow slot is still a
+/// plain column copy.
 SetGet :: struct {
     set_slot: i32
     get_slot: i32
@@ -66,16 +72,12 @@ FusedBody :: struct {
 
 /// Fuse every function of `mod`, in declaration order.
 ///
-/// @param mod     the module whose functions to rewrite ; not mutated.
-/// @param narrow  `narrow[i]` true when `mod.functions[i]` holds a narrow slot —
-///                the table `prepare` already built, rather than a second walk of
-///                every param and local.
-/// @return        one `FusedBody` per function, index-aligned with `mod.functions`.
-fuse_module :: fn(mod: BytecodeModule, narrow: bool[]) -> FusedBody[] {
-    n :: mod.functions.len()
-    out: FusedBody[]! = [] * n
-    for i in 0..<n {
-        out.push(fuse_body(mod.functions[i], narrow[i]))
+/// @param mod  the module whose functions to rewrite ; not mutated.
+/// @return     one `FusedBody` per function, index-aligned with `mod.functions`.
+fuse_module :: fn(mod: BytecodeModule) -> FusedBody[] {
+    out: FusedBody[]! = [] * mod.functions.len()
+    for f in mod.functions {
+        out.push(fuse_body(f))
     }
     return out
 }
@@ -83,8 +85,9 @@ fuse_module :: fn(mod: BytecodeModule, narrow: bool[]) -> FusedBody[] {
 /// Fuse one function body.
 ///
 /// @param f  the function to rewrite ; not mutated.
-/// @return   its fused body and the jump table remapped to the new pc space.
-fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
+/// @return   its dispatch-ready body and the jump table remapped to the new pc
+///           space, with the pairs folded and the structural nops gone.
+fuse_body :: fn(f: BcFunction) -> FusedBody {
     n :: f.body.len()
     // An op a branch lands on keeps its own index, so it is never absorbed into
     // the pair before it — otherwise the branch would arrive mid-superop.
@@ -95,9 +98,21 @@ fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
     remap: i32[]! = [0] * n
     i: usize = 0
     for i < n {
+        op :: f.body[i]
+        // `block` / `loop` / `end` carry NO runtime semantics — each arm is
+        // `frame.pc + 1` and nothing else. They exist so `c_emit` can recover its
+        // braces; the interpreter reaches every destination through `jump_table`.
+        // Dropping them is safe because jumping to a nop is by definition jumping
+        // to whatever follows it, and `remap_jump_table` reads the negative entry
+        // below as "gone" and resolves such a branch forward to the next survivor.
+        if op is Block | Loop | End {
+            remap[i] = -1
+            i = i + 1
+            continue
+        }
         remap[i] = i32(ops.len())
         if i + 1 < n && !is_target[i + 1] {
-            fused :: fuse_pair(f.body[i], f.body[i + 1], narrow)
+            fused :: fuse_pair(f, op, f.body[i + 1])
             if fused != null {
                 ops.push(fused)
                 remap[i + 1] = remap[i]
@@ -105,7 +120,7 @@ fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
                 continue
             }
         }
-        ops.push(f.body[i])
+        ops.push(op)
         i = i + 1
     }
     return FusedBody { .ops = ops, .jump_table = remap_jump_table(f.jump_table, remap, ops.len()) }
@@ -113,17 +128,17 @@ fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
 
 /// The fused op for `a ; b`, or null when the pair has no rule.
 ///
-/// @param a       the first op of the adjacent pair.
-/// @param b       the second — already known not to be a branch target.
-/// @param narrow  true when the owning fn has a narrow (u8/i8/u16/i16) slot, which
-///                puts every `local.set` through `narrow_mask` and rules out
-///                `SetGet`.
-fuse_pair :: fn(a: Op, b: Op, narrow: bool) -> VmOp | null {
+/// @param f  the owning function — read for the set slot's valtype.
+/// @param a  the first op of the adjacent pair.
+/// @param b  the second — already known not to be a branch target.
+fuse_pair :: fn(f: BcFunction, a: Op, b: Op) -> VmOp | null {
     if a is LocalGet as ga {
         return get_pair(ga.slot, b)
     }
     if a is LocalSet as sa {
-        if narrow {
+        // Per SLOT, not per function : `SetGet` stores straight into the columns,
+        // so it is ruled out only when THIS slot is narrow.
+        if is_narrow_valtype(slot_valtype(f, sa.slot)) {
             return null
         }
         if b is LocalGet as gb {

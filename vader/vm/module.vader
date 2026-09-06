@@ -83,6 +83,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
         .io_error_type_id     = find_io_error_type_id(bc_mod.types),
         .fn_narrow            = narrow,
         .fn_index_by_name     = by_name,
-        .fused                = fuse_module(bc_mod, narrow),
+        .fused                = fuse_module(bc_mod),
     }
 }
