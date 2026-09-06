@@ -1572,7 +1572,7 @@ void* vader_types_strip_distinct_each(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(134u, 0u, 13u, 1190u);
+    vader_array_t* _a0_arr = vader_array_new(134u, 0u, 13u, 1192u);
     l1 = (void*) _a0_arr;
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;

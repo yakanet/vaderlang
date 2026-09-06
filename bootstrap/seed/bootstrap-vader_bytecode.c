@@ -3862,7 +3862,7 @@ void* vader_bytecode_new_emitter_ctx(void) {
     void** gc_raw_roots[16] = { &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7, &l8, &l9, &l10, &l11, &l12, &l13, &l14, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 16u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(124u, 0u, 13u, 1093u);
+    vader_array_t* _a0_arr = vader_array_new(124u, 0u, 13u, 1094u);
     l0 = (void*) _a0_arr;
     vader_struct_vader_bytecode_BcPrimitive_t* _a1_obj = (vader_struct_vader_bytecode_BcPrimitive_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPrimitive_t));
     vader_obj_header_init(_a1_obj, 507u);
@@ -4467,7 +4467,7 @@ void* vader_bytecode_propagate_const_single_use(void* l0) {
     }
     vader_array_t* _a26_arr = vader_array_new(121u, 0u, 13u, 1084u);
     l3 = (void*) _a26_arr;
-    vader_array_t* _a27_arr = vader_array_new(126u, 0u, 13u, 1111u);
+    vader_array_t* _a27_arr = vader_array_new(126u, 0u, 13u, 1113u);
     l4 = (void*) _a27_arr;
     vader_array_t* _a28_arr = vader_array_new(9u, 0u, 7u, 172u);
     l5 = (void*) _a28_arr;
@@ -5815,7 +5815,7 @@ void vader_bytecode_prune_unused_types(void* l0) {
     l4 = ((vader_array_t*) ((vader_struct_vader_bytecode_EmitterCtx_t*) l0)->f_types)->length;
     vader_array_t* _a18_arr = vader_array_new(9u, 0u, 7u, 172u);
     l2 = (void*) _a18_arr;
-    vader_array_t* _a19_arr = vader_array_new(124u, 0u, 13u, 1093u);
+    vader_array_t* _a19_arr = vader_array_new(124u, 0u, 13u, 1094u);
     l3 = (void*) _a19_arr;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -5844,7 +5844,7 @@ void vader_bytecode_prune_unused_types(void* l0) {
             }
         }
     }
-    vader_array_t* _a21_arr = vader_array_new(124u, 0u, 13u, 1093u);
+    vader_array_t* _a21_arr = vader_array_new(124u, 0u, 13u, 1094u);
     l1 = (void*) _a21_arr;
     l4 = ((vader_array_t*) l3)->length;
     l5 = (size_t) (int64_t) INT64_C(0);
@@ -6269,7 +6269,7 @@ static void* vader_bytecode_remap_debug(void* l0, void* l1, size_t l2) {
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(126u, 1u, 13u, 1111u);
+    vader_array_t* _a0_arr = vader_array_new(126u, 1u, 13u, 1113u);
     ((void**) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = vader_box_obj(0u, NULL).payload.obj;
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l2);

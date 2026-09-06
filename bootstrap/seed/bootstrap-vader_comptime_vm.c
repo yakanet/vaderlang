@@ -35,7 +35,7 @@ static vader_box_t vader_comptime_vm_array_to_comptime(void* l0, vader_box_t l1,
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_comptime_vm_array_element_type(l1);
-    vader_array_t* _a0_arr = vader_array_new(128u, 0u, 13u, 1131u);
+    vader_array_t* _a0_arr = vader_array_new(128u, 0u, 13u, 1133u);
     l4 = (void*) _a0_arr;
     l5 = (size_t) (int64_t) INT64_C(0);
     {

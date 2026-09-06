@@ -6,7 +6,7 @@ void* std_iter_clone__AnyType___ArrayType___DistinctType___EnumType___FnType___F
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(134u, 0u, 13u, 1190u);
+    vader_array_t* _a0_arr = vader_array_new(134u, 0u, 13u, 1192u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (size_t) l2);

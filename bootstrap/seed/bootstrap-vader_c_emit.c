@@ -12530,7 +12530,7 @@ static void* vader_c_emit_new_fn_state(void* l0, void* l1, void* l2) {
     void** gc_raw_roots[13] = { &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7, &l8, &l9, &l10, &l11, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 13u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(127u, 0u, 13u, 1129u);
+    vader_array_t* _a0_arr = vader_array_new(127u, 0u, 13u, 1131u);
     l3 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(11u, 0u, 1u, 175u);
     l4 = (void*) _a1_arr;
