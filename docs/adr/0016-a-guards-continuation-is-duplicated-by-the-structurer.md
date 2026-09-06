@@ -96,15 +96,25 @@ and a `br`, which the bytecode already has.
 Keep the source-shape change in `vader/vm/exec.vader`; it is one line and it pays
 on every build of the compiler, every CI run and every bootstrap stage.
 
-Do **not** treat it as the fix. The defect is general — the shape it works around
-is an ordinary Vader idiom, used throughout the tree — and it belongs in
-`cond_branch_merge`, where it would pay out on every compiled program instead of
-one function. Filed, unscheduled.
+**Fix the general defect too — done 2026-09-06.** The builder knew the join all
+along: `build_if` and `build_short_circuit` create the block and terminate both
+arms with a `TermBranch` to it, and only never wrote it down. `TermCondBranch`
+carries it now, and `cond_branch_merge` falls back to it where post-dominance
+gives up. Measured on the compiler's own C, three alternating draws: **367 733 →
+331 980 lines (−9,7 %)**, `vader_vm.c` **38 478 → 31 852 (−17 %)**, `cc -O3`
+over the 51 TUs **5,13 → 4,77 s (−7,0 %)**.
+
+Post-dominance stays the primary answer and the two are NOT cross-checked: they
+answer different questions. Post-dominance asks what every path goes through, the
+builder asks where these two arms rejoin. They coincide for a plain `if` and part
+company as soon as an arm leaves the region — `for { … if c { break } … }`
+post-dominates on the loop's exit while the arms rejoin in the body — so a
+"they must agree" assertion fires on correct code, which is how this was found.
+
+## Consequences
 
 Withdraw *"the duplication is a specialisation that pays"*. It is the kind of
 conclusion that survives only until someone asks what produced the two copies.
-
-## Consequences
 
 - The guard in `exec.vader` carries a CONSTRAINT comment pointing here. It names
   `vader/midir`, not the C emitter, and says the constraint is general rather
@@ -118,3 +128,19 @@ conclusion that survives only until someone asks what produced the two copies.
 - `tests/diag_corpus/comptime/c4002_non_terminating/` pins that a
   non-terminating `@comptime` errors rather than hanging the build — the
   behaviour whose shape this change moves. Nothing pinned it before.
+- **The trade, and what removes it.** An arm that falls through now gets a real
+  `else` where the duplication used to flatten it, so brace nesting in the three
+  op-dispatch modules goes from 12 to ~152 — past the 127 levels C11 guarantees
+  an implementation supports, and ~10 % more bytes on indentation alone. Both CI
+  toolchains compile it (gcc-16 in 9,5 s, `x86_64-w64-mingw32-gcc` in 8,0 s on
+  the Windows-target C). What removes it properly is lowering a dense `match` to
+  a jump table instead of an if-chain: `vader_vm.c`, `vader_c_emit.c` and
+  `vader_bytecode.c` are the only files over 127 and they are the same 148-arm
+  dispatch. That is also the op a WASM backend would want (`br_table`).
+- **The `.virt` dumper was guessing.** It resolved a non-loop `br` to the
+  innermost enclosing non-loop scope rather than to the scope its jump-table
+  entry names — wrong as soon as a branch skips past an intermediate scope, which
+  this change makes it do. The round trip then produced a different program:
+  `std_regex` ran correctly from source and natively and looped forever through
+  its own dump. Fixed by matching the branch's target against each open scope's
+  `End`. Latent before this change, since nothing emitted such a branch.
