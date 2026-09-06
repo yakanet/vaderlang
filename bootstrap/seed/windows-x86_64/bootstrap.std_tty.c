@@ -12,7 +12,7 @@ static vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        l2 = concat_3(5u, l1, 1832u);
+        l2 = concat_3(5u, l1, 1834u);
     } else {
         l2 = 0u;
     }
@@ -59,7 +59,7 @@ static bool std_tty_is_tty(int32_t l0) {
     if (l3 == INT64_C(-1)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    vader_array_t* _a3_arr = vader_array_new(13u, 1u, 3u, 175u);
+    vader_array_t* _a3_arr = vader_array_new(13u, 1u, 3u, 177u);
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(0);
     l4 = (void*) _a3_arr;
     t2 = vader_host_system_windows_get_console_mode(l3, l4);

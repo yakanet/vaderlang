@@ -765,6 +765,9 @@ typedef struct vader_struct_vader_vm_ErrorVal_t vader_struct_vader_vm_ErrorVal_t
 typedef struct vader_struct_vader_vm_F64Val_t vader_struct_vader_vm_F64Val_t;
 typedef struct vader_struct_vader_vm_FnVal_t vader_struct_vader_vm_FnVal_t;
 typedef struct vader_struct_vader_vm_Frame_t vader_struct_vader_vm_Frame_t;
+typedef struct vader_struct_vader_vm_FusedBody_t vader_struct_vader_vm_FusedBody_t;
+typedef struct vader_struct_vader_vm_Get2_t vader_struct_vader_vm_Get2_t;
+typedef struct vader_struct_vader_vm_GetConst_t vader_struct_vader_vm_GetConst_t;
 typedef struct vader_struct_vader_vm_HostOk_t vader_struct_vader_vm_HostOk_t;
 typedef struct vader_struct_vader_vm_I32Val_t vader_struct_vader_vm_I32Val_t;
 typedef struct vader_struct_vader_vm_I64Val_t vader_struct_vader_vm_I64Val_t;
@@ -776,6 +779,7 @@ typedef struct vader_struct_vader_vm_Ok_t vader_struct_vader_vm_Ok_t;
 typedef struct vader_struct_vader_vm_PauseCtx_t vader_struct_vader_vm_PauseCtx_t;
 typedef struct vader_struct_vader_vm_PauseFrame_t vader_struct_vader_vm_PauseFrame_t;
 typedef struct vader_struct_vader_vm_PauseVar_t vader_struct_vader_vm_PauseVar_t;
+typedef struct vader_struct_vader_vm_SetGet_t vader_struct_vader_vm_SetGet_t;
 typedef struct vader_struct_vader_vm_StringVal_t vader_struct_vader_vm_StringVal_t;
 typedef struct vader_struct_vader_vm_StructVal_t vader_struct_vader_vm_StructVal_t;
 typedef struct vader_struct_vader_vm_Trap_t vader_struct_vader_vm_Trap_t;
@@ -5425,6 +5429,22 @@ struct vader_struct_vader_vm_Frame_t {
     void* f_defers;
     size_t f_defer_count;
 };
+struct vader_struct_vader_vm_FusedBody_t {
+    vader_obj_header_t header;
+    void* f_ops;
+    void* f_jump_table;
+};
+struct vader_struct_vader_vm_Get2_t {
+    vader_obj_header_t header;
+    int32_t f_a;
+    int32_t f_b;
+};
+struct vader_struct_vader_vm_GetConst_t {
+    vader_obj_header_t header;
+    int32_t f_slot;
+    int64_t f_value;
+    bool f_wide;
+};
 struct vader_struct_vader_vm_HostOk_t {
     vader_obj_header_t header;
     vader_box_t f_value;
@@ -5481,6 +5501,11 @@ struct vader_struct_vader_vm_PauseVar_t {
     vader_string_t f_value;
     void* f_children;
 };
+struct vader_struct_vader_vm_SetGet_t {
+    vader_obj_header_t header;
+    int32_t f_set_slot;
+    int32_t f_get_slot;
+};
 struct vader_struct_vader_vm_StringVal_t {
     vader_obj_header_t header;
     vader_string_t f_value;
@@ -5512,6 +5537,7 @@ struct vader_struct_vader_vm_VmState_t {
     int32_t f_io_error_type_id;
     void* f_fn_narrow;
     void* f_fn_index_by_name;
+    void* f_fused;
 };
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -6059,7 +6085,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2432u
+#define VADER_COMPTIME_ATOM_COUNT 2434u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
