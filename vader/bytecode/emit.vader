@@ -72,7 +72,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
 /// Remap a jump_table from old PC space to new PC space using a
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.
-remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[]! {
+export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[]! {
     new_jt: i32[]! = []
     for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
@@ -103,12 +103,13 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
 
 /// Bitmap over body PCs : `true` at every PC that is a jump TARGET (a
 /// non-negative `jump_table` entry). A peephole must never fold an op that a
-/// branch lands on. Shared by `run_bc_peephole` and `strip_self_copies`.
+/// branch lands on. Shared by `run_bc_peephole`, `strip_self_copies` and the
+/// interpreter's load-time fuse pass (`vader/vm/fuse.vader`).
 ///
 /// @param jump_table  the function's PC→target table.
 /// @param n           body length (bitmap size).
 /// @return            length-`n` bool array, `true` at each branch target.
-mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
+export mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
     is_target: bool[]! = [false] * n
     for k in 0..<jump_table.len() {
         t :: jump_table[k]

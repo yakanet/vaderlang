@@ -148,19 +148,27 @@ arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
 ///
 /// The boxed route allocates TWICE per execution — `peek_val` to read the operand,
 /// `push_val` to carry the result back — to move a word that never leaves its
-/// column. Mirrors `convert_value`'s `.I32` / `.I64` arms EXACTLY, including the
-/// unsigned-source normalisation: a `u8` / `u16` / `u32` arrives tagged `I32`
-/// holding raw bits, so widening must ZERO-extend rather than sign-extend. Any
-/// other source tag or target falls through to the boxed path unchanged.
+/// column. Answers exactly what `convert_value`'s `.I32` / `.I64` arms answer,
+/// unsigned-source normalisation included: a `u8` / `u16` / `u32` arrives tagged
+/// `I32` holding raw bits, so widening it must ZERO-extend rather than
+/// sign-extend. Any other source tag or target falls through to the boxed path
+/// unchanged.
 convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) -> bool {
-    if !(target == .I32 || target == .I64) {
+    if target != .I32 && target != .I64 {
         return false
     }
     idx :: frame.sp - 1
     t :: frame.tag[idx]
     n: i64 = 0
     if t == StackTag.I32 {
-        n = if from_name.starts_with("u") { i64(u32(frame.payload[idx])) } else { i64(i32(frame.payload[idx])) }
+        // Only a widening to i64 can see above bit 31 — an `.I32` target truncates
+        // back to the same low word either way. `starts_with` is not the test: it
+        // allocates a byte view per call, and this runs once per executed convert.
+        if target == .I64 && from_name.byte_len() > 0 && from_name.byte_at(0) == 'u' {
+            n = i64(u32(frame.payload[idx]))
+        } else {
+            n = i64(i32(frame.payload[idx]))
+        }
     } else if t == StackTag.I64 {
         n = frame.payload[idx]
     } else if t == StackTag.Char {
@@ -201,6 +209,12 @@ stack_grow :: fn(frame: Frame!) -> void {
 /// past clang's inline threshold. A push op then paid a real call for one compare.
 /// Keeping the call out of here leaves nothing to root, so it inlines.
 stack_needs_grow :: fn(frame: Frame, cursor: usize) -> bool = cursor == frame.payload.len()
+
+/// True when `slot` is not a valid local index for a frame holding `count` slots.
+///
+/// Scalars only, so there is nothing to root and it inlines for the same reason
+/// `stack_needs_grow` does — see the note there.
+slot_out_of_range :: fn(slot: i32, count: usize) -> bool = slot < 0 || usize(slot) >= count
 
 /// Write `value` into the stack columns at `cursor` (growing if needed).
 /// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
@@ -1036,8 +1050,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // / `op_count` change only when the active frame changes — i.e. on a call
     // (push, top grows) or a return / fall-off (pop, top shrinks). The loop
     // reloads them solely when `top` differs from the last-loaded `cur_top`,
-    // saving three array reads (`frames[top]`, `state.bc.functions[…]`,
-    // `body.body.len()`) on every other op. `frame` stays a tracked GC root
+    // saving the `frames[top]` / `state.bc.functions[…]` / dispatch-table reads
+    // on every other op. `frame` stays a tracked GC root
     // across iterations, so a collection that relocates the Frame keeps the
     // cached reference valid (the `frames` slot is updated in lock-step).
     //
@@ -1053,8 +1067,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     body := state.bc.functions[usize(frame.function_index)]
     // The ops actually dispatched, and their jump table. Fused unless a debugger
     // is attached — see the reload below.
-    cur_ops: VmOp[] = if debug == null { state.fused[usize(frame.function_index)].ops } else { body.body }
-    cur_jump: i32[] = if debug == null { state.fused[usize(frame.function_index)].jump_table } else { body.jump_table }
+    cur_ops: VmOp[] = body.body
+    cur_jump: i32[] = body.jump_table
+    if debug == null {
+        fb :: state.fused[usize(frame.function_index)]
+        cur_ops = fb.ops
+        cur_jump = fb.jump_table
+    }
     op_count := cur_ops.len()
     cur_top := init_top
     // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
@@ -1067,6 +1086,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // count — bounding `local.*` against it lets an out-of-range slot read the
     // previous frame's stale data. Bound against the signature instead.
     cur_slot_count := body.signature.params.len() + body.locals.len()
+    // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
+    // beside `cur_has_narrow` rather than recomputed on every `return`.
+    cur_narrow_result := is_narrow_valtype(body.signature.result)
     // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -1130,6 +1152,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             op_count = cur_ops.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
+            cur_narrow_result = is_narrow_valtype(body.signature.result)
             cur_top = top
         }
 
@@ -1205,81 +1228,73 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
-            // Two `local.get`s in one turn — the most frequent adjacent pair in the
-            // tree. Identical to running the two arms back to back; kept beside
-            // them so a change to one is visibly a change to both.
+            // Two `local.get`s in one turn. Identical to running the two arms back
+            // to back; kept beside them so a change to one is visibly a change to
+            // both, and spelled with their `sidx` / `st` names for that reason.
             is Get2 -> {
-                if instr.a < 0 || usize(instr.a) >= cur_slot_count || instr.b < 0 || usize(instr.b) >= cur_slot_count {
+                if slot_out_of_range(instr.slot_a, cur_slot_count) ||
+                    slot_out_of_range(instr.slot_b, cur_slot_count) {
                     return Trap { .message = "local.get slot out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 if stack_needs_grow(frame, frame.sp) {
                     stack_grow(frame)
                 }
-                ia :: usize(instr.a)
-                sa :: frame.slot_tag[ia]
-                frame.payload[frame.sp] = frame.slot_payload[ia]
-                frame.tag[frame.sp] = sa
-                if sa == StackTag.Ref {
-                    frame.stack[frame.sp] = frame.slots[ia]
-                }
+                sidx_a :: usize(instr.slot_a)
+                st_a :: frame.slot_tag[sidx_a]
+                frame.payload[frame.sp] = frame.slot_payload[sidx_a]
+                frame.tag[frame.sp] = st_a
+                if st_a == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx_a] }
                 if stack_needs_grow(frame, frame.sp + 1) {
                     stack_grow(frame)
                 }
-                ib :: usize(instr.b)
-                sb :: frame.slot_tag[ib]
-                frame.payload[frame.sp + 1] = frame.slot_payload[ib]
-                frame.tag[frame.sp + 1] = sb
-                if sb == StackTag.Ref {
-                    frame.stack[frame.sp + 1] = frame.slots[ib]
-                }
+                sidx_b :: usize(instr.slot_b)
+                st_b :: frame.slot_tag[sidx_b]
+                frame.payload[frame.sp + 1] = frame.slot_payload[sidx_b]
+                frame.tag[frame.sp + 1] = st_b
+                if st_b == StackTag.Ref { frame.stack[frame.sp + 1] = frame.slots[sidx_b] }
                 frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
-            // `local.set A ; local.get B`, second most frequent pair. Only ever
-            // built for a fn with no narrow slot, so the mask branch cannot apply.
+            // `local.set A ; local.get B`. Only ever built for a fn with no narrow
+            // slot, so the mask branch cannot apply.
             is SetGet -> {
                 if frame.sp == 0 {
                     return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                if instr.set_slot < 0 || usize(instr.set_slot) >= cur_slot_count || instr.get_slot < 0 || usize(instr.get_slot) >= cur_slot_count {
+                if slot_out_of_range(instr.set_slot, cur_slot_count) ||
+                    slot_out_of_range(instr.get_slot, cur_slot_count) {
                     return Trap { .message = "local slot out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                si :: usize(instr.set_slot)
-                ss :: frame.tag[frame.sp - 1]
-                frame.slot_payload[si] = frame.payload[frame.sp - 1]
-                frame.slot_tag[si] = ss
-                if ss == StackTag.Ref {
-                    frame.slots[si] = frame.stack[frame.sp - 1]
-                }
-                gi :: usize(instr.get_slot)
-                gs :: frame.slot_tag[gi]
-                frame.payload[frame.sp - 1] = frame.slot_payload[gi]
-                frame.tag[frame.sp - 1] = gs
-                if gs == StackTag.Ref {
-                    frame.stack[frame.sp - 1] = frame.slots[gi]
-                }
+                sidx_set :: usize(instr.set_slot)
+                st_set :: frame.tag[frame.sp - 1]
+                frame.slot_payload[sidx_set] = frame.payload[frame.sp - 1]
+                frame.slot_tag[sidx_set] = st_set
+                if st_set == StackTag.Ref { frame.slots[sidx_set] = frame.stack[frame.sp - 1] }
+                sidx_get :: usize(instr.get_slot)
+                st_get :: frame.slot_tag[sidx_get]
+                frame.payload[frame.sp - 1] = frame.slot_payload[sidx_get]
+                frame.tag[frame.sp - 1] = st_get
+                if st_get == StackTag.Ref { frame.stack[frame.sp - 1] = frame.slots[sidx_get] }
                 frame.pc = frame.pc + 1
             }
             // `local.get A ; <int>.const V`.
             is GetConst -> {
-                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
+                if slot_out_of_range(instr.slot, cur_slot_count) {
                     return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 if stack_needs_grow(frame, frame.sp) {
                     stack_grow(frame)
                 }
-                gj :: usize(instr.slot)
-                gt :: frame.slot_tag[gj]
-                frame.payload[frame.sp] = frame.slot_payload[gj]
-                frame.tag[frame.sp] = gt
-                if gt == StackTag.Ref {
-                    frame.stack[frame.sp] = frame.slots[gj]
-                }
+                sidx :: usize(instr.slot)
+                st :: frame.slot_tag[sidx]
+                frame.payload[frame.sp] = frame.slot_payload[sidx]
+                frame.tag[frame.sp] = st
+                if st == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx] }
                 if stack_needs_grow(frame, frame.sp + 1) {
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp + 1] = instr.value
-                frame.tag[frame.sp + 1] = if instr.wide { StackTag.I64 } else { StackTag.I32 }
+                frame.tag[frame.sp + 1] = instr.tag
                 frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
@@ -1592,9 +1607,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "array.get needs array + index on stack at pc=${frame.pc}" }
                 }
                 // Tag test then a raw `payload` read, the same shape the arithmetic
-                // arms use — `read_i32(peek_val(…))` boxed a `Value` for the sole
-                // purpose of unwrapping it on the next line, one allocation per
-                // execution to carry an index that was already a payload word.
+                // arms use.
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "array.get index") }
                 index :: i32(frame.payload[frame.sp - 1])
                 array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.get receiver")
@@ -1845,17 +1858,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                if convert_int_fast(frame, instr.target, instr.from_name) {
-                    frame.pc = frame.pc + 1
-                } else {
+                if !convert_int_fast(frame, instr.target, instr.from_name) {
                     v :: peek_val(frame, frame.sp - 1)
                     converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
                     if converted is Trap {
                         return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
                     }
                     push_val(frame, frame.sp - 1, converted)
-                    frame.pc = frame.pc + 1
                 }
+                frame.pc = frame.pc + 1
             }
             is bc.SizeOfType -> {
                 if frame.sp == 0 {
@@ -2686,16 +2697,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.Return -> {
                 has_value :: frame.sp > 0
                 // Fast path: the value moves from this frame's top slot to the
-                // caller's, and both are payload+tag columns. Boxing it in between
-                // allocated a `Value` that `push_val` took apart one call later —
-                // and the `I32Val` placeholder the slow path still builds was paid
-                // even by a void `return`, which never reads it.
+                // caller's, and both are payload+tag columns — no `Value` in
+                // between.
                 //
                 // Deliberately NOT taken for a narrow result (it truncates, so it
-                // goes through `narrow_mask`), for the value-capturing entry, or
-                // for the outermost frame — those three keep the boxed route and
-                // its one implementation.
-                if has_value && frame_count[0] > 1 && capture == null && !is_narrow_valtype(body.signature.result) {
+                // goes through `narrow_mask`) nor for the outermost frame, which is
+                // where `finalise_return` coerces the exit code or publishes
+                // `capture`. Those two keep the boxed route and its one
+                // implementation.
+                if has_value && frame_count[0] > 1 && !cur_narrow_result {
                     src :: frame.sp - 1
                     st  :: frame.tag[src]
                     pay :: frame.payload[src]

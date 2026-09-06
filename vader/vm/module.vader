@@ -55,6 +55,7 @@ export VmState :: struct {
     /// comptime pass calls once PER staged decl. The debugger path ignores these
     /// and dispatches `bc.functions[i].body`, whose pc space its `debug` table is
     /// indexed by.
+    @internal
     fused: FusedBody[]
 }
 
@@ -82,6 +83,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
         .io_error_type_id     = find_io_error_type_id(bc_mod.types),
         .fn_narrow            = narrow,
         .fn_index_by_name     = by_name,
-        .fused                = fuse_module(bc_mod),
+        .fused                = fuse_module(bc_mod, narrow),
     }
 }

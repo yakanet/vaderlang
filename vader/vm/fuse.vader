@@ -2,15 +2,14 @@
 //
 // The bytecode a program ships is not the bytecode the VM has to dispatch. This
 // pass rewrites each function's body once, at `prepare` time, folding adjacent op
-// pairs into one — a dispatch turn costs ~8 ns whatever the op does, so a pair
+// pairs into one — a dispatch turn costs the same whatever the op does, so a pair
 // folded is a turn saved.
 //
-// PRIVATE to `vader/vm` on purpose. The shared `Op` union in `vader/bytecode` does
-// not gain a variant, so nothing outside changes: the `.virt` dumps, the C backend
-// and every committed snapshot read the same ops they always did. The alternative —
-// superinstructions in the shared IR — costs ten files kept in step and moves ~950
-// snapshots, for a smaller share (it could not touch `block` / `loop` / `end`,
-// which `c_emit` needs for its braces).
+// PRIVATE to `vader/vm`, and it has to stay that way: nothing here is exported and
+// `VmState.fused` is `@internal`, so the widening stops at the module edge. The
+// shared `Op` union in `vader/bytecode` gains no variant, which is what keeps the
+// `.virt` dumps, the C backend and every committed snapshot reading the same ops
+// they always did.
 //
 // Fusing renumbers the pc space, so `jump_table` is rebuilt against the new
 // indices, and an op that any branch LANDS ON is never absorbed.
@@ -24,56 +23,59 @@ module "vader/vm"
 // Wildcard, not the `bc ::` alias the rest of `vader/vm` uses: a union alias whose
 // left operand is reached through a namespace alias does not parse as a TYPE —
 // `VmOp :: Op | Get2` reads the `|` as an operator and reports T3017 / T3002.
-// Reduced to 20 lines and recorded; the wildcard form below compiles.
 import "vader/bytecode"
 
 // ---- the fused op set -----------------------------------------------------
 
-/// Two adjacent `local.get`s as one turn. The most frequent adjacent pair in the
-/// tree by a wide margin — 22 406 of 217 945 ops across the committed snippet
-/// corpus, 10.3 %.
-export Get2 :: struct {
-    a: i32
-    b: i32
+/// Two adjacent `local.get`s as one turn — the most frequent adjacent pair in the
+/// tree by a wide margin.
+Get2 :: struct {
+    slot_a: i32
+    slot_b: i32
 }
 
-/// `local.set A ; local.get B` — the second most frequent pair, 16 371. Only fused
-/// in a function with no NARROW slot: a narrow one routes `local.set` through
-/// `narrow_mask`, which needs `body` and the slot's valtype. That is a per-function
-/// fact, known at `prepare` time, so the gate costs nothing at dispatch.
-export SetGet :: struct {
+/// `local.set A ; local.get B` — the second most frequent pair. Only fused in a
+/// function with no NARROW slot: a narrow one routes `local.set` through
+/// `narrow_mask`, which needs `body` and the slot's valtype. That is a
+/// per-function fact, known at `prepare` time, so the gate costs nothing at
+/// dispatch.
+SetGet :: struct {
     set_slot: i32
     get_slot: i32
 }
 
-/// `local.get A ; <int>.const V` — 9 292 across the two widths. `wide` picks the
-/// tag the constant lands with.
-export GetConst :: struct {
+/// `local.get A ; <int>.const V`. `tag` is the stack tag the constant lands with,
+/// resolved here so the arm stores a word instead of branching on a width.
+GetConst :: struct {
     slot:  i32
     value: i64
-    wide:  bool
+    tag:   StackTag
 }
 
 /// What the interpreter actually dispatches: every shipped op, plus the fused
 /// ones. `Op` is unchanged, so this widening is invisible outside `vader/vm`.
-export VmOp :: Op | Get2 | SetGet | GetConst
+VmOp :: Op | Get2 | SetGet | GetConst
 
 /// A function's dispatch-ready body, with its jump table rebuilt against it.
-export FusedBody :: struct {
-    ops:        VmOp[]!
-    jump_table: i32[]!
+FusedBody :: struct {
+    ops:        VmOp[]
+    jump_table: i32[]
 }
 
 // ---- the pass -------------------------------------------------------------
 
 /// Fuse every function of `mod`, in declaration order.
 ///
-/// @param mod  the module whose functions to rewrite ; not mutated.
-/// @return     one `FusedBody` per function, index-aligned with `mod.functions`.
-export fuse_module :: fn(mod: BytecodeModule) -> FusedBody[]! {
-    out: FusedBody[]! = []
-    for f in mod.functions {
-        out.push(fuse_body(f, fn_has_narrow_slot(f)))
+/// @param mod     the module whose functions to rewrite ; not mutated.
+/// @param narrow  `narrow[i]` true when `mod.functions[i]` holds a narrow slot —
+///                the table `prepare` already built, rather than a second walk of
+///                every param and local.
+/// @return        one `FusedBody` per function, index-aligned with `mod.functions`.
+fuse_module :: fn(mod: BytecodeModule, narrow: bool[]) -> FusedBody[] {
+    n :: mod.functions.len()
+    out: FusedBody[]! = [] * n
+    for i in 0..<n {
+        out.push(fuse_body(mod.functions[i], narrow[i]))
     }
     return out
 }
@@ -86,44 +88,27 @@ fuse_body :: fn(f: BcFunction, narrow: bool) -> FusedBody {
     n :: f.body.len()
     // An op a branch lands on keeps its own index, so it is never absorbed into
     // the pair before it — otherwise the branch would arrive mid-superop.
-    is_target: bool[]! = [false] * n
-    for t in f.jump_table {
-        if t >= 0 && usize(t) < n {
-            is_target[usize(t)] = true
-        }
-    }
-    ops: VmOp[]! = []
-    // Old pc → new pc, for rewriting the jump table's TARGETS below.
+    is_target :: mark_jump_targets(f.jump_table, n)
+    ops: VmOp[]! = [] * n
+    // Old pc → new pc, total over the body: an absorbed op answers with the pair's
+    // index, so `remap_jump_table` never has to resolve a hole.
     remap: i32[]! = [0] * n
-    // New pc → the old pc it came from, for reading that op's old target.
-    origin: i32[]! = []
     i: usize = 0
     for i < n {
         remap[i] = i32(ops.len())
         if i + 1 < n && !is_target[i + 1] {
-            a :: f.body[i]
-            b :: f.body[i + 1]
-            fused :: fuse_pair(a, b, narrow)
+            fused :: fuse_pair(f.body[i], f.body[i + 1], narrow)
             if fused != null {
-                origin.push(i32(i))
                 ops.push(fused)
-                // The absorbed op answers with the pair's index: nothing branches
-                // to it (checked above), but `remap` must stay total.
-                remap[i + 1] = i32(ops.len()) - 1
+                remap[i + 1] = remap[i]
                 i = i + 2
                 continue
             }
         }
-        origin.push(i32(i))
         ops.push(f.body[i])
         i = i + 1
     }
-    jump: i32[]! = [] * ops.len()
-    for o in origin {
-        old :: f.jump_table[usize(o)]
-        jump.push(if old >= 0 && usize(old) < n { remap[usize(old)] } else { old })
-    }
-    return FusedBody { .ops = ops, .jump_table = jump }
+    return FusedBody { .ops = ops, .jump_table = remap_jump_table(f.jump_table, remap, ops.len()) }
 }
 
 /// The fused op for `a ; b`, or null when the pair has no rule.
@@ -154,13 +139,13 @@ fuse_pair :: fn(a: Op, b: Op, narrow: bool) -> VmOp | null {
 // T3040 "test can never match". A separate fn is a separate narrowing scope.
 get_pair :: fn(slot: i32, b: Op) -> VmOp | null {
     if b is LocalGet as gb {
-        return Get2 { .a = slot, .b = gb.slot }
+        return Get2 { .slot_a = slot, .slot_b = gb.slot }
     }
     if b is I64Const as c64 {
-        return GetConst { .slot = slot, .value = c64.value, .wide = true }
+        return GetConst { .slot = slot, .value = c64.value, .tag = StackTag.I64 }
     }
     if b is I32Const as c32 {
-        return GetConst { .slot = slot, .value = i64(c32.value), .wide = false }
+        return GetConst { .slot = slot, .value = i64(c32.value), .tag = StackTag.I32 }
     }
     return null
 }
