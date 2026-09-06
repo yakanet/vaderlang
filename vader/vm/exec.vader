@@ -61,8 +61,12 @@ MAX_FRAME_DEPTH :: 1024
 // Step ceiling for comptime VM runs (`exec_fn_value`, capture != null) — a
 // non-terminating `@comptime` loop must error, not hang the build. Generous
 // enough for real computed tables (MD5_K is ~640 ops) ; a true infinite loop
-// trips it in ~1s. Normal main / test runs are unbounded.
+// trips it in ~1s. A non-comptime run uses STEP_BUDGET_UNREACHABLE instead.
 COMPTIME_STEP_BUDGET: i64: 100_000_000
+/// Step budget for a run that is NOT `@comptime` — high enough that the guard
+/// never fires (a machine dispatching a billion ops a second needs ~146 years to
+/// reach it), so both paths share one guard shape.
+STEP_BUDGET_UNREACHABLE: i64: 1 << 62
 
 /// A single call frame on the VM's frame stack. `slots[0..parameter_count]`
 /// hold the params bound at `Call` time, followed by `local_count` zero-
@@ -1094,11 +1098,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // address). A 1-cell array so element mutation survives the `::` binding.
     obj_handles :: [0]
 
-    // Comptime runs (`is_comptime`) are step-bounded so a non-terminating
-    // `@comptime` loop errors instead of hanging the build. Normal runs (main /
-    // tests) are unbounded — the increment is gated behind `is_comptime` so they
-    // pay only one predictable branch per op.
+    // Comptime runs are step-bounded so a non-terminating `@comptime` loop errors
+    // instead of hanging the build ; a normal run gets a budget it cannot reach.
+    //
+    // CONSTRAINT: keep this guard's body a `return`. Gating it as
+    // `if is_comptime { … }` makes the rest of the loop reachable from two edges,
+    // and the emitter then tail-duplicates the ENTIRE dispatch into both — worth
+    // 14k lines of C and 38 % of this module's `cc`. Record: docs/adr/0014.
     steps: i64 = 0
+    step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
 
     // Debugger stepping state — only touched when `debug != null`.
     //   last_line       : the "fire once per line" gate (stop at the FIRST op of
@@ -1129,11 +1137,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
 
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
-        if is_comptime {
-            steps += 1
-            if steps > COMPTIME_STEP_BUDGET {
-                return Trap { .message = "comptime evaluation exceeded ${COMPTIME_STEP_BUDGET} steps (non-terminating @comptime?)" }
-            }
+        steps += 1
+        if steps > step_budget {
+            return Trap { .message = "comptime evaluation exceeded ${COMPTIME_STEP_BUDGET} steps (non-terminating @comptime?)" }
         }
         if top != cur_top {
             frame = frames[top]

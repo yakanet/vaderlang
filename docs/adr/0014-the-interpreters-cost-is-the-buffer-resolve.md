@@ -14,15 +14,30 @@ of a 22-35 cycle op, so the chain is never walked at all. The FOURTH is confirme
 by the allocation counter this record wanted: a `u8` local costs exactly 2 allocations
 per iteration, one per `local.set`, ceiling −19.3 %.
 
-⚠️ **Every static count below is DOUBLE.** The C emitter tail-duplicates the whole loop
+⚠️ **Every static count below is DOUBLE** — was, rather: the duplication was removed on
+2026-09-06 (see the withdrawal note under this block), so a fresh count of today's tree is
+single. What follows describes the tree as measured on 2026-09-05.
+
+⚠️ **How the doubling worked.** The C emitter tail-duplicates the whole loop
 body into both branches of `if is_comptime`, so the arms are **147 per copy** — near this
 record's own "real 145 arms", quoted from its prototype — and the resolve / barrier /
 alloc figures halve the same way (469 / 244 / ~96). Neither copy is dead: copy 1 is the
-comptime path, copy 2 the normal one. De-duplicating measures **+22 %**, i.e. worse — the
-merged copy becomes a join reached from two predecessors with different live states, and
-spill traffic per dispatch copy rises 29 % (4 650 against 6 003) while the stack frame
-GROWS. The duplication is a specialisation that pays. Full audit:
+comptime path, copy 2 the normal one. De-duplicating the two emitted copies measures **+22 %**,
+i.e. worse — the merged copy becomes a join reached from two predecessors with different
+live states, and spill traffic per dispatch copy rises 29 % (4 650 against 6 003) while
+the stack frame GROWS. Full audit:
 [`.claude/plans/2026-09-06-vm-runtime-audit.md`].
+
+⚠️ **"The duplication is a specialisation that pays" — withdrawn (2026-09-06).** That
+conclusion generalised one experiment too far. Merging two ALREADY-EMITTED copies is
+indeed worse, for the join reason above. Removing the CAUSE is a different operation and
+is nearly free: the duplication came from `if is_comptime { steps += 1 … }`, a guard whose
+body FALLS THROUGH, which leaves the rest of the loop reachable from two edges. Giving the
+non-comptime path an unreachable budget turns it into one guard whose body RETURNS, and
+there is then no join to merge. Measured: `vader_vm.c` **46 250 → 32 667 lines (−29 %)**,
+its `cc -O3` **4,7 s → 2,9 s (−38 %)**, the whole parallel compile of the compiler
+**6,04 → 4,77 s (−21 %)**, for **+1,7 %** on the comptime pass — which is ~3 % of a real
+compile, so ~+0,05 % end to end. The trade runs the other way from what this record says.
 
 ## Context
 

@@ -1,0 +1,19 @@
+// A `@comptime` block that never terminates must ERROR, not hang the build.
+// The VM bounds it with `COMPTIME_STEP_BUDGET` and traps as C4002 once the
+// budget is spent ; nothing else in the corpus pins that, and the guard's shape
+// is load-bearing for the interpreter's code size (see `vader/vm/exec.vader`).
+module "snippet"
+
+spin :: fn() -> i64 {
+    n: i64 = 0
+    for n >= 0 {
+        n = n + 1
+    }
+    return n
+}
+
+X: i64: @comptime { return spin() }
+
+main :: fn() -> i32 {
+    return i32(X)
+}
