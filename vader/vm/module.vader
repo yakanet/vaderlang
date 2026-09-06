@@ -49,6 +49,13 @@ export VmState :: struct {
     /// one lookup instead of a linear string-compare scan. The comptime pass
     /// resolves one entry per staged decl, which made that scan O(decls x fns).
     fn_index_by_name: MutableMap<string, i32>
+    /// Dispatch-ready bodies, index-aligned with `bc.functions` — adjacent op
+    /// pairs folded into one turn, jump tables rebuilt against the new pc space
+    /// (`fuse.vader`). Built once here rather than per `exec_entry`, which the
+    /// comptime pass calls once PER staged decl. The debugger path ignores these
+    /// and dispatches `bc.functions[i].body`, whose pc space its `debug` table is
+    /// indexed by.
+    fused: FusedBody[]
 }
 
 /// Wrap a parsed `BytecodeModule` in the runtime `VmState` `exec` consumes.
@@ -75,5 +82,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
         .io_error_type_id     = find_io_error_type_id(bc_mod.types),
         .fn_narrow            = narrow,
         .fn_index_by_name     = by_name,
+        .fused                = fuse_module(bc_mod),
     }
 }

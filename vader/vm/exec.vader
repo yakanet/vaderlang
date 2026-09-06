@@ -1051,7 +1051,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     init_top :: frame_count[0] - 1
     frame := frames[init_top]
     body := state.bc.functions[usize(frame.function_index)]
-    op_count := body.body.len()
+    // The ops actually dispatched, and their jump table. Fused unless a debugger
+    // is attached — see the reload below.
+    cur_ops: VmOp[] = if debug == null { state.fused[usize(frame.function_index)].ops } else { body.body }
+    cur_jump: i32[] = if debug == null { state.fused[usize(frame.function_index)].jump_table } else { body.jump_table }
+    op_count := cur_ops.len()
     cur_top := init_top
     // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
     // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
@@ -1112,7 +1116,18 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         if top != cur_top {
             frame = frames[top]
             body = state.bc.functions[usize(frame.function_index)]
-            op_count = body.body.len()
+            // Fused bodies renumber the pc space, and `body.debug` is indexed by the
+            // ORIGINAL one — so a debugged run dispatches the shipped ops. Decided
+            // here, on a frame change, not per op.
+            if debug == null {
+                fb :: state.fused[usize(frame.function_index)]
+                cur_ops = fb.ops
+                cur_jump = fb.jump_table
+            } else {
+                cur_ops = body.body
+                cur_jump = body.jump_table
+            }
+            op_count = cur_ops.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
             cur_top = top
@@ -1179,7 +1194,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
         }
 
-        instr :: body.body[frame.pc]
+        instr :: cur_ops[frame.pc]
         match instr {
             is bc.I32Const -> {
                 if stack_needs_grow(frame, frame.sp) {
@@ -1188,6 +1203,36 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.payload[frame.sp] = i64(instr.value)
                 frame.tag[frame.sp] = StackTag.I32
                 frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
+            }
+            // Two `local.get`s in one turn — the most frequent adjacent pair in the
+            // tree. Identical to running the two arms back to back; kept beside
+            // them so a change to one is visibly a change to both.
+            is Get2 -> {
+                if instr.a < 0 || usize(instr.a) >= cur_slot_count || instr.b < 0 || usize(instr.b) >= cur_slot_count {
+                    return Trap { .message = "local.get slot out of range at pc=${frame.pc} in '${body.name}'" }
+                }
+                if stack_needs_grow(frame, frame.sp) {
+                    stack_grow(frame)
+                }
+                ia :: usize(instr.a)
+                sa :: frame.slot_tag[ia]
+                frame.payload[frame.sp] = frame.slot_payload[ia]
+                frame.tag[frame.sp] = sa
+                if sa == StackTag.Ref {
+                    frame.stack[frame.sp] = frame.slots[ia]
+                }
+                if stack_needs_grow(frame, frame.sp + 1) {
+                    stack_grow(frame)
+                }
+                ib :: usize(instr.b)
+                sb :: frame.slot_tag[ib]
+                frame.payload[frame.sp + 1] = frame.slot_payload[ib]
+                frame.tag[frame.sp + 1] = sb
+                if sb == StackTag.Ref {
+                    frame.stack[frame.sp + 1] = frame.slots[ib]
+                }
+                frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
             is bc.LocalGet -> {
@@ -2551,7 +2596,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     frame.sp = new_sp
                     frame.pc = frame.pc + 1
                 } else {
-                    target :: body.jump_table[frame.pc]
+                    target :: cur_jump[frame.pc]
                     if target < 0 {
                         return Trap { .message = "if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }
@@ -2560,7 +2605,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
             }
             is bc.Else -> {
-                target :: body.jump_table[frame.pc]
+                target :: cur_jump[frame.pc]
                 if target < 0 {
                     return Trap { .message = "else has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
@@ -2568,7 +2613,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.End -> { frame.pc = frame.pc + 1 }
             is bc.Branch -> {
-                target :: body.jump_table[frame.pc]
+                target :: cur_jump[frame.pc]
                 if target < 0 {
                     return Trap { .message = "br has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
@@ -2579,7 +2624,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 cond :: frame.payload[frame.sp - 1] != 0
                 new_sp :: frame.sp - 1
                 if cond {
-                    target :: body.jump_table[frame.pc]
+                    target :: cur_jump[frame.pc]
                     if target < 0 {
                         return Trap { .message = "br_if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }

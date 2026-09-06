@@ -1,0 +1,111 @@
+// vader/vm/fuse — superinstructions, private to the interpreter.
+//
+// The bytecode a program ships is not the bytecode the VM has to dispatch. This
+// pass rewrites each function's body once, at `prepare` time, folding adjacent op
+// pairs into one — a dispatch turn costs ~8 ns whatever the op does, so a pair
+// folded is a turn saved.
+//
+// PRIVATE to `vader/vm` on purpose. The shared `Op` union in `vader/bytecode` does
+// not gain a variant, so nothing outside changes: the `.virt` dumps, the C backend
+// and every committed snapshot read the same ops they always did. The alternative —
+// superinstructions in the shared IR — costs ten files kept in step and moves ~950
+// snapshots, for a smaller share (it could not touch `block` / `loop` / `end`,
+// which `c_emit` needs for its braces).
+//
+// Fusing renumbers the pc space, so `jump_table` is rebuilt against the new
+// indices, and an op that any branch LANDS ON is never absorbed.
+//
+// The debugger reads `body.debug[frame.pc]`, which is indexed in the ORIGINAL pc
+// space. `exec_entry` therefore dispatches the unfused body whenever a
+// `DebugController` is attached — the DAP compiles `optimize = false` anyway.
+
+module "vader/vm"
+
+// Wildcard, not the `bc ::` alias the rest of `vader/vm` uses: a union alias whose
+// left operand is reached through a namespace alias does not parse as a TYPE —
+// `VmOp :: Op | Get2` reads the `|` as an operator and reports T3017 / T3002.
+// Reduced to 20 lines and recorded; the wildcard form below compiles.
+import "vader/bytecode"
+
+// ---- the fused op set -----------------------------------------------------
+
+/// Two adjacent `local.get`s as one turn. The most frequent adjacent pair in the
+/// tree by a wide margin — 22 406 of 217 945 ops across the committed snippet
+/// corpus, 10.3 %.
+export Get2 :: struct {
+    a: i32
+    b: i32
+}
+
+/// What the interpreter actually dispatches: every shipped op, plus the fused
+/// ones. `Op` is unchanged, so this widening is invisible outside `vader/vm`.
+export VmOp :: Op | Get2
+
+/// A function's dispatch-ready body, with its jump table rebuilt against it.
+export FusedBody :: struct {
+    ops:        VmOp[]!
+    jump_table: i32[]!
+}
+
+// ---- the pass -------------------------------------------------------------
+
+/// Fuse every function of `mod`, in declaration order.
+///
+/// @param mod  the module whose functions to rewrite ; not mutated.
+/// @return     one `FusedBody` per function, index-aligned with `mod.functions`.
+export fuse_module :: fn(mod: BytecodeModule) -> FusedBody[]! {
+    out: FusedBody[]! = []
+    for f in mod.functions {
+        out.push(fuse_body(f))
+    }
+    return out
+}
+
+/// Fuse one function body.
+///
+/// @param f  the function to rewrite ; not mutated.
+/// @return   its fused body and the jump table remapped to the new pc space.
+fuse_body :: fn(f: BcFunction) -> FusedBody {
+    n :: f.body.len()
+    // An op a branch lands on keeps its own index, so it is never absorbed into
+    // the pair before it — otherwise the branch would arrive mid-superop.
+    is_target: bool[]! = [false] * n
+    for t in f.jump_table {
+        if t >= 0 && usize(t) < n {
+            is_target[usize(t)] = true
+        }
+    }
+    ops: VmOp[]! = []
+    // Old pc → new pc, for rewriting the jump table's TARGETS below.
+    remap: i32[]! = [0] * n
+    // New pc → the old pc it came from, for reading that op's old target.
+    origin: i32[]! = []
+    i: usize = 0
+    for i < n {
+        remap[i] = i32(ops.len())
+        if i + 1 < n && !is_target[i + 1] {
+            a :: f.body[i]
+            b :: f.body[i + 1]
+            if a is LocalGet as ga {
+                if b is LocalGet as gb {
+                    origin.push(i32(i))
+                    ops.push(Get2 { .a = ga.slot, .b = gb.slot })
+                    // The absorbed op answers with the pair's index: nothing
+                    // branches to it (checked above), but `remap` must stay total.
+                    remap[i + 1] = i32(ops.len()) - 1
+                    i = i + 2
+                    continue
+                }
+            }
+        }
+        origin.push(i32(i))
+        ops.push(f.body[i])
+        i = i + 1
+    }
+    jump: i32[]! = [] * ops.len()
+    for o in origin {
+        old :: f.jump_table[usize(o)]
+        jump.push(if old >= 0 && usize(old) < n { remap[usize(old)] } else { old })
+    }
+    return FusedBody { .ops = ops, .jump_table = jump }
+}
