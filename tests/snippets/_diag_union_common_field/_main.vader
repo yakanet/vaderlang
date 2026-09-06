@@ -1,0 +1,31 @@
+module "snippet"
+
+import "std/io"
+
+// A field that EVERY variant of a union declares reads straight off the union —
+// and does so at a FIXED offset, so it is silently wrong whenever the variants
+// put that field at different positions.
+//
+//   name_of(A { … })  ->  "from-A"   (A declares `name` second — and so does the read)
+//   name_of(B { … })  ->  reads `tag`, an i32, as a string
+//
+// The read should either be rejected, or dispatch on the variant. `vader/lower/
+// helpers.vader` documents that the tree already relies on this working
+// (`for_each_lowered_expr` reads `e.type` off the bare union), which holds only
+// because every `LoweredExpr` variant happens to declare `type` first.
+//
+// Diagnostic-only: no `.snapshot` sidecars, this is a reproduction kept for the
+// fix. Running it traps in the VM and misreads natively.
+
+A :: struct { tag: i32, name: string }
+B :: struct { name: string, tag: i32 }
+
+Node :: A | B
+
+name_of :: fn(n: Node) -> string = n.name
+
+main :: fn() -> i32 {
+    println(name_of(A { .tag = 1, .name = "from-A" }))
+    println(name_of(B { .name = "from-B", .tag = 2 }))
+    return 0
+}
