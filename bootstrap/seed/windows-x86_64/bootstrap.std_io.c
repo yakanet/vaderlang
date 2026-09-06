@@ -44,7 +44,7 @@ vader_string_t std_io_current_executable_location(void) {
         l2 = (l3 >= l4);
     }
     if (l2) {
-        { vader_gc_top = gc_frame.prev; return 413u; }
+        { vader_gc_top = gc_frame.prev; return 414u; }
     }
     l5 = ((int32_t) (uint32_t) l1);
     t4 = std_io_from_wide(l0, l5);
@@ -84,7 +84,7 @@ vader_string_t std_io_current_working_directory(void) {
         l2 = (l3 >= l4);
     }
     if (l2) {
-        { vader_gc_top = gc_frame.prev; return 413u; }
+        { vader_gc_top = gc_frame.prev; return 414u; }
     }
     l5 = ((int32_t) (uint32_t) l1);
     t3 = std_io_from_wide(l0, l5);
@@ -97,40 +97,40 @@ vader_string_t std_io_current_working_directory(void) {
 static vader_string_t std_io_describe_io_error_kind(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(1)) {
-        l1 = 1591u;
+        l1 = 1594u;
     } else {
         if (l0 == INT32_C(2)) {
-            l1 = 1946u;
+            l1 = 1949u;
         } else {
             if (l0 == INT32_C(3)) {
-                l1 = 1745u;
+                l1 = 1748u;
             } else {
                 if (l0 == INT32_C(4)) {
-                    l1 = 1179u;
+                    l1 = 1182u;
                 } else {
                     if (l0 == INT32_C(5)) {
-                        l1 = 1913u;
+                        l1 = 1916u;
                     } else {
                         if (l0 == INT32_C(6)) {
-                            l1 = 1765u;
+                            l1 = 1768u;
                         } else {
                             if (l0 == INT32_C(7)) {
-                                l1 = 2408u;
+                                l1 = 2411u;
                             } else {
                                 if (l0 == INT32_C(8)) {
-                                    l1 = 1285u;
+                                    l1 = 1288u;
                                 } else {
                                     if (l0 == INT32_C(9)) {
-                                        l1 = 1908u;
+                                        l1 = 1911u;
                                     } else {
                                         if (l0 == INT32_C(10)) {
-                                            l1 = 1756u;
+                                            l1 = 1759u;
                                         } else {
                                             if (l0 == INT32_C(11)) {
-                                                l1 = 1450u;
+                                                l1 = 1453u;
                                             } else {
                                                 if (l0 == INT32_C(12)) {
-                                                    l1 = 1255u;
+                                                    l1 = 1258u;
                                                 } else {
                                                     if (l0 == INT32_C(0)) {
                                                         l1 = 0u;
@@ -319,14 +319,14 @@ vader_box_t std_io_read_dir(vader_string_t l0) {
     if (l4) {
         l3 = 0u;
     } else {
-        l3 = 853u;
+        l3 = 854u;
     }
     vader_array_t* _a0_arr = vader_array_new(11u, 1u, 1u, 175u);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(0);
     t2 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t2, (size_t) INT64_C(1024));
     l5 = (void*) _a1_arr;
-    t3 = concat_3(l0, l3, 358u);
+    t3 = concat_3(l0, l3, 359u);
     t2 = std_io_to_wide(t3);
     t4 = vader_host_system_windows_find_first_file(t2, l5);
     vader_struct__Cell_CPointer_t* _a2_obj = (vader_struct__Cell_CPointer_t*) vader_gc_alloc(sizeof(vader_struct__Cell_CPointer_t));
@@ -336,7 +336,7 @@ vader_box_t std_io_read_dir(vader_string_t l0) {
     l6 = vader_ref_box(t2);
     t5 = (ptrdiff_t) (void*) ((vader_struct__Cell_CPointer_t*) l6.payload.obj)->f_value;
     if (t5 == INT64_C(-1)) {
-        t3 = concat_3(1967u, l0, 930u);
+        t3 = concat_3(1970u, l0, 931u);
         vader_struct_std_io_IOError_t* _a3_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
         vader_obj_header_init(_a3_obj, 389u);
         _a3_obj->f_msg = t3;
@@ -360,8 +360,8 @@ vader_box_t std_io_read_dir(vader_string_t l0) {
     {
         loop_94: {
             l3 = vader_host_system_windows_find_data_name(l5);
-            if (l3 != 413u) {
-                l4 = l3 != 414u;
+            if (l3 != 414u) {
+                l4 = l3 != 415u;
             } else {
                 l4 = false;
             }
@@ -405,7 +405,7 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0, size_t l1) {
     l4 = vader_host_system_windows_create_file_w(l2, (uint32_t) (int32_t) INT32_MIN, l3, vader_box_obj(0u, NULL), (uint32_t) (int32_t) INT32_C(3), (uint32_t) (int32_t) INT32_C(128), vader_box_obj(0u, NULL));
     t1 = (ptrdiff_t) (void*) l4;
     if (t1 == INT64_C(-1)) {
-        t2 = std_io_last_io_error(1591u);
+        t2 = std_io_last_io_error(1594u);
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a0_arr = vader_array_new(11u, 0u, 1u, 175u);
@@ -425,7 +425,7 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0, size_t l1) {
             l3 = (uint32_t) (int32_t) t0;
             t4 = vader_host_system_windows_read_file(l4, l5, l3, l6, vader_box_obj(0u, NULL));
             if (!(t4)) {
-                l7 = std_io_last_io_error(1965u);
+                l7 = std_io_last_io_error(1968u);
                 vader_host_system_windows_close_handle(l4);
                 { vader_box_t __vret = vader_ref_box(l7); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -445,7 +445,7 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0, size_t l1) {
                 vader_host_system_windows_close_handle(l4);
                 vader_struct_std_io_IOError_t* _a6_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
                 vader_obj_header_init(_a6_obj, 389u);
-                _a6_obj->f_msg = 1592u;
+                _a6_obj->f_msg = 1595u;
                 _a6_obj->f_kind = (uint8_t) (int32_t) INT32_C(0);
                 _a6_obj->f_code = INT32_C(0);
                 t2 = (void*) _a6_obj;
@@ -459,7 +459,7 @@ static vader_box_t std_io_read_file_bytes(vader_string_t l0, size_t l1) {
             goto loop_35;
         }
     }
-    l7 = std_io_last_io_error(1965u);
+    l7 = std_io_last_io_error(1968u);
     vader_host_system_windows_close_handle(l4);
     { vader_box_t __vret = vader_ref_box(l7); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -731,7 +731,7 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
                 if (t0 == INT32_C(0)) {
                     vader_struct_std_io_IOError_t* _a0_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
                     vader_obj_header_init(_a0_obj, 389u);
-                    _a0_obj->f_msg = 1943u;
+                    _a0_obj->f_msg = 1946u;
                     _a0_obj->f_kind = (uint8_t) (int32_t) INT32_C(0);
                     _a0_obj->f_code = INT32_C(0);
                     t1 = (void*) _a0_obj;
@@ -747,7 +747,7 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
     l4 = vader_host_system_windows_create_file_w(t1, (uint32_t) (int32_t) INT32_C(1073741824), (uint32_t) (int32_t) INT32_C(1), vader_box_obj(0u, NULL), (uint32_t) (int32_t) INT32_C(2), (uint32_t) (int32_t) INT32_C(128), vader_box_obj(0u, NULL));
     t3 = (ptrdiff_t) (void*) l4;
     if (t3 == INT64_C(-1)) {
-        t1 = std_io_last_io_error(1922u);
+        t1 = std_io_last_io_error(1925u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t4 = ((vader_array_t*) l1)->length;
@@ -760,14 +760,14 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
         l6 = (uint32_t) (int32_t) t5;
         t6 = vader_host_system_windows_write_file(l4, l1, l6, l5, vader_box_obj(0u, NULL));
         if (!(t6)) {
-            l5 = std_io_last_io_error(2014u);
+            l5 = std_io_last_io_error(2017u);
             vader_host_system_windows_close_handle(l4);
             { vader_box_t __vret = vader_ref_box(l5); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
     t6 = vader_host_system_windows_close_handle(l4);
     if (!(t6)) {
-        t1 = std_io_last_io_error(1372u);
+        t1 = std_io_last_io_error(1375u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t7 = vader_box_obj(0u, NULL);
