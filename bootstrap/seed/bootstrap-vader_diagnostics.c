@@ -35,128 +35,128 @@ static void* vader_diagnostics_comptime_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 549u;
-        _a0_obj->f_message = 1524u;
+        _a0_obj->f_id = 550u;
+        _a0_obj->f_message = 1525u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 550u;
-        _a1_obj->f_message = 1386u;
+        _a1_obj->f_id = 551u;
+        _a1_obj->f_message = 1387u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 551u;
-        _a2_obj->f_message = 1612u;
+        _a2_obj->f_id = 552u;
+        _a2_obj->f_message = 1613u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 552u;
-        _a3_obj->f_message = 1382u;
+        _a3_obj->f_id = 553u;
+        _a3_obj->f_message = 1383u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 553u;
-        _a4_obj->f_message = 1383u;
+        _a4_obj->f_id = 554u;
+        _a4_obj->f_message = 1384u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 554u;
-        _a5_obj->f_message = 530u;
+        _a5_obj->f_id = 555u;
+        _a5_obj->f_message = 531u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 555u;
-        _a6_obj->f_message = 1390u;
+        _a6_obj->f_id = 556u;
+        _a6_obj->f_message = 1391u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 556u;
-        _a7_obj->f_message = 584u;
+        _a7_obj->f_id = 557u;
+        _a7_obj->f_message = 585u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 557u;
-        _a8_obj->f_message = 1384u;
+        _a8_obj->f_id = 558u;
+        _a8_obj->f_message = 1385u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 558u;
-        _a9_obj->f_message = 1388u;
+        _a9_obj->f_id = 559u;
+        _a9_obj->f_message = 1389u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(10)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a10_obj, 699u);
-        _a10_obj->f_id = 559u;
-        _a10_obj->f_message = 1387u;
+        _a10_obj->f_id = 560u;
+        _a10_obj->f_message = 1388u;
         t0 = (void*) _a10_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(11)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a11_obj, 699u);
-        _a11_obj->f_id = 560u;
-        _a11_obj->f_message = 529u;
+        _a11_obj->f_id = 561u;
+        _a11_obj->f_message = 530u;
         t0 = (void*) _a11_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(12)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a12_obj, 699u);
-        _a12_obj->f_id = 561u;
-        _a12_obj->f_message = 1432u;
+        _a12_obj->f_id = 562u;
+        _a12_obj->f_message = 1433u;
         t0 = (void*) _a12_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(13)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a13_obj, 699u);
-        _a13_obj->f_id = 562u;
-        _a13_obj->f_message = 1629u;
+        _a13_obj->f_id = 563u;
+        _a13_obj->f_message = 1630u;
         t0 = (void*) _a13_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(14)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a14_obj, 699u);
-        _a14_obj->f_id = 563u;
-        _a14_obj->f_message = 1379u;
+        _a14_obj->f_id = 564u;
+        _a14_obj->f_message = 1380u;
         t0 = (void*) _a14_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(15)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a15_obj, 699u);
-        _a15_obj->f_id = 564u;
-        _a15_obj->f_message = 1712u;
+        _a15_obj->f_id = 565u;
+        _a15_obj->f_message = 1713u;
         t0 = (void*) _a15_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -255,21 +255,21 @@ static vader_string_t vader_diagnostics_diag_key(void* l0) {
     l4 = (size_t) (int64_t) INT64_C(0);
     l7 = ((int64_t) (int32_t) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_severity);
     l4 = std_core_write_int(l6, l4, l7);
-    l4 = std_core_write_string_at(l6, l4, 2425u);
+    l4 = std_core_write_string_at(l6, l4, 2426u);
     l4 = std_core_write_string_at(l6, l4, l1);
-    l4 = std_core_write_string_at(l6, l4, 2425u);
+    l4 = std_core_write_string_at(l6, l4, 2426u);
     l4 = std_core_write_string_at(l6, l4, l2);
-    l4 = std_core_write_string_at(l6, l4, 2425u);
+    l4 = std_core_write_string_at(l6, l4, 2426u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_start)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2425u);
+    l4 = std_core_write_string_at(l6, l4, 2426u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_end)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2425u);
+    l4 = std_core_write_string_at(l6, l4, 2426u);
     l4 = std_core_write_string_at(l6, l4, l3);
     t2 = std_core_finish_buffer(l6, l4);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -366,7 +366,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
     vader_gc_top = &gc_frame;
     l5 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
     if (l5 == INT32_C(0)) {
-        l4 = 1483u;
+        l4 = 1484u;
         if (l2) {
             l7 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
             l8 = INT32_C(0);
@@ -377,7 +377,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -390,12 +390,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -407,18 +407,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -432,7 +432,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -445,12 +445,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -462,18 +462,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -493,7 +493,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -506,12 +506,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -523,18 +523,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -548,7 +548,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
         t1 = std_string_is_empty(t0);
         if (!(t1)) {
-            l15 = 463u;
+            l15 = 464u;
             l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
             l14 = concat_2(l15, l16);
         } else {
@@ -561,12 +561,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
             l22 = (size_t) (int64_t) INT64_C(0);
             l22 = std_core_write_string_at(l21, l22, l18);
-            l23 = 462u;
+            l23 = 463u;
             l22 = std_core_write_string_at(l21, l22, l23);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l24 = ((int64_t) (int32_t) t2);
             l22 = std_core_write_int(l21, l22, l24);
-            l25 = 462u;
+            l25 = 463u;
             l22 = std_core_write_string_at(l21, l22, l25);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l26 = ((int64_t) (int32_t) t2);
@@ -578,25 +578,25 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l29 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l29);
-            l30 = 462u;
+            l30 = 463u;
             l28 = std_core_write_string_at(l27, l28, l30);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l31 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l31);
             l17 = std_core_finish_buffer(l27, l28);
         }
-        l32 = 844u;
-        l33 = 849u;
-        l34 = 844u;
+        l32 = 845u;
+        l33 = 850u;
+        l34 = 845u;
         l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-        l36 = 849u;
+        l36 = 850u;
         l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
         l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
         std_string_builder_append(l0, l38);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l5 == INT32_C(1)) {
-        l4 = 2393u;
+        l4 = 2394u;
         if (l2) {
             l7 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
             l8 = INT32_C(0);
@@ -607,7 +607,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -620,12 +620,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -637,18 +637,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -662,7 +662,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -675,12 +675,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -692,18 +692,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -723,7 +723,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -736,12 +736,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -753,18 +753,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -778,7 +778,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
         t1 = std_string_is_empty(t0);
         if (!(t1)) {
-            l15 = 463u;
+            l15 = 464u;
             l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
             l14 = concat_2(l15, l16);
         } else {
@@ -791,12 +791,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
             l22 = (size_t) (int64_t) INT64_C(0);
             l22 = std_core_write_string_at(l21, l22, l18);
-            l23 = 462u;
+            l23 = 463u;
             l22 = std_core_write_string_at(l21, l22, l23);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l24 = ((int64_t) (int32_t) t2);
             l22 = std_core_write_int(l21, l22, l24);
-            l25 = 462u;
+            l25 = 463u;
             l22 = std_core_write_string_at(l21, l22, l25);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l26 = ((int64_t) (int32_t) t2);
@@ -808,25 +808,25 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l29 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l29);
-            l30 = 462u;
+            l30 = 463u;
             l28 = std_core_write_string_at(l27, l28, l30);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l31 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l31);
             l17 = std_core_finish_buffer(l27, l28);
         }
-        l32 = 844u;
-        l33 = 849u;
-        l34 = 844u;
+        l32 = 845u;
+        l33 = 850u;
+        l34 = 845u;
         l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-        l36 = 849u;
+        l36 = 850u;
         l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
         l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
         std_string_builder_append(l0, l38);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l5 == INT32_C(2)) {
-        l4 = 1719u;
+        l4 = 1720u;
         if (l2) {
             l7 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
             l8 = INT32_C(0);
@@ -837,7 +837,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -850,12 +850,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -867,18 +867,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -892,7 +892,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -905,12 +905,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -922,18 +922,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -953,7 +953,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -966,12 +966,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -983,18 +983,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -1008,7 +1008,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
         t1 = std_string_is_empty(t0);
         if (!(t1)) {
-            l15 = 463u;
+            l15 = 464u;
             l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
             l14 = concat_2(l15, l16);
         } else {
@@ -1021,12 +1021,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
             l22 = (size_t) (int64_t) INT64_C(0);
             l22 = std_core_write_string_at(l21, l22, l18);
-            l23 = 462u;
+            l23 = 463u;
             l22 = std_core_write_string_at(l21, l22, l23);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l24 = ((int64_t) (int32_t) t2);
             l22 = std_core_write_int(l21, l22, l24);
-            l25 = 462u;
+            l25 = 463u;
             l22 = std_core_write_string_at(l21, l22, l25);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l26 = ((int64_t) (int32_t) t2);
@@ -1038,25 +1038,25 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l29 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l29);
-            l30 = 462u;
+            l30 = 463u;
             l28 = std_core_write_string_at(l27, l28, l30);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l31 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l31);
             l17 = std_core_finish_buffer(l27, l28);
         }
-        l32 = 844u;
-        l33 = 849u;
-        l34 = 844u;
+        l32 = 845u;
+        l33 = 850u;
+        l34 = 845u;
         l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-        l36 = 849u;
+        l36 = 850u;
         l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
         l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
         std_string_builder_append(l0, l38);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l5 == INT32_C(3)) {
-        l4 = 1639u;
+        l4 = 1640u;
         if (l2) {
             l7 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
             l8 = INT32_C(0);
@@ -1067,7 +1067,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -1080,12 +1080,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -1097,18 +1097,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -1122,7 +1122,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -1135,12 +1135,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -1152,18 +1152,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -1183,7 +1183,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                 t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                 t1 = std_string_is_empty(t0);
                 if (!(t1)) {
-                    l15 = 463u;
+                    l15 = 464u;
                     l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
                     l14 = concat_2(l15, l16);
                 } else {
@@ -1196,12 +1196,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
                     l22 = (size_t) (int64_t) INT64_C(0);
                     l22 = std_core_write_string_at(l21, l22, l18);
-                    l23 = 462u;
+                    l23 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l23);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l24 = ((int64_t) (int32_t) t2);
                     l22 = std_core_write_int(l21, l22, l24);
-                    l25 = 462u;
+                    l25 = 463u;
                     l22 = std_core_write_string_at(l21, l22, l25);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l26 = ((int64_t) (int32_t) t2);
@@ -1213,18 +1213,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
                     l29 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l29);
-                    l30 = 462u;
+                    l30 = 463u;
                     l28 = std_core_write_string_at(l27, l28, l30);
                     t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
                     l31 = ((int64_t) (int32_t) t2);
                     l28 = std_core_write_int(l27, l28, l31);
                     l17 = std_core_finish_buffer(l27, l28);
                 }
-                l32 = 844u;
-                l33 = 849u;
-                l34 = 844u;
+                l32 = 845u;
+                l33 = 850u;
+                l34 = 845u;
                 l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-                l36 = 849u;
+                l36 = 850u;
                 l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
                 l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
                 std_string_builder_append(l0, l38);
@@ -1238,7 +1238,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         t0 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
         t1 = std_string_is_empty(t0);
         if (!(t1)) {
-            l15 = 463u;
+            l15 = 464u;
             l16 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
             l14 = concat_2(l15, l16);
         } else {
@@ -1251,12 +1251,12 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             l21 = std_core_new_byte_buffer((size_t) (int64_t) (l19 + l20));
             l22 = (size_t) (int64_t) INT64_C(0);
             l22 = std_core_write_string_at(l21, l22, l18);
-            l23 = 462u;
+            l23 = 463u;
             l22 = std_core_write_string_at(l21, l22, l23);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l24 = ((int64_t) (int32_t) t2);
             l22 = std_core_write_int(l21, l22, l24);
-            l25 = 462u;
+            l25 = 463u;
             l22 = std_core_write_string_at(l21, l22, l25);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l26 = ((int64_t) (int32_t) t2);
@@ -1268,18 +1268,18 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_line;
             l29 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l29);
-            l30 = 462u;
+            l30 = 463u;
             l28 = std_core_write_string_at(l27, l28, l30);
             t2 = ((vader_struct_toolchain_span_Position_t*) l13)->f_column;
             l31 = ((int64_t) (int32_t) t2);
             l28 = std_core_write_int(l27, l28, l31);
             l17 = std_core_finish_buffer(l27, l28);
         }
-        l32 = 844u;
-        l33 = 849u;
-        l34 = 844u;
+        l32 = 845u;
+        l33 = 850u;
+        l34 = 845u;
         l35 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
-        l36 = 849u;
+        l36 = 850u;
         l37 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
         l38 = concat_9(l32, l17, l33, l6, l34, l35, l36, l37, l14);
         std_string_builder_append(l0, l38);
@@ -1310,88 +1310,88 @@ static void* vader_diagnostics_lexer_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 620u;
-        _a0_obj->f_message = 2263u;
+        _a0_obj->f_id = 621u;
+        _a0_obj->f_message = 2264u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 621u;
-        _a1_obj->f_message = 2289u;
+        _a1_obj->f_id = 622u;
+        _a1_obj->f_message = 2290u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 622u;
-        _a2_obj->f_message = 2284u;
+        _a2_obj->f_id = 623u;
+        _a2_obj->f_message = 2285u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 623u;
-        _a3_obj->f_message = 1755u;
+        _a3_obj->f_id = 624u;
+        _a3_obj->f_message = 1756u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 624u;
-        _a4_obj->f_message = 1753u;
+        _a4_obj->f_id = 625u;
+        _a4_obj->f_message = 1754u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 625u;
-        _a5_obj->f_message = 1840u;
+        _a5_obj->f_id = 626u;
+        _a5_obj->f_message = 1841u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 626u;
-        _a6_obj->f_message = 2092u;
+        _a6_obj->f_id = 627u;
+        _a6_obj->f_message = 2093u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 627u;
-        _a7_obj->f_message = 2004u;
+        _a7_obj->f_id = 628u;
+        _a7_obj->f_message = 2005u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 628u;
-        _a8_obj->f_message = 1747u;
+        _a8_obj->f_id = 629u;
+        _a8_obj->f_message = 1748u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 629u;
-        _a9_obj->f_message = 1738u;
+        _a9_obj->f_id = 630u;
+        _a9_obj->f_message = 1739u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(10)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a10_obj, 699u);
-        _a10_obj->f_id = 630u;
-        _a10_obj->f_message = 1734u;
+        _a10_obj->f_id = 631u;
+        _a10_obj->f_message = 1735u;
         t0 = (void*) _a10_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1420,72 +1420,72 @@ static void* vader_diagnostics_lower_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 634u;
-        _a0_obj->f_message = 1602u;
+        _a0_obj->f_id = 635u;
+        _a0_obj->f_message = 1603u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 635u;
-        _a1_obj->f_message = 1797u;
+        _a1_obj->f_id = 636u;
+        _a1_obj->f_message = 1798u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 636u;
-        _a2_obj->f_message = 1842u;
+        _a2_obj->f_id = 637u;
+        _a2_obj->f_message = 1843u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 637u;
-        _a3_obj->f_message = 1105u;
+        _a3_obj->f_id = 638u;
+        _a3_obj->f_message = 1106u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 638u;
-        _a4_obj->f_message = 1743u;
+        _a4_obj->f_id = 639u;
+        _a4_obj->f_message = 1744u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 639u;
-        _a5_obj->f_message = 1855u;
+        _a5_obj->f_id = 640u;
+        _a5_obj->f_message = 1856u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 640u;
-        _a6_obj->f_message = 1690u;
+        _a6_obj->f_id = 641u;
+        _a6_obj->f_message = 1691u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 641u;
-        _a7_obj->f_message = 1114u;
+        _a7_obj->f_id = 642u;
+        _a7_obj->f_message = 1115u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 642u;
-        _a8_obj->f_message = 1090u;
+        _a8_obj->f_id = 643u;
+        _a8_obj->f_message = 1091u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1531,240 +1531,240 @@ static void* vader_diagnostics_parser_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 656u;
-        _a0_obj->f_message = 2265u;
+        _a0_obj->f_id = 657u;
+        _a0_obj->f_message = 2266u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 657u;
-        _a1_obj->f_message = 1512u;
+        _a1_obj->f_id = 658u;
+        _a1_obj->f_message = 1513u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 658u;
-        _a2_obj->f_message = 1503u;
+        _a2_obj->f_id = 659u;
+        _a2_obj->f_message = 1504u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 659u;
-        _a3_obj->f_message = 1500u;
+        _a3_obj->f_id = 660u;
+        _a3_obj->f_message = 1501u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 660u;
-        _a4_obj->f_message = 1502u;
+        _a4_obj->f_id = 661u;
+        _a4_obj->f_message = 1503u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 661u;
-        _a5_obj->f_message = 1497u;
+        _a5_obj->f_id = 662u;
+        _a5_obj->f_message = 1498u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 662u;
-        _a6_obj->f_message = 1499u;
+        _a6_obj->f_id = 663u;
+        _a6_obj->f_message = 1500u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 663u;
-        _a7_obj->f_message = 1505u;
+        _a7_obj->f_id = 664u;
+        _a7_obj->f_message = 1506u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 664u;
-        _a8_obj->f_message = 2159u;
+        _a8_obj->f_id = 665u;
+        _a8_obj->f_message = 2160u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 665u;
-        _a9_obj->f_message = 1904u;
+        _a9_obj->f_id = 666u;
+        _a9_obj->f_message = 1905u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(10)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a10_obj, 699u);
-        _a10_obj->f_id = 666u;
-        _a10_obj->f_message = 2114u;
+        _a10_obj->f_id = 667u;
+        _a10_obj->f_message = 2115u;
         t0 = (void*) _a10_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(11)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a11_obj, 699u);
-        _a11_obj->f_id = 667u;
-        _a11_obj->f_message = 1868u;
+        _a11_obj->f_id = 668u;
+        _a11_obj->f_message = 1869u;
         t0 = (void*) _a11_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(12)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a12_obj, 699u);
-        _a12_obj->f_id = 668u;
-        _a12_obj->f_message = 1489u;
+        _a12_obj->f_id = 669u;
+        _a12_obj->f_message = 1490u;
         t0 = (void*) _a12_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(13)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a13_obj, 699u);
-        _a13_obj->f_id = 669u;
-        _a13_obj->f_message = 2268u;
+        _a13_obj->f_id = 670u;
+        _a13_obj->f_message = 2269u;
         t0 = (void*) _a13_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(28)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a14_obj, 699u);
-        _a14_obj->f_id = 684u;
-        _a14_obj->f_message = 2412u;
+        _a14_obj->f_id = 685u;
+        _a14_obj->f_message = 2413u;
         t0 = (void*) _a14_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(29)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a15_obj, 699u);
-        _a15_obj->f_id = 685u;
-        _a15_obj->f_message = 1431u;
+        _a15_obj->f_id = 686u;
+        _a15_obj->f_message = 1432u;
         t0 = (void*) _a15_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(14)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a16_obj, 699u);
-        _a16_obj->f_id = 670u;
-        _a16_obj->f_message = 1456u;
+        _a16_obj->f_id = 671u;
+        _a16_obj->f_message = 1457u;
         t0 = (void*) _a16_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(15)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a17_obj, 699u);
-        _a17_obj->f_id = 671u;
-        _a17_obj->f_message = 1498u;
+        _a17_obj->f_id = 672u;
+        _a17_obj->f_message = 1499u;
         t0 = (void*) _a17_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(16)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a18_obj, 699u);
-        _a18_obj->f_id = 672u;
-        _a18_obj->f_message = 1869u;
+        _a18_obj->f_id = 673u;
+        _a18_obj->f_message = 1870u;
         t0 = (void*) _a18_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(17)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a19_obj, 699u);
-        _a19_obj->f_id = 673u;
-        _a19_obj->f_message = 2175u;
+        _a19_obj->f_id = 674u;
+        _a19_obj->f_message = 2176u;
         t0 = (void*) _a19_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(18)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a20_obj, 699u);
-        _a20_obj->f_id = 674u;
-        _a20_obj->f_message = 1069u;
+        _a20_obj->f_id = 675u;
+        _a20_obj->f_message = 1070u;
         t0 = (void*) _a20_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(19)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a21_obj, 699u);
-        _a21_obj->f_id = 675u;
-        _a21_obj->f_message = 1528u;
+        _a21_obj->f_id = 676u;
+        _a21_obj->f_message = 1529u;
         t0 = (void*) _a21_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(20)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a22_obj, 699u);
-        _a22_obj->f_id = 676u;
-        _a22_obj->f_message = 451u;
+        _a22_obj->f_id = 677u;
+        _a22_obj->f_message = 452u;
         t0 = (void*) _a22_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(21)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a23_obj, 699u);
-        _a23_obj->f_id = 677u;
-        _a23_obj->f_message = 2169u;
+        _a23_obj->f_id = 678u;
+        _a23_obj->f_message = 2170u;
         t0 = (void*) _a23_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(22)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a24_obj, 699u);
-        _a24_obj->f_id = 678u;
-        _a24_obj->f_message = 1803u;
+        _a24_obj->f_id = 679u;
+        _a24_obj->f_message = 1804u;
         t0 = (void*) _a24_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(23)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a25_obj, 699u);
-        _a25_obj->f_id = 679u;
-        _a25_obj->f_message = 1118u;
+        _a25_obj->f_id = 680u;
+        _a25_obj->f_message = 1119u;
         t0 = (void*) _a25_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(24)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a26_obj, 699u);
-        _a26_obj->f_id = 680u;
-        _a26_obj->f_message = 1757u;
+        _a26_obj->f_id = 681u;
+        _a26_obj->f_message = 1758u;
         t0 = (void*) _a26_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(25)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a27_obj, 699u);
-        _a27_obj->f_id = 681u;
-        _a27_obj->f_message = 1527u;
+        _a27_obj->f_id = 682u;
+        _a27_obj->f_message = 1528u;
         t0 = (void*) _a27_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(26)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a28_obj, 699u);
-        _a28_obj->f_id = 682u;
-        _a28_obj->f_message = 1974u;
+        _a28_obj->f_id = 683u;
+        _a28_obj->f_message = 1975u;
         t0 = (void*) _a28_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(27)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a29_obj, 699u);
-        _a29_obj->f_id = 683u;
-        _a29_obj->f_message = 1040u;
+        _a29_obj->f_id = 684u;
+        _a29_obj->f_message = 1041u;
         t0 = (void*) _a29_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1784,11 +1784,11 @@ static vader_string_t vader_diagnostics_relative_to(vader_string_t l0, vader_str
     if (t0) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_string_ends_with(l1, 430u);
+    t0 = std_string_ends_with(l1, 431u);
     if (t0) {
         l2 = l1;
     } else {
-        l2 = concat_2(l1, 430u);
+        l2 = concat_2(l1, 431u);
     }
     t0 = std_string_starts_with(l0, l2);
     if (!(t0)) {
@@ -1868,7 +1868,7 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
         std_string_builder_append_char(l4, 10u);
         l7 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(47));
         l8 = (size_t) (int64_t) INT64_C(0);
-        l8 = std_core_write_string_at(l7, l8, 2434u);
+        l8 = std_core_write_string_at(l7, l8, 2435u);
         t0 = ((vader_array_t*) l3)->length;
         t2 = (t0 - l5);
         l11 = (uint64_t) (int64_t) t2;
@@ -1904,328 +1904,328 @@ static void* vader_diagnostics_resolver_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 687u;
-        _a0_obj->f_message = 1882u;
+        _a0_obj->f_id = 688u;
+        _a0_obj->f_message = 1883u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 688u;
-        _a1_obj->f_message = 1707u;
+        _a1_obj->f_id = 689u;
+        _a1_obj->f_message = 1708u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 689u;
-        _a2_obj->f_message = 1710u;
+        _a2_obj->f_id = 690u;
+        _a2_obj->f_message = 1711u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 690u;
-        _a3_obj->f_message = 1459u;
+        _a3_obj->f_id = 691u;
+        _a3_obj->f_message = 1460u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 691u;
-        _a4_obj->f_message = 1705u;
+        _a4_obj->f_id = 692u;
+        _a4_obj->f_message = 1706u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 692u;
-        _a5_obj->f_message = 2280u;
+        _a5_obj->f_id = 693u;
+        _a5_obj->f_message = 2281u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 693u;
-        _a6_obj->f_message = 2281u;
+        _a6_obj->f_id = 694u;
+        _a6_obj->f_message = 2282u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 694u;
-        _a7_obj->f_message = 2128u;
+        _a7_obj->f_id = 695u;
+        _a7_obj->f_message = 2129u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 695u;
-        _a8_obj->f_message = 2163u;
+        _a8_obj->f_id = 696u;
+        _a8_obj->f_message = 2164u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 696u;
-        _a9_obj->f_message = 1435u;
+        _a9_obj->f_id = 697u;
+        _a9_obj->f_message = 1436u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(10)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a10_obj, 699u);
-        _a10_obj->f_id = 697u;
-        _a10_obj->f_message = 1457u;
+        _a10_obj->f_id = 698u;
+        _a10_obj->f_message = 1458u;
         t0 = (void*) _a10_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(11)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a11_obj, 699u);
-        _a11_obj->f_id = 698u;
-        _a11_obj->f_message = 1711u;
+        _a11_obj->f_id = 699u;
+        _a11_obj->f_message = 1712u;
         t0 = (void*) _a11_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(12)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a12_obj, 699u);
-        _a12_obj->f_id = 699u;
-        _a12_obj->f_message = 2001u;
+        _a12_obj->f_id = 700u;
+        _a12_obj->f_message = 2002u;
         t0 = (void*) _a12_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(13)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a13_obj, 699u);
-        _a13_obj->f_id = 700u;
-        _a13_obj->f_message = 2296u;
+        _a13_obj->f_id = 701u;
+        _a13_obj->f_message = 2297u;
         t0 = (void*) _a13_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(14)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a14_obj, 699u);
-        _a14_obj->f_id = 701u;
-        _a14_obj->f_message = 1880u;
+        _a14_obj->f_id = 702u;
+        _a14_obj->f_message = 1881u;
         t0 = (void*) _a14_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(15)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a15_obj, 699u);
-        _a15_obj->f_id = 702u;
-        _a15_obj->f_message = 2007u;
+        _a15_obj->f_id = 703u;
+        _a15_obj->f_message = 2008u;
         t0 = (void*) _a15_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(16)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a16_obj, 699u);
-        _a16_obj->f_id = 703u;
-        _a16_obj->f_message = 1559u;
+        _a16_obj->f_id = 704u;
+        _a16_obj->f_message = 1560u;
         t0 = (void*) _a16_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(17)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a17_obj, 699u);
-        _a17_obj->f_id = 704u;
-        _a17_obj->f_message = 1927u;
+        _a17_obj->f_id = 705u;
+        _a17_obj->f_message = 1928u;
         t0 = (void*) _a17_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(18)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a18_obj, 699u);
-        _a18_obj->f_id = 705u;
-        _a18_obj->f_message = 1128u;
+        _a18_obj->f_id = 706u;
+        _a18_obj->f_message = 1129u;
         t0 = (void*) _a18_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(19)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a19_obj, 699u);
-        _a19_obj->f_id = 706u;
-        _a19_obj->f_message = 1879u;
+        _a19_obj->f_id = 707u;
+        _a19_obj->f_message = 1880u;
         t0 = (void*) _a19_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(20)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a20_obj, 699u);
-        _a20_obj->f_id = 707u;
-        _a20_obj->f_message = 1883u;
+        _a20_obj->f_id = 708u;
+        _a20_obj->f_message = 1884u;
         t0 = (void*) _a20_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(21)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a21_obj, 699u);
-        _a21_obj->f_id = 708u;
-        _a21_obj->f_message = 1588u;
+        _a21_obj->f_id = 709u;
+        _a21_obj->f_message = 1589u;
         t0 = (void*) _a21_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(22)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a22_obj, 699u);
-        _a22_obj->f_id = 709u;
-        _a22_obj->f_message = 2171u;
+        _a22_obj->f_id = 710u;
+        _a22_obj->f_message = 2172u;
         t0 = (void*) _a22_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(23)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a23_obj, 699u);
-        _a23_obj->f_id = 710u;
-        _a23_obj->f_message = 2002u;
+        _a23_obj->f_id = 711u;
+        _a23_obj->f_message = 2003u;
         t0 = (void*) _a23_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(24)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a24_obj, 699u);
-        _a24_obj->f_id = 711u;
-        _a24_obj->f_message = 1971u;
+        _a24_obj->f_id = 712u;
+        _a24_obj->f_message = 1972u;
         t0 = (void*) _a24_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(25)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a25_obj, 699u);
-        _a25_obj->f_id = 712u;
-        _a25_obj->f_message = 1458u;
+        _a25_obj->f_id = 713u;
+        _a25_obj->f_message = 1459u;
         t0 = (void*) _a25_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(26)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a26_obj, 699u);
-        _a26_obj->f_id = 713u;
-        _a26_obj->f_message = 1519u;
+        _a26_obj->f_id = 714u;
+        _a26_obj->f_message = 1520u;
         t0 = (void*) _a26_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(27)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a27_obj, 699u);
-        _a27_obj->f_id = 714u;
-        _a27_obj->f_message = 1513u;
+        _a27_obj->f_id = 715u;
+        _a27_obj->f_message = 1514u;
         t0 = (void*) _a27_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(28)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a28_obj, 699u);
-        _a28_obj->f_id = 715u;
-        _a28_obj->f_message = 1113u;
+        _a28_obj->f_id = 716u;
+        _a28_obj->f_message = 1114u;
         t0 = (void*) _a28_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(29)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a29_obj, 699u);
-        _a29_obj->f_id = 716u;
-        _a29_obj->f_message = 1396u;
+        _a29_obj->f_id = 717u;
+        _a29_obj->f_message = 1397u;
         t0 = (void*) _a29_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(30)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a30_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a30_obj, 699u);
-        _a30_obj->f_id = 717u;
-        _a30_obj->f_message = 1887u;
+        _a30_obj->f_id = 718u;
+        _a30_obj->f_message = 1888u;
         t0 = (void*) _a30_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(31)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a31_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a31_obj, 699u);
-        _a31_obj->f_id = 718u;
-        _a31_obj->f_message = 2145u;
+        _a31_obj->f_id = 719u;
+        _a31_obj->f_message = 2146u;
         t0 = (void*) _a31_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(32)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a32_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a32_obj, 699u);
-        _a32_obj->f_id = 719u;
-        _a32_obj->f_message = 1156u;
+        _a32_obj->f_id = 720u;
+        _a32_obj->f_message = 1157u;
         t0 = (void*) _a32_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(33)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a33_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a33_obj, 699u);
-        _a33_obj->f_id = 720u;
-        _a33_obj->f_message = 1158u;
+        _a33_obj->f_id = 721u;
+        _a33_obj->f_message = 1159u;
         t0 = (void*) _a33_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(34)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a34_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a34_obj, 699u);
-        _a34_obj->f_id = 721u;
-        _a34_obj->f_message = 2273u;
+        _a34_obj->f_id = 722u;
+        _a34_obj->f_message = 2274u;
         t0 = (void*) _a34_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(35)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a35_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a35_obj, 699u);
-        _a35_obj->f_id = 722u;
-        _a35_obj->f_message = 1102u;
+        _a35_obj->f_id = 723u;
+        _a35_obj->f_message = 1103u;
         t0 = (void*) _a35_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(36)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a36_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a36_obj, 699u);
-        _a36_obj->f_id = 723u;
-        _a36_obj->f_message = 1100u;
+        _a36_obj->f_id = 724u;
+        _a36_obj->f_message = 1101u;
         t0 = (void*) _a36_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(37)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a37_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a37_obj, 699u);
-        _a37_obj->f_id = 724u;
-        _a37_obj->f_message = 2170u;
+        _a37_obj->f_id = 725u;
+        _a37_obj->f_message = 2171u;
         t0 = (void*) _a37_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(38)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a38_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a38_obj, 699u);
-        _a38_obj->f_id = 725u;
-        _a38_obj->f_message = 1454u;
+        _a38_obj->f_id = 726u;
+        _a38_obj->f_message = 1455u;
         t0 = (void*) _a38_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(39)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a39_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a39_obj, 699u);
-        _a39_obj->f_id = 726u;
-        _a39_obj->f_message = 1101u;
+        _a39_obj->f_id = 727u;
+        _a39_obj->f_message = 1102u;
         t0 = (void*) _a39_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(40)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a40_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a40_obj, 699u);
-        _a40_obj->f_id = 727u;
-        _a40_obj->f_message = 1899u;
+        _a40_obj->f_id = 728u;
+        _a40_obj->f_message = 1900u;
         t0 = (void*) _a40_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -2254,560 +2254,560 @@ static void* vader_diagnostics_typecheck_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 741u;
-        _a0_obj->f_message = 2174u;
+        _a0_obj->f_id = 742u;
+        _a0_obj->f_message = 2175u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 742u;
-        _a1_obj->f_message = 1504u;
+        _a1_obj->f_id = 743u;
+        _a1_obj->f_message = 1505u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 743u;
-        _a2_obj->f_message = 2411u;
+        _a2_obj->f_id = 744u;
+        _a2_obj->f_message = 2412u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 744u;
-        _a3_obj->f_message = 2272u;
+        _a3_obj->f_id = 745u;
+        _a3_obj->f_message = 2273u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 745u;
-        _a4_obj->f_message = 1871u;
+        _a4_obj->f_id = 746u;
+        _a4_obj->f_message = 1872u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 746u;
-        _a5_obj->f_message = 2164u;
+        _a5_obj->f_id = 747u;
+        _a5_obj->f_message = 2165u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 747u;
-        _a6_obj->f_message = 1525u;
+        _a6_obj->f_id = 748u;
+        _a6_obj->f_message = 1526u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 748u;
-        _a7_obj->f_message = 1526u;
+        _a7_obj->f_id = 749u;
+        _a7_obj->f_message = 1527u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 749u;
-        _a8_obj->f_message = 1571u;
+        _a8_obj->f_id = 750u;
+        _a8_obj->f_message = 1572u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 750u;
-        _a9_obj->f_message = 1752u;
+        _a9_obj->f_id = 751u;
+        _a9_obj->f_message = 1753u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(10)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a10_obj, 699u);
-        _a10_obj->f_id = 751u;
-        _a10_obj->f_message = 1905u;
+        _a10_obj->f_id = 752u;
+        _a10_obj->f_message = 1906u;
         t0 = (void*) _a10_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(11)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a11_obj, 699u);
-        _a11_obj->f_id = 752u;
-        _a11_obj->f_message = 2278u;
+        _a11_obj->f_id = 753u;
+        _a11_obj->f_message = 2279u;
         t0 = (void*) _a11_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(12)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a12_obj, 699u);
-        _a12_obj->f_id = 753u;
-        _a12_obj->f_message = 1116u;
+        _a12_obj->f_id = 754u;
+        _a12_obj->f_message = 1117u;
         t0 = (void*) _a12_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(13)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a13_obj, 699u);
-        _a13_obj->f_id = 754u;
-        _a13_obj->f_message = 1124u;
+        _a13_obj->f_id = 755u;
+        _a13_obj->f_message = 1125u;
         t0 = (void*) _a13_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(14)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a14_obj, 699u);
-        _a14_obj->f_id = 755u;
-        _a14_obj->f_message = 1923u;
+        _a14_obj->f_id = 756u;
+        _a14_obj->f_message = 1924u;
         t0 = (void*) _a14_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(15)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a15_obj, 699u);
-        _a15_obj->f_id = 756u;
-        _a15_obj->f_message = 2097u;
+        _a15_obj->f_id = 757u;
+        _a15_obj->f_message = 2098u;
         t0 = (void*) _a15_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(16)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a16_obj, 699u);
-        _a16_obj->f_id = 757u;
-        _a16_obj->f_message = 1395u;
+        _a16_obj->f_id = 758u;
+        _a16_obj->f_message = 1396u;
         t0 = (void*) _a16_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(17)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a17_obj, 699u);
-        _a17_obj->f_id = 758u;
-        _a17_obj->f_message = 1610u;
+        _a17_obj->f_id = 759u;
+        _a17_obj->f_message = 1611u;
         t0 = (void*) _a17_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(18)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a18_obj, 699u);
-        _a18_obj->f_id = 759u;
-        _a18_obj->f_message = 1628u;
+        _a18_obj->f_id = 760u;
+        _a18_obj->f_message = 1629u;
         t0 = (void*) _a18_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(19)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a19_obj, 699u);
-        _a19_obj->f_id = 760u;
-        _a19_obj->f_message = 1423u;
+        _a19_obj->f_id = 761u;
+        _a19_obj->f_message = 1424u;
         t0 = (void*) _a19_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(20)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a20_obj, 699u);
-        _a20_obj->f_id = 761u;
-        _a20_obj->f_message = 2291u;
+        _a20_obj->f_id = 762u;
+        _a20_obj->f_message = 2292u;
         t0 = (void*) _a20_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(21)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a21_obj, 699u);
-        _a21_obj->f_id = 762u;
-        _a21_obj->f_message = 1614u;
+        _a21_obj->f_id = 763u;
+        _a21_obj->f_message = 1615u;
         t0 = (void*) _a21_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(22)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a22_obj, 699u);
-        _a22_obj->f_id = 763u;
-        _a22_obj->f_message = 1888u;
+        _a22_obj->f_id = 764u;
+        _a22_obj->f_message = 1889u;
         t0 = (void*) _a22_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(23)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a23_obj, 699u);
-        _a23_obj->f_id = 764u;
-        _a23_obj->f_message = 2173u;
+        _a23_obj->f_id = 765u;
+        _a23_obj->f_message = 2174u;
         t0 = (void*) _a23_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(24)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a24_obj, 699u);
-        _a24_obj->f_id = 765u;
-        _a24_obj->f_message = 2269u;
+        _a24_obj->f_id = 766u;
+        _a24_obj->f_message = 2270u;
         t0 = (void*) _a24_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(25)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a25_obj, 699u);
-        _a25_obj->f_id = 766u;
-        _a25_obj->f_message = 1343u;
+        _a25_obj->f_id = 767u;
+        _a25_obj->f_message = 1344u;
         t0 = (void*) _a25_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(26)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a26_obj, 699u);
-        _a26_obj->f_id = 767u;
-        _a26_obj->f_message = 1477u;
+        _a26_obj->f_id = 768u;
+        _a26_obj->f_message = 1478u;
         t0 = (void*) _a26_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(27)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a27_obj, 699u);
-        _a27_obj->f_id = 768u;
-        _a27_obj->f_message = 1478u;
+        _a27_obj->f_id = 769u;
+        _a27_obj->f_message = 1479u;
         t0 = (void*) _a27_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(28)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a28_obj, 699u);
-        _a28_obj->f_id = 769u;
-        _a28_obj->f_message = 1455u;
+        _a28_obj->f_id = 770u;
+        _a28_obj->f_message = 1456u;
         t0 = (void*) _a28_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(29)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a29_obj, 699u);
-        _a29_obj->f_id = 770u;
-        _a29_obj->f_message = 1176u;
+        _a29_obj->f_id = 771u;
+        _a29_obj->f_message = 1177u;
         t0 = (void*) _a29_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(30)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a30_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a30_obj, 699u);
-        _a30_obj->f_id = 771u;
-        _a30_obj->f_message = 1750u;
+        _a30_obj->f_id = 772u;
+        _a30_obj->f_message = 1751u;
         t0 = (void*) _a30_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(31)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a31_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a31_obj, 699u);
-        _a31_obj->f_id = 772u;
-        _a31_obj->f_message = 1962u;
+        _a31_obj->f_id = 773u;
+        _a31_obj->f_message = 1963u;
         t0 = (void*) _a31_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(32)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a32_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a32_obj, 699u);
-        _a32_obj->f_id = 773u;
-        _a32_obj->f_message = 2182u;
+        _a32_obj->f_id = 774u;
+        _a32_obj->f_message = 2183u;
         t0 = (void*) _a32_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(33)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a33_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a33_obj, 699u);
-        _a33_obj->f_id = 774u;
-        _a33_obj->f_message = 1701u;
+        _a33_obj->f_id = 775u;
+        _a33_obj->f_message = 1702u;
         t0 = (void*) _a33_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(34)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a34_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a34_obj, 699u);
-        _a34_obj->f_id = 775u;
-        _a34_obj->f_message = 1873u;
+        _a34_obj->f_id = 776u;
+        _a34_obj->f_message = 1874u;
         t0 = (void*) _a34_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(35)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a35_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a35_obj, 699u);
-        _a35_obj->f_id = 776u;
-        _a35_obj->f_message = 1570u;
+        _a35_obj->f_id = 777u;
+        _a35_obj->f_message = 1571u;
         t0 = (void*) _a35_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(36)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a36_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a36_obj, 699u);
-        _a36_obj->f_id = 777u;
-        _a36_obj->f_message = 1104u;
+        _a36_obj->f_id = 778u;
+        _a36_obj->f_message = 1105u;
         t0 = (void*) _a36_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(37)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a37_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a37_obj, 699u);
-        _a37_obj->f_id = 778u;
-        _a37_obj->f_message = 2140u;
+        _a37_obj->f_id = 779u;
+        _a37_obj->f_message = 2141u;
         t0 = (void*) _a37_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(38)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a38_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a38_obj, 699u);
-        _a38_obj->f_id = 779u;
-        _a38_obj->f_message = 1349u;
+        _a38_obj->f_id = 780u;
+        _a38_obj->f_message = 1350u;
         t0 = (void*) _a38_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(39)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a39_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a39_obj, 699u);
-        _a39_obj->f_id = 780u;
-        _a39_obj->f_message = 1346u;
+        _a39_obj->f_id = 781u;
+        _a39_obj->f_message = 1347u;
         t0 = (void*) _a39_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(40)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a40_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a40_obj, 699u);
-        _a40_obj->f_id = 782u;
-        _a40_obj->f_message = 1749u;
+        _a40_obj->f_id = 783u;
+        _a40_obj->f_message = 1750u;
         t0 = (void*) _a40_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(41)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a41_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a41_obj, 699u);
-        _a41_obj->f_id = 783u;
-        _a41_obj->f_message = 1096u;
+        _a41_obj->f_id = 784u;
+        _a41_obj->f_message = 1097u;
         t0 = (void*) _a41_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(42)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a42_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a42_obj, 699u);
-        _a42_obj->f_id = 784u;
-        _a42_obj->f_message = 1520u;
+        _a42_obj->f_id = 785u;
+        _a42_obj->f_message = 1521u;
         t0 = (void*) _a42_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(43)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a43_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a43_obj, 699u);
-        _a43_obj->f_id = 785u;
-        _a43_obj->f_message = 1611u;
+        _a43_obj->f_id = 786u;
+        _a43_obj->f_message = 1612u;
         t0 = (void*) _a43_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(44)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a44_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a44_obj, 699u);
-        _a44_obj->f_id = 786u;
-        _a44_obj->f_message = 1166u;
+        _a44_obj->f_id = 787u;
+        _a44_obj->f_message = 1167u;
         t0 = (void*) _a44_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(45)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a45_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a45_obj, 699u);
-        _a45_obj->f_id = 787u;
-        _a45_obj->f_message = 1364u;
+        _a45_obj->f_id = 788u;
+        _a45_obj->f_message = 1365u;
         t0 = (void*) _a45_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(46)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a46_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a46_obj, 699u);
-        _a46_obj->f_id = 781u;
-        _a46_obj->f_message = 1919u;
+        _a46_obj->f_id = 782u;
+        _a46_obj->f_message = 1920u;
         t0 = (void*) _a46_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(47)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a47_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a47_obj, 699u);
-        _a47_obj->f_id = 788u;
-        _a47_obj->f_message = 1153u;
+        _a47_obj->f_id = 789u;
+        _a47_obj->f_message = 1154u;
         t0 = (void*) _a47_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(48)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a48_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a48_obj, 699u);
-        _a48_obj->f_id = 796u;
-        _a48_obj->f_message = 1733u;
+        _a48_obj->f_id = 797u;
+        _a48_obj->f_message = 1734u;
         t0 = (void*) _a48_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(49)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a49_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a49_obj, 699u);
-        _a49_obj->f_id = 789u;
-        _a49_obj->f_message = 1154u;
+        _a49_obj->f_id = 790u;
+        _a49_obj->f_message = 1155u;
         t0 = (void*) _a49_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(50)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a50_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a50_obj, 699u);
-        _a50_obj->f_id = 790u;
-        _a50_obj->f_message = 1129u;
+        _a50_obj->f_id = 791u;
+        _a50_obj->f_message = 1130u;
         t0 = (void*) _a50_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(51)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a51_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a51_obj, 699u);
-        _a51_obj->f_id = 791u;
-        _a51_obj->f_message = 1119u;
+        _a51_obj->f_id = 792u;
+        _a51_obj->f_message = 1120u;
         t0 = (void*) _a51_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(52)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a52_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a52_obj, 699u);
-        _a52_obj->f_id = 792u;
-        _a52_obj->f_message = 2417u;
+        _a52_obj->f_id = 793u;
+        _a52_obj->f_message = 2418u;
         t0 = (void*) _a52_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(53)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a53_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a53_obj, 699u);
-        _a53_obj->f_id = 793u;
-        _a53_obj->f_message = 1149u;
+        _a53_obj->f_id = 794u;
+        _a53_obj->f_message = 1150u;
         t0 = (void*) _a53_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(54)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a54_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a54_obj, 699u);
-        _a54_obj->f_id = 794u;
-        _a54_obj->f_message = 1240u;
+        _a54_obj->f_id = 795u;
+        _a54_obj->f_message = 1241u;
         t0 = (void*) _a54_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(55)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a55_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a55_obj, 699u);
-        _a55_obj->f_id = 795u;
-        _a55_obj->f_message = 1115u;
+        _a55_obj->f_id = 796u;
+        _a55_obj->f_message = 1116u;
         t0 = (void*) _a55_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(56)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a56_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a56_obj, 699u);
-        _a56_obj->f_id = 797u;
-        _a56_obj->f_message = 1117u;
+        _a56_obj->f_id = 798u;
+        _a56_obj->f_message = 1118u;
         t0 = (void*) _a56_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(57)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a57_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a57_obj, 699u);
-        _a57_obj->f_id = 798u;
-        _a57_obj->f_message = 1079u;
+        _a57_obj->f_id = 799u;
+        _a57_obj->f_message = 1080u;
         t0 = (void*) _a57_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(58)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a58_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a58_obj, 699u);
-        _a58_obj->f_id = 799u;
-        _a58_obj->f_message = 1344u;
+        _a58_obj->f_id = 800u;
+        _a58_obj->f_message = 1345u;
         t0 = (void*) _a58_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(59)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a59_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a59_obj, 699u);
-        _a59_obj->f_id = 800u;
-        _a59_obj->f_message = 1347u;
+        _a59_obj->f_id = 801u;
+        _a59_obj->f_message = 1348u;
         t0 = (void*) _a59_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(60)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a60_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a60_obj, 699u);
-        _a60_obj->f_id = 801u;
-        _a60_obj->f_message = 2153u;
+        _a60_obj->f_id = 802u;
+        _a60_obj->f_message = 2154u;
         t0 = (void*) _a60_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(61)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a61_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a61_obj, 699u);
-        _a61_obj->f_id = 802u;
-        _a61_obj->f_message = 2147u;
+        _a61_obj->f_id = 803u;
+        _a61_obj->f_message = 2148u;
         t0 = (void*) _a61_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(62)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a62_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a62_obj, 699u);
-        _a62_obj->f_id = 803u;
-        _a62_obj->f_message = 2152u;
+        _a62_obj->f_id = 804u;
+        _a62_obj->f_message = 2153u;
         t0 = (void*) _a62_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(63)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a63_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a63_obj, 699u);
-        _a63_obj->f_id = 804u;
-        _a63_obj->f_message = 1161u;
+        _a63_obj->f_id = 805u;
+        _a63_obj->f_message = 1162u;
         t0 = (void*) _a63_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(64)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a64_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a64_obj, 699u);
-        _a64_obj->f_id = 805u;
-        _a64_obj->f_message = 1147u;
+        _a64_obj->f_id = 806u;
+        _a64_obj->f_message = 1148u;
         t0 = (void*) _a64_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(65)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a65_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a65_obj, 699u);
-        _a65_obj->f_id = 806u;
-        _a65_obj->f_message = 1155u;
+        _a65_obj->f_id = 807u;
+        _a65_obj->f_message = 1156u;
         t0 = (void*) _a65_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(66)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a66_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a66_obj, 699u);
-        _a66_obj->f_id = 807u;
-        _a66_obj->f_message = 1157u;
+        _a66_obj->f_id = 808u;
+        _a66_obj->f_message = 1158u;
         t0 = (void*) _a66_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(67)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a67_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a67_obj, 699u);
-        _a67_obj->f_id = 808u;
-        _a67_obj->f_message = 2151u;
+        _a67_obj->f_id = 809u;
+        _a67_obj->f_message = 2152u;
         t0 = (void*) _a67_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(68)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a68_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a68_obj, 699u);
-        _a68_obj->f_id = 809u;
-        _a68_obj->f_message = 1434u;
+        _a68_obj->f_id = 810u;
+        _a68_obj->f_message = 1435u;
         t0 = (void*) _a68_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(69)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a69_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a69_obj, 699u);
-        _a69_obj->f_id = 810u;
-        _a69_obj->f_message = 1336u;
+        _a69_obj->f_id = 811u;
+        _a69_obj->f_message = 1337u;
         t0 = (void*) _a69_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -2836,80 +2836,80 @@ static void* vader_diagnostics_warning_info(uint8_t l0) {
     if (l0 == INT32_C(0)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a0_obj, 699u);
-        _a0_obj->f_id = 826u;
-        _a0_obj->f_message = 2292u;
+        _a0_obj->f_id = 827u;
+        _a0_obj->f_message = 2293u;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a1_obj, 699u);
-        _a1_obj->f_id = 827u;
-        _a1_obj->f_message = 2277u;
+        _a1_obj->f_id = 828u;
+        _a1_obj->f_message = 2278u;
         t0 = (void*) _a1_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(2)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a2_obj, 699u);
-        _a2_obj->f_id = 828u;
-        _a2_obj->f_message = 2399u;
+        _a2_obj->f_id = 829u;
+        _a2_obj->f_message = 2400u;
         t0 = (void*) _a2_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(3)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a3_obj, 699u);
-        _a3_obj->f_id = 829u;
-        _a3_obj->f_message = 1430u;
+        _a3_obj->f_id = 830u;
+        _a3_obj->f_message = 1431u;
         t0 = (void*) _a3_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(4)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a4_obj, 699u);
-        _a4_obj->f_id = 830u;
-        _a4_obj->f_message = 1816u;
+        _a4_obj->f_id = 831u;
+        _a4_obj->f_message = 1817u;
         t0 = (void*) _a4_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(5)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a5_obj, 699u);
-        _a5_obj->f_id = 831u;
-        _a5_obj->f_message = 1964u;
+        _a5_obj->f_id = 832u;
+        _a5_obj->f_message = 1965u;
         t0 = (void*) _a5_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(6)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a6_obj, 699u);
-        _a6_obj->f_id = 832u;
-        _a6_obj->f_message = 1946u;
+        _a6_obj->f_id = 833u;
+        _a6_obj->f_message = 1947u;
         t0 = (void*) _a6_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(7)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a7_obj, 699u);
-        _a7_obj->f_id = 833u;
-        _a7_obj->f_message = 1470u;
+        _a7_obj->f_id = 834u;
+        _a7_obj->f_message = 1471u;
         t0 = (void*) _a7_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(8)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a8_obj, 699u);
-        _a8_obj->f_id = 834u;
-        _a8_obj->f_message = 1521u;
+        _a8_obj->f_id = 835u;
+        _a8_obj->f_message = 1522u;
         t0 = (void*) _a8_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(9)) {
         vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
         vader_obj_header_init(_a9_obj, 699u);
-        _a9_obj->f_id = 835u;
-        _a9_obj->f_message = 1106u;
+        _a9_obj->f_id = 836u;
+        _a9_obj->f_message = 1107u;
         t0 = (void*) _a9_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
