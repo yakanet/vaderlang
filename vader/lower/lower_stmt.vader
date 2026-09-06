@@ -415,8 +415,8 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     // continue. Peek through one level so the enclosing block's
     // fall-through drain doesn't emit a duplicate pop_exec after a
     // wrapped exit.
-    if s is LoweredExprStmt as es {
-        if es.expr is LoweredBlock as lb {
+    if s is LoweredExprStmt {
+        if s.expr is LoweredBlock as lb {
             n :: lb.stmts.len()
             if n > 0 { return stmt_diverges(lb.stmts[n - 1]) }
         }
@@ -472,8 +472,8 @@ widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> Lowered
 }
 
 union_contains_variant :: fn(union: Type, variant: Type) -> bool {
-    if union is UnionType as u {
-        for v in u.variants {
+    if union is UnionType {
+        for v in union.variants {
             if equals_type(v, variant) { return true }
         }
         return false
@@ -557,7 +557,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
     }
     iter_lowered :: lower_expr(ctx, in_form.iter)
     arr_lit: LoweredArrayLit | null = null
-    if iter_lowered is LoweredArrayLit as al { arr_lit = al }
+    if iter_lowered is LoweredArrayLit { arr_lit = iter_lowered }
     if arr_lit is null {
         return comptime_for_reject(ctx, span, "`@comptime for` requires a compile-time-known array literal")
     }

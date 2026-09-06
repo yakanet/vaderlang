@@ -1152,9 +1152,9 @@ export MutableTypeExpr :: struct {
 export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     if ty == null { return false }
     if ty is MutableTypeExpr { return true }
-    if ty is BinaryExpr as b {
-        if b.op == BinaryOp.BitOr {
-            return type_expr_marks_mutable(b.left) || type_expr_marks_mutable(b.right)
+    if ty is BinaryExpr {
+        if ty.op == BinaryOp.BitOr {
+            return type_expr_marks_mutable(ty.left) || type_expr_marks_mutable(ty.right)
         }
     }
     return false
@@ -1173,7 +1173,7 @@ export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
 /// Only the TOP level is peeled : a marker deeper in (`Cfg![]`) belongs to the
 /// level it follows and is read from the lowered `Type`.
 export strip_mut_marker :: fn(ty: TypeExpr | null) -> TypeExpr | null {
-    if ty is MutableTypeExpr as m { return m.inner }
+    if ty is MutableTypeExpr { return ty.inner }
     return ty
 }
 

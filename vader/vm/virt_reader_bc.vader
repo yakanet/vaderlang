@@ -78,8 +78,8 @@ export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: 
 positioned :: fn(
     failure: DirectiveError | null, line_number: usize, line: string,
 ) -> VirtParseError | null {
-    if failure is DirectiveError as e {
-        return VirtParseError { .line_number = line_number, .line = line, .reason = e.reason }
+    if failure is DirectiveError {
+        return VirtParseError { .line_number = line_number, .line = line, .reason = failure.reason }
     }
     return null
 }
@@ -852,7 +852,7 @@ take_token :: fn(tokens: string[], pos: i32[]!) -> string {
 
 token_to_int :: fn(s: string) -> i32 {
     r :: parse_int_in_base(s, 10)
-    if r is i64 as v { return i32(v) }
+    if r is i64 { return i32(r) }
     return 0
 }
 
@@ -948,8 +948,8 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
 primitive_index_for :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is bc.BcPrimitive as p {
-            if p.val == val { return i32(i) }
+        if t is bc.BcPrimitive {
+            if t.val == val { return i32(i) }
         }
     }
     return 0
@@ -1004,12 +1004,12 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVa
     out: ArrayVal[]! = []
     for e in entries {
         elements: Value[]! = []
-        if e is bc.BcStrData as sd {
-            for v in sd.values { elements.push(StringVal { .value = v }) }
-        } else if e is bc.BcPrimData as pd {
-            for item in pd.items { elements.push(value_from_bits(pd.kind, item)) }
-        } else if e is bc.BcAggregateData as ad {
-            for v in ad.elements { elements.push(bc_value_to_vm(v, types)) }
+        if e is bc.BcStrData {
+            for v in e.values { elements.push(StringVal { .value = v }) }
+        } else if e is bc.BcPrimData {
+            for item in e.items { elements.push(value_from_bits(e.kind, item)) }
+        } else if e is bc.BcAggregateData {
+            for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
         }
         out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = 0, .length = elements.len() })
     }
@@ -1020,16 +1020,16 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVa
 // resolved from `symbol_id` against the module type table ; nested arrays carry
 // type_id 0 (the VM is loosely typed — field access reads positionally).
 bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
-    if v is bc.BcValStr as s { return StringVal { .value = s.value } }
-    if v is bc.BcValPrim as p { return value_from_bits(p.kind, p.bits) }
-    if v is bc.BcValStruct as st {
+    if v is bc.BcValStr { return StringVal { .value = v.value } }
+    if v is bc.BcValPrim { return value_from_bits(v.kind, v.bits) }
+    if v is bc.BcValStruct {
         fields: Value[]! = []
-        for f in st.fields { fields.push(bc_value_to_vm(f, types)) }
-        return StructVal { .type_id = type_id_for_symbol(types, st.symbol_id), .fields = fields }
+        for f in v.fields { fields.push(bc_value_to_vm(f, types)) }
+        return StructVal { .type_id = type_id_for_symbol(types, v.symbol_id), .fields = fields }
     }
-    if v is bc.BcValArray as a {
+    if v is bc.BcValArray {
         elems: Value[]! = []
-        for e in a.elements { elems.push(bc_value_to_vm(e, types)) }
+        for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
         return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
     }
     return I32Val { .value = 0 }
@@ -1084,8 +1084,8 @@ import "std/testing"
     // Single-line `\n`-joined to dodge triple-quote / `$`-interpolation rules.
     src :: "module demo\ntype 0 primitive i32\ntype 1 primitive void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
     m :: parse_virt_bc(src)
-    if m is VirtParseError as e {
-        assert(false, "well-formed dump should parse: line ${e.line_number}: ${e.reason}")
+    if m is VirtParseError {
+        assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
         return
     }
     assert_eq(m.name, "demo")
@@ -1130,10 +1130,10 @@ import "std/testing"
     // like after an opcode leaves the set.
     src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const 1\n  frobnicate 7\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
-    if r is VirtParseError as e {
-        assert_eq(e.line_number, 5)
-        assert_eq(e.line, "frobnicate 7")
-        assert("frobnicate" in e.reason, "the reason should name the opcode, got: ${e.reason}")
+    if r is VirtParseError {
+        assert_eq(r.line_number, 5)
+        assert_eq(r.line, "frobnicate 7")
+        assert("frobnicate" in r.reason, "the reason should name the opcode, got: ${r.reason}")
     } else {
         assert(false, "an unknown instruction must not be skipped silently")
     }
@@ -1142,9 +1142,9 @@ import "std/testing"
 @test test_unknown_directive_stops_the_parse :: fn() -> void {
     src :: "module demo\ntype 0 primitive i32\nsprocket 3\nfn 0 main () -> i32\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
-    if r is VirtParseError as e {
-        assert_eq(e.line_number, 3)
-        assert("sprocket" in e.reason, "the reason should name the directive, got: ${e.reason}")
+    if r is VirtParseError {
+        assert_eq(r.line_number, 3)
+        assert("sprocket" in r.reason, "the reason should name the directive, got: ${r.reason}")
     } else {
         assert(false, "an unknown module directive must not be skipped silently")
     }
@@ -1156,8 +1156,8 @@ import "std/testing"
     // the reader has to recognise it as the end rather than choke on it.
     src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  return\nend\nexport main 0\n\n# Diagnostics\n[21:10] warning[W0001] use of deprecated declaration: `old_helper`\n"
     m :: parse_virt_bc(src)
-    if m is VirtParseError as e {
-        assert(false, "a trailing diagnostics block should end the module, not fail it: ${e.reason}")
+    if m is VirtParseError {
+        assert(false, "a trailing diagnostics block should end the module, not fail it: ${m.reason}")
         return
     }
     assert_eq(m.name, "demo")
@@ -1171,9 +1171,9 @@ import "std/testing"
 @test test_unknown_type_kind_stops_the_parse :: fn() -> void {
     src :: "module demo\ntype 0 wobble\nexport main 0\n"
     r :: parse_virt_bc(src)
-    if r is VirtParseError as e {
-        assert_eq(e.line_number, 2)
-        assert("wobble" in e.reason, "the reason should name the kind, got: ${e.reason}")
+    if r is VirtParseError {
+        assert_eq(r.line_number, 2)
+        assert("wobble" in r.reason, "the reason should name the kind, got: ${r.reason}")
     } else {
         assert(false, "an unknown type kind must not become a BcRef placeholder")
     }
@@ -1183,9 +1183,9 @@ import "std/testing"
     // Field order IS the field index, so dropping one renumbers the rest.
     src :: "module demo\ntype 0 struct P { a }\nexport main 0\n"
     r :: parse_virt_bc(src)
-    if r is VirtParseError as e {
-        assert_eq(e.line_number, 2)
-        assert("separator" in e.reason, "should say what the field is missing")
+    if r is VirtParseError {
+        assert_eq(r.line_number, 2)
+        assert("separator" in r.reason, "should say what the field is missing")
     } else {
         assert(false, "a field with no `name:type` must not be skipped")
     }
@@ -1201,9 +1201,9 @@ import "std/testing"
     ]
     for bad in cases {
         r :: parse_virt_bc("module demo\n${bad}\nexport main 0\n")
-        if r is VirtParseError as e {
-            assert_eq(e.line_number, 2)
-            assert(e.reason != "", "`${bad}` should carry a reason")
+        if r is VirtParseError {
+            assert_eq(r.line_number, 2)
+            assert(r.reason != "", "`${bad}` should carry a reason")
         } else {
             assert(false, "`${bad}` must not be dropped silently")
         }
@@ -1215,8 +1215,8 @@ import "std/testing"
     // returns null, the op never lands, and every later pc used to shift by one.
     src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
-    if r is VirtParseError as e {
-        assert_eq(e.line_number, 4)
+    if r is VirtParseError {
+        assert_eq(r.line_number, 4)
     } else {
         assert(false, "an operand-less i32.const must not be skipped silently")
     }

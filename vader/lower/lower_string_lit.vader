@@ -91,7 +91,7 @@ resolve_writer_fn :: fn(ctx: FnLowerCtx!, name: string) -> Symbol | null =
 // via the std/core writer API). `null` when the fn type can't be resolved.
 resolve_buffer_type :: fn(ctx: FnLowerCtx, wstr_sym: Symbol) -> Type | null {
     ft :: lookup_fn_type_anywhere(ctx, wstr_sym)
-    if ft is FnType as f { return if f.params.len() == 0 { null } else { f.params[0] } }
+    if ft is FnType { return if ft.params.len() == 0 { null } else { ft.params[0] } }
     return null
 }
 
@@ -105,11 +105,11 @@ WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 // must take the `.Display` path and dispatch to that impl — the int fast path would
 // wrongly write its raw backing integer. Only a bare primitive fast-paths.
 classify_kind :: fn(t: Type) -> WriterKind {
-    if t is PrimitiveType as p {
-        if is_signed_int_name(p.name)   { return .Signed }
-        if is_unsigned_int_name(p.name) { return .Unsigned }
-        if p.name == "bool"   { return .Bool }
-        if p.name == "string" { return .Str }
+    if t is PrimitiveType {
+        if is_signed_int_name(t.name)   { return .Signed }
+        if is_unsigned_int_name(t.name) { return .Unsigned }
+        if t.name == "bool"   { return .Bool }
+        if t.name == "string" { return .Str }
     }
     return .Display
 }
@@ -199,7 +199,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
             write_values.push(v)
             write_kinds.push(.Bool)
         } else if k == WriterKind.Text {
-            if v is LoweredStringLit as lit { const_bytes = const_bytes + i64(lit.value.bytes().len()) }
+            if v is LoweredStringLit { const_bytes = const_bytes + i64(v.value.bytes().len()) }
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
@@ -268,7 +268,7 @@ concat_from_collected :: fn(ctx: FnLowerCtx!, values: LoweredExpr[], kinds: Writ
 // Widen `inner` to `width` (i64 / u64) for the write fn ; identity when already it.
 cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
     t :: type_of(inner)
-    if t is PrimitiveType as p { if p.name == width { return inner } }
+    if t is PrimitiveType { if t.name == width { return inner } }
     return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
 }
 

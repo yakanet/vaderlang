@@ -67,8 +67,8 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
 
 /// Whether `t` is the opaque foreign pointer `CPointer`.
 is_c_pointer :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p {
-        return p.name == "CPointer"
+    if t is PrimitiveType {
+        return t.name == "CPointer"
     }
     return false
 }
@@ -76,8 +76,8 @@ is_c_pointer :: fn(t: Type) -> bool {
 /// Whether `t` is a pointer-width integer — the only targets a `CPointer` may
 /// be read as, since a narrower one would silently drop address bits.
 is_machine_word :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p {
-        return p.name == "isize" || p.name == "usize"
+    if t is PrimitiveType {
+        return t.name == "isize" || t.name == "usize"
     }
     return false
 }
@@ -90,6 +90,6 @@ not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | TypeMetaTyp
 // repr int). `bool` and `string` are deliberately absent (no scalar cast).
 scalar_castable :: fn(t: Type) -> bool {
     if is_numeric(t) || t is EnumType { return true }
-    if t is PrimitiveType as p { return p.name == "char" }
+    if t is PrimitiveType { return t.name == "char" }
     return false
 }

@@ -398,22 +398,22 @@ is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
         return false
     }
     u :: types[type_index]
-    if u is BcUnion as un {
-        if un.variants.len() != 2 {
+    if u is BcUnion {
+        if u.variants.len() != 2 {
             return false
         }
         has_null := false
         has_ptr := false
-        for vi in un.variants {
+        for vi in u.variants {
             if vi < 0 || vi >= i32(types.len()) {
                 continue
             }
             v :: types[vi]
-            if v is BcPrimitive as bp {
-                if bp.val == ValType.Null {
+            if v is BcPrimitive {
+                if v.val == ValType.Null {
                     has_null = true
                 }
-                if bp.val == ValType.Pointer {
+                if v.val == ValType.Pointer {
                     has_ptr = true
                 }
             }
@@ -447,9 +447,9 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
             continue
         }
         v :: types[vi]
-        if v is BcPrimitive as bp {
-            if bp.val == ValType.Null   { has_null = true }
-            if bp.val == ValType.String { has_str = true }
+        if v is BcPrimitive {
+            if v.val == ValType.Null   { has_null = true }
+            if v.val == ValType.String { has_str = true }
         }
     }
     return has_null && has_str
@@ -871,8 +871,8 @@ tag_u :: fn(idx: i32, label: string) -> string {
 prim_tag :: fn(types: BcType[], val: ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcPrimitive as p {
-            if p.val == val { return i32(i) }
+        if t is BcPrimitive {
+            if t.val == val { return i32(i) }
         }
     }
     return -1
@@ -882,8 +882,8 @@ prim_tag :: fn(types: BcType[], val: ValType) -> i32 {
 array_tag :: fn(types: BcType[], elem: i32) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcArray as a {
-            if a.element == elem { return i32(i) }
+        if t is BcArray {
+            if t.element == elem { return i32(i) }
         }
     }
     return -1

@@ -38,12 +38,12 @@ export evaluate_call_expr :: fn(
     // would bail and the const never bakes (e.g. `BUCKET_COUNT :: usize(16)`
     // → bucket_index's `h % BUCKET_COUNT` drops). Int→int casts preserve the
     // comptime value, so fold by passing the argument's IntValue through.
-    if callee is AST.IdentExpr as cid {
-        if expr.args.len() == 1 && is_primitive_int_name(cid.name) {
+    if callee is AST.IdentExpr {
+        if expr.args.len() == 1 && is_primitive_int_name(callee.name) {
             arg_result :: evaluate_expr(expr.args[0].value, context)
             if arg_result.value is null { return arg_result }
             av :: arg_result.value
-            if av is IntValue as iv { return ok(IntValue { .value = iv.value, .type_name = cid.name }) }
+            if av is IntValue { return ok(IntValue { .value = av.value, .type_name = callee.name }) }
         }
     }
     callee_sym :: context.typed.resolved.idents[callee.span.hash()]
@@ -101,9 +101,9 @@ evaluate_fn_body :: fn(
     // Block with statements only — accept a single `return <expr>`.
     if body.stmts.len() == 1 {
         s :: body.stmts[0]
-        if s is AST.ReturnStmt as ret {
-            if !(ret.value is null) {
-                return evaluate_expr(ret.value, context)
+        if s is AST.ReturnStmt {
+            if !(s.value is null) {
+                return evaluate_expr(s.value, context)
             }
         }
     }

@@ -118,7 +118,7 @@ export resolve_lazy :: fn(
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
 ) -> DiscoveredModule | null {
     cached :: index[name]
-    if cached is DiscoveredModule as dm { return dm }
+    if cached is DiscoveredModule { return cached }
     // The folder that OWNS the module — the first root to declare it, and the
     // module's identity. Every later contribution is appended to `files`, in root
     // order, so generated files land after the hand-written ones and file order
@@ -232,8 +232,8 @@ export preresolve_imports :: fn(
 ) -> void {
     for sf in sources {
         for d in sf.program.decls {
-            if d is AST.ImportDecl as im {
-                _ :: resolve_lazy(im.path, paths, index, diags)
+            if d is AST.ImportDecl {
+                _ :: resolve_lazy(d.path, paths, index, diags)
             }
         }
     }

@@ -49,12 +49,12 @@ new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                if fn_metadata(fd).is_extern {
-                    if fd.origin.symbol is Symbol as sym {
+            if d is LoweredFnDecl {
+                if fn_metadata(d).is_extern {
+                    if d.origin.symbol is Symbol as sym {
                         slots :: MutableSet<usize> {}
-                        for i in 0..<fd.params.len() {
-                            if fd.params[i].type is FnType {
+                        for i in 0..<d.params.len() {
+                            if d.params[i].type is FnType {
                                 slots.add(i)
                             }
                         }
@@ -211,16 +211,16 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
 // through to the `BcValPrim` tail). Struct identity is carried by `symbol_id`
 // (resolved to a type-index at each backend) ; arrays/leaves by element kind name.
 lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
-    if el is LoweredStringLit as s { return BcValStr { .value = s.value } }
-    if el is LoweredStructLit as st {
+    if el is LoweredStringLit { return BcValStr { .value = el.value } }
+    if el is LoweredStructLit {
         fields: BcDataValue[]! = []
-        for f in st.fields { fields.push(lowered_to_bc_value(f.value)) }
-        return BcValStruct { .symbol_id = struct_symbol_id(st.type), .fields = fields }
+        for f in el.fields { fields.push(lowered_to_bc_value(f.value)) }
+        return BcValStruct { .symbol_id = struct_symbol_id(el.type), .fields = fields }
     }
-    if el is LoweredArrayLit as a {
+    if el is LoweredArrayLit {
         elements: BcDataValue[]! = []
-        for e in a.elements { elements.push(lowered_to_bc_value(e)) }
-        return BcValArray { .element_type_name = array_element_name(a.type), .elements = elements }
+        for e in el.elements { elements.push(lowered_to_bc_value(e)) }
+        return BcValArray { .element_type_name = array_element_name(el.type), .elements = elements }
     }
     name :: display_type_key(type_of(el))
     return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
@@ -228,13 +228,13 @@ lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
 
 // `symbol_id` of a named struct type (the producer rejects non-`StructType`s).
 struct_symbol_id :: fn(t: Type) -> i32 {
-    if t is StructType as st { return st.symbol.id }
+    if t is StructType { return t.symbol.id }
     return -1
 }
 
 // Element type display name of an array type (for the runtime element kind).
 array_element_name :: fn(t: Type) -> string {
-    if t is ArrayType as at { return display_type_key(at.element) }
+    if t is ArrayType { return display_type_key(t.element) }
     return ""
 }
 
@@ -242,12 +242,12 @@ array_element_name :: fn(t: Type) -> string {
 // reinterpreted via `to_bits` at the element's natural width. Mirrors
 // `inline_consts::data_item_bits`.
 bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
-    if el is LoweredIntLit as i  { return u64(i.value) }
-    if el is LoweredCharLit as c { return u64(c.value) }
-    if el is LoweredBoolLit as b { return if b.value { 1 } else { 0 } }
-    if el is LoweredFloatLit as f {
-        if name == "f32" { return u64(f32(f.value).to_bits()) }
-        return f.value.to_bits()
+    if el is LoweredIntLit  { return u64(el.value) }
+    if el is LoweredCharLit { return u64(el.value) }
+    if el is LoweredBoolLit { return if el.value { 1 } else { 0 } }
+    if el is LoweredFloatLit {
+        if name == "f32" { return u64(f32(el.value).to_bits()) }
+        return el.value.to_bits()
     }
     // Unreachable : the producer's `is_bakeable_value` only admits int/char/bool/
     // float leaves here (string/struct/array are handled before this tail). A hit
@@ -375,9 +375,9 @@ extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
         if dec.name != "extern" { continue }
         if dec.args.len() == 0 { continue }
         last :: dec.args[dec.args.len() - 1]
-        if last is StringLitExpr as s {
-            if s.parts.len() == 1 {
-                if s.parts[0] is StringLitText as t { return t.value }
+        if last is StringLitExpr {
+            if last.parts.len() == 1 {
+                if last.parts[0] is StringLitText as t { return t.value }
             }
         }
     }
@@ -598,34 +598,35 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
 
 build_assign :: fn(fn_ctx: FnCtx!, s: LoweredAssign) -> void {
     target :: s.target
-    if target is LoweredIdent as ident {
-        slot_opt :: fn_ctx.local_by_sym_id[ident.symbol.id]
+    if target is LoweredIdent {
+        slot_opt :: fn_ctx.local_by_sym_id[target.symbol.id]
         value :: build_expr(fn_ctx, s.value)
         if slot_opt is null { return }
         if value is null { return }
         emit(fn_ctx, InstrMove { .dst = slot_opt, .src = value, .span = s.span })
         return
     }
-    if target is LoweredFieldAccess as fa {
-        tgt :: build_expr(fn_ctx, fa.target)
+    if target is LoweredFieldAccess {
+        tgt :: build_expr(fn_ctx, target.target)
         value :: build_expr(fn_ctx, s.value)
         if tgt is null { return }
         if value is null { return }
         emit(fn_ctx, InstrFieldSet {
-            .target = tgt, .field = fa.field, .value = value, .barrierless = false, .span = s.span,
+            .target = tgt, .field = target.field, .value = value,
+            .barrierless = false, .span = s.span,
         })
         return
     }
-    if target is LoweredIndex as idx_expr {
-        tgt :: build_expr(fn_ctx, idx_expr.target)
-        idx :: build_expr(fn_ctx, idx_expr.index)
+    if target is LoweredIndex {
+        tgt :: build_expr(fn_ctx, target.target)
+        idx :: build_expr(fn_ctx, target.index)
         value :: build_expr(fn_ctx, s.value)
         if tgt is null { return }
         if idx is null { return }
         if value is null { return }
         emit(fn_ctx, InstrArraySet {
             .target = tgt, .index = idx, .value = value, .span = s.span,
-            .bounds_safe = idx_expr.bounds_safe,
+            .bounds_safe = target.bounds_safe,
         })
         return
     }
@@ -774,11 +775,12 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
     // re-builds its value here. (Scalar consts usually fold in
     // `lower_ident` upstream, but the inline map catches any that didn't.)
     wrap :: fn_ctx.project.const_fn_wrap[e.symbol.id]
-    if wrap is ConstFnWrap as w {
-        dst :: fresh_tmp(fn_ctx, "const_init", w.call_type)
+    if wrap is ConstFnWrap {
+        dst :: fresh_tmp(fn_ctx, "const_init", wrap.call_type)
         no_args: LocalId[] = []
         emit(fn_ctx, InstrCall {
-            .dst = dst, .callee = w.fn_symbol, .args = no_args, .type = w.call_type, .span = e.span,
+            .dst = dst, .callee = wrap.fn_symbol, .args = no_args,
+            .type = wrap.call_type, .span = e.span,
         })
         return dst
     }
@@ -997,8 +999,8 @@ is_dest_passing_shape :: fn(e: LoweredExpr) -> bool {
     if e is LoweredIf | LoweredBlock {
         return true
     }
-    if e is LoweredBinary as b {
-        return is_short_circuit_op(b.op)
+    if e is LoweredBinary {
+        return is_short_circuit_op(e.op)
     }
     return false
 }
@@ -1017,17 +1019,17 @@ build_expr_into :: fn(fn_ctx: FnCtx!, e: LoweredExpr, dest: LocalId) -> void {
     // No `current is null` early-return here : `build_expr` below (and `build_if`
     // / `build_block_into`) already handle a departed block, and narrowing
     // `current` up front would make the post-`build_expr` re-check read as dead.
-    if e is LoweredIf as v {
-        build_if(fn_ctx, v, dest)
+    if e is LoweredIf {
+        build_if(fn_ctx, e, dest)
         return
     }
-    if e is LoweredBlock as v {
-        build_block_into(fn_ctx, v, dest)
+    if e is LoweredBlock {
+        build_block_into(fn_ctx, e, dest)
         return
     }
-    if e is LoweredBinary as v {
-        if is_short_circuit_op(v.op) {
-            build_short_circuit(fn_ctx, v, dest)
+    if e is LoweredBinary {
+        if is_short_circuit_op(e.op) {
+            build_short_circuit(fn_ctx, e, dest)
             return
         }
     }

@@ -78,8 +78,8 @@ import_run :: fn(decls: AST.Decl[]) -> AST.ImportDecl[] {
     run: AST.ImportDecl[]! = []
     for di in 0..<decls.len() {
         d :: decls[di]
-        if d is AST.ImportDecl as im {
-            run.push(im)
+        if d is AST.ImportDecl {
+            run.push(d)
         } else {
             break
         }

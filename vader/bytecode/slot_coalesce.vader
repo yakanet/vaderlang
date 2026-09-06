@@ -17,10 +17,10 @@ module "vader/bytecode"
 /// Slot touched by `op` (read OR write), or -1 when the op doesn't
 /// touch a local slot.
 slot_touched :: fn(op: Op) -> i32 {
-    if op is LocalGet as g    { return g.slot }
-    if op is LocalSet as s    { return s.slot }
-    if op is LocalTee as t    { return t.slot }
-    if op is LocalField as lf { return lf.slot }
+    if op is LocalGet    { return op.slot }
+    if op is LocalSet    { return op.slot }
+    if op is LocalTee    { return op.slot }
+    if op is LocalField { return op.slot }
     return -1
 }
 
@@ -30,9 +30,9 @@ with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
     if op is LocalGet           { return LocalGet { .slot = new_slot } }
     if op is LocalSet           { return LocalSet { .slot = new_slot } }
     if op is LocalTee           { return LocalTee { .slot = new_slot } }
-    if op is LocalField as lf {
+    if op is LocalField {
         return LocalField {
-            .slot = new_slot, .type_id = lf.type_id, .field_index = lf.field_index,
+            .slot = new_slot, .type_id = op.type_id, .field_index = op.field_index,
         }
     }
     return op
@@ -268,8 +268,8 @@ foldable_self_copy :: fn(body: Op[], i: usize, n: usize, is_jump_target: bool[])
     if is_jump_target[i + 1] { return false }
     if body[i] is LocalGet as g {
         next :: body[i + 1]
-        if next is LocalTee as tee { return tee.slot == g.slot }
-        if next is LocalSet as st  { return st.slot  == g.slot }
+        if next is LocalTee { return next.slot == g.slot }
+        if next is LocalSet  { return next.slot  == g.slot }
     }
     return false
 }

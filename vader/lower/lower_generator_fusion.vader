@@ -71,9 +71,9 @@ build_gen_sink :: fn(
     binding_symbol: Symbol, binding_name: string,
     element_type: Type, body: LoweredBlock, span: Span,
 ) -> GenInlineSink {
-    if pattern is AST.TupleBinding as tup {
+    if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "gen_elem")
-        destructure :: emit_for_pattern_destructure(ctx, tup, elem_sym, element_type, span)
+        destructure :: emit_for_pattern_destructure(ctx, pattern, elem_sym, element_type, span)
         return GenInlineSink {
             .binding_symbol = elem_sym,
             .binding_name = elem_sym.name,
@@ -159,7 +159,7 @@ inline_gen_ident_call :: fn(
 resolve_owner_typed :: fn(ctx: FnLowerCtx, module: string) -> TypedProgram | null {
     if module == ctx.typed.resolved.path { return ctx.typed }
     m :: ctx.project.typed.modules[module]
-    if m is TypedProgram as ot { return ot }
+    if m is TypedProgram { return m }
     return null
 }
 
@@ -174,8 +174,8 @@ gen_instance_subst :: fn(
 ) -> Substitution | null {
     if fn_decl.type_params.len() == 0 { return new_substitution() }
     ft :: ctx.types.raw_expr_type(callee_id)
-    if ft is FnType as f {
-        return subst_from_concrete(fn_decl, owner_typed, infer_type_args(f, call, ctx))
+    if ft is FnType {
+        return subst_from_concrete(fn_decl, owner_typed, infer_type_args(ft, call, ctx))
     }
     return null
 }
@@ -270,13 +270,14 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     // loop — `chain`'s `other`, which fuses as an extra source instead.
     arg_is_data :: decl.params.len() == 2 && param1_loop is null
     extra_sources: GenSourceBinding[]! = []
-    if param1_loop is GenSourceLoop as sl {
+    if param1_loop is GenSourceLoop {
         other_expr :: fluent.fn_arg ?? return null
         other_src :: descend_chain(ctx, other_expr, true) ?? return null
-        other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, sl.loopvar_span)
+        other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, param1_loop.loopvar_span)
         if other_loopvar is null { return null }
         extra_sources.push(GenSourceBinding {
-            .source = other_src, .loopvar = other_loopvar, .inner = sl.inner, .prelude = sl.prelude,
+            .source = other_src, .loopvar = other_loopvar,
+            .inner = param1_loop.inner, .prelude = param1_loop.prelude,
         })
     }
     // No 3-source combinator exists — reject any loop over param ≥ 2.
@@ -334,10 +335,10 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     pending: AST.Stmt[]! = []
     for stmt in body.stmts {
         matched :: match_source_loop(stmt, decl)
-        if matched is GenSourceLoop as sl {
+        if matched is GenSourceLoop {
             loops.push(GenSourceLoop {
-                .param_index = sl.param_index, .loopvar_span = sl.loopvar_span,
-                .inner = sl.inner, .prelude = pending,
+                .param_index = matched.param_index, .loopvar_span = matched.loopvar_span,
+                .inner = matched.inner, .prelude = pending,
             })
             pending = []
         } else {
@@ -354,12 +355,12 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
 // param k — or null when it isn't a top-level loop over one of `decl`'s params. The
 // returned `prelude` is empty ; the caller fills it with the preceding non-loop run.
 match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | null {
-    if stmt is AST.ForStmt as fs {
-        if fs.form is AST.InFor as inf {
+    if stmt is AST.ForStmt {
+        if stmt.form is AST.InFor as inf {
             if inf.iter is AST.IdentExpr as it {
                 for i in 0..<decl.params.len() {
                     if decl.params[i].name == it.name {
-                        return GenSourceLoop { .param_index = i, .loopvar_span = loop_var_span(inf.loop_var, fs.span), .inner = fs.body, .prelude = [] }
+                        return GenSourceLoop { .param_index = i, .loopvar_span = loop_var_span(inf.loop_var, stmt.span), .inner = stmt.body, .prelude = [] }
                     }
                 }
             }
@@ -376,7 +377,7 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
     @partial match combinator_effective_callee(call.callee) {
         is AST.FieldExpr as fe -> {
             found :: find_free_fn_ufcs(ctx, ctx.types.expr_type(receiver), fe.field)
-            if found is UfcsMember as m { return m.symbol }
+            if found is UfcsMember { return found.symbol }
             return null
         }
         is AST.IdentExpr as id -> {
@@ -407,8 +408,8 @@ gen_combo_subst :: fn(
     // erased-head ambiguity — the same unambiguous binding the 1-arg path uses.
     if fn_arg is null { return subst_from_concrete(decl, owner, [source_elem]) }
     ft :: owner.decl_types[callee_sym.id]
-    if ft is FnType as f {
-        if f.params.len() < 2 { return null }
+    if ft is FnType {
+        if ft.params.len() < 2 { return null }
         bindings :: MutableMap<i32, Type> {}
         order: i32[]! = []
         // Bind the SOURCE element type-param from the post-fusion concrete
@@ -420,7 +421,7 @@ gen_combo_subst :: fn(
         // result (and the `order` / `concrete_args`) is byte-identical to the old
         // path — see the task #25 note in project_stream_fusion_generators.
         source_bound := false
-        if f.params[0] is TraitType as p0 {
+        if ft.params[0] is TraitType as p0 {
             if p0.args.len() >= 1 {
                 unify_params(p0.args[0], source_elem, bindings, order, ctx)
                 source_bound = true
@@ -429,12 +430,12 @@ gen_combo_subst :: fn(
         // Non-`Iterator<T>` self shouldn't occur for these combinators ; keep the
         // receiver-unify fallback so an unexpected shape behaves as before.
         if !source_bound {
-            unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
+            unify_params(ft.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
         }
         // Then the fn arg, for any param it introduces beyond the source element
         // (map's `U` from `f: fn(T) -> U`). `T` is already pinned, and
         // `unify_params` keeps the first binding, so a concrete arg just agrees.
-        unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
+        unify_params(ft.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
         concrete_args: Type[]! = []
         for id in order {
             v :: bindings[id] ?? return null
@@ -499,19 +500,19 @@ fuse_source_loop :: fn(
     outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
     inner_lowered :: recurse(gen_ctx, binding.inner)
-    if inner_lowered is LoweredBlock as inner_block {
+    if inner_lowered is LoweredBlock {
         inner_template :: BodyTemplate {
             .binding_name = binding.loopvar.name,
             .binding_symbol = binding.loopvar,
             .element_type = chain_element_type(binding.source),
-            .user_body = inner_block,
+            .user_body = inner_lowered,
         }
         source_stmts :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
         out: LoweredStmt[]! = []
         if binding.prelude.len() > 0 {
             prelude_expr: AST.Expr = AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
             prelude_lowered :: recurse(gen_ctx, prelude_expr)
-            if prelude_lowered is LoweredBlock as pb { out.push_all(pb.stmts) }
+            if prelude_lowered is LoweredBlock { out.push_all(prelude_lowered.stmts) }
         }
         out.push_all(source_stmts)
         return out

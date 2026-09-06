@@ -87,11 +87,11 @@ bce_build_purity_ctx :: fn(project: LoweredProject) -> BcePurityCtx {
     by_symid :: MutableMap<i32, LoweredFnDecl> {}
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                by_mangle[fd.mangled] = fd
-                s :: fd.origin.symbol
-                if s != null && fd.origin.type_arguments.len() == 0 {
-                    by_symid[s.id] = fd
+            if d is LoweredFnDecl {
+                by_mangle[d.mangled] = d
+                s :: d.origin.symbol
+                if s != null && d.origin.type_arguments.len() == 0 {
+                    by_symid[s.id] = d
                 }
             }
         }
@@ -108,8 +108,8 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> void {
     pctx :: bce_build_purity_ctx(project)
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                body :: fd.body
+            if d is LoweredFnDecl {
+                body :: d.body
                 if body != null {
                     bh_block(body, pctx)
                 }
@@ -120,7 +120,7 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> void {
 
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
 
-bh_block :: fn(b: LoweredBlock, pctx: BcePurityCtx!) -> void {
+bh_block :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
     for st in b.stmts {
         bh_stmt(st, pctx)
     }
@@ -131,103 +131,103 @@ bh_block :: fn(b: LoweredBlock, pctx: BcePurityCtx!) -> void {
     bh_pair(b, pctx)
 }
 
-bh_stmt :: fn(s: LoweredStmt, pctx: BcePurityCtx!) -> void {
-    if s is LoweredLet as st {
-        bh_expr(st.value, pctx)
-    } else if s is LoweredAssign as st {
-        bh_expr(st.target, pctx)
-        bh_expr(st.value, pctx)
-    } else if s is LoweredCellSet as st {
-        bh_expr(st.target, pctx)
-        bh_expr(st.value, pctx)
-    } else if s is LoweredExprStmt as st {
-        bh_expr(st.expr, pctx)
-    } else if s is LoweredReturn as st {
-        v :: st.value
+bh_stmt :: fn(s: LoweredStmt!, pctx: BcePurityCtx!) -> void {
+    if s is LoweredLet {
+        bh_expr(s.value, pctx)
+    } else if s is LoweredAssign {
+        bh_expr(s.target, pctx)
+        bh_expr(s.value, pctx)
+    } else if s is LoweredCellSet {
+        bh_expr(s.target, pctx)
+        bh_expr(s.value, pctx)
+    } else if s is LoweredExprStmt {
+        bh_expr(s.expr, pctx)
+    } else if s is LoweredReturn {
+        v :: s.value
         if v != null {
             bh_expr(v, pctx)
         }
-    } else if s is LoweredYield as st {
-        bh_expr(st.value, pctx)
-    } else if s is LoweredAwait as st {
-        bh_expr(st.awaited, pctx)
-    } else if s is LoweredLoop as st {
-        c :: st.cond
+    } else if s is LoweredYield {
+        bh_expr(s.value, pctx)
+    } else if s is LoweredAwait {
+        bh_expr(s.awaited, pctx)
+    } else if s is LoweredLoop {
+        c :: s.cond
         if c != null {
             bh_expr(c, pctx)
         }
-        bh_block(st.body, pctx)
-    } else if s is LoweredDeferPush as st {
-        bh_expr(st.thunk, pctx)
+        bh_block(s.body, pctx)
+    } else if s is LoweredDeferPush {
+        bh_expr(s.thunk, pctx)
     }
     // Break / Continue / DeferPopExec : no nested block.
 }
 
-bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx!) -> void {
-    if e is LoweredBlock as x {
-        bh_block(x, pctx)
-    } else if e is LoweredIf as x {
-        bh_expr(x.cond, pctx)
-        bh_block(x.then_block, pctx)
-        eb :: x.else_block
+bh_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
+    if e is LoweredBlock {
+        bh_block(e, pctx)
+    } else if e is LoweredIf {
+        bh_expr(e.cond, pctx)
+        bh_block(e.then_block, pctx)
+        eb :: e.else_block
         if eb != null {
             bh_block(eb, pctx)
         }
-    } else if e is LoweredBinary as x {
-        bh_expr(x.left, pctx)
-        bh_expr(x.right, pctx)
-    } else if e is LoweredUnary as x {
-        bh_expr(x.operand, pctx)
-    } else if e is LoweredCast as x {
-        bh_expr(x.value, pctx)
-    } else if e is LoweredTypeCheck as x {
-        bh_expr(x.value, pctx)
-    } else if e is LoweredIndex as x {
-        bh_expr(x.target, pctx)
-        bh_expr(x.index, pctx)
-    } else if e is LoweredFieldAccess as x {
-        bh_expr(x.target, pctx)
-    } else if e is LoweredArrayLen as x {
-        bh_expr(x.target, pctx)
-    } else if e is LoweredCall as x {
-        bh_expr(x.callee, pctx)
-        for a in x.args {
+    } else if e is LoweredBinary {
+        bh_expr(e.left, pctx)
+        bh_expr(e.right, pctx)
+    } else if e is LoweredUnary {
+        bh_expr(e.operand, pctx)
+    } else if e is LoweredCast {
+        bh_expr(e.value, pctx)
+    } else if e is LoweredTypeCheck {
+        bh_expr(e.value, pctx)
+    } else if e is LoweredIndex {
+        bh_expr(e.target, pctx)
+        bh_expr(e.index, pctx)
+    } else if e is LoweredFieldAccess {
+        bh_expr(e.target, pctx)
+    } else if e is LoweredArrayLen {
+        bh_expr(e.target, pctx)
+    } else if e is LoweredCall {
+        bh_expr(e.callee, pctx)
+        for a in e.args {
             bh_expr(a, pctx)
         }
-    } else if e is LoweredVirtualCall as x {
-        bh_expr(x.receiver, pctx)
-        for a in x.args {
+    } else if e is LoweredVirtualCall {
+        bh_expr(e.receiver, pctx)
+        for a in e.args {
             bh_expr(a, pctx)
         }
-    } else if e is LoweredIntrinsicCall as x {
-        for a in x.args {
+    } else if e is LoweredIntrinsicCall {
+        for a in e.args {
             bh_expr(a, pctx)
         }
-    } else if e is LoweredStructLit as x {
-        for f in x.fields {
+    } else if e is LoweredStructLit {
+        for f in e.fields {
             bh_expr(f.value, pctx)
         }
-    } else if e is LoweredArrayLit as x {
-        for el in x.elements {
+    } else if e is LoweredArrayLit {
+        for el in e.elements {
             bh_expr(el, pctx)
         }
-    } else if e is LoweredArrayPush as x {
-        bh_expr(x.target, pctx)
-        bh_expr(x.value, pctx)
-    } else if e is LoweredArraySlice as x {
-        bh_expr(x.target, pctx)
-        bh_expr(x.lo, pctx)
-        bh_expr(x.hi, pctx)
-    } else if e is LoweredStringSlice as x {
-        bh_expr(x.target, pctx)
-        bh_expr(x.lo, pctx)
-        bh_expr(x.hi, pctx)
-    } else if e is LoweredCellNew as x {
-        bh_expr(x.value, pctx)
-    } else if e is LoweredCellGet as x {
-        bh_expr(x.target, pctx)
-    } else if e is LoweredMakeClosure as x {
-        bh_expr(x.env, pctx)
+    } else if e is LoweredArrayPush {
+        bh_expr(e.target, pctx)
+        bh_expr(e.value, pctx)
+    } else if e is LoweredArraySlice {
+        bh_expr(e.target, pctx)
+        bh_expr(e.lo, pctx)
+        bh_expr(e.hi, pctx)
+    } else if e is LoweredStringSlice {
+        bh_expr(e.target, pctx)
+        bh_expr(e.lo, pctx)
+        bh_expr(e.hi, pctx)
+    } else if e is LoweredCellNew {
+        bh_expr(e.value, pctx)
+    } else if e is LoweredCellGet {
+        bh_expr(e.target, pctx)
+    } else if e is LoweredMakeClosure {
+        bh_expr(e.env, pctx)
     }
     // Leaves (lits / ident / data-const / unreachable / type-const) : nothing.
 }
@@ -239,18 +239,18 @@ bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx!) -> void {
 // the next loop. A block can hold several such pairs back-to-back (`a.chain(b)`
 // fuses to two sequential source loops, and any N-way sequential fusion likewise);
 // each is hoisted independently, not just the last.
-bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx!) -> void {
+bh_pair :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
     pending_len: LoweredArrayLen | null = null
     for st in b.stmts {
-        if st is LoweredLet as ll {
-            if ll.value is LoweredArrayLen as al {
+        if st is LoweredLet {
+            if st.value is LoweredArrayLen as al {
                 if al.bce_recheck {
                     pending_len = al
                 }
             }
-        } else if st is LoweredLoop as lp {
+        } else if st is LoweredLoop {
             if pending_len != null {
-                bh_try_hoist(pending_len, lp, pctx)
+                bh_try_hoist(pending_len, st, pctx)
                 pending_len = null
             }
         }
@@ -297,80 +297,80 @@ bh_mark_idx_block :: fn(b: LoweredBlock!) -> void {
 }
 
 bh_mark_idx_stmt :: fn(s: LoweredStmt!) -> void {
-    if s is LoweredLet as st {
-        bh_mark_idx_expr(st.value)
-    } else if s is LoweredAssign as st {
-        bh_mark_idx_expr(st.target)
-        bh_mark_idx_expr(st.value)
-    } else if s is LoweredCellSet as st {
-        bh_mark_idx_expr(st.target)
-        bh_mark_idx_expr(st.value)
-    } else if s is LoweredExprStmt as st {
-        bh_mark_idx_expr(st.expr)
-    } else if s is LoweredReturn as st {
-        v :: st.value
+    if s is LoweredLet {
+        bh_mark_idx_expr(s.value)
+    } else if s is LoweredAssign {
+        bh_mark_idx_expr(s.target)
+        bh_mark_idx_expr(s.value)
+    } else if s is LoweredCellSet {
+        bh_mark_idx_expr(s.target)
+        bh_mark_idx_expr(s.value)
+    } else if s is LoweredExprStmt {
+        bh_mark_idx_expr(s.expr)
+    } else if s is LoweredReturn {
+        v :: s.value
         if v != null {
             bh_mark_idx_expr(v)
         }
-    } else if s is LoweredYield as st {
-        bh_mark_idx_expr(st.value)
-    } else if s is LoweredAwait as st {
-        bh_mark_idx_expr(st.awaited)
-    } else if s is LoweredDeferPush as st {
-        bh_mark_idx_expr(st.thunk)
+    } else if s is LoweredYield {
+        bh_mark_idx_expr(s.value)
+    } else if s is LoweredAwait {
+        bh_mark_idx_expr(s.awaited)
+    } else if s is LoweredDeferPush {
+        bh_mark_idx_expr(s.thunk)
     }
     // LoweredLoop : NOT descended (nested loop owns its own accesses).
     // Break / Continue / DeferPopExec : nothing.
 }
 
 bh_mark_idx_expr :: fn(e: LoweredExpr!) -> void {
-    if e is LoweredIndex as x {
-        if x.bce_recheck {
-            x.bounds_safe = true
-            x.bce_recheck = false
+    if e is LoweredIndex {
+        if e.bce_recheck {
+            e.bounds_safe = true
+            e.bce_recheck = false
         }
-        bh_mark_idx_expr(x.target)
-        bh_mark_idx_expr(x.index)
-    } else if e is LoweredBlock as x {
-        bh_mark_idx_block(x)
-    } else if e is LoweredIf as x {
-        bh_mark_idx_expr(x.cond)
-        bh_mark_idx_block(x.then_block)
-        eb :: x.else_block
+        bh_mark_idx_expr(e.target)
+        bh_mark_idx_expr(e.index)
+    } else if e is LoweredBlock {
+        bh_mark_idx_block(e)
+    } else if e is LoweredIf {
+        bh_mark_idx_expr(e.cond)
+        bh_mark_idx_block(e.then_block)
+        eb :: e.else_block
         if eb != null {
             bh_mark_idx_block(eb)
         }
-    } else if e is LoweredBinary as x {
-        bh_mark_idx_expr(x.left)
-        bh_mark_idx_expr(x.right)
-    } else if e is LoweredUnary as x {
-        bh_mark_idx_expr(x.operand)
-    } else if e is LoweredCast as x {
-        bh_mark_idx_expr(x.value)
-    } else if e is LoweredTypeCheck as x {
-        bh_mark_idx_expr(x.value)
-    } else if e is LoweredFieldAccess as x {
-        bh_mark_idx_expr(x.target)
-    } else if e is LoweredArrayLen as x {
-        bh_mark_idx_expr(x.target)
-    } else if e is LoweredCall as x {
-        bh_mark_idx_expr(x.callee)
-        for a in x.args {
+    } else if e is LoweredBinary {
+        bh_mark_idx_expr(e.left)
+        bh_mark_idx_expr(e.right)
+    } else if e is LoweredUnary {
+        bh_mark_idx_expr(e.operand)
+    } else if e is LoweredCast {
+        bh_mark_idx_expr(e.value)
+    } else if e is LoweredTypeCheck {
+        bh_mark_idx_expr(e.value)
+    } else if e is LoweredFieldAccess {
+        bh_mark_idx_expr(e.target)
+    } else if e is LoweredArrayLen {
+        bh_mark_idx_expr(e.target)
+    } else if e is LoweredCall {
+        bh_mark_idx_expr(e.callee)
+        for a in e.args {
             bh_mark_idx_expr(a)
         }
-    } else if e is LoweredVirtualCall as x {
-        bh_mark_idx_expr(x.receiver)
-        for a in x.args {
+    } else if e is LoweredVirtualCall {
+        bh_mark_idx_expr(e.receiver)
+        for a in e.args {
             bh_mark_idx_expr(a)
         }
-    } else if e is LoweredIntrinsicCall as x {
-        for a in x.args {
+    } else if e is LoweredIntrinsicCall {
+        for a in e.args {
             bh_mark_idx_expr(a)
         }
-    } else if e is LoweredCellNew as x {
-        bh_mark_idx_expr(x.value)
-    } else if e is LoweredCellGet as x {
-        bh_mark_idx_expr(x.target)
+    } else if e is LoweredCellNew {
+        bh_mark_idx_expr(e.value)
+    } else if e is LoweredCellGet {
+        bh_mark_idx_expr(e.target)
     }
     // Leaves + array/struct literals / slices / closures : a synthesized loop-var
     // access never nests there, so no descent needed.

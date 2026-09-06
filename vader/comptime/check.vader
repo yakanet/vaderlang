@@ -115,10 +115,10 @@ evaluate_module_decls :: fn(
         // case the diagnostic stands.
         if result.vm_required {
             symbol :: lookup_const_symbol(decl, typed)
-            if symbol is Symbol as s {
-                record :: build_vm_required(decl, s, typed, module_id)
-                if record is VmRequiredDecl as vr {
-                    project.vm_required.push(vr)
+            if symbol is Symbol {
+                record :: build_vm_required(decl, symbol, typed, module_id)
+                if record is VmRequiredDecl {
+                    project.vm_required.push(record)
                     continue
                 }
             }
@@ -144,11 +144,11 @@ evaluate_module_decls :: fn(
             is AST.ConstDecl as cd -> {
                 if has_comptime_decorator(cd) { continue }
                 symbol :: lookup_const_symbol(cd, typed) ?? continue
-                if symbol is Symbol as s {
-                    if !(program.comptime_decls[s.id] is null) { continue }
+                if symbol is Symbol {
+                    if !(program.comptime_decls[symbol.id] is null) { continue }
                     result :: evaluate_expr(cd.value, context)
                     if result.value !is null {
-                        program.comptime_decls[s.id] = result.value
+                        program.comptime_decls[symbol.id] = result.value
                     }
                 }
             }
@@ -196,10 +196,10 @@ bake_file_exprs :: fn(
                 if cd.value is AST.IntrinsicCallExpr as ic {
                     if ic.name == "file" {
                         baked :: project.file_exprs[ic.id]
-                        if baked is string as content {
+                        if baked is string {
                             symbol :: lookup_const_symbol(cd, typed)
-                            if symbol is Symbol as s {
-                                project.file_baked_consts[s.id] = string_val(content)
+                            if symbol is Symbol {
+                                project.file_baked_consts[symbol.id] = string_val(baked)
                             }
                         }
                     }
@@ -243,7 +243,7 @@ read_relative_file :: fn(raw_path: string, source_dir: string) -> string | null 
         "${source_dir}/${raw_path}"
     }
     result :: read_file_string(abs)
-    if result is string as s { return s }
+    if result is string { return result }
     return null
 }
 
@@ -315,8 +315,8 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
 }
 
 collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]!) -> void {
-    if e is AST.IntrinsicCallExpr as ic {
-        if ic.name == "file" && ic.args.len() == 1 { out.push(ic) }
+    if e is AST.IntrinsicCallExpr {
+        if e.name == "file" && e.args.len() == 1 { out.push(e) }
     }
     match e {
         is AST.BlockExpr as b -> { collect_in_block(b, out) }
@@ -348,7 +348,7 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]!) -> void {
         }
         is AST.StringLitExpr as sle -> {
             for part in sle.parts {
-                if part is AST.StringLitInterp as interp { collect_in_expr(interp.expr, out) }
+                if part is AST.StringLitInterp { collect_in_expr(part.expr, out) }
             }
         }
         _ -> {}

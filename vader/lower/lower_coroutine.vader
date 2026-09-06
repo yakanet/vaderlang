@@ -240,9 +240,9 @@ gb_is_leaf :: fn(s: LoweredStmt) -> bool {
     if s is LoweredBreak    { return false }
     if s is LoweredContinue { return false }
     if s is LoweredReturn   { return false }
-    if s is LoweredExprStmt as e {
-        if e.expr is LoweredIf    { return false }
-        if e.expr is LoweredBlock { return false }
+    if s is LoweredExprStmt {
+        if s.expr is LoweredIf    { return false }
+        if s.expr is LoweredBlock { return false }
     }
     return true
 }
@@ -285,27 +285,27 @@ gb_compile_block :: fn(gb: GenBuild!, block: LoweredBlock, cont: i64) -> i64 {
 
 // Compile a control-flow stmt with continuation `cont`. Returns entry state.
 gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
-    if s is LoweredYield as y {
+    if s is LoweredYield {
         // Reaching the yield: record the resume state (`cont`), emit the value.
-        return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, y.value)])
+        return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, s.value)])
     }
-    if s is LoweredAwait as aw {
+    if s is LoweredAwait {
         // Model A : store the child once, then hand off to a re-entrant drive
         // state that resumes it on every `resume` until it completes.
-        field :: gb.field_map[aw.target.id]
+        field :: gb.field_map[s.target.id]
         if field == null { panic("async block-split: await target not spilled") }
         drive :: gb_reserve(gb)
-        entry :: gb_new_state(gb, [gb_store_awaited(gb, aw.awaited), gb_set_state(gb, drive)])
-        gb_fill(gb, drive, gb_drive_state(gb, field, aw.target_type, cont))
+        entry :: gb_new_state(gb, [gb_store_awaited(gb, s.awaited), gb_set_state(gb, drive)])
+        gb_fill(gb, drive, gb_drive_state(gb, field, s.target_type, cont))
         return entry
     }
-    if s is LoweredReturn as r {
+    if s is LoweredReturn {
         if gb.is_async {
             // Async completion : mark done, then return the value `T`. The routed
             // `r.value` refs already point at `self.<field>`. A bare `return;`
             // (void body) has no value — complete with the `null` done-marker so
             // the resume return stays `null | Suspended`, never a valueless pop.
-            value :: if r.value == null { gb_null_lit(gb) } else { r.value }
+            value :: if s.value == null { gb_null_lit(gb) } else { s.value }
             return gb_new_state(gb, [
                 gb_set_state(gb, i64(DONE_STATE)),
                 LoweredReturn { .span = gb.span, .value = value },
@@ -314,8 +314,8 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
         // A generator's bare `return` = stop the stream (exhausted forever).
         return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_null_return(gb)])
     }
-    if s is LoweredExprStmt as es {
-        if es.expr is LoweredIf as ie {
+    if s is LoweredExprStmt {
+        if s.expr is LoweredIf as ie {
             then_entry :: gb_compile_block(gb, ie.then_block, cont)
             else_entry :: if ie.else_block == null { cont } else { gb_compile_block(gb, ie.else_block, cont) }
             // A dispatch state: `if cond { state = then } else { state = else }`.
@@ -326,22 +326,22 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
             }
             return gb_new_state(gb, [LoweredExprStmt { .span = gb.span, .expr = branch }])
         }
-        if es.expr is LoweredBlock as bl {
+        if s.expr is LoweredBlock as bl {
             return gb_compile_block(gb, bl, cont)
         }
     }
-    if s is LoweredLoop as lp {
+    if s is LoweredLoop {
         header :: gb_reserve(gb)
-        gb.loop_stack.push(LoopFrame { .label = lp.label, .header = header, .exit = cont })
-        body_entry :: gb_compile_block(gb, lp.body, header)   // fall-off = back-edge → header
+        gb.loop_stack.push(LoopFrame { .label = s.label, .header = header, .exit = cont })
+        body_entry :: gb_compile_block(gb, s.body, header)   // fall-off = back-edge → header
         gb.loop_stack.remove_last()
-        if lp.cond == null {
+        if s.cond == null {
             // Infinite loop (for-in shape): header just enters the body.
             gb_fill(gb, header, [gb_set_state(gb, body_entry)])
         } else {
             // `while cond`: header tests the condition.
             hdr_if :: LoweredIf {
-                .span = gb.span, .type = TY_VOID, .cond = lp.cond,
+                .span = gb.span, .type = TY_VOID, .cond = s.cond,
                 .then_block = gb_block(gb, [gb_set_state(gb, body_entry)]),
                 .else_block = gb_block(gb, [gb_set_state(gb, cont)]),
             }
@@ -349,12 +349,12 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
         }
         return header
     }
-    if s is LoweredBreak as br {
-        frame :: gb_resolve_loop_frame(gb, br.label)
+    if s is LoweredBreak {
+        frame :: gb_resolve_loop_frame(gb, s.label)
         return gb_new_state(gb, [gb_set_state(gb, frame.exit)])
     }
-    if s is LoweredContinue as cont {
-        frame :: gb_resolve_loop_frame(gb, cont.label)
+    if s is LoweredContinue {
+        frame :: gb_resolve_loop_frame(gb, s.label)
         return gb_new_state(gb, [gb_set_state(gb, frame.header)])
     }
     // Unreachable: `gb_compile_ctrl` is only called on non-leaf stmts, and the

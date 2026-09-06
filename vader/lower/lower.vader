@@ -111,19 +111,19 @@ lower_project_impl :: fn(
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
             imported_decls: LoweredDecl[]! = []
-            if imported_loaded is LoadedModule as sl {
-                if imported_typed_opt is TypedProgram as imported_typed {
-                    for d in module_decls(sl) {
-                        if d is FnDecl as fd {
-                            if fd.body is null && fd.type_params.len() == 0 {
-                                lowered :: lower_fn_decl(fd, imported_typed, project_ctx, diags)
+            if imported_loaded is LoadedModule {
+                if imported_typed_opt is TypedProgram {
+                    for d in module_decls(imported_loaded) {
+                        if d is FnDecl {
+                            if d.body is null && d.type_params.len() == 0 {
+                                lowered :: lower_fn_decl(d, imported_typed_opt, project_ctx, diags)
                                 if lowered != null {
                                     imported_decls.push(lowered)
                                     // Pre-seed the call-site harvest's seen-set so
                                     // `materialize_nongeneric_imported_fns` doesn't
                                     // emit a duplicate decl for the same symbol.
                                     seed_harvest_seen(
-                                        sl.collected.symbols, fd.name,
+                                        imported_loaded.collected.symbols, d.name,
                                         project_ctx.nongeneric_imported_fns,
                                     )
                                 }
@@ -133,7 +133,7 @@ lower_project_impl :: fn(
                 }
                 project.modules[module_id] = LoweredModule {
                     .module_id    = module_id,
-                    .display_path = sl.module.display_path,
+                    .display_path = imported_loaded.module.display_path,
                     .decls        = imported_decls,
                 }
             }
@@ -156,16 +156,16 @@ lower_project_impl :: fn(
         // branch above seeds each non-entry module's bodyless fns ; this is the
         // entry's with-body analogue, now that the harvest is module-agnostic.
         for d in decls {
-            if d is FnDecl as fd {
-                if fd.type_params.len() == 0 {
+            if d is FnDecl {
+                if d.type_params.len() == 0 {
                     seed_harvest_seen(
-                        module_loaded.collected.symbols, fd.name,
+                        module_loaded.collected.symbols, d.name,
                         project_ctx.nongeneric_imported_fns,
                     )
                 }
-            } else if d is ConstDecl as cd {
+            } else if d is ConstDecl {
                 seed_harvest_seen(
-                    module_loaded.collected.symbols, cd.name,
+                    module_loaded.collected.symbols, d.name,
                     project_ctx.nongeneric_imported_consts,
                 )
             }
@@ -316,8 +316,8 @@ lower_decl_list :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
     diags: Diagnostic[], module_decls: Decl[],
 ) -> LoweredDecl[] {
-    if decl is ImplDecl as impl_decl {
-        return lower_impl_member_list(impl_decl, typed, project_ctx, diags, module_decls)
+    if decl is ImplDecl {
+        return lower_impl_member_list(decl, typed, project_ctx, diags, module_decls)
     }
     out: LoweredDecl[]! = []
     result :: lower_decl(decl, typed, project_ctx, diags, module_decls)
@@ -359,7 +359,7 @@ seed_harvest_seen :: fn(
     symbols: MutableMap<string, Symbol>, name: string, seen: MutableMap<i32, bool>!,
 ) -> void {
     sym :: symbols[name]
-    if sym is Symbol as s { seen[s.id] = true }
+    if sym is Symbol { seen[sym.id] = true }
 }
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {

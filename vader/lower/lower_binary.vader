@@ -16,8 +16,8 @@ import "vader/types"
 // cast's inner union value keeps the runtime tag intact (the narrowing is a
 // compile-time view, so the check on the original box is what we want).
 strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
-    if e is LoweredCast as c {
-        if type_of(c.value) is UnionType { return c.value }
+    if e is LoweredCast {
+        if type_of(e.value) is UnionType { return e.value }
     }
     return e
 }
@@ -97,14 +97,14 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
             back :: array_backing(coll_type)
             if back != null { find_impl_member_for(ctx, back, METHOD_CONTAINS) } else { direct }
         }
-        if member is UfcsMember as found {
+        if member is UfcsMember {
             args: LoweredExpr[]! = []
             args.push(lower_expr(ctx, binary.right))
             args.push(lower_expr(ctx, binary.left))
             call :: LoweredCall {
                 .span = binary.span, .type = TY_BOOL,
                 .callee = LoweredIdent {
-                    .span = binary.span, .type = TY_BOOL, .symbol = found.symbol,
+                    .span = binary.span, .type = TY_BOOL, .symbol = member.symbol,
                 },
                 .args = args,
             }
@@ -181,7 +181,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
 // StringBuilder-chain concat lowering. A standalone fn (not an `&& as` guard)
 // to avoid the `as`-binding-inside-`&&` miscompile.
 is_string_type :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return p.name == "string" }
+    if t is PrimitiveType { return t.name == "string" }
     return false
 }
 
@@ -199,10 +199,10 @@ is_primitive_string_concat :: fn(ctx: FnLowerCtx, b: BinaryExpr) -> bool {
 // `((a + b) + c)` collects `[a, b, c]`. A nested node is recursed into only when
 // it is itself a primitive string `+` ; everything else is an opaque leaf.
 collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr[]!) -> void {
-    if e is BinaryExpr as b {
-        if is_primitive_string_concat(ctx, b) {
-            collect_concat_operands(ctx, b.left, out)
-            collect_concat_operands(ctx, b.right, out)
+    if e is BinaryExpr {
+        if is_primitive_string_concat(ctx, e) {
+            collect_concat_operands(ctx, e.left, out)
+            collect_concat_operands(ctx, e.right, out)
             return
         }
     }
@@ -211,7 +211,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr[]!) ->
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
     info :: op_trait_method(binary.op) ?? return null
-    if info is OpTraitInfo as oti {
+    if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
         // TypeParam-bound + erased Any receivers route through
         // virtual dispatch — the boxed value's tag picks the right
@@ -222,40 +222,40 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         // BinaryOp with the call as left + `0` as right (compare
         // returns i32).
         if left_ty is TypeParamType || left_ty is AnyType {
-            return lower_op_overload_via_vcall(ctx, binary, type, oti)
+            return lower_op_overload_via_vcall(ctx, binary, type, info)
         }
         left_name :: type_surface_name(left_ty)
         if left_name == "" { return null }
         // Primitive operands stay on the built-in path — primitives
         // have their own arithmetic / comparison ops.
         if left_ty is PrimitiveType { return null }
-        member :: find_impl_member_for(ctx, left_ty, oti.method_name) ?? return null
+        member :: find_impl_member_for(ctx, left_ty, info.method_name) ?? return null
         // Verify the impl actually targets `oti.trait_name` — UFCS
         // lookup is name-based and could match a same-named member
         // on a different trait.
-        if !impl_provides(ctx, left_ty, oti.trait_name, oti.method_name) { return null }
-        if member is UfcsMember as found {
+        if !impl_provides(ctx, left_ty, info.trait_name, info.method_name) { return null }
+        if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
             call_args: LoweredExpr[]! = []
             call_args.push(lowered_left)
             call_args.push(lowered_right)
-            if oti.shape == OpShape.DirectCall {
+            if info.shape == OpShape.DirectCall {
                 // Arithmetic + Equals : returns the binary's static type.
                 return LoweredCall {
                     .span = binary.span, .type = type,
                     .callee = LoweredIdent {
-                        .span = binary.span, .type = type, .symbol = found.symbol,
+                        .span = binary.span, .type = type, .symbol = member.symbol,
                     },
                     .args = call_args,
                 }
             }
-            if oti.shape == OpShape.NotCall {
+            if info.shape == OpShape.NotCall {
                 // `a != b` → `not(equals(a, b))`.
                 equals_call :: LoweredCall {
                     .span = binary.span, .type = TY_BOOL,
                     .callee = LoweredIdent {
-                        .span = binary.span, .type = TY_BOOL, .symbol = found.symbol,
+                        .span = binary.span, .type = TY_BOOL, .symbol = member.symbol,
                     },
                     .args = call_args,
                 }
@@ -269,7 +269,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
             compare_call :: LoweredCall {
                 .span = binary.span, .type = mk_primitive("i32"),
                 .callee = LoweredIdent {
-                    .span = binary.span, .type = mk_primitive("i32"), .symbol = found.symbol,
+                    .span = binary.span, .type = mk_primitive("i32"), .symbol = member.symbol,
                 },
                 .args = call_args,
             }
@@ -398,10 +398,10 @@ is_null_lit :: fn(e: Expr) -> bool {
 }
 
 is_union_with_null :: fn(type: Type) -> bool {
-    if type is UnionType as u {
-        for v in u.variants {
-            if v is PrimitiveType as p {
-                if p.name == "null" { return true }
+    if type is UnionType {
+        for v in type.variants {
+            if v is PrimitiveType {
+                if v.name == "null" { return true }
             }
         }
         return false

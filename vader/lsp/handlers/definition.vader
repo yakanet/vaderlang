@@ -168,11 +168,11 @@ ufcs_member :: fn(state: ServerState, cached: ProjectCache, recv: Type, name: st
         typed :: cached.result.all_modules[id] ?? continue
         for f in m.module.files {
             for d in f.program.decls {
-                if d is AST.FnDecl as fd {
-                    if fd.name != name || fd.params.len() == 0 {
+                if d is AST.FnDecl {
+                    if d.name != name || d.params.len() == 0 {
                         continue
                     }
-                    pt :: typed.param_types[fd.params[0].span.hash()] ?? continue
+                    pt :: typed.param_types[d.params[0].span.hash()] ?? continue
                     if display_type(pt) != want {
                         continue
                     }
@@ -226,11 +226,11 @@ array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> Ex
     for [_, m] in cached.project.modules {
         for f in m.module.files {
             for d in f.program.decls {
-                if d is AST.ImplDecl as im {
-                    if !(im.for_type is AST.ArrayTypeExpr) {
+                if d is AST.ImplDecl {
+                    if !(d.for_type is AST.ArrayTypeExpr) {
                         continue
                     }
-                    hit :: member_in_declaring_module(state, im.span.start.file, im.trait_name, name)
+                    hit :: member_in_declaring_module(state, d.span.start.file, d.trait_name, name)
                     if hit != null {
                         return hit
                     }
@@ -259,8 +259,8 @@ member_owner_type :: fn(
     // then fell back to searching by name and picked another enum's `Struct`
     // from another file. The SCRUTINEE is what the pattern is matched against,
     // so it is the type that owns the variant.
-    if e is AST.MatchExpr as m {
-        return typed.expr_types[m.scrutinee.id]
+    if e is AST.MatchExpr {
+        return typed.expr_types[e.scrutinee.id]
     }
     return typed.expr_types[e.id]
 }

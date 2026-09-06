@@ -13,8 +13,8 @@ import "vader/lsp"
 
 cmd_lsp :: fn(args: string[]) -> i32 {
     parsed :: parse_action("lsp", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     return run_server(parsed.string_flag("library-root", ""), parsed.string_flag("vader-root", ""))
 }

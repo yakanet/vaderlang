@@ -127,8 +127,8 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     }
     if impl_.for_type is GenericInstExpr as gi {
         for ta in gi.type_args {
-            if ta is IdentExpr as id {
-                if name_is_type_param(resolved, id.name) {
+            if ta is IdentExpr {
+                if name_is_type_param(resolved, ta.name) {
                     return true
                 }
             }

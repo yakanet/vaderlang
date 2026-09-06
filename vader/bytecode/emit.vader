@@ -198,20 +198,20 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
     if out_len < 2 { return null }
     right :: out[out_len - 1]
     left  :: out[out_len - 2]
-    if left is I32Const as l32 {
-        if right is I32Const as r32 {
-            if op is I32Add { return I32Const { .value = l32.value + r32.value } }
-            if op is I32Sub { return I32Const { .value = l32.value - r32.value } }
+    if left is I32Const {
+        if right is I32Const {
+            if op is I32Add { return I32Const { .value = left.value + right.value } }
+            if op is I32Sub { return I32Const { .value = left.value - right.value } }
             if op is I32Mul {
-                return I32Const { .value = l32.value * r32.value }
+                return I32Const { .value = left.value * right.value }
             }
         }
     }
-    if left is I64Const as l64 {
-        if right is I64Const as r64 {
-            if op is I64Add { return I64Const { .value = l64.value + r64.value } }
-            if op is I64Sub { return I64Const { .value = l64.value - r64.value } }
-            if op is I64Mul { return I64Const { .value = l64.value * r64.value } }
+    if left is I64Const {
+        if right is I64Const {
+            if op is I64Add { return I64Const { .value = left.value + right.value } }
+            if op is I64Sub { return I64Const { .value = left.value - right.value } }
+            if op is I64Mul { return I64Const { .value = left.value * right.value } }
         }
     }
     return null
@@ -257,9 +257,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         tee_count.push(0)
     }
     for op in body {
-        if op is LocalSet as cs { set_count[usize(cs.slot)] += 1 }
-        if op is LocalGet as cg { get_count[usize(cg.slot)] += 1 }
-        if op is LocalTee as ct { tee_count[usize(ct.slot)] += 1 }
+        if op is LocalSet { set_count[usize(op.slot)] += 1 }
+        if op is LocalGet { get_count[usize(op.slot)] += 1 }
+        if op is LocalTee { tee_count[usize(op.slot)] += 1 }
     }
     // Mark every op that is a jump TARGET (a non-negative value in the jump
     // table). Rule 1 must NOT fold a `LocalGet` that a branch lands on :
@@ -291,25 +291,25 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         // folding to a tee here — letting `drop_dead_stores` reclaim it — is
         // the only way to avoid an O(N²) tee cascade ; skipping would strand
         // the surviving get.
-        if op is LocalSet as ls {
+        if op is LocalSet {
             if i + 1 < n {
                 next :: body[i + 1]
-                if next is LocalGet as lg {
-                    if lg.slot == ls.slot {
+                if next is LocalGet {
+                    if next.slot == op.slot {
                         prev_is_const := false
                         if out_len > 0 {
                             prev :: out[out_len - 1]
                             cv :: const_op_of(prev)
                             if cv !is null { prev_is_const = true }
                         }
-                        slot_u :: usize(ls.slot)
+                        slot_u :: usize(op.slot)
                         propagate_eligible :: set_count[slot_u] == 1 && get_count[slot_u] == 1 && tee_count[slot_u] == 0
                         // Never fold when the `get` is a branch target (see
                         // `is_jump_target` above) : the tee would pop an empty
                         // stack on the jumped-in path.
                         skip_fold :: (prev_is_const && propagate_eligible) || is_jump_target[i + 1]
                         if !skip_fold {
-                            push_or_assign(out, out_len, LocalTee { .slot = ls.slot })
+                            push_or_assign(out, out_len, LocalTee { .slot = op.slot })
                             old_to_new[i] = i32(out_len)
                             old_to_new[i + 1] = i32(out_len)
                             out_len += 1
@@ -353,8 +353,8 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                     i += 1
                     continue
                 }
-                if prev is BoolConst as bc {
-                    out[top_idx] = BoolConst { .value = !bc.value }
+                if prev is BoolConst {
+                    out[top_idx] = BoolConst { .value = !prev.value }
                     old_to_new[i] = i32(top_idx)
                     i += 1
                     continue
@@ -428,14 +428,14 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
     n :: body.len()
     for i in 0..<n {
         op :: body[i]
-        if op is LocalSet as ls {
-            slot :: usize(ls.slot)
+        if op is LocalSet {
+            slot :: usize(op.slot)
             set_count[slot] += 1
             set_idx[slot] = i32(i)
         }
-        if op is LocalTee as lt { tee_count[usize(lt.slot)] += 1 }
-        if op is LocalGet as lg {
-            slot :: usize(lg.slot)
+        if op is LocalTee { tee_count[usize(op.slot)] += 1 }
+        if op is LocalGet {
+            slot :: usize(op.slot)
             get_count[slot] += 1
             get_idx[slot] = i32(i)
         }
@@ -556,11 +556,11 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     // Count slot reads — `local.get` plus the fused composite
     // `local.field` (midir/emit.vader::try_fuse_local_field).
     for op in function.body {
-        if op is LocalGet as g {
-            reads[usize(g.slot)] += 1
+        if op is LocalGet {
+            reads[usize(op.slot)] += 1
         }
-        if op is LocalField as lf {
-            reads[usize(lf.slot)] += 1
+        if op is LocalField {
+            reads[usize(op.slot)] += 1
         }
     }
     // Mark dead = non-param local slots with zero reads.
@@ -600,41 +600,41 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     pc: usize = 0
     for pc < body_len {
         op :: function.body[pc]
-        if op is LocalSet as ls {
-            if dead[usize(ls.slot)] {
+        if op is LocalSet {
+            if dead[usize(op.slot)] {
                 old_to_new_pc[pc] = i32(out.len())
                 out.push(Drop {})
             } else {
                 old_to_new_pc[pc] = i32(out.len())
-                out.push(LocalSet { .slot = remap[usize(ls.slot)] })
+                out.push(LocalSet { .slot = remap[usize(op.slot)] })
             }
             pc = pc + 1
             continue
         }
-        if op is LocalTee as lt {
-            if dead[usize(lt.slot)] {
+        if op is LocalTee {
+            if dead[usize(op.slot)] {
                 // tee = set + push. With the set dead, just leave the
                 // value on stack — the consumer reads it directly.
                 pc = pc + 1
                 continue
             }
             old_to_new_pc[pc] = i32(out.len())
-            out.push(LocalTee { .slot = remap[usize(lt.slot)] })
+            out.push(LocalTee { .slot = remap[usize(op.slot)] })
             pc = pc + 1
             continue
         }
-        if op is LocalGet as lg {
+        if op is LocalGet {
             old_to_new_pc[pc] = i32(out.len())
-            out.push(LocalGet { .slot = remap[usize(lg.slot)] })
+            out.push(LocalGet { .slot = remap[usize(op.slot)] })
             pc = pc + 1
             continue
         }
-        if op is LocalField as lf {
+        if op is LocalField {
             old_to_new_pc[pc] = i32(out.len())
             out.push(LocalField {
-                .slot = remap[usize(lf.slot)],
-                .type_id = lf.type_id,
-                .field_index = lf.field_index,
+                .slot = remap[usize(op.slot)],
+                .type_id = op.type_id,
+                .field_index = op.field_index,
             })
             pc = pc + 1
             continue

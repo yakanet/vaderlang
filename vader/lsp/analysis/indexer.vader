@@ -178,9 +178,9 @@ lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
 }
 
 lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]!) -> void {
-    if body is BlockExpr as b {
+    if body is BlockExpr {
         stack: LjFrame[]! = []
-        lj_block(b, stack, out)
+        lj_block(body, stack, out)
     }
 }
 
@@ -346,8 +346,8 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
 // named type (`Box<T>`, a tuple, a union) — there is then no single owner a
 // receiver's type could match.
 impl_owner_name :: fn(t: TypeExpr) -> string {
-    if t is IdentExpr as id {
-        return id.name
+    if t is IdentExpr {
+        return t.name
     }
     return ""
 }

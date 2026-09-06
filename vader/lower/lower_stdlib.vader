@@ -35,11 +35,11 @@ surface_referenced_intrinsic_externs :: fn(
         synth_start :: project_ctx.synth_decls.len()
         extra: LoweredDecl[]! = []
         for d in decls_list {
-            if d is ImplDecl as impl_ {
-                for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
+            if d is ImplDecl {
+                for ext in surface_stdlib_impl_externs(d, module_typed, project_ctx, decls_list) {
                     extra.push(ext)
                 }
-                for ext in surface_array_blanket_members(impl_, module_typed, project_ctx) {
+                for ext in surface_array_blanket_members(d, module_typed, project_ctx) {
                     extra.push(ext)
                 }
             }
@@ -139,7 +139,7 @@ surface_stdlib_impl_externs :: fn(
 // pulled into an unrelated snippet. Other receiver shapes don't reach here.
 vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx!) -> bool {
     if self_type is PrimitiveType { return true }
-    if self_type is StructType as st { return project_ctx.constructed_struct_symbols.contains(st.symbol.id) }
+    if self_type is StructType { return project_ctx.constructed_struct_symbols.contains(self_type.symbol.id) }
     return false
 }
 

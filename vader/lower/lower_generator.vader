@@ -34,8 +34,10 @@ import "std/abort"
 /// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
 /// defensively if something slipped through.
 generator_element_of :: fn(return_type: Type) -> Type {
-    if return_type is TraitType as tt {
-        if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 { return tt.args[0] }
+    if return_type is TraitType {
+        if return_type.symbol.name == TRAIT_ITERATOR && return_type.args.len() > 0 {
+            return return_type.args[0]
+        }
     }
     return TY_VOID
 }
@@ -44,14 +46,14 @@ generator_element_of :: fn(return_type: Type) -> Type {
 // in `next()` before its first read, but `struct.new` needs every field set.
 // Primitives get their typed zero ; every ref type gets a typed `null`.
 zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
-    if ty is PrimitiveType as p {
-        if p.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
-        if is_float_name(p.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
-        if p.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
+    if ty is PrimitiveType {
+        if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
+        if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
+        if ty.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
         // `null` is a boxed slot, not an integer width — its zero value is `null`
         // (a void `async` await binds a `null`-typed target). Falling through to
         // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
-        if p.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
+        if ty.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
         // every integer / char width
         return LoweredIntLit { .span = span, .type = ty, .value = 0 }
     }

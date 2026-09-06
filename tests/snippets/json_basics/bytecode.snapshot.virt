@@ -5116,10 +5116,10 @@ fn 57 json$parse_object (ref,i32) -> any
   local $arr_11 ref
   local and_res bool
   local key any
-  local $add_40 i32
+  local $add_39 i32
   local value any
-  local $cast_46 string
-  local $cast_47 any
+  local $cast_44 string
+  local $cast_45 any
   local c char
   local.get 0   ; arg 0
   char.const 123
@@ -5202,9 +5202,9 @@ fn 57 json$parse_object (ref,i32) -> any
         local.get 1   ; arg 1
         i32.const 1
         i32.add
-        local.set 7   ; $add_40
+        local.set 7   ; $add_39
         local.get 0   ; arg 0
-        local.get 7   ; $add_40
+        local.get 7   ; $add_39
         call 50   ; json$parse_value
         local.tee 8   ; value
         type_check 29   ; json$JsonError
@@ -5215,12 +5215,12 @@ fn 57 json$parse_object (ref,i32) -> any
         end $L8
         local.get 6   ; key
         ref.cast 1   ; -> string
-        local.set 9   ; $cast_46
+        local.set 9   ; $cast_44
         local.get 8   ; value
-        local.set 10   ; $cast_47
+        local.set 10   ; $cast_45
         local.get 2   ; $arr_9
-        local.get 9   ; $cast_46
-        local.get 10   ; $cast_47
+        local.get 9   ; $cast_44
+        local.get 10   ; $cast_45
         call 96   ; std_collections$put__string__Any
         local.get 0   ; arg 0
         call 51   ; json$skip_ws
@@ -5271,7 +5271,7 @@ fn 58 json$parse_array (ref,i32) -> any
   local and_res bool
   local $add_22 i32
   local v any
-  local $cast_28 any
+  local $cast_27 any
   local c char
   local.get 0   ; arg 0
   char.const 91
@@ -5330,9 +5330,9 @@ fn 58 json$parse_array (ref,i32) -> any
           return
         end $L6
         local.get 5   ; v
-        local.set 6   ; $cast_28
+        local.set 6   ; $cast_27
         local.get 2   ; items
-        local.get 6   ; $cast_28
+        local.get 6   ; $cast_27
         array.push 34   ; union[]
         local.get 0   ; arg 0
         call 51   ; json$skip_ws

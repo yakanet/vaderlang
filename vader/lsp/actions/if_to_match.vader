@@ -30,16 +30,16 @@ if_to_match_action :: fn() -> CodeAction = CodeAction {
 }
 
 itm_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
-    if node is AST.IfExpr as ifx { return is_match_convertible(ifx) }
+    if node is AST.IfExpr { return is_match_convertible(node) }
     return false
 }
 
 itm_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
-    if node is AST.IfExpr as ifx {
-        ch :: analyze_if(ifx) ?? return ""
+    if node is AST.IfExpr {
+        ch :: analyze_if(node) ?? return ""
         if !chain_ok(ch) { return "" }
-        rendered :: format_expr(ctx.source, build_match(ifx, ch))
-        return reindent(rendered, ifx.span.start.column - 1)
+        rendered :: format_expr(ctx.source, build_match(node, ch))
+        return reindent(rendered, node.span.start.column - 1)
     }
     return ""
 }
@@ -84,9 +84,9 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
     cur := ifx
     for {
         c :: cur.cond
-        if c is AST.BinaryExpr as b {
-            if b.op == .Is || b.op == .Eq {
-                conds.push(b)
+        if c is AST.BinaryExpr {
+            if c.op == .Is || c.op == .Eq {
+                conds.push(c)
                 blocks.push(cur.then_block)
             } else {
                 return null
@@ -95,11 +95,11 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
             return null
         }
         eb :: cur.else_branch ?? return null
-        if eb is AST.IfElseBlock as ebl {
-            return IfChain { .conds = conds, .blocks = blocks, .else_block = ebl.block }
+        if eb is AST.IfElseBlock {
+            return IfChain { .conds = conds, .blocks = blocks, .else_block = eb.block }
         }
-        if eb is AST.IfElseIf as eif {
-            cur = eif.branch
+        if eb is AST.IfElseIf {
+            cur = eb.branch
         } else {
             return null
         }
@@ -150,7 +150,7 @@ tif_is_if :: fn(e: AST.Expr) -> bool = e is AST.IfExpr
 
 tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
     e :: t_find_expr(decls, tif_is_if)
-    if e is AST.IfExpr as ifx { return ifx }
+    if e is AST.IfExpr { return e }
     return null
 }
 

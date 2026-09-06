@@ -138,13 +138,13 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool 
 /// widened alias would violate the source element type). TypeParam / Unresolved
 /// elements stay wildcards (accepted both ways by `is_assignable`).
 export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
-    if to is ArrayType as ta {
-        if self.immutable && !ta.immutable { return false }
+    if to is ArrayType {
+        if self.immutable && !to.immutable { return false }
         // read-only `T[]` (read-only) target : element is covariant — reading a
         // narrower array through a wider read-only view is sound (no write can
         // violate the source element type).
-        if ta.immutable {
-            return fn_param_compatible(self.element, ta.element)
+        if to.immutable {
+            return fn_param_compatible(self.element, to.element)
         }
         // Mutable target : element must be INVARIANT. Bidirectional
         // assignability = invariance for concrete types, while the
@@ -155,9 +155,9 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
         // type in `infer_against_array`, so the init is reflexive.
         // Fast-path the dominant equal-element case (`equals_type` ⟹ assignable
         // both ways) so `T[] → T[]` skips the two `is_assignable` passes.
-        if equals_type(self.element, ta.element) { return true }
-        return fn_param_compatible(self.element, ta.element)
-            && fn_param_compatible(ta.element, self.element)
+        if equals_type(self.element, to.element) { return true }
+        return fn_param_compatible(self.element, to.element)
+            && fn_param_compatible(to.element, self.element)
     }
     return check_common(from, to)
 }
@@ -269,30 +269,30 @@ export mismatch_diagnostic_hinted :: fn(
 /// @param from  the value's type.
 /// @param to    the slot's type.
 struct_mutability_widens :: fn(from: Type, to: Type) -> bool {
-    if from is StructType as f {
+    if from is StructType {
         // The SAME struct at two mutabilities — without the symbol check this fired
         // on any read-only struct against any mutable one (`Subst` vs `Scope!`),
         // turning an ordinary type mismatch into a mutability story.
-        if to is StructType as t {
-            return f.symbol.id == t.symbol.id && f.immutable && !t.immutable
+        if to is StructType {
+            return from.symbol.id == to.symbol.id && from.immutable && !to.immutable
         }
     }
-    if from is TupleType as f2 {
-        if to is TupleType as t2 {
-            return f2.elements.len() == t2.elements.len() && f2.immutable && !t2.immutable
+    if from is TupleType {
+        if to is TupleType {
+            return from.elements.len() == to.elements.len() && from.immutable && !to.immutable
         }
     }
     return false
 }
 
 export fn_mutability_widens :: fn(from: Type, to: Type) -> bool {
-    if from is FnType as f {
-        if to is FnType as t {
-            if f.params.len() != t.params.len() {
+    if from is FnType {
+        if to is FnType {
+            if from.params.len() != to.params.len() {
                 return false
             }
-            for i in 0..<f.params.len() {
-                if param_mutable_at(f, i) && !param_mutable_at(t, i) {
+            for i in 0..<from.params.len() {
+                if param_mutable_at(from, i) && !param_mutable_at(to, i) {
                     return true
                 }
             }

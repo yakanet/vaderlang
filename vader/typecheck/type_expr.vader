@@ -354,8 +354,8 @@ reject_marker_on_value_type :: fn(t: Type, span: Span, diags: Diagnostic[]!) -> 
 // as meaningless as `string!`, while `i32 | Cfg[]!` marks the one variant that can
 // carry it.
 is_value_only_type :: fn(t: Type) -> bool {
-    if t is UnionType as u {
-        for v in u.variants {
+    if t is UnionType {
+        for v in t.variants {
             if !is_value_only_type(v) { return false }
         }
         return true
@@ -439,8 +439,8 @@ lower_first_param_type :: fn(src: string) -> string {
     rm :: resolve_test_module(src)
     parsed :: parse_source(src, "t.vader")
     fn_decl :: parsed.program.decls[0]
-    if fn_decl is AST.FnDecl as f {
-        ty :: f.params[0].ty ?? return "<no annotation>"
+    if fn_decl is AST.FnDecl {
+        ty :: fn_decl.params[0].ty ?? return "<no annotation>"
         diags: Diagnostic[]! = []
         return display_type(type_from_expr(ty, rm, diags))
     }
@@ -524,8 +524,8 @@ test_value_const_in_type_position_emits_T3002 :: fn() -> void {
     parsed :: parse_source(src, "t.vader")
     diags: Diagnostic[]! = []
     for decl in parsed.program.decls {
-        if decl is AST.FnDecl as f {
-            pty :: f.params[0].ty
+        if decl is AST.FnDecl {
+            pty :: decl.params[0].ty
             if pty !is null { type_from_expr(pty, rm, diags) }
         }
     }

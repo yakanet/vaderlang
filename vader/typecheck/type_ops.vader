@@ -18,7 +18,7 @@ AST :: import "toolchain/ast"
 /// True when `t` is the `void` primitive. The canonical void test, shared by
 /// match-exhaustiveness (typecheck) and return-type checks (midir).
 export is_void :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return p.name == "void" }
+    if t is PrimitiveType { return t.name == "void" }
     return false
 }
 
@@ -91,8 +91,8 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // placeholder/proper distinction.
     is EnumType      as ax  -> if b is EnumType as bx {
         ax.symbol.id == bx.symbol.id
-    } else if b is StructType as bx {
-        bx.symbol.id == ax.symbol.id
+    } else if b is StructType {
+        b.symbol.id == ax.symbol.id
     } else { false }
     // Immutability is NOT part of struct / tuple identity : the bit records a
     // promise made by one function about one parameter, not a different type.
@@ -102,8 +102,8 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // annotation that freezes the referent, hence a genuinely distinct type.
     is StructType    as ax  -> if b is StructType as bx {
         nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
-    } else if b is EnumType as bx {
-        ax.symbol.id == bx.symbol.id
+    } else if b is EnumType {
+        ax.symbol.id == b.symbol.id
     } else { false }
     is TraitType     as ax  -> if b is TraitType as bx { nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) } else { false }
     is ArrayType     as ax  -> if b is ArrayType as bx { ax.immutable == bx.immutable && equals_type(ax.element, bx.element) } else { false }
@@ -196,19 +196,19 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
     // nominal). Bailing out wholesale on "any variant is marked" is what left
     // `u8[]! | Err` with a MUTABLE `Err` — the mark on the array leaked onto a
     // variant nobody marked.
-    if t is UnionType as u {
+    if t is UnionType {
         out: Type[]! = []
-        for v in u.variants {
+        for v in t.variants {
             out.push(with_immutable(v, !written_marks_shape(written, v)))
         }
         return union_of(out)
     }
-    if written is AST.MutableTypeExpr as m {
+    if written is AST.MutableTypeExpr {
         // A type that arrives ALREADY read-only (an alias, a side-table entry) is
         // not un-frozen by a marker : the stricter side wins, here as everywhere.
         // A belt rather than a live path now that `const` is gone — the surface has
         // no way left to write a frozen type under a `!`.
-        inner :: readonly_children(t, m.inner)
+        inner :: readonly_children(t, written.inner)
         if type_is_immutable(inner) { return inner }
         // This level is explicitly mutable ; deeper levels still take the default.
         return with_immutable(inner, false)
@@ -230,8 +230,8 @@ written_marks_shape :: fn(written: AST.TypeExpr | null, v: Type) -> bool {
     for w in AST.collect_bitor_variants(written) {
         // Positive form on purpose : an `as` binding does not survive a negated
         // `is` test (`!(w is T as m)` leaves `m` unbound).
-        if w is AST.MutableTypeExpr as m {
-            if same_written_shape(m.inner, v) { return true }
+        if w is AST.MutableTypeExpr {
+            if same_written_shape(w.inner, v) { return true }
         }
     }
     return false
@@ -248,20 +248,20 @@ same_written_shape :: fn(w: AST.TypeExpr, v: Type) -> bool {
 // alias, an inferred type) passes `null` — the child then takes the plain
 // default, the conservative answer.
 readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
-    if t is ArrayType as a {
+    if t is ArrayType {
         elem_written :: if written is AST.ArrayTypeExpr as ae { ae.element } else { null }
-        return mk_array(apply_readonly_default(a.element, elem_written), a.immutable)
+        return mk_array(apply_readonly_default(t.element, elem_written), t.immutable)
     }
-    if t is TupleType as p {
+    if t is TupleType {
         elems: Type[]! = []
-        for i in 0..<p.elements.len() {
+        for i in 0..<t.elements.len() {
             el_written: AST.TypeExpr | null = null
-            if written is AST.SeqLitExpr as se {
-                if i < se.elements.len() { el_written = se.elements[i] }
+            if written is AST.SeqLitExpr {
+                if i < written.elements.len() { el_written = written.elements[i] }
             }
-            elems.push(apply_readonly_default(p.elements[i], el_written))
+            elems.push(apply_readonly_default(t.elements[i], el_written))
         }
-        return mk_tuple(elems, p.immutable)
+        return mk_tuple(elems, t.immutable)
     }
     return t
 }
@@ -275,11 +275,11 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
 /// (trait / subtype narrowing) the union stays immutable only when every variant
 /// is, so a narrowing never grants more than the scrutinee had.
 export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
-    if scrutinee is UnionType as u {
-        for v in u.variants {
+    if scrutinee is UnionType {
+        for v in scrutinee.variants {
             if equals_type_shape(v, narrowed) { return type_is_immutable(v) }
         }
-        for v in u.variants {
+        for v in scrutinee.variants {
             if !type_is_immutable(v) { return false }
         }
         return true
@@ -307,9 +307,9 @@ export union_of :: fn(variants: Type[]) -> Type {
 // Two arrays that differ ONLY by their own mutability bit. Nested bits still
 // count : `Cfg[][]` and `Cfg[]![]` are genuinely different element types.
 same_array_modulo_mutability :: fn(a: Type, b: Type) -> bool {
-    if a is ArrayType as ax {
-        if b is ArrayType as bx {
-            return ax.immutable != bx.immutable && equals_type(ax.element, bx.element)
+    if a is ArrayType {
+        if b is ArrayType {
+            return a.immutable != b.immutable && equals_type(a.element, b.element)
         }
     }
     return false
@@ -323,11 +323,11 @@ same_array_modulo_mutability :: fn(a: Type, b: Type) -> bool {
 /// a read-only array cannot flow into a mutable slot, the fix is to pin the slot,
 /// not to widen the union.
 export union_mixed_mutability :: fn(t: Type) -> Type | null {
-    if t is UnionType as u {
-        for i in 0..<u.variants.len() {
-            for j in i + 1..<u.variants.len() {
-                if same_array_modulo_mutability(u.variants[i], u.variants[j]) {
-                    return u.variants[i]
+    if t is UnionType {
+        for i in 0..<t.variants.len() {
+            for j in i + 1..<t.variants.len() {
+                if same_array_modulo_mutability(t.variants[i], t.variants[j]) {
+                    return t.variants[i]
                 }
             }
         }
@@ -421,14 +421,14 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
     if trait_name == TRAIT_ITERATOR {
         if is_gen_state_struct(t) {
-            if t is StructType as gst { return gst.args }
+            if t is StructType { return t.args }
         }
     }
     raw :: lookup_struct_trait_args(t, trait_name, typed) ?? return null
-    if t is StructType as st {
-        struct_decl :: typed.struct_decls[st.symbol.id] ?? return raw
+    if t is StructType {
+        struct_decl :: typed.struct_decls[t.symbol.id] ?? return raw
         out: Type[]! = []
-        for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, st.args)) }
+        for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, t.args)) }
         return out
     }
     return raw
@@ -508,7 +508,7 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
 }
 
 union_variants :: fn(t: Type) -> Type[] | null {
-    if t is UnionType as u { return u.variants }
+    if t is UnionType { return t.variants }
     return null
 }
 

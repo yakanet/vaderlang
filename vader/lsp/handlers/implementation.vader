@@ -58,19 +58,19 @@ export handle_implementation :: fn(state: ServerState!, params: JsonValue) -> Js
     for [_, lm] in project.modules {
         for f in lm.module.files {
             for d in f.program.decls {
-                if d is AST.FnDecl as fd {
-                    if fd.name != name {
+                if d is AST.FnDecl {
+                    if d.name != name {
                         continue
                     }
                     // The bodies, not the declaration: jumping from a
                     // declaration to itself is the one answer the user already
                     // has. A `@target(.Os, …)` is always a body (SPEC §17).
-                    sel :: fd.decorators.target_selector_count()
+                    sel :: d.decorators.target_selector_count()
                     if sel == 0 {
                         continue
                     }
-                    out.push(location_json(path_to_uri(fd.name_span.start.file),
-                        fd.name_span.span_to_range_json(state.line_index_for_path(fd.name_span.start.file))))
+                    out.push(location_json(path_to_uri(d.name_span.start.file),
+                        d.name_span.span_to_range_json(state.line_index_for_path(d.name_span.start.file))))
                 }
             }
         }
@@ -97,12 +97,12 @@ target_group_name_at :: fn(
             continue
         }
         for d in sf.program.decls {
-            if d is AST.FnDecl as fd {
-                if !has_target_decorator(fd.decorators) {
+            if d is AST.FnDecl {
+                if !has_target_decorator(d.decorators) {
                     continue
                 }
-                if span_contains(fd.name_span, line, col) {
-                    return fd.name
+                if span_contains(d.name_span, line, col) {
+                    return d.name
                 }
             }
         }

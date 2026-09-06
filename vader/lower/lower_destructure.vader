@@ -28,8 +28,8 @@ emit_let_binding_leaves :: fn(
     // fixed leaves, then a fresh-array + loop-push for the rest leaf.
     rest_index :: rest_leaf_index(binding)
     if rest_index >= 0 {
-        if resolved is ArrayType as arr {
-            emit_array_destructure(ctx, binding, usize(rest_index), target, arr, span, out)
+        if resolved is ArrayType {
+            emit_array_destructure(ctx, binding, usize(rest_index), target, resolved, span, out)
             return
         }
     }
@@ -97,9 +97,9 @@ seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
     body :: m.body ?? return null
     if body.stmts.len() != 0 { return null }
     trailing :: body.trailing ?? return null
-    if trailing is SeqLitExpr as seq {
+    if trailing is SeqLitExpr {
         names: string[]! = []
-        for el in seq.elements {
+        for el in trailing.elements {
             name :: self_field_name(el)
             if name == "" { return null }
             names.push(name)
@@ -111,9 +111,9 @@ seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
 
 // The field name of a `self.<field>` access, or "" for any other expression.
 self_field_name :: fn(e: Expr) -> string {
-    if e is FieldExpr as fe {
-        if fe.target is IdentExpr as id {
-            if id.name == "self" { return fe.field }
+    if e is FieldExpr {
+        if e.target is IdentExpr as id {
+            if id.name == "self" { return e.field }
         }
     }
     return ""

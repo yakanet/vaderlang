@@ -60,8 +60,8 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
         return null
     }
     t :: types[usize(f.type_index)]
-    if t is BcPrimitive as p {
-        return p.val
+    if t is BcPrimitive {
+        return t.val
     }
     return null
 }
@@ -98,9 +98,9 @@ export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null {
         return null
     }
     t :: types[usize(f.type_index)]
-    if t is BcStruct as st {
-        if st.c_name != "" {
-            return st
+    if t is BcStruct {
+        if t.c_name != "" {
+            return t
         }
     }
     return null

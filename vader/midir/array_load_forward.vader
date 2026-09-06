@@ -67,19 +67,19 @@ forward_block :: fn(instrs: Instruction[]) -> Instruction[] {
         d :: dst_of(ins)
         if d != null && slots.len() > 0 { slots = drop_slots_using(slots, d) }
 
-        if ins is InstrArrayGet as g {
-            known :: lookup_slot(slots, g.target, g.index)
+        if ins is InstrArrayGet {
+            known :: lookup_slot(slots, ins.target, ins.index)
             if known != null {
-                out.push(InstrMove { .span = g.span, .dst = g.dst, .src = known })
+                out.push(InstrMove { .span = ins.span, .dst = ins.dst, .src = known })
                 continue
             }
-            slots.push(SlotVal { .target = g.target, .index = g.index, .value = g.dst })
+            slots.push(SlotVal { .target = ins.target, .index = ins.index, .value = ins.dst })
             out.push(ins)
             continue
         }
-        if ins is InstrArraySet as st {
+        if ins is InstrArraySet {
             slots.clear()
-            slots.push(SlotVal { .target = st.target, .index = st.index, .value = st.value })
+            slots.push(SlotVal { .target = ins.target, .index = ins.index, .value = ins.value })
             out.push(ins)
             continue
         }

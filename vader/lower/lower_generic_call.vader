@@ -29,9 +29,9 @@ import "toolchain/span"
 follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
     if sym.kind != SymbolKind.ImportBinding { return sym }
     targets :: ctx.typed.import_targets ?? return sym
-    if targets is ImportTargetTable as t {
-        st :: t.symbol_targets[sym.id] ?? return sym
-        if st is SymbolTarget as found { return found.symbol }
+    if targets is ImportTargetTable {
+        st :: targets.symbol_targets[sym.id] ?? return sym
+        if st is SymbolTarget { return st.symbol }
     }
     return sym
 }
@@ -46,8 +46,8 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
 is_self_recursive_instance_call :: fn(ctx: FnLowerCtx, callee: Symbol) -> bool {
     if ctx.entry.decl is FnDecl as ed {
         def :: callee.defined_at
-        if def is Span as sp {
-            return sp.equals(ed.name_span)
+        if def is Span {
+            return def.equals(ed.name_span)
         }
     }
     return false
@@ -61,8 +61,8 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
             sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
-            if sym_or_null is Symbol as raw_sym {
-                fn_sym :: follow_import_binding(ctx, raw_sym)
+            if sym_or_null is Symbol {
+                fn_sym :: follow_import_binding(ctx, sym_or_null)
                 if fn_sym.kind == SymbolKind.Fn {
                     type_args: Type[]! = []
                     for ta in gi.type_args {
@@ -81,17 +81,18 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
         }
     }
     callee_ident :: as_ident(call.callee) ?? return null
-    if callee_ident is IdentExpr as id {
-        raw_sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return null
-        if raw_sym is Symbol as raw_resolved {
-            fn_sym :: follow_import_binding(ctx, raw_resolved)
+    if callee_ident is IdentExpr {
+        raw_sym :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
+        if raw_sym is Symbol {
+            fn_sym :: follow_import_binding(ctx, raw_sym)
             if fn_sym.kind != SymbolKind.Fn { return null }
             // Probe the callee's recorded signature (substituted — unchanged
             // for every call site).
-            callee_ty :: ctx.types.expr_type(id)
+            callee_ty :: ctx.types.expr_type(callee_ident)
             if !(callee_ty is FnType) { return null }
-            if callee_ty is FnType as ft {
-                result :: emit_generic_fn_call(ctx, call, type, fn_sym, ft, id.span)
+            if callee_ty is FnType {
+                result :: emit_generic_fn_call(
+                    ctx, call, type, fn_sym, callee_ty, callee_ident.span)
                 if result != null { return result }
                 // `emit_generic_fn_call` returned null : `ft` (substituted)
                 // carries no type-param. For a SELF-RECURSIVE call inside a
@@ -109,9 +110,10 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
                 // the caller's general handling unchanged. Erased (symbol-indexed)
                 // instances keep resolving their self-calls by symbol-id.
                 if ctx.entry.symbol == null && is_self_recursive_instance_call(ctx, fn_sym) {
-                    raw_ty :: ctx.types.raw_expr_type(id)
-                    if raw_ty is FnType as rft {
-                        return emit_generic_fn_call(ctx, call, type, fn_sym, rft, id.span)
+                    raw_ty :: ctx.types.raw_expr_type(callee_ident)
+                    if raw_ty is FnType {
+                        return emit_generic_fn_call(
+                            ctx, call, type, fn_sym, raw_ty, callee_ident.span)
                     }
                 }
                 return null
@@ -305,23 +307,23 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
 }
 
 unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>!, order: i32[]!, ctx: FnLowerCtx) -> void {
-    if pattern is TypeParamType as tp {
-        existing :: bindings[tp.symbol.id]
+    if pattern is TypeParamType {
+        existing :: bindings[pattern.symbol.id]
         match existing {
             is null -> {
-                bindings[tp.symbol.id] = concrete
-                order.push(tp.symbol.id)
+                bindings[pattern.symbol.id] = concrete
+                order.push(pattern.symbol.id)
             }
             _ -> {}
         }
         return
     }
-    if pattern is StructType as ps {
-        if concrete is StructType as cs {
-            n :: ps.args.len()
+    if pattern is StructType {
+        if concrete is StructType {
+            n :: pattern.args.len()
             for i in 0..<n {
-                if i >= cs.args.len() { break }
-                unify_params(ps.args[i], cs.args[i], bindings, order, ctx)
+                if i >= concrete.args.len() { break }
+                unify_params(pattern.args[i], concrete.args[i], bindings, order, ctx)
             }
         }
     }
@@ -330,19 +332,19 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     // Drives monomorphisation of `fn<T>(it: Iterator<T>)` etc. from any
     // arg that implements the trait (struct, primitive, raw array, or a
     // value already boxed into the trait type).
-    if pattern is TraitType as ptr {
-        trait_args :: trait_concrete_args(ptr, concrete, ctx)
+    if pattern is TraitType {
+        trait_args :: trait_concrete_args(pattern, concrete, ctx)
         if trait_args != null {
-            n :: ptr.args.len()
+            n :: pattern.args.len()
             for i in 0..<n {
                 if i >= trait_args.len() { break }
-                unify_params(ptr.args[i], trait_args[i], bindings, order, ctx)
+                unify_params(pattern.args[i], trait_args[i], bindings, order, ctx)
             }
         }
     }
-    if pattern is ArrayType as pa {
-        if concrete is ArrayType as ca {
-            unify_params(pa.element, ca.element, bindings, order, ctx)
+    if pattern is ArrayType {
+        if concrete is ArrayType {
+            unify_params(pattern.element, concrete.element, bindings, order, ctx)
         }
     }
     // Union param vs union arg : pair exact-equal variants first (`null`,
@@ -353,18 +355,18 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     // inside a union (`find_map`'s `f: fn(T) -> U | null`) the same way the
     // typer already does — without it the instance materialises with `U`
     // unbound and the call is unresolved at emit (GATE B1).
-    if pattern is UnionType as pu {
-        if concrete is UnionType as cu {
+    if pattern is UnionType {
+        if concrete is UnionType {
             arg_used: bool[]! = []
-            for _ in cu.variants { arg_used.push(false) }
+            for _ in concrete.variants { arg_used.push(false) }
             remaining_pattern: Type[]! = []
-            for pv in pu.variants {
-                idx :: find_unused_equal(cu.variants, arg_used, pv)
+            for pv in pattern.variants {
+                idx :: find_unused_equal(concrete.variants, arg_used, pv)
                 if idx >= 0 { arg_used[usize(idx)] = true } else { remaining_pattern.push(pv) }
             }
             remaining_concrete: Type[]! = []
-            for i in 0..<cu.variants.len() {
-                if !arg_used[i] { remaining_concrete.push(cu.variants[i]) }
+            for i in 0..<concrete.variants.len() {
+                if !arg_used[i] { remaining_concrete.push(concrete.variants[i]) }
             }
             n :: remaining_pattern.len()
             for i in 0..<n {
@@ -373,22 +375,22 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
             }
         }
     }
-    if pattern is FnType as pft {
-        if concrete is FnType as cft {
-            n :: pft.params.len()
+    if pattern is FnType {
+        if concrete is FnType {
+            n :: pattern.params.len()
             for i in 0..<n {
-                if i >= cft.params.len() { break }
-                unify_params(pft.params[i], cft.params[i], bindings, order, ctx)
+                if i >= concrete.params.len() { break }
+                unify_params(pattern.params[i], concrete.params[i], bindings, order, ctx)
             }
-            unify_params(pft.return_type, cft.return_type, bindings, order, ctx)
+            unify_params(pattern.return_type, concrete.return_type, bindings, order, ctx)
         }
     }
-    if pattern is TupleType as ptup {
-        if concrete is TupleType as ctup {
-            n :: ptup.elements.len()
+    if pattern is TupleType {
+        if concrete is TupleType {
+            n :: pattern.elements.len()
             for i in 0..<n {
-                if i >= ctup.elements.len() { break }
-                unify_params(ptup.elements[i], ctup.elements[i], bindings, order, ctx)
+                if i >= concrete.elements.len() { break }
+                unify_params(pattern.elements[i], concrete.elements[i], bindings, order, ctx)
             }
         }
     }
@@ -405,8 +407,8 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
 //      type-params, plus the `T[] → Iterator<T>` coercion that has no
 //      impl decl. Returns `null` when no source resolves.
 trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
-    if concrete is TraitType as ct {
-        if ct.symbol.name == tt.symbol.name { return ct.args }
+    if concrete is TraitType {
+        if concrete.symbol.name == tt.symbol.name { return concrete.args }
         return null
     }
     recorded :: lookup_struct_trait_args(concrete, tt.symbol.name, ctx.typed)
@@ -414,11 +416,11 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
         if all_concrete(recorded) { return recorded }
     }
     if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() == 1 {
-        if concrete is StructType as st {
-            if st.args.len() > 0 { return [st.args[0]] }
+        if concrete is StructType {
+            if concrete.args.len() > 0 { return [concrete.args[0]] }
         }
-        if concrete is ArrayType as ar {
-            return [ar.element]
+        if concrete is ArrayType {
+            return [concrete.element]
         }
     }
     return null

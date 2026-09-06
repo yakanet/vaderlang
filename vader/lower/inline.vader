@@ -77,11 +77,11 @@ export inline_fns :: fn(project: LoweredProject) -> void {
     empty_map :: MutableMap<i32, LoweredExpr> {}
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                body :: fd.body
+            if d is LoweredFnDecl {
+                body :: d.body
                 if body != null {
                     ctx :: TransformCtx { .index = index, .param_map = empty_map, .depth = 0 }
-                    fd.body = transform_block(body, ctx)
+                    d.body = transform_block(body, ctx)
                 }
             }
         }
@@ -97,9 +97,9 @@ build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineIn
     index :: MutableMap<string, InlineInfo> {}
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                info :: inlineable_info(fd)
-                if info != null { index[fd.mangled] = info }
+            if d is LoweredFnDecl {
+                info :: inlineable_info(d)
+                if info != null { index[d.mangled] = info }
             }
         }
     }
@@ -119,8 +119,8 @@ single_expr_result :: fn(body: LoweredBlock) -> LoweredExpr | null {
     if body.stmts.is_empty() { return body.trailing }
     if body.stmts.len() == 1 {
         s :: body.stmts[0]
-        if s is LoweredReturn as ret {
-            if body.trailing == null { return ret.value }
+        if s is LoweredReturn {
+            if body.trailing == null { return s.value }
         }
     }
     return null

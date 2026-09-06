@@ -1620,11 +1620,11 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
     n :: block.stmts.len()
     if n == 0 { return block }
     last :: block.stmts[n - 1]
-    if last is ReturnStmt as rs {
-        if rs.value != null {
+    if last is ReturnStmt {
+        if last.value != null {
             kept: Stmt[]! = []
             for i in 0..<(n - 1) { kept.push(block.stmts[i]) }
-            return BlockExpr { .span = block.span, .stmts = kept, .trailing = rs.value }
+            return BlockExpr { .span = block.span, .stmts = kept, .trailing = last.value }
         }
     }
     return block

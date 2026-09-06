@@ -230,8 +230,8 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
         }
         is AST.StringLitExpr as sl -> {
             for part in sl.parts {
-                if part is AST.StringLitInterp as ip {
-                    hv_walk_expr(ip.expr, typed, st)
+                if part is AST.StringLitInterp {
+                    hv_walk_expr(part.expr, typed, st)
                 }
             }
         }
@@ -392,7 +392,7 @@ export find_enclosing_call :: fn(
     // materialisation gap (GATE B1) over the erased `AST.Expr[]` element type.
     for i in 0..<chain.len() {
         e :: chain[i]
-        if e is AST.CallExpr as c { return c }
+        if e is AST.CallExpr { return e }
     }
     return null
 }

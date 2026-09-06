@@ -102,9 +102,9 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
 // This site erases UNCONDITIONALLY : a concrete-instantiation impl over a ref arg
 // is unsupported (it exists nowhere), consistent with the generic-fn-body path.
 erase_generic_struct_tag :: fn(t: Type) -> Type {
-    if t is StructType as s {
-        if s.args.is_empty() { return t }
-        return mk_struct(s.symbol, build_mixed_args_list(s.args), s.immutable)
+    if t is StructType {
+        if t.args.is_empty() { return t }
+        return mk_struct(t.symbol, build_mixed_args_list(t.args), t.immutable)
     }
     return t
 }
@@ -148,12 +148,12 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
     // keeps `value.enumField.Variant` (an enum-VALUED field) on the field path.
     target_type :: ctx.types.expr_type(expr.target)
     enum_type :: enum_type_or_unwrap(ctx, target_type)
-    if enum_type is EnumType as et {
+    if enum_type is EnumType {
         if !target_is_enum_name(ctx, expr.target) { return null }
-        index :: et.indices[expr.field]
-        if index is i64 as value {
+        index :: enum_type.indices[expr.field]
+        if index is i64 {
             return LoweredIntLit {
-                .span = expr.span, .type = mk_primitive(et.repr), .value = value,
+                .span = expr.span, .type = mk_primitive(enum_type.repr), .value = index,
             }
         }
     }
@@ -166,7 +166,7 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
 // folds variant accesses, never a real field read off an enum-typed value.
 target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
     if target is IdentExpr { return true }
-    if target is FieldExpr as fe { return !(as_namespace_binding(ctx, fe.target) is null) }
+    if target is FieldExpr { return !(as_namespace_binding(ctx, target.target) is null) }
     return false
 }
 
@@ -253,13 +253,13 @@ build_struct_lit_fields :: fn(
             // Omitted field : inherit from the last `...spread`
             // source via a field access, else fall back to the
             // declared default.
-            if spread_sym is Symbol as sym {
+            if spread_sym is Symbol {
                 out.push(LoweredStructLitField {
                     .name = field_decl.name,
                     .value = LoweredFieldAccess {
                         .span = lit.span, .type = field_type,
                         .target = LoweredIdent {
-                            .span = lit.span, .type = type, .symbol = sym,
+                            .span = lit.span, .type = type, .symbol = spread_sym,
                         },
                         .field = field_decl.name,
                     },

@@ -74,8 +74,8 @@ compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
 fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool {
     for i in 0..<fn_decl.body.len() {
         op :: fn_decl.body[i]
-        if op is vm.StructNew as sn {
-            if sn.stack {
+        if op is vm.StructNew {
+            if op.stack {
                 return true
             }
         }
@@ -98,8 +98,8 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction) -> bool {
 fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
     for i in 0..<fn_decl.body.len() {
         op :: fn_decl.body[i]
-        if op is vm.Call as c {
-            if c.function_index in may_alloc {
+        if op is vm.Call {
+            if op.function_index in may_alloc {
                 return true
             }
         }
@@ -110,12 +110,12 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
 // Drop the resolve-CSE cache entries this op invalidates — see
 // `FnState.resolved_arrays`. Called before every op is emitted.
 invalidate_resolve_cache :: fn(s: FnState!, op: vm.Op) -> void {
-    if op is vm.LocalSet as ls {
-        drop_resolved_for_local(s, ls.slot)
+    if op is vm.LocalSet {
+        drop_resolved_for_local(s, op.slot)
         return
     }
-    if op is vm.LocalTee as lt {
-        drop_resolved_for_local(s, lt.slot)
+    if op is vm.LocalTee {
+        drop_resolved_for_local(s, op.slot)
         return
     }
     if is_cache_safe(op) {
@@ -185,8 +185,8 @@ keep_pinned_resolves :: fn(s: FnState!) -> void {
     kept :: MutableMap<string, string> {}
     for k in s.pinned_resolves {
         hit :: s.resolved_arrays[k]
-        if hit is string as local {
-            kept[k] = local
+        if hit is string {
+            kept[k] = hit
         }
     }
     s.resolved_arrays = kept
@@ -1187,14 +1187,14 @@ precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> Br
         if op is vm.Branch || op is vm.BranchIf {
             target :: jump_table[pc]
             found :: branch_target(scopes, target)
-            if found is ScopeInfo as sc {
-                if is_continue_branch(sc, target) {
-                    if !(sc.opener_pc in continue_t) {
-                        continue_t.push(sc.opener_pc)
+            if found is ScopeInfo {
+                if is_continue_branch(found, target) {
+                    if !(found.opener_pc in continue_t) {
+                        continue_t.push(found.opener_pc)
                     }
                 } else {
-                    if !(sc.opener_pc in break_t) {
-                        break_t.push(sc.opener_pc)
+                    if !(found.opener_pc in break_t) {
+                        break_t.push(found.opener_pc)
                     }
                 }
             }
@@ -1292,10 +1292,10 @@ emit_else :: fn(s: FnState!) -> void {
 emit_end :: fn(s: FnState!, pc: i32) -> void {
     assert_stack_empty(s, "scope end (pc ${pc})")
     sc :: scope_ending_at(s.scopes, pc)
-    if sc is ScopeInfo as scope {
+    if sc is ScopeInfo {
         indent_pop(s)
-        if scope.opener_pc in s.break_targets {
-            line(s, "} end_${scope.opener_pc}: ;")
+        if sc.opener_pc in s.break_targets {
+            line(s, "} end_${sc.opener_pc}: ;")
         } else {
             line(s, "}")
         }
@@ -1312,8 +1312,8 @@ emit_end :: fn(s: FnState!, pc: i32) -> void {
 emit_branch :: fn(s: FnState!, pc: i32, conditional: bool) -> void {
     target :: s.function.jump_table[pc]
     found :: branch_target(s.scopes, target)
-    if found is ScopeInfo as sc {
-        dest :: if is_continue_branch(sc, target) { "loop_${sc.opener_pc}" } else { "end_${sc.opener_pc}" }
+    if found is ScopeInfo {
+        dest :: if is_continue_branch(found, target) { "loop_${found.opener_pc}" } else { "end_${found.opener_pc}" }
         if conditional {
             cond :: pop(s)
             assert_stack_empty(s, "br_if (pc ${pc})")
@@ -1489,16 +1489,16 @@ emit_make_closure :: fn(s: FnState!, op: vm.MakeClosure) -> void {
 emit_call_indirect :: fn(s: FnState!, op: vm.CallIndirect) -> void {
     types :: s.ctx.module.types
     t :: types[usize(op.type_id)]
-    if t is BcFn as fnt {
+    if t is BcFn {
         // `fn_val` is on top — pop it before the args.
         fn_val :: pop(s)
-        n :: i32(fnt.params.len())
+        n :: i32(t.params.len())
         args :: pop_args_boxed(s, n)
         fn_obj :: aux(s, "fnobj")
         line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) ${obj_ptr_of(fn_val)};")
         call_args :: if n == 0 { "${fn_obj}->env" } else { "${fn_obj}->env, ${args.join(", ")}" }
         call_expr :: "((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)(${call_args})"
-        ret_val :: val_type_of_bc_type(types[usize(fnt.return_type)])
+        ret_val :: val_type_of_bc_type(types[usize(t.return_type)])
         if ret_val == ValType.Void {
             line(s, "${call_expr};")
             return
@@ -1605,11 +1605,11 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     any := false
     for f in fns {
         for op in f.body {
-            if op is vm.FnRef as fr {
-                fn_ref_type[usize(fr.function_index)] = fr.type_id
+            if op is vm.FnRef {
+                fn_ref_type[usize(op.function_index)] = op.type_id
                 any = true
-            } else if op is vm.MakeClosure as mc {
-                is_closure[usize(mc.function_index)] = true
+            } else if op is vm.MakeClosure {
+                is_closure[usize(op.function_index)] = true
                 any = true
             }
         }
@@ -1784,12 +1784,12 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
     val :: val_of(v)
     if is_ref_val(val) {
         target :: s.ctx.module.types[usize(op.type_id)]
-        if target is BcUnion as u {
+        if target is BcUnion {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
             parts: string[]! = []
-            for vid in u.variants {
+            for vid in target.variants {
                 parts.push(one_variant_check(s, tag_of(v), vid))
             }
             push_expr(s, .Bool, "(${parts.join(" || ")})")
@@ -1807,21 +1807,21 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
 // anything else is a plain tag compare.
 one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
     target :: s.ctx.module.types[usize(type_id)]
-    if target is BcRef as r {
-        if r.trait_name != "" {
-            return trait_check_expr(s.ctx, tag_expr, r.trait_name, type_id)
+    if target is BcRef {
+        if target.trait_name != "" {
+            return trait_check_expr(s.ctx, tag_expr, target.trait_name, type_id)
         }
     }
-    if target is BcStruct as st {
-        return struct_check_expr(s.ctx.module.types, tag_expr, type_id, st.name)
+    if target is BcStruct {
+        return struct_check_expr(s.ctx.module.types, tag_expr, type_id, target.name)
     }
     // f32/f64 share the F64 box representation, so the boxer tags a float value
     // by class and can't tell f32 from f64. Match ANY float-primitive tag here
     // (mirrors the VM's `primitive_matches` float aliasing) so `is f32` in an
     // `i32 | f32` union matches a value tagged with whichever float row the boxer
     // reached — even one f64 index when the table also carries f64.
-    if target is BcPrimitive as p {
-        if is_float_val(p.val) {
+    if target is BcPrimitive {
+        if is_float_val(target.val) {
             return float_tag_check_expr(s.ctx.module.types, tag_expr)
         }
     }
@@ -1925,9 +1925,9 @@ emit_defer_pop_exec :: fn(s: FnState!, op: vm.DeferPopExec) -> void = line(
 /// `coerce_expr` (B1 nullable-ref fields are T12).
 emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
-    if t is BcStruct as st {
+    if t is BcStruct {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
-        n :: i32(st.fields.len())
+        n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
         field_vals: string[]! = []
         for _ in 0..<n {
@@ -1936,7 +1936,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         for k in 0..<n {
             v :: pop(s)
             fi :: n - 1 - k
-            f :: st.fields[usize(fi)]
+            f :: t.fields[usize(fi)]
             field_vals[usize(fi)] = coerce_expr(
                 s.ctx.module.types,
                 name_of(v),
@@ -1978,7 +1978,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         }
         line(s, "vader_obj_header_init(${obj}, ${op.type_id}u);")
         for i in 0..<n {
-            f :: st.fields[usize(i)]
+            f :: t.fields[usize(i)]
             line(s, "${obj}->f_${sanitise(f.name)} = ${field_vals[usize(i)]};")
         }
         name :: fresh_tmp(s, .Ref)
@@ -2032,9 +2032,9 @@ push_struct_field :: fn(
 ) -> void {
     types :: s.ctx.module.types
     t :: types[usize(type_index)]
-    if t is BcStruct as st {
+    if t is BcStruct {
         cname :: s.ctx.struct_c_names[usize(type_index)]
-        f :: st.fields[usize(field_index)]
+        f :: t.fields[usize(field_index)]
         fval :: val_type_of_field(types, f.type_index)
         // T12: a `.Ref` receiver is a raw `void*` ; an `.Any` receiver is a box
         // (erased element / downcast) whose object is in `.payload.obj`.
@@ -2101,14 +2101,14 @@ struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
 find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]! = []
     et :: types[usize(struct_idx)]
-    if et is BcStruct as exp {
-        if struct_all_ref(types, exp) {
+    if et is BcStruct {
+        if struct_all_ref(types, et) {
             return out
         }
-        nfields :: exp.fields.len()
+        nfields :: et.fields.len()
         // Anonymous tuples carry no source symbol — they group by the reserved
         // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
-        is_tuple :: "__Tuple" in exp.name
+        is_tuple :: "__Tuple" in et.name
         for i in 0..<types.len() {
             if i32(i) == struct_idx {
                 continue
@@ -2117,12 +2117,12 @@ find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
                 if cand.fields.len() != nfields {
                     continue
                 }
-                same_group :: exp.symbol_id >= 0 && cand.symbol_id == exp.symbol_id || is_tuple && "__Tuple" in cand.name
+                same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && "__Tuple" in cand.name
                 if same_group {
                     ok := true
                     any_ref := false
                     for fi in 0..<nfields {
-                        ef :: exp.fields[fi]
+                        ef :: et.fields[fi]
                         cf :: cand.fields[fi]
                         if types[usize(cf.type_index)] is BcRef {
                             any_ref = true
@@ -2153,9 +2153,9 @@ erased_sibling_field_read :: fn(
 ) -> string {
     types :: s.ctx.module.types
     st :: types[usize(sib_idx)]
-    if st is BcStruct as sib {
+    if st is BcStruct {
         sib_cname :: s.ctx.struct_c_names[usize(sib_idx)]
-        sf :: sib.fields[usize(field_index)]
+        sf :: st.fields[usize(field_index)]
         sf_val :: val_type_of_field(types, sf.type_index)
         raw :: "((${sib_cname}*) ${recv})->f_${sanitise(sf.name)}"
         // Reconcile the sibling field's storage class to the concrete field's via
@@ -2182,11 +2182,11 @@ erased_sibling_field_read :: fn(
 /// macro's `in old?` test would always be false anyway.
 emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
-    if t is BcStruct as st {
+    if t is BcStruct {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         value :: pop(s)
         obj :: pop(s)
-        f :: st.fields[usize(op.field_index)]
+        f :: t.fields[usize(op.field_index)]
         rv :: coerce_expr(
             s.ctx.module.types,
             name_of(value),
@@ -2380,11 +2380,11 @@ slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name
 // `emit_array_len`'s hoisted preheader resolve, and only for a BCE-safe loop.
 resolve_array_local :: fn(s: FnState!, key: string, pin: bool) -> string {
     cached :: s.resolved_arrays[key]
-    if cached is string as c {
+    if cached is string {
         if pin {
             s.pinned_resolves.add(key)
         }
-        return c
+        return cached
     }
     arr :: aux(s, "slotarr")
     line(s, "vader_array_t* ${arr} = ${key};")
@@ -2833,8 +2833,8 @@ emit_array_clear :: fn(s: FnState!) -> void {
 /// only emits these ops on array types).
 array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
     t :: types[usize(type_index)]
-    if t is BcArray as a {
-        return a.element
+    if t is BcArray {
+        return t.element
     }
     return type_index
 }

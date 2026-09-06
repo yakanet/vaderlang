@@ -31,8 +31,8 @@ Prof :: import "vader/profile"
 // path starting with a dash is named (`vader run -- -weird.vader`).
 cmd_run :: fn(args: string[]) -> i32 {
     parsed :: parse_action("run", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     path :: action_file(parsed)
     if path == "" {

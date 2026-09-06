@@ -205,8 +205,8 @@ rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
 t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
     for di in 0..<decls.len() {
         d :: decls[di]
-        if d is AST.FnDecl as fd {
-            match fd.body {
+        if d is AST.FnDecl {
+            match d.body {
                 is null -> {}
                 is AST.BlockExpr as b -> {
                     found :: t_find_in_block(b, pred)

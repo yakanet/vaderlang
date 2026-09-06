@@ -1044,9 +1044,9 @@ import "std/testing"
     // reason. A missing path is the one classification every platform agrees
     // on — POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
     missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
-    if missing is IOError as e {
-        assert_eq(e.kind, IOErrorKind.NotFound)
-        assert(e.code != 0, "the raw platform code came through too")
+    if missing is IOError {
+        assert_eq(missing.kind, IOErrorKind.NotFound)
+        assert(missing.code != 0, "the raw platform code came through too")
     } else {
         assert(false, "reading a missing path must fail")
     }
@@ -1059,9 +1059,9 @@ import "std/testing"
     defer remove_file(file)
 
     too_big :: read_file_bytes(file, 4)
-    if too_big is IOError as e {
-        assert_eq(e.kind, IOErrorKind.Other)
-        assert_eq(e.code, 0)
+    if too_big is IOError {
+        assert_eq(too_big.kind, IOErrorKind.Other)
+        assert_eq(too_big.code, 0)
     } else {
         assert(false, "a read past the ceiling must fail")
     }

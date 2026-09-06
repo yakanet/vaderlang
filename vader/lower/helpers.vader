@@ -227,12 +227,12 @@ export lifted_cell_ref :: fn(
     lifted :: ctx.lifted_context
     if lifted != null {
         field_name :: lifted.capture_fields[symbol.id]
-        if field_name is string as name {
+        if field_name is string {
             env_ident :: LoweredIdent {
                 .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
             }
             return LoweredFieldAccess {
-                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = name,
+                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = field_name,
             }
         }
     }

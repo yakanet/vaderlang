@@ -93,14 +93,14 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
     str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { MutableMap<string, i32> {} }
     for i in 0..<data_pool.len() {
         e :: data_pool[i]
-        if e is BcStrData as sd {
+        if e is BcStrData {
             out :: StringBuilder {}
-            out.append("data ${i} ${storage_class(sd.mutable)}str")
-            for v in sd.values { out.append(" ${quote_string(v)}") }
+            out.append("data ${i} ${storage_class(e.mutable)}str")
+            for v in e.values { out.append(" ${quote_string(v)}") }
             sb.append("${out}\n")
-        } else if e is BcPrimData as pd {
-            sb.append("data ${i} ${storage_class(pd.mutable)}${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
-        } else if e is BcAggregateData as ad {
+        } else if e is BcPrimData {
+            sb.append("data ${i} ${storage_class(e.mutable)}${array_kind_name(e.kind)} hex\"${data_items_hex(e)}\"\n")
+        } else if e is BcAggregateData {
             // Count-prefixed token stream (no paren balancing). String leaves dump
             // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`
             // — the value is interned once in the pool, so the inline copy was a
@@ -113,15 +113,15 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
             // where <value> is `<kind> <hex>` (primitive) | `str "…"` | `strref <i>` |
             //   `struct <symid> <nfields> <value>…` | `array <elemname> <n> <value>…`.
             out :: StringBuilder {}
-            hs :: homogeneous_struct(ad)
+            hs :: homogeneous_struct(e)
             if hs.symbol_id >= 0 {
-                out.append("data ${i} ${storage_class(ad.mutable)}structs ${hs.symbol_id} ${hs.nfields} ${ad.elements.len()}")
-                for v in ad.elements {
-                    if v is BcValStruct as st { for f in st.fields { write_data_value(out, f, str_index) } }
+                out.append("data ${i} ${storage_class(e.mutable)}structs ${hs.symbol_id} ${hs.nfields} ${e.elements.len()}")
+                for v in e.elements {
+                    if v is BcValStruct { for f in v.fields { write_data_value(out, f, str_index) } }
                 }
             } else {
-                out.append("data ${i} ${storage_class(ad.mutable)}agg ${ad.element_type_name} ${ad.elements.len()}")
-                for v in ad.elements { write_data_value(out, v, str_index) }
+                out.append("data ${i} ${storage_class(e.mutable)}agg ${e.element_type_name} ${e.elements.len()}")
+                for v in e.elements { write_data_value(out, v, str_index) }
             }
             sb.append("${out}\n")
         }
@@ -142,11 +142,11 @@ HETEROGENEOUS :: HomogeneousAgg { .symbol_id = -1, .nfields = 0 }
 homogeneous_struct :: fn(ad: BcAggregateData) -> HomogeneousAgg {
     if ad.elements.len() == 0 { return HETEROGENEOUS }
     first :: ad.elements[0]
-    if first is BcValStruct as s0 {
+    if first is BcValStruct {
         for e in ad.elements {
-            if e is BcValStruct as s { if s.symbol_id != s0.symbol_id { return HETEROGENEOUS } } else { return HETEROGENEOUS }
+            if e is BcValStruct { if e.symbol_id != first.symbol_id { return HETEROGENEOUS } } else { return HETEROGENEOUS }
         }
-        return HomogeneousAgg { .symbol_id = s0.symbol_id, .nfields = i32(s0.fields.len()) }
+        return HomogeneousAgg { .symbol_id = first.symbol_id, .nfields = i32(first.fields.len()) }
     }
     return HETEROGENEOUS
 }
@@ -168,24 +168,24 @@ build_string_index :: fn(strings: string[]) -> MutableMap<string, i32> {
 
 // Serialise one recursive baked value into the count-prefixed `.virt` form.
 write_data_value :: fn(out: StringBuilder!, v: BcDataValue, str_index: MutableMap<string, i32>) -> void {
-    if v is BcValPrim as p {
+    if v is BcValPrim {
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
         // (i32, u8, f64, …) never collides with the str/strref/struct/array tags,
         // so the parser dispatches a primitive as the fall-through case.
-        out.append(" ${array_kind_name(p.kind)} ${data_value_hex(p.kind, p.bits)}")
-    } else if v is BcValStr as s {
-        hit :: str_index[s.value]
-        if hit is i32 as idx {
-            out.append(" strref ${idx}")
+        out.append(" ${array_kind_name(v.kind)} ${data_value_hex(v.kind, v.bits)}")
+    } else if v is BcValStr {
+        hit :: str_index[v.value]
+        if hit is i32 {
+            out.append(" strref ${hit}")
         } else {
-            out.append(" str ${quote_string(s.value)}")
+            out.append(" str ${quote_string(v.value)}")
         }
-    } else if v is BcValStruct as st {
-        out.append(" struct ${st.symbol_id} ${st.fields.len()}")
-        for f in st.fields { write_data_value(out, f, str_index) }
-    } else if v is BcValArray as a {
-        out.append(" array ${a.element_type_name} ${a.elements.len()}")
-        for e in a.elements { write_data_value(out, e, str_index) }
+    } else if v is BcValStruct {
+        out.append(" struct ${v.symbol_id} ${v.fields.len()}")
+        for f in v.fields { write_data_value(out, f, str_index) }
+    } else if v is BcValArray {
+        out.append(" array ${v.element_type_name} ${v.elements.len()}")
+        for e in v.elements { write_data_value(out, e, str_index) }
     }
 }
 
@@ -855,31 +855,31 @@ format_const_op :: fn(c: ConstOp) -> string = match c {
 // is itself the signal we want when reading the invalid bytecode this view
 // exists to debug.
 annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, op: Op) -> string {
-    if op is StringConst as s  { return string_label(module, s.index) }
-    if op is ReturnLit as r    { if r.value is StringConst as s { return string_label(module, s.index) } return "" }
-    if op is Call as c         { return fn_label(module, c.function_index) }
-    if op is CallImport as c   { return import_label(module, c.index) }
-    if op is LocalGet as l     { return local_label(locals, param_count, l.slot) }
-    if op is LocalSet as l     { return local_label(locals, param_count, l.slot) }
-    if op is LocalTee as l     { return local_label(locals, param_count, l.slot) }
-    if op is LocalField as l   { return "${local_label(locals, param_count, l.slot)}.${field_label(module, l.type_id, l.field_index)}" }
-    if op is StructNew as s    { return type_label(module, s.type_id) }
-    if op is StructGet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
-    if op is StructSet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
-    if op is RefCast as r      { return "-> ${type_label(module, r.type_id)}" }
-    if op is Box as b          { return "-> ${type_label(module, b.type_id)}" }
-    if op is TypeConst as t    { return type_label(module, t.type_id) }
-    if op is TypeCheck as t    { return type_label(module, t.type_id) }
-    if op is ArrayNew as a     { return "${type_label(module, a.type_id)}[]" }
-    if op is ArrayGet as a     { return "${type_label(module, a.type_id)}[]" }
-    if op is ArraySet as a     { return "${type_label(module, a.type_id)}[]" }
-    if op is ArrayPush as a    { return "${type_label(module, a.type_id)}[]" }
-    if op is ArraySlice as a   { return "${type_label(module, a.type_id)}[]" }
-    if op is CallIndirect as c { return type_label(module, c.type_id) }
-    if op is FnRef as f        { return fn_label(module, f.function_index) }
-    if op is FnAddr as f       { return fn_label(module, f.function_index) }
-    if op is MakeClosure as m  { return fn_label(module, m.function_index) }
-    if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
+    if op is StringConst  { return string_label(module, op.index) }
+    if op is ReturnLit    { if op.value is StringConst as s { return string_label(module, s.index) } return "" }
+    if op is Call         { return fn_label(module, op.function_index) }
+    if op is CallImport   { return import_label(module, op.index) }
+    if op is LocalGet     { return local_label(locals, param_count, op.slot) }
+    if op is LocalSet     { return local_label(locals, param_count, op.slot) }
+    if op is LocalTee     { return local_label(locals, param_count, op.slot) }
+    if op is LocalField   { return "${local_label(locals, param_count, op.slot)}.${field_label(module, op.type_id, op.field_index)}" }
+    if op is StructNew    { return type_label(module, op.type_id) }
+    if op is StructGet    { return "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}" }
+    if op is StructSet    { return "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}" }
+    if op is RefCast      { return "-> ${type_label(module, op.type_id)}" }
+    if op is Box          { return "-> ${type_label(module, op.type_id)}" }
+    if op is TypeConst    { return type_label(module, op.type_id) }
+    if op is TypeCheck    { return type_label(module, op.type_id) }
+    if op is ArrayNew     { return "${type_label(module, op.type_id)}[]" }
+    if op is ArrayGet     { return "${type_label(module, op.type_id)}[]" }
+    if op is ArraySet     { return "${type_label(module, op.type_id)}[]" }
+    if op is ArrayPush    { return "${type_label(module, op.type_id)}[]" }
+    if op is ArraySlice   { return "${type_label(module, op.type_id)}[]" }
+    if op is CallIndirect { return type_label(module, op.type_id) }
+    if op is FnRef        { return fn_label(module, op.function_index) }
+    if op is FnAddr       { return fn_label(module, op.function_index) }
+    if op is MakeClosure  { return fn_label(module, op.function_index) }
+    if op is DataConst    { return "pool[${op.pool_index}] : ${type_label(module, op.type_id)}" }
     return ""
 }
 
@@ -914,9 +914,9 @@ local_label :: fn(locals: BcLocal[], param_count: i32, slot: i32) -> string {
 field_label :: fn(module: BytecodeModule, type_id: i32, field_index: i32) -> string {
     if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
     t :: module.types[usize(type_id)]
-    if t is BcStruct as s {
-        if field_index < 0 || usize(field_index) >= s.fields.len() { return "<field #${field_index} out of range>" }
-        return s.fields[usize(field_index)].name
+    if t is BcStruct {
+        if field_index < 0 || usize(field_index) >= t.fields.len() { return "<field #${field_index} out of range>" }
+        return t.fields[usize(field_index)].name
     }
     return "<field #${field_index}>"
 }

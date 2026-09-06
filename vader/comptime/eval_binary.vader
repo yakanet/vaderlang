@@ -120,7 +120,7 @@ sign_extend_32 :: fn(v: i64) -> i64 {
 // Mask a shift's right operand to the result width (5 bits for a 32-bit type,
 // 6 for a 64-bit / unknown one) — mirrors the hardware shift the backends emit.
 mask_shift_amount :: fn(rhs: ComptimeValue, rname: string) -> ComptimeValue {
-    if rhs is IntValue as iv { return int_val_typed(iv.value & shift_amount_mask(rname), iv.type_name) }
+    if rhs is IntValue { return int_val_typed(rhs.value & shift_amount_mask(rname), rhs.type_name) }
     return rhs
 }
 
@@ -133,7 +133,7 @@ shift_amount_mask :: fn(rname: string) -> i64 = match rname {
 // no entry / the type isn't a bare primitive (both ⇒ don't wrap).
 resolved_int_name :: fn(context: ComptimeContext, expr_id: usize) -> string {
     t :: context.typed.expr_types[expr_id]
-    if t is PrimitiveType as p { return p.name }
+    if t is PrimitiveType { return t.name }
     // A free int the typechecker never pinned to a concrete width (nested inside
     // a comparison / shift, so no slot narrowed it) defaults to `i32` — SPEC
     // "Default integer", exactly what the runtime does, so it wraps at 32 bits.
@@ -150,8 +150,8 @@ arithmetic_or_concat :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
-    if left is StringValue as ls {
-        if right is StringValue as rs { return ok(string_val("${ls.value}${rs.value}")) }
+    if left is StringValue {
+        if right is StringValue { return ok(string_val("${left.value}${right.value}")) }
         return type_mismatch(expr, "string + non-string")
     }
     return arithmetic(expr, left, right, int_op)
@@ -202,8 +202,8 @@ int_div_check :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
-    if right is IntValue as ri {
-        if ri.value == 0 { return division_by_zero(expr, "/") }
+    if right is IntValue {
+        if right.value == 0 { return division_by_zero(expr, "/") }
     }
     return arithmetic(expr, left, right, int_op)
 }
@@ -212,8 +212,8 @@ int_mod_check :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
-    if right is IntValue as ri {
-        if ri.value == 0 { return division_by_zero(expr, "%") }
+    if right is IntValue {
+        if right.value == 0 { return division_by_zero(expr, "%") }
     }
     return arithmetic_int(expr, left, right, int_op)
 }
@@ -320,15 +320,15 @@ unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
 }
 
 unary_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
-    if inner is BoolValue as b {
-        if b.value { return ok(VAL_FALSE) }
+    if inner is BoolValue {
+        if inner.value { return ok(VAL_FALSE) }
         return ok(VAL_TRUE)
     }
     return unary_type_mismatch(expr, "`!` requires bool")
 }
 
 unary_bit_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
-    if inner is IntValue as i { return ok(int_val_typed(bit_not_i64(i.value), i.type_name)) }
+    if inner is IntValue { return ok(int_val_typed(bit_not_i64(inner.value), inner.type_name)) }
     return unary_type_mismatch(expr, "`~` requires int")
 }
 

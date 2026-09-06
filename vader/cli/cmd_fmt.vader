@@ -18,8 +18,8 @@ import "vader/fmt"
 // like every other action, and `run_fmt` takes the decoded options.
 cmd_fmt :: fn(args: string[]) -> i32 {
     parsed :: parse_action("fmt", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and an
     // unpinned `if` would build a mixed-mutability union (T3074).

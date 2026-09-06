@@ -56,33 +56,33 @@ materialize_representative :: fn(
     owner_module_id :: sym.module
     owner_module :: loaded.modules[owner_module_id] ?? return
     owner_typed :: typed.modules[owner_module_id] ?? return
-    if owner_typed is TypedProgram as owner_typed_ok {
+    if owner_typed is TypedProgram {
         // `join_any_displays` already renders nested wrappers with `_`
         // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
         // nesting intact. The representative uses the empty-typeArgs template,
         // so `first.mangled` likewise has no `__<arg>` segment.
-        bare_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}"
+        bare_mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${sym.name}"
         any_args :: build_any_args_list(inst.args)
         rep_mangled :: "${bare_mangled}__${join_any_displays(any_args)}"
         // Dedup before the struct-decl lookup so a repeated instance of an
         // already-emitted shape skips the linear `find_struct_decl_by_name`.
         if seen_reps.contains(rep_mangled) { return }
-        if owner_module is LoadedModule as owner_loaded {
-            owner_decls :: module_decls(owner_loaded)
+        if owner_module is LoadedModule {
+            owner_decls :: module_decls(owner_module)
             decl :: find_struct_decl_by_name(owner_decls, sym.name) ?? return
-            if decl is StructDecl as sd {
-                if sd.type_params.len() == 0 { return }
+            if decl is StructDecl {
+                if decl.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
-                erase :: build_any_subst(sd, owner_typed_ok)
+                erase :: build_any_subst(decl, owner_typed)
                 fields: LoweredStructField[]! = []
-                for f in sd.fields {
-                    raw_ty :: resolve_field_type(f.ty, owner_typed_ok, sd, inst.args)
+                for f in decl.fields {
+                    raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
                     fields.push(LoweredStructField {
                         .name = f.name,
                         .type = substitute(raw_ty, erase),
                     })
                 }
-                entry_decl: Decl = sd
+                entry_decl: Decl = decl
                 entry :: MonoEntry {
                     .id             = 0,
                     .is_main        = false,
@@ -91,9 +91,9 @@ materialize_representative :: fn(
                     .symbol         = sym,
                     .subst          = erase,
                     .type_arguments = any_args,
-                    .module         = owner_typed_ok,
+                    .module         = owner_typed,
                 }
-                push_to_module(project, owner_typed_ok.resolved.path, LoweredStructDecl {
+                push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
                     .mangled = rep_mangled,
                     .fields  = fields,
                     .origin  = entry,
@@ -115,9 +115,9 @@ materialize_one_instance :: fn(
     owner_module_id :: sym.module
     owner_module :: loaded.modules[owner_module_id] ?? return
     owner_typed :: typed.modules[owner_module_id] ?? return
-    if owner_typed is TypedProgram as owner_typed_ok {
-        if owner_module is LoadedModule as owner_loaded {
-            owner_decls :: module_decls(owner_loaded)
+    if owner_typed is TypedProgram {
+        if owner_module is LoadedModule {
+            owner_decls :: module_decls(owner_module)
             // (1) Find the StructDecl for this instance ; emit a
             // monomorphized struct decl. Emitted even for stdlib structs
             // (`MutableMap<usize, Span>`, `Entry`, …) — pushed into the
@@ -125,7 +125,7 @@ materialize_one_instance :: fn(
             // type table carries the concrete shape instead of an orphan
             // `ref`. (Filtered from the lower dump, so byte-match is safe.)
             if sym.kind == SymbolKind.Struct {
-                materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
+                materialize_struct_instance(inst, owner_decls, owner_typed, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
                 // same struct symbol, materialize each member — including
                 // stdlib structs (`Range<i32>`, `MutableMap<…>`). Trait
@@ -135,7 +135,7 @@ materialize_one_instance :: fn(
                 // `Return` arm in the CFG emit. Whole-program DCE
                 // (`prune_unreachable_fns`) culls anything the user never
                 // reaches, so over-materialising is safe.
-                materialize_impl_members_for(inst, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+                materialize_impl_members_for(inst, owner_typed, project_ctx, project, loaded, typed, diags)
             }
         }
     }
@@ -202,13 +202,14 @@ materialize_struct_instance :: fn(
     project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> LoweredStructField[] {
     decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name) ?? return []
-    if decl is StructDecl as sd {
+    if decl is StructDecl {
         // Non-generic structs fall through safely : empty `type_params`
         // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
         // unchanged and the mangle is the bare `<module>$<Name>`. Lets the
         // closure pass materialise referenced stdlib structs
         // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
-        mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
+        mangled :: mangle_struct_instance(
+            owner_typed.resolved.display_path, inst.symbol.name, inst.args)
         // Idempotent: the receiver closure asks for shapes the instance worklist
         // may already have emitted. Fields are still rebuilt and returned — the
         // shape closure walks them — only the push is skipped.
@@ -225,18 +226,18 @@ materialize_struct_instance :: fn(
         // the concrete type) — an erased `__Any` reader of a raw field is the Inc-3
         // `Hash.hash` trap. The mangle is unchanged (`Entry__string__Any` already,
         // ref arg pre-erased), so only field types change.
-        subst :: build_struct_subst(sd, inst.args, owner_typed)
-        erase :: build_struct_mixed_subst(sd, owner_typed, inst.args)
+        subst :: build_struct_subst(decl, inst.args, owner_typed)
+        erase :: build_struct_mixed_subst(decl, owner_typed, inst.args)
         fields: LoweredStructField[]! = []
-        for f in sd.fields {
-            raw_ty :: resolve_field_type(f.ty, owner_typed, sd, inst.args)
+        for f in decl.fields {
+            raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
             field_ty :: substitute(raw_ty, erase)
             fields.push(LoweredStructField {
                 .name = f.name,
                 .type = field_ty,
             })
         }
-        entry_decl: Decl = sd
+        entry_decl: Decl = decl
         entry :: MonoEntry {
             .id             = 0,
             .is_main        = false,
@@ -282,7 +283,7 @@ close_over_field_shapes :: fn(
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
         for decl in mod.decls {
-            if decl is LoweredStructDecl as sd { materialized.add(sd.mangled) }
+            if decl is LoweredStructDecl { materialized.add(decl.mangled) }
             // Walk fields, signature AND body so a shape reachable only
             // through a body local / expr type (e.g. a `ParsedArgs`
             // local) is harvested alongside field / signature shapes.
@@ -317,12 +318,12 @@ MAX_FIELD_SHAPES :: 4096
 /// otherwise. TypeParam-bearing shapes (a generic decl's own
 /// self-reference) are skipped.
 push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableSet<string>!) -> void {
-    if t is StructType as s {
-        if has_type_param(s) { return }
-        key :: "${s.symbol.id}|${display_type_key(s)}"
+    if t is StructType {
+        if has_type_param(t) { return }
+        key :: "${t.symbol.id}|${display_type_key(t)}"
         if seen.contains(key) { return }
         seen.add(key)
-        out.push(s)
+        out.push(t)
     }
 }
 
@@ -334,8 +335,8 @@ new_string_set :: fn() = MutableSet<string> {}
 /// emitted decls works by name.
 shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
     owner_typed :: typed.modules[s.symbol.module]
-    if owner_typed is TypedProgram as ot {
-        return mangle_struct_instance(ot.resolved.display_path, s.symbol.name, s.args)
+    if owner_typed is TypedProgram {
+        return mangle_struct_instance(owner_typed.resolved.display_path, s.symbol.name, s.args)
     }
     return null
 }
@@ -351,12 +352,13 @@ materialize_shape :: fn(
     owner_typed :: typed.modules[sym.module]
     if owner_module is null { return [] }
     if owner_typed is null { return [] }
-    if owner_typed is TypedProgram as ot {
-        if owner_module is LoadedModule as ol {
+    if owner_typed is TypedProgram {
+        if owner_module is LoadedModule {
             // Distinct→backing: this builds an instance directly (bypassing the
             // registry's strip), so collapse here too — distinct ends at lowering.
             inst :: GenericInstance { .symbol = sym, .args = strip_distinct_each(args), .display_key = "" }
-            return materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
+            return materialize_struct_instance(
+                inst, module_decls(owner_module), owner_typed, project_ctx, project)
         }
     }
     return []
@@ -383,14 +385,16 @@ ensure_receiver_struct :: fn(
     if !all_concrete_args(inst.args) { return }
     owner_module :: loaded.modules[inst.symbol.module] ?? return
     owner_typed :: typed.modules[inst.symbol.module] ?? return
-    if owner_typed is TypedProgram as ot {
+    if owner_typed is TypedProgram {
         // Test the mangle before descending: this runs once per impl-member
         // materialisation, and the materialiser linear-scans the owning
         // module's decls to find the struct. Almost every call is a repeat.
-        mangled :: mangle_struct_instance(ot.resolved.display_path, inst.symbol.name, inst.args)
+        mangled :: mangle_struct_instance(
+            owner_typed.resolved.display_path, inst.symbol.name, inst.args)
         if project_ctx.materialized_struct_mangles.contains(mangled) { return }
-        if owner_module is LoadedModule as ol {
-            _ :: materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
+        if owner_module is LoadedModule {
+            _ :: materialize_struct_instance(
+                inst, module_decls(owner_module), owner_typed, project_ctx, project)
         }
     }
 }
@@ -405,12 +409,12 @@ materialize_impl_members_for :: fn(
     // emit a synth fn for each matching impl member.
     for [module_id, mt] in typed.modules {
         module_loaded :: loaded.modules[module_id] ?? continue
-        if module_loaded is LoadedModule as ml {
-            for d in module_decls(ml) {
-                if d is ImplDecl as impl_decl {
-                    if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
+        if module_loaded is LoadedModule {
+            for d in module_decls(module_loaded) {
+                if d is ImplDecl {
+                    if !is_generic_impl_for(d, inst.symbol.name) { continue }
                     materialize_impl_for_instance(
-                        impl_decl, inst, mt, owner_typed, project_ctx, project,
+                        d, inst, mt, owner_typed, project_ctx, project,
                     )
                     // The impl body virtual-calls the bound traits'
                     // methods on the type-param (`cursor.gte(...)` /
@@ -418,7 +422,7 @@ materialize_impl_members_for :: fn(
                     // those bound-trait impls for the concrete args so
                     // the vtable carries the matching entries.
                     materialize_bound_trait_impls(
-                        impl_decl, inst, project_ctx, project, loaded, typed, diags,
+                        d, inst, project_ctx, project, loaded, typed, diags,
                     )
                 }
             }
@@ -587,20 +591,20 @@ materialize_bound_impl :: fn(
     if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
     for [module_id, mt] in typed.modules {
         module_loaded :: loaded.modules[module_id] ?? continue
-        if module_loaded is LoadedModule as ml {
-            decls :: module_decls(ml)
+        if module_loaded is LoadedModule {
+            decls :: module_decls(module_loaded)
             for d in decls {
-                if d is ImplDecl as impl_ {
-                    if impl_.trait_name != trait_name { continue }
-                    if !impl_targets_name(impl_.for_type, type_name) { continue }
+                if d is ImplDecl {
+                    if d.trait_name != trait_name { continue }
+                    if !impl_targets_name(d.for_type, type_name) { continue }
                     // Generic / concrete-instantiation impls go through the
                     // struct-instance path ; this targets the non-generic
                     // primitive (or plain struct) impls.
-                    if impl_.type_params.len() > 0 { continue }
-                    if impl_.for_type is GenericInstExpr { continue }
+                    if d.type_params.len() > 0 { continue }
+                    if d.for_type is GenericInstExpr { continue }
                     project_ctx.materialized_impl_keys.add(dedupe_key)
                     synth_start :: project_ctx.synth_decls.len()
-                    for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
+                    for m in lower_impl_member_list(d, mt, project_ctx, diags, decls) {
                         push_to_module(project, mt.resolved.path, m)
                     }
                     // Drain lambdas/defers lifted from these member bodies

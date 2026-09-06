@@ -37,8 +37,8 @@ Prof :: import "vader/profile"
 ///              files / no `@test` fns were found.
 cmd_test :: fn(args: string[]) -> i32 {
     parsed :: parse_action("test", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     if reject_extra_positionals("test", parsed) {
         return 1
@@ -132,14 +132,14 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
     out: DiscoveredTest[]! = []
     for [_, m] in lp.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                if fd.body == null {
+            if d is LoweredFnDecl {
+                if d.body == null {
                     continue
                 }
-                if fd.origin.decl is FnDecl as ast {
+                if d.origin.decl is FnDecl as ast {
                     if has_test_decorator(ast) {
                         out.push(DiscoveredTest {
-                            .mangled = fd.mangled,
+                            .mangled = d.mangled,
                             .display = ast.name,
                         })
                     }

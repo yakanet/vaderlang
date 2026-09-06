@@ -25,11 +25,11 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
     if c.callee is AST.IdentExpr as id {
         sym :: typed.resolved.idents[id.span.hash()] ?? return null
         fd :: typed.fn_decls[sym.id]
-        if fd is AST.FnDecl as f {
+        if fd is AST.FnDecl {
             // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`
             // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
             // never a nested `Async<Async<T>>`.
-            if fn_is_async(f) {
+            if fn_is_async(fd) {
                 return mk_trait(async_sym, [async_result_arg(async_inner_type(concrete_ret))])
             }
         }
@@ -42,9 +42,9 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
 /// `-> T`). NOT normalized — `void` stays `void` (the body is void-bodied) ; the
 /// void→null step happens only where the erased `Async<...>` type is built.
 export async_inner_type :: fn(t: Type) -> Type {
-    if t is TraitType as tt {
-        if tt.symbol.name == TRAIT_ASYNC && tt.args.len() > 0 {
-            return tt.args[0]
+    if t is TraitType {
+        if t.symbol.name == TRAIT_ASYNC && t.args.len() > 0 {
+            return t.args[0]
         }
     }
     return t

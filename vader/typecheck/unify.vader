@@ -47,8 +47,8 @@ export unify_type_param :: fn(
             // before its binder produces once the param type is substituted with
             // the still-abstract `T`. Left recorded, first-binding-wins would
             // lock the type-param onto itself.
-            if arg_type is TypeParamType as self_ref {
-                if self_ref.symbol.id == tp.symbol.id {
+            if arg_type is TypeParamType {
+                if arg_type.symbol.id == tp.symbol.id {
                     return
                 }
             }
@@ -78,8 +78,8 @@ export unify_type_param :: fn(
             if type_contains_unresolved(existing) {
                 out[tp.symbol.id] = bound
             }
-            if existing is TypeParamType as prev {
-                if prev.symbol.id == tp.symbol.id {
+            if existing is TypeParamType {
+                if existing.symbol.id == tp.symbol.id {
                     out[tp.symbol.id] = bound
                 }
             }

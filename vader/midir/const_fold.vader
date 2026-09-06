@@ -73,23 +73,23 @@ const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
     consts :: MutableMap<i32, ConstValue> {}
     out: Instruction[]! = [] * b.instructions.len()
     for ins in b.instructions {
-        if ins is InstrConst as c {
-            consts[c.dst] = c.value
+        if ins is InstrConst {
+            consts[ins.dst] = ins.value
             out.push(ins)
             continue
         }
-        if ins is InstrBinOp as bop {
-            l_opt :: consts[bop.lhs]
-            r_opt :: consts[bop.rhs]
+        if ins is InstrBinOp {
+            l_opt :: consts[ins.lhs]
+            r_opt :: consts[ins.rhs]
             if l_opt !is null {
                 if r_opt !is null {
-                    raw :: fold_bin_op(bop.op, l_opt, r_opt)
+                    raw :: fold_bin_op(ins.op, l_opt, r_opt)
                     if raw !is null {
-                        folded :: truncate_to_type(raw, bop.type)
-                        consts[bop.dst] = folded
+                        folded :: truncate_to_type(raw, ins.type)
+                        consts[ins.dst] = folded
                         out.push(InstrConst {
-                            .dst = bop.dst, .value = folded,
-                            .type = bop.type, .span = bop.span,
+                            .dst = ins.dst, .value = folded,
+                            .type = ins.type, .span = ins.span,
                         })
                         continue
                     }
@@ -98,16 +98,16 @@ const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
             out.push(ins)
             continue
         }
-        if ins is InstrUnOp as uop {
-            v_opt :: consts[uop.operand]
+        if ins is InstrUnOp {
+            v_opt :: consts[ins.operand]
             if v_opt !is null {
-                raw :: fold_un_op(uop.op, v_opt)
+                raw :: fold_un_op(ins.op, v_opt)
                 if raw !is null {
-                    folded :: truncate_to_type(raw, uop.type)
-                    consts[uop.dst] = folded
+                    folded :: truncate_to_type(raw, ins.type)
+                    consts[ins.dst] = folded
                     out.push(InstrConst {
-                        .dst = uop.dst, .value = folded,
-                        .type = uop.type, .span = uop.span,
+                        .dst = ins.dst, .value = folded,
+                        .type = ins.type, .span = ins.span,
                     })
                     continue
                 }
@@ -125,17 +125,17 @@ const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
 // ============================================================================
 
 fold_bin_op :: fn(op: LoweredBinaryOp, l: ConstValue, r: ConstValue) -> ConstValue | null {
-    if l is ConstInt as li {
-        if r is ConstInt as ri { return fold_int_bin_op(op, li.value, ri.value) }
+    if l is ConstInt {
+        if r is ConstInt { return fold_int_bin_op(op, l.value, r.value) }
     }
-    if l is ConstFloat as lf {
-        if r is ConstFloat as rf { return fold_float_bin_op(op, lf.value, rf.value) }
+    if l is ConstFloat {
+        if r is ConstFloat { return fold_float_bin_op(op, l.value, r.value) }
     }
-    if l is ConstBool as lb {
-        if r is ConstBool as rb { return fold_bool_bin_op(op, lb.value, rb.value) }
+    if l is ConstBool {
+        if r is ConstBool { return fold_bool_bin_op(op, l.value, r.value) }
     }
-    if l is ConstChar as lc {
-        if r is ConstChar as rc { return fold_char_bin_op(op, lc.value, rc.value) }
+    if l is ConstChar {
+        if r is ConstChar { return fold_char_bin_op(op, l.value, r.value) }
     }
     return null
 }
@@ -212,8 +212,8 @@ fold_char_bin_op :: fn(op: LoweredBinaryOp, l: i32, r: i32) -> ConstValue | null
 fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null = match op {
     .Neg -> if v is ConstInt as iv {
         ConstInt { .value = 0 - iv.value }
-    } else if v is ConstFloat as fv {
-        ConstFloat { .value = 0.0 - fv.value }
+    } else if v is ConstFloat {
+        ConstFloat { .value = 0.0 - v.value }
     } else { null }
     .Not    -> if v is ConstBool as bv { ConstBool { .value = !bv.value } } else { null }
     .BitNot -> if v is ConstInt as iv { ConstInt { .value = ~iv.value } } else { null }
@@ -226,18 +226,18 @@ fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null = match
 truncate_to_type :: fn(v: ConstValue, t: Type) -> ConstValue {
     if v !is ConstInt { return v }
     if t !is PrimitiveType { return v }
-    if v is ConstInt as iv {
-        if t is PrimitiveType as p {
-            if p.name == "i8"    { return ConstInt { .value = i64(i8(iv.value)) } }
-            if p.name == "i16"   { return ConstInt { .value = i64(i16(iv.value)) } }
-            if p.name == "i32"   { return ConstInt { .value = i64(i32(iv.value)) } }
-            if p.name == "i64"   { return v }
-            if p.name == "isize" { return v }
-            if p.name == "u8"    { return ConstInt { .value = i64(u8(iv.value)) } }
-            if p.name == "u16"   { return ConstInt { .value = i64(u16(iv.value)) } }
-            if p.name == "u32"   { return ConstInt { .value = i64(u32(iv.value)) } }
-            if p.name == "u64"   { return v }
-            if p.name == "usize" { return v }
+    if v is ConstInt {
+        if t is PrimitiveType {
+            if t.name == "i8"    { return ConstInt { .value = i64(i8(v.value)) } }
+            if t.name == "i16"   { return ConstInt { .value = i64(i16(v.value)) } }
+            if t.name == "i32"   { return ConstInt { .value = i64(i32(v.value)) } }
+            if t.name == "i64"   { return v }
+            if t.name == "isize" { return v }
+            if t.name == "u8"    { return ConstInt { .value = i64(u8(v.value)) } }
+            if t.name == "u16"   { return ConstInt { .value = i64(u16(v.value)) } }
+            if t.name == "u32"   { return ConstInt { .value = i64(u32(v.value)) } }
+            if t.name == "u64"   { return v }
+            if t.name == "usize" { return v }
         }
     }
     return v

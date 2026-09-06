@@ -45,8 +45,8 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     // compiler file, for one request.
     roots :: import_roots(state, uri)
     for d in parsed.program.decls {
-        if d is ImportDecl as imp {
-            link :: import_link(imp, idx.source, roots, uri, idx.line_index)
+        if d is ImportDecl {
+            link :: import_link(d, idx.source, roots, uri, idx.line_index)
             if link != null { links.push(link) }
         }
     }
@@ -133,8 +133,8 @@ test_path_range_covers_quoted_path :: fn() -> void {
     parsed :: parse_source(src, "t.vader")
     saw := false
     for d in parsed.program.decls {
-        if d is ImportDecl as imp {
-            r :: path_string_range(imp, src, new_line_index(src, .Utf8))
+        if d is ImportDecl {
+            r :: path_string_range(d, src, new_line_index(src, .Utf8))
             if r == null { assert(false, "expected a path range") }
             else {
                 assert_eq(r.start_line, 1)
@@ -155,8 +155,8 @@ test_path_range_handles_namespace_import :: fn() -> void {
     parsed :: parse_source(src, "t.vader")
     saw := false
     for d in parsed.program.decls {
-        if d is ImportDecl as imp {
-            r :: path_string_range(imp, src, new_line_index(src, .Utf8))
+        if d is ImportDecl {
+            r :: path_string_range(d, src, new_line_index(src, .Utf8))
             if r == null { assert(false, "expected a path range") }
             else {
                 // `Lo :: import "` is 14 chars, so the path starts at 0-based 14.

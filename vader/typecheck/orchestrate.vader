@@ -616,25 +616,25 @@ check_module_impl_coherence :: fn(
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
     for decl in merge_module_program(loaded.module.files).decls {
-        if decl is AST.ImplDecl as impl_decl {
-            for_ty :: type_from_expr(impl_decl.for_type, tp.resolved, diag_sink())
+        if decl is AST.ImplDecl {
+            for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
             args: Type[]! = []
-            for ta in impl_decl.trait_args {
+            for ta in decl.trait_args {
                 args.push(type_from_expr(ta, tp.resolved, diag_sink()))
             }
-            key :: coherence_key(for_ty, impl_decl.trait_name, args) ?? continue
+            key :: coherence_key(for_ty, decl.trait_name, args) ?? continue
             if seen[key] != null {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
                 // the R2018 orphan rule), so it's built with `resolver_error`.
                 diags.push(
                     resolver_error(
                         .ConflictingImpl,
-                        impl_decl.span,
-                        "`${display_type(for_ty)}` already implements `${impl_decl.trait_name}` — only one impl per (type, trait) is allowed",
+                        decl.span,
+                        "`${display_type(for_ty)}` already implements `${decl.trait_name}` — only one impl per (type, trait) is allowed",
                     ),
                 )
             } else {
-                seen[key] = impl_decl.span
+                seen[key] = decl.span
             }
         }
     }
@@ -751,8 +751,8 @@ imported_fn_sig_keys :: fn(
         st :: targets.symbol_targets[sym_id] ?? continue
         owner :: per_module[st.module_id] ?? continue
         ty :: owner.decl_types[st.symbol.id]
-        if ty is FnType as ft {
-            key :: canonical_args_key(ft.params)
+        if ty is FnType {
+            key :: canonical_args_key(ty.params)
             bucket :: out[info.local]
             if bucket == null {
                 fresh :: MutableMap<string, bool> {}
@@ -1208,10 +1208,10 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram!>, projec
         }
         for file in loaded.module.files {
             for decl in file.program.decls {
-                if decl is AST.EnumDecl as ed {
-                    sym :: by_name[ed.name] ?? continue
-                    repr :: resolve_repr(ed.repr, typed.resolved, diag_sink())
-                    indices :: resolve_enum_indices(ed, repr, diag_sink())
+                if decl is AST.EnumDecl {
+                    sym :: by_name[decl.name] ?? continue
+                    repr :: resolve_repr(decl.repr, typed.resolved, diag_sink())
+                    indices :: resolve_enum_indices(decl, repr, diag_sink())
                     collected[sym.id] = mk_enum(sym, repr, indices)
                 }
             }
@@ -1280,11 +1280,11 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.MutableTypeExpr { return true }
     // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
     // type alias (1-tuples are forbidden).
-    if e is AST.SeqLitExpr as seq {
-        if seq.elements.len() < 2 {
+    if e is AST.SeqLitExpr {
+        if e.elements.len() < 2 {
             return false
         }
-        for el in seq.elements {
+        for el in e.elements {
             if !is_type_expr(el, resolved) {
                 return false
             }
@@ -1641,21 +1641,21 @@ push_module_exported_fns :: fn(
                 continue
             }
             ty :: from.decl_types[sym.id] ?? continue
-            if ty is FnType as ft {
+            if ty is FnType {
                 if name !in excluded {
                     // The DECL travels with the type: it is what carries
                     // parameter names and defaults, which a UFCS call site in
                     // the importing module has no other way to reach.
                     fd :: from.fn_decls[sym.id]
-                    push_overload(table, name, ImportedFn { .ty = ft, .decl = fd })
+                    push_overload(table, name, ImportedFn { .ty = ty, .decl = fd })
                     // And the defaults' own name resolutions travel with it —
                     // they are lowered in the CALLER's context. See
                     // `import_defaults.vader`.
-                    if fd is AST.FnDecl as decl {
-                        publish_default_resolutions(from, into, decl)
+                    if fd is AST.FnDecl {
+                        publish_default_resolutions(from, into, fd)
                     }
                 }
-                into.external_types[sym.id] = ft
+                into.external_types[sym.id] = ty
             }
         }
     }
@@ -1868,8 +1868,8 @@ build_namespace_export_decls :: fn(
             continue
         }
         decl :: typed.fn_decls[sym.id]
-        if decl is AST.FnDecl as fd {
-            out[name] = fd
+        if decl is AST.FnDecl {
+            out[name] = decl
         }
     }
     return out
@@ -2023,14 +2023,14 @@ export walk_bodies :: fn(
     // membership first (so a method type that trait-widens to a
     // later-declared type resolves), then the rest of the metadata + checks.
     for decl in decls {
-        if decl is AST.ImplDecl as id {
-            for_ty :: type_from_expr(id.for_type, typed.resolved, diag_sink())
-            record_struct_trait(typed, for_ty, id.trait_name)
+        if decl is AST.ImplDecl {
+            for_ty :: type_from_expr(decl.for_type, typed.resolved, diag_sink())
+            record_struct_trait(typed, for_ty, decl.trait_name)
         }
     }
     for decl in decls {
-        if decl is AST.ImplDecl as id {
-            register_impl_metadata(id, typed, diags)
+        if decl is AST.ImplDecl {
+            register_impl_metadata(decl, typed, diags)
         }
     }
     // Const VALUES that need no fn body are typed BEFORE the bodies. That is
@@ -2041,9 +2041,9 @@ export walk_bodies :: fn(
     // silently to `unreachable`. Worse, it meant those sites were never type
     // CHECKED at all.
     for decl in decls {
-        if decl is AST.ConstDecl as cd {
-            if is_body_independent_value(cd.value) {
-                check_const_value(cd, typed, diags)
+        if decl is AST.ConstDecl {
+            if is_body_independent_value(decl.value) {
+                check_const_value(decl, typed, diags)
             }
         }
     }
@@ -2273,8 +2273,8 @@ declares_mutable_self :: fn(m: AST.FnDecl, trait_method: AST.FnDecl | null) -> b
     if has_mutable_self(m) {
         return true
     }
-    if trait_method is AST.FnDecl as tm {
-        return has_mutable_self(tm)
+    if trait_method is AST.FnDecl {
+        return has_mutable_self(trait_method)
     }
     return false
 }
@@ -2416,17 +2416,17 @@ is_body_independent_value :: fn(e: AST.Expr) -> bool {
     if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr {
         return true
     }
-    if e is AST.StringLitExpr as sl {
+    if e is AST.StringLitExpr {
         // An interpolated part holds an arbitrary expression.
-        for part in sl.parts {
+        for part in e.parts {
             if part !is AST.StringLitText {
                 return false
             }
         }
         return true
     }
-    if e is AST.SeqLitExpr as seq {
-        for element in seq.elements {
+    if e is AST.SeqLitExpr {
+        for element in e.elements {
             if !is_body_independent_value(element) {
                 return false
             }
@@ -2477,9 +2477,9 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram!, diags: Diagnost
 // Explicit annotations are respected (this only runs when `annot is null`), so
 // `X: u32[]: [...]` stays a mutable, non-baked opt-out.
 auto_const_module_array :: fn(t: Type) -> Type {
-    if t is ArrayType as a {
-        if !a.immutable {
-            return mk_array(a.element, true)
+    if t is ArrayType {
+        if !t.immutable {
+            return mk_array(t.element, true)
         }
     }
     return t

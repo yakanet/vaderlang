@@ -242,8 +242,8 @@ export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = m
 export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcPrimitive as p {
-            if p.val == val { return i32(i) }
+        if t is BcPrimitive {
+            if t.val == val { return i32(i) }
         }
     }
     // f32/f64 share the F64 box representation — an f32 value flows with class
@@ -275,7 +275,7 @@ export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> st
 /// typed value (no runtime tag to inspect).
 export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
     t :: types[usize(type_index)]
-    if t is BcPrimitive as p { return p.val == slot_val }
+    if t is BcPrimitive { return t.val == slot_val }
     return false
 }
 

@@ -35,8 +35,8 @@ import "toolchain/span"
 // (no integer context) stays a `LoweredCharLit`. `ty` is already defaulted
 // (FreeChar → char).
 lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
-    if ty is PrimitiveType as p {
-        if p.name != "char" {
+    if ty is PrimitiveType {
+        if ty.name != "char" {
             return LoweredIntLit { .span = e.span, .type = ty, .value = i64(e.value) }
         }
     }
@@ -97,9 +97,9 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             // fold guard never sees it and `DIM.0` keeps a real
             // `LoweredFieldAccess` over the re-materialised tuple lit
             // (`._0 :i32`). Only `@comptime`-substituted loop-var lits fold.
-            if lowered_target is LoweredStructLit as sl {
+            if lowered_target is LoweredStructLit {
                 if !field_target_is_comptime_const(ctx, e.target) {
-                    for f in sl.fields {
+                    for f in lowered_target.fields {
                         if f.name == field_name { return f.value }
                     }
                 }
@@ -321,10 +321,10 @@ try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -
 // a real field access at the use site (the tuple lit rides as the
 // access target) rather than folding to the projected element.
 field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
-    if target is IdentExpr as id {
-        symbol :: ctx.typed.resolved.idents[id.span.hash()]
-        if symbol is Symbol as resolved {
-            baked :: lookup_const_baked_value(ctx, resolved)
+    if target is IdentExpr {
+        symbol :: ctx.typed.resolved.idents[target.span.hash()]
+        if symbol is Symbol {
+            baked :: lookup_const_baked_value(ctx, symbol)
             return baked is StructValue || baked is ArrayValue
         }
     }
@@ -371,8 +371,8 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx!, resolved: Symbol, type: Type) -> 
 
 find_const_decl_by_name :: fn(decls: Decl[], name: string) -> ConstDecl | null {
     for d in decls {
-        if d is ConstDecl as cd {
-            if cd.name == name { return cd }
+        if d is ConstDecl {
+            if d.name == name { return d }
         }
     }
     return null
@@ -447,7 +447,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
 // elements then resolve from their own values). Single-case `if`, not a
 // `match` with a `_ ->` degraded arm.
 array_element_type :: fn(t: Type) -> Type {
-    if t is ArrayType as at { return at.element }
+    if t is ArrayType { return t.element }
     return TY_UNRESOLVED
 }
 
@@ -513,14 +513,14 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 try_lower_common_union_field :: fn(
     ctx: FnLowerCtx!, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
 ) -> LoweredExpr | null {
-    if target_type is UnionType as u {
-        if u.variants.len() == 0 { return null }
-        first_variant :: u.variants[0]
+    if target_type is UnionType {
+        if target_type.variants.len() == 0 { return null }
+        first_variant :: target_type.variants[0]
         if !(first_variant is StructType) { return null }
         // Every variant must be a struct exposing the same field
         // name with the same resolved type. Bail out otherwise — the
         // general per-variant cascade isn't ported yet.
-        for v in u.variants {
+        for v in target_type.variants {
             if !(v is StructType) { return null }
         }
         cast_target :: LoweredCast {
@@ -656,8 +656,8 @@ lower_if :: fn(ctx: FnLowerCtx!, if_expr: IfExpr, type: Type) -> LoweredExpr {
 // `let tmp; if {…}` onto the ANF sink, and return `tmp` as the value. Else
 // `null` (the caller keeps the plain value `if`).
 lift_value_if :: fn(ctx: FnLowerCtx!, lowered: LoweredExpr, type: Type, span: Span) -> LoweredExpr | null {
-    if lowered is LoweredIf as lif {
-        if !if_has_await(lif) { return null }
+    if lowered is LoweredIf {
+        if !if_has_await(lowered) { return null }
         tmp :: fresh_synthetic_symbol(ctx, "cond")
         // `let tmp : T = <zero>` — spilled by the block-split so it survives the
         // suspension in a branch ; overwritten in every arm before read.
@@ -665,14 +665,14 @@ lift_value_if :: fn(ctx: FnLowerCtx!, lowered: LoweredExpr, type: Type, span: Sp
             .span = span, .name = tmp.name, .symbol = tmp, .type = type,
             .value = zero_value_lit(span, type),
         })
-        else_block: LoweredBlock | null = if lif.else_block == null {
+        else_block: LoweredBlock | null = if lowered.else_block == null {
             null
         } else {
-            arm_block(assign_trailing_to(lif.else_block, tmp, type, span), span)
+            arm_block(assign_trailing_to(lowered.else_block, tmp, type, span), span)
         }
         stmt_if :: LoweredIf {
-            .span = span, .type = TY_VOID, .cond = lif.cond,
-            .then_block = arm_block(assign_trailing_to(lif.then_block, tmp, type, span), span),
+            .span = span, .type = TY_VOID, .cond = lowered.cond,
+            .then_block = arm_block(assign_trailing_to(lowered.then_block, tmp, type, span), span),
             .else_block = else_block,
         }
         ctx.pending_awaits.push(LoweredExprStmt { .span = span, .expr = stmt_if })
@@ -714,10 +714,10 @@ block_has_await :: fn(b: LoweredBlock) -> bool {
 // `LoweredAwait` — used to decide if a value `if` must be lifted.
 stmt_has_await :: fn(s: LoweredStmt) -> bool {
     if s is LoweredAwait { return true }
-    if s is LoweredLoop as lp { return block_has_await(lp.body) }
-    if s is LoweredExprStmt as es {
-        if es.expr is LoweredIf as ie { if if_has_await(ie) { return true } }
-        if es.expr is LoweredBlock as bl { return block_has_await(bl) }
+    if s is LoweredLoop { return block_has_await(s.body) }
+    if s is LoweredExprStmt {
+        if s.expr is LoweredIf as ie { if if_has_await(ie) { return true } }
+        if s.expr is LoweredBlock as bl { return block_has_await(bl) }
     }
     return false
 }
@@ -737,14 +737,14 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
     block :: lower_block(ctx, if_expr.then_block, false, false)
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
-    if cond is BinaryExpr as bin {
-        if bin.op != BinaryOp.Is { return block }
-        if bin.bind_as == "" { return block }
-        scrut_type :: ctx.types.expr_type(bin.left)
-        inner_type :: resolve_pattern_type(ctx, bin.right)
-        scrut_value :: lower_expr(ctx, bin.left)
+    if cond is BinaryExpr {
+        if cond.op != BinaryOp.Is { return block }
+        if cond.bind_as == "" { return block }
+        scrut_type :: ctx.types.expr_type(cond.left)
+        inner_type :: resolve_pattern_type(ctx, cond.right)
+        scrut_value :: lower_expr(ctx, cond.left)
         cast_value: LoweredExpr = if scrut_type is UnionType {
-            LoweredCast { .span = bin.span, .type = inner_type, .value = scrut_value }
+            LoweredCast { .span = cond.span, .type = inner_type, .value = scrut_value }
         } else {
             scrut_value
         }
@@ -755,9 +755,9 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
         // slot. A `fresh_synthetic_symbol` here mints a different id, leaving
         // every `a` reference unresolved (build_ident → unreachable). Mirror
         // of `lower_match`'s `resolve_pattern_symbol` on its `is T as a` arm.
-        symbol :: resolve_pattern_symbol(ctx, bin.right.span, bin.bind_as)
+        symbol :: resolve_pattern_symbol(ctx, cond.right.span, cond.bind_as)
         let_stmt: LoweredStmt = LoweredLet {
-            .span = bin.span, .name = bin.bind_as, .symbol = symbol,
+            .span = cond.span, .name = cond.bind_as, .symbol = symbol,
             .type = inner_type, .value = cast_value,
         }
         new_stmts: LoweredStmt[]! = []

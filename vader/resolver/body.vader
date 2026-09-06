@@ -429,8 +429,8 @@ mark_binding_immutable :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
         }
         is AST.RestBinding as rb -> {
             sym :: self.scope.lookup(rb.name)
-            if sym is Symbol as s {
-                self.immutable_locals[s.id] = true
+            if sym is Symbol {
+                self.immutable_locals[sym.id] = true
             }
         }
         _ -> {}
@@ -614,22 +614,22 @@ walk_if :: fn(self: ResolveState!, e: AST.IfExpr) -> void {
 // rejected (R2029) — its scope across short-circuit operands is ambiguous —
 // but still minted so the use doesn't cascade into a spurious R2006.
 bind_cond_is_as :: fn(self: ResolveState!, cond: AST.Expr, in_conjunction: bool) -> void {
-    if cond is AST.BinaryExpr as x {
-        if x.op == AST.BinaryOp.And {
-            self.bind_cond_is_as(x.left, true)
-            self.bind_cond_is_as(x.right, true)
+    if cond is AST.BinaryExpr {
+        if cond.op == AST.BinaryOp.And {
+            self.bind_cond_is_as(cond.left, true)
+            self.bind_cond_is_as(cond.right, true)
             return
         }
-        if x.op == AST.BinaryOp.Is {
-            self.walk_expr(x.left)
-            self.walk_expr(x.right)
-            if x.bind_as != "" {
+        if cond.op == AST.BinaryOp.Is {
+            self.walk_expr(cond.left)
+            self.walk_expr(cond.right)
+            if cond.bind_as != "" {
                 if in_conjunction {
-                    self.diags.push(resolver_error(.AsBindingInConjunction, x.right.span,
+                    self.diags.push(resolver_error(.AsBindingInConjunction, cond.right.span,
                         "an `as` binding cannot appear in a `&&` condition ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`)"))
                 }
-                sym :: self.mint_local(.Binding, x.bind_as, x.right.span)
-                self.scope.bind(x.bind_as, sym)
+                sym :: self.mint_local(.Binding, cond.bind_as, cond.right.span)
+                self.scope.bind(cond.bind_as, sym)
             }
             return
         }

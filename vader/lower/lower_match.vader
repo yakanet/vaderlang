@@ -79,14 +79,14 @@ export lower_match :: fn(
     } else {
         ctx.typed.resolved.idents[expr.span.hash()]
     }
-    if alias_symbol is Symbol as alias {
+    if alias_symbol is Symbol {
         alias_span :: span_of(scrut_value)
         read :: LoweredIdent {
             .span = alias_span, .type = scrut_type, .symbol = scrut_symbol,
         }
-        init :: lower_cell_init(ctx, alias, read, scrut_type, alias_span)
+        init :: lower_cell_init(ctx, alias_symbol, read, scrut_type, alias_span)
         stmts.push(LoweredLet {
-            .span = alias_span, .name = alias.name, .symbol = alias,
+            .span = alias_span, .name = alias_symbol.name, .symbol = alias_symbol,
             .type = init.slot_type, .value = init.value,
         })
     }
@@ -315,11 +315,11 @@ tuple_pattern_predicate :: fn(
     tuple_ty :: tuple_variant_of(target_type, pattern.elements.len())
     eff_target: LoweredExpr = target
     if target_type is UnionType {
-        if tuple_ty is TupleType as tt {
+        if tuple_ty is TupleType {
             accumulator = LoweredTypeCheck {
-                .span = span, .type = TY_BOOL, .value = target, .check_type = tt,
+                .span = span, .type = TY_BOOL, .value = target, .check_type = tuple_ty,
             }
-            eff_target = narrow_target(target, target_type, tt, span)
+            eff_target = narrow_target(target, target_type, tuple_ty, span)
         }
     }
     for i in 0..<pattern.elements.len() {
@@ -347,8 +347,8 @@ tuple_pattern_predicate :: fn(
 
 tuple_element_types :: fn(target_type: Type, arity: usize) -> Type[] {
     tup :: tuple_variant_of(target_type, arity)
-    if tup is TupleType as t {
-        if t.elements.len() == arity { return t.elements }
+    if tup is TupleType {
+        if tup.elements.len() == arity { return tup.elements }
     }
     return fill_unresolved(arity)
 }
@@ -359,14 +359,14 @@ tuple_element_types :: fn(target_type: Type, arity: usize) -> Type[] {
 // typecheck side ; used so a tuple pattern over a union narrows to the
 // tuple before reading slots.
 tuple_variant_of :: fn(t: Type, arity: usize) -> TupleType | null {
-    if t is TupleType as tup {
-        if tup.elements.len() == arity { return tup }
+    if t is TupleType {
+        if t.elements.len() == arity { return t }
         return null
     }
-    if t is UnionType as u {
-        for v in u.variants {
-            if v is TupleType as tup {
-                if tup.elements.len() == arity { return tup }
+    if t is UnionType {
+        for v in t.variants {
+            if v is TupleType {
+                if v.elements.len() == arity { return v }
             }
         }
     }
@@ -531,8 +531,8 @@ narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, sp
 // isn't a struct (a non-struct in a struct-field pattern is an upstream
 // typecheck error) or the field/decl is missing. Single-case `if`.
 struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type {
-    if target_type is StructType as st {
-        decl :: ctx.typed.struct_decls[st.symbol.id] ?? return TY_UNRESOLVED
+    if target_type is StructType {
+        decl :: ctx.typed.struct_decls[target_type.symbol.id] ?? return TY_UNRESOLVED
         for field in decl.fields {
             if field.name == field_name {
                 return resolve_pattern_type(ctx, field.ty)

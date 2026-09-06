@@ -237,8 +237,8 @@ export link_native :: fn(
         return 1
     }
     res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root))
-    if res is ProcessError as pe {
-        eprintln("vader build: ${pe.message()}")
+    if res is ProcessError {
+        eprintln("vader build: ${res.message()}")
         eprintln("(generated C kept at ${c_file})")
         return 1
     }

@@ -57,8 +57,8 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
     match e {
         is AST.IdentExpr as id -> {
             sym :: from.resolved.idents[id.span.hash()]
-            if sym is Symbol as s {
-                into.resolved.idents[id.span.hash()] = s
+            if sym is Symbol {
+                into.resolved.idents[id.span.hash()] = sym
             }
         }
         is AST.CallExpr as c -> {
@@ -104,10 +104,10 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
         is AST.StructLitExpr    as sl -> {
             copy_expr_resolutions(sl.type_name, from, into)
             for item in sl.items {
-                if item is AST.StructLitField as fld {
-                    copy_expr_resolutions(fld.value, from, into)
-                } else if item is AST.StructLitSpread as sp {
-                    copy_expr_resolutions(sp.expr, from, into)
+                if item is AST.StructLitField {
+                    copy_expr_resolutions(item.value, from, into)
+                } else if item is AST.StructLitSpread {
+                    copy_expr_resolutions(item.expr, from, into)
                 }
             }
         }
@@ -137,8 +137,8 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
         }
         is AST.StringLitExpr    as st -> {
             for part in st.parts {
-                if part is AST.StringLitInterp as interp {
-                    copy_expr_resolutions(interp.expr, from, into)
+                if part is AST.StringLitInterp {
+                    copy_expr_resolutions(part.expr, from, into)
                 }
             }
         }
@@ -167,10 +167,10 @@ copy_if_resolutions :: fn(f: AST.IfExpr, from: TypedProgram, into: TypedProgram!
         copy_expr_resolutions(t, from, into)
     }
     branch :: f.else_branch
-    if branch is AST.IfElseIf as ei {
-        copy_if_resolutions(ei.branch, from, into)
-    } else if branch is AST.IfElseBlock as eb {
-        bt :: eb.block.trailing
+    if branch is AST.IfElseIf {
+        copy_if_resolutions(branch.branch, from, into)
+    } else if branch is AST.IfElseBlock {
+        bt :: branch.block.trailing
         if bt != null {
             copy_expr_resolutions(bt, from, into)
         }

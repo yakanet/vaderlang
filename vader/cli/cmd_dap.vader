@@ -24,8 +24,8 @@ import "vader/dap"
 // pipeline (lower → cfg → bytecode → prepare) lives here.
 cmd_dap :: fn(args: string[]) -> i32 {
     parsed :: parse_action("dap", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     return run_dap_server(compile_for_dap)
 }

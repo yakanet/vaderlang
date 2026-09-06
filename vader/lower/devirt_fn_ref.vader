@@ -39,8 +39,8 @@ import "vader/resolver/symbol"
 export devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                body :: fd.body
+            if d is LoweredFnDecl {
+                body :: d.body
                 if body != null { devirt_body(body) }
             }
         }

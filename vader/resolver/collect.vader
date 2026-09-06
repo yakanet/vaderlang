@@ -147,19 +147,19 @@ check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]!) -> void {
     wildcard_of :: MutableMap<string, Span> {}
     destructure_of :: MutableMap<string, Span> {}
     for d in decls {
-        if d is ImportDecl as imp {
-            match imp.binding {
+        if d is ImportDecl {
+            match d.binding {
                 is WildcardImport -> {
-                    if destructure_of[imp.path] != null {
-                        diags.push(resolver_error(.ConflictingImportForms, imp.span, "`${imp.path}`"))
+                    if destructure_of[d.path] != null {
+                        diags.push(resolver_error(.ConflictingImportForms, d.span, "`${d.path}`"))
                     }
-                    wildcard_of[imp.path] = imp.span
+                    wildcard_of[d.path] = d.span
                 }
                 is DestructureImport -> {
-                    if wildcard_of[imp.path] != null {
-                        diags.push(resolver_error(.ConflictingImportForms, imp.span, "`${imp.path}`"))
+                    if wildcard_of[d.path] != null {
+                        diags.push(resolver_error(.ConflictingImportForms, d.span, "`${d.path}`"))
                     }
-                    destructure_of[imp.path] = imp.span
+                    destructure_of[d.path] = d.span
                 }
                 _ -> {}
             }
@@ -216,8 +216,8 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
     // potential free-fn overload — a same-signature clash is caught by T3053).
     // Colliding with a TYPE or CONST is a genuine duplicate → R2004. Return
     // before bucketing so the conflicting fn isn't orphaned in fn_overloads.
-    if existing is Symbol as e {
-        if e.kind != SymbolKind.Fn && e.kind != SymbolKind.ImportBinding {
+    if existing is Symbol {
+        if existing.kind != SymbolKind.Fn && existing.kind != SymbolKind.ImportBinding {
             diags.push(resolver_error(.DuplicateTopLevelSymbol, d.name_span,
                 "`${d.name}` already declared in this module"))
             return

@@ -36,7 +36,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
     b :: m.body ?? return false
     if !b.stmts.is_empty() { return false }
     t :: b.trailing ?? return false
-    if t is IdentExpr as id { return id.name == m.params[0].name }
+    if t is IdentExpr { return t.name == m.params[0].name }
     return false
 }
 
@@ -201,8 +201,8 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
     // receiver, so record the element type keyed by this call-site mangle.
     // `surface_array_blanket_members` materialises one concrete body per element
     // (substituting `T → element`, so e.g. `contains`'s `==` devirtualises).
-    if target_type is ArrayType as arr_ty {
-        ctx.project.array_blanket_elems[mangled] = arr_ty.element
+    if target_type is ArrayType {
+        ctx.project.array_blanket_elems[mangled] = target_type.element
     }
     // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
     // materialiser only covers instances in `evaluated.instances`, so an ERASED
@@ -210,8 +210,8 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
     // in self.inner`) never gets its impl members. Queue it for
     // `drain_generic_fn_instances` to materialise (struct analogue of
     // `array_blanket_elems`).
-    if target_type is StructType as recv_struct {
-        if entry.is_generic { queue_generic_impl_receiver(ctx, recv_struct) }
+    if target_type is StructType {
+        if entry.is_generic { queue_generic_impl_receiver(ctx, target_type) }
     }
     return UfcsMember {
         .symbol = Symbol {
@@ -243,12 +243,12 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
 impl_member_arg_types :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> Type[] {
     entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
     direct :: entry_typed.impl_methods["${display_type_key(recv_type)}::${method_name}"]
-    if direct is ImplMethod as d {
-        if d.ty is FnType as ft { return ft.params }
+    if direct is ImplMethod {
+        if direct.ty is FnType as ft { return ft.params }
     }
     base :: entry_typed.impl_methods["${type_base_name(recv_type)}::${method_name}"]
-    if base is ImplMethod as b {
-        if b.ty is FnType as ft { return ft.params }
+    if base is ImplMethod {
+        if base.ty is FnType as ft { return ft.params }
     }
     return []
 }
@@ -356,8 +356,9 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
     // the lifted call for byte-parity (`cast → i32 / call into(u)`).
     coerced :: try_emit_into_coercion(ctx, arg, arg_type, type, call.span)
     inner :: if coerced == null { arg } else { coerced }
-    if type is PrimitiveType as pt {
-        if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
+    if type is PrimitiveType {
+        n :: type.name
+        if n == "string" || n == "bool" || n == "void" || n == "null" {
             // A true identity cast (`string(s)` on a `string`) hands the arg back
             // untouched. UNWRAPPING a distinct is not that: `string(n)` where
             // `n : Name` must stamp `string`, or the lowered tree keeps carrying
@@ -422,18 +423,18 @@ mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, sp
 try_array_iter_coercion :: fn(
     ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
-    if arg_type is ArrayType as arr {
-        if target_type is TraitType as tt {
-            if tt.symbol.name != TRAIT_ITERATOR { return null }
-            if tt.args.len() != 1 { return null }
+    if arg_type is ArrayType {
+        if target_type is TraitType {
+            if target_type.symbol.name != TRAIT_ITERATOR { return null }
+            if target_type.args.len() != 1 { return null }
             // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
             // std/core's struct isn't loaded (nothing to materialise).
-            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element]) ?? return null
+            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arg_type.element]) ?? return null
             // Register the `ArrayIterator<element>` instance so its `Iterator`
             // impl (`next__<element>`) materialises + lands in the vtable — the
             // value slot dispatches `it.next()` virtually (the for-in path inlines
             // `next` and never needs the table).
-            if wrapped is StructType as ai { queue_generic_impl_receiver(ctx, ai) }
+            if wrapped is StructType { queue_generic_impl_receiver(ctx, wrapped) }
             member :: find_impl_member_for(ctx, arg_type, METHOD_INTO)
             if member is null { return mk_bare_into_call(ctx, arg, target_type, span) }
             return LoweredCall {
@@ -472,8 +473,8 @@ try_emit_into_coercion :: fn(
     // is nothing to run. Without this, a newtype that implements `Into<P>` cannot
     // be written at all: the body has no other way to reach its representation,
     // so `P(self)` lifts to `into(self)` and recurses until the stack goes.
-    if arg_type is DistinctType as d {
-        if equals_type(d.backing, target_type) {
+    if arg_type is DistinctType {
+        if equals_type(arg_type.backing, target_type) {
             return null
         }
     }

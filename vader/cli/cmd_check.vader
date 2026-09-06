@@ -45,8 +45,8 @@ import "vader/target"
 ///              diagnostic or a missing file, 2 on a malformed `--target`.
 export cmd_check :: fn(args: string[]) -> i32 {
     parsed :: parse_action("check", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     if reject_extra_positionals("check", parsed) {
         return 1
@@ -60,12 +60,13 @@ export cmd_check :: fn(args: string[]) -> i32 {
     target: Target | null = null
     if target_flag != "" {
         parsed_target :: parse_target(target_flag)
-        if parsed_target is TargetParseError as e {
-            eprintln("vader check --target=${target_flag}: ${e.reason} `${e.fragment}`")
+        if parsed_target is TargetParseError {
+            eprintln("vader check --target=${target_flag}: ${parsed_target.reason} "
+                + "`${parsed_target.fragment}`")
             return 2
         }
-        if parsed_target is Target as t {
-            target = t
+        if parsed_target is Target {
+            target = parsed_target
         }
     }
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))

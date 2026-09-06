@@ -150,7 +150,7 @@ TryAll<U, E> implements Async<(U | E)[] | Error> {
         r :: self.inner.resume()
         if r is Suspended { return Suspended {} }
         for v in r {
-            if v is Error as e { return e }   // first error, by input order
+            if v is Error { return v }   // first error, by input order
         }
         return r
     }

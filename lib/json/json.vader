@@ -149,32 +149,32 @@ parse_value :: fn(p: Parser!, depth: i32) -> JsonValue | JsonError {
     c := peek_byte(p)
     if c == '"' {
         s := parse_string(p)
-        if s is JsonError as e { return e }
+        if s is JsonError { return s }
         return JsonString { .value = s }
     }
     if c == '{' {
         obj :: parse_object(p, depth)
-        if obj is JsonError as e { return e }
+        if obj is JsonError { return obj }
         return obj
     }
     if c == '[' {
         arr :: parse_array(p, depth)
-        if arr is JsonError as e { return e }
+        if arr is JsonError { return arr }
         return arr
     }
     if c == 't' || c == 'f' {
         bv :: parse_bool(p)
-        if bv is JsonError as e { return e }
+        if bv is JsonError { return bv }
         return bv
     }
     if c == 'n' {
         nv :: parse_null(p)
-        if nv is JsonError as e { return e }
+        if nv is JsonError { return nv }
         return nv
     }
     if c == '-' || is_digit(c) {
         num :: parse_number(p)
-        if num is JsonError as e { return e }
+        if num is JsonError { return num }
         return num
     }
     return fail(p, "unexpected character")
@@ -412,7 +412,7 @@ parse_array :: fn(p: Parser!, depth: i32) -> JsonArray | JsonError {
     }
     for !at_end(p) {
         v := parse_value(p, depth + 1)
-        if v is JsonError as e { return e }
+        if v is JsonError { return v }
         items.push(v)
         skip_ws(p)
         if at_end(p) {
@@ -446,11 +446,11 @@ parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
     for !at_end(p) {
         skip_ws(p)
         key := parse_string(p)
-        if key is JsonError as e { return e }
+        if key is JsonError { return key }
         skip_ws(p)
         if expect_byte(p, ':') is JsonError as e { return e }
         value := parse_value(p, depth + 1)
-        if value is JsonError as e { return e }
+        if value is JsonError { return value }
         entries[key] = value
         skip_ws(p)
         if at_end(p) {
@@ -488,7 +488,7 @@ parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
 export parse :: fn(input: string) -> JsonValue | JsonError {
     p := new_parser(input)
     v := parse_value(p, 0)
-    if v is JsonError as e { return e }
+    if v is JsonError { return v }
     skip_ws(p)
     if !at_end(p) {
         return fail(p, "trailing characters after JSON value")

@@ -146,8 +146,8 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
         }
         is AST.StringLitExpr     -> {
             for part in e.parts {
-                if part is AST.StringLitInterp as si {
-                    collect_expr_names(si.expr, out)
+                if part is AST.StringLitInterp {
+                    collect_expr_names(part.expr, out)
                 }
             }
         }
@@ -658,8 +658,8 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
         }
         for d in concat_file_decls(lm.module.files) {
             all_decls.push(d)
-            if d is AST.FnDecl as fd {
-                if fd.name == "main" {
+            if d is AST.FnDecl {
+                if d.name == "main" {
                     has_main = true
                 }
             }

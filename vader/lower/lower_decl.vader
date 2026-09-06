@@ -461,8 +461,8 @@ lookup_comptime_value :: fn(
 ) -> ComptimeValue | null {
     program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
     symbol :: lookup_const_symbol(const_decl, typed) ?? return null
-    if symbol is Symbol as s {
-        return program.comptime_decls[s.id]
+    if symbol is Symbol {
+        return program.comptime_decls[symbol.id]
     }
     return null
 }
@@ -473,7 +473,7 @@ lookup_comptime_value :: fn(
 // upstream — cascading diagnostics already surfaced).
 return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     decl_type :: types.fn_decl_type(fn_decl)
-    if decl_type is FnType as ft { return ft.return_type }
+    if decl_type is FnType { return decl_type.return_type }
     // Impl members aren't in `decl_types` (Symbol.id-keyed for
     // top-level decls). They live in `impl_method_decl_types`
     // keyed by name_span via `Span.hash()` — consult that as a
@@ -481,7 +481,7 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     // to TY_VOID. Apply the entry's subst so an erasure-flavoured
     // EntryTypes still produces an erased return type.
     impl_type :: types.typed.impl_method_decl_types[fn_decl.name_span.hash()]
-    if impl_type is FnType as ft { return types.apply(ft.return_type) }
+    if impl_type is FnType { return types.apply(impl_type.return_type) }
     return TY_VOID
 }
 
@@ -520,7 +520,7 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
 /// matching index. Returns `""` for unique names + non-fn decls.
 overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
     name_span_or_null :: decl_name_span(decl) ?? return ""
-    if name_span_or_null is Span as name_span {
+    if name_span_or_null is Span {
         bucket :: typed.resolved.fn_overloads[decl_name(decl)] ?? return ""
         if bucket is Symbol[] as symbols {
             if symbols.len() < 2 { return "" }
@@ -528,7 +528,7 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
                 match symbols[i].defined_at {
                     is null -> {}
                     is Span as defined -> {
-                        if defined.hash() == name_span.hash() {
+                        if defined.hash() == name_span_or_null.hash() {
                             if i == 0 { return "" }
                             return "_${i}"
                         }
@@ -572,6 +572,6 @@ decl_name :: fn(decl: Decl) -> string = match decl {
 }
 
 is_main_decl :: fn(decl: Decl) -> bool {
-    if decl is FnDecl as f { return f.name == "main" }
+    if decl is FnDecl { return decl.name == "main" }
     return false
 }

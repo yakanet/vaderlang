@@ -452,8 +452,8 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
     side :: ctx.typed.iter_element_types[display_type_key(t)]
     if !(side is null) { return side }
-    if t is StructType as st {
-        if st.args.len() > 0 { return st.args[0] }
+    if t is StructType {
+        if t.args.len() > 0 { return t.args[0] }
     }
     return null
 }
@@ -504,7 +504,7 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
             // combinator's source recursion ; a bare `for x in arr` is declined at
             // the top by `try_lower_chain_fusion` so it keeps the raw-array fast path.
             bare :: ctx.types.expr_type(expr)
-            if bare is ArrayType as at { return mk_array_chain(expr, at.element, span_of(expr), true) }
+            if bare is ArrayType { return mk_array_chain(expr, bare.element, span_of(expr), true) }
             return null
         }
     }
@@ -525,7 +525,7 @@ FluentCombinator :: struct {
 // is the `chain` ident/field. Unwrapping it lets both the free-fn and UFCS forms
 // fuse with explicit type args instead of falling to the virtual `next()` path.
 combinator_effective_callee :: fn(callee: AST.Expr) -> AST.Expr =
-    if callee is AST.GenericInstExpr as gi { gi.callee } else { callee }
+    if callee is AST.GenericInstExpr { callee.callee } else { callee }
 
 // Recognise the fluent `it.map(f)` / `it.enumerate()` (UFCS) and the direct
 // `map(it, f)` / `enumerate(it)` shapes. Returns the receiver + optional fn arg
@@ -574,10 +574,10 @@ mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool)
 
 descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     result_ty :: ctx.types.expr_type(call)
-    if result_ty is StructType as st {
-        if st.symbol.name == STRUCT_ARRAY_ITERATOR {
+    if result_ty is StructType {
+        if result_ty.symbol.name == STRUCT_ARRAY_ITERATOR {
             arr_expr :: array_from_iter_call(ctx, call) ?? return null
-            elem :: if st.args.len() > 0 { st.args[0] } else { TY_UNRESOLVED }
+            elem :: if result_ty.args.len() > 0 { result_ty.args[0] } else { TY_UNRESOLVED }
             return mk_array_chain(arr_expr, elem, call.span, false)
         }
     }
@@ -658,8 +658,8 @@ chain_has_multi_source_layer :: fn(chain: IterChain) -> bool {
         }
     }
     src :: chain.source
-    if src is IterChain as inner {
-        return chain_has_multi_source_layer(inner)
+    if src is IterChain {
+        return chain_has_multi_source_layer(src)
     }
     return false
 }
@@ -679,8 +679,8 @@ body_breaks_this_loop :: fn(body: AST.BlockExpr) -> bool {
         }
     }
     trailing :: body.trailing
-    if trailing is AST.Expr as t {
-        return expr_breaks_this_loop(t)
+    if trailing is AST.Expr {
+        return expr_breaks_this_loop(trailing)
     }
     return false
 }
@@ -704,21 +704,21 @@ stmt_breaks_this_loop :: fn(stmt: AST.Stmt) -> bool = match stmt {
 }
 
 expr_breaks_this_loop :: fn(expr: AST.Expr) -> bool {
-    if expr is AST.BlockExpr as b {
-        return body_breaks_this_loop(b)
+    if expr is AST.BlockExpr {
+        return body_breaks_this_loop(expr)
     }
-    if expr is AST.IfExpr as i {
-        if body_breaks_this_loop(i.then_block) {
+    if expr is AST.IfExpr {
+        if body_breaks_this_loop(expr.then_block) {
             return true
         }
-        return match i.else_branch {
+        return match expr.else_branch {
             is null -> false
             is AST.IfElseIf as eif -> expr_breaks_this_loop(eif.branch)
             is AST.IfElseBlock as eb -> body_breaks_this_loop(eb.block)
         }
     }
-    if expr is AST.MatchExpr as m {
-        for arm in m.arms {
+    if expr is AST.MatchExpr {
+        for arm in expr.arms {
             if expr_breaks_this_loop(arm.body) {
                 return true
             }

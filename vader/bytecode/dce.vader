@@ -33,7 +33,7 @@ export prune_unused_imports :: fn(ctx: EmitterCtx!) -> void {
     used :: MutableMap<i32, bool> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
-            if op is CallImport as ci { used[ci.index] = true }
+            if op is CallImport { used[op.index] = true }
         }
     }
     if used.len() == ctx.imports.len() { return }
@@ -52,8 +52,8 @@ export prune_unused_imports :: fn(ctx: EmitterCtx!) -> void {
     for fn_ in ctx.functions {
         for j in 0..<fn_.body.len() {
             op :: fn_.body[j]
-            if op is CallImport as ci {
-                fn_.body[j] = CallImport { .index = remap[usize(ci.index)] }
+            if op is CallImport {
+                fn_.body[j] = CallImport { .index = remap[usize(op.index)] }
             }
         }
     }
@@ -103,10 +103,10 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
         fn_ :: ctx.functions[usize(idx)]
         for op in fn_.body {
             callee: i32 = -1
-            if op is Call as c { callee = c.function_index }
-            if op is FnRef as fr { callee = fr.function_index }
-            if op is FnAddr as fa { callee = fa.function_index }
-            if op is MakeClosure as mc { callee = mc.function_index }
+            if op is Call { callee = op.function_index }
+            if op is FnRef { callee = op.function_index }
+            if op is FnAddr { callee = op.function_index }
+            if op is MakeClosure { callee = op.function_index }
             if callee < 0 { continue }
             if reachable[callee] is bool { continue }
             reachable[callee] = true
@@ -137,9 +137,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
             mangle :: ctx.functions[ci].name
             if mangle != "" {
                 prev_opt :: canonical_old_by_mangle[mangle]
-                if prev_opt is i32 as prev {
+                if prev_opt is i32 {
                     has_dup_mangle = true
-                    if ctx.functions[ci].body.len() > 0 && ctx.functions[usize(prev)].body.len() == 0 {
+                    if ctx.functions[ci].body.len() > 0 && ctx.functions[usize(prev_opt)].body.len() == 0 {
                         canonical_old_by_mangle[mangle] = i32(ci)
                     }
                 } else {
@@ -161,7 +161,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
         c := i32(ki)
         if mangle != "" {
             canon_opt :: canonical_old_by_mangle[mangle]
-            if canon_opt is i32 as cv { c = cv }
+            if canon_opt is i32 { c = canon_opt }
         }
         canon.push(c)
     }
@@ -183,7 +183,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
         target: i32 = -1
         if keep_all || reachable[i32(r)] is bool {
             ni_opt :: new_idx_by_old[canon[r]]
-            if ni_opt is i32 as ni { target = ni }
+            if ni_opt is i32 { target = ni_opt }
         }
         remap.push(target)
     }
@@ -192,19 +192,19 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
     for fn_ in kept {
         for bj in 0..<fn_.body.len() {
             op :: fn_.body[bj]
-            if op is Call as c {
-                fn_.body[bj] = Call { .function_index = remap[usize(c.function_index)] }
+            if op is Call {
+                fn_.body[bj] = Call { .function_index = remap[usize(op.function_index)] }
             }
-            if op is FnRef as fr {
-                fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)], .type_id = fr.type_id }
+            if op is FnRef {
+                fn_.body[bj] = FnRef { .function_index = remap[usize(op.function_index)], .type_id = op.type_id }
             }
-            if op is FnAddr as fa {
-                fn_.body[bj] = FnAddr { .function_index = remap[usize(fa.function_index)] }
+            if op is FnAddr {
+                fn_.body[bj] = FnAddr { .function_index = remap[usize(op.function_index)] }
             }
-            if op is MakeClosure as mc {
+            if op is MakeClosure {
                 fn_.body[bj] = MakeClosure {
-                    .function_index = remap[usize(mc.function_index)],
-                    .env_type_id    = mc.env_type_id,
+                    .function_index = remap[usize(op.function_index)],
+                    .env_type_id    = op.env_type_id,
                 }
             }
         }
@@ -321,26 +321,26 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     // Rewrite composite types' inner type indices.
     remapped_kept: BcType[]! = []
     for t in kept {
-        if t is BcStruct as s {
+        if t is BcStruct {
             new_fields: BcField[]! = []
-            for f in s.fields {
+            for f in t.fields {
                 // Field by field, so a field ADDED to `BcField` is a compile
                 // error here rather than a value silently lost in a rebuild.
                 new_fields.push(BcField {
                     .name = f.name, .type_index = remap_idx(remap, f.type_index),
                 })
             }
-            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .c_name = s.c_name, .symbol_id = s.symbol_id })
-        } else if t is BcUnion as u {
+            remapped_kept.push(BcStruct { .name = t.name, .fields = new_fields, .c_name = t.c_name, .symbol_id = t.symbol_id })
+        } else if t is BcUnion {
             new_vars: i32[]! = []
-            for v in u.variants { new_vars.push(remap_idx(remap, v)) }
+            for v in t.variants { new_vars.push(remap_idx(remap, v)) }
             remapped_kept.push(BcUnion { .variants = new_vars })
-        } else if t is BcArray as a {
-            remapped_kept.push(BcArray { .element = remap_idx(remap, a.element) })
-        } else if t is BcFn as f {
+        } else if t is BcArray {
+            remapped_kept.push(BcArray { .element = remap_idx(remap, t.element) })
+        } else if t is BcFn {
             new_params: i32[]! = []
-            for p in f.params { new_params.push(remap_idx(remap, p)) }
-            remapped_kept.push(BcFn { .params = new_params, .return_type = remap_idx(remap, f.return_type) })
+            for p in t.params { new_params.push(remap_idx(remap, p)) }
+            remapped_kept.push(BcFn { .params = new_params, .return_type = remap_idx(remap, t.return_type) })
         } else {
             remapped_kept.push(t)
         }
@@ -424,23 +424,23 @@ export remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
 /// The type-bearing op variants. Returns -1 when the op carries no
 /// type index.
 export type_index_of :: fn(op: Op) -> i32 {
-    if op is StructNew as s    { return s.type_id }
-    if op is StructGet as s    { return s.type_id }
-    if op is StructSet as s    { return s.type_id }
-    if op is ArrayNew as a     { return a.type_id }
-    if op is ArrayGet as a     { return a.type_id }
-    if op is ArraySet as a     { return a.type_id }
-    if op is ArrayPush as a    { return a.type_id }
-    if op is TypeCheck as t    { return t.type_id }
-    if op is TypeConst as t    { return t.type_id }
-    if op is CallIndirect as c { return c.type_id }
-    if op is MakeClosure as m  { return m.env_type_id }
-    if op is FnRef as f        { return f.type_id }
-    if op is LocalField as l   { return l.type_id }
-    if op is ArraySlice as a   { return a.type_id }
-    if op is RefCast as r      { return r.type_id }
-    if op is Box as b          { return b.type_id }
-    if op is DataConst as d    { return d.type_id }
+    if op is StructNew    { return op.type_id }
+    if op is StructGet    { return op.type_id }
+    if op is StructSet    { return op.type_id }
+    if op is ArrayNew     { return op.type_id }
+    if op is ArrayGet     { return op.type_id }
+    if op is ArraySet     { return op.type_id }
+    if op is ArrayPush    { return op.type_id }
+    if op is TypeCheck    { return op.type_id }
+    if op is TypeConst    { return op.type_id }
+    if op is CallIndirect { return op.type_id }
+    if op is MakeClosure  { return op.env_type_id }
+    if op is FnRef        { return op.type_id }
+    if op is LocalField   { return op.type_id }
+    if op is ArraySlice   { return op.type_id }
+    if op is RefCast      { return op.type_id }
+    if op is Box          { return op.type_id }
+    if op is DataConst    { return op.type_id }
     return -1
 }
 
@@ -453,38 +453,38 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>!) -> void
     if usize(idx) >= ctx.types.len() { return }
     reachable.add(idx)
     t :: ctx.types[usize(idx)]
-    if t is BcStruct as s {
-        for f in s.fields { visit_type(f.type_index, ctx, reachable) }
+    if t is BcStruct {
+        for f in t.fields { visit_type(f.type_index, ctx, reachable) }
     }
-    if t is BcUnion as u {
-        for v in u.variants { visit_type(v, ctx, reachable) }
+    if t is BcUnion {
+        for v in t.variants { visit_type(v, ctx, reachable) }
     }
-    if t is BcArray as a { visit_type(a.element, ctx, reachable) }
-    if t is BcFn as f {
-        for p in f.params { visit_type(p, ctx, reachable) }
-        visit_type(f.return_type, ctx, reachable)
+    if t is BcArray { visit_type(t.element, ctx, reachable) }
+    if t is BcFn {
+        for p in t.params { visit_type(p, ctx, reachable) }
+        visit_type(t.return_type, ctx, reachable)
     }
 }
 
 /// Rewrite an op's type-index operand through `remap`, returning the op as-is
 /// when it carries no type-id reference. Exported for the multi-target retype, which needs the same rewrite over a whole module.
 export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
-    if op is StructNew as s    { return StructNew    { .type_id = remap_idx(remap, s.type_id), .stack = s.stack } }
-    if op is StructGet as s    { return StructGet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
-    if op is StructSet as s    { return StructSet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index, .stack = s.stack } }
-    if op is ArrayNew as a     { return ArrayNew     { .type_id = remap_idx(remap, a.type_id), .length = a.length } }
-    if op is ArrayGet as a     { return ArrayGet     { .type_id = remap_idx(remap, a.type_id) } }
-    if op is ArraySet as a     { return ArraySet     { .type_id = remap_idx(remap, a.type_id) } }
-    if op is ArrayPush as a    { return ArrayPush    { .type_id = remap_idx(remap, a.type_id) } }
-    if op is TypeCheck as t    { return TypeCheck    { .type_id = remap_idx(remap, t.type_id) } }
-    if op is TypeConst as t    { return TypeConst    { .type_id = remap_idx(remap, t.type_id) } }
-    if op is CallIndirect as c { return CallIndirect { .type_id = remap_idx(remap, c.type_id) } }
-    if op is MakeClosure as m  { return MakeClosure  { .function_index = m.function_index, .env_type_id = remap_idx(remap, m.env_type_id) } }
-    if op is FnRef as f        { return FnRef        { .function_index = f.function_index, .type_id = remap_idx(remap, f.type_id) } }
-    if op is LocalField as l   { return LocalField   { .slot = l.slot, .type_id = remap_idx(remap, l.type_id), .field_index = l.field_index } }
-    if op is ArraySlice as a   { return ArraySlice   { .type_id = remap_idx(remap, a.type_id) } }
-    if op is RefCast as r      { return RefCast      { .type_id = remap_idx(remap, r.type_id) } }
-    if op is Box as b          { return Box          { .type_id = remap_idx(remap, b.type_id) } }
-    if op is DataConst as d    { return DataConst    { .pool_index = d.pool_index, .type_id = remap_idx(remap, d.type_id) } }
+    if op is StructNew    { return StructNew    { .type_id = remap_idx(remap, op.type_id), .stack = op.stack } }
+    if op is StructGet    { return StructGet    { .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index } }
+    if op is StructSet    { return StructSet    { .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index, .stack = op.stack } }
+    if op is ArrayNew     { return ArrayNew     { .type_id = remap_idx(remap, op.type_id), .length = op.length } }
+    if op is ArrayGet     { return ArrayGet     { .type_id = remap_idx(remap, op.type_id) } }
+    if op is ArraySet     { return ArraySet     { .type_id = remap_idx(remap, op.type_id) } }
+    if op is ArrayPush    { return ArrayPush    { .type_id = remap_idx(remap, op.type_id) } }
+    if op is TypeCheck    { return TypeCheck    { .type_id = remap_idx(remap, op.type_id) } }
+    if op is TypeConst    { return TypeConst    { .type_id = remap_idx(remap, op.type_id) } }
+    if op is CallIndirect { return CallIndirect { .type_id = remap_idx(remap, op.type_id) } }
+    if op is MakeClosure  { return MakeClosure  { .function_index = op.function_index, .env_type_id = remap_idx(remap, op.env_type_id) } }
+    if op is FnRef        { return FnRef        { .function_index = op.function_index, .type_id = remap_idx(remap, op.type_id) } }
+    if op is LocalField   { return LocalField   { .slot = op.slot, .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index } }
+    if op is ArraySlice   { return ArraySlice   { .type_id = remap_idx(remap, op.type_id) } }
+    if op is RefCast      { return RefCast      { .type_id = remap_idx(remap, op.type_id) } }
+    if op is Box          { return Box          { .type_id = remap_idx(remap, op.type_id) } }
+    if op is DataConst    { return DataConst    { .pool_index = op.pool_index, .type_id = remap_idx(remap, op.type_id) } }
     return op
 }

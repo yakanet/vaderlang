@@ -308,8 +308,8 @@ import "std/testing"
 // Expected bits computed offline via CPython `struct.pack('<d', float(s))`.
 pf_expect :: fn(s: string, expected: u64) -> void {
     r :: parse_f64(s)
-    if r is f64 as v {
-        assert_eq(v.to_bits(), expected)
+    if r is f64 {
+        assert_eq(r.to_bits(), expected)
     } else {
         assert(false, "parse_f64 returned null for `${s}`")
     }

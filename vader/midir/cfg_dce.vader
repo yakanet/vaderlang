@@ -120,18 +120,18 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
         ins :: b.instructions[usize(i)]
         dst_opt :: dst_of(ins)
         dst_live := true
-        if dst_opt is LocalId as d {
-            grow_live_to(d)
-            dst_live = live[usize(d)]
+        if dst_opt is LocalId {
+            grow_live_to(dst_opt)
+            dst_live = live[usize(dst_opt)]
         }
         is_dead :: !instruction_has_side_effect(ins) && !dst_live
         if is_dead {
             keep[usize(i)] = false
         } else {
             keep[usize(i)] = true
-            if dst_opt is LocalId as d2 {
-                grow_live_to(d2)
-                live[usize(d2)] = false
+            if dst_opt is LocalId {
+                grow_live_to(dst_opt)
+                live[usize(dst_opt)] = false
             }
             for_each_read_local(ins, (l: LocalId) -> {
                 grow_live_to(l)
@@ -186,9 +186,9 @@ fold_moves_in_block :: fn(
     for i in 0..<b.instructions.len() {
         ins :: b.instructions[i]
         if !(ins is InstrMove) { folded.push(ins)  continue }
-        if ins is InstrMove as m {
-            if param_locals.contains(m.src) { folded.push(ins)  continue }
-            count_opt :: use_count[m.src]
+        if ins is InstrMove {
+            if param_locals.contains(ins.src) { folded.push(ins)  continue }
+            count_opt :: use_count[ins.src]
             count :: if count_opt is i32 as c { c } else { 0 }
             if count != 1 { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
@@ -200,7 +200,7 @@ fold_moves_in_block :: fn(
             // the swap/rotate idiom `a = b ; b = c` : folding `b = (a+b)` up
             // past `a = b` makes the `a = b` read the not-yet-clobbered
             // slot's new value, doubling instead of swapping.
-            mdst :: m.dst
+            mdst :: ins.dst
             producer_idx: i64 = -1
             intervening := false
             // Reused mutable cell for the closure below — declared once, reset
@@ -211,9 +211,9 @@ fold_moves_in_block :: fn(
             for j >= 0 {
                 cand :: folded[usize(j)]
                 cdst_opt :: dst_of(cand)
-                if cdst_opt is LocalId as cdst {
-                    if cdst == m.src { producer_idx = j  break }
-                    if cdst == mdst { intervening = true  break }
+                if cdst_opt is LocalId {
+                    if cdst_opt == ins.src { producer_idx = j  break }
+                    if cdst_opt == mdst { intervening = true  break }
                 }
                 reads_cell[0] = false
                 for_each_read_local(cand, (l: LocalId) -> {
@@ -225,7 +225,7 @@ fold_moves_in_block :: fn(
             if producer_idx < 0 || intervening { folded.push(ins)  continue }
             producer :: folded[usize(producer_idx)]
             if instruction_has_side_effect(producer) { folded.push(ins)  continue }
-            rewritten :: with_dst(producer, m.dst)
+            rewritten :: with_dst(producer, ins.dst)
             folded[usize(producer_idx)] = rewritten
             // Move drops — don't push it. continue the outer loop.
         }
@@ -258,8 +258,8 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             // Side-effecting dst must keep its slot.
             if instruction_has_side_effect(ins) {
                 d :: dst_of(ins)
-                if d is LocalId as dd {
-                    if usize(dd) < n { referenced[usize(dd)] = true }
+                if d is LocalId {
+                    if usize(d) < n { referenced[usize(d)] = true }
                 }
             }
         }
@@ -297,8 +297,8 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
         out: Instruction[]! = [] * b.instructions.len()
         for ins in b.instructions {
             d :: dst_of(ins)
-            if d is LocalId as dd {
-                if usize(dd) < remap.len() && remap[usize(dd)] < 0 {
+            if d is LocalId {
+                if usize(d) < remap.len() && remap[usize(d)] < 0 {
                     if !instruction_has_side_effect(ins) { continue }
                 }
             }
@@ -332,7 +332,7 @@ remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
 
 remap_local_opt :: fn(m: i32[], l: LocalId | null) -> LocalId | null {
     if l is null { return null }
-    if l is LocalId as ll { return remap_local(m, ll) }
+    if l is LocalId { return remap_local(m, l) }
     return null
 }
 
@@ -343,160 +343,161 @@ remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
 }
 
 remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
-    if ins is InstrConst as c {
-        return InstrConst { .span = c.span, .dst = remap_local(m, c.dst), .value = c.value, .type = c.type }
+    if ins is InstrConst {
+        return InstrConst { .span = ins.span, .dst = remap_local(m, ins.dst), .value = ins.value, .type = ins.type }
     }
-    if ins is InstrMove as mv {
-        return InstrMove { .span = mv.span, .dst = remap_local(m, mv.dst), .src = remap_local(m, mv.src) }
+    if ins is InstrMove {
+        return InstrMove { .span = ins.span, .dst = remap_local(m, ins.dst), .src = remap_local(m, ins.src) }
     }
-    if ins is InstrBinOp as b {
+    if ins is InstrBinOp {
         return InstrBinOp {
-            .span = b.span, .dst = remap_local(m, b.dst), .op = b.op,
-            .lhs = remap_local(m, b.lhs), .rhs = remap_local(m, b.rhs), .type = b.type,
+            .span = ins.span, .dst = remap_local(m, ins.dst), .op = ins.op,
+            .lhs = remap_local(m, ins.lhs), .rhs = remap_local(m, ins.rhs), .type = ins.type,
         }
     }
-    if ins is InstrUnOp as u {
+    if ins is InstrUnOp {
         return InstrUnOp {
-            .span = u.span, .dst = remap_local(m, u.dst), .op = u.op,
-            .operand = remap_local(m, u.operand), .type = u.type,
+            .span = ins.span, .dst = remap_local(m, ins.dst), .op = ins.op,
+            .operand = remap_local(m, ins.operand), .type = ins.type,
         }
     }
-    if ins is InstrCall as c {
+    if ins is InstrCall {
         return InstrCall {
-            .span = c.span, .dst = remap_local_opt(m, c.dst), .callee = c.callee,
-            .args = remap_locals(m, c.args), .type = c.type,
+            .span = ins.span, .dst = remap_local_opt(m, ins.dst), .callee = ins.callee,
+            .args = remap_locals(m, ins.args), .type = ins.type,
         }
     }
-    if ins is InstrCallIndirect as ci {
+    if ins is InstrCallIndirect {
         return InstrCallIndirect {
-            .span = ci.span, .dst = remap_local_opt(m, ci.dst),
-            .callee = remap_local(m, ci.callee), .args = remap_locals(m, ci.args),
-            .fn_type = ci.fn_type, .type = ci.type,
+            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
+            .callee = remap_local(m, ins.callee), .args = remap_locals(m, ins.args),
+            .fn_type = ins.fn_type, .type = ins.type,
         }
     }
-    if ins is InstrVirtualCall as vc {
+    if ins is InstrVirtualCall {
         return InstrVirtualCall {
-            .span = vc.span, .dst = remap_local_opt(m, vc.dst),
-            .trait_name = vc.trait_name, .method = vc.method,
-            .receiver = remap_local(m, vc.receiver), .args = remap_locals(m, vc.args),
-            .type = vc.type,
+            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
+            .trait_name = ins.trait_name, .method = ins.method,
+            .receiver = remap_local(m, ins.receiver), .args = remap_locals(m, ins.args),
+            .type = ins.type,
         }
     }
-    if ins is InstrFnRef as fr {
-        return InstrFnRef { .span = fr.span, .dst = remap_local(m, fr.dst), .fn_symbol = fr.fn_symbol, .type = fr.type }
+    if ins is InstrFnRef {
+        return InstrFnRef { .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol, .type = ins.type }
     }
-    if ins is InstrFnAddr as fa {
-        return InstrFnAddr { .span = fa.span, .dst = remap_local(m, fa.dst), .fn_symbol = fa.fn_symbol, .type = fa.type }
+    if ins is InstrFnAddr {
+        return InstrFnAddr { .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol, .type = ins.type }
     }
-    if ins is InstrFieldGet as fg {
+    if ins is InstrFieldGet {
         return InstrFieldGet {
-            .span = fg.span, .dst = remap_local(m, fg.dst),
-            .target = remap_local(m, fg.target), .field = fg.field, .type = fg.type,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .target = remap_local(m, ins.target), .field = ins.field, .type = ins.type,
         }
     }
-    if ins is InstrFieldSet as fs {
+    if ins is InstrFieldSet {
         return InstrFieldSet {
-            .span = fs.span, .target = remap_local(m, fs.target),
-            .field = fs.field, .value = remap_local(m, fs.value), .barrierless = fs.barrierless,
+            .span = ins.span, .target = remap_local(m, ins.target),
+            .field = ins.field, .value = remap_local(m, ins.value), .barrierless = ins.barrierless,
         }
     }
-    if ins is InstrArrayGet as ag {
+    if ins is InstrArrayGet {
         return InstrArrayGet {
-            .span = ag.span, .dst = remap_local(m, ag.dst),
-            .target = remap_local(m, ag.target), .index = remap_local(m, ag.index), .type = ag.type,
-            .bounds_safe = ag.bounds_safe,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .target = remap_local(m, ins.target), .index = remap_local(m, ins.index),
+            .type = ins.type,
+            .bounds_safe = ins.bounds_safe,
         }
     }
-    if ins is InstrArraySet as ase {
+    if ins is InstrArraySet {
         return InstrArraySet {
-            .span = ase.span, .target = remap_local(m, ase.target),
-            .index = remap_local(m, ase.index), .value = remap_local(m, ase.value),
-            .bounds_safe = ase.bounds_safe,
+            .span = ins.span, .target = remap_local(m, ins.target),
+            .index = remap_local(m, ins.index), .value = remap_local(m, ins.value),
+            .bounds_safe = ins.bounds_safe,
         }
     }
-    if ins is InstrArrayLen as al {
-        return InstrArrayLen { .span = al.span, .dst = remap_local(m, al.dst), .target = remap_local(m, al.target), .resolve_buf = al.resolve_buf }
+    if ins is InstrArrayLen {
+        return InstrArrayLen { .span = ins.span, .dst = remap_local(m, ins.dst), .target = remap_local(m, ins.target), .resolve_buf = ins.resolve_buf }
     }
-    if ins is InstrArrayPush as ap {
-        return InstrArrayPush { .span = ap.span, .target = remap_local(m, ap.target), .value = remap_local(m, ap.value) }
+    if ins is InstrArrayPush {
+        return InstrArrayPush { .span = ins.span, .target = remap_local(m, ins.target), .value = remap_local(m, ins.value) }
     }
-    if ins is InstrArraySlice as als {
+    if ins is InstrArraySlice {
         return InstrArraySlice {
-            .span = als.span, .dst = remap_local(m, als.dst), .type = als.type,
-            .target = remap_local(m, als.target), .lo = remap_local(m, als.lo), .hi = remap_local(m, als.hi),
+            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
+            .target = remap_local(m, ins.target), .lo = remap_local(m, ins.lo), .hi = remap_local(m, ins.hi),
         }
     }
-    if ins is InstrStringSlice as sls {
+    if ins is InstrStringSlice {
         return InstrStringSlice {
-            .span = sls.span, .dst = remap_local(m, sls.dst), .type = sls.type,
-            .target = remap_local(m, sls.target), .lo = remap_local(m, sls.lo), .hi = remap_local(m, sls.hi),
+            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
+            .target = remap_local(m, ins.target), .lo = remap_local(m, ins.lo), .hi = remap_local(m, ins.hi),
         }
     }
-    if ins is InstrStructNew as sn {
+    if ins is InstrStructNew {
         return InstrStructNew {
-            .span = sn.span, .dst = remap_local(m, sn.dst), .type = sn.type,
-            .fields = remap_locals(m, sn.fields), .stack = sn.stack,
+            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
+            .fields = remap_locals(m, ins.fields), .stack = ins.stack,
         }
     }
-    if ins is InstrArrayNew as an {
+    if ins is InstrArrayNew {
         return InstrArrayNew {
-            .span = an.span, .dst = remap_local(m, an.dst), .type = an.type,
-            .length = an.length, .elements = remap_locals(m, an.elements), .stack = an.stack,
+            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
+            .length = ins.length, .elements = remap_locals(m, ins.elements), .stack = ins.stack,
         }
     }
-    if ins is InstrDataConst as dc {
-        return InstrDataConst { .span = dc.span, .dst = remap_local(m, dc.dst), .pool_index = dc.pool_index, .type = dc.type }
+    if ins is InstrDataConst {
+        return InstrDataConst { .span = ins.span, .dst = remap_local(m, ins.dst), .pool_index = ins.pool_index, .type = ins.type }
     }
-    if ins is InstrTypeCheck as tc {
+    if ins is InstrTypeCheck {
         return InstrTypeCheck {
-            .span = tc.span, .dst = remap_local(m, tc.dst),
-            .value = remap_local(m, tc.value), .check_type = tc.check_type,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .value = remap_local(m, ins.value), .check_type = ins.check_type,
         }
     }
-    if ins is InstrTypeConst as tcc {
-        return InstrTypeConst { .span = tcc.span, .dst = remap_local(m, tcc.dst), .value_type = tcc.value_type, .type = tcc.type }
+    if ins is InstrTypeConst {
+        return InstrTypeConst { .span = ins.span, .dst = remap_local(m, ins.dst), .value_type = ins.value_type, .type = ins.type }
     }
-    if ins is InstrCast as cs {
+    if ins is InstrCast {
         return InstrCast {
-            .span = cs.span, .dst = remap_local(m, cs.dst),
-            .value = remap_local(m, cs.value), .type = cs.type,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .value = remap_local(m, ins.value), .type = ins.type,
         }
     }
-    if ins is InstrCellNew as cn {
+    if ins is InstrCellNew {
         return InstrCellNew {
-            .span = cn.span, .dst = remap_local(m, cn.dst),
-            .value = remap_local(m, cn.value), .value_type = cn.value_type,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .value = remap_local(m, ins.value), .value_type = ins.value_type,
         }
     }
-    if ins is InstrCellGet as cg {
+    if ins is InstrCellGet {
         return InstrCellGet {
-            .span = cg.span, .dst = remap_local(m, cg.dst),
-            .cell = remap_local(m, cg.cell), .value_type = cg.value_type,
+            .span = ins.span, .dst = remap_local(m, ins.dst),
+            .cell = remap_local(m, ins.cell), .value_type = ins.value_type,
         }
     }
-    if ins is InstrCellSet as cse {
+    if ins is InstrCellSet {
         return InstrCellSet {
-            .span = cse.span, .cell = remap_local(m, cse.cell),
-            .value = remap_local(m, cse.value), .value_type = cse.value_type,
+            .span = ins.span, .cell = remap_local(m, ins.cell),
+            .value = remap_local(m, ins.value), .value_type = ins.value_type,
         }
     }
-    if ins is InstrMakeClosure as mc {
+    if ins is InstrMakeClosure {
         return InstrMakeClosure {
-            .span = mc.span, .dst = remap_local(m, mc.dst), .fn_symbol = mc.fn_symbol,
-            .env = remap_local(m, mc.env), .env_type = mc.env_type, .type = mc.type,
+            .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol,
+            .env = remap_local(m, ins.env), .env_type = ins.env_type, .type = ins.type,
         }
     }
-    if ins is InstrIntrinsic as it {
+    if ins is InstrIntrinsic {
         return InstrIntrinsic {
-            .span = it.span, .dst = remap_local_opt(m, it.dst),
-            .name = it.name, .args = remap_locals(m, it.args),
+            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
+            .name = ins.name, .args = remap_locals(m, ins.args),
         }
     }
     // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),
     // so `compact_locals` renumbers it and it MUST be remapped here too — else
     // the deferred thunk reads a stale slot after compaction.
-    if ins is InstrDeferPush as dp {
-        return InstrDeferPush { .span = dp.span, .value = remap_local(m, dp.value) }
+    if ins is InstrDeferPush {
+        return InstrDeferPush { .span = ins.span, .value = remap_local(m, ins.value) }
     }
     // `InstrDeferPopExec` carries no LocalId ; every remaining instruction has
     // no operand to remap, so passing it through unchanged is correct.
@@ -506,8 +507,8 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
 remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
     if t is TermBranch          { return t }
     if t is TermUnreachable     { return t }
-    if t is TermCondBranch as c { return TermCondBranch { .cond = remap_local(m, c.cond), .then_block = c.then_block, .else_block = c.else_block, .span = c.span } }
-    if t is TermReturn as r     { return TermReturn { .value = remap_local_opt(m, r.value), .span = r.span } }
+    if t is TermCondBranch { return TermCondBranch { .cond = remap_local(m, t.cond), .then_block = t.then_block, .else_block = t.else_block, .span = t.span } }
+    if t is TermReturn     { return TermReturn { .value = remap_local_opt(m, t.value), .span = t.span } }
     return t
 }
 
@@ -515,74 +516,74 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
 /// producers only — callers must check `instruction_has_side_effect`
 /// first. Returns the input unchanged when the variant has no dst.
 with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
-    if ins is InstrConst as c {
-        return InstrConst { .span = c.span, .dst = new_dst, .value = c.value, .type = c.type }
+    if ins is InstrConst {
+        return InstrConst { .span = ins.span, .dst = new_dst, .value = ins.value, .type = ins.type }
     }
-    if ins is InstrMove as m {
-        return InstrMove { .span = m.span, .dst = new_dst, .src = m.src }
+    if ins is InstrMove {
+        return InstrMove { .span = ins.span, .dst = new_dst, .src = ins.src }
     }
-    if ins is InstrBinOp as b {
-        return InstrBinOp { .span = b.span, .dst = new_dst, .op = b.op, .lhs = b.lhs, .rhs = b.rhs, .type = b.type }
+    if ins is InstrBinOp {
+        return InstrBinOp { .span = ins.span, .dst = new_dst, .op = ins.op, .lhs = ins.lhs, .rhs = ins.rhs, .type = ins.type }
     }
-    if ins is InstrUnOp as u {
-        return InstrUnOp { .span = u.span, .dst = new_dst, .op = u.op, .operand = u.operand, .type = u.type }
+    if ins is InstrUnOp {
+        return InstrUnOp { .span = ins.span, .dst = new_dst, .op = ins.op, .operand = ins.operand, .type = ins.type }
     }
-    if ins is InstrFieldGet as fg {
-        return InstrFieldGet { .span = fg.span, .dst = new_dst, .target = fg.target, .field = fg.field, .type = fg.type }
+    if ins is InstrFieldGet {
+        return InstrFieldGet { .span = ins.span, .dst = new_dst, .target = ins.target, .field = ins.field, .type = ins.type }
     }
-    if ins is InstrArrayGet as ag {
-        return InstrArrayGet { .span = ag.span, .dst = new_dst, .target = ag.target, .index = ag.index, .type = ag.type, .bounds_safe = ag.bounds_safe }
+    if ins is InstrArrayGet {
+        return InstrArrayGet { .span = ins.span, .dst = new_dst, .target = ins.target, .index = ins.index, .type = ins.type, .bounds_safe = ins.bounds_safe }
     }
-    if ins is InstrArrayLen as al {
-        return InstrArrayLen { .span = al.span, .dst = new_dst, .target = al.target, .resolve_buf = al.resolve_buf }
+    if ins is InstrArrayLen {
+        return InstrArrayLen { .span = ins.span, .dst = new_dst, .target = ins.target, .resolve_buf = ins.resolve_buf }
     }
-    if ins is InstrArraySlice as als {
-        return InstrArraySlice { .span = als.span, .dst = new_dst, .target = als.target, .lo = als.lo, .hi = als.hi, .type = als.type }
+    if ins is InstrArraySlice {
+        return InstrArraySlice { .span = ins.span, .dst = new_dst, .target = ins.target, .lo = ins.lo, .hi = ins.hi, .type = ins.type }
     }
-    if ins is InstrStringSlice as sls {
+    if ins is InstrStringSlice {
         return InstrStringSlice {
-            .span = sls.span, .dst = new_dst, .type = sls.type,
-            .target = sls.target, .lo = sls.lo, .hi = sls.hi,
+            .span = ins.span, .dst = new_dst, .type = ins.type,
+            .target = ins.target, .lo = ins.lo, .hi = ins.hi,
         }
     }
-    if ins is InstrStructNew as sn {
-        return InstrStructNew { .span = sn.span, .dst = new_dst, .type = sn.type, .fields = sn.fields, .stack = sn.stack }
+    if ins is InstrStructNew {
+        return InstrStructNew { .span = ins.span, .dst = new_dst, .type = ins.type, .fields = ins.fields, .stack = ins.stack }
     }
-    if ins is InstrArrayNew as an {
+    if ins is InstrArrayNew {
         return InstrArrayNew {
-            .span = an.span, .dst = new_dst, .type = an.type,
-            .elements = an.elements, .length = an.length, .stack = an.stack,
+            .span = ins.span, .dst = new_dst, .type = ins.type,
+            .elements = ins.elements, .length = ins.length, .stack = ins.stack,
         }
     }
-    if ins is InstrDataConst as dc {
-        return InstrDataConst { .span = dc.span, .dst = new_dst, .pool_index = dc.pool_index, .type = dc.type }
+    if ins is InstrDataConst {
+        return InstrDataConst { .span = ins.span, .dst = new_dst, .pool_index = ins.pool_index, .type = ins.type }
     }
-    if ins is InstrTypeCheck as tc {
-        return InstrTypeCheck { .span = tc.span, .dst = new_dst, .value = tc.value, .check_type = tc.check_type }
+    if ins is InstrTypeCheck {
+        return InstrTypeCheck { .span = ins.span, .dst = new_dst, .value = ins.value, .check_type = ins.check_type }
     }
-    if ins is InstrTypeConst as tcc {
-        return InstrTypeConst { .span = tcc.span, .dst = new_dst, .value_type = tcc.value_type, .type = tcc.type }
+    if ins is InstrTypeConst {
+        return InstrTypeConst { .span = ins.span, .dst = new_dst, .value_type = ins.value_type, .type = ins.type }
     }
-    if ins is InstrCast as cs {
-        return InstrCast { .span = cs.span, .dst = new_dst, .value = cs.value, .type = cs.type }
+    if ins is InstrCast {
+        return InstrCast { .span = ins.span, .dst = new_dst, .value = ins.value, .type = ins.type }
     }
-    if ins is InstrCellNew as cn {
-        return InstrCellNew { .span = cn.span, .dst = new_dst, .value = cn.value, .value_type = cn.value_type }
+    if ins is InstrCellNew {
+        return InstrCellNew { .span = ins.span, .dst = new_dst, .value = ins.value, .value_type = ins.value_type }
     }
-    if ins is InstrCellGet as cg {
-        return InstrCellGet { .span = cg.span, .dst = new_dst, .cell = cg.cell, .value_type = cg.value_type }
+    if ins is InstrCellGet {
+        return InstrCellGet { .span = ins.span, .dst = new_dst, .cell = ins.cell, .value_type = ins.value_type }
     }
-    if ins is InstrMakeClosure as mc {
+    if ins is InstrMakeClosure {
         return InstrMakeClosure {
-            .span = mc.span, .dst = new_dst, .fn_symbol = mc.fn_symbol,
-            .env = mc.env, .env_type = mc.env_type, .type = mc.type,
+            .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol,
+            .env = ins.env, .env_type = ins.env_type, .type = ins.type,
         }
     }
-    if ins is InstrFnRef as fr {
-        return InstrFnRef { .span = fr.span, .dst = new_dst, .fn_symbol = fr.fn_symbol, .type = fr.type }
+    if ins is InstrFnRef {
+        return InstrFnRef { .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol, .type = ins.type }
     }
-    if ins is InstrFnAddr as fa {
-        return InstrFnAddr { .span = fa.span, .dst = new_dst, .fn_symbol = fa.fn_symbol, .type = fa.type }
+    if ins is InstrFnAddr {
+        return InstrFnAddr { .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol, .type = ins.type }
     }
     return ins
 }

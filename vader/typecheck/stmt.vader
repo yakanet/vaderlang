@@ -252,9 +252,9 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
 /// `Iterator<T>`. A function that `yield`s must honour it with an
 /// `Iterator<T>` return.
 generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]!) -> Type | null {
-    if return_type is TraitType as tt {
-        if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 {
-            return tt.args[0]
+    if return_type is TraitType {
+        if return_type.symbol.name == TRAIT_ITERATOR && return_type.args.len() > 0 {
+            return return_type.args[0]
         }
     }
     diags.push(
@@ -616,9 +616,9 @@ check_let :: fn(
         if s.binding is AST.SimpleBinding as sb {
             if is_type_expr(s.value, typed.resolved) {
                 sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
-                if sym_or_null is Symbol as sym {
+                if sym_or_null is Symbol {
                     resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
-                    typed.let_type_aliases[sym.id] = resolved_type
+                    typed.let_type_aliases[sym_or_null.id] = resolved_type
                     is_let_type_alias = true
                 }
             }
@@ -659,8 +659,8 @@ mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgra
     if !expr_is_immutable(value, typed) {
         return
     }
-    if b is AST.SimpleBinding as sb {
-        sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
+    if b is AST.SimpleBinding {
+        sym :: typed.resolved.idents[b.name_span.hash()] ?? return
         typed.resolved.immutable_borrows[sym.id] = true
     }
 }
@@ -769,8 +769,8 @@ check_assign :: fn(
         // the bound (`set_at`), like the `c[i]` read routes through `Index`.
         // Record the dispatch so `try_lower_index_set_assign` emits the virtual
         // call, and pin the write value to V.
-        if target_arr_ty is TypeParamType as tp {
-            bound :: typed.resolved.type_param_bounds[tp.symbol.id]
+        if target_arr_ty is TypeParamType {
+            bound :: typed.resolved.type_param_bounds[target_arr_ty.symbol.id]
             if bound != null {
                 set_args :: bounded_trait_args(bound, TRAIT_INDEX_SET, typed)
                 if set_args != null {
@@ -952,12 +952,12 @@ push_immutability_diag_at :: fn(
 /// reopening is the field's own type. Only the typechecker can say which struct a
 /// field belongs to, so pointing at it is its job, not the reader's to work out.
 export field_annotate_hint :: fn(e: AST.Expr, typed: TypedProgram) -> string {
-    if e is AST.FieldExpr as fe {
-        owner :: typed.expr_types[fe.target.id] ?? return ""
+    if e is AST.FieldExpr {
+        owner :: typed.expr_types[e.target.id] ?? return ""
         st :: struct_backing(owner) ?? return ""
         sd :: typed.struct_decls[st.symbol.id] ?? return ""
         for f in sd.fields {
-            if f.name != fe.field { continue }
+            if f.name != e.field { continue }
             at :: f.ty.span
             return " — annotate `${f.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
         }
@@ -1029,11 +1029,11 @@ export mutability_level_hint :: fn(
         return ""
     }
     sym :: immutable_root_symbol(value, typed)
-    if sym is Symbol as s {
-        ann :: typed.local_annotation[s.id]
+    if sym is Symbol {
+        ann :: typed.local_annotation[sym.id]
         if ann !is null {
             at :: ann.span
-            return " — `${s.name}` is declared `${display_type(got)}` at ${where_of(at)} : the level that differs is the element"
+            return " — `${sym.name}` is declared `${display_type(got)}` at ${where_of(at)} : the level that differs is the element"
         }
     }
     return mutation_fix_hint(value, typed)
@@ -1149,12 +1149,12 @@ module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
 // Where the iterable's type is WRITTEN : a struct field's declared type. A bare
 // ident falls through to `annotate_hint`, which already points at such a root.
 iterable_type_span :: fn(iter: AST.Expr, typed: TypedProgram) -> Span | null {
-    if iter is AST.FieldExpr as fe {
-        owner :: typed.expr_types[fe.target.id] ?? return null
+    if iter is AST.FieldExpr {
+        owner :: typed.expr_types[iter.target.id] ?? return null
         st :: struct_backing(owner) ?? return null
         sd :: typed.struct_decls[st.symbol.id] ?? return null
         for f in sd.fields {
-            if f.name == fe.field { return f.ty.span }
+            if f.name == iter.field { return f.ty.span }
         }
     }
     return null
@@ -1165,8 +1165,8 @@ iterable_type_span :: fn(iter: AST.Expr, typed: TypedProgram) -> Span | null {
 // AST ; anything else takes `fallback`, which each caller phrases for its own
 // sentence ("the collection", a placeholder in a suggested rewrite, …).
 path_name :: fn(e: AST.Expr, fallback: string) -> string {
-    if e is AST.FieldExpr as fe { return "${path_name(fe.target, fallback)}.${fe.field}" }
-    if e is AST.IdentExpr as id { return id.name }
+    if e is AST.FieldExpr { return "${path_name(e.target, fallback)}.${e.field}" }
+    if e is AST.IdentExpr { return e.name }
     return fallback
 }
 
@@ -1260,8 +1260,8 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 ///
 /// @param t  the const's declared type, or null when it has none.
 export has_mutable_const_storage :: fn(t: Type | null) -> bool {
-    if t is ArrayType as a {
-        return !a.immutable
+    if t is ArrayType {
+        return !t.immutable
     }
     return false
 }
@@ -1614,10 +1614,10 @@ push_divergent_narrow_if :: fn(
 // subtracting their union at once — so no grouping is needed here, unlike the
 // `else` side in `expr_if.vader` where the pushes would overwrite.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
-    if cond is AST.BinaryExpr as bc {
-        if bc.op == AST.BinaryOp.Or {
-            push_guard_narrows(bc.left, typed, stack)
-            push_guard_narrows(bc.right, typed, stack)
+    if cond is AST.BinaryExpr {
+        if cond.op == AST.BinaryOp.Or {
+            push_guard_narrows(cond.left, typed, stack)
+            push_guard_narrows(cond.right, typed, stack)
             return
         }
     }
@@ -1663,8 +1663,8 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
     // `@no_return` fn — `panic` / `todo` / `unreachable`) terminates the
     // flow : code after it is unreachable, and it discharges a non-`void`
     // fn's return obligation.
-    if s is AST.ExprStmt as e {
-        if typed.expr_types[e.expr.id] is NeverType {
+    if s is AST.ExprStmt {
+        if typed.expr_types[s.expr.id] is NeverType {
             return true
         }
     }
@@ -1957,9 +1957,9 @@ assign_tuple :: fn(
     // element type. (Maps no longer take this path : they yield `[K, V]`
     // tuples, an ordinary tuple destructure.)
     coerced :: into_tuple_target(declared, tb.elements.len(), typed)
-    if coerced is TupleType as ctup {
+    if coerced is TupleType {
         for i in 0..<tb.elements.len() {
-            assign_binding_types(tb.elements[i], ctup.elements[i], typed, diags)
+            assign_binding_types(tb.elements[i], coerced.elements[i], typed, diags)
         }
         return
     }
@@ -1989,15 +1989,15 @@ assign_tuple :: fn(
 // The lowerer resolves the matching `into` member's field names from the
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
-    if declared is StructType as st {
+    if declared is StructType {
         into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed) ?? return null
         if into_args.len() != 1 {
             return null
         }
-        decl :: typed.struct_decls[st.symbol.id] ?? return null
-        target :: substitute_by_name(into_args[0], decl.type_params, st.args)
-        if target is TupleType as tup {
-            if tup.elements.len() == arity {
+        decl :: typed.struct_decls[declared.symbol.id] ?? return null
+        target :: substitute_by_name(into_args[0], decl.type_params, declared.args)
+        if target is TupleType {
+            if target.elements.len() == arity {
                 return target
             }
         }

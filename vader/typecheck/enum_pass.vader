@@ -228,9 +228,9 @@ Overflow :: enum {
 
 find_enum :: fn(decls: Decl[], name: string) -> EnumDecl | null {
     for d in decls {
-        if d is EnumDecl as e {
-            if e.name == name {
-                return e
+        if d is EnumDecl {
+            if d.name == name {
+                return d
             }
         }
     }

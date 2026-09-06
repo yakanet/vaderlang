@@ -620,15 +620,15 @@ export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
 /// without a rebuild.
 export contains_distinct :: fn(t: Type) -> bool {
     if t is DistinctType { return true }
-    if t is StructType as s { for a in s.args { if contains_distinct(a) { return true } } }
-    if t is TraitType  as r { for a in r.args { if contains_distinct(a) { return true } } }
-    if t is ArrayType  as a { return contains_distinct(a.element) }
-    if t is TupleType  as p { for el in p.elements { if contains_distinct(el) { return true } } }
-    if t is FnType     as f {
-        for p in f.params { if contains_distinct(p) { return true } }
-        return contains_distinct(f.return_type)
+    if t is StructType { for a in t.args { if contains_distinct(a) { return true } } }
+    if t is TraitType { for a in t.args { if contains_distinct(a) { return true } } }
+    if t is ArrayType { return contains_distinct(t.element) }
+    if t is TupleType { for el in t.elements { if contains_distinct(el) { return true } } }
+    if t is FnType {
+        for p in t.params { if contains_distinct(p) { return true } }
+        return contains_distinct(t.return_type)
     }
-    if t is UnionType  as u { for v in u.variants { if contains_distinct(v) { return true } } }
+    if t is UnionType { for v in t.variants { if contains_distinct(v) { return true } } }
     return false
 }
 
@@ -652,13 +652,13 @@ export strip_distinct :: fn(t: Type) -> Type {
     // skip the structural `contains_distinct` walk on the hot classifier path.
     if t is PrimitiveType { return t }
     if !contains_distinct(t) { return t }
-    if t is DistinctType as d { return strip_distinct(d.backing) }
-    if t is StructType as s { return mk_struct(s.symbol, strip_distinct_each(s.args), s.immutable) }
-    if t is TraitType  as r { return mk_trait(r.symbol, strip_distinct_each(r.args)) }
-    if t is ArrayType  as a { return mk_array(strip_distinct(a.element), a.immutable) }
-    if t is TupleType  as p { return mk_tuple(strip_distinct_each(p.elements), p.immutable) }
-    if t is FnType     as f { return mk_fn_like(f, strip_distinct_each(f.params), strip_distinct(f.return_type)) }
-    if t is UnionType  as u { return mk_union(strip_distinct_each(u.variants)) }
+    if t is DistinctType { return strip_distinct(t.backing) }
+    if t is StructType { return mk_struct(t.symbol, strip_distinct_each(t.args), t.immutable) }
+    if t is TraitType { return mk_trait(t.symbol, strip_distinct_each(t.args)) }
+    if t is ArrayType { return mk_array(strip_distinct(t.element), t.immutable) }
+    if t is TupleType { return mk_tuple(strip_distinct_each(t.elements), t.immutable) }
+    if t is FnType { return mk_fn_like(t, strip_distinct_each(t.params), strip_distinct(t.return_type)) }
+    if t is UnionType { return mk_union(strip_distinct_each(t.variants)) }
     return t
 }
 
@@ -672,8 +672,8 @@ export strip_distinct :: fn(t: Type) -> Type {
 /// `LocalId[]` stays `LocalId[]` (NOT `strip_distinct`, which would deep-strip
 /// the element to `i32[]` and corrupt `arr[i]`'s type).
 export array_backing :: fn(t: Type) -> ArrayType | null {
-    if t is ArrayType as a { return a }
-    if t is DistinctType as d { return array_backing(d.backing) }
+    if t is ArrayType { return t }
+    if t is DistinctType { return array_backing(t.backing) }
     return null
 }
 
@@ -686,8 +686,8 @@ export array_backing :: fn(t: Type) -> ArrayType | null {
 /// Unwraps only the OUTER distinct — the struct's type args are preserved
 /// verbatim (mirror of `array_backing`).
 export struct_backing :: fn(t: Type) -> StructType | null {
-    if t is StructType as s { return s }
-    if t is DistinctType as d { return struct_backing(d.backing) }
+    if t is StructType { return t }
+    if t is DistinctType { return struct_backing(t.backing) }
     return null
 }
 
@@ -697,8 +697,8 @@ export struct_backing :: fn(t: Type) -> StructType | null {
 /// literal construction, `[a, b]` destructure) forward through a tuple-backed
 /// distinct newtype while its trait impls stay nominal on the distinct's key.
 export tuple_backing :: fn(t: Type) -> TupleType | null {
-    if t is TupleType as p { return p }
-    if t is DistinctType as d { return tuple_backing(d.backing) }
+    if t is TupleType { return t }
+    if t is DistinctType { return tuple_backing(t.backing) }
     return null
 }
 

@@ -115,8 +115,8 @@ store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>!, args: JsonVal
     path :: to_posix(get_string(get_field(args, "source"), "path"))
     lines :: MutableSet<i32> {}
     requested :: get_field(args, "breakpoints")
-    if requested is JsonArray as arr {
-        for item in arr.items { lines.add(get_number(item, "line")) }
+    if requested is JsonArray {
+        for item in requested.items { lines.add(get_number(item, "line")) }
     }
     bps[path] = lines
 }
@@ -156,18 +156,18 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[]!, bps: MutableMap<str
     no_args: string[] = []
     result :: exec_entry(state, prog.entry_index, no_args, null, false, controller)
     exit_code := 0
-    if result is Trap as t {
-        emit_output(seq_cell, "stderr", "vader: trap — ${t.message}\n")
+    if result is Trap {
+        emit_output(seq_cell, "stderr", "vader: trap — ${result.message}\n")
         // Pause on the crash so VSCode shows "Paused on exception" with the trap
         // message, letting the user read it before the session ends. `exec_entry`
         // has already unwound, so there's no live stack to show (an empty
         // PauseCtx) — a full crash-point stack would need the dispatch_op refactor.
         no_frames: PauseFrame[] = []
         exc :: PauseCtx { .reason = "exception", .frames = no_frames }
-        run_pause_loop(exc, seq_cell, bps, t.message)
+        run_pause_loop(exc, seq_cell, bps, result.message)
         exit_code = 1
-    } else if result is Ok as o {
-        exit_code = o.value
+    } else if result is Ok {
+        exit_code = result.value
     }
     emit_exited(seq_cell, exit_code)
     emit_event(seq_cell, "terminated", empty_body())
@@ -308,8 +308,8 @@ capabilities :: fn() -> JsonValue {
 breakpoints_body :: fn(args: JsonValue) -> JsonValue {
     result: JsonValue[]! = []
     requested :: get_field(args, "breakpoints")
-    if requested is JsonArray as arr {
-        for item in arr.items {
+    if requested is JsonArray {
+        for item in requested.items {
             bp :: MutableMap<string, JsonValue> {}
             bp["verified"] = JsonBool { .value = true }
             bp["line"]     = JsonNumber { .value = f64(get_number(item, "line")) }

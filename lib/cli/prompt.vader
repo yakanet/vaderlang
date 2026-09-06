@@ -173,8 +173,8 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
         TTY.raw_print(frame)
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
-        if press is PromptError as e {
-            return e
+        if press is PromptError {
+            return press
         }
         if press.key == Key.Enter {
             return cursor
@@ -248,8 +248,8 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
         TTY.raw_print(render_multiselect(question, options, checked, cursor, render_width()))
         drawn = i32(options.len()) + 1
         press :: next_press(reader)
-        if press is PromptError as e {
-            return e
+        if press is PromptError {
+            return press
         }
         if press.key == Key.Enter {
             return checked_indices(checked)
@@ -297,14 +297,14 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
     print(render_confirm(question, default_yes, render_width()))
     for {
         press :: next_press(reader)
-        if press is PromptError as e {
+        if press is PromptError {
             TTY.raw_print("")
-            return e
+            return press
         }
         answer :: confirm_answer(press, default_yes)
-        if answer is bool as decided {
-            TTY.raw_print(if decided { "yes" } else { "no" })
-            return decided
+        if answer is bool {
+            TTY.raw_print(if answer { "yes" } else { "no" })
+            return answer
         }
         if press.key == Key.Escape || press.key == Key.Interrupt {
             TTY.raw_print("")
@@ -361,9 +361,9 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
         print("\r\u{1B}[0K")
         print(render_text(question, typed, default_value, render_width()))
         press :: next_press(reader)
-        if press is PromptError as e {
+        if press is PromptError {
             TTY.raw_print("")
-            return e
+            return press
         }
         if press.key == Key.Enter {
             TTY.raw_print("")

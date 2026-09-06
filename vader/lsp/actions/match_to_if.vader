@@ -43,15 +43,15 @@ match_to_if_action :: fn() -> CodeAction = CodeAction {
 }
 
 mti_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
-    if node is AST.MatchExpr as m { return is_convertible(m) }
+    if node is AST.MatchExpr { return is_convertible(node) }
     return false
 }
 
 mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
-    if node is AST.MatchExpr as m {
-        if !is_convertible(m) { return "" }
-        rendered :: format_expr(ctx.source, build_if(m))
-        return reindent(rendered, m.span.start.column - 1)
+    if node is AST.MatchExpr {
+        if !is_convertible(node) { return "" }
+        rendered :: format_expr(ctx.source, build_if(node))
+        return reindent(rendered, node.span.start.column - 1)
     }
     return ""
 }
@@ -73,7 +73,7 @@ is_convertible :: fn(m: AST.MatchExpr) -> bool {
 // A pattern that becomes the `if` condition : `is T [as y]` (no nested pattern)
 // or a literal.
 cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
-    if p is AST.IsPattern as ip { return ip.inner == null }
+    if p is AST.IsPattern { return p.inner == null }
     if p is AST.LiteralPattern { return true }
     return false
 }
@@ -83,7 +83,7 @@ cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
 else_pattern_ok :: fn(p: AST.Pattern) -> bool {
     if p is AST.WildcardPattern { return true }
     if p is AST.LiteralPattern { return true }
-    if p is AST.IsPattern as ip { return ip.inner == null && ip.bind_as == null }
+    if p is AST.IsPattern { return p.inner == null && p.bind_as == null }
     return false
 }
 
@@ -125,8 +125,8 @@ build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
 // True when an arm body is the empty block `{}` — no statements, no trailing
 // value. Such an arm carries no work, so the `if` drops that branch.
 arm_body_empty :: fn(body: AST.Expr) -> bool {
-    if body is AST.BlockExpr as b {
-        return b.stmts.len() == 0 && b.trailing == null
+    if body is AST.BlockExpr {
+        return body.stmts.len() == 0 && body.trailing == null
     }
     return false
 }
@@ -136,17 +136,18 @@ arm_body_empty :: fn(body: AST.Expr) -> bool {
 // spelling — a binding is dropped, unusable on the negated side). Anything else
 // wraps in `!(…)`.
 negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
-    if cond is AST.BinaryExpr as b {
-        if b.op == .Eq {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Eq {
             return AST.BinaryExpr {
-                .span = b.span, .op = .Neq, .left = b.left, .right = b.right, .bind_as = "",
+                .span = cond.span, .op = .Neq,
+                .left = cond.left, .right = cond.right, .bind_as = "",
             }
         }
-        if b.op == .Is {
+        if cond.op == .Is {
             is_bare :: AST.BinaryExpr {
-                .span = b.span, .op = .Is, .left = b.left, .right = b.right, .bind_as = "",
+                .span = cond.span, .op = .Is, .left = cond.left, .right = cond.right, .bind_as = "",
             }
-            return AST.UnaryExpr { .span = b.span, .op = .Not, .operand = is_bare }
+            return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = is_bare }
         }
     }
     return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = cond }
@@ -154,16 +155,16 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
 
 // `is T as y` → `scrutinee is T as y` ; literal `v` → `scrutinee == v`.
 build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
-    if p is AST.IsPattern as ip {
-        bound :: ip.bind_as
+    if p is AST.IsPattern {
+        bound :: p.bind_as
         name :: if bound == null { "" } else { bound }
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Is, .left = scrut, .right = ip.ty, .bind_as = name,
+            .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty, .bind_as = name,
         }
     }
-    if p is AST.LiteralPattern as lp {
+    if p is AST.LiteralPattern {
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Eq, .left = scrut, .right = lp.value, .bind_as = "",
+            .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value, .bind_as = "",
         }
     }
     // Unreachable for a convertible match — `is_convertible` gates the kinds.
@@ -173,7 +174,7 @@ build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
 // An arm body becomes a branch block : reuse it when it's already a block,
 // otherwise wrap the single expression as the block's trailing value.
 arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
-    if body is AST.BlockExpr as b { return b }
+    if body is AST.BlockExpr { return body }
     no_stmts: AST.Stmt[] = []
     return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }
 }
@@ -189,7 +190,7 @@ tm_is_match :: fn(e: AST.Expr) -> bool = e is AST.MatchExpr
 
 tm_find_match :: fn(decls: AST.Decl[]) -> AST.MatchExpr | null {
     e :: t_find_expr(decls, tm_is_match)
-    if e is AST.MatchExpr as m { return m }
+    if e is AST.MatchExpr { return e }
     return null
 }
 

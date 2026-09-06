@@ -40,15 +40,15 @@ lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type
     if intrinsic.name == "field" && intrinsic.args.len() == 2 {
         target :: lower_expr(ctx, intrinsic.args[0])
         name_arg :: lower_expr(ctx, intrinsic.args[1])
-        if name_arg is LoweredStringLit as name_lit {
+        if name_arg is LoweredStringLit {
             field_type := type
             if field_type is UnresolvedType {
-                refined :: resolve_field_type(ctx, intrinsic.args[0], name_lit.value)
+                refined :: resolve_field_type(ctx, intrinsic.args[0], name_arg.value)
                 if !(refined is UnresolvedType) { field_type = refined }
             }
             return LoweredFieldAccess {
                 .span = intrinsic.span, .type = field_type,
-                .target = target, .field = name_lit.value,
+                .target = target, .field = name_arg.value,
             }
         }
     }
@@ -87,7 +87,7 @@ try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type
     if args.len() != 1 { return null }
     arg :: args[0]
     tc: LoweredTypeConst | null = null
-    if arg is LoweredTypeConst as t { tc = t }
+    if arg is LoweredTypeConst { tc = arg }
     if tc is null { return null }
     ty :: tc.value
     if name == "size_of" {
@@ -174,17 +174,17 @@ try_fold_static_intrinsic :: fn(
 // 0-based position of a named field. Mirror of the comptime intrinsics so the
 // same value lands whether the call is folded at comptime or here.
 lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
-    if t is StructType as s {
-        decl :: struct_decl_for(ctx, s) ?? return 0
+    if t is StructType {
+        decl :: struct_decl_for(ctx, t) ?? return 0
         return i64(decl.fields.len())
     }
-    if t is TupleType as p { return i64(p.elements.len()) }
+    if t is TupleType { return i64(t.elements.len()) }
     return 0
 }
 
 lower_variant_count :: fn(t: Type) -> i64 {
-    if t is UnionType as u { return i64(u.variants.len()) }
-    if t is EnumType as e { return i64(e.indices.len()) }
+    if t is UnionType { return i64(t.variants.len()) }
+    if t is EnumType { return i64(t.indices.len()) }
     return 0
 }
 
@@ -199,8 +199,8 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
     name :: static_string_lit(intrinsic.args[1]) ?? return null
-    if ty is StructType as st {
-        decl :: struct_decl_for(ctx, st) ?? return null
+    if ty is StructType {
+        decl :: struct_decl_for(ctx, ty) ?? return null
         for i in 0..<decl.fields.len() {
             if decl.fields[i].name == name {
                 return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i64(i) }
@@ -212,9 +212,9 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
 
 // Single-part string-literal text, or null when the arg isn't a static string.
 static_string_lit :: fn(e: Expr) -> string | null {
-    if e is StringLitExpr as s {
-        if s.parts.len() == 1 {
-            if s.parts[0] is StringLitText as t { return t.value }
+    if e is StringLitExpr {
+        if e.parts.len() == 1 {
+            if e.parts[0] is StringLitText as t { return t.value }
         }
     }
     return null
@@ -241,8 +241,8 @@ try_fold_type_of :: fn(
 type_args_of :: fn(arg_or_null: Type | null) -> Type[] {
     if arg_or_null is null { return [] }
     ty :: arg_ty_or_unresolved(arg_or_null)
-    if ty is StructType as st { return st.args }
-    if ty is TraitType as tt { return tt.args }
+    if ty is StructType { return ty.args }
+    if ty is TraitType { return ty.args }
     return []
 }
 
@@ -285,7 +285,7 @@ try_fold_fields :: fn(
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     target_ty :: arg_ty_or_unresolved(arg_or_null)
     target_struct: StructType | null = null
-    if target_ty is StructType as st { target_struct = st }
+    if target_ty is StructType { target_struct = target_ty }
     if target_struct is null {
         return LoweredUnreachable {
             .span = intrinsic.span, .type = type,
@@ -381,15 +381,15 @@ try_fold_satisfies :: fn(
 /// impls carry `for_symbol = null`).
 impl_exists_for :: fn(ctx: FnLowerCtx, target_ty: Type, trait_sym: Symbol) -> bool {
     target_sym :: type_to_target_symbol(target_ty)
-    if target_sym is Symbol as ts {
-        return ctx.project.impls.has_user(ts, trait_sym)
+    if target_sym is Symbol {
+        return ctx.project.impls.has_user(target_sym, trait_sym)
     }
-    if target_ty is PrimitiveType as pt {
+    if target_ty is PrimitiveType {
         for entry in ctx.project.impls.all {
             if entry.for_symbol is Symbol { continue }
             if entry.trait_symbol.id != trait_sym.id { continue }
             if entry.decl.for_type is IdentExpr as id {
-                if id.name == pt.name { return true }
+                if id.name == target_ty.name { return true }
             }
         }
     }
@@ -414,12 +414,12 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     //   (b) Comptime const carrying a `TypeValue`. Recovered from
     //       `comptime_value_by_symbol_id` so dotted refs to a `::`
     //       alias still fold.
-    if arg is IdentExpr as id {
-        sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return via_type_expr
-        if sym is Symbol as s {
-            aliased :: ctx.typed.let_type_aliases[s.id]
+    if arg is IdentExpr {
+        sym :: ctx.typed.resolved.idents[arg.span.hash()] ?? return via_type_expr
+        if sym is Symbol {
+            aliased :: ctx.typed.let_type_aliases[sym.id]
             if !(aliased is null) { return aliased }
-            v :: ctx.project.comptime_value_by_symbol_id[s.id]
+            v :: ctx.project.comptime_value_by_symbol_id[sym.id]
             match v {
                 is null -> {}
                 is TypeValue as tv -> { return tv.value }

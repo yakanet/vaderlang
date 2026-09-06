@@ -73,8 +73,8 @@ ENTRY_FILENAME :: "main.vader"
 ///              failure: the project is already on disk by then.
 cmd_new :: fn(args: string[]) -> i32 {
     parsed :: parse_action("new", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     if reject_extra_positionals("new", parsed) {
         return 1
@@ -83,28 +83,28 @@ cmd_new :: fn(args: string[]) -> i32 {
     // leave a half-made project behind a cancellation.
     typed :: if parsed.positionals.len() == 0 { "" } else { parsed.positionals[0] }
     chosen :: choose_target(typed)
-    if chosen is PromptError as e {
-        eprintln("vader new: ${e.message}")
+    if chosen is PromptError {
+        eprintln("vader new: ${chosen.message}")
         return 1
     }
     setup :: choose_build(parsed)
-    if setup is PromptError as e {
-        eprintln("vader new: ${e.message}")
+    if setup is PromptError {
+        eprintln("vader new: ${setup.message}")
         return 1
     }
     wants_git :: choose_git(parsed)
-    if wants_git is PromptError as e {
-        eprintln("vader new: ${e.message}")
+    if wants_git is PromptError {
+        eprintln("vader new: ${wants_git.message}")
         return 1
     }
     target :: resolve_target(chosen)
-    if target is ScaffoldError as e {
-        eprintln("vader new: ${e.msg}")
+    if target is ScaffoldError {
+        eprintln("vader new: ${target.msg}")
         return 1
     }
     written :: scaffold(target, setup)
-    if written is ScaffoldError as e {
-        eprintln("vader new: ${e.msg}")
+    if written is ScaffoldError {
+        eprintln("vader new: ${written.msg}")
         return 1
     }
     git_initialised := false
@@ -141,15 +141,15 @@ choose_target :: fn(typed: string) -> string | PromptError {
         "What should `vader new` do?",
         ["Create a new directory", "Initialise this directory"],
     )
-    if mode is PromptError as e {
-        return e
+    if mode is PromptError {
+        return mode
     }
     if mode == 1 {
         return IN_PLACE
     }
     name :: text("Project name", "")
-    if name is PromptError as e {
-        return e
+    if name is PromptError {
+        return name
     }
     if name == "" {
         return PromptError { .reason = .Cancelled, .message = "a project name is required" }
@@ -168,8 +168,8 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
         return .Manifest
     }
     picked :: select("How should this project build?", build_setup_labels())
-    if picked is PromptError as e {
-        return e
+    if picked is PromptError {
+        return picked
     }
     return setup_named(NEW_BUILD_SETUPS[picked].name)
 }
@@ -259,8 +259,8 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
             return ScaffoldError { .msg = "`${raw}` exists and is not a directory" }
         }
         entries :: read_dir(raw)
-        if entries is IOError as e {
-            return ScaffoldError { .msg = "`${raw}` cannot be read: ${e.message()}" }
+        if entries is IOError {
+            return ScaffoldError { .msg = "`${raw}` cannot be read: ${entries.message()}" }
         }
         if entries.len() > 0 {
             hint :: "name a new directory, or run `vader new` inside it to fill it in place"
@@ -289,9 +289,9 @@ directory_name :: fn(path: string) -> string {
 // intrinsic is `mkdir -p`, and an existing directory is success.
 scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     made :: create_dir(join_path(project.dir, SOURCE_DIR))
-    if made is IOError as e {
+    if made is IOError {
         return ScaffoldError {
-            .msg = "cannot create `${project.dir}/${SOURCE_DIR}`: ${e.message()}",
+            .msg = "cannot create `${project.dir}/${SOURCE_DIR}`: ${made.message()}",
         }
     }
     if setup == BuildSetup.Manifest {
@@ -324,8 +324,8 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
 
 write_one :: fn(path: string, content: string) -> null | ScaffoldError {
     res :: write_file_string(path, content)
-    if res is IOError as e {
-        return ScaffoldError { .msg = "cannot write `${path}`: ${e.message()}" }
+    if res is IOError {
+        return ScaffoldError { .msg = "cannot write `${path}`: ${res.message()}" }
     }
     return null
 }
@@ -404,9 +404,9 @@ render_gitignore :: fn() -> string = "build/\n"
 // time this runs, so refusing after the fact would leave a project plus an error.
 init_git :: fn(dir: string) -> string | null {
     res :: spawn(["git", "init", dir])
-    if res is ProcessError as e {
+    if res is ProcessError {
         hint :: "the project is written, initialise it yourself"
-        return "vader new: `git init` could not run (${e.msg}) — ${hint}"
+        return "vader new: `git init` could not run (${res.msg}) — ${hint}"
     }
     if res.exit != 0 {
         return "vader new: `git init` exited ${res.exit} — ${res.stderr.trim()}"

@@ -44,7 +44,7 @@ Vm :: import "vader/vm"
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
 ///                   its result `Value` can't be bridged (cf. `bridge.vader`).
 export resolve_vm_required_decls :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[]!,
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject!, diags: Diagnostic[]!,
 ) -> void {
     if evaluated.vm_required.len() == 0 { return }
 
@@ -62,21 +62,21 @@ export resolve_vm_required_decls :: fn(
         if mangle == "" { continue }
 
         outcome :: Vm.exec_fn_value(state, mangle)
-        if outcome is Vm.Trap as trap {
+        if outcome is Vm.Trap {
             // An impure host reached at comptime (clock / env / fs / stdin /
             // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
             // surfaces as C4016 rather than the generic C4002 panic.
-            if Vm.is_impure_comptime_trap_message(trap.message) {
-                diags.push(comptime_error(.ImpureHostAtComptime, vr.span, trap.message))
+            if Vm.is_impure_comptime_trap_message(outcome.message) {
+                diags.push(comptime_error(.ImpureHostAtComptime, vr.span, outcome.message))
             } else {
-                diags.push(comptime_error(.EvaluationPanic, vr.span, trap.message))
+                diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.message))
             }
             continue
         }
-        if outcome is Vm.ValueOk as ok {
-            bridged :: value_to_comptime(ok.value, vr.decl_type, vr.span)
-            if bridged is Diagnostic as d {
-                diags.push(d)
+        if outcome is Vm.ValueOk {
+            bridged :: value_to_comptime(outcome.value, vr.decl_type, vr.span)
+            if bridged is Diagnostic {
+                diags.push(bridged)
                 continue
             }
             inject(evaluated, vr, bridged)
@@ -119,9 +119,9 @@ find_callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by
 // the const's symbol id — exactly where the tree-walk would have put it. The
 // pass-2 lower's `lookup_const_baked_value` then inlines the literal.
-inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
+inject :: fn(evaluated: Ct.EvaluatedProject!, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
     program :: evaluated.modules[vr.module_id]
-    if program is Ct.EvaluatedProgram as p {
-        p.comptime_decls[vr.symbol_id] = value
+    if program is Ct.EvaluatedProgram {
+        program.comptime_decls[vr.symbol_id] = value
     }
 }

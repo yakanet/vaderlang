@@ -41,12 +41,12 @@ intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
 }
 
 type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
-    if t is StructType as s {
-        decl :: context.typed.struct_decls[s.symbol.id]
-        if decl is AST.StructDecl as d { return i64(d.fields.len()) }
+    if t is StructType {
+        decl :: context.typed.struct_decls[t.symbol.id]
+        if decl is AST.StructDecl { return i64(decl.fields.len()) }
         return 0
     }
-    if t is TupleType as p { return i64(p.elements.len()) }
+    if t is TupleType { return i64(t.elements.len()) }
     return 0
 }
 
@@ -59,8 +59,8 @@ intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
 }
 
 type_variant_count :: fn(t: Type) -> i64 {
-    if t is UnionType as u { return i64(u.variants.len()) }
-    if t is EnumType as e { return i64(e.indices.len()) }
+    if t is UnionType { return i64(t.variants.len()) }
+    if t is EnumType { return i64(t.indices.len()) }
     return 0
 }
 
@@ -72,11 +72,11 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
     if arg_type == null { return arg_error(expr, "field_index: first argument is not a type") }
     name :: static_string_arg(expr.args[1])
     if name == null { return arg_error(expr, "field_index: field name must be a static string literal") }
-    if arg_type is StructType as st {
-        decl :: context.typed.struct_decls[st.symbol.id]
-        if decl is AST.StructDecl as d {
-            for i in 0..<d.fields.len() {
-                if d.fields[i].name == name { return ok(int_val_typed(i64(i), "usize")) }
+    if arg_type is StructType {
+        decl :: context.typed.struct_decls[arg_type.symbol.id]
+        if decl is AST.StructDecl {
+            for i in 0..<decl.fields.len() {
+                if decl.fields[i].name == name { return ok(int_val_typed(i64(i), "usize")) }
             }
             return arg_error(expr, "field_index: `${display_type(arg_type)}` has no field named `${name}`")
         }
@@ -88,9 +88,9 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
 // Extract a single-part string literal's text, or null when the arg isn't a
 // static string literal.
 static_string_arg :: fn(e: AST.Expr) -> string | null {
-    if e is AST.StringLitExpr as s {
-        if s.parts.len() == 1 {
-            if s.parts[0] is AST.StringLitText as t { return t.value }
+    if e is AST.StringLitExpr {
+        if e.parts.len() == 1 {
+            if e.parts[0] is AST.StringLitText as t { return t.value }
         }
     }
     return null

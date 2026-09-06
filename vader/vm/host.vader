@@ -505,7 +505,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         // carries that decorator too, and that branch reads a SCALAR. The shim
         // declares a real C struct and marshals by field name; nothing here can
         // build one at run time.
-        if v is StructVal as sv {
+        if v is StructVal {
             fields :: mirrored_struct_fields(types, info.signature.param_types, i)
             if fields == null {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a struct the type table does not describe" }
@@ -534,13 +534,13 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             for _pad in 0..<room {
                 data.push(0)
             }
-            filled :: serialise_mirror(data, at, sv, fields, types, at_pc, info.extern_name, 0)
+            filled :: serialise_mirror(data, at, v, fields, types, at_pc, info.extern_name, 0)
             if filled is Trap { return filled }
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(at))
             if param_mirror_is_mutable(info.signature, i) {
-                lent_structs.push(LentStruct { .target = sv, .at = at, .fields = fields })
+                lent_structs.push(LentStruct { .target = v, .at = at, .fields = fields })
             }
             continue
         }
@@ -558,8 +558,8 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
             push_little_endian(data, w.value, width)
-        } else if v is ArrayVal as arr {
-            elem :: lent_element_val_type(types, arr.type_id)
+        } else if v is ArrayVal {
+            elem :: lent_element_val_type(types, v.type_id)
             if elem == null {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only integer elements are covered)" }
             }
@@ -567,27 +567,27 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
-            borrowed.push(LentArray { .target = arr, .at = data.len(), .element = elem })
-            for j in 0..<arr.length {
-                b :: read_i64(arr.elements[arr.offset + j], at_pc, "extern `${info.extern_name}` element")
+            borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
+            for j in 0..<v.length {
+                b :: read_i64(v.elements[v.offset + j], at_pc, "extern `${info.extern_name}` element")
                 if b is Trap { return b }
                 push_little_endian(data, b.value, width)
             }
-        } else if v is StringVal as sv {
+        } else if v is StringVal {
             // A `string` crosses as a NUL-terminated buffer in the frame's data
             // area — the same ADDR mechanism a lent array uses. The native shim
             // reaches the same place through `vader_string_to_cstr`.
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
-            data.push_all(sv.value.bytes())
+            data.push_all(v.value.bytes())
             data.push(0)
-        } else if v is F64Val as f {
+        } else if v is F64Val {
             desc.push(u8(FFI_F64))
-            slot_words.push(i64(f.value.to_bits()))
-        } else if v is BoolVal as b {
+            slot_words.push(i64(v.value.to_bits()))
+        } else if v is BoolVal {
             desc.push(u8(FFI_WORD))
-            slot_words.push(if b.value { 1 } else { 0 })
+            slot_words.push(if v.value { 1 } else { 0 })
         } else if v is NullVal {
             // `null` IS a pointer value — the null address — which is what the
             // native shim passes for a `CPointer | null`.
@@ -743,9 +743,9 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
             continue
         }
         v :: types[usize(vi)]
-        if v is bc.BcPrimitive as bp {
-            if bp.val == bc.ValType.Null { has_null = true }
-            if bp.val == want            { has_want = true }
+        if v is bc.BcPrimitive {
+            if v.val == bc.ValType.Null { has_null = true }
+            if v.val == want            { has_want = true }
         }
     }
     return has_null && has_want
@@ -815,9 +815,9 @@ read_back_mirror :: fn(
         nested :: bc.nested_mirror(fields[j], types)
         if nested != null {
             inner :: target.fields[j]
-            if inner is StructVal as isv {
+            if inner is StructVal {
                 read_back_mirror(
-                    frame, base + usize(layout.offsets[j]), isv, nested.fields,
+                    frame, base + usize(layout.offsets[j]), inner, nested.fields,
                     types, depth + 1,
                 )
             }

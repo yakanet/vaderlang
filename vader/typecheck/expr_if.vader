@@ -53,12 +53,12 @@ join_if_branches :: fn(a: Type, b: Type) -> Type {
 }
 
 is_concrete_int :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return is_int_name(p.name) }
+    if t is PrimitiveType { return is_int_name(t.name) }
     return false
 }
 
 is_concrete_float :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return is_float_name(p.name) }
+    if t is PrimitiveType { return is_float_name(t.name) }
     return false
 }
 
@@ -95,9 +95,9 @@ export infer_if :: fn(
         }
     } else {
         single :: detect_is_narrow(e.cond, typed, diags)
-        if single is IsNarrow as s {
-            then_narrows.push(s)
-            else_narrows.push(s)
+        if single is IsNarrow {
+            then_narrows.push(single)
+            else_narrows.push(single)
         }
     }
     pushed :: push_then_narrows(then_narrows, typed)
@@ -180,7 +180,7 @@ IsNarrow :: struct {
 // True when `cond` is a binary expression applying `op`. `infer_if` dispatches on
 // this rather than on a `BinaryOp` extracted with a stand-in for "not binary".
 cond_has_op :: fn(cond: AST.Expr, op: AST.BinaryOp) -> bool {
-    if cond is AST.BinaryExpr as b { return b.op == op }
+    if cond is AST.BinaryExpr { return cond.op == op }
     return false
 }
 
@@ -199,16 +199,16 @@ PushedNarrow :: struct {
 // Detection only — operands are type-checked with real diags by the caller, so
 // `detect_is_narrow` routes its own here to a sink.
 collect_chain_narrows :: fn(cond: AST.Expr, op: AST.BinaryOp, typed: TypedProgram!) -> IsNarrow[]! {
-    if cond is AST.BinaryExpr as x {
-        if x.op == op {
-            out :: collect_chain_narrows(x.left, op, typed)
-            for n in collect_chain_narrows(x.right, op, typed) { out.push(n) }
+    if cond is AST.BinaryExpr {
+        if cond.op == op {
+            out :: collect_chain_narrows(cond.left, op, typed)
+            for n in collect_chain_narrows(cond.right, op, typed) { out.push(n) }
             return out
         }
     }
     out: IsNarrow[]! = []
     single :: detect_is_narrow(cond, typed, diag_sink())
-    if single is IsNarrow as n { out.push(n) }
+    if single is IsNarrow { out.push(single) }
     return out
 }
 
@@ -225,9 +225,9 @@ collect_or_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
 // Operands in a `||` chain, narrowing or not. Compared against the leaf count so
 // an operand that narrows nothing (`x is A || flag`) blocks the then side.
 count_or_operands :: fn(cond: AST.Expr) -> usize {
-    if cond is AST.BinaryExpr as x {
-        if x.op == AST.BinaryOp.Or {
-            return count_or_operands(x.left) + count_or_operands(x.right)
+    if cond is AST.BinaryExpr {
+        if cond.op == AST.BinaryOp.Or {
+            return count_or_operands(cond.left) + count_or_operands(cond.right)
         }
     }
     return 1
@@ -359,8 +359,8 @@ scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null
         sym :: typed.resolved.idents[scrut.span.hash()] ?? return null
         return narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
     }
-    if scrut is AST.FieldExpr as f {
-        info :: resolve_field_chain_static(f, typed) ?? return null
+    if scrut is AST.FieldExpr {
+        info :: resolve_field_chain_static(scrut, typed) ?? return null
         return narrow_for_field(typed, info.field_key, info.static_ty)
     }
     return null

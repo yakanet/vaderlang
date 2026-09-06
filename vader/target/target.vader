@@ -153,9 +153,9 @@ import "std/testing"
 @test test_parse_target_reads_both_axes :: fn() -> void {
     r :: parse_target("linux-x86_64")
     assert(r is Target, "linux-x86_64 parses")
-    if r is Target as t {
-        assert(t.os == .Linux, "os is linux")
-        assert(t.arch == .X86_64, "arch is x86_64")
+    if r is Target {
+        assert(r.os == .Linux, "os is linux")
+        assert(r.arch == .X86_64, "arch is x86_64")
     }
 }
 
@@ -168,25 +168,25 @@ import "std/testing"
 @test test_parse_target_rejects_missing_separator :: fn() -> void {
     r :: parse_target("darwin")
     assert(r is TargetParseError, "no separator is an error")
-    if r is TargetParseError as e {
-        assert_eq(e.fragment, "darwin")
+    if r is TargetParseError {
+        assert_eq(r.fragment, "darwin")
     }
 }
 
 @test test_parse_target_names_the_bad_fragment :: fn() -> void {
     r :: parse_target("drawin-arm64")
     assert(r is TargetParseError, "unknown os is an error")
-    if r is TargetParseError as e {
-        assert_eq(e.fragment, "drawin")
-        assert_eq(e.reason, "unknown operating system")
+    if r is TargetParseError {
+        assert_eq(r.fragment, "drawin")
+        assert_eq(r.reason, "unknown operating system")
     }
 }
 
 @test test_parse_target_rejects_unknown_arch :: fn() -> void {
     r :: parse_target("linux-riscv64")
     assert(r is TargetParseError, "unknown arch is an error")
-    if r is TargetParseError as e {
-        assert_eq(e.fragment, "riscv64")
+    if r is TargetParseError {
+        assert_eq(r.fragment, "riscv64")
     }
 }
 

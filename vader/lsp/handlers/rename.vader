@@ -143,9 +143,9 @@ span_text :: fn(sources: MutableMap<string, string>, sp: Span) -> string {
 // ---- params helpers ------------------------------------------------------
 
 rename_new_name :: fn(params: JsonValue) -> string {
-    if params is JsonObject as o {
-        v :: o.entries["newName"]
-        if v is JsonString as s { return s.value }
+    if params is JsonObject {
+        v :: params.entries["newName"]
+        if v is JsonString { return v.value }
     }
     return ""
 }

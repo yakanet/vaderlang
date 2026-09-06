@@ -74,8 +74,8 @@ check_fail :: fn(name: string, summary: string, detail: string) = Check {
 /// @return      1 when any check failed (or an argument was rejected), else 0.
 cmd_doctor :: fn(args: string[]) -> i32 {
     parsed :: parse_action("doctor", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     // The shared guard reads `doctor`'s empty usage line as "takes no positional",
     // so this rejects the FIRST one rather than the second.
@@ -178,8 +178,8 @@ check_cc :: fn(cc: string) -> Check {
         )
     }
     res :: spawn([resolved, "--version"])
-    if res is ProcessError as e {
-        return check_fail("cc", "found, but would not run", "${resolved}: ${e.msg}")
+    if res is ProcessError {
+        return check_fail("cc", "found, but would not run", "${resolved}: ${res.msg}")
     }
     if res.exit != 0 {
         return check_warn("cc", "ran, but `--version` exited ${res.exit}", resolved)
@@ -360,11 +360,11 @@ check_generated_tree :: fn(manifest_root: string | null) -> Check {
     }
     probe :: join_path(root, ".vader-doctor-probe")
     written :: write_file_string(probe, "")
-    if written is IOError as e {
+    if written is IOError {
         return check_fail(
             "generated-tree",
             "not writable — a driven build cannot emit",
-            "${probe}: ${e.message()}",
+            "${probe}: ${written.message()}",
         )
     }
     removed :: remove_file(probe)

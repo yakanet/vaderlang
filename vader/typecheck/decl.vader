@@ -558,9 +558,9 @@ validate_mirror_fields :: fn(
     fmap :: typed.struct_field_types[t.symbol.id] ?? return
     for f in sd.fields {
         fty :: fmap[f.name] ?? continue
-        if fty is StructType as nested {
-            if mirrors_a_c_struct(nested, typed) {
-                validate_mirror_fields(nested, span, typed, seen, diags)
+        if fty is StructType {
+            if mirrors_a_c_struct(fty, typed) {
+                validate_mirror_fields(fty, span, typed, seen, diags)
             } else {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
@@ -694,18 +694,18 @@ validate_extern :: fn(
     // own — unless both name a header, see below.
     sym_name :: extern_symbol_name_for(decl)
     prior :: typed.extern_symbols[sym_name]
-    if prior is AST.FnDecl as p {
+    if prior is AST.FnDecl {
         // Unless BOTH name a header. The clash above is about the SYNTHESISED
         // prototype, and `@c_header` emits none — each shim calls the symbol
         // with its own types, which `cc` checks against the real declaration. It
         // is what lets `stat` be declared once per system, the way every FFI
         // does: the mirror it fills differs, so the signature does too.
-        if p.id != decl.id && !(declares_c_header(decl) && declares_c_header(p)) {
+        if prior.id != decl.id && !(declares_c_header(decl) && declares_c_header(prior)) {
             diags.push(
                 typecheck_error(
                     .InvalidExternDecl,
                     decl.span,
-                    "duplicate `@extern` C symbol `${sym_name}` — already declared on `${p.name}`",
+                    "duplicate `@extern` C symbol `${sym_name}` — already declared on `${prior.name}`",
                 ),
             )
         }
@@ -767,9 +767,9 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
             continue
         }
         last :: d.args[d.args.len() - 1]
-        if last is AST.StringLitExpr as s {
-            if s.parts.len() == 1 {
-                if s.parts[0] is AST.StringLitText as t {
+        if last is AST.StringLitExpr {
+            if last.parts.len() == 1 {
+                if last.parts[0] is AST.StringLitText as t {
                     return t.value
                 }
             }
@@ -857,8 +857,8 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
 /// @param t          the candidate type.
 /// @param is_return  whether it sits in return position (`void` is allowed there).
 is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
-    if t is DistinctType as d {
-        return is_unmarshalled_scalar(d.backing, is_return)
+    if t is DistinctType {
+        return is_unmarshalled_scalar(t.backing, is_return)
     }
     if t is UnresolvedType {
         return true
@@ -888,9 +888,9 @@ is_nullable_string :: fn(t: Type) -> bool {
     has_str := false
     for v in t.variants {
         bare :: strip_distinct(v)
-        if bare is PrimitiveType as p {
-            if p.name == "null"   { has_null = true }
-            if p.name == "string" { has_str = true }
+        if bare is PrimitiveType {
+            if bare.name == "null"   { has_null = true }
+            if bare.name == "string" { has_str = true }
         }
     }
     return has_null && has_str
@@ -907,21 +907,21 @@ is_nullable_string :: fn(t: Type) -> bool {
 /// @param t  the candidate slot type.
 /// @return   whether it is the nullable-pointer shape.
 is_nullable_pointer :: fn(t: Type) -> bool {
-    if t is UnionType as u {
-        if u.variants.len() != 2 {
+    if t is UnionType {
+        if t.variants.len() != 2 {
             return false
         }
         has_null := false
         has_ptr := false
-        for v in u.variants {
+        for v in t.variants {
             // `Handle | null` with `Handle :: CPointer` is the same ABI shape as
             // `CPointer | null` — see through the newtype.
             bare :: strip_distinct(v)
-            if bare is PrimitiveType as p {
-                if p.name == "null" {
+            if bare is PrimitiveType {
+                if bare.name == "null" {
                     has_null = true
                 }
-                if p.name == "CPointer" {
+                if bare.name == "CPointer" {
                     has_ptr = true
                 }
             }
@@ -1003,8 +1003,8 @@ check_main_signature :: fn(
 }
 
 is_primitive_named :: fn(t: Type, name: string) -> bool {
-    if t is PrimitiveType as p {
-        return p.name == name
+    if t is PrimitiveType {
+        return t.name == name
     }
     return false
 }
@@ -1065,10 +1065,10 @@ declare_enum :: fn(
     sym :: by_name[decl.name]
     repr :: resolve_repr(decl.repr, resolved, diags)
     indices :: resolve_enum_indices(decl, repr, diags)
-    if sym is Symbol as s {
-        enum_type :: mk_enum(s, repr, indices)
-        typed.decl_types[s.id] = enum_type
-        resolved.alias_types[s.id] = enum_type
+    if sym is Symbol {
+        enum_type :: mk_enum(sym, repr, indices)
+        typed.decl_types[sym.id] = enum_type
+        resolved.alias_types[sym.id] = enum_type
     }
 }
 
@@ -1149,9 +1149,9 @@ reject_mutable_module_const :: fn(
         return
     }
     // The one storable shape : the marker on the ARRAY level and nowhere deeper.
-    if annotation is AST.MutableTypeExpr as m {
-        if m.inner is AST.ArrayTypeExpr {
-            if !marks_mutable_anywhere(m.inner) {
+    if annotation is AST.MutableTypeExpr {
+        if annotation.inner is AST.ArrayTypeExpr {
+            if !marks_mutable_anywhere(annotation.inner) {
                 return
             }
             diags.push(typecheck_error(
@@ -1185,16 +1185,16 @@ reject_mutable_module_const :: fn(
 // the whole annotation.
 marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
     if w is AST.MutableTypeExpr { return true }
-    if w is AST.ArrayTypeExpr as a { return marks_mutable_anywhere(a.element) }
-    if w is AST.SeqLitExpr as t {
-        for el in t.elements {
+    if w is AST.ArrayTypeExpr { return marks_mutable_anywhere(w.element) }
+    if w is AST.SeqLitExpr {
+        for el in w.elements {
             if marks_mutable_anywhere(el) { return true }
         }
         return false
     }
-    if w is AST.BinaryExpr as b {
-        if b.op == BinaryOp.BitOr {
-            return marks_mutable_anywhere(b.left) || marks_mutable_anywhere(b.right)
+    if w is AST.BinaryExpr {
+        if w.op == BinaryOp.BitOr {
+            return marks_mutable_anywhere(w.left) || marks_mutable_anywhere(w.right)
         }
     }
     return false
@@ -1226,8 +1226,8 @@ distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
             return false
         }
     }
-    if alias_ty is PrimitiveType as p {
-        return p.name != "void" && p.name != "null"
+    if alias_ty is PrimitiveType {
+        return alias_ty.name != "void" && alias_ty.name != "null"
     }
     // Composite-backed newtypes (`BigInt :: u32[]`, `Color :: Rgb`,
     // `Coord :: [i32, i32]`) are nominal too, so they can carry their own trait
@@ -1262,11 +1262,11 @@ resolve_repr :: fn(
         return "i32"
     }
     repr_ty :: type_from_expr(repr, resolved, diags)
-    if repr_ty is PrimitiveType as p {
-        if is_int_name(p.name) {
-            return p.name
+    if repr_ty is PrimitiveType {
+        if is_int_name(repr_ty.name) {
+            return repr_ty.name
         }
-        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${p.name}"))
+        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${repr_ty.name}"))
         return "i32"
     }
     diags.push(

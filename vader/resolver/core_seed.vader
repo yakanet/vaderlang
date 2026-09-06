@@ -35,8 +35,8 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
     // `typecheck/orchestrate.vader::populate_baked_symbols` — seeding one
     // without the other is what let `VADER_OS` assign to a `string`.
     baked :: project.modules[BAKED_FOLDER]
-    if baked is LoadedModule as bm {
-        for [name, sym] in bm.collected.symbols {
+    if baked is LoadedModule {
+        for [name, sym] in baked.collected.symbols {
             out[name] = sym
         }
     }

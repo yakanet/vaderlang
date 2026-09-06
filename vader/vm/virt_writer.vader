@@ -66,8 +66,9 @@ test_virt_roundtrip :: fn() -> void {
 
     // write_virt → parse_virt_bc must preserve behaviour.
     round_tripped :: parse_virt_bc(write_virt(original))
-    if round_tripped is VirtParseError as e {
-        assert(false, "own dump should parse back: line ${e.line_number}: ${e.reason}")
+    if round_tripped is VirtParseError {
+        assert(false, "own dump should parse back: line "
+            + "${round_tripped.line_number}: ${round_tripped.reason}")
         return
     }
     assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
@@ -76,8 +77,8 @@ test_virt_roundtrip :: fn() -> void {
 // Exec `module` and return its exit value, failing the test on a trap.
 exec_value :: fn(module: bc.BytecodeModule) -> i32 {
     result :: exec(prepare(module), [])
-    if result is Trap as t {
-        assert(false, "unexpected VM trap: ${t.message}")
+    if result is Trap {
+        assert(false, "unexpected VM trap: ${result.message}")
         return -1
     }
     return result.value

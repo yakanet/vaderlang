@@ -44,7 +44,7 @@ import "toolchain/span"
 ///             then diverges via `unreachable_buffer`).
 get_or_create_concat :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     cached :: ctx.project.concat_fn_syms[n]
-    if cached is Symbol as s { return s }
+    if cached is Symbol { return cached }
     sym :: synthesize_concat_fn(ctx, n) ?? return null
     ctx.project.concat_fn_syms[n] = sym
     return sym

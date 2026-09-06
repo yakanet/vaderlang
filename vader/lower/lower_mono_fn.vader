@@ -81,8 +81,9 @@ drain_generic_fn_instances :: fn(
             recv :: project_ctx.pending_generic_impl_recv[ri]
             ri += 1
             owner_typed :: typed.modules[recv.symbol.module]
-            if owner_typed is TypedProgram as ot {
-                materialize_impl_members_for(recv, ot, project_ctx, project, loaded, typed, diags)
+            if owner_typed is TypedProgram {
+                materialize_impl_members_for(
+                    recv, owner_typed, project_ctx, project, loaded, typed, diags)
             }
         }
     }
@@ -315,8 +316,8 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
     // back null — a native segfault rather than a diagnostic. The marker is a
     // mutability note, never a reason to skip force-concreting.
     rt :: strip_mut_marker(fn_decl.return_type) ?? return false
-    if rt is ArrayTypeExpr as a {
-        if a.element is IdentExpr as id {
+    if rt is ArrayTypeExpr {
+        if rt.element is IdentExpr as id {
             for tp in fn_decl.type_params {
                 if tp.name == id.name { return true }
             }
@@ -357,11 +358,11 @@ fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: 
 // this MUST equal the flavor the materialiser computes for the same instance.
 call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
     owner_typed :: ctx.project.typed.modules[fn_sym.module]
-    if owner_typed is TypedProgram as ot {
+    if owner_typed is TypedProgram {
         owner_loaded :: ctx.project.loaded.modules[fn_sym.module]
-        if owner_loaded is LoadedModule as ol {
-            fd :: find_fn_decl_for_symbol(module_decls(ol), fn_sym, type_args.len())
-            if fd is FnDecl as f { return fn_instance_flavor(f, ot, type_args) }
+        if owner_loaded is LoadedModule {
+            fd :: find_fn_decl_for_symbol(module_decls(owner_loaded), fn_sym, type_args.len())
+            if fd is FnDecl { return fn_instance_flavor(fd, owner_typed, type_args) }
         }
     }
     return InstanceFlavor.Erased
@@ -409,9 +410,9 @@ find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDec
     match sym.defined_at {
         is Span as def -> {
             for d in decls {
-                if d is FnDecl as f {
-                    if f.type_params.len() != arity { continue }
-                    if f.name_span.hash() == def.hash() { return f }
+                if d is FnDecl {
+                    if d.type_params.len() != arity { continue }
+                    if d.name_span.hash() == def.hash() { return d }
                 }
             }
         }
@@ -427,8 +428,8 @@ find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDec
 // match wins (refine to arity-keyed if a real collision surfaces).
 find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | null {
     for d in decls {
-        if d is FnDecl as f {
-            if f.name == name && f.type_params.len() == 0 { return f }
+        if d is FnDecl {
+            if d.name == name && d.type_params.len() == 0 { return d }
         }
     }
     return null
@@ -447,10 +448,10 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
         is null -> { return find_nongeneric_fn_decl_by_name(decls, fn_sym.name) }
         is Span as want -> {
             for d in decls {
-                if d is FnDecl as f {
-                    if f.name != fn_sym.name { continue }
-                    if f.type_params.len() != 0 { continue }
-                    if f.name_span.hash() == want.hash() { return f }
+                if d is FnDecl {
+                    if d.name != fn_sym.name { continue }
+                    if d.type_params.len() != 0 { continue }
+                    if d.name_span.hash() == want.hash() { return d }
                 }
             }
             // Span miss (e.g. a re-pointed symbol whose span originated in a
@@ -481,16 +482,16 @@ materialize_nongeneric_imported_fns :: fn(
         project_ctx.nongeneric_imported_cursor += 1
         module_typed :: typed.modules[fn_sym.module] ?? continue
         module_loaded :: loaded.modules[fn_sym.module] ?? continue
-        if module_typed is TypedProgram as mt {
-            if module_loaded is LoadedModule as ml {
-                fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(ml), fn_sym)
-                if fn_decl is FnDecl as fd {
+        if module_typed is TypedProgram {
+            if module_loaded is LoadedModule {
+                fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(module_loaded), fn_sym)
+                if fn_decl is FnDecl {
                     // Bodyless externs are surfaced up front in
                     // `lower_project`'s stdlib branch — skip to avoid a
                     // duplicate import entry for the same symbol.
-                    if fd.body is null { continue }
+                    if fn_decl.body is null { continue }
                     synth_start :: project_ctx.synth_decls.len()
-                    lowered :: lower_fn_decl(fd, mt, project_ctx, diags)
+                    lowered :: lower_fn_decl(fn_decl, module_typed, project_ctx, diags)
                     if lowered != null { push_to_module(project, fn_sym.module, lowered) }
                     // Drain any lambda/defer lifted fns this body spawned into
                     // the same stdlib module (e.g. `strip_numeric_text`'s
@@ -523,12 +524,12 @@ materialize_nongeneric_imported_consts :: fn(
         project_ctx.nongeneric_imported_const_cursor += 1
         module_typed :: typed.modules[const_sym.module] ?? continue
         module_loaded :: loaded.modules[const_sym.module] ?? continue
-        if module_typed is TypedProgram as mt {
-            if module_loaded is LoadedModule as ml {
-                const_decl :: find_const_decl_by_name(module_decls(ml), const_sym.name)
-                if const_decl is ConstDecl as cd {
+        if module_typed is TypedProgram {
+            if module_loaded is LoadedModule {
+                const_decl :: find_const_decl_by_name(module_decls(module_loaded), const_sym.name)
+                if const_decl is ConstDecl {
                     synth_start :: project_ctx.synth_decls.len()
-                    lowered :: lower_const_decl(cd, mt, project_ctx, diags)
+                    lowered :: lower_const_decl(const_decl, module_typed, project_ctx, diags)
                     if lowered != null { push_to_module(project, const_sym.module, lowered) }
                     // A const RHS that lifts a lambda (rare, but possible)
                     // appends synth fns into the same stdlib module — drain

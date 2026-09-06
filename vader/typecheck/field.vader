@@ -212,11 +212,11 @@ dispatch_bounded_method_trait :: fn(
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
-    if bound_ty is TraitType as tt {
+    if bound_ty is TraitType {
         if try_trait_method(bound_ty, name, typed) is null {
             return ""
         }
-        return tt.symbol.name
+        return bound_ty.symbol.name
     }
     return ""
 }
@@ -1323,8 +1323,8 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
-    if bound_ty is TraitType as tt {
-        decl :: typed.trait_decls[tt.symbol.id] ?? return
+    if bound_ty is TraitType {
+        decl :: typed.trait_decls[bound_ty.symbol.id] ?? return
         for m in decl.members {
             out.push(m.name)
         }
@@ -1393,8 +1393,8 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    if last is AST.FnDecl as f {
-        match f.body {
+    if last is AST.FnDecl {
+        match last.body {
             is null -> {
                 return FieldFixture { .typed = result.typed, .field = null }
             }

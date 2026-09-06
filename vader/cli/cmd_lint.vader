@@ -32,8 +32,8 @@ import "vader/diagnostics"
 ///              load/parse error, or a missing file argument.
 cmd_lint :: fn(args: string[]) -> i32 {
     parsed :: parse_action("lint", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     if reject_extra_positionals("lint", parsed) {
         return 1

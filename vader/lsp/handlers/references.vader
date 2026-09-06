@@ -46,7 +46,7 @@ export handle_references :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 // Fetch (and memoise) the LineIndex for `path` within one request.
 line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>!, path: string) -> LineIndex {
     hit :: cache[path]
-    if hit is LineIndex as li { return li }
+    if hit is LineIndex { return hit }
     built :: state.line_index_for_path(path)
     cache[path] = built
     return built
@@ -66,6 +66,6 @@ symbol_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> i32
 include_declaration :: fn(params: JsonValue) -> bool {
     ctx :: get_field(params, "context")
     v :: get_field(ctx, "includeDeclaration")
-    if v is JsonBool as b { return b.value }
+    if v is JsonBool { return v.value }
     return true
 }

@@ -182,8 +182,8 @@ flush_remaining_comments :: fn(self: Printer!) -> void {
 emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
     out: p.Decl[]! = []
     for d in decls {
-        if d is p.FnDecl as f {
-            if f.comptime_synthetic { continue }
+        if d is p.FnDecl {
+            if d.comptime_synthetic { continue }
         }
         out.push(d)
     }
@@ -317,16 +317,16 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
     // so it → false. `cur` must additionally match `prev`'s kind to extend.
     @partial match prev {
         is p.FnDecl as pf -> {
-            if cur is p.FnDecl as cf {
-                if pf.visibility != cf.visibility { return false }
-                return decorators_equal(pf.decorators, cf.decorators)
+            if cur is p.FnDecl {
+                if pf.visibility != cur.visibility { return false }
+                return decorators_equal(pf.decorators, cur.decorators)
             }
             return false
         }
         is p.ConstDecl as pc -> {
-            if cur is p.ConstDecl as cc {
-                if pc.visibility != cc.visibility { return false }
-                return decorators_equal(pc.decorators, cc.decorators)
+            if cur is p.ConstDecl {
+                if pc.visibility != cur.visibility { return false }
+                return decorators_equal(pc.decorators, cur.decorators)
             }
             return false
         }
@@ -1645,11 +1645,11 @@ emit_condition :: fn(self: Printer!, cond: p.Expr) -> void {
 // index / call / binary / range / try chain (`Point { … }.ok`, `Point { … } + x`).
 expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
     if e is p.StructLitExpr     { return true }
-    if e is p.FieldExpr  as f   { return expr_head_is_struct_lit(f.target) }
-    if e is p.IndexExpr  as ix  { return expr_head_is_struct_lit(ix.target) }
-    if e is p.CallExpr   as c    { return expr_head_is_struct_lit(c.callee) }
-    if e is p.BinaryExpr as b   { return expr_head_is_struct_lit(b.left) }
-    if e is p.RangeExpr  as r   { return expr_head_is_struct_lit(r.lower) }
+    if e is p.FieldExpr   { return expr_head_is_struct_lit(e.target) }
+    if e is p.IndexExpr  { return expr_head_is_struct_lit(e.target) }
+    if e is p.CallExpr    { return expr_head_is_struct_lit(e.callee) }
+    if e is p.BinaryExpr   { return expr_head_is_struct_lit(e.left) }
+    if e is p.RangeExpr   { return expr_head_is_struct_lit(e.lower) }
     return false
 }
 
@@ -1760,8 +1760,8 @@ MATCH_ALIGN_MAX: usize: 44
 // entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
 // lookup-table idiom) ; a lone one is expanded like any other control-flow body.
 inline_if_stmt :: fn(s: p.Stmt) -> bool {
-    if s is p.ExprStmt as es {
-        if es.expr is p.IfExpr as iff {
+    if s is p.ExprStmt {
+        if s.expr is p.IfExpr as iff {
             if iff.else_branch != null { return false }
             tb :: iff.then_block
             if tb.span.start.line != tb.span.end.line { return false }
@@ -1777,7 +1777,7 @@ inline_if_stmt :: fn(s: p.Stmt) -> bool {
 // multi-line : a statement-position `if` (`for` / `while` are `ForStmt`).
 control_flow_stmt :: fn(s: p.Stmt) -> bool {
     if s is p.ForStmt { return true }
-    if s is p.ExprStmt as es { return es.expr is p.IfExpr }
+    if s is p.ExprStmt { return s.expr is p.IfExpr }
     return false
 }
 
@@ -1796,8 +1796,8 @@ block_mode_for :: fn(stmts: p.Stmt[], i: usize) -> BlockLayout {
 // Rendered width of a lookup-table `if`'s condition (for `{`-column alignment),
 // or 0 when `s` isn't an inline `if`.
 if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
-    if s is p.ExprStmt as es {
-        if es.expr is p.IfExpr as iff {
+    if s is p.ExprStmt {
+        if s.expr is p.IfExpr as iff {
             return format_expr(source, iff.cond).bytes().len()
         }
     }
@@ -2111,7 +2111,7 @@ emit_range_operand :: fn(self: Printer!, operand: p.Expr) -> void {
 }
 
 range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
-    if operand is p.BinaryExpr as b { return binary_precedence(b.op) < 4 }
+    if operand is p.BinaryExpr { return binary_precedence(operand.op) < 4 }
     if operand is p.RangeExpr { return true }
     if operand is p.NullCoalesceExpr { return true }   // `??` binds looser than `..`
     return false

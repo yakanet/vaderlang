@@ -236,13 +236,13 @@ bind_loop_var :: fn(
     value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt[] {
     out: LoweredStmt[]! = []
-    if pattern is AST.TupleBinding as tup {
+    if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "for_elem")
         out.push(LoweredLet {
             .span = span, .name = elem_sym.name, .symbol = elem_sym,
             .type = value_type, .value = value,
         })
-        out.push_all(emit_for_pattern_destructure(ctx, tup, elem_sym, value_type, span))
+        out.push_all(emit_for_pattern_destructure(ctx, pattern, elem_sym, value_type, span))
         return out
     }
     init :: lower_cell_init(ctx, binding_symbol, value, value_type, span)
@@ -321,7 +321,7 @@ try_wrap_array_iter :: fn(
             chars_member :: find_free_fn_ufcs(ctx, iter_type, "chars")
             if chars_member is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
             chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
-            if chars_fn_ty is FnType as ft {
+            if chars_fn_ty is FnType {
                 // The synthesised call bypasses `lower_call`, so harvest `chars`
                 // ourselves — its owning module (`std/string`) is lowered lazily,
                 // and nothing else references this non-generic free fn unless the
@@ -331,13 +331,14 @@ try_wrap_array_iter :: fn(
                 args: LoweredExpr[]! = []
                 args.push(iter)
                 chars_call :: LoweredCall {
-                    .span = span, .type = ft.return_type,
+                    .span = span, .type = chars_fn_ty.return_type,
                     .callee = LoweredIdent {
-                        .span = span, .type = ft.return_type, .symbol = chars_member.symbol,
+                        .span = span, .type = chars_fn_ty.return_type,
+                        .symbol = chars_member.symbol,
                     },
                     .args = args,
                 }
-                return WrapResult { .iter = chars_call, .iter_type = ft.return_type }
+                return WrapResult { .iter = chars_call, .iter_type = chars_fn_ty.return_type }
             }
             return WrapResult { .iter = iter, .iter_type = iter_type }
         }
@@ -402,7 +403,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
 erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type: Type) -> Type {
     if !is_gen_state_struct(iter_type) { return iter_type }
     trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR)
-    if trait_sym is Symbol as ts { return mk_trait(ts, [element_type]) }
+    if trait_sym is Symbol { return mk_trait(trait_sym, [element_type]) }
     return iter_type
 }
 
@@ -438,7 +439,7 @@ build_step_call :: fn(
     // colocated-struct case.
     method_next :: METHOD_NEXT
     next_name := method_next
-    if iter_type is StructType as st {
+    if iter_type is StructType {
         // Resolve the struct's Iterator impl entry. The materialised `next`
         // member is registered under the impl's OWNING module (GATE B1) — not
         // the caller's — so a cross-module iterator (e.g. `std/string`'s
@@ -451,13 +452,15 @@ build_step_call :: fn(
         is_gen := false
         for entry in ctx.project.impls.all {
             if entry.decl.trait_name != TRAIT_ITERATOR { continue }
-            if impl_targets_name(entry.decl.for_type, st.symbol.name) {
+            if impl_targets_name(entry.decl.for_type, iter_type.symbol.name) {
                 owning_module = mangle_module_id(entry.module)
                 is_gen = entry.is_generic
             }
         }
-        suffix :: if is_gen { mixed_any_suffix(st.args) } else { args_suffix(st.args) }
-        next_name = "${owning_module}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${suffix}"
+        args :: iter_type.args
+        suffix :: if is_gen { mixed_any_suffix(args) } else { args_suffix(args) }
+        owner :: iter_type.symbol.name
+        next_name = "${owning_module}$${owner}$${TRAIT_ITERATOR}$${method_next}${suffix}"
         // Record the call so the post-lowering pass materialises the (with-body)
         // stdlib impl member instead of dropping the call to the panic fallback.
         ctx.project.referenced_impl_mangles.add(next_name)
@@ -550,7 +553,7 @@ resolve_loop_binding :: fn(ctx: FnLowerCtx!, loop_var: AST.LoopVar, fallback_spa
 /// The span a for-loop variable is keyed by — the `NamedVar`'s own span, else
 /// `fallback` (destructure leaves / discard carry no single binding span).
 loop_var_span :: fn(loop_var: AST.LoopVar, fallback: Span) -> Span {
-    if loop_var is AST.NamedVar as nv { return nv.span }
+    if loop_var is AST.NamedVar { return loop_var.span }
     return fallback
 }
 
@@ -638,8 +641,8 @@ bce_opt_expr_unsafe :: fn(e: LoweredExpr | null, guard_sym: i32, pctx: BcePurity
 }
 
 bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32) -> bool {
-    if target is LoweredIdent as id {
-        return id.symbol.id == guard_sym
+    if target is LoweredIdent {
+        return target.symbol.id == guard_sym
     }
     return false
 }
@@ -870,8 +873,8 @@ try_lower_for_in_int_range :: fn(
         // `bce_hoist_tag` pass hoists arr's buffer resolve if the loop body is safe
         // (the body's user-written `arr[i]` reuse the pinned resolve via cache hit).
         hi_value: LoweredExpr = hi_raw
-        if hi_raw is LoweredArrayLen as al {
-            hi_value = LoweredArrayLen { .span = al.span, .type = al.type, .target = al.target, .bce_recheck = true }
+        if hi_raw is LoweredArrayLen {
+            hi_value = LoweredArrayLen { .span = hi_raw.span, .type = hi_raw.type, .target = hi_raw.target, .bce_recheck = true }
         }
         hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
         hoist_stmts.push(LoweredLet {
@@ -921,7 +924,7 @@ try_lower_for_in_int_range :: fn(
 }
 
 extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
-    if iter is AST.RangeExpr as r { return r }
+    if iter is AST.RangeExpr { return iter }
     return null
 }
 
@@ -930,8 +933,8 @@ extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
 // default. Rewrite the LoweredIntLit's type to the loop counter's
 // width so the dump shows `int(0) :u64` instead of `int(0) :i32`.
 widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
-    if e is LoweredIntLit as lit {
-        return LoweredIntLit { .span = lit.span, .type = t, .value = lit.value }
+    if e is LoweredIntLit {
+        return LoweredIntLit { .span = e.span, .type = t, .value = e.value }
     }
     return e
 }
@@ -1082,15 +1085,15 @@ rewrite_continue_stmt :: fn(s: LoweredStmt, inside_nested_loop: bool, inc: Lower
 // `continue` ; every other expression kind is a leaf w.r.t. statements, so
 // it's returned unchanged.
 rewrite_continue_expr :: fn(e: LoweredExpr, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredExpr {
-    if e is LoweredBlock as b {
-        return rewrite_continue_block(b, inside_nested_loop, inc, loop_label)
+    if e is LoweredBlock {
+        return rewrite_continue_block(e, inside_nested_loop, inc, loop_label)
     }
-    if e is LoweredIf as f {
-        eb :: f.else_block
+    if e is LoweredIf {
+        eb :: e.else_block
         new_else :: if eb == null { null } else { rewrite_continue_block(eb, inside_nested_loop, inc, loop_label) }
         return LoweredIf {
-            .span = f.span, .type = f.type, .cond = f.cond,
-            .then_block = rewrite_continue_block(f.then_block, inside_nested_loop, inc, loop_label),
+            .span = e.span, .type = e.type, .cond = e.cond,
+            .then_block = rewrite_continue_block(e.then_block, inside_nested_loop, inc, loop_label),
             .else_block = new_else,
         }
     }
@@ -1107,25 +1110,25 @@ try_lower_for_in_map_set :: fn(
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    if src_type is StructType as source {
+    if src_type is StructType {
         // `MutableMap` / `MutableSet` lookups returning null (std/collections not
         // loaded) fall through to `!is_map && !is_set` below — no separate gate.
-        is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), source.symbol.id)
-        is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
+        is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), src_type.symbol.id)
+        is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), src_type.symbol.id)
         if !is_map && !is_set { return null }
         // Element component types : Map<K, V> → [K, V] ; Set<T> → [T, bool].
         entry_args: Type[]! = []
         if is_map {
-            for a in source.args { entry_args.push(a) }
+            for a in src_type.args { entry_args.push(a) }
         } else {
-            if source.args.len() == 0 { return null }
-            entry_args.push(source.args[0])
+            if src_type.args.len() == 0 { return null }
+            entry_args.push(src_type.args[0])
             entry_args.push(TY_BOOL)
         }
         if entry_args.len() != 2 { return null }
         // Compact-dict map/set fast-path : dense index walk over `ekeys` / `evals`.
         return lower_map_set_compact(ctx, for_stmt, in_form, src_value, src_type, span,
-            block_lowerer, source, is_map, is_set, entry_args)
+            block_lowerer, src_type, is_map, is_set, entry_args)
     }
     return null
 }
@@ -1248,7 +1251,7 @@ lower_map_set_compact :: fn(
 }
 
 struct_sym_matches :: fn(sym: Symbol | null, id: i32) -> bool {
-    if sym is Symbol as s { return s.id == id }
+    if sym is Symbol { return sym.id == id }
     return false
 }
 

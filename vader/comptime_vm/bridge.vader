@@ -70,9 +70,9 @@ int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue {
 // `fallback` when `ty` isn't a primitive — the scalar arms then keep the VM
 // tag's natural width.
 prim_name :: fn(ty: Type, fallback: string) -> string {
-    if ty is PrimitiveType as p { return p.name }
-    if ty is DistinctType as d {
-        if d.backing is PrimitiveType as p { return p.name }
+    if ty is PrimitiveType { return ty.name }
+    if ty is DistinctType {
+        if ty.backing is PrimitiveType as p { return p.name }
     }
     return fallback
 }
@@ -84,7 +84,7 @@ array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.Comptime
     elements: Ct.ComptimeValue[]! = []
     for i in 0..<array.length {
         bridged :: value_to_comptime(array.elements[array.offset + i], elem_ty, span)
-        if bridged is Diagnostic as d { return d }
+        if bridged is Diagnostic { return bridged }
         elements.push(bridged)
     }
     return Ct.ArrayValue { .elements = elements, .element_type_name = display_type_key(elem_ty) }
@@ -93,7 +93,7 @@ array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.Comptime
 // Element type of an array type ; falls back to `ty` itself for a non-array
 // (defensive — a well-typed array result always carries an `ArrayType`).
 array_element_type :: fn(ty: Type) -> Type {
-    if ty is ArrayType as a { return a.element }
+    if ty is ArrayType { return ty.element }
     return ty
 }
 

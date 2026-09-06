@@ -205,7 +205,7 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
         }
         is AST.StringLitExpr as s -> {
             for part in s.parts {
-                if part is AST.StringLitInterp as si { collect_from_expr(si.expr, ctx, out) }
+                if part is AST.StringLitInterp { collect_from_expr(part.expr, ctx, out) }
             }
         }
         // Leaves : literals, idents, dot-variants, type-position exprs.

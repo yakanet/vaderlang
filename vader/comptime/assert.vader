@@ -35,8 +35,8 @@ export evaluate_assert_decls :: fn(
         .bindings = bindings,
     }
     for decl in decls {
-        if decl is AST.AssertDecl as assert_decl {
-            result :: evaluate_expr(assert_decl.condition, context)
+        if decl is AST.AssertDecl {
+            result :: evaluate_expr(decl.condition, context)
             match result.diag {
                 is null -> {}
                 is Diagnostic as d -> {
@@ -45,7 +45,7 @@ export evaluate_assert_decls :: fn(
             }
             if result.value is BoolValue as b {
                 if !b.value {
-                    diags.push(comptime_error(.AssertFailed, assert_decl.span, assert_message(assert_decl)))
+                    diags.push(comptime_error(.AssertFailed, decl.span, assert_message(decl)))
                 }
             }
         }

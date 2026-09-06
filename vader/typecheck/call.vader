@@ -52,8 +52,8 @@ pick_overload :: fn(
     // up vader_comptime's `compare`, breaking the later `call.indirect`). Only
     // a bare free-fn reference (Fn kind) carries overloads worth resolving.
     callee_sym :: typed.resolved.idents[c.callee.span.hash()]
-    if callee_sym is Symbol as cs {
-        match cs.kind {
+    if callee_sym is Symbol {
+        match callee_sym.kind {
             .Param   -> {
                 return initial
             }
@@ -102,8 +102,8 @@ pick_overload :: fn(
             best_exact = exact
         }
     }
-    if best is FnType as p {
-        return commit_overload_pick(p, c, typed, primary_ft)
+    if best is FnType {
+        return commit_overload_pick(best, c, typed, primary_ft)
     }
     return initial
 }
@@ -116,7 +116,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     if param0 is TypeParamType {
         return 0
     }
-    if param0 is UnionType as pu {
+    if param0 is UnionType {
         // `const` earns its keep here : the two branches join a read-only field and
         // a fresh literal, and an inferred `::` join is not a plain array — the
         // for-in below then falls to the iterator path and the lowerer panics on an
@@ -124,7 +124,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
-            for pv in pu.variants {
+            for pv in param0.variants {
                 if pv is TypeParamType {
                     continue
                 }
@@ -337,8 +337,8 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     out: AST.CallArg[]! = []
     for i in 0..<params.len() {
         slot :: slots[i]
-        if slot is AST.CallArg as s {
-            out.push(s)
+        if slot is AST.CallArg {
+            out.push(slot)
         } else {
             dv :: params[i].default_value
             if dv != null {
@@ -414,12 +414,12 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         // resolved decl carries the PICKED signature ; when it doesn't, its params
         // are kept only as a last resort, after the bucket scan below.
         arity_match: AST.FnParam[] | null = null
-        if sym is Symbol as s {
-            decl :: typed.fn_decls[s.id]
+        if sym is Symbol {
+            decl :: typed.fn_decls[sym.id]
             if decl is AST.FnDecl && decl.params.len() == callee_ty.params.len() {
-                declared :: typed.decl_types[s.id]
-                if declared is FnType as df {
-                    if equals_type(df, callee_ty) {
+                declared :: typed.decl_types[sym.id]
+                if declared is FnType {
+                    if equals_type(declared, callee_ty) {
                         return decl.params
                     }
                     arity_match = decl.params
@@ -444,8 +444,8 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         // re-deriving the winner from the receiver type — the same answer, and
         // one the imported half cannot give at all.
         chosen :: typed.ufcs_chosen_decls[fe.id]
-        if chosen is AST.FnDecl as fd {
-            return ufcs_tail_params(fd)
+        if chosen is AST.FnDecl {
+            return ufcs_tail_params(chosen)
         }
         // Otherwise a namespace member call (`mod.foo(...)`) : reach the
         // export's declared params so named args + defaults fill, same as the
@@ -480,18 +480,18 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
     fallback: AST.FnParam[] | null = null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
-        if decl is AST.FnDecl as fd {
-            if fd.params.len() != callee_ty.params.len() {
+        if decl is AST.FnDecl {
+            if decl.params.len() != callee_ty.params.len() {
                 continue
             }
             ft :: typed.decl_types[sym.id]
-            if ft is FnType as f {
-                if equals_type(f, callee_ty) {
-                    return fd.params
+            if ft is FnType {
+                if equals_type(ft, callee_ty) {
+                    return decl.params
                 }
             }
             if fallback == null {
-                fallback = fd.params
+                fallback = decl.params
             }
         }
     }
@@ -545,8 +545,8 @@ report_unbound_type_args :: fn(
     // there is nothing to infer and no syntax to pass a type argument through.
     if c.callee is AST.IdentExpr {
         callee_sym :: typed.resolved.idents[c.callee.span.hash()]
-        if callee_sym is Symbol as cs {
-            @partial match cs.kind {
+        if callee_sym is Symbol {
+            @partial match callee_sym.kind {
                 .Param | .Local | .Binding -> { return }
                 _ -> {}
             }
@@ -836,8 +836,8 @@ export infer_call :: fn(
                 continue
             }
             want :: substitute_map(callee_ty.params[i], bindings)
-            if want is TraitType as et {
-                if struct_implements_trait(default_if_free(got), et.symbol.name, typed) {
+            if want is TraitType {
+                if struct_implements_trait(default_if_free(got), want.symbol.name, typed) {
                     typed.expr_types[c.args[i].value.id] = want
                 }
             }
@@ -1033,18 +1033,18 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     // See through an explicit `f<…>` instantiation to the underlying
     // ident, so T3006 bound-checking fires on `f<i64>(…)` too.
     base: AST.Expr = callee
-    if callee is AST.GenericInstExpr as gi {
-        base = gi.callee
+    if callee is AST.GenericInstExpr {
+        base = callee.callee
     }
     // A namespace-qualified name — `M.f`, the form §7 of the style guide
     // mandates for an aliased import. It is a `FieldExpr`, not an ident, and
     // treating it as unresolvable had two costs: a valid callback argument was
     // refused T3080, and a call whose CALLEE wore that shape skipped the check
     // entirely and reached `midir/build`'s panic.
-    if base is AST.FieldExpr as fe {
-        mod_id :: namespace_call_mod_id(fe, typed) ?? return null
+    if base is AST.FieldExpr {
+        mod_id :: namespace_call_mod_id(base, typed) ?? return null
         by_name :: typed.namespace_export_decls[mod_id] ?? return null
-        return by_name[fe.field]
+        return by_name[base.field]
     }
     if base !is AST.IdentExpr {
         return null
@@ -1215,13 +1215,13 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    if last is AST.FnDecl as f {
-        match f.body {
+    if last is AST.FnDecl {
+        match last.body {
             is null          -> {
                 return CallFixture { .typed = result.typed, .call = null }
             }
             is AST.BlockExpr -> {
-                hit :: find_first_in_block(f.body, accept_call)
+                hit :: find_first_in_block(last.body, accept_call)
                 call: AST.CallExpr | null = null
                 if hit is AST.CallExpr {
                     call = hit

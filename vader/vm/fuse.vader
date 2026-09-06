@@ -132,17 +132,17 @@ fuse_body :: fn(f: BcFunction) -> FusedBody {
 /// @param a  the first op of the adjacent pair.
 /// @param b  the second — already known not to be a branch target.
 fuse_pair :: fn(f: BcFunction, a: Op, b: Op) -> VmOp | null {
-    if a is LocalGet as ga {
-        return get_pair(ga.slot, b)
+    if a is LocalGet {
+        return get_pair(a.slot, b)
     }
-    if a is LocalSet as sa {
+    if a is LocalSet {
         // Per SLOT, not per function : `SetGet` stores straight into the columns,
         // so it is ruled out only when THIS slot is narrow.
-        if is_narrow_valtype(slot_valtype(f, sa.slot)) {
+        if is_narrow_valtype(slot_valtype(f, a.slot)) {
             return null
         }
-        if b is LocalGet as gb {
-            return SetGet { .set_slot = sa.slot, .get_slot = gb.slot }
+        if b is LocalGet {
+            return SetGet { .set_slot = a.slot, .get_slot = b.slot }
         }
     }
     return null
@@ -153,14 +153,14 @@ fuse_pair :: fn(f: BcFunction, a: Op, b: Op) -> VmOp | null {
 // for the REST of the fn, so a later `b is LocalGet` in a sibling branch reports
 // T3040 "test can never match". A separate fn is a separate narrowing scope.
 get_pair :: fn(slot: i32, b: Op) -> VmOp | null {
-    if b is LocalGet as gb {
-        return Get2 { .slot_a = slot, .slot_b = gb.slot }
+    if b is LocalGet {
+        return Get2 { .slot_a = slot, .slot_b = b.slot }
     }
-    if b is I64Const as c64 {
-        return GetConst { .slot = slot, .value = c64.value, .tag = StackTag.I64 }
+    if b is I64Const {
+        return GetConst { .slot = slot, .value = b.value, .tag = StackTag.I64 }
     }
-    if b is I32Const as c32 {
-        return GetConst { .slot = slot, .value = i64(c32.value), .tag = StackTag.I32 }
+    if b is I32Const {
+        return GetConst { .slot = slot, .value = i64(b.value), .tag = StackTag.I32 }
     }
     return null
 }

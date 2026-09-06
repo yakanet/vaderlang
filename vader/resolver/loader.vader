@@ -338,16 +338,16 @@ walk_import_cycle :: fn(
 ) -> void {
     state[id] = 1
     lm :: modules[id]
-    if lm is LoadedModule as m {
-        for raw in m.collected.import_paths {
+    if lm is LoadedModule {
+        for raw in lm.collected.import_paths {
             target :: index[raw]
-            if target is DiscoveredModule as t {
-                st :: state[t.folder]
+            if target is DiscoveredModule {
+                st :: state[target.folder]
                 if st == null {
-                    walk_import_cycle(t.folder, modules, index, state, diags)
+                    walk_import_cycle(target.folder, modules, index, state, diags)
                 } else if st == 1 {
-                    diags.push(resolver_error(.ImportCycle, zero_span(m.module.display_path),
-                        "`${m.module.display_path}` imports `${raw}`, closing an import cycle"))
+                    diags.push(resolver_error(.ImportCycle, zero_span(lm.module.display_path),
+                        "`${lm.module.display_path}` imports `${raw}`, closing an import cycle"))
                 }
             }
         }

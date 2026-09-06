@@ -29,8 +29,8 @@ export infer_seq_lit :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Union → pick the most appropriate variant, then recurse.
-    if expected is UnionType as u {
-        picked :: pick_seq_variant(u, e.elements.len())
+    if expected is UnionType {
+        picked :: pick_seq_variant(expected, e.elements.len())
         if picked !is null {
             return infer_seq_lit(e, picked, typed, diags, check_expr_fn)
         }

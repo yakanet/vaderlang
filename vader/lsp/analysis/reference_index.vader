@@ -348,7 +348,15 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
         is AST.BoolLitExpr   -> {}
         is AST.NullLitExpr   -> {}
         is AST.CharLitExpr   -> {}
-        is AST.StringLitExpr -> {}
+        // An interpolated `${…}` holds a real expression, and rename REWRITES
+        // what this collects — miss one and the edit deletes a binding whose
+        // uses inside a string still name it, leaving source that no longer
+        // compiles.
+        is AST.StringLitExpr as x -> {
+            for part in x.parts {
+                if part is AST.StringLitInterp { collect_expr(part.expr, out) }
+            }
+        }
     }
 }
 
@@ -457,6 +465,13 @@ idents_named :: fn(src: string, name: string) -> i32 {
         }
     }
     return count
+}
+
+@test
+test_collect_idents_includes_interpolated_uses :: fn() -> void {
+    // `x` : the binding name + the use inside `${x}` = 2.
+    src :: "f :: fn() -> string {\n    x :: 1\n    return \"v=" + "$" + "{x}\"\n}\n"
+    assert_eq(idents_named(src, "x"), 2)
 }
 
 @test

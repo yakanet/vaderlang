@@ -252,9 +252,9 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
     // `struct_decls` registry (keyed by the struct symbol's id), so a receiver
     // whose type is declared in an IMPORTED module (e.g. `lambda : AST.LambdaExpr`
     // from `vader/parser`) resolves its fields too — not just entry-module structs.
-    if recv_type is StructType as st {
-        decl :: cached.result.typed.struct_decls[st.symbol.id]
-        fmap :: cached.result.typed.struct_field_types[st.symbol.id]
+    if recv_type is StructType {
+        decl :: cached.result.typed.struct_decls[recv_type.symbol.id]
+        fmap :: cached.result.typed.struct_field_types[recv_type.symbol.id]
         if decl != null {
             for fld in decl.fields {
                 if seen[fld.name] != null { continue }
@@ -322,8 +322,8 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
 
     // Trait methods reachable through a generic param's bound (`t: T` where
     // `T: Display` → offer `to_string`). The impl + UFCS loops can't see these.
-    if recv_type is TypeParamType as tp {
-        for mname in typeparam_bound_method_names(tp, cached.result.typed) {
+    if recv_type is TypeParamType {
+        for mname in typeparam_bound_method_names(recv_type, cached.result.typed) {
             if seen[mname] != null { continue }
             seen[mname] = true
             items.push(completion_item(mname, .Method, ""))
@@ -400,11 +400,11 @@ struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
     // over the erased `AST.Expr[]` element type — same as find_enclosing_call.
     for i in 0..<chain.len() {
         e :: chain[i]
-        if e is AST.StructLitExpr as sl {
-            t :: typed.expr_types[sl.id]
-            if t is StructType as st {
-                decl :: typed.struct_decls[st.symbol.id] ?? return null
-                fmap :: typed.struct_field_types[st.symbol.id]
+        if e is AST.StructLitExpr {
+            t :: typed.expr_types[e.id]
+            if t is StructType {
+                decl :: typed.struct_decls[t.symbol.id] ?? return null
+                fmap :: typed.struct_field_types[t.symbol.id]
                 items: JsonValue[]! = []
                 for fld in decl.fields {
                     detail := ""
@@ -465,14 +465,14 @@ struct_field_value_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: 
     chain :: enclosing_exprs(decls, line, col)
     for i in 0..<chain.len() {
         e :: chain[i]
-        if e is AST.StructLitExpr as sl {
-            t :: typed.expr_types[sl.id]
-            if t is StructType as st {
-                fmap :: typed.struct_field_types[st.symbol.id] ?? return null
-                for j in 0..<sl.items.len() {
-                    it :: sl.items[j]
-                    if it is AST.StructLitField as f {
-                        if span_contains(f.value.span, line, col) { return fmap[f.name] }
+        if e is AST.StructLitExpr {
+            t :: typed.expr_types[e.id]
+            if t is StructType {
+                fmap :: typed.struct_field_types[t.symbol.id] ?? return null
+                for j in 0..<e.items.len() {
+                    it :: e.items[j]
+                    if it is AST.StructLitField {
+                        if span_contains(it.value.span, line, col) { return fmap[it.name] }
                     }
                 }
             }
@@ -489,9 +489,9 @@ match_result_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedP
     chain :: enclosing_exprs(decls, line, col)
     for i in 0..<chain.len() {
         e :: chain[i]
-        if e is AST.MatchExpr as me {
-            for j in 0..<me.arms.len() {
-                if span_contains(me.arms[j].body.span, line, col) { return typed.expr_types[me.id] }
+        if e is AST.MatchExpr {
+            for j in 0..<e.arms.len() {
+                if span_contains(e.arms[j].body.span, line, col) { return typed.expr_types[e.id] }
             }
             return null
         }
@@ -505,11 +505,11 @@ match_result_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedP
 // honoured at any depth, the implicit-return value only at the fn-body trailing.
 stmt_expected_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     for d in decls {
-        if d is AST.FnDecl as fd {
-            r :: scan_fn_body(fd, line, col, typed)
+        if d is AST.FnDecl {
+            r :: scan_fn_body(d, line, col, typed)
             if r != null { return r }
-        } else if d is AST.ImplDecl as impl_ {
-            for m in impl_.members {
+        } else if d is AST.ImplDecl {
+            for m in d.members {
                 r :: scan_fn_body(m, line, col, typed)
                 if r != null { return r }
             }
@@ -544,38 +544,38 @@ scan_block :: fn(b: AST.BlockExpr, line: i32, col: i32, ret_ty: AST.TypeExpr | n
 }
 
 scan_stmt :: fn(s: AST.Stmt, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
-    if s is AST.LetStmt as ls {
-        ann :: ls.ty
-        if ann != null && span_contains(ls.value.span, line, col) {
+    if s is AST.LetStmt {
+        ann :: s.ty
+        if ann != null && span_contains(s.value.span, line, col) {
             return type_from_expr(ann, typed.resolved, [])
         }
-        return scan_value_expr(ls.value, line, col, ret_ty, typed)
+        return scan_value_expr(s.value, line, col, ret_ty, typed)
     }
-    if s is AST.ReturnStmt as rs {
-        rv :: rs.value
+    if s is AST.ReturnStmt {
+        rv :: s.value
         if rv != null { return scan_value_expr(rv, line, col, ret_ty, typed) }
         return null
     }
-    if s is AST.ExprStmt as es { return scan_value_expr(es.expr, line, col, ret_ty, typed) }
-    if s is AST.YieldStmt as ys { return scan_value_expr(ys.value, line, col, ret_ty, typed) }
-    if s is AST.ForStmt as fs { return scan_block(fs.body, line, col, ret_ty, typed, false) }
+    if s is AST.ExprStmt { return scan_value_expr(s.expr, line, col, ret_ty, typed) }
+    if s is AST.YieldStmt { return scan_value_expr(s.value, line, col, ret_ty, typed) }
+    if s is AST.ForStmt { return scan_block(s.body, line, col, ret_ty, typed, false) }
     return null
 }
 
 // Descend a value-position expr into the nested blocks it may carry (if / match
 // arms / block), so a `return` / typed local inside them is still reached.
 scan_value_expr :: fn(e: AST.Expr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
-    if e is AST.BlockExpr as b { return scan_block(b, line, col, ret_ty, typed, false) }
-    if e is AST.IfExpr as ie {
-        r :: scan_block(ie.then_block, line, col, ret_ty, typed, false)
+    if e is AST.BlockExpr { return scan_block(e, line, col, ret_ty, typed, false) }
+    if e is AST.IfExpr {
+        r :: scan_block(e.then_block, line, col, ret_ty, typed, false)
         if r != null { return r }
-        eb :: ie.else_branch
-        if eb is AST.IfElseBlock as blk { return scan_block(blk.block, line, col, ret_ty, typed, false) }
-        if eb is AST.IfElseIf as elif { return scan_value_expr(elif.branch, line, col, ret_ty, typed) }
+        eb :: e.else_branch
+        if eb is AST.IfElseBlock { return scan_block(eb.block, line, col, ret_ty, typed, false) }
+        if eb is AST.IfElseIf { return scan_value_expr(eb.branch, line, col, ret_ty, typed) }
     }
-    if e is AST.MatchExpr as me {
-        for j in 0..<me.arms.len() {
-            r :: scan_value_expr(me.arms[j].body, line, col, ret_ty, typed)
+    if e is AST.MatchExpr {
+        for j in 0..<e.arms.len() {
+            r :: scan_value_expr(e.arms[j].body, line, col, ret_ty, typed)
             if r != null { return r }
         }
     }
@@ -590,11 +590,11 @@ match_scrutinee_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typ
     chain :: enclosing_exprs(decls, line, col)
     for i in 0..<chain.len() {
         e :: chain[i]
-        if e is AST.MatchExpr as me {
-            for j in 0..<me.arms.len() {
-                if span_contains(me.arms[j].body.span, line, col) { return null }
+        if e is AST.MatchExpr {
+            for j in 0..<e.arms.len() {
+                if span_contains(e.arms[j].body.span, line, col) { return null }
             }
-            return typed.expr_types[me.scrutinee.id]
+            return typed.expr_types[e.scrutinee.id]
         }
     }
     return null
@@ -602,7 +602,7 @@ match_scrutinee_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typ
 
 as_enum_type :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
     lifted :: lift_enum_placeholder(t, typed)
-    if lifted is EnumType as en { return en }
+    if lifted is EnumType { return lifted }
     return null
 }
 
@@ -610,8 +610,8 @@ as_enum_type :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
 // Walks top-level fn decls (covers the `fn(s: Stream = .|)` site).
 param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     for d in decls {
-        if d is AST.FnDecl as fd {
-            for p in fd.params {
+        if d is AST.FnDecl {
+            for p in d.params {
                 dv :: p.default_value ?? continue
                 if span_contains(dv.span, line, col) {
                     return typed.param_types[p.span.hash()]

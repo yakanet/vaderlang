@@ -303,9 +303,9 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
         return null
     }
     for d in parsed.program.decls {
-        if d is AST.FnDecl as f {
-            if f.name == DRIVER_ENTRY {
-                return signature_problem(f)
+        if d is AST.FnDecl {
+            if d.name == DRIVER_ENTRY {
+                return signature_problem(d)
             }
         }
     }
@@ -336,8 +336,8 @@ signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
 // runs on a parsed, un-resolved AST, where there is no type to compare against.
 returns_i32 :: fn(f: AST.FnDecl) -> bool {
     rt :: f.return_type ?? return false
-    if rt is AST.IdentExpr as id {
-        return id.name == "i32"
+    if rt is AST.IdentExpr {
+        return rt.name == "i32"
     }
     return false
 }
@@ -362,8 +362,8 @@ returns_i32 :: fn(f: AST.FnDecl) -> bool {
 export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 {
     driver :: find_build_driver(root) ?? return 1
     problem :: validate_driver(driver)
-    if problem is Diagnostic as d {
-        eprintln(dump_diagnostics_with_file([d]))
+    if problem is Diagnostic {
+        eprintln(dump_diagnostics_with_file([problem]))
         return 1
     }
 
@@ -411,14 +411,14 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 
         eprintln("(a loop in `${DRIVER_FILENAME}`? build with --no-hooks to skip it)")
         return 1
     }
-    if outcome is ProcessError as pe {
-        eprintln("vader build: cannot run the build driver: ${pe.message()}")
+    if outcome is ProcessError {
+        eprintln("vader build: cannot run the build driver: ${outcome.message()}")
         return 1
     }
-    if outcome is ProcessResult as result {
-        print(result.stdout)
-        eprint(result.stderr)
-        return result.exit
+    if outcome is ProcessResult {
+        print(outcome.stdout)
+        eprint(outcome.stderr)
+        return outcome.exit
     }
     return 1
 }
@@ -434,13 +434,13 @@ rebuild_driver :: fn(
 ) -> i32 {
     entry :: driver_entry_path(root)
     written :: write_file_string(entry, render_driver_entry())
-    if written is IOError as e {
-        eprintln("vader build: cannot write the build entry at ${entry}: ${e.msg}")
+    if written is IOError {
+        eprintln("vader build: cannot write the build entry at ${entry}: ${written.msg}")
         return 1
     }
     made :: create_dir(artefacts)
-    if made is IOError as ce {
-        eprintln("vader build: cannot create ${artefacts}: ${ce.msg}")
+    if made is IOError {
+        eprintln("vader build: cannot create ${artefacts}: ${made.msg}")
         remove_entry(entry)
         return 1
     }
@@ -541,8 +541,8 @@ import "std/testing"
     _ :: write_file_string(path, "module \"build\"\n\nother :: fn() -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a driver without `build` is a problem")
-    if problem is Diagnostic as d {
-        assert_eq(d.code.id, "H6001")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6001")
     }
 }
 
@@ -551,8 +551,8 @@ import "std/testing"
     _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn() -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a nullary `build` cannot be called by the entry")
-    if problem is Diagnostic as d {
-        assert_eq(d.code.id, "H6002")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6002")
     }
 }
 
@@ -569,8 +569,8 @@ import "std/testing"
     _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a void `build` cannot carry an exit status")
-    if problem is Diagnostic as d {
-        assert_eq(d.code.id, "H6002")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6002")
     }
 }
 

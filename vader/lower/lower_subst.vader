@@ -25,7 +25,7 @@ build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
     subst :: new_substitution()
     for tp in fd.type_params {
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol as s { subst.type_params[s.id] = TY_ANY }
+        if tp_sym is Symbol { subst.type_params[tp_sym.id] = TY_ANY }
     }
     return subst
 }
@@ -40,7 +40,7 @@ build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]
     for tp in fd.type_params {
         if i >= type_args.len() { break }
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol as s { subst.type_params[s.id] = type_args[i] }
+        if tp_sym is Symbol { subst.type_params[tp_sym.id] = type_args[i] }
         i += 1
     }
     return subst
@@ -61,12 +61,12 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
     for tp in fd.type_params {
         if i >= type_args.len() { break }
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol as s {
+        if tp_sym is Symbol {
             // Distinct→backing: a distinct (newtype) over a primitive keeps the
             // backing's RAW slot, never `__Any` — mirrors the stripped method
             // instances + `mixed_any_suffix` so layout and mangle stay in lockstep.
             arg :: strip_distinct(type_args[i])
-            if arg is PrimitiveType { subst.type_params[s.id] = arg } else { subst.type_params[s.id] = TY_ANY }
+            if arg is PrimitiveType { subst.type_params[tp_sym.id] = arg } else { subst.type_params[tp_sym.id] = TY_ANY }
         }
         i += 1
     }
@@ -77,22 +77,22 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
 /// preserving generic wrappers (Struct / Trait / Array / Union /
 /// Tuple).
 any_leaves_of :: fn(t: Type) -> Type {
-    if t is StructType as s {
-        if s.args.is_empty() { return TY_ANY }
+    if t is StructType {
+        if t.args.is_empty() { return TY_ANY }
         new_args: Type[]! = []
-        for a in s.args { new_args.push(any_leaves_of(a)) }
-        return mk_struct(s.symbol, new_args, s.immutable)
+        for a in t.args { new_args.push(any_leaves_of(a)) }
+        return mk_struct(t.symbol, new_args, t.immutable)
     }
-    if t is TraitType as tt {
-        if tt.args.is_empty() { return TY_ANY }
+    if t is TraitType {
+        if t.args.is_empty() { return TY_ANY }
         new_args: Type[]! = []
-        for a in tt.args { new_args.push(any_leaves_of(a)) }
-        return mk_trait(tt.symbol, new_args)
+        for a in t.args { new_args.push(any_leaves_of(a)) }
+        return mk_trait(t.symbol, new_args)
     }
-    if t is ArrayType as a {
-        return mk_array(any_leaves_of(a.element), a.immutable)
+    if t is ArrayType {
+        return mk_array(any_leaves_of(t.element), t.immutable)
     }
-    if t is UnionType as u {
+    if t is UnionType {
         // Erase THEN dedupe. Every variant that carries no args erases to `Any`,
         // so a union of N such variants — a type-param's trait bounds, say
         // `Hash & Equals`, or a 19-trait array bound — would otherwise become a
@@ -102,7 +102,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         // one materialised as its own struct decl. `Any | Any` is `Any`.
         new_vars: Type[]! = []
         seen :: MutableSet<string> {}
-        for v in u.variants {
+        for v in t.variants {
             erased :: any_leaves_of(v)
             key :: display_type_key(erased)
             if seen.contains(key) { continue }
@@ -112,10 +112,10 @@ any_leaves_of :: fn(t: Type) -> Type {
         if new_vars.len() == 1 { return new_vars[0] }
         return mk_union(new_vars)
     }
-    if t is TupleType as tu {
+    if t is TupleType {
         new_elems: Type[]! = []
-        for el in tu.elements { new_elems.push(any_leaves_of(el)) }
-        return mk_tuple(new_elems, tu.immutable)
+        for el in t.elements { new_elems.push(any_leaves_of(el)) }
+        return mk_tuple(new_elems, t.immutable)
     }
     return TY_ANY
 }
@@ -312,7 +312,7 @@ build_impl_subst :: fn(
             if i >= args.len() { break }
             tp_sym :: lookup_type_param_symbol(impl_typed.resolved, impl_decl.type_params[i].span)
             if tp_sym is null { continue }
-            if tp_sym is Symbol as s { subst.type_params[s.id] = args[i] }
+            if tp_sym is Symbol { subst.type_params[tp_sym.id] = args[i] }
         }
         return subst
     }
@@ -429,7 +429,7 @@ has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
 }
 
 type_expr_simple_name :: fn(e: TypeExpr) -> string {
-    if e is IdentExpr as id { return id.name }
+    if e is IdentExpr { return e.name }
     return ""
 }
 
@@ -492,9 +492,9 @@ export mixed_any_suffix :: fn(args: Type[]) -> string {
         // point for the erased-receiver mangle — call site AND materialised body
         // both route here, so collapsing the distinct keeps them in lockstep.
         sa :: strip_distinct(a)
-        if sa is PrimitiveType as p {
+        if sa is PrimitiveType {
             sb.append("__")
-            sb.append(p.name)
+            sb.append(sa.name)
         } else {
             sb.append("__Any")
         }

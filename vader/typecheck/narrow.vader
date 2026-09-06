@@ -168,9 +168,9 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     parts_leaf_first: string[]! = []
     cur: AST.Expr = e
     for true {
-        if cur is AST.FieldExpr as fe {
-            parts_leaf_first.push(fe.field)
-            cur = fe.target
+        if cur is AST.FieldExpr {
+            parts_leaf_first.push(cur.field)
+            cur = cur.target
         } else {
             break
         }

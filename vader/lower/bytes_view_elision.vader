@@ -76,8 +76,8 @@ export elide_bytes_views :: fn(project: LoweredProject, project_ctx: LowerProjec
     u8_ty    :: mk_primitive("u8")
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fd {
-                body :: fd.body
+            if d is LoweredFnDecl {
+                body :: d.body
                 if body != null {
                     bve_elide_body(body, bytes_sym.id, byte_len_sym, byte_at_sym, usize_ty, u8_ty)
                 }
@@ -145,11 +145,11 @@ bve_valid_receiver :: fn(ctx: BveCtx, bs_id: i32) -> LoweredIdent | null {
 /// The `.bytes()` receiver ident when `value` is `X.bytes()` with `X` a bare
 /// ident, else null (a non-ident receiver is not re-referenceable).
 bve_bytes_receiver :: fn(value: LoweredExpr, bytes_id: i32) -> LoweredIdent | null {
-    if value is LoweredCall as lc {
-        if lc.args.len() == 1 {
-            if lc.callee is LoweredIdent as ci {
+    if value is LoweredCall {
+        if value.args.len() == 1 {
+            if value.callee is LoweredIdent as ci {
                 if ci.symbol.id == bytes_id {
-                    if lc.args[0] is LoweredIdent as x {
+                    if value.args[0] is LoweredIdent as x {
                         return x
                     }
                 }
@@ -331,8 +331,8 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
     // one is actually removed, so untouched blocks keep their array.
     dropped: bool = false
     for s in b.stmts {
-        if s is LoweredLet as st {
-            if bve_valid_receiver(ctx, st.symbol.id) != null {
+        if s is LoweredLet {
+            if bve_valid_receiver(ctx, s.symbol.id) != null {
                 dropped = true
             }
         }
@@ -341,8 +341,8 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
         kept: LoweredStmt[]! = []
         for s in b.stmts {
             keep: bool = true
-            if s is LoweredLet as st {
-                if bve_valid_receiver(ctx, st.symbol.id) != null {
+            if s is LoweredLet {
+                if bve_valid_receiver(ctx, s.symbol.id) != null {
                     keep = false
                 }
             }

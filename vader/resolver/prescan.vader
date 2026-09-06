@@ -42,8 +42,8 @@ export run_orphan_rule_check_for_module :: fn(
 ) -> void {
     for file in loaded.module.files {
         for decl in file.program.decls {
-            if decl is AST.ImplDecl as imp {
-                check_orphan_rule(imp, module_id, loaded.collected.symbols,
+            if decl is AST.ImplDecl {
+                check_orphan_rule(decl, module_id, loaded.collected.symbols,
                     idents, wire_targets, diags)
             }
         }
@@ -61,9 +61,9 @@ check_orphan_rule :: fn(
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
     for_is_local := false
-    if for_sym is Symbol as fs {
-        for_is_primitive = fs.kind == SymbolKind.BuiltinType
-        for_is_local = fs.module == module_id
+    if for_sym is Symbol {
+        for_is_primitive = for_sym.kind == SymbolKind.BuiltinType
+        for_is_local = for_sym.module == module_id
     }
     trait_is_local :: trait_sym.module == module_id
     if !for_is_primitive && !for_is_local && !trait_is_local {
@@ -85,12 +85,12 @@ for_type_owner_sym :: fn(
     t: AST.TypeExpr,
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
-    if t is AST.IdentExpr as i {
-        raw :: idents[i.span.hash()] ?? return null
+    if t is AST.IdentExpr {
+        raw :: idents[t.span.hash()] ?? return null
         return resolve_import_redirect(raw, wire_targets)
     }
-    if t is AST.GenericInstExpr as g {
-        if g.callee is AST.IdentExpr as i {
+    if t is AST.GenericInstExpr {
+        if t.callee is AST.IdentExpr as i {
             raw :: idents[i.span.hash()] ?? return null
             return resolve_import_redirect(raw, wire_targets)
         }
@@ -99,9 +99,9 @@ for_type_owner_sym :: fn(
 }
 
 for_type_display_name :: fn(t: AST.TypeExpr) -> string {
-    if t is AST.IdentExpr as i { return i.name }
-    if t is AST.GenericInstExpr as g {
-        if g.callee is AST.IdentExpr as i { return i.name }
+    if t is AST.IdentExpr { return t.name }
+    if t is AST.GenericInstExpr {
+        if t.callee is AST.IdentExpr as i { return i.name }
     }
     return "?"
 }

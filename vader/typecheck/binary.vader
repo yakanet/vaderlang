@@ -251,8 +251,8 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
     if t is ArrayType {
         return true
     }
-    if t is StructType as st {
-        decl :: typed.struct_decls[st.symbol.id]
+    if t is StructType {
+        decl :: typed.struct_decls[t.symbol.id]
         // An undeclared struct (never walked) is assumed stateful — the common case.
         if decl == null {
             return true
@@ -280,8 +280,8 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
     // must resolve to `left` (e.g. `i32[]`), not the unsubstituted `T[]` (which
     // would erase the element to `T`). The impl can't write `-> Self` (its body
     // builds a fresh `T[]`, so `-> Self` mis-typechecks), so recover it here.
-    if t is ArrayType as at {
-        if at.element is TypeParamType && self_ty is ArrayType {
+    if t is ArrayType {
+        if t.element is TypeParamType && self_ty is ArrayType {
             return self_ty
         }
     }
@@ -308,9 +308,9 @@ check_operator_rhs :: fn(
     base :: type_base_name(recv)
     method_impl :: typed.impl_methods["${base}::${method_name}"]
     method :: if method_impl !is null { method_impl.ty } else { null }
-    if method is FnType as ft {
-        if ft.params.len() > 0 {
-            rhs :: substitute_self_in(ft.params[0], recv)
+    if method is FnType {
+        if method.params.len() > 0 {
+            rhs :: substitute_self_in(method.params[0], recv)
             if !is_assignable(operand, rhs) {
                 diags.push(
                     typecheck_error(
@@ -321,7 +321,7 @@ check_operator_rhs :: fn(
                 )
             }
         }
-        return ft
+        return method
     }
     return null
 }
@@ -507,8 +507,8 @@ check_equality :: fn(
 }
 
 is_null_type :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p {
-        return p.name == "null"
+    if t is PrimitiveType {
+        return t.name == "null"
     }
     return false
 }
@@ -666,7 +666,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 
 is_enum_like :: fn(t: Type) -> bool {
     if t is EnumType         { return true }
-    if t is StructType as st { return st.symbol.kind == SymbolKind.Enum }
+    if t is StructType { return t.symbol.kind == SymbolKind.Enum }
     return false
 }
 
@@ -690,8 +690,8 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
     if !width_carrying {
         return null
     }
-    if expected is PrimitiveType as p {
-        if is_numeric_name(p.name) {
+    if expected is PrimitiveType {
+        if is_numeric_name(expected.name) {
             return expected
         }
     }

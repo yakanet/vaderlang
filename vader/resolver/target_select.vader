@@ -39,8 +39,8 @@ body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
     }
     for f in kept {
         for d in f.program.decls {
-            if d is AST.FnDecl as k {
-                kb :: k.body
+            if d is AST.FnDecl {
+                kb :: d.body
                 if kb != null {
                     if kb.span == b.span {
                         return true
@@ -76,18 +76,18 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
     kept :: select_target_bodies(files, target, [])
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                if target_selectors(fd.decorators) == null {
+            if d is AST.FnDecl {
+                if target_selectors(d.decorators) == null {
                     continue
                 }
                 // Compared by BODY span, not by name: after merging, the bare
                 // declaration carries the winner's body under its own name, so a
                 // name test reports every loser as surviving — which is exactly
                 // the bug this function exists to prevent.
-                if body_survives(fd, kept) {
+                if body_survives(d, kept) {
                     continue
                 }
-                out.push(fd)
+                out.push(d)
             }
         }
     }
@@ -132,24 +132,24 @@ export select_target_bodies :: fn(
     covered :: MutableMap<string, string> {}
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                sel :: target_selectors(fd.decorators)
+            if d is AST.FnDecl {
+                sel :: target_selectors(d.decorators)
                 if sel == null {
                     continue
                 }
                 if sel.is_bare {
-                    bare[fd.name] = true
+                    bare[d.name] = true
                 } else {
                     for os in sel.os {
-                        prev :: covered[fd.name]
-                        covered[fd.name] = if prev == null {
+                        prev :: covered[d.name]
+                        covered[d.name] = if prev == null {
                             ".${os.to_string()}"
                         } else {
                             "${prev}, .${os.to_string()}"
                         }
                     }
                     if matches_target(sel.os, target) {
-                        winners[fd.name] = fd
+                        winners[d.name] = d
                     }
                 }
             }
@@ -204,22 +204,22 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
     claimed :: MutableMap<string, Span> {}
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                sel :: target_selectors(fd.decorators)
+            if d is AST.FnDecl {
+                sel :: target_selectors(d.decorators)
                 if sel == null {
                     continue
                 }
                 if !sel.is_bare {
                     continue
                 }
-                prev :: bare[fd.name]
+                prev :: bare[d.name]
                 if prev != null {
                     // A group is keyed by NAME ALONE, so two overloads each
                     // wanting their own per-platform bodies land here. Saying
                     // only "already declared" sends the author looking for a
                     // duplicate they did not write — the signatures differ, and
                     // it is `@target` that cannot tell them apart.
-                    overloaded :: prev.params.len() != fd.params.len()
+                    overloaded :: prev.params.len() != d.params.len()
                     why :: if overloaded {
                         " — `@target` groups are keyed by name alone, so a name cannot carry two overloads"
                     } else {
@@ -228,20 +228,20 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                     diags.push(
                         resolver_error(
                             .DuplicateTargetDeclaration,
-                            fd.name_span,
-                            "`${fd.name}` is already declared at ${span_origin(prev.name_span)}${why}",
+                            d.name_span,
+                            "`${d.name}` is already declared at ${span_origin(prev.name_span)}${why}",
                         ),
                     )
                     continue
                 }
-                bare[fd.name] = fd
+                bare[d.name] = d
             }
         }
     }
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                sel :: target_selectors(fd.decorators)
+            if d is AST.FnDecl {
+                sel :: target_selectors(d.decorators)
                 // Two statements, not `sel == null || sel.is_bare`: narrowing
                 // crosses `&&` but NOT `||` (TODO), so the second operand would
                 // still see `Os[] | null` and fail with T3008.
@@ -251,24 +251,24 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                 if sel.is_bare {
                     continue
                 }
-                decl :: bare[fd.name]
+                decl :: bare[d.name]
                 if decl == null {
                     diags.push(
                         resolver_error(
                             .TargetBodyWithoutDeclaration,
-                            fd.name_span,
-                            "`${fd.name}` has no bare `@target` declaration in this module",
+                            d.name_span,
+                            "`${d.name}` has no bare `@target` declaration in this module",
                         ),
                     )
                 } else {
-                    check_signature(decl, fd, diags)
+                    check_signature(decl, d, diags)
                 }
-                if fd.visibility == .Public {
+                if d.visibility == .Public {
                     diags.push(
                         resolver_error(
                             .TargetBodyCarriesExport,
-                            fd.name_span,
-                            "`${fd.name}` is a body ; the bare `@target` declaration carries `export`",
+                            d.name_span,
+                            "`${d.name}` is a body ; the bare `@target` declaration carries `export`",
                         ),
                     )
                 }
@@ -276,20 +276,20 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
                 // depend on declaration ORDER — the arbitrary silence the rest of
                 // this mechanism exists to avoid.
                 for os in sel.os {
-                    key :: "${fd.name}|${os.to_string()}"
+                    key :: "${d.name}|${os.to_string()}"
                     taken :: claimed[key]
                     if taken != null {
                         // Same span on both sides means the OS is listed twice
                         // in THIS list. Pointing the reader at "the other body"
                         // would send them looking for one that does not exist.
-                        detail :: if taken == fd.name_span {
-                            "`${fd.name}` lists `.${os.to_string()}` twice in the same `@target`"
+                        detail :: if taken == d.name_span {
+                            "`${d.name}` lists `.${os.to_string()}` twice in the same `@target`"
                         } else {
-                            "`${fd.name}` already has a body for `.${os.to_string()}` at ${span_origin(taken)}"
+                            "`${d.name}` already has a body for `.${os.to_string()}` at ${span_origin(taken)}"
                         }
-                        diags.push(resolver_error(.TargetBodiesOverlap, fd.name_span, detail))
+                        diags.push(resolver_error(.TargetBodiesOverlap, d.name_span, detail))
                     } else {
-                        claimed[key] = fd.name_span
+                        claimed[key] = d.name_span
                     }
                 }
             }
@@ -358,8 +358,8 @@ report_uncovered :: fn(
 ) -> void {
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                sel :: target_selectors(fd.decorators)
+            if d is AST.FnDecl {
+                sel :: target_selectors(d.decorators)
                 if sel == null {
                     continue
                 }
@@ -368,23 +368,23 @@ report_uncovered :: fn(
                 }
                 // A general body on the declaration IS the fallback — that is the
                 // whole point of the bare form carrying one.
-                if fd.body != null {
+                if d.body != null {
                     continue
                 }
-                if winners[fd.name] != null {
+                if winners[d.name] != null {
                     continue
                 }
                 // `@intrinsic` / `@extern` on the declaration means the host
                 // binds it; bodylessness is then intended, not a coverage hole.
-                if is_host_bound(fd) {
+                if is_host_bound(d) {
                     continue
                 }
-                have :: covered[fd.name] ?? "(none)"
+                have :: covered[d.name] ?? "(none)"
                 diags.push(
                     resolver_error(
                         .NoTargetBodyCoversTarget,
-                        fd.name_span,
-                        "`${fd.name}` has no body for `${display_target(target)}` and no general body ; "
+                        d.name_span,
+                        "`${d.name}` has no body for `${display_target(target)}` and no general body ; "
                             + "its `@target` bodies cover ${have}",
                     ),
                 )
@@ -420,8 +420,8 @@ resolve_decl :: fn(
     if d is AST.StructDecl {
         return d
     }
-    if d is AST.FnDecl as fd {
-        sel :: target_selectors(fd.decorators)
+    if d is AST.FnDecl {
+        sel :: target_selectors(d.decorators)
         if sel == null {
             return d
         }
@@ -429,11 +429,11 @@ resolve_decl :: fn(
             // The bare declaration. It carries the envelope either way: on its own
             // when nothing specialised matches, or with the winner's body grafted
             // on when one does.
-            w :: winners[fd.name]
+            w :: winners[d.name]
             if w == null {
                 return d
             }
-            return graft_body(fd, w)
+            return graft_body(d, w)
         }
         // A specialised body never survives on its own: the winner was folded
         // into the declaration above, a loser is simply gone, and an orphan was
@@ -504,8 +504,8 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
         }
         out: Os[]! = []
         for a in d.args {
-            if a is AST.DotVariantExpr as dv {
-                os :: parse_os(dv.variant.to_lower())
+            if a is AST.DotVariantExpr {
+                os :: parse_os(a.variant.to_lower())
                 if os != null {
                     out.push(os)
                 }
@@ -525,19 +525,19 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
 check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
     for f in files {
         for d in f.program.decls {
-            if d is AST.FnDecl as fd {
-                for dec in fd.decorators {
+            if d is AST.FnDecl {
+                for dec in d.decorators {
                     if dec.name != "target" {
                         continue
                     }
                     for a in dec.args {
-                        if a is AST.DotVariantExpr as dv {
-                            if parse_os(dv.variant.to_lower()) == null {
+                        if a is AST.DotVariantExpr {
+                            if parse_os(a.variant.to_lower()) == null {
                                 diags.push(
                                     resolver_error(
                                         .UnknownTargetSelector,
                                         a.span,
-                                        "`.${dv.variant}` names no operating system",
+                                        "`.${a.variant}` names no operating system",
                                     ),
                                 )
                             }

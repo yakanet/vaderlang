@@ -89,3 +89,11 @@ tests/hook_fixtures/*/hello
 tests/hook_fixtures/*/*.c
 tests/hook_fixtures/*/*.h
 tests/hook_fixtures/*/*.exe
+
+# The `is T as x` migration tool builds beside its source (`tools/codemod/`).
+# One-shot; it goes away with step 4 of the `as`-alias plan.
+tools/codemod/as_alias
+tools/codemod/as_alias.imports.h
+tools/codemod/as_alias.split.*
+tools/codemod/as_alias-*.c
+tools/codemod/as_alias-*.o

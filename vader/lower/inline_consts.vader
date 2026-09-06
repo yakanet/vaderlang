@@ -63,9 +63,9 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
         new_decls: LoweredDecl[]! = []
         changed := false
         for d in m.decls {
-            if d is LoweredConstDecl as cd {
-                sym :: cd.origin.symbol
-                if sym is Symbol as s {
+            if d is LoweredConstDecl {
+                sym :: d.origin.symbol
+                if sym is Symbol {
                     // Data-pool bucket : an read-only of primitive
                     // literals is materialised once into `.rodata` (native) /
                     // a data segment (wasm) / an in-memory const buffer (VM),
@@ -73,18 +73,18 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
                     // view — never rebuilt. Takes priority over fn-wrap, which
                     // would `array.new` + refill at each call. Mutable / non-
                     // primitive arrays fall through to the existing buckets.
-                    if try_data_pool(cd, s, project) {
+                    if try_data_pool(d, sym, project) {
                         changed = true
                         continue
                     }
-                    if should_fn_wrap(cd.value) {
-                        fn_symbol :: const_accessor_symbol(s, next_project_synthetic_id(project_ctx))
-                        project.const_fn_wrap[s.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = cd.type }
-                        new_decls.push(synthesize_const_fn(cd, fn_symbol))
+                    if should_fn_wrap(d.value) {
+                        fn_symbol :: const_accessor_symbol(sym, next_project_synthetic_id(project_ctx))
+                        project.const_fn_wrap[sym.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = d.type }
+                        new_decls.push(synthesize_const_fn(d, fn_symbol))
                         changed = true
                         continue
                     }
-                    project.const_inline[s.id] = cd.value
+                    project.const_inline[sym.id] = d.value
                 }
             }
             new_decls.push(d)
@@ -102,7 +102,7 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
 // fn-wrap eligibility : a bulky array literal. Smaller arrays + every other
 // shape (scalars, struct literals) route through the inline bucket.
 should_fn_wrap :: fn(value: LoweredExpr) -> bool {
-    if value is LoweredArrayLit as a { return a.elements.len() >= FN_WRAP_MIN_ELEMENTS }
+    if value is LoweredArrayLit { return value.elements.len() >= FN_WRAP_MIN_ELEMENTS }
     return false
 }
 
@@ -147,12 +147,12 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
 // returns null and takes the fn-wrap / inline bucket as before.
 pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
     if value is LoweredArrayLit { return value }
-    if value is LoweredIntrinsicCall as ic {
-        if ic.name != INTRINSIC_ARRAY_REPEAT || ic.args.len() != 2 {
+    if value is LoweredIntrinsicCall {
+        if value.name != INTRINSIC_ARRAY_REPEAT || value.args.len() != 2 {
             return null
         }
-        if ic.args[0] is LoweredArrayLit as base {
-            if ic.args[1] is LoweredIntLit as count {
+        if value.args[0] is LoweredArrayLit as base {
+            if value.args[1] is LoweredIntLit as count {
                 if count.value <= 0 { return null }
                 elements: LoweredExpr[]! = []
                 for _ in 0..<count.value {
@@ -210,8 +210,8 @@ is_bakeable_value :: fn(el: LoweredExpr) -> bool {
     if el is LoweredBoolLit   { return true }
     if el is LoweredCharLit   { return true }
     if el is LoweredStringLit { return true }
-    if el is LoweredArrayLit  as a { return is_bakeable_array(a) }
-    if el is LoweredStructLit as s { return is_bakeable_struct(s) }
+    if el is LoweredArrayLit { return is_bakeable_array(el) }
+    if el is LoweredStructLit { return is_bakeable_struct(el) }
     return false
 }
 
@@ -235,7 +235,7 @@ is_bakeable_struct :: fn(s: LoweredStructLit) -> bool {
 render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
     out: string[]! = []
     for el in lit.elements {
-        if el is LoweredStringLit as s { out.push(s.value) } else { return null }
+        if el is LoweredStringLit { out.push(el.value) } else { return null }
     }
     return out
 }
@@ -257,12 +257,12 @@ render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | n
 // Floats are reinterpreted via `to_bits()` at the element's natural width
 // (`f32` keeps the low 32 bits), matching `vm/virt_reader_bc::value_from_bits`.
 data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
-    if el is LoweredIntLit as i  { return i.value }
-    if el is LoweredCharLit as c { return i64(c.value) }
-    if el is LoweredBoolLit as b { return if b.value { 1 } else { 0 } }
-    if el is LoweredFloatLit as f {
-        if element_name == "f32" { return i64(u64(f32(f.value).to_bits())) }
-        return i64(f.value.to_bits())
+    if el is LoweredIntLit  { return el.value }
+    if el is LoweredCharLit { return i64(el.value) }
+    if el is LoweredBoolLit { return if el.value { 1 } else { 0 } }
+    if el is LoweredFloatLit {
+        if element_name == "f32" { return i64(u64(f32(el.value).to_bits())) }
+        return i64(el.value.to_bits())
     }
     return null
 }

@@ -36,8 +36,8 @@ Prof :: import "vader/profile"
 
 cmd_dump :: fn(args: string[]) -> i32 {
     parsed :: parse_action("dump", args)
-    if parsed is i32 as code {
-        return code
+    if parsed is i32 {
+        return parsed
     }
     if reject_extra_positionals("dump", parsed) {
         return 1
@@ -67,8 +67,8 @@ cmd_dump :: fn(args: string[]) -> i32 {
     // generated for `SNAPSHOT_TARGET`, disagreed with another host.
     target_arg :: parsed.string_flag("target", "")
     target :: parse_dump_target(target_arg)
-    if target is TargetParseError as e {
-        eprintln("vader dump --target=${target_arg}: ${e.reason} `${e.fragment}`")
+    if target is TargetParseError {
+        eprintln("vader dump --target=${target_arg}: ${target.reason} `${target.fragment}`")
         return 2
     }
     if stage == "lexer" {
@@ -427,11 +427,11 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
     // in the atom table and the folded one is indistinguishable.
     println("# Baked")
     baked :: project.modules[BAKED_FOLDER]
-    if baked is LoadedModule as bm {
-        for f in bm.module.files {
+    if baked is LoadedModule {
+        for f in baked.module.files {
             for d in f.program.decls {
-                if d is ConstDecl as cd {
-                    println("${cd.name} = ${render_baked_value(cd.value)}")
+                if d is ConstDecl {
+                    println("${d.name} = ${render_baked_value(d.value)}")
                 }
             }
         }
@@ -445,11 +445,11 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
     for [_, lm] in project.modules {
         for f in lm.module.files {
             for d in f.program.decls {
-                if d is FnDecl as fd {
-                    if !selected_by_target(fd) {
+                if d is FnDecl {
+                    if !selected_by_target(d) {
                         continue
                     }
-                    body :: fd.body
+                    body :: d.body
                     // Relative to the cwd, like every diagnostic. A stdlib body
                     // resolves through an absolute path, so printing it verbatim
                     // put the DEVELOPER'S home directory in a committed snapshot
@@ -460,7 +460,7 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
                         "(no body)"
                     }
                     lines.push(
-                        "${mangle_module_id(lm.module.display_path)}\$${fd.name} <- ${origin}",
+                        "${mangle_module_id(lm.module.display_path)}\$${d.name} <- ${origin}",
                     )
                 }
             }
@@ -481,10 +481,10 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
 // changed, and printing `(unexpected)` says so rather than rendering something
 // plausible.
 render_baked_value :: fn(e: Expr) -> string {
-    if e is FieldExpr as f {
-        base :: f.target
-        if base is IdentExpr as id {
-            return "${id.name}.${f.field}"
+    if e is FieldExpr {
+        base :: e.target
+        if base is IdentExpr {
+            return "${base.name}.${e.field}"
         }
     }
     return "(unexpected)"

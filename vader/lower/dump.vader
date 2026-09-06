@@ -344,11 +344,11 @@ import "std/numbers"
 /// snapshot keeps `int(18446744073700000000)` rather than the sign-flipped
 /// `int(-9551616)`.
 format_int_value :: fn(value: i64, t: Type) -> string {
-    if t is PrimitiveType as p {
-        if p.name == "u64" || p.name == "usize" {
+    if t is PrimitiveType {
+        if t.name == "u64" || t.name == "usize" {
             if value < 0 { return "${u64(value)}" }
         }
-        if p.name == "u32" {
+        if t.name == "u32" {
             if value < 0 { return "${u32(value)}" }
         }
     }

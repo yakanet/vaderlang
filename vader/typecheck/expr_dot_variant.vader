@@ -35,15 +35,15 @@ export infer_dot_variant :: fn(
             }
         }
     }
-    if lifted is EnumType as en {
+    if lifted is EnumType {
         // MutableMap lookup returns i64 | null ; null = unknown variant.
-        idx :: en.indices[e.variant]
+        idx :: lifted.indices[e.variant]
         if idx is null {
             diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
-                "`${e.variant}` is not a variant of ${display_type(en)}"))
+                "`${e.variant}` is not a variant of ${display_type(lifted)}"))
             return TY_UNRESOLVED
         }
-        return en
+        return lifted
     }
     diags.push(typecheck_error(.CannotInferEnumType, e.span,
         "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
@@ -57,11 +57,11 @@ export infer_dot_variant :: fn(
 // back to the cross-module `external_types` cache so enums defined in
 // other modules (e.g. `FlagKind` from std/cli) still lift.
 export lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
-    if t is StructType as st {
-        if st.symbol.kind != SymbolKind.Enum { return t }
-        real :: typed.decl_types[st.symbol.id]
+    if t is StructType {
+        if t.symbol.kind != SymbolKind.Enum { return t }
+        real :: typed.decl_types[t.symbol.id]
         if real is EnumType { return real }
-        ext :: typed.external_types[st.symbol.id]
+        ext :: typed.external_types[t.symbol.id]
         if ext is EnumType { return ext }
         return t
     }

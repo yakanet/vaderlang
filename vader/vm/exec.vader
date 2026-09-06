@@ -454,10 +454,10 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
 
 // The local slot an op reads or writes, or -1 when it touches none.
 slot_touched_by :: fn(op: bc.Op) -> i32 {
-    if op is bc.LocalGet   as g  { return g.slot }
-    if op is bc.LocalSet   as s  { return s.slot }
-    if op is bc.LocalTee   as t  { return t.slot }
-    if op is bc.LocalField as lf { return lf.slot }
+    if op is bc.LocalGet  { return op.slot }
+    if op is bc.LocalSet  { return op.slot }
+    if op is bc.LocalTee  { return op.slot }
+    if op is bc.LocalField { return op.slot }
     return -1
 }
 
@@ -481,13 +481,13 @@ param_display_name :: fn(sig: bc.BcSignature, p: usize) -> string {
 project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar {
     children: PauseVar[]! = []
     if depth < DEBUG_MAX_DEPTH {
-        if v is ArrayVal as a {
-            shown :: if a.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { a.length }
+        if v is ArrayVal {
+            shown :: if v.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { v.length }
             for i in 0..<shown {
-                children.push(project_var("[${i}]", a.elements[a.offset + i], bc_mod, depth + 1))
+                children.push(project_var("[${i}]", v.elements[v.offset + i], bc_mod, depth + 1))
             }
-        } else if v is StructVal as s {
-            children = project_struct_fields(s, bc_mod, depth)
+        } else if v is StructVal {
+            children = project_struct_fields(v, bc_mod, depth)
         }
     }
     return PauseVar { .name = name, .value = display_value(v), .children = children }
@@ -501,8 +501,8 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
     names: string[]! = []
     if usize(s.type_id) < bc_mod.types.len() {
         entry :: bc_mod.types[usize(s.type_id)]
-        if entry is bc.BcStruct as bs {
-            for fld in bs.fields { names.push(fld.name) }
+        if entry is bc.BcStruct {
+            for fld in entry.fields { names.push(fld.name) }
         }
     }
     for i in 0..<s.fields.len() {
@@ -822,7 +822,7 @@ apply_eq_binop :: fn(frame: Frame!, op_label: string, negate: bool) -> Trap | nu
 primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
     if type_id < 0 || usize(type_id) >= types.len() { return "" }
     t :: types[usize(type_id)]
-    if t is bc.BcPrimitive as p { return bc.val_type_name(p.val) }
+    if t is bc.BcPrimitive { return bc.val_type_name(t.val) }
     return ""
 }
 
@@ -944,10 +944,10 @@ narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     bits: i64 = if vt == bc.ValType.U8 || vt == bc.ValType.I8 { 8 } else { 16 }
     // A narrow slot only ever holds an int (carried as I32Val / I64Val).
     raw: i64 = 0
-    if v is I32Val as i32v {
-        raw = i64(i32v.value)
-    } else if v is I64Val as i64v {
-        raw = i64v.value
+    if v is I32Val {
+        raw = i64(v.value)
+    } else if v is I64Val {
+        raw = v.value
     } else {
         return v
     }
@@ -999,7 +999,7 @@ fn_has_narrow_slot :: fn(body: bc.BcFunction) -> bool {
 field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
     if type_index < 0 || usize(type_index) >= types.len() { return bc.ValType.Ref }
     t :: types[usize(type_index)]
-    if t is bc.BcPrimitive as p { return p.val }
+    if t is bc.BcPrimitive { return t.val }
     return bc.ValType.Ref
 }
 
@@ -1489,8 +1489,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                         }
                         host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug)
                         if host_outcome is Trap { return host_outcome }
-                        if host_outcome is HostOk as hok {
-                            push_val(frame, arg_base, hok.value)
+                        if host_outcome is HostOk {
+                            push_val(frame, arg_base, host_outcome.value)
                             frame.sp = arg_base + 1
                             frame.pc = frame.pc + 1
                             continue
@@ -3239,8 +3239,8 @@ export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
         return 1
     }
     module :: parse_virt_bc(source)
-    if module is VirtParseError as e {
-        eprintln(e.display_virt_parse_error("vader run", path))
+    if module is VirtParseError {
+        eprintln(module.display_virt_parse_error("vader run", path))
         return 1
     }
     return match exec(prepare(module), host_argv) {

@@ -57,8 +57,8 @@ export infer_index :: fn(
     // exactly like the method form `c.at(i)` (`try_typeparam_bound_method`).
     // Resolve the result type `T` and record the dispatch so `lower_index` emits
     // a virtual `Index.at` call on the erased receiver.
-    if target is TypeParamType as tp {
-        bound :: typed.resolved.type_param_bounds[tp.symbol.id]
+    if target is TypeParamType {
+        bound :: typed.resolved.type_param_bounds[target.symbol.id]
         if bound != null {
             idx_args :: bounded_trait_args(bound, TRAIT_INDEX, typed)
             if idx_args != null {
@@ -100,19 +100,19 @@ export infer_index :: fn(
 /// `dispatch_bounded_method_trait` does. Shared by the `c[i]` read (Index) and
 /// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
 export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> Type[] | null {
-    if bound is AST.BinaryExpr as be {
-        if be.op == AST.BinaryOp.BitAnd {
-            l :: bounded_trait_args(be.left, trait_name, typed)
+    if bound is AST.BinaryExpr {
+        if bound.op == AST.BinaryOp.BitAnd {
+            l :: bounded_trait_args(bound.left, trait_name, typed)
             if l != null {
                 return l
             }
-            return bounded_trait_args(be.right, trait_name, typed)
+            return bounded_trait_args(bound.right, trait_name, typed)
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
-    if bound_ty is TraitType as tt {
-        if tt.symbol.name == trait_name {
-            return tt.args
+    if bound_ty is TraitType {
+        if bound_ty.symbol.name == trait_name {
+            return bound_ty.args
         }
     }
     return null
@@ -123,8 +123,8 @@ export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: Type
 /// Used to pin a free-literal index key to K (here) and at index-set
 /// sites (`stmt.vader::check_assign`).
 index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
-    if target is StructType as st {
-        return resolve_index_param(st, typed.index_key_types[st.symbol.name], typed)
+    if target is StructType {
+        return resolve_index_param(target, typed.index_key_types[target.symbol.name], typed)
     }
     return null
 }
@@ -133,8 +133,8 @@ index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
 /// the target isn't a struct with a recorded `IndexSet` impl. Consumed
 /// by `stmt.vader::check_assign` to pin a free-literal index-set value.
 index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
-    if target is StructType as st {
-        return resolve_index_param(st, typed.index_set_value_types[st.symbol.name], typed)
+    if target is StructType {
+        return resolve_index_param(target, typed.index_set_value_types[target.symbol.name], typed)
     }
     return null
 }
@@ -151,11 +151,11 @@ resolve_index_param :: fn(st: StructType, tmpl: Type | null, typed: TypedProgram
 
 is_integer_index :: fn(t: Type) -> bool {
     if t is FreeIntType { return true }
-    if t is PrimitiveType as p { return is_int_name(p.name) }
+    if t is PrimitiveType { return is_int_name(t.name) }
     return false
 }
 
 is_range_type :: fn(t: Type) -> bool {
-    if t is StructType as st { return st.symbol.name == STRUCT_RANGE }
+    if t is StructType { return t.symbol.name == STRUCT_RANGE }
     return false
 }

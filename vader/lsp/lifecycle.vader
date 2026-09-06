@@ -110,10 +110,10 @@ position_encoding_kind :: fn(enc: PositionEncoding) -> string = match enc {
 
 // True when the JSON value is an array containing the string `needle`.
 json_array_has_string :: fn(v: JsonValue, needle: string) -> bool {
-    if v is JsonArray as arr {
-        for it in arr.items {
-            if it is JsonString as s {
-                if s.value == needle { return true }
+    if v is JsonArray {
+        for it in v.items {
+            if it is JsonString {
+                if it.value == needle { return true }
             }
         }
     }

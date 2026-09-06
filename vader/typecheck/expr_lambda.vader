@@ -87,7 +87,7 @@ pick_return :: fn(
     if annot !is null {
         return type_from_expr(annot, resolved, diags)
     }
-    if expected_fn is FnType as f { return f.return_type }
+    if expected_fn is FnType { return expected_fn.return_type }
     return null
 }
 

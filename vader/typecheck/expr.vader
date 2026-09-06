@@ -35,34 +35,34 @@ export check_expr :: fn(
     final :: narrow_for_expected(got, expected)
     // A char literal that coerced to a concrete integer must fit it — `b == '💩'`
     // (u8) is rejected here, where both the codepoint and the pinned type are known.
-    if expr is AST.CharLitExpr as cl {
-        if final is PrimitiveType as p {
-            if is_int_name(p.name) && !char_fits(cl.value, p.name) {
-                diags.push(typecheck_error(.CharLiteralOutOfRange, cl.span,
-                    "character literal (codepoint ${cl.value}) does not fit in `${p.name}`"))
+    if expr is AST.CharLitExpr {
+        if final is PrimitiveType {
+            if is_int_name(final.name) && !char_fits(expr.value, final.name) {
+                diags.push(typecheck_error(.CharLiteralOutOfRange, expr.span,
+                    "character literal (codepoint ${expr.value}) does not fit in `${final.name}`"))
             }
         }
     }
     // A free integer literal pinned to a concrete integer width must fit it —
     // `x: i32 = 9000000000` / `x: u8 = 300` are rejected here, where both the
     // value and the pinned type are known (mirrors the char bounds check above).
-    if expr is AST.IntLitExpr as il {
-        if final is PrimitiveType as p {
-            if is_int_name(p.name) && !int_fits(il.value, p.name) {
-                diags.push(typecheck_error(.IntegerLiteralOutOfRange, il.span,
-                    "integer literal ${il.value} does not fit in `${p.name}`"))
+    if expr is AST.IntLitExpr {
+        if final is PrimitiveType {
+            if is_int_name(final.name) && !int_fits(expr.value, final.name) {
+                diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
+                    "integer literal ${expr.value} does not fit in `${final.name}`"))
             }
         }
     }
     // A negated literal pinned to an unsigned width has no representation —
     // `z: u32 = -1` would silently wrap to all-ones. Restricted to a literal
     // operand so `-someSignedVar` reinterpretation stays the author's call.
-    if expr is AST.UnaryExpr as un {
-        if un.op == .Neg && un.operand is AST.IntLitExpr {
-            if final is PrimitiveType as p {
-                if is_unsigned_int_name(p.name) {
-                    diags.push(typecheck_error(.IntegerLiteralOutOfRange, un.span,
-                        "negative literal does not fit unsigned `${p.name}`"))
+    if expr is AST.UnaryExpr {
+        if expr.op == .Neg && expr.operand is AST.IntLitExpr {
+            if final is PrimitiveType {
+                if is_unsigned_int_name(final.name) {
+                    diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
+                        "negative literal does not fit unsigned `${final.name}`"))
                 }
             }
         }
@@ -134,7 +134,7 @@ infer_expr :: fn(
             // `expr_types`. T3018 Display
             // check is deferred — currently we just type the inner.
             for part in e.parts {
-                if part is AST.StringLitInterp as p { check_expr(p.expr, null, typed, diags) }
+                if part is AST.StringLitInterp { check_expr(part.expr, null, typed, diags) }
             }
             return TY_STRING
         }

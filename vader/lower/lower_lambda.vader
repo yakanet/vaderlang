@@ -126,7 +126,7 @@ find_param_symbol :: fn(ctx: FnLowerCtx, fn_param: AST.FnParam) -> Symbol | null
 
 lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
     fn_type :: ctx.types.expr_type(lambda)
-    if fn_type is FnType as ft { return ft.return_type }
+    if fn_type is FnType { return fn_type.return_type }
     return TY_UNRESOLVED
 }
 

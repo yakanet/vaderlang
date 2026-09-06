@@ -275,9 +275,9 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
 /// `&<symbol>`, so a unit taking the address of a function defined in another
 /// one needs that function to keep external linkage or the link fails.
 callee_index_of :: fn(op: Op) -> i32 {
-    if op is Call as c   { return c.function_index }
-    if op is FnRef as f  { return f.function_index }
-    if op is FnAddr as f { return f.function_index }
+    if op is Call   { return op.function_index }
+    if op is FnRef  { return op.function_index }
+    if op is FnAddr { return op.function_index }
     return -1
 }
 

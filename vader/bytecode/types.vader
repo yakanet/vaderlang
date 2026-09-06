@@ -521,8 +521,8 @@ export MANGLED_IO_ERROR :: r"std_io$IOError"
 export struct_type_index :: fn(types: BcType[], name: string) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcStruct as st {
-            if st.name == name { return i32(i) }
+        if t is BcStruct {
+            if t.name == name { return i32(i) }
         }
     }
     return -1

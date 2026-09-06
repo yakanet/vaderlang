@@ -47,8 +47,8 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
     for [module_id, m] in lp.modules {
         is_entry :: module_id == lp.entry
         for d in m.decls {
-            if d is LoweredFnDecl as fn_decl {
-                sym :: fn_decl.origin.symbol
+            if d is LoweredFnDecl {
+                sym :: d.origin.symbol
                 // Index on exactly what the EMITTER indexes on — whether the decl
                 // carries a symbol (`midir/emit.vader::reserve_cfg_function`) —
                 // never on "is it a generic instance". The two are not the same
@@ -64,14 +64,14 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
                 // exact suffix, which is precisely what the dedupe guarantees won't
                 // happen: DCE pruned a decl the emitter was about to resolve, and
                 // the build died on `unresolved callee` (GATE B1).
-                if sym is Symbol as s {
-                    by_sym_id[s.id] = d
+                if sym is Symbol {
+                    by_sym_id[sym.id] = d
                 } else {
                     // Materialised impl members (`MutableMap.Index.at`) and
                     // dispatching generic instances (`put__i32__bool`) carry a
                     // synthetic NULL-symbol origin — their only identity is the
                     // mangle, so index them by mangle.
-                    by_mangle[fn_decl.mangled] = d
+                    by_mangle[d.mangled] = d
                     // They also survive verbatim (`fn_survives`) → they WILL be
                     // emitted, so seed them as roots to walk their bodies. Else a
                     // callee reached only from an unwalked survivor (the non-
@@ -80,13 +80,13 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
                     // survives → GATE-B1 panic. Keeps the header invariant
                     // "DCE-survival ⟺ emit-resolvable". (Collapsed sibling
                     // suffixes resolve via emit's symbol-id fallback.)
-                    if reachable_mangle[fn_decl.mangled] == null {
-                        reachable_mangle[fn_decl.mangled] = true
+                    if reachable_mangle[d.mangled] == null {
+                        reachable_mangle[d.mangled] = true
                         worklist.push(d)
                     }
                 }
-                if is_fn_root(fn_decl, is_entry, has_main, keep_tests) {
-                    mark_reachable(fn_decl, reachable_sym, reachable_mangle)
+                if is_fn_root(d, is_entry, has_main, keep_tests) {
+                    mark_reachable(d, reachable_sym, reachable_mangle)
                     worklist.push(d)
                 }
             } else if d is LoweredConstDecl {
@@ -206,8 +206,8 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
 /// the emitter's reservation; keep the three in step.
 mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool>!, reachable_mangle: MutableMap<string, bool>!) -> void {
     sym :: fn_decl.origin.symbol
-    if sym is Symbol as s {
-        reachable_sym[s.id] = true
+    if sym is Symbol {
+        reachable_sym[sym.id] = true
     } else {
         reachable_mangle[fn_decl.mangled] = true
     }
@@ -217,10 +217,10 @@ mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool
 /// survive (handled by the caller) ; null-symbol fns (impl members ship
 /// as separate entries) are kept verbatim.
 fn_survives :: fn(d: LoweredDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> bool {
-    if d is LoweredFnDecl as fn_decl {
-        sym :: fn_decl.origin.symbol
-        if sym is Symbol as s {
-            return reachable_sym[s.id] != null
+    if d is LoweredFnDecl {
+        sym :: d.origin.symbol
+        if sym is Symbol {
+            return reachable_sym[sym.id] != null
         }
         return true
     }
@@ -251,8 +251,8 @@ is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_te
 project_has_main :: fn(lp: LoweredProject) -> bool {
     for [_, m] in lp.modules {
         for d in m.decls {
-            if d is LoweredFnDecl as fn_decl {
-                if fn_decl.body != null && fn_decl.origin.is_main { return true }
+            if d is LoweredFnDecl {
+                if d.body != null && d.origin.is_main { return true }
             }
         }
     }

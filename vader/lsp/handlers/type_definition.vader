@@ -71,12 +71,12 @@ export handle_type_definition :: fn(state: ServerState!, params: JsonValue) -> J
 /// @param t  the type to name.
 /// @return   its declaring symbol, or null.
 export type_symbol :: fn(t: Type) -> Symbol | null {
-    if t is StructType    as s  { return s.symbol }
-    if t is EnumType      as e  { return e.symbol }
-    if t is DistinctType  as d  { return d.symbol }
-    if t is TraitType     as tr { return tr.symbol }
-    if t is TypeParamType as tp { return tp.symbol }
-    if t is UnionType     as u  { return union_symbol(u) }
+    if t is StructType  { return t.symbol }
+    if t is EnumType  { return t.symbol }
+    if t is DistinctType  { return t.symbol }
+    if t is TraitType { return t.symbol }
+    if t is TypeParamType { return t.symbol }
+    if t is UnionType  { return union_symbol(t) }
     return null
 }
 
@@ -93,7 +93,7 @@ union_symbol :: fn(u: UnionType) -> Symbol | null {
 }
 
 is_null_primitive :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return p.name == "null" }
+    if t is PrimitiveType { return t.name == "null" }
     return false
 }
 
