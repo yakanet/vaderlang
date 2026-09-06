@@ -10,39 +10,46 @@ string 0 "x"
 export main 3
 
 fn 0 snippet$can_go (u8) -> bool
+  local if_res bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 2
   i32.eq
   if $L0 void
-    return.lit bool.const true
+    bool.const true
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 0
+    i32.eq
+    if $L1 void
+      bool.const true
+      local.set 2   ; or_res
+    else
+      local.get 0   ; arg 0
+      i32.const 1
+      i32.eq
+      local.set 2   ; or_res
+    end $L1
+    local.get 2   ; or_res
+    if $L2 void
+      bool.const true
+      local.set 2   ; or_res
+    else
+      local.get 0   ; arg 0
+      i32.const 3
+      i32.eq
+      local.set 2   ; or_res
+    end $L2
+    local.get 2   ; or_res
+    if $L3 void
+      bool.const false
+      local.set 1   ; if_res
+    else
+      return
+    end $L3
   end $L0
-  local.get 0   ; arg 0
-  i32.const 0
-  i32.eq
-  if $L1 void
-    bool.const true
-    local.set 1   ; or_res
-  else
-    local.get 0   ; arg 0
-    i32.const 1
-    i32.eq
-    local.set 1   ; or_res
-  end $L1
-  local.get 1   ; or_res
-  if $L2 void
-    bool.const true
-    local.set 1   ; or_res
-  else
-    local.get 0   ; arg 0
-    i32.const 3
-    i32.eq
-    local.set 1   ; or_res
-  end $L2
-  local.get 1   ; or_res
-  if $L3 void
-    return.lit bool.const false
-  end $L3
+  local.get 1   ; if_res
   return
 end
 
@@ -102,16 +109,23 @@ fn 1 snippet$points (i32) -> i32
 end
 
 fn 2 snippet$kind (any) -> i32
+  local if_res i32
   local.get 0   ; arg 0
   type_check 6   ; union
   if $L0 void
-    return.lit i32.const 1
+    i32.const 1
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    type_check 5   ; string
+    if $L1 void
+      i32.const 2
+      local.set 1   ; if_res
+    else
+      return
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  type_check 5   ; string
-  if $L1 void
-    return.lit i32.const 2
-  end $L1
+  local.get 1   ; if_res
   return
 end
 

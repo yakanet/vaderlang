@@ -103,34 +103,34 @@ static void snippet_push_pet(void* l0, vader_box_t l1) {
 }
 
 static vader_string_t snippet_describe(vader_box_t l0) {
-    void* l1 = NULL;
-    vader_string_t l2 = 0;
-    vader_string_t t0 = 0;
+    vader_string_t l1 = 0;
+    vader_string_t l3 = 0;
+    void* l2 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &l1 };
-    vader_string_t* gc_atom_roots[2] = { &l2, &t0 };
+    void** gc_raw_roots[1] = { &l2 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 23 "tests/snippets/alias_union_in_array/_main.vader"
     if (l0.tag == 3u) {
-        l1 = l0.payload.obj;
-        l2 = ((vader_struct_snippet_types_Cat_t*) l1)->f_name;
-        t0 = concat_2(1u, l2);
+        l2 = l0.payload.obj;
+        l1 = ((vader_struct_snippet_types_Cat_t*) l2)->f_name;
+        l1 = concat_2(1u, l1);
+    } else {
+#line 24 "tests/snippets/alias_union_in_array/_main.vader"
+        if (l0.tag == 4u) {
+            l2 = l0.payload.obj;
+            l3 = ((vader_struct_snippet_types_Dog_t*) l2)->f_name;
+            l1 = concat_2(2u, l3);
+        } else {
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
-        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+            vader_unreachable("unreachable return in snippet$describe");
+#line 24 "tests/snippets/alias_union_in_array/_main.vader"
+        }
 #line 23 "tests/snippets/alias_union_in_array/_main.vader"
     }
-#line 24 "tests/snippets/alias_union_in_array/_main.vader"
-    if (l0.tag == 4u) {
-        l1 = l0.payload.obj;
-        l2 = ((vader_struct_snippet_types_Dog_t*) l1)->f_name;
-        t0 = concat_2(2u, l2);
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
-        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 24 "tests/snippets/alias_union_in_array/_main.vader"
-    }
-#line 22 "tests/snippets/alias_union_in_array/_main.vader"
-    vader_unreachable("unreachable return in snippet$describe");
+    { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -181,7 +181,6 @@ static int32_t snippet_main(void) {
                 t2 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t2;
                 goto loop_20;
-            } else {
             }
         }
     }
@@ -254,30 +253,30 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
             l4 = ((vader_array_t*) l2)->length;
             if ((l3 >= l4)) {
-            } else {
-#line 211 "lib/std/io/io.vader"
-                l5 = ((vader_array_t*) l2)->length;
-                vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-                l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-                l7 = ((vader_array_t*) l6)->length;
-                l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-                if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-                    { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-                }
-#line 216 "lib/std/io/io.vader"
-                t0 = ((int64_t) (int32_t) l8);
-                l9 = (size_t) (int64_t) t0;
-                t0 = (l3 + l9);
-                l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-                goto loop_6;
+#line 209 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
 #line 208 "lib/std/io/io.vader"
             }
+#line 211 "lib/std/io/io.vader"
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
+            goto loop_6;
         }
     }
 #line 209 "lib/std/io/io.vader"

@@ -49,7 +49,6 @@ static int32_t snippet_main(void) {
                 l1 = (l1 + INT32_C(1));
 #line 15 "tests/snippets/scalar_control/_main.vader"
                 goto loop_5;
-            } else {
             }
         }
     }

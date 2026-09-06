@@ -27,6 +27,7 @@ export main 2
 
 fn 0 snippet$deferred (any) -> ref
   local v any
+  local if_res ref
   local.get 0   ; arg 0
   struct.new 18   ; $Cell_Union<i32|Struct#snippet.Point<>>
   local.set 1   ; v
@@ -36,42 +37,50 @@ fn 0 snippet$deferred (any) -> ref
     local.get 1   ; v
     struct.new 6   ; __lambda_env_snippet_3
     make_closure 4 4   ; __lambda_snippet_2
-    return
+    local.set 2   ; if_res
+  else
+    local.get 0   ; arg 0
+    type_check 2   ; i32
+    if $L1 void
+      local.get 1   ; v
+      struct.new 5   ; __lambda_env_snippet_1
+      make_closure 3 4   ; __lambda_snippet_0
+      local.set 2   ; if_res
+    else
+      return
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  type_check 2   ; i32
-  if $L1 void
-    local.get 1   ; v
-    struct.new 5   ; __lambda_env_snippet_1
-    make_closure 3 4   ; __lambda_snippet_0
-    return
-  end $L1
+  local.get 2   ; if_res
   return
 end
 
 fn 1 snippet$mixed (any) -> i32
+  local thunk ref
   local v any
   local.get 0   ; arg 0
   struct.new 18   ; $Cell_Union<i32|Struct#snippet.Point<>>
-  local.set 1   ; v
+  local.set 2   ; v
   local.get 0   ; arg 0
   type_check 3   ; snippet$Point
   if $L0 void
-    local.get 1   ; v
+    local.get 2   ; v
     struct.new 8   ; __lambda_env_snippet_7
     make_closure 6 4   ; __lambda_snippet_6
-    call.indirect 4   ; fn
-    return
+    local.set 1   ; thunk
+  else
+    local.get 0   ; arg 0
+    type_check 2   ; i32
+    if $L1 void
+      local.get 2   ; v
+      struct.new 7   ; __lambda_env_snippet_5
+      make_closure 5 4   ; __lambda_snippet_4
+      local.set 1   ; thunk
+    else
+      return
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  type_check 2   ; i32
-  if $L1 void
-    local.get 1   ; v
-    struct.new 7   ; __lambda_env_snippet_5
-    make_closure 5 4   ; __lambda_snippet_4
-    call.indirect 4   ; fn
-    return
-  end $L1
+  local.get 1   ; thunk
+  call.indirect 4   ; fn
   return
 end
 
@@ -305,7 +314,6 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -326,7 +334,6 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -373,7 +380,6 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -383,7 +389,6 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 14   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -414,36 +419,36 @@ fn 11 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 15   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 12   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 15   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 12   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/_diag_union_common_field
+  StructDecl     A                    :: A!
+  StructDecl     B                    :: B!
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name_of              :: fn(A | B) -> string
+  ConstDecl      Node                 :: type
+  expr 25:36    FieldExpr      :: string
+  expr 25:36    IdentExpr      :: A | B
+  expr 28:13    CallExpr       :: string
+  expr 28:13    IdentExpr      :: fn(A | B) -> string
+  expr 28:21    StructLitExpr  :: A!
+  expr 28:43    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:13    CallExpr       :: string
+  expr 29:13    IdentExpr      :: fn(A | B) -> string
+  expr 29:21    StructLitExpr  :: B!
+  expr 29:33    StringLitExpr  :: string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void

@@ -389,7 +389,6 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -410,7 +409,6 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -457,7 +455,6 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -467,7 +464,6 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 31   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -775,7 +771,6 @@ fn 10 std_core$d2d (u64,u64) -> ref
           local.set 9   ; vp
         end $L5
       end $L4
-    else
     end $L3
   else
     local.get 2   ; e2
@@ -872,7 +867,6 @@ fn 10 std_core$d2d (u64,u64) -> ref
         local.get 13   ; $call_60
         call 19   ; std_core$multiple_of_power_of_2
         local.set 12   ; vr_is_tz
-      else
       end $L8
     end $L6
   end $L2
@@ -1025,7 +1019,6 @@ fn 10 std_core$d2d (u64,u64) -> ref
           end $L19
         end $L18
       end $L17
-    else
     end $L16
     local.get 12   ; vr_is_tz
     if $L21 void
@@ -1053,7 +1046,6 @@ fn 10 std_core$d2d (u64,u64) -> ref
     if $L23 void
       i64.const 4
       local.set 3   ; m2
-    else
     end $L23
     local.get 8   ; vr
     local.get 10   ; vm
@@ -1130,7 +1122,6 @@ fn 10 std_core$d2d (u64,u64) -> ref
       i32.const 2
       i32.add
       local.set 2   ; e2
-    else
     end $L27
     block $L28 void
       loop $L29 void
@@ -1230,7 +1221,6 @@ fn 11 std_core$render (u64,i32,bool) -> string
         i32.add
         local.set 4   ; exp
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1607,7 +1597,6 @@ fn 20 std_core$digits_of (u64) -> ref
         u64.div
         local.set 2   ; m
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -1643,7 +1632,6 @@ fn 20 std_core$digits_of (u64) -> ref
         i64.add
         local.set 6   ; i
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -1771,7 +1759,6 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
     local.get 5   ; $call_11
     call 2   ; concat_3
     local.set 4   ; $call_9
-  else
   end $L6
   local.get 6   ; e
   i32.const 0
@@ -1977,7 +1964,6 @@ fn 25 std_core$join_range (ref,i32,i32) -> string
         i32.add
         local.set 4   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2007,7 +1993,6 @@ fn 26 std_core$zeros (i32) -> string
         i32.add
         local.set 2   ; _
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2047,7 +2032,6 @@ fn 27 std_core$format_unsigned (u64) -> string
         u64.div
         local.set 2   ; m
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -2084,7 +2068,6 @@ fn 27 std_core$format_unsigned (u64) -> string
         u64.div
         local.set 0   ; arg 0
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -2117,36 +2100,36 @@ fn 28 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 14   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 29   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 14   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 29   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

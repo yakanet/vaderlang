@@ -901,49 +901,121 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
         return t.target
     }
     if t is TermCondBranch {
-        merge :: cond_branch_merge(ctx, block_id, until)
-        if !ctx.hints.skip_terminator_get.contains(block_id) {
-            emit_get(ctx, t.cond, t.span)
-        }
-        cf_if(ctx, t.span, merge)
-        if i32(merge) < 0 || t.then_block != merge { emit_range(ctx, t.then_block, merge) }
-        // Early-return flattening : when the then-branch's last op is a
-        // genuine exit (Return / ReturnLit / Branch / unreachable-equivalent),
-        // the else-body becomes the post-`end` continuation instead of
-        // an `else` arm. Without this, `if c { return X } y()` would emit
-        // an `else` wrapping the trailing `y()` even though it's reachable
-        // on both paths.
-        body :: ctx.slot.body
-        body_len :: body.len()
-        then_exits := false
-        if body_len > 0 {
-            last :: body[body_len - 1]
-            if last is Return { then_exits = true }
-            if last is ReturnLit { then_exits = true }
-            if last is Branch { then_exits = true }
-        }
-        if then_exits && t.else_block != merge {
-            cf_end(ctx, t.span)
-            return t.else_block
-        }
-        cf_else(ctx, t.span)
-        if i32(merge) < 0 || t.else_block != merge { emit_range(ctx, t.else_block, merge) }
-        cf_end(ctx, t.span)
-        return merge
+        merge :: cond_branch_merge(ctx, block_id, t, until)
+        return emit_cond(ctx, block_id, t, merge)
     }
     return BlockId(-1)
 }
+
+/// Emit a conditional : the then-arm inside the `if`, the else-arm as an `else`
+/// unless the then-arm already left.
+///
+/// The early-return flattening is what keeps a long chain flat : when the
+/// then-branch's last op is a genuine exit, the else body becomes the post-`end`
+/// continuation rather than an `else` arm, so `if c { return X } y()` doesn't
+/// wrap the trailing `y()` — and a 148-arm `match` whose arms all return lands
+/// as 148 SIBLING `if`s instead of 148 nested ones. C11 guarantees only 127
+/// levels of nested compound statements ; the tree's op dispatches would clear
+/// that on their own.
+emit_cond :: fn(
+    ctx: FnEmitCfg!, block_id: BlockId, t: TermCondBranch, merge: BlockId,
+) -> BlockId {
+    if !ctx.hints.skip_terminator_get.contains(block_id) {
+        emit_get(ctx, t.cond, t.span)
+    }
+    cf_if(ctx, t.span, merge)
+    if i32(merge) < 0 || t.then_block != merge { emit_range(ctx, t.then_block, merge) }
+    // A no-`else` conditional has the JOIN for its else target, so there is no
+    // else body to emit — and an `else` opened over nothing still costs a scope
+    // in the emitted C.
+    has_else :: i32(merge) < 0 || t.else_block != merge
+    if !has_else {
+        cf_end(ctx, t.span)
+        return merge
+    }
+    if last_op_exits(ctx) {
+        cf_end(ctx, t.span)
+        return t.else_block
+    }
+    cf_else(ctx, t.span)
+    emit_range(ctx, t.else_block, merge)
+    cf_end(ctx, t.span)
+    return merge
+}
+
+// True when an open LOOP scope already targets `blk` — see the call site.
+loop_scope_targets :: fn(ctx: FnEmitCfg, blk: BlockId) -> bool {
+    for s in ctx.scopes {
+        if s.kind == "loop" && s.target_blk == blk { return true }
+    }
+    return false
+}
+
+// True when the last op emitted leaves the current scope, so nothing after it in
+// that scope can run.
+last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
+    body :: ctx.slot.body
+    if body.len() == 0 { return false }
+    last :: body[body.len() - 1]
+    return last is Return | ReturnLit | Branch
+}
+
+
 
 scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
     for s in ctx.scopes { if s.target_blk == target { return true } }
     return false
 }
 
-cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> BlockId {
+/// Where the two arms of a conditional rejoin, so `emit_range` stops there
+/// instead of running each arm to the end of the region.
+///
+/// The builder records it (`TermCondBranch.join`) because post-dominance cannot
+/// recover it: an arm that `return`s reaches the synthetic exit, which then
+/// post-dominates the branch, and the merge degrades to the enclosing region's
+/// end. Both arms then walk past the join, so the continuation is emitted once
+/// per arm — 2^N over N such guards, loop or no loop.
+///
+/// The two answers legitimately DIFFER, and that is the whole point: post-
+/// dominance answers "what does every path from here go through", the builder
+/// answers "where do these two arms rejoin". They coincide for a plain `if` and
+/// part company as soon as an arm leaves the region — `for { … if c { break }
+/// … }` post-dominates on the loop's exit while the arms rejoin in the body. So
+/// `ipostdom` is not a cross-check on the recorded value ; only a range check is
+/// sound, and it is the failure mode that matters (a stale id from a pass that
+/// renumbered blocks — none does today, and `then_block` / `else_block` carry
+/// the same exposure unguarded).
+cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, t: TermCondBranch, until: BlockId) -> BlockId {
     post :: ctx.ipostdom[usize(block_id)]
-    if post < 0 { return until }
-    if ctx.wrapped_loop_headers.contains(post) { return BlockId(-1) }
-    return BlockId(post)
+    if post >= 0 {
+        if ctx.wrapped_loop_headers.contains(post) { return BlockId(-1) }
+        return BlockId(post)
+    }
+    // Post-dominance gave up : an arm reaches the synthetic exit, which then
+    // post-dominates the branch and hides the join. Fall back to the one the
+    // builder recorded. Without it the merge degrades to `until`, both arms walk
+    // past the join, and the continuation is emitted once PER ARM.
+    recorded :: i32(t.join)
+    if recorded >= 0 {
+        if recorded >= i32(ctx.fn_.blocks.len()) || recorded == i32(block_id) {
+            panic("midir/emit: '${ctx.fn_.mangled}' bb${block_id} — recorded join bb${recorded} is not a block of this fn")
+        }
+        // Only when something actually REACHES the join. Both arms exiting —
+        // every arm of a `match` returning, say — leaves the builder's join
+        // block dead, with no predecessors. Naming it as the merge would stop
+        // each arm at a block nobody enters and cost an `else` per arm : a
+        // 148-arm dispatch would nest 148 deep, past C11's guaranteed 127.
+        if ctx.preds[usize(recorded)].len() == 0 { return until }
+        if ctx.wrapped_loop_headers.contains(recorded) { return BlockId(-1) }
+        // An enclosing LOOP scope on the same block wins in
+        // `defer_or_resolve_branch` — deliberately, so a body's back-edge finds
+        // the loop and not the `if` wrapped around it. Naming that block as this
+        // conditional's merge would then send the arm's `br` to the loop's
+        // opener instead of past the `if`, and the loop never ends.
+        if loop_scope_targets(ctx, BlockId(recorded)) { return until }
+        return BlockId(recorded)
+    }
+    return until
 }
 
 /// The type a closure's object header should carry.

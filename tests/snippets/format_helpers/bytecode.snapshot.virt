@@ -514,36 +514,36 @@ fn 8 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 7   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 9   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 7   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 9   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -598,7 +598,6 @@ fn 10 std_string$pad_start (string,usize,char) -> string
         i64.add
         local.set 3   ; n
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -641,7 +640,6 @@ fn 11 std_string$pad_end (string,usize,char) -> string
         i64.add
         local.set 3   ; n
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -728,7 +726,6 @@ fn 13 std_numbers$to_hex (u64) -> string
         u64.div
         local.set 3   ; x
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -764,7 +761,6 @@ fn 13 std_numbers$to_hex (u64) -> string
         i64.add
         local.set 7   ; k
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -819,7 +815,6 @@ fn 14 std_numbers$to_bin (u64) -> string
         u64.div
         local.set 3   ; x
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -855,7 +850,6 @@ fn 14 std_numbers$to_bin (u64) -> string
         i64.add
         local.set 6   ; k
         br $L6
-      else
       end $L7
     end $L6
   end $L5
@@ -969,7 +963,6 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 4   ; __for_i_2
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -1011,7 +1004,6 @@ fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 5   ; $call_23
         br $L6
-      else
       end $L7
     end $L6
   end $L5

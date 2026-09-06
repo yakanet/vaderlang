@@ -1,0 +1,6 @@
+# stdout
+from-A
+# stderr
+vader vm: byte_len at pc=1: expected string, got i32
+# exit
+1

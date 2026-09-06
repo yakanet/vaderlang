@@ -52,67 +52,7 @@ fn 0 snippet$main () -> i32
   local $call_27 string
   local v1 any
   local $cast_46 i64
-  local $k_51 string
-  local v2 any
-  local $k_55 i32
-  local $k_56 string
-  local $k_57 string
-  local $call_58 string
-  local $k_60 i32
-  local __off_5 usize
-  local $k_66 string
-  local $cast_69 i64
-  local $call_71 string
-  local $k_72 string
-  local $call_73 string
-  local $k_74 string
-  local v3 any
-  local $k_78 i32
-  local $k_79 string
-  local $k_80 string
-  local $call_81 string
-  local $k_83 i32
-  local __buf_6 ref
-  local __off_7 usize
-  local $k_89 string
-  local $cast_92 i64
-  local $call_94 string
-  local $k_95 string
-  local $call_96 string
-  local $k_97 i32
-  local __buf_8 ref
-  local __off_9 usize
-  local $k_103 string
-  local $k_105 string
   local $call_106 bool
-  local $call_108 string
-  local $k_109 string
-  local $call_110 string
-  local $k_111 i32
-  local __buf_10 ref
-  local __off_11 usize
-  local $k_117 string
-  local $k_119 string
-  local $call_120 bool
-  local $call_122 string
-  local $k_123 string
-  local $call_124 string
-  local $k_125 string
-  local $k_126 i32
-  local $k_127 string
-  local v1b any
-  local $k_131 i32
-  local $k_132 string
-  local $k_133 string
-  local $call_134 string
-  local $k_136 i32
-  local __buf_12 ref
-  local __off_13 usize
-  local $k_142 string
-  local $cast_145 i64
-  local $call_147 string
-  local $k_148 string
-  local $call_149 string
   array.new 14 0   ; string[][]
   local.set 0   ; $arr_0
   array.new 13 0   ; i32[][]
@@ -179,1610 +119,250 @@ fn 0 snippet$main () -> i32
     i32.const 0
     local.get 5   ; $call_27
     call 8   ; std_io$write
-    string.const 1   ; "world"
-    local.set 8   ; $k_51
-    local.get 0   ; $arr_0
-    local.get 8   ; $k_51
-    call 15   ; std_collections$get__string__i32
-    local.tee 9   ; v2
-    type_check 0   ; null
-    if $L1 void
-      i32.const 0
-      local.set 10   ; $k_55
-      string.const 7   ; "world: missing"
-      local.set 11   ; $k_56
-      string.const 4   ; "\n"
-      local.set 12   ; $k_57
-      local.get 11   ; $k_56
-      local.get 12   ; $k_57
-      call 1   ; concat_2
-      local.set 13   ; $call_58
-      local.get 10   ; $k_55
-      local.get 13   ; $call_58
-      call 8   ; std_io$write
-      string.const 2   ; "vader"
-      local.set 21   ; $k_74
-      local.get 0   ; $arr_0
-      local.get 21   ; $k_74
-      call 15   ; std_collections$get__string__i32
-      local.tee 22   ; v3
-      type_check 0   ; null
-      if $L2 void
-        i32.const 0
-        local.set 23   ; $k_78
-        string.const 9   ; "vader: missing"
-        local.set 24   ; $k_79
-        string.const 4   ; "\n"
-        local.set 25   ; $k_80
-        local.get 24   ; $k_79
-        local.get 25   ; $k_80
-        call 1   ; concat_2
-        local.set 26   ; $call_81
-        local.get 23   ; $k_78
-        local.get 26   ; $call_81
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L3 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L3
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L4 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L4
-        return
-      end $L2
-      local.get 22   ; v3
-      type_check 1   ; i32
-      if $L5 void
-        i32.const 0
-        local.set 27   ; $k_83
-        i64.const 28
-        call 2   ; std_core$new_byte_buffer
-        local.set 28   ; __buf_6
-        i64.const 0
-        local.set 29   ; __off_7
-        string.const 10   ; "vader = "
-        local.set 30   ; $k_89
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 30   ; $k_89
-        call 4   ; std_core$write_string_at
-        local.set 29   ; __off_7
-        local.get 22   ; v3
-        ref.cast 1   ; -> i32
-        i32.to_i64
-        local.set 31   ; $cast_92
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 31   ; $cast_92
-        call 5   ; std_core$write_int
-        local.set 29   ; __off_7
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        call 3   ; std_core$finish_buffer
-        local.set 32   ; $call_94
-        string.const 4   ; "\n"
-        local.set 33   ; $k_95
-        local.get 32   ; $call_94
-        local.get 33   ; $k_95
-        call 1   ; concat_2
-        local.set 34   ; $call_96
-        local.get 27   ; $k_83
-        local.get 34   ; $call_96
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L6 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L6
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L7 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L7
-        return
-      end $L5
-      return
-    end $L1
-    local.get 9   ; v2
+  else
+    local.get 6   ; v1
     type_check 1   ; i32
-    if $L8 void
-      i32.const 0
-      local.set 14   ; $k_60
+    if $L1 void
       i64.const 28
       call 2   ; std_core$new_byte_buffer
-      local.set 2   ; $arr_2
+      local.set 1   ; $arr_1
       i64.const 0
-      local.set 15   ; __off_5
-      string.const 8   ; "world = "
-      local.set 16   ; $k_66
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
-      local.get 16   ; $k_66
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      string.const 6   ; "hello = "
       call 4   ; std_core$write_string_at
-      local.set 15   ; __off_5
-      local.get 9   ; v2
+      local.set 3   ; __off_1
+      local.get 6   ; v1
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 17   ; $cast_69
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
-      local.get 17   ; $cast_69
+      local.set 7   ; $cast_46
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      local.get 7   ; $cast_46
       call 5   ; std_core$write_int
-      local.set 15   ; __off_5
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
       call 3   ; std_core$finish_buffer
-      local.set 18   ; $call_71
       string.const 4   ; "\n"
-      local.set 19   ; $k_72
-      local.get 18   ; $call_71
-      local.get 19   ; $k_72
       call 1   ; concat_2
-      local.set 20   ; $call_73
-      local.get 14   ; $k_60
-      local.get 20   ; $call_73
+      local.set 5   ; $call_27
+      i32.const 0
+      local.get 5   ; $call_27
       call 8   ; std_io$write
-      string.const 2   ; "vader"
-      local.set 21   ; $k_74
-      local.get 0   ; $arr_0
-      local.get 21   ; $k_74
-      call 15   ; std_collections$get__string__i32
-      local.tee 22   ; v3
-      type_check 0   ; null
-      if $L9 void
-        i32.const 0
-        local.set 23   ; $k_78
-        string.const 9   ; "vader: missing"
-        local.set 24   ; $k_79
-        string.const 4   ; "\n"
-        local.set 25   ; $k_80
-        local.get 24   ; $k_79
-        local.get 25   ; $k_80
-        call 1   ; concat_2
-        local.set 26   ; $call_81
-        local.get 23   ; $k_78
-        local.get 26   ; $call_81
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L10 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L10
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L11 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L11
-        return
-      end $L9
-      local.get 22   ; v3
-      type_check 1   ; i32
-      if $L12 void
-        i32.const 0
-        local.set 27   ; $k_83
-        i64.const 28
-        call 2   ; std_core$new_byte_buffer
-        local.set 28   ; __buf_6
-        i64.const 0
-        local.set 29   ; __off_7
-        string.const 10   ; "vader = "
-        local.set 30   ; $k_89
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 30   ; $k_89
-        call 4   ; std_core$write_string_at
-        local.set 29   ; __off_7
-        local.get 22   ; v3
-        ref.cast 1   ; -> i32
-        i32.to_i64
-        local.set 31   ; $cast_92
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 31   ; $cast_92
-        call 5   ; std_core$write_int
-        local.set 29   ; __off_7
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        call 3   ; std_core$finish_buffer
-        local.set 32   ; $call_94
-        string.const 4   ; "\n"
-        local.set 33   ; $k_95
-        local.get 32   ; $call_94
-        local.get 33   ; $k_95
-        call 1   ; concat_2
-        local.set 34   ; $call_96
-        local.get 27   ; $k_83
-        local.get 34   ; $call_96
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L13 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L13
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L14 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L14
-        return
-      end $L12
+    else
       return
-    end $L8
-    return
+    end $L1
   end $L0
-  local.get 6   ; v1
-  type_check 1   ; i32
-  if $L15 void
-    i64.const 28
-    call 2   ; std_core$new_byte_buffer
-    local.set 1   ; $arr_1
-    i64.const 0
-    local.set 3   ; __off_1
-    local.get 1   ; $arr_1
-    local.get 3   ; __off_1
-    string.const 6   ; "hello = "
-    call 4   ; std_core$write_string_at
-    local.set 3   ; __off_1
-    local.get 6   ; v1
-    ref.cast 1   ; -> i32
-    i32.to_i64
-    local.set 7   ; $cast_46
-    local.get 1   ; $arr_1
-    local.get 3   ; __off_1
-    local.get 7   ; $cast_46
-    call 5   ; std_core$write_int
-    local.set 3   ; __off_1
-    local.get 1   ; $arr_1
-    local.get 3   ; __off_1
-    call 3   ; std_core$finish_buffer
+  local.get 0   ; $arr_0
+  string.const 1   ; "world"
+  call 15   ; std_collections$get__string__i32
+  local.tee 6   ; v1
+  type_check 0   ; null
+  if $L2 void
+    string.const 7   ; "world: missing"
     string.const 4   ; "\n"
     call 1   ; concat_2
     local.set 5   ; $call_27
     i32.const 0
     local.get 5   ; $call_27
     call 8   ; std_io$write
-    string.const 1   ; "world"
-    local.set 8   ; $k_51
-    local.get 0   ; $arr_0
-    local.get 8   ; $k_51
-    call 15   ; std_collections$get__string__i32
-    local.tee 9   ; v2
-    type_check 0   ; null
-    if $L16 void
-      i32.const 0
-      local.set 10   ; $k_55
-      string.const 7   ; "world: missing"
-      local.set 11   ; $k_56
-      string.const 4   ; "\n"
-      local.set 12   ; $k_57
-      local.get 11   ; $k_56
-      local.get 12   ; $k_57
-      call 1   ; concat_2
-      local.set 13   ; $call_58
-      local.get 10   ; $k_55
-      local.get 13   ; $call_58
-      call 8   ; std_io$write
-      string.const 2   ; "vader"
-      local.set 21   ; $k_74
-      local.get 0   ; $arr_0
-      local.get 21   ; $k_74
-      call 15   ; std_collections$get__string__i32
-      local.tee 22   ; v3
-      type_check 0   ; null
-      if $L17 void
-        i32.const 0
-        local.set 23   ; $k_78
-        string.const 9   ; "vader: missing"
-        local.set 24   ; $k_79
-        string.const 4   ; "\n"
-        local.set 25   ; $k_80
-        local.get 24   ; $k_79
-        local.get 25   ; $k_80
-        call 1   ; concat_2
-        local.set 26   ; $call_81
-        local.get 23   ; $k_78
-        local.get 26   ; $call_81
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L18 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L18
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L19 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L19
-        return
-      end $L17
-      local.get 22   ; v3
-      type_check 1   ; i32
-      if $L20 void
-        i32.const 0
-        local.set 27   ; $k_83
-        i64.const 28
-        call 2   ; std_core$new_byte_buffer
-        local.set 28   ; __buf_6
-        i64.const 0
-        local.set 29   ; __off_7
-        string.const 10   ; "vader = "
-        local.set 30   ; $k_89
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 30   ; $k_89
-        call 4   ; std_core$write_string_at
-        local.set 29   ; __off_7
-        local.get 22   ; v3
-        ref.cast 1   ; -> i32
-        i32.to_i64
-        local.set 31   ; $cast_92
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 31   ; $cast_92
-        call 5   ; std_core$write_int
-        local.set 29   ; __off_7
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        call 3   ; std_core$finish_buffer
-        local.set 32   ; $call_94
-        string.const 4   ; "\n"
-        local.set 33   ; $k_95
-        local.get 32   ; $call_94
-        local.get 33   ; $k_95
-        call 1   ; concat_2
-        local.set 34   ; $call_96
-        local.get 27   ; $k_83
-        local.get 34   ; $call_96
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L21 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L21
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L22 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L22
-        return
-      end $L20
-      return
-    end $L16
-    local.get 9   ; v2
+  else
+    local.get 6   ; v1
     type_check 1   ; i32
-    if $L23 void
-      i32.const 0
-      local.set 14   ; $k_60
+    if $L3 void
       i64.const 28
       call 2   ; std_core$new_byte_buffer
-      local.set 2   ; $arr_2
+      local.set 1   ; $arr_1
       i64.const 0
-      local.set 15   ; __off_5
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
       string.const 8   ; "world = "
-      local.set 16   ; $k_66
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
-      local.get 16   ; $k_66
       call 4   ; std_core$write_string_at
-      local.set 15   ; __off_5
-      local.get 9   ; v2
+      local.set 3   ; __off_1
+      local.get 6   ; v1
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 17   ; $cast_69
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
-      local.get 17   ; $cast_69
+      local.set 7   ; $cast_46
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      local.get 7   ; $cast_46
       call 5   ; std_core$write_int
-      local.set 15   ; __off_5
-      local.get 2   ; $arr_2
-      local.get 15   ; __off_5
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
       call 3   ; std_core$finish_buffer
-      local.set 18   ; $call_71
       string.const 4   ; "\n"
-      local.set 19   ; $k_72
-      local.get 18   ; $call_71
-      local.get 19   ; $k_72
       call 1   ; concat_2
-      local.set 20   ; $call_73
-      local.get 14   ; $k_60
-      local.get 20   ; $call_73
+      local.set 5   ; $call_27
+      i32.const 0
+      local.get 5   ; $call_27
       call 8   ; std_io$write
-      string.const 2   ; "vader"
-      local.set 21   ; $k_74
-      local.get 0   ; $arr_0
-      local.get 21   ; $k_74
-      call 15   ; std_collections$get__string__i32
-      local.tee 22   ; v3
-      type_check 0   ; null
-      if $L24 void
-        i32.const 0
-        local.set 23   ; $k_78
-        string.const 9   ; "vader: missing"
-        local.set 24   ; $k_79
-        string.const 4   ; "\n"
-        local.set 25   ; $k_80
-        local.get 24   ; $k_79
-        local.get 25   ; $k_80
-        call 1   ; concat_2
-        local.set 26   ; $call_81
-        local.get 23   ; $k_78
-        local.get 26   ; $call_81
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L25 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L25
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L26 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L26
-        return
-      end $L24
-      local.get 22   ; v3
-      type_check 1   ; i32
-      if $L27 void
-        i32.const 0
-        local.set 27   ; $k_83
-        i64.const 28
-        call 2   ; std_core$new_byte_buffer
-        local.set 28   ; __buf_6
-        i64.const 0
-        local.set 29   ; __off_7
-        string.const 10   ; "vader = "
-        local.set 30   ; $k_89
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 30   ; $k_89
-        call 4   ; std_core$write_string_at
-        local.set 29   ; __off_7
-        local.get 22   ; v3
-        ref.cast 1   ; -> i32
-        i32.to_i64
-        local.set 31   ; $cast_92
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        local.get 31   ; $cast_92
-        call 5   ; std_core$write_int
-        local.set 29   ; __off_7
-        local.get 28   ; __buf_6
-        local.get 29   ; __off_7
-        call 3   ; std_core$finish_buffer
-        local.set 32   ; $call_94
-        string.const 4   ; "\n"
-        local.set 33   ; $k_95
-        local.get 32   ; $call_94
-        local.get 33   ; $k_95
-        call 1   ; concat_2
-        local.set 34   ; $call_96
-        local.get 27   ; $k_83
-        local.get 34   ; $call_96
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 35   ; $k_97
-        i64.const 16
-        call 2   ; std_core$new_byte_buffer
-        local.set 36   ; __buf_8
-        i64.const 0
-        local.set 37   ; __off_9
-        string.const 11   ; "has hello? "
-        local.set 38   ; $k_103
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 38   ; $k_103
-        call 4   ; std_core$write_string_at
-        local.set 37   ; __off_9
-        string.const 0   ; "hello"
-        local.set 39   ; $k_105
-        local.get 0   ; $arr_0
-        local.get 39   ; $k_105
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 40   ; $call_106
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        local.get 40   ; $call_106
-        call 7   ; std_core$write_bool
-        local.set 37   ; __off_9
-        local.get 36   ; __buf_8
-        local.get 37   ; __off_9
-        call 3   ; std_core$finish_buffer
-        local.set 41   ; $call_108
-        string.const 4   ; "\n"
-        local.set 42   ; $k_109
-        local.get 41   ; $call_108
-        local.get 42   ; $k_109
-        call 1   ; concat_2
-        local.set 43   ; $call_110
-        local.get 35   ; $k_97
-        local.get 43   ; $call_110
-        call 8   ; std_io$write
-        i32.const 0
-        local.set 44   ; $k_111
-        i64.const 18
-        call 2   ; std_core$new_byte_buffer
-        local.set 45   ; __buf_10
-        i64.const 0
-        local.set 46   ; __off_11
-        string.const 12   ; "has missing? "
-        local.set 47   ; $k_117
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 47   ; $k_117
-        call 4   ; std_core$write_string_at
-        local.set 46   ; __off_11
-        string.const 13   ; "missing"
-        local.set 48   ; $k_119
-        local.get 0   ; $arr_0
-        local.get 48   ; $k_119
-        call 16   ; std_collections$contains_key__string__i32
-        local.set 49   ; $call_120
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        local.get 49   ; $call_120
-        call 7   ; std_core$write_bool
-        local.set 46   ; __off_11
-        local.get 45   ; __buf_10
-        local.get 46   ; __off_11
-        call 3   ; std_core$finish_buffer
-        local.set 50   ; $call_122
-        string.const 4   ; "\n"
-        local.set 51   ; $k_123
-        local.get 50   ; $call_122
-        local.get 51   ; $k_123
-        call 1   ; concat_2
-        local.set 52   ; $call_124
-        local.get 44   ; $k_111
-        local.get 52   ; $call_124
-        call 8   ; std_io$write
-        string.const 0   ; "hello"
-        local.set 53   ; $k_125
-        i32.const 99
-        local.set 54   ; $k_126
-        local.get 0   ; $arr_0
-        local.get 53   ; $k_125
-        local.get 54   ; $k_126
-        call 14   ; std_collections$put__string__i32
-        string.const 0   ; "hello"
-        local.set 55   ; $k_127
-        local.get 0   ; $arr_0
-        local.get 55   ; $k_127
-        call 15   ; std_collections$get__string__i32
-        local.tee 56   ; v1b
-        type_check 0   ; null
-        if $L28 void
-          i32.const 0
-          local.set 57   ; $k_131
-          string.const 5   ; "hello: missing"
-          local.set 58   ; $k_132
-          string.const 4   ; "\n"
-          local.set 59   ; $k_133
-          local.get 58   ; $k_132
-          local.get 59   ; $k_133
-          call 1   ; concat_2
-          local.set 60   ; $call_134
-          local.get 57   ; $k_131
-          local.get 60   ; $call_134
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L28
-        local.get 56   ; v1b
-        type_check 1   ; i32
-        if $L29 void
-          i32.const 0
-          local.set 61   ; $k_136
-          i64.const 36
-          call 2   ; std_core$new_byte_buffer
-          local.set 62   ; __buf_12
-          i64.const 0
-          local.set 63   ; __off_13
-          string.const 14   ; "hello updated = "
-          local.set 64   ; $k_142
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 64   ; $k_142
-          call 4   ; std_core$write_string_at
-          local.set 63   ; __off_13
-          local.get 56   ; v1b
-          ref.cast 1   ; -> i32
-          i32.to_i64
-          local.set 65   ; $cast_145
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          local.get 65   ; $cast_145
-          call 5   ; std_core$write_int
-          local.set 63   ; __off_13
-          local.get 62   ; __buf_12
-          local.get 63   ; __off_13
-          call 3   ; std_core$finish_buffer
-          local.set 66   ; $call_147
-          string.const 4   ; "\n"
-          local.set 67   ; $k_148
-          local.get 66   ; $call_147
-          local.get 67   ; $k_148
-          call 1   ; concat_2
-          local.set 68   ; $call_149
-          local.get 61   ; $k_136
-          local.get 68   ; $call_149
-          call 8   ; std_io$write
-          return.lit i32.const 0
-        end $L29
-        return
-      end $L27
+    else
       return
-    end $L23
-    return
-  end $L15
-  return
+    end $L3
+  end $L2
+  local.get 0   ; $arr_0
+  string.const 2   ; "vader"
+  call 15   ; std_collections$get__string__i32
+  local.tee 6   ; v1
+  type_check 0   ; null
+  if $L4 void
+    string.const 9   ; "vader: missing"
+    string.const 4   ; "\n"
+    call 1   ; concat_2
+    local.set 5   ; $call_27
+    i32.const 0
+    local.get 5   ; $call_27
+    call 8   ; std_io$write
+  else
+    local.get 6   ; v1
+    type_check 1   ; i32
+    if $L5 void
+      i64.const 28
+      call 2   ; std_core$new_byte_buffer
+      local.set 1   ; $arr_1
+      i64.const 0
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      string.const 10   ; "vader = "
+      call 4   ; std_core$write_string_at
+      local.set 3   ; __off_1
+      local.get 6   ; v1
+      ref.cast 1   ; -> i32
+      i32.to_i64
+      local.set 7   ; $cast_46
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      local.get 7   ; $cast_46
+      call 5   ; std_core$write_int
+      local.set 3   ; __off_1
+      local.get 1   ; $arr_1
+      local.get 3   ; __off_1
+      call 3   ; std_core$finish_buffer
+      string.const 4   ; "\n"
+      call 1   ; concat_2
+      local.set 5   ; $call_27
+      i32.const 0
+      local.get 5   ; $call_27
+      call 8   ; std_io$write
+    else
+      return
+    end $L5
+  end $L4
+  i64.const 16
+  call 2   ; std_core$new_byte_buffer
+  local.set 1   ; $arr_1
+  i64.const 0
+  local.set 3   ; __off_1
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  string.const 11   ; "has hello? "
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; $arr_0
+  string.const 0   ; "hello"
+  call 16   ; std_collections$contains_key__string__i32
+  local.set 8   ; $call_106
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  local.get 8   ; $call_106
+  call 7   ; std_core$write_bool
+  local.set 3   ; __off_1
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  call 3   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 1   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 8   ; std_io$write
+  i64.const 18
+  call 2   ; std_core$new_byte_buffer
+  local.set 1   ; $arr_1
+  i64.const 0
+  local.set 3   ; __off_1
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  string.const 12   ; "has missing? "
+  call 4   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; $arr_0
+  string.const 13   ; "missing"
+  call 16   ; std_collections$contains_key__string__i32
+  local.set 8   ; $call_106
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  local.get 8   ; $call_106
+  call 7   ; std_core$write_bool
+  local.set 3   ; __off_1
+  local.get 1   ; $arr_1
+  local.get 3   ; __off_1
+  call 3   ; std_core$finish_buffer
+  string.const 4   ; "\n"
+  call 1   ; concat_2
+  local.set 5   ; $call_27
+  i32.const 0
+  local.get 5   ; $call_27
+  call 8   ; std_io$write
+  local.get 0   ; $arr_0
+  string.const 0   ; "hello"
+  i32.const 99
+  call 14   ; std_collections$put__string__i32
+  local.get 0   ; $arr_0
+  string.const 0   ; "hello"
+  call 15   ; std_collections$get__string__i32
+  local.tee 6   ; v1
+  type_check 0   ; null
+  if $L6 void
+    string.const 5   ; "hello: missing"
+    string.const 4   ; "\n"
+    call 1   ; concat_2
+    local.set 5   ; $call_27
+    i32.const 0
+    local.get 5   ; $call_27
+    call 8   ; std_io$write
+  else
+    local.get 6   ; v1
+    type_check 1   ; i32
+    if $L7 void
+      i64.const 36
+      call 2   ; std_core$new_byte_buffer
+      local.set 0   ; $arr_0
+      i64.const 0
+      local.set 3   ; __off_1
+      local.get 0   ; $arr_0
+      local.get 3   ; __off_1
+      string.const 14   ; "hello updated = "
+      call 4   ; std_core$write_string_at
+      local.set 3   ; __off_1
+      local.get 6   ; v1
+      ref.cast 1   ; -> i32
+      i32.to_i64
+      local.set 7   ; $cast_46
+      local.get 0   ; $arr_0
+      local.get 3   ; __off_1
+      local.get 7   ; $cast_46
+      call 5   ; std_core$write_int
+      local.set 3   ; __off_1
+      local.get 0   ; $arr_0
+      local.get 3   ; __off_1
+      call 3   ; std_core$finish_buffer
+      string.const 4   ; "\n"
+      call 1   ; concat_2
+      local.set 5   ; $call_27
+      i32.const 0
+      local.get 5   ; $call_27
+      call 8   ; std_io$write
+    else
+      return
+    end $L7
+  end $L6
+  return.lit i32.const 0
 end
 
 fn 1 concat_2 (string,string) -> string
@@ -1873,7 +453,6 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -1894,7 +473,6 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -1941,7 +519,6 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -1951,7 +528,6 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 18   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -1997,7 +573,6 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
         u64.div
         local.set 4   ; m
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -2033,7 +608,6 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
         u64.div
         local.set 2   ; arg 2
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -2082,36 +656,36 @@ fn 8 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 10   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 9   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 10   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 9   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -2171,7 +745,6 @@ fn 11 std_collections$ensure_index__string__i32 (ref) -> void
           i64.add
           local.set 2   ; __for_discard_0
           br $L2
-        else
         end $L3
       end $L2
     end $L1
@@ -2183,7 +756,6 @@ fn 11 std_collections$ensure_index__string__i32 (ref) -> void
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
     struct.set 12 3   ; std_collections$MutableMap__string__i32.mask
-  else
   end $L0
   return
 end
@@ -2213,7 +785,6 @@ fn 12 std_collections$rehash__string__i32 (ref,usize) -> void
         i64.add
         local.set 3   ; __for_discard_0
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2255,7 +826,6 @@ fn 12 std_collections$rehash__string__i32 (ref,usize) -> void
               i64.bitand
               local.set 6   ; s
               br $L7
-            else
             end $L8
           end $L7
         end $L6
@@ -2273,7 +843,6 @@ fn 12 std_collections$rehash__string__i32 (ref,usize) -> void
         i64.add
         local.set 4   ; e
         br $L4
-      else
       end $L5
     end $L4
   end $L3
@@ -2338,7 +907,6 @@ fn 14 std_collections$put__string__i32 (ref,string,i32) -> void
   local $mul_24 usize
   local $call_28 u64
   local first_tomb i64
-  local $add_57 usize
   local $field_58 usize
   local $field_69 ref
   local $cast_73 i32
@@ -2393,14 +961,12 @@ fn 14 std_collections$put__string__i32 (ref,string,i32) -> void
           i64.mul
           local.set 3   ; $field_3
           br $L2
-        else
         end $L3
       end $L2
     end $L1
     local.get 0   ; arg 0
     local.get 3   ; $field_3
     call 12   ; std_collections$rehash__string__i32
-  else
   end $L0
   local.get 1   ; arg 1
   call 21   ; std_core$string$Hash$hash_vt
@@ -2436,58 +1002,41 @@ fn 14 std_collections$put__string__i32 (ref,string,i32) -> void
             local.get 3   ; $field_3
             usize.to_i64
             local.set 7   ; first_tomb
-          else
           end $L8
-          i64.const 1
-          local.set 5   ; $mul_24
+        else
+          local.field 0 12 2   ; arg 0.index
           local.get 3   ; $field_3
-          local.get 5   ; $mul_24
-          i64.add
-          local.set 8   ; $add_57
-          local.field 0 12 3   ; arg 0.mask
-          ref.cast 4   ; -> usize
-          local.set 9   ; $field_58
-          local.get 8   ; $add_57
-          local.get 9   ; $field_58
-          i64.bitand
-          local.set 3   ; $field_3
-          br $L5
-        end $L7
-        local.field 0 12 2   ; arg 0.index
-        local.get 3   ; $field_3
-        load_slot_i32
-        i32.to_i64
-        i64.const 1
-        i64.sub
-        local.set 4   ; $field_4
-        local.field 0 12 0   ; arg 0.ekeys
-        local.get 4   ; $field_4
-        array.get 14   ; string[][]
-        ref.cast 2   ; -> string
-        local.get 1   ; arg 1
-        string.eq
-        if $L9 void
-          local.field 0 12 1   ; arg 0.evals
+          load_slot_i32
+          i32.to_i64
+          i64.const 1
+          i64.sub
+          local.set 4   ; $field_4
+          local.field 0 12 0   ; arg 0.ekeys
           local.get 4   ; $field_4
-          local.get 2   ; arg 2
-          store_slot_i32
-          return
-        end $L9
-        i64.const 1
-        local.set 5   ; $mul_24
+          array.get 14   ; string[][]
+          ref.cast 2   ; -> string
+          local.get 1   ; arg 1
+          string.eq
+          if $L9 void
+            local.field 0 12 1   ; arg 0.evals
+            local.get 4   ; $field_4
+            local.get 2   ; arg 2
+            store_slot_i32
+            return
+          end $L9
+        end $L7
         local.get 3   ; $field_3
-        local.get 5   ; $mul_24
+        i64.const 1
         i64.add
-        local.set 8   ; $add_57
+        local.set 5   ; $mul_24
         local.field 0 12 3   ; arg 0.mask
         ref.cast 4   ; -> usize
-        local.set 9   ; $field_58
-        local.get 8   ; $add_57
-        local.get 9   ; $field_58
+        local.set 8   ; $field_58
+        local.get 5   ; $mul_24
+        local.get 8   ; $field_58
         i64.bitand
         local.set 3   ; $field_3
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -2514,23 +1063,22 @@ fn 14 std_collections$put__string__i32 (ref,string,i32) -> void
     local.get 0   ; arg 0
     local.get 3   ; $field_3
     struct.set 12 5   ; std_collections$MutableMap__string__i32.tombs
-  else
   end $L11
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 13   ; std_collections$write_entry__string__i32
   local.field 0 12 2   ; arg 0.index
-  local.set 10   ; $field_69
+  local.set 9   ; $field_69
   local.field 0 12 4   ; arg 0.size
   ref.cast 4   ; -> usize
   i64.const 1
   i64.add
   usize.to_i32
-  local.set 11   ; $cast_73
-  local.get 10   ; $field_69
+  local.set 10   ; $cast_73
+  local.get 9   ; $field_69
   local.get 4   ; $field_4
-  local.get 11   ; $cast_73
+  local.get 10   ; $cast_73
   store_slot_i32
   local.field 0 12 4   ; arg 0.size
   ref.cast 4   ; -> usize
@@ -2547,7 +1095,6 @@ fn 15 std_collections$get__string__i32 (ref,string) -> any
   local $call_7 u64
   local $field_8 usize
   local ei usize
-  local $k_30 usize
   local $add_31 usize
   local $field_32 usize
   local.field 0 12 2   ; arg 0.index
@@ -2603,36 +1150,19 @@ fn 15 std_collections$get__string__i32 (ref,string) -> any
             box 1   ; -> i32
             return
           end $L5
-          i64.const 1
-          local.set 5   ; $k_30
-          local.get 3   ; $field_8
-          local.get 5   ; $k_30
-          i64.add
-          local.set 6   ; $add_31
-          local.field 0 12 3   ; arg 0.mask
-          ref.cast 4   ; -> usize
-          local.set 7   ; $field_32
-          local.get 6   ; $add_31
-          local.get 7   ; $field_32
-          i64.bitand
-          local.set 3   ; $field_8
-          br $L2
         end $L4
-        i64.const 1
-        local.set 5   ; $k_30
         local.get 3   ; $field_8
-        local.get 5   ; $k_30
+        i64.const 1
         i64.add
-        local.set 6   ; $add_31
+        local.set 5   ; $add_31
         local.field 0 12 3   ; arg 0.mask
         ref.cast 4   ; -> usize
-        local.set 7   ; $field_32
-        local.get 6   ; $add_31
-        local.get 7   ; $field_32
+        local.set 6   ; $field_32
+        local.get 5   ; $add_31
+        local.get 6   ; $field_32
         i64.bitand
         local.set 3   ; $field_8
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -2645,7 +1175,6 @@ fn 16 std_collections$contains_key__string__i32 (ref,string) -> bool
   local $call_7 u64
   local $field_8 usize
   local ei usize
-  local $k_29 usize
   local $add_30 usize
   local $field_31 usize
   local.field 0 12 2   ; arg 0.index
@@ -2695,36 +1224,19 @@ fn 16 std_collections$contains_key__string__i32 (ref,string) -> bool
           if $L5 void
             return.lit bool.const true
           end $L5
-          i64.const 1
-          local.set 5   ; $k_29
-          local.get 3   ; $field_8
-          local.get 5   ; $k_29
-          i64.add
-          local.set 6   ; $add_30
-          local.field 0 12 3   ; arg 0.mask
-          ref.cast 4   ; -> usize
-          local.set 7   ; $field_31
-          local.get 6   ; $add_30
-          local.get 7   ; $field_31
-          i64.bitand
-          local.set 3   ; $field_8
-          br $L2
         end $L4
-        i64.const 1
-        local.set 5   ; $k_29
         local.get 3   ; $field_8
-        local.get 5   ; $k_29
+        i64.const 1
         i64.add
-        local.set 6   ; $add_30
+        local.set 5   ; $add_30
         local.field 0 12 3   ; arg 0.mask
         ref.cast 4   ; -> usize
-        local.set 7   ; $field_31
-        local.get 6   ; $add_30
-        local.get 7   ; $field_31
+        local.set 6   ; $field_31
+        local.get 5   ; $add_30
+        local.get 6   ; $field_31
         i64.bitand
         local.set 3   ; $field_8
         br $L2
-      else
       end $L3
     end $L2
   end $L1

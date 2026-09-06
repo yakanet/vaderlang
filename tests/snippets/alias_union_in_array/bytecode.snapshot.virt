@@ -31,36 +31,41 @@ fn 0 snippet$push_pet (ref,any) -> void
 end
 
 fn 1 snippet$describe (any) -> string
+  local if_res string
   local c ref
-  local $field_6 string
+  local $field_12 string
   local.get 0   ; arg 0
   type_check 3   ; snippet_types$Cat
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 3   ; -> snippet_types$Cat
-    local.set 1   ; c
-    local.field 1 3 0   ; c.name
+    local.set 2   ; c
+    local.field 2 3 0   ; c.name
     ref.cast 6   ; -> string
-    local.set 2   ; $field_6
+    local.set 1   ; if_res
     string.const 0   ; "cat "
-    local.get 2   ; $field_6
+    local.get 1   ; if_res
     call 3   ; concat_2
-    return
-  end $L0
-  local.get 0   ; arg 0
-  type_check 4   ; snippet_types$Dog
-  if $L1 void
+    local.set 1   ; if_res
+  else
     local.get 0   ; arg 0
-    ref.cast 4   ; -> snippet_types$Dog
-    local.set 1   ; c
-    local.field 1 4 0   ; c.name
-    ref.cast 6   ; -> string
-    local.set 2   ; $field_6
-    string.const 1   ; "dog "
-    local.get 2   ; $field_6
-    call 3   ; concat_2
-    return
-  end $L1
+    type_check 4   ; snippet_types$Dog
+    if $L1 void
+      local.get 0   ; arg 0
+      ref.cast 4   ; -> snippet_types$Dog
+      local.set 2   ; c
+      local.field 2 4 0   ; c.name
+      ref.cast 6   ; -> string
+      local.set 3   ; $field_12
+      string.const 1   ; "dog "
+      local.get 3   ; $field_12
+      call 3   ; concat_2
+      local.set 1   ; if_res
+    else
+      return
+    end $L1
+  end $L0
+  local.get 1   ; if_res
   return
 end
 
@@ -110,7 +115,6 @@ fn 2 snippet$main () -> i32
         i64.add
         local.set 3   ; __for_i_2
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -182,36 +186,36 @@ fn 6 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 11   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 7   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 11   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 7   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

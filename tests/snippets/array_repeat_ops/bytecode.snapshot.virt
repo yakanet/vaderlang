@@ -50,7 +50,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L2
   i32.const 1
   array.new 2 1   ; i32[][]
@@ -89,7 +88,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L5
   i32.const 7
   i32.const 9
@@ -153,7 +151,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L10
   array.new 2 0   ; i32[][]
   i32.const 8
@@ -167,7 +164,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L11
   i32.const 0
   local.set 3   ; i
@@ -185,7 +181,6 @@ fn 0 snippet$main () -> i32
         i32.add
         local.set 3   ; i
         br $L13
-      else
       end $L14
     end $L13
   end $L12
@@ -222,7 +217,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L17
   i32.const 1
   i32.const 2
@@ -281,7 +275,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L21
   i32.const 8
   i32.const 9
@@ -346,7 +339,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L26
   i32.const 0
   array.new 2 1   ; i32[][]
@@ -420,7 +412,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L31
   i32.const 1
   i32.const 2
@@ -479,7 +470,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L35
   i32.const 100
   i32.const 200
@@ -528,7 +518,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L39
   array.new 2 0   ; i32[][]
   array.remove_last
@@ -538,7 +527,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L40
   i32.const 1
   i32.const 2
@@ -571,7 +559,6 @@ fn 0 snippet$main () -> i32
     i32.const 1
     i32.add
     local.set 0   ; pass
-  else
   end $L42
   local.get 0   ; pass
   return

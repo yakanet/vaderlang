@@ -507,8 +507,21 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
 remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
     if t is TermBranch          { return t }
     if t is TermUnreachable     { return t }
-    if t is TermCondBranch { return TermCondBranch { .cond = remap_local(m, t.cond), .then_block = t.then_block, .else_block = t.else_block, .span = t.span } }
-    if t is TermReturn     { return TermReturn { .value = remap_local_opt(m, t.value), .span = t.span } }
+    if t is TermCondBranch {
+        return TermCondBranch {
+            .cond = remap_local(m, t.cond),
+            .then_block = t.then_block,
+            .else_block = t.else_block,
+            .join = t.join,
+            .span = t.span,
+        }
+    }
+    if t is TermReturn     {
+        return TermReturn {
+            .value = remap_local_opt(m, t.value),
+            .span = t.span,
+        }
+    }
     return t
 }
 

@@ -42,7 +42,6 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
     i32.const 1
     i32.add
     local.set 3   ; n
-  else
   end $L0
   local.get 0   ; arg 0
   local.get 2   ; arg 2
@@ -52,7 +51,6 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
     i32.const 10
     i32.add
     local.set 3   ; n
-  else
   end $L1
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -62,7 +60,6 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
     i32.const 100
     i32.add
     local.set 3   ; n
-  else
   end $L2
   local.get 3   ; n
   return

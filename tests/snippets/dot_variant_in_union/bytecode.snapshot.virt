@@ -64,46 +64,47 @@ fn 0 snippet$parse (char) -> any
 end
 
 fn 1 snippet$dir_label (i32) -> string
+  local if_res string
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
-    return.lit string.const 1   ; "N"
+    string.const 1   ; "N"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 1
+    i32.eq
+    if $L1 void
+      string.const 2   ; "E"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 2
+      i32.eq
+      if $L2 void
+        string.const 3   ; "S"
+        local.set 1   ; if_res
+      else
+        local.get 0   ; arg 0
+        i32.const 3
+        i32.eq
+        if $L3 void
+          string.const 4   ; "W"
+          local.set 1   ; if_res
+        else
+          return
+        end $L3
+      end $L2
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.eq
-  if $L1 void
-    return.lit string.const 2   ; "E"
-  end $L1
-  local.get 0   ; arg 0
-  i32.const 2
-  i32.eq
-  if $L2 void
-    return.lit string.const 3   ; "S"
-  end $L2
-  local.get 0   ; arg 0
-  i32.const 3
-  i32.eq
-  if $L3 void
-    return.lit string.const 4   ; "W"
-  end $L3
+  local.get 1   ; if_res
   return
 end
 
 fn 2 snippet$main () -> i32
   local __scrut_0 any
   local $call_9 string
-  local __scrut_1 any
-  local d i32
-  local $k_21 i32
-  local $call_22 string
-  local $k_23 string
-  local $call_24 string
-  local $k_26 i32
-  local $k_27 string
-  local $k_28 string
-  local $call_29 string
   char.const 78
   call 0   ; snippet$parse
   local.tee 0   ; __scrut_0
@@ -118,105 +119,51 @@ fn 2 snippet$main () -> i32
     i32.const 0
     local.get 1   ; $call_9
     call 6   ; std_io$write
-    char.const 63
-    call 0   ; snippet$parse
-    local.tee 2   ; __scrut_1
-    type_check 3   ; i32
-    if $L1 void
-      local.get 2   ; __scrut_1
-      ref.cast 3   ; -> i32
-      local.set 3   ; d
-      i32.const 0
-      local.set 4   ; $k_21
-      local.get 3   ; d
-      call 1   ; snippet$dir_label
-      local.set 5   ; $call_22
-      string.const 5   ; "\n"
-      local.set 6   ; $k_23
-      local.get 5   ; $call_22
-      local.get 6   ; $k_23
-      call 3   ; concat_2
-      local.set 7   ; $call_24
-      local.get 4   ; $k_21
-      local.get 7   ; $call_24
-      call 6   ; std_io$write
-      return.lit i32.const 0
-    end $L1
-    local.get 2   ; __scrut_1
+  else
+    local.get 0   ; __scrut_0
     type_check 4   ; std_string$ParseError
-    if $L2 void
-      i32.const 0
-      local.set 8   ; $k_26
+    if $L1 void
       string.const 6   ; "err"
-      local.set 9   ; $k_27
       string.const 5   ; "\n"
-      local.set 10   ; $k_28
-      local.get 9   ; $k_27
-      local.get 10   ; $k_28
       call 3   ; concat_2
-      local.set 11   ; $call_29
-      local.get 8   ; $k_26
-      local.get 11   ; $call_29
+      local.set 1   ; $call_9
+      i32.const 0
+      local.get 1   ; $call_9
       call 6   ; std_io$write
-      return.lit i32.const 0
-    end $L2
-    return
+    else
+      return
+    end $L1
   end $L0
-  local.get 0   ; __scrut_0
-  type_check 4   ; std_string$ParseError
-  if $L3 void
-    string.const 6   ; "err"
+  char.const 63
+  call 0   ; snippet$parse
+  local.tee 0   ; __scrut_0
+  type_check 3   ; i32
+  if $L2 void
+    local.get 0   ; __scrut_0
+    ref.cast 3   ; -> i32
+    call 1   ; snippet$dir_label
     string.const 5   ; "\n"
     call 3   ; concat_2
     local.set 1   ; $call_9
     i32.const 0
     local.get 1   ; $call_9
     call 6   ; std_io$write
-    char.const 63
-    call 0   ; snippet$parse
-    local.tee 2   ; __scrut_1
-    type_check 3   ; i32
-    if $L4 void
-      local.get 2   ; __scrut_1
-      ref.cast 3   ; -> i32
-      local.set 3   ; d
-      i32.const 0
-      local.set 4   ; $k_21
-      local.get 3   ; d
-      call 1   ; snippet$dir_label
-      local.set 5   ; $call_22
-      string.const 5   ; "\n"
-      local.set 6   ; $k_23
-      local.get 5   ; $call_22
-      local.get 6   ; $k_23
-      call 3   ; concat_2
-      local.set 7   ; $call_24
-      local.get 4   ; $k_21
-      local.get 7   ; $call_24
-      call 6   ; std_io$write
-      return.lit i32.const 0
-    end $L4
-    local.get 2   ; __scrut_1
+  else
+    local.get 0   ; __scrut_0
     type_check 4   ; std_string$ParseError
-    if $L5 void
-      i32.const 0
-      local.set 8   ; $k_26
+    if $L3 void
       string.const 6   ; "err"
-      local.set 9   ; $k_27
       string.const 5   ; "\n"
-      local.set 10   ; $k_28
-      local.get 9   ; $k_27
-      local.get 10   ; $k_28
       call 3   ; concat_2
-      local.set 11   ; $call_29
-      local.get 8   ; $k_26
-      local.get 11   ; $call_29
+      local.set 1   ; $call_9
+      i32.const 0
+      local.get 1   ; $call_9
       call 6   ; std_io$write
-      return.lit i32.const 0
-    end $L5
-    return
-  end $L3
-  return
+    else
+      return
+    end $L3
+  end $L2
+  return.lit i32.const 0
 end
 
 fn 3 concat_2 (string,string) -> string
@@ -284,36 +231,36 @@ fn 6 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 9   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 7   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 9   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 7   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

@@ -24,6 +24,7 @@ impl 7 ByteAccess
 export main 1
 
 fn 0 snippet$show (any) -> string
+  local if_res string
   local p ref
   local __buf_0 ref
   local __off_1 usize
@@ -32,52 +33,58 @@ fn 0 snippet$show (any) -> string
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
-    return.lit string.const 0   ; "null"
+    string.const 0   ; "null"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    type_check 2   ; snippet$P
+    if $L1 void
+      local.get 0   ; arg 0
+      ref.cast 2   ; -> snippet$P
+      local.set 2   ; p
+      i64.const 26
+      call 3   ; std_core$new_byte_buffer
+      local.set 3   ; __buf_0
+      i64.const 0
+      local.set 4   ; __off_1
+      local.get 3   ; __buf_0
+      local.get 4   ; __off_1
+      string.const 1   ; "P.x = "
+      call 5   ; std_core$write_string_at
+      local.set 4   ; __off_1
+      local.field 2 2 0   ; p.x
+      ref.cast 5   ; -> i32
+      i32.to_i64
+      local.set 5   ; $cast_15
+      local.get 3   ; __buf_0
+      local.get 4   ; __off_1
+      local.get 5   ; $cast_15
+      call 6   ; std_core$write_int
+      local.set 4   ; __off_1
+      local.get 3   ; __buf_0
+      local.get 4   ; __off_1
+      call 4   ; std_core$finish_buffer
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      type_check 3   ; snippet$Q
+      if $L2 void
+        local.get 0   ; arg 0
+        ref.cast 3   ; -> snippet$Q
+        local.set 2   ; p
+        local.field 2 3 0   ; p.y
+        ref.cast 4   ; -> string
+        local.set 6   ; $field_22
+        string.const 2   ; "Q.y = "
+        local.get 6   ; $field_22
+        call 2   ; concat_2
+        local.set 1   ; if_res
+      else
+        return
+      end $L2
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  type_check 2   ; snippet$P
-  if $L1 void
-    local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$P
-    local.set 1   ; p
-    i64.const 26
-    call 3   ; std_core$new_byte_buffer
-    local.set 2   ; __buf_0
-    i64.const 0
-    local.set 3   ; __off_1
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    string.const 1   ; "P.x = "
-    call 5   ; std_core$write_string_at
-    local.set 3   ; __off_1
-    local.field 1 2 0   ; p.x
-    ref.cast 5   ; -> i32
-    i32.to_i64
-    local.set 4   ; $cast_15
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    local.get 4   ; $cast_15
-    call 6   ; std_core$write_int
-    local.set 3   ; __off_1
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    call 4   ; std_core$finish_buffer
-    return
-  end $L1
-  local.get 0   ; arg 0
-  type_check 3   ; snippet$Q
-  if $L2 void
-    local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Q
-    local.set 1   ; p
-    local.field 1 3 0   ; p.y
-    ref.cast 4   ; -> string
-    local.set 5   ; $field_22
-    string.const 2   ; "Q.y = "
-    local.get 5   ; $field_22
-    call 2   ; concat_2
-    return
-  end $L2
+  local.get 1   ; if_res
   return
 end
 
@@ -200,7 +207,6 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -221,7 +227,6 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -268,7 +273,6 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -278,7 +282,6 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 10   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -309,36 +312,36 @@ fn 7 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 10   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 8   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 10   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 8   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

@@ -478,6 +478,10 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
     stack_labels:    string[]! = []
     stack_opener_pc: i32[]!    = []
     stack_is_loop:   bool[]!   = []
+    // Where each open scope's matching `End` sits. A non-loop `br` targets
+    // `end_pc + 1`, so this is what turns a jump-table entry back into the
+    // label that OWNS it — see the `Branch` case.
+    stack_end_pc:    i32[]!    = []
     sp: usize = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
     // (block / if / else falls through to its End). Drained when the
@@ -529,7 +533,8 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("if ${label} void\n")
-            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, stack_end_pc,
+                sp, label, i32(pc), false, matching_end_pc(body, pc))
             sp = sp + 1
             depth = depth + 1
             continue
@@ -539,7 +544,8 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("block ${label} void\n")
-            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, stack_end_pc,
+                sp, label, i32(pc), false, matching_end_pc(body, pc))
             sp = sp + 1
             depth = depth + 1
             continue
@@ -549,7 +555,8 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("loop ${label} void\n")
-            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), true)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, stack_end_pc,
+                sp, label, i32(pc), true, matching_end_pc(body, pc))
             sp = sp + 1
             depth = depth + 1
             continue
@@ -561,7 +568,8 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
             resolved := target_label
             if target_label == "" {
                 // Block / if / else : defer to the matching End.
-                fallback :: top_non_loop_label_local(stack_labels, stack_is_loop, sp)
+                fallback :: non_loop_label_for_target(
+                    stack_labels, stack_end_pc, stack_is_loop, sp, target_pc)
                 if fallback != "" {
                     if psp == pending_pc.len() {
                         pending_pc.push(i32(pc))
@@ -590,18 +598,54 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
 }
 
 push_scope_entry :: fn(
-    labels: string[]!, opener_pc: i32[]!, is_loop: bool[]!,
-    sp: usize, label: string, pc: i32, loop_flag: bool,
+    labels: string[]!, opener_pc: i32[]!, is_loop: bool[]!, end_pc: i32[]!,
+    sp: usize, label: string, pc: i32, loop_flag: bool, scope_end: i32,
 ) -> void {
     if sp == labels.len() {
         labels.push(label)
         opener_pc.push(pc)
         is_loop.push(loop_flag)
+        end_pc.push(scope_end)
     } else {
         labels[sp]    = label
         opener_pc[sp] = pc
         is_loop[sp]   = loop_flag
+        end_pc[sp]    = scope_end
     }
+}
+
+// The pc of the `End` closing the scope opened at `opener_pc`. `Else` keeps the
+// scope open, so only the openers and `End` move the depth.
+matching_end_pc :: fn(body: Op[], opener_pc: usize) -> i32 {
+    d: i32 = 0
+    for k in opener_pc..<body.len() {
+        op :: body[k]
+        if op is Block | Loop | If { d = d + 1 }
+        if op is End {
+            d = d - 1
+            if d == 0 { return i32(k) }
+        }
+    }
+    return -1
+}
+
+// The label of the open non-loop scope a `br` to `target_pc` belongs to —
+// the one whose `End` sits immediately before it.
+//
+// Guessing the INNERMOST non-loop scope instead is wrong as soon as a branch
+// skips past one, and it round-trips a `.virt` into a different program : the
+// reader resolves the label it reads, so the jump lands inside a scope the
+// branch meant to leave.
+non_loop_label_for_target :: fn(
+    labels: string[], end_pc: i32[], is_loop: bool[], sp: usize, target_pc: i32,
+) -> string {
+    i: i32 = i32(sp) - 1
+    for i >= 0 {
+        u :: usize(i)
+        if !is_loop[u] && end_pc[u] + 1 == target_pc { return labels[u] }
+        i -= 1
+    }
+    return ""
 }
 
 find_loop_label_local :: fn(
@@ -612,17 +656,6 @@ find_loop_label_local :: fn(
         if is_loop[usize(i)] && opener_pc[usize(i)] + 1 == target_pc {
             return labels[usize(i)]
         }
-        i -= 1
-    }
-    return ""
-}
-
-top_non_loop_label_local :: fn(
-    labels: string[], is_loop: bool[], sp: usize,
-) -> string {
-    i: i32 = i32(sp) - 1
-    for i >= 0 {
-        if !is_loop[usize(i)] { return labels[usize(i)] }
         i -= 1
     }
     return ""

@@ -344,36 +344,36 @@ fn 5 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 6   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 6   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 6   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 6   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -589,7 +589,6 @@ fn 8 crypto$md5 (string) -> string
               i64.add
               local.set 10   ; i
               br $L4
-            else
             end $L5
           end $L4
         end $L3
@@ -742,7 +741,6 @@ fn 8 crypto$md5 (string) -> string
               i64.add
               local.set 33   ; j
               br $L7
-            else
             end $L8
           end $L7
         end $L6
@@ -771,7 +769,6 @@ fn 8 crypto$md5 (string) -> string
         i64.add
         local.set 7   ; block_idx
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -828,7 +825,6 @@ fn 9 crypto$hex_of_bytes (ref) -> string
         i64.add
         local.set 4   ; __for_i_2
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1067,7 +1063,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
               i64.add
               local.set 7   ; i
               br $L4
-            else
             end $L5
           end $L4
         end $L3
@@ -1168,7 +1163,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
               i64.add
               local.set 25   ; j
               br $L7
-            else
             end $L8
           end $L7
         end $L6
@@ -1412,7 +1406,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
               i64.add
               local.set 46   ; t
               br $L10
-            else
             end $L11
           end $L10
         end $L9
@@ -1446,7 +1439,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
               i64.add
               local.set 89   ; i
               br $L13
-            else
             end $L14
           end $L13
         end $L12
@@ -1455,7 +1447,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
         i64.add
         local.set 4   ; block_idx
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1481,7 +1472,6 @@ fn 10 crypto$sha256_bytes (any) -> ref
         i64.add
         local.set 3   ; blocks
         br $L16
-      else
       end $L17
     end $L16
   end $L15
@@ -1521,7 +1511,6 @@ fn 11 crypto$pad_md5 (string) -> ref
         i32.const 0
         array.push 7   ; u8[]
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1553,7 +1542,6 @@ fn 11 crypto$pad_md5 (string) -> ref
         i32.add
         local.set 3   ; k
         br $L4
-      else
       end $L5
     end $L4
   end $L3
@@ -1622,7 +1610,6 @@ fn 14 crypto$append_hex_u32_le (ref,u32) -> void
         i32.add
         local.set 2   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1702,7 +1689,6 @@ fn 17 crypto$pad_sha256_bytes (ref) -> ref
         i32.const 0
         array.push 7   ; u8[]
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1734,7 +1720,6 @@ fn 17 crypto$pad_sha256_bytes (ref) -> ref
         i32.sub
         local.set 3   ; k
         br $L4
-      else
       end $L5
     end $L4
   end $L3
@@ -1914,7 +1899,6 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 4   ; __for_i_2
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -1956,7 +1940,6 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 5   ; $call_23
         br $L6
-      else
       end $L7
     end $L6
   end $L5

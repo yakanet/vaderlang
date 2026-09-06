@@ -138,18 +138,25 @@ end
 
 fn 3 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
   local __scrut_0 any
+  local if_res bool
   local.get 0   ; arg 0
   call 2   ; std_core$Range$Iterator$next__i32
   local.tee 1   ; __scrut_0
   type_check 0   ; null
   if $L0 void
-    return.lit bool.const true
+    bool.const true
+    local.set 2   ; if_res
+  else
+    local.get 1   ; __scrut_0
+    type_check 6   ; std_core$Yield__i32
+    if $L1 void
+      bool.const false
+      local.set 2   ; if_res
+    else
+      return
+    end $L1
   end $L0
-  local.get 1   ; __scrut_0
-  type_check 6   ; std_core$Yield__i32
-  if $L1 void
-    return.lit bool.const false
-  end $L1
+  local.get 2   ; if_res
   return
 end
 
@@ -173,19 +180,19 @@ fn 4 std_core$Range$Iterator$count__i32 (ref) -> usize
         if $L3 void
           bool.const true
           local.set 2   ; finished
-          br $L1
+        else
+          local.get 3   ; __scrut_0
+          type_check 6   ; std_core$Yield__i32
+          if $L4 void
+            local.get 1   ; total
+            i64.const 1
+            i64.add
+            local.set 1   ; total
+          else
+            return
+          end $L4
         end $L3
-        local.get 3   ; __scrut_0
-        type_check 6   ; std_core$Yield__i32
-        if $L4 void
-          local.get 1   ; total
-          i64.const 1
-          i64.add
-          local.set 1   ; total
-          br $L1
-        end $L4
-        return
-      else
+        br $L1
       end $L2
     end $L1
   end $L0
@@ -213,20 +220,20 @@ fn 5 std_core$Range$Iterator$last__i32 (ref) -> any
         if $L3 void
           bool.const true
           local.set 2   ; finished
-          br $L1
-        end $L3
-        local.get 3   ; __scrut_0
-        type_check 6   ; std_core$Yield__i32
-        if $L4 void
+        else
           local.get 3   ; __scrut_0
-          ref.cast 6   ; -> std_core$Yield__i32
-          struct.get 6 0   ; std_core$Yield__i32.value
-          ref.cast 1   ; -> i32
-          local.set 1   ; result
-          br $L1
-        end $L4
-        return
-      else
+          type_check 6   ; std_core$Yield__i32
+          if $L4 void
+            local.get 3   ; __scrut_0
+            ref.cast 6   ; -> std_core$Yield__i32
+            struct.get 6 0   ; std_core$Yield__i32.value
+            ref.cast 1   ; -> i32
+            local.set 1   ; result
+          else
+            return
+          end $L4
+        end $L3
+        br $L1
       end $L2
     end $L1
   end $L0
@@ -328,18 +335,25 @@ end
 
 fn 8 std_core$Range$Iterator$is_empty__usize (ref) -> bool
   local __scrut_0 any
+  local if_res bool
   local.get 0   ; arg 0
   call 7   ; std_core$Range$Iterator$next__usize
   local.tee 1   ; __scrut_0
   type_check 0   ; null
   if $L0 void
-    return.lit bool.const true
+    bool.const true
+    local.set 2   ; if_res
+  else
+    local.get 1   ; __scrut_0
+    type_check 11   ; std_core$Yield__usize
+    if $L1 void
+      bool.const false
+      local.set 2   ; if_res
+    else
+      return
+    end $L1
   end $L0
-  local.get 1   ; __scrut_0
-  type_check 11   ; std_core$Yield__usize
-  if $L1 void
-    return.lit bool.const false
-  end $L1
+  local.get 2   ; if_res
   return
 end
 
@@ -363,19 +377,19 @@ fn 9 std_core$Range$Iterator$count__usize (ref) -> usize
         if $L3 void
           bool.const true
           local.set 2   ; finished
-          br $L1
+        else
+          local.get 3   ; __scrut_0
+          type_check 11   ; std_core$Yield__usize
+          if $L4 void
+            local.get 1   ; total
+            i64.const 1
+            i64.add
+            local.set 1   ; total
+          else
+            return
+          end $L4
         end $L3
-        local.get 3   ; __scrut_0
-        type_check 11   ; std_core$Yield__usize
-        if $L4 void
-          local.get 1   ; total
-          i64.const 1
-          i64.add
-          local.set 1   ; total
-          br $L1
-        end $L4
-        return
-      else
+        br $L1
       end $L2
     end $L1
   end $L0
@@ -403,20 +417,20 @@ fn 10 std_core$Range$Iterator$last__usize (ref) -> any
         if $L3 void
           bool.const true
           local.set 2   ; finished
-          br $L1
-        end $L3
-        local.get 3   ; __scrut_0
-        type_check 11   ; std_core$Yield__usize
-        if $L4 void
+        else
           local.get 3   ; __scrut_0
-          ref.cast 11   ; -> std_core$Yield__usize
-          struct.get 11 0   ; std_core$Yield__usize.value
-          ref.cast 7   ; -> usize
-          local.set 1   ; result
-          br $L1
-        end $L4
-        return
-      else
+          type_check 11   ; std_core$Yield__usize
+          if $L4 void
+            local.get 3   ; __scrut_0
+            ref.cast 11   ; -> std_core$Yield__usize
+            struct.get 11 0   ; std_core$Yield__usize.value
+            ref.cast 7   ; -> usize
+            local.set 1   ; result
+          else
+            return
+          end $L4
+        end $L3
+        br $L1
       end $L2
     end $L1
   end $L0

@@ -40,7 +40,6 @@ fn 0 snippet$sum_ids (ref) -> i32
         i64.add
         local.set 4   ; __for_i_2
         br $L1
-      else
       end $L2
     end $L1
   end $L0

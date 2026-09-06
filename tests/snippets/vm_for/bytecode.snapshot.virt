@@ -25,7 +25,6 @@ fn 0 snippet$main () -> i32
         i32.add
         local.set 1   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0

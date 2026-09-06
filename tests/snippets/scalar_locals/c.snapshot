@@ -186,6 +186,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
 
 static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
     vader_box_t l1 = vader_box_null();
+    bool l2;
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -194,15 +195,18 @@ static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
     l1 = std_core_Range_Iterator_next__i32(l0);
     if (l1.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
-        { vader_gc_top = gc_frame.prev; return true; }
+        l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-    }
-    if ((l1.tag == 5u || l1.tag == 10u)) {
+    } else {
+        if ((l1.tag == 5u || l1.tag == 10u)) {
 #line 331805 "<clone>:lib/std/core/core.vader"
-        { vader_gc_top = gc_frame.prev; return false; }
+            l2 = false;
 #line 313387 "<clone>:lib/std/core/core.vader"
+        } else {
+            vader_unreachable("unreachable return in std_core$Range$Iterator$is_empty__i32");
+        }
     }
-    vader_unreachable("unreachable return in std_core$Range$Iterator$is_empty__i32");
+    { bool __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -227,15 +231,15 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-                    goto loop_5;
+                } else {
+                    if ((l3.tag == 5u || l3.tag == 10u)) {
+                        t0 = (l1 + INT64_C(1));
+                        l1 = (size_t) (int64_t) t0;
+                    } else {
+                        vader_unreachable("unreachable return in std_core$Range$Iterator$count__i32");
+                    }
                 }
-                if ((l3.tag == 5u || l3.tag == 10u)) {
-                    t0 = (l1 + INT64_C(1));
-                    l1 = (size_t) (int64_t) t0;
-                    goto loop_5;
-                }
-                vader_unreachable("unreachable return in std_core$Range$Iterator$count__i32");
-            } else {
+                goto loop_5;
             }
         }
     }
@@ -264,16 +268,16 @@ static vader_box_t std_core_Range_Iterator_last__i32(void* l0) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-                    goto loop_5;
+                } else {
+                    if ((l3.tag == 5u || l3.tag == 10u)) {
+                        t0 = l3.payload.obj;
+                        t1 = ((vader_struct_std_core_Yield__i32_t*) t0)->f_value;
+                        l1 = vader_box_i32(1u, t1);
+                    } else {
+                        vader_unreachable("unreachable return in std_core$Range$Iterator$last__i32");
+                    }
                 }
-                if ((l3.tag == 5u || l3.tag == 10u)) {
-                    t0 = l3.payload.obj;
-                    t1 = ((vader_struct_std_core_Yield__i32_t*) t0)->f_value;
-                    l1 = vader_box_i32(1u, t1);
-                    goto loop_5;
-                }
-                vader_unreachable("unreachable return in std_core$Range$Iterator$last__i32");
-            } else {
+                goto loop_5;
             }
         }
     }
@@ -367,6 +371,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
 
 static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
     vader_box_t l1 = vader_box_null();
+    bool l2;
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -375,15 +380,18 @@ static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
     l1 = std_core_Range_Iterator_next__usize(l0);
     if (l1.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
-        { vader_gc_top = gc_frame.prev; return true; }
+        l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-    }
-    if ((l1.tag == 10u || l1.tag == 5u)) {
+    } else {
+        if ((l1.tag == 10u || l1.tag == 5u)) {
 #line 331805 "<clone>:lib/std/core/core.vader"
-        { vader_gc_top = gc_frame.prev; return false; }
+            l2 = false;
 #line 313387 "<clone>:lib/std/core/core.vader"
+        } else {
+            vader_unreachable("unreachable return in std_core$Range$Iterator$is_empty__usize");
+        }
     }
-    vader_unreachable("unreachable return in std_core$Range$Iterator$is_empty__usize");
+    { bool __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -408,15 +416,15 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-                    goto loop_5;
+                } else {
+                    if ((l3.tag == 10u || l3.tag == 5u)) {
+                        t0 = (l1 + INT64_C(1));
+                        l1 = (size_t) (int64_t) t0;
+                    } else {
+                        vader_unreachable("unreachable return in std_core$Range$Iterator$count__usize");
+                    }
                 }
-                if ((l3.tag == 10u || l3.tag == 5u)) {
-                    t0 = (l1 + INT64_C(1));
-                    l1 = (size_t) (int64_t) t0;
-                    goto loop_5;
-                }
-                vader_unreachable("unreachable return in std_core$Range$Iterator$count__usize");
-            } else {
+                goto loop_5;
             }
         }
     }
@@ -445,16 +453,16 @@ static vader_box_t std_core_Range_Iterator_last__usize(void* l0) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
-                    goto loop_5;
+                } else {
+                    if ((l3.tag == 10u || l3.tag == 5u)) {
+                        t0 = l3.payload.obj;
+                        t1 = ((vader_struct_std_core_Yield__usize_t*) t0)->f_value;
+                        l1 = vader_box_i64(6u, (int64_t)(uint64_t) t1);
+                    } else {
+                        vader_unreachable("unreachable return in std_core$Range$Iterator$last__usize");
+                    }
                 }
-                if ((l3.tag == 10u || l3.tag == 5u)) {
-                    t0 = l3.payload.obj;
-                    t1 = ((vader_struct_std_core_Yield__usize_t*) t0)->f_value;
-                    l1 = vader_box_i64(6u, (int64_t)(uint64_t) t1);
-                    goto loop_5;
-                }
-                vader_unreachable("unreachable return in std_core$Range$Iterator$last__usize");
-            } else {
+                goto loop_5;
             }
         }
     }

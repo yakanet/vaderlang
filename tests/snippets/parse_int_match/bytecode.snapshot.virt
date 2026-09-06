@@ -49,33 +49,6 @@ export main 0
 fn 0 snippet$main () -> i32
   local __scrut_0 any
   local $call_7 string
-  local __scrut_1 any
-  local $k_17 i32
-  local $k_18 string
-  local $k_19 string
-  local $call_20 string
-  local $k_22 i32
-  local $k_23 string
-  local $k_24 string
-  local $call_25 string
-  local __scrut_2 any
-  local $k_30 i32
-  local $k_31 string
-  local $k_32 string
-  local $call_33 string
-  local $k_35 i32
-  local $k_36 string
-  local $k_37 string
-  local $call_38 string
-  local __scrut_3 any
-  local $k_43 i32
-  local $k_44 string
-  local $k_45 string
-  local $call_46 string
-  local $k_48 i32
-  local $k_49 string
-  local $k_50 string
-  local $call_51 string
   string.const 0   ; "42"
   call 26   ; std_string$parse_int
   local.tee 0   ; __scrut_0
@@ -88,553 +61,103 @@ fn 0 snippet$main () -> i32
     i32.const 0
     local.get 1   ; $call_7
     call 24   ; std_io$write
-    string.const 4   ; "nope"
-    call 26   ; std_string$parse_int
-    local.tee 2   ; __scrut_1
-    type_check 1   ; i32
+  else
+    local.get 0   ; __scrut_0
+    type_check 20   ; std_string$ParseError
     if $L1 void
-      i32.const 0
-      local.set 3   ; $k_17
-      string.const 1   ; "int ok"
-      local.set 4   ; $k_18
+      string.const 3   ; "int err"
       string.const 2   ; "\n"
-      local.set 5   ; $k_19
-      local.get 4   ; $k_18
-      local.get 5   ; $k_19
       call 1   ; concat_2
-      local.set 6   ; $call_20
-      local.get 3   ; $k_17
-      local.get 6   ; $call_20
+      local.set 1   ; $call_7
+      i32.const 0
+      local.get 1   ; $call_7
       call 24   ; std_io$write
-      string.const 5   ; "3.14"
-      call 27   ; std_string$parse_float
-      local.tee 11   ; __scrut_2
-      type_check 7   ; f64
-      if $L2 void
-        i32.const 0
-        local.set 12   ; $k_30
-        string.const 6   ; "float ok"
-        local.set 13   ; $k_31
-        string.const 2   ; "\n"
-        local.set 14   ; $k_32
-        local.get 13   ; $k_31
-        local.get 14   ; $k_32
-        call 1   ; concat_2
-        local.set 15   ; $call_33
-        local.get 12   ; $k_30
-        local.get 15   ; $call_33
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L3 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L3
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L4 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L4
-        return
-      end $L2
-      local.get 11   ; __scrut_2
-      type_check 20   ; std_string$ParseError
-      if $L5 void
-        i32.const 0
-        local.set 16   ; $k_35
-        string.const 7   ; "float err"
-        local.set 17   ; $k_36
-        string.const 2   ; "\n"
-        local.set 18   ; $k_37
-        local.get 17   ; $k_36
-        local.get 18   ; $k_37
-        call 1   ; concat_2
-        local.set 19   ; $call_38
-        local.get 16   ; $k_35
-        local.get 19   ; $call_38
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L6 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L6
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L7 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L7
-        return
-      end $L5
+    else
       return
     end $L1
-    local.get 2   ; __scrut_1
-    type_check 20   ; std_string$ParseError
-    if $L8 void
-      i32.const 0
-      local.set 7   ; $k_22
-      string.const 3   ; "int err"
-      local.set 8   ; $k_23
-      string.const 2   ; "\n"
-      local.set 9   ; $k_24
-      local.get 8   ; $k_23
-      local.get 9   ; $k_24
-      call 1   ; concat_2
-      local.set 10   ; $call_25
-      local.get 7   ; $k_22
-      local.get 10   ; $call_25
-      call 24   ; std_io$write
-      string.const 5   ; "3.14"
-      call 27   ; std_string$parse_float
-      local.tee 11   ; __scrut_2
-      type_check 7   ; f64
-      if $L9 void
-        i32.const 0
-        local.set 12   ; $k_30
-        string.const 6   ; "float ok"
-        local.set 13   ; $k_31
-        string.const 2   ; "\n"
-        local.set 14   ; $k_32
-        local.get 13   ; $k_31
-        local.get 14   ; $k_32
-        call 1   ; concat_2
-        local.set 15   ; $call_33
-        local.get 12   ; $k_30
-        local.get 15   ; $call_33
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L10 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L10
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L11 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L11
-        return
-      end $L9
-      local.get 11   ; __scrut_2
-      type_check 20   ; std_string$ParseError
-      if $L12 void
-        i32.const 0
-        local.set 16   ; $k_35
-        string.const 7   ; "float err"
-        local.set 17   ; $k_36
-        string.const 2   ; "\n"
-        local.set 18   ; $k_37
-        local.get 17   ; $k_36
-        local.get 18   ; $k_37
-        call 1   ; concat_2
-        local.set 19   ; $call_38
-        local.get 16   ; $k_35
-        local.get 19   ; $call_38
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L13 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L13
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L14 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L14
-        return
-      end $L12
-      return
-    end $L8
-    return
   end $L0
-  local.get 0   ; __scrut_0
-  type_check 20   ; std_string$ParseError
-  if $L15 void
-    string.const 3   ; "int err"
+  string.const 4   ; "nope"
+  call 26   ; std_string$parse_int
+  local.tee 0   ; __scrut_0
+  type_check 1   ; i32
+  if $L2 void
+    string.const 1   ; "int ok"
     string.const 2   ; "\n"
     call 1   ; concat_2
     local.set 1   ; $call_7
     i32.const 0
     local.get 1   ; $call_7
     call 24   ; std_io$write
-    string.const 4   ; "nope"
-    call 26   ; std_string$parse_int
-    local.tee 2   ; __scrut_1
-    type_check 1   ; i32
-    if $L16 void
-      i32.const 0
-      local.set 3   ; $k_17
-      string.const 1   ; "int ok"
-      local.set 4   ; $k_18
-      string.const 2   ; "\n"
-      local.set 5   ; $k_19
-      local.get 4   ; $k_18
-      local.get 5   ; $k_19
-      call 1   ; concat_2
-      local.set 6   ; $call_20
-      local.get 3   ; $k_17
-      local.get 6   ; $call_20
-      call 24   ; std_io$write
-      string.const 5   ; "3.14"
-      call 27   ; std_string$parse_float
-      local.tee 11   ; __scrut_2
-      type_check 7   ; f64
-      if $L17 void
-        i32.const 0
-        local.set 12   ; $k_30
-        string.const 6   ; "float ok"
-        local.set 13   ; $k_31
-        string.const 2   ; "\n"
-        local.set 14   ; $k_32
-        local.get 13   ; $k_31
-        local.get 14   ; $k_32
-        call 1   ; concat_2
-        local.set 15   ; $call_33
-        local.get 12   ; $k_30
-        local.get 15   ; $call_33
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L18 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L18
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L19 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L19
-        return
-      end $L17
-      local.get 11   ; __scrut_2
-      type_check 20   ; std_string$ParseError
-      if $L20 void
-        i32.const 0
-        local.set 16   ; $k_35
-        string.const 7   ; "float err"
-        local.set 17   ; $k_36
-        string.const 2   ; "\n"
-        local.set 18   ; $k_37
-        local.get 17   ; $k_36
-        local.get 18   ; $k_37
-        call 1   ; concat_2
-        local.set 19   ; $call_38
-        local.get 16   ; $k_35
-        local.get 19   ; $call_38
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L21 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L21
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L22 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L22
-        return
-      end $L20
-      return
-    end $L16
-    local.get 2   ; __scrut_1
+  else
+    local.get 0   ; __scrut_0
     type_check 20   ; std_string$ParseError
-    if $L23 void
-      i32.const 0
-      local.set 7   ; $k_22
+    if $L3 void
       string.const 3   ; "int err"
-      local.set 8   ; $k_23
       string.const 2   ; "\n"
-      local.set 9   ; $k_24
-      local.get 8   ; $k_23
-      local.get 9   ; $k_24
       call 1   ; concat_2
-      local.set 10   ; $call_25
-      local.get 7   ; $k_22
-      local.get 10   ; $call_25
+      local.set 1   ; $call_7
+      i32.const 0
+      local.get 1   ; $call_7
       call 24   ; std_io$write
-      string.const 5   ; "3.14"
-      call 27   ; std_string$parse_float
-      local.tee 11   ; __scrut_2
-      type_check 7   ; f64
-      if $L24 void
-        i32.const 0
-        local.set 12   ; $k_30
-        string.const 6   ; "float ok"
-        local.set 13   ; $k_31
-        string.const 2   ; "\n"
-        local.set 14   ; $k_32
-        local.get 13   ; $k_31
-        local.get 14   ; $k_32
-        call 1   ; concat_2
-        local.set 15   ; $call_33
-        local.get 12   ; $k_30
-        local.get 15   ; $call_33
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L25 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L25
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L26 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L26
-        return
-      end $L24
-      local.get 11   ; __scrut_2
-      type_check 20   ; std_string$ParseError
-      if $L27 void
-        i32.const 0
-        local.set 16   ; $k_35
-        string.const 7   ; "float err"
-        local.set 17   ; $k_36
-        string.const 2   ; "\n"
-        local.set 18   ; $k_37
-        local.get 17   ; $k_36
-        local.get 18   ; $k_37
-        call 1   ; concat_2
-        local.set 19   ; $call_38
-        local.get 16   ; $k_35
-        local.get 19   ; $call_38
-        call 24   ; std_io$write
-        string.const 4   ; "nope"
-        call 27   ; std_string$parse_float
-        local.tee 20   ; __scrut_3
-        type_check 7   ; f64
-        if $L28 void
-          i32.const 0
-          local.set 21   ; $k_43
-          string.const 6   ; "float ok"
-          local.set 22   ; $k_44
-          string.const 2   ; "\n"
-          local.set 23   ; $k_45
-          local.get 22   ; $k_44
-          local.get 23   ; $k_45
-          call 1   ; concat_2
-          local.set 24   ; $call_46
-          local.get 21   ; $k_43
-          local.get 24   ; $call_46
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L28
-        local.get 20   ; __scrut_3
-        type_check 20   ; std_string$ParseError
-        if $L29 void
-          i32.const 0
-          local.set 25   ; $k_48
-          string.const 7   ; "float err"
-          local.set 26   ; $k_49
-          string.const 2   ; "\n"
-          local.set 27   ; $k_50
-          local.get 26   ; $k_49
-          local.get 27   ; $k_50
-          call 1   ; concat_2
-          local.set 28   ; $call_51
-          local.get 25   ; $k_48
-          local.get 28   ; $call_51
-          call 24   ; std_io$write
-          return.lit i32.const 0
-        end $L29
-        return
-      end $L27
+    else
       return
-    end $L23
-    return
-  end $L15
-  return
+    end $L3
+  end $L2
+  string.const 5   ; "3.14"
+  call 27   ; std_string$parse_float
+  local.tee 0   ; __scrut_0
+  type_check 7   ; f64
+  if $L4 void
+    string.const 6   ; "float ok"
+    string.const 2   ; "\n"
+    call 1   ; concat_2
+    local.set 1   ; $call_7
+    i32.const 0
+    local.get 1   ; $call_7
+    call 24   ; std_io$write
+  else
+    local.get 0   ; __scrut_0
+    type_check 20   ; std_string$ParseError
+    if $L5 void
+      string.const 7   ; "float err"
+      string.const 2   ; "\n"
+      call 1   ; concat_2
+      local.set 1   ; $call_7
+      i32.const 0
+      local.get 1   ; $call_7
+      call 24   ; std_io$write
+    else
+      return
+    end $L5
+  end $L4
+  string.const 4   ; "nope"
+  call 27   ; std_string$parse_float
+  local.tee 0   ; __scrut_0
+  type_check 7   ; f64
+  if $L6 void
+    string.const 6   ; "float ok"
+    string.const 2   ; "\n"
+    call 1   ; concat_2
+    local.set 1   ; $call_7
+    i32.const 0
+    local.get 1   ; $call_7
+    call 24   ; std_io$write
+  else
+    local.get 0   ; __scrut_0
+    type_check 20   ; std_string$ParseError
+    if $L7 void
+      string.const 7   ; "float err"
+      string.const 2   ; "\n"
+      call 1   ; concat_2
+      local.set 1   ; $call_7
+      i32.const 0
+      local.get 1   ; $call_7
+      call 24   ; std_io$write
+    else
+      return
+    end $L7
+  end $L6
+  return.lit i32.const 0
 end
 
 fn 1 concat_2 (string,string) -> string
@@ -726,9 +249,6 @@ fn 5 std_core$parse_f64 (string) -> any
   local $field_10 i32
   local $add_16 u64
   local $field_23 bool
-  local $cast_34 u64
-  local $k_35 u64
-  local $shl_36 u64
   local.get 0   ; arg 0
   call 6   ; std_core$scan_decimal
   local.tee 1   ; parts
@@ -788,43 +308,6 @@ fn 5 std_core$parse_f64 (string) -> any
       box 7   ; -> f64
       return
     end $L2
-    local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
-    struct.get 9 0   ; std_core$DecimalParts.w
-    ref.cast 10   ; -> u64
-    local.set 2   ; $field_8
-    local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
-    struct.get 9 1   ; std_core$DecimalParts.q
-    ref.cast 1   ; -> i32
-    local.set 3   ; $field_10
-    local.get 2   ; $field_8
-    local.get 3   ; $field_10
-    call 7   ; std_core$eisel_lemire
-    local.set 4   ; $add_16
-    local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
-    struct.get 9 2   ; std_core$DecimalParts.negative
-    ref.cast 3   ; -> bool
-    if $L3 void
-      i64.const 1
-      local.set 6   ; $cast_34
-      i64.const 63
-      local.set 7   ; $k_35
-      local.get 6   ; $cast_34
-      local.get 7   ; $k_35
-      i64.shl
-      local.set 8   ; $shl_36
-      local.get 4   ; $add_16
-      local.get 8   ; $shl_36
-      i64.bitor
-      local.set 4   ; $add_16
-    else
-    end $L3
-    local.get 4   ; $add_16
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
-    box 7   ; -> f64
-    return
   end $L1
   local.get 1   ; parts
   ref.cast 9   ; -> std_core$DecimalParts
@@ -839,27 +322,22 @@ fn 5 std_core$parse_f64 (string) -> any
   local.get 2   ; $field_8
   local.get 3   ; $field_10
   call 7   ; std_core$eisel_lemire
-  local.set 4   ; $add_16
+  local.set 2   ; $field_8
   local.get 1   ; parts
   ref.cast 9   ; -> std_core$DecimalParts
   struct.get 9 2   ; std_core$DecimalParts.negative
   ref.cast 3   ; -> bool
-  if $L4 void
+  if $L3 void
     i64.const 1
-    local.set 6   ; $cast_34
     i64.const 63
-    local.set 7   ; $k_35
-    local.get 6   ; $cast_34
-    local.get 7   ; $k_35
     i64.shl
-    local.set 8   ; $shl_36
-    local.get 4   ; $add_16
-    local.get 8   ; $shl_36
-    i64.bitor
     local.set 4   ; $add_16
-  else
-  end $L4
-  local.get 4   ; $add_16
+    local.get 2   ; $field_8
+    local.get 4   ; $add_16
+    i64.bitor
+    local.set 2   ; $field_8
+  end $L3
+  local.get 2   ; $field_8
   call 31   ; std_core$u64$BitsFloat$from_bits_vt
   box 7   ; -> f64
   return
@@ -912,7 +390,6 @@ fn 6 std_core$scan_decimal (string) -> any
     if $L2 void
       i64.const 1
       local.set 2   ; i
-    else
     end $L2
   end $L1
   i64.const 0
@@ -979,7 +456,6 @@ fn 6 std_core$scan_decimal (string) -> any
             i32.const 1
             i32.add
             local.set 5   ; sig
-          else
           end $L9
         else
           local.get 6   ; q
@@ -994,7 +470,6 @@ fn 6 std_core$scan_decimal (string) -> any
         i64.add
         local.set 2   ; i
         br $L4
-      else
       end $L6
     end $L4
   end $L3
@@ -1072,7 +547,6 @@ fn 6 std_core$scan_decimal (string) -> any
               i32.const 1
               i32.add
               local.set 5   ; sig
-            else
             end $L18
             local.get 6   ; q
             i32.const 1
@@ -1087,11 +561,9 @@ fn 6 std_core$scan_decimal (string) -> any
           i64.add
           local.set 2   ; i
           br $L13
-        else
         end $L15
       end $L13
     end $L12
-  else
   end $L11
   local.get 8   ; saw_digit
   bool.not
@@ -1177,7 +649,6 @@ fn 6 std_core$scan_decimal (string) -> any
         i64.const 1
         i64.add
         local.set 2   ; i
-      else
       end $L26
     end $L24
     local.get 2   ; i
@@ -1238,14 +709,12 @@ fn 6 std_core$scan_decimal (string) -> any
             local.get 13   ; $cast_152
             i32.add
             local.set 5   ; sig
-          else
           end $L33
           local.get 2   ; i
           i64.const 1
           i64.add
           local.set 2   ; i
           br $L30
-        else
         end $L32
       end $L30
     end $L29
@@ -1261,29 +730,15 @@ fn 6 std_core$scan_decimal (string) -> any
       i32.add
       local.set 6   ; q
     end $L34
-    local.get 2   ; i
-    local.get 1   ; n
-    i64.ne
-    if $L35 void
-      null.const
-      box 0   ; -> null
-      return
-    end $L35
-    local.get 4   ; w
-    local.get 6   ; q
-    local.get 3   ; negative
-    local.get 7   ; too_many
-    struct.new 9   ; std_core$DecimalParts
-    return
   end $L22
   local.get 2   ; i
   local.get 1   ; n
   i64.ne
-  if $L36 void
+  if $L35 void
     null.const
     box 0   ; -> null
     return
-  end $L36
+  end $L35
   local.get 4   ; w
   local.get 6   ; q
   local.get 3   ; negative
@@ -1499,9 +954,7 @@ fn 7 std_core$eisel_lemire (u64,i32) -> u64
       local.get 3   ; $cast_13
       i64.bitand
       local.set 9   ; $cast_39
-    else
     end $L10
-  else
   end $L9
   local.get 9   ; $cast_39
   i64.const 1
@@ -1536,7 +989,6 @@ fn 7 std_core$eisel_lemire (u64,i32) -> u64
     i32.const 1
     i32.add
     local.set 5   ; lz
-  else
   end $L11
   i32.const 52
   i32.to_i64
@@ -1640,7 +1092,6 @@ fn 8 std_core$parse_f64_slow (string,bool) -> f64
           i32.add
           local.set 5   ; b_exp
           br $L4
-        else
         end $L5
       end $L4
     end $L3
@@ -1682,14 +1133,12 @@ fn 8 std_core$parse_f64_slow (string,bool) -> f64
           if $L9 void
             bool.const true
             local.set 6   ; sticky
-          else
           end $L9
           local.get 9   ; _k
           i32.const 1
           i32.add
           local.set 9   ; _k
           br $L7
-        else
         end $L8
       end $L7
     end $L6
@@ -1756,7 +1205,6 @@ fn 8 std_core$parse_f64_slow (string,bool) -> f64
       i32.const 1
       i32.add
       local.set 8   ; g
-    else
     end $L12
     local.get 8   ; g
     i32.const 2047
@@ -1856,7 +1304,6 @@ fn 10 std_core$pf_clz64 (u64) -> i32
         i32.add
         local.set 1   ; n
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1928,9 +1375,7 @@ fn 11 std_core$pf_product (i32,u64) -> ref
       i64.const 1
       i64.add
       local.set 4   ; $idx_9
-    else
     end $L1
-  else
   end $L0
   local.get 4   ; $idx_9
   local.get 6   ; lo
@@ -1976,7 +1421,6 @@ fn 12 std_core$sd_scan (string) -> ref
   if $L1 void
     i64.const 1
     local.set 2   ; i
-  else
   end $L1
   i32.const 0
   array.new 14 1   ; u32[][]
@@ -2030,14 +1474,12 @@ fn 12 std_core$sd_scan (string) -> ref
           local.set 4   ; d
           bool.const true
           local.set 3   ; or_res
-        else
         end $L7
         local.get 2   ; i
         i64.const 1
         i64.add
         local.set 2   ; i
         br $L3
-      else
       end $L5
     end $L3
   end $L2
@@ -2106,7 +1548,6 @@ fn 12 std_core$sd_scan (string) -> ref
             local.set 4   ; d
             bool.const true
             local.set 3   ; or_res
-          else
           end $L15
           local.get 5   ; e
           i32.const 1
@@ -2117,11 +1558,9 @@ fn 12 std_core$sd_scan (string) -> ref
           i64.add
           local.set 2   ; i
           br $L11
-        else
         end $L13
       end $L11
     end $L10
-  else
   end $L9
   local.get 2   ; i
   local.get 1   ; n
@@ -2200,7 +1639,6 @@ fn 12 std_core$sd_scan (string) -> ref
         i64.const 1
         i64.add
         local.set 2   ; i
-      else
       end $L22
     end $L20
     i32.const 0
@@ -2241,14 +1679,12 @@ fn 12 std_core$sd_scan (string) -> ref
             local.get 12   ; $cast_117
             i32.add
             local.set 10   ; ev
-          else
           end $L27
           local.get 2   ; i
           i64.const 1
           i64.add
           local.set 2   ; i
           br $L24
-        else
         end $L26
       end $L24
     end $L23
@@ -2264,7 +1700,6 @@ fn 12 std_core$sd_scan (string) -> ref
       i32.add
       local.set 5   ; e
     end $L28
-  else
   end $L18
   local.get 4   ; d
   local.get 5   ; e
@@ -2300,7 +1735,6 @@ fn 13 std_core$is_zero (ref) -> bool
         i64.add
         local.set 2   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2342,7 +1776,6 @@ fn 14 std_core$shl (ref,i32) -> ref
         i64.add
         local.set 4   ; _z
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2377,7 +1810,6 @@ fn 14 std_core$shl (ref,i32) -> ref
           i64.add
           local.set 4   ; _z
           br $L5
-        else
         end $L6
       end $L5
     end $L4
@@ -2434,7 +1866,6 @@ fn 14 std_core$shl (ref,i32) -> ref
         i64.add
         local.set 4   ; _z
         br $L8
-      else
       end $L9
     end $L8
   end $L7
@@ -2445,7 +1876,6 @@ fn 14 std_core$shl (ref,i32) -> ref
     local.get 2   ; out
     local.get 6   ; $idx_24
     array.push 15   ; u32[]
-  else
   end $L10
   local.get 2   ; out
   return
@@ -2507,7 +1937,6 @@ fn 15 std_core$bit_len (ref) -> i32
         i32.sub
         local.set 1   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2743,7 +2172,6 @@ fn 18 std_core$mul_add_small (ref,u32,u32) -> ref
         i64.add
         local.set 6   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2766,7 +2194,6 @@ fn 18 std_core$mul_add_small (ref,u32,u32) -> ref
         u64.shr
         local.set 4   ; carry
         br $L4
-      else
       end $L5
     end $L4
   end $L3
@@ -2798,7 +2225,6 @@ fn 19 std_core$clz32 (u32) -> i32
         i32.add
         local.set 1   ; n
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2931,7 +2357,6 @@ fn 21 std_core$any_below (ref,i32) -> bool
         i64.add
         local.set 5   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -2978,7 +2403,6 @@ fn 21 std_core$any_below (ref,i32) -> bool
     if $L6 void
       return.lit bool.const true
     end $L6
-    return.lit bool.const false
   end $L5
   return.lit bool.const false
 end
@@ -3075,7 +2499,6 @@ fn 23 std_core$BigInt$Div$div (ref,u32) -> ref
         i32.sub
         local.set 4   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -3109,7 +2532,6 @@ fn 23 std_core$BigInt$Div$div (ref,u32) -> ref
         i32.sub
         local.set 4   ; i
         br $L4
-      else
       end $L5
     end $L4
   end $L3
@@ -3145,36 +2567,36 @@ fn 24 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 17   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 25   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 17   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 25   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -3210,7 +2632,6 @@ fn 26 std_string$parse_int (string) -> any
   local $mul_34 i64
   local $cast_37 i64
   local $add_41 i64
-  local $k_49 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.tee 1   ; n
@@ -3235,7 +2656,6 @@ fn 26 std_string$parse_int (string) -> any
     local.set 3   ; neg
     i64.const 1
     local.set 2   ; i
-  else
   end $L1
   local.get 2   ; i
   local.get 1   ; n
@@ -3299,30 +2719,21 @@ fn 26 std_string$parse_int (string) -> any
             struct.new 20   ; std_string$ParseError
             return
           end $L9
-          i64.const 1
-          local.set 10   ; $k_49
-          local.get 2   ; i
-          local.get 10   ; $k_49
-          i64.add
-          local.set 2   ; i
-          br $L4
+        else
+          local.get 4   ; acc
+          i64.const 2147483647
+          i64.gt
+          if $L10 void
+            string.const 11   ; "parse_int: overflow"
+            struct.new 20   ; std_string$ParseError
+            return
+          end $L10
         end $L8
-        local.get 4   ; acc
-        i64.const 2147483647
-        i64.gt
-        if $L10 void
-          string.const 11   ; "parse_int: overflow"
-          struct.new 20   ; std_string$ParseError
-          return
-        end $L10
-        i64.const 1
-        local.set 10   ; $k_49
         local.get 2   ; i
-        local.get 10   ; $k_49
+        i64.const 1
         i64.add
         local.set 2   ; i
         br $L4
-      else
       end $L5
     end $L4
   end $L3

@@ -35,56 +35,63 @@ fn 1 snippet$find (any,i32) -> any
   type_check 0   ; null
   if $L0 void
     null.const
-    local.tee 2   ; if_res
-    return
-  end $L0
-  local.get 0   ; arg 0
-  type_check 3   ; snippet$Node
-  if $L1 void
+    local.set 2   ; if_res
+  else
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Node
-    local.set 3   ; h
-    local.field 3 3 0   ; h.value
-    ref.cast 1   ; -> i32
-    local.get 1   ; arg 1
-    i32.eq
-    if $L2 void
-      local.get 3   ; h
-      local.set 2   ; if_res
-    else
-      local.field 3 3 1   ; h.next
+    type_check 3   ; snippet$Node
+    if $L1 void
+      local.get 0   ; arg 0
+      ref.cast 3   ; -> snippet$Node
+      local.set 3   ; h
+      local.field 3 3 0   ; h.value
+      ref.cast 1   ; -> i32
       local.get 1   ; arg 1
-      call 1   ; snippet$find
-      local.set 2   ; if_res
-    end $L2
-    local.get 2   ; if_res
-    return
-  end $L1
+      i32.eq
+      if $L2 void
+        local.get 3   ; h
+        local.set 2   ; if_res
+      else
+        local.field 3 3 1   ; h.next
+        local.get 1   ; arg 1
+        call 1   ; snippet$find
+        local.set 2   ; if_res
+      end $L2
+    else
+      return
+    end $L1
+  end $L0
+  local.get 2   ; if_res
   return
 end
 
 fn 2 snippet$length (any) -> i32
+  local if_res i32
   local h ref
   local $call_9 i32
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
-    return.lit i32.const 0
-  end $L0
-  local.get 0   ; arg 0
-  type_check 3   ; snippet$Node
-  if $L1 void
+    i32.const 0
+    local.set 1   ; if_res
+  else
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Node
-    local.set 1   ; h
-    local.field 1 3 1   ; h.next
-    call 2   ; snippet$length
-    local.set 2   ; $call_9
-    i32.const 1
-    local.get 2   ; $call_9
-    i32.add
-    return
-  end $L1
+    type_check 3   ; snippet$Node
+    if $L1 void
+      local.get 0   ; arg 0
+      ref.cast 3   ; -> snippet$Node
+      local.set 2   ; h
+      local.field 2 3 1   ; h.next
+      call 2   ; snippet$length
+      local.set 3   ; $call_9
+      i32.const 1
+      local.get 3   ; $call_9
+      i32.add
+      local.set 1   ; if_res
+    else
+      return
+    end $L1
+  end $L0
+  local.get 1   ; if_res
   return
 end
 
@@ -96,21 +103,6 @@ fn 3 snippet$main () -> i32
   local $call_21 string
   local __scrut_2 any
   local __buf_3 ref
-  local $k_47 i32
-  local __scrut_5 any
-  local $k_51 i32
-  local $k_52 string
-  local $k_53 string
-  local $call_54 string
-  local h ref
-  local $k_58 i32
-  local __buf_6 ref
-  local __off_7 usize
-  local $k_64 string
-  local $cast_67 i64
-  local $call_69 string
-  local $k_70 string
-  local $call_71 string
   i32.const 3
   null.const
   call 0   ; snippet$cons
@@ -164,179 +156,98 @@ fn 3 snippet$main () -> i32
     i32.const 0
     local.get 4   ; $call_21
     call 9   ; std_io$write
-    i32.const 42
-    local.set 7   ; $k_47
-    local.get 0   ; $call_4
-    local.get 7   ; $k_47
-    call 1   ; snippet$find
-    local.tee 8   ; __scrut_5
-    type_check 0   ; null
-    if $L1 void
-      i32.const 0
-      local.set 9   ; $k_51
-      string.const 2   ; "not found"
-      local.set 10   ; $k_52
-      string.const 1   ; "\n"
-      local.set 11   ; $k_53
-      local.get 10   ; $k_52
-      local.get 11   ; $k_53
-      call 4   ; concat_2
-      local.set 12   ; $call_54
-      local.get 9   ; $k_51
-      local.get 12   ; $call_54
-      call 9   ; std_io$write
-      return.lit i32.const 0
-    end $L1
-    local.get 8   ; __scrut_5
+  else
+    local.get 5   ; __scrut_2
     type_check 3   ; snippet$Node
-    if $L2 void
-      local.get 8   ; __scrut_5
+    if $L1 void
+      local.get 5   ; __scrut_2
       ref.cast 3   ; -> snippet$Node
-      local.set 13   ; h
-      i32.const 0
-      local.set 14   ; $k_58
+      local.set 1   ; __buf_0
       i64.const 26
       call 5   ; std_core$new_byte_buffer
-      local.set 15   ; __buf_6
+      local.set 6   ; __buf_3
       i64.const 0
-      local.set 16   ; __off_7
+      local.set 2   ; __off_1
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
       string.const 3   ; "found "
-      local.set 17   ; $k_64
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
-      local.get 17   ; $k_64
       call 7   ; std_core$write_string_at
-      local.set 16   ; __off_7
-      local.field 13 3 0   ; h.value
+      local.set 2   ; __off_1
+      local.field 1 3 0   ; __buf_0.value
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 18   ; $cast_67
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
-      local.get 18   ; $cast_67
+      local.set 3   ; $cast_17
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
+      local.get 3   ; $cast_17
       call 8   ; std_core$write_int
-      local.set 16   ; __off_7
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
+      local.set 2   ; __off_1
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
       call 6   ; std_core$finish_buffer
-      local.set 19   ; $call_69
       string.const 1   ; "\n"
-      local.set 20   ; $k_70
-      local.get 19   ; $call_69
-      local.get 20   ; $k_70
       call 4   ; concat_2
-      local.set 21   ; $call_71
-      local.get 14   ; $k_58
-      local.get 21   ; $call_71
+      local.set 4   ; $call_21
+      i32.const 0
+      local.get 4   ; $call_21
       call 9   ; std_io$write
-      return.lit i32.const 0
-    end $L2
-    return
+    else
+      return
+    end $L1
   end $L0
-  local.get 5   ; __scrut_2
-  type_check 3   ; snippet$Node
-  if $L3 void
-    local.get 5   ; __scrut_2
-    ref.cast 3   ; -> snippet$Node
-    local.set 1   ; __buf_0
-    i64.const 26
-    call 5   ; std_core$new_byte_buffer
-    local.set 6   ; __buf_3
-    i64.const 0
-    local.set 2   ; __off_1
-    local.get 6   ; __buf_3
-    local.get 2   ; __off_1
-    string.const 3   ; "found "
-    call 7   ; std_core$write_string_at
-    local.set 2   ; __off_1
-    local.field 1 3 0   ; __buf_0.value
-    ref.cast 1   ; -> i32
-    i32.to_i64
-    local.set 3   ; $cast_17
-    local.get 6   ; __buf_3
-    local.get 2   ; __off_1
-    local.get 3   ; $cast_17
-    call 8   ; std_core$write_int
-    local.set 2   ; __off_1
-    local.get 6   ; __buf_3
-    local.get 2   ; __off_1
-    call 6   ; std_core$finish_buffer
+  local.get 0   ; $call_4
+  i32.const 42
+  call 1   ; snippet$find
+  local.tee 0   ; $call_4
+  type_check 0   ; null
+  if $L2 void
+    string.const 2   ; "not found"
     string.const 1   ; "\n"
     call 4   ; concat_2
     local.set 4   ; $call_21
     i32.const 0
     local.get 4   ; $call_21
     call 9   ; std_io$write
-    i32.const 42
-    local.set 7   ; $k_47
+  else
     local.get 0   ; $call_4
-    local.get 7   ; $k_47
-    call 1   ; snippet$find
-    local.tee 8   ; __scrut_5
-    type_check 0   ; null
-    if $L4 void
-      i32.const 0
-      local.set 9   ; $k_51
-      string.const 2   ; "not found"
-      local.set 10   ; $k_52
-      string.const 1   ; "\n"
-      local.set 11   ; $k_53
-      local.get 10   ; $k_52
-      local.get 11   ; $k_53
-      call 4   ; concat_2
-      local.set 12   ; $call_54
-      local.get 9   ; $k_51
-      local.get 12   ; $call_54
-      call 9   ; std_io$write
-      return.lit i32.const 0
-    end $L4
-    local.get 8   ; __scrut_5
     type_check 3   ; snippet$Node
-    if $L5 void
-      local.get 8   ; __scrut_5
+    if $L3 void
+      local.get 0   ; $call_4
       ref.cast 3   ; -> snippet$Node
-      local.set 13   ; h
-      i32.const 0
-      local.set 14   ; $k_58
+      local.set 1   ; __buf_0
       i64.const 26
       call 5   ; std_core$new_byte_buffer
-      local.set 15   ; __buf_6
+      local.set 6   ; __buf_3
       i64.const 0
-      local.set 16   ; __off_7
+      local.set 2   ; __off_1
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
       string.const 3   ; "found "
-      local.set 17   ; $k_64
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
-      local.get 17   ; $k_64
       call 7   ; std_core$write_string_at
-      local.set 16   ; __off_7
-      local.field 13 3 0   ; h.value
+      local.set 2   ; __off_1
+      local.field 1 3 0   ; __buf_0.value
       ref.cast 1   ; -> i32
       i32.to_i64
-      local.set 18   ; $cast_67
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
-      local.get 18   ; $cast_67
+      local.set 3   ; $cast_17
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
+      local.get 3   ; $cast_17
       call 8   ; std_core$write_int
-      local.set 16   ; __off_7
-      local.get 15   ; __buf_6
-      local.get 16   ; __off_7
+      local.set 2   ; __off_1
+      local.get 6   ; __buf_3
+      local.get 2   ; __off_1
       call 6   ; std_core$finish_buffer
-      local.set 19   ; $call_69
       string.const 1   ; "\n"
-      local.set 20   ; $k_70
-      local.get 19   ; $call_69
-      local.get 20   ; $k_70
       call 4   ; concat_2
-      local.set 21   ; $call_71
-      local.get 14   ; $k_58
-      local.get 21   ; $call_71
+      local.set 4   ; $call_21
+      i32.const 0
+      local.get 4   ; $call_21
       call 9   ; std_io$write
-      return.lit i32.const 0
-    end $L5
-    return
-  end $L3
-  return
+    else
+      return
+    end $L3
+  end $L2
+  return.lit i32.const 0
 end
 
 fn 4 concat_2 (string,string) -> string
@@ -427,7 +338,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -448,7 +358,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -495,7 +404,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -505,7 +413,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -536,36 +443,36 @@ fn 9 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 9   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 10   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 9   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 10   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

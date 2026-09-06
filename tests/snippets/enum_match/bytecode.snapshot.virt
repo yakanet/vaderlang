@@ -41,24 +41,33 @@ fn 0 snippet$classify (i32) -> i32
 end
 
 fn 1 snippet$label (i32) -> string
+  local if_res string
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
-    return.lit string.const 0   ; "red"
+    string.const 0   ; "red"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 1
+    i32.eq
+    if $L1 void
+      string.const 1   ; "green"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 2
+      i32.eq
+      if $L2 void
+        string.const 2   ; "blue"
+        local.set 1   ; if_res
+      else
+        return
+      end $L2
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.eq
-  if $L1 void
-    return.lit string.const 1   ; "green"
-  end $L1
-  local.get 0   ; arg 0
-  i32.const 2
-  i32.eq
-  if $L2 void
-    return.lit string.const 2   ; "blue"
-  end $L2
+  local.get 1   ; if_res
   return
 end
 
@@ -75,38 +84,6 @@ fn 3 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $call_24 bool
-  local s2 i32
-  local $k_91 i32
-  local $k_93 i32
-  local $k_94 string
-  local $k_95 string
-  local $call_96 string
-  local $k_97 i32
-  local $k_99 i32
-  local $k_100 string
-  local $k_101 string
-  local $call_102 string
-  local $k_103 i32
-  local $k_105 i32
-  local $k_106 string
-  local $k_107 string
-  local $call_108 string
-  local s3 i32
-  local $k_112 i32
-  local $k_114 i32
-  local $k_115 string
-  local $k_116 string
-  local $call_117 string
-  local $k_118 i32
-  local $k_120 i32
-  local $k_121 string
-  local $k_122 string
-  local $call_123 string
-  local $k_124 i32
-  local $k_126 i32
-  local $k_127 string
-  local $k_128 string
-  local $call_129 string
   i32.const 1
   local.tee 0   ; c
   call 1   ; snippet$label
@@ -238,827 +215,120 @@ fn 3 snippet$main () -> i32
     i32.const 0
     local.get 1   ; $call_5
     call 9   ; std_io$write
-    i32.const 0
-    call 0   ; snippet$classify
-    local.set 5   ; s2
-    i32.const 0
-    local.set 6   ; $k_91
-    local.get 5   ; s2
-    local.get 6   ; $k_91
+  else
+    local.get 0   ; c
+    i32.const 1
     i32.eq
     if $L1 void
-      i32.const 0
-      local.set 7   ; $k_93
-      string.const 4   ; "info"
-      local.set 8   ; $k_94
+      string.const 5   ; "warning"
       string.const 3   ; "\n"
-      local.set 9   ; $k_95
-      local.get 8   ; $k_94
-      local.get 9   ; $k_95
       call 4   ; concat_2
-      local.set 10   ; $call_96
-      local.get 7   ; $k_93
-      local.get 10   ; $call_96
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
+      local.set 1   ; $call_5
       i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
+      local.get 1   ; $call_5
+      call 9   ; std_io$write
+    else
+      local.get 0   ; c
+      i32.const 2
       i32.eq
       if $L2 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L2
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L3 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L3
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L4 void
-        i32.const 0
-        local.set 33   ; $k_126
         string.const 6   ; "error"
-        local.set 34   ; $k_127
         string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
         call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
+        local.set 1   ; $call_5
+        i32.const 0
+        local.get 1   ; $call_5
         call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L4
-      return
+      else
+        return
+      end $L2
     end $L1
+  end $L0
+  i32.const 0
+  call 0   ; snippet$classify
+  local.tee 0   ; c
+  i32.const 0
+  i32.eq
+  if $L3 void
+    string.const 4   ; "info"
+    string.const 3   ; "\n"
+    call 4   ; concat_2
+    local.set 1   ; $call_5
+    i32.const 0
+    local.get 1   ; $call_5
+    call 9   ; std_io$write
+  else
+    local.get 0   ; c
     i32.const 1
-    local.set 11   ; $k_97
-    local.get 5   ; s2
-    local.get 11   ; $k_97
     i32.eq
-    if $L5 void
-      i32.const 0
-      local.set 12   ; $k_99
+    if $L4 void
       string.const 5   ; "warning"
-      local.set 13   ; $k_100
       string.const 3   ; "\n"
-      local.set 14   ; $k_101
-      local.get 13   ; $k_100
-      local.get 14   ; $k_101
       call 4   ; concat_2
-      local.set 15   ; $call_102
-      local.get 12   ; $k_99
-      local.get 15   ; $call_102
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
+      local.set 1   ; $call_5
       i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L6 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L6
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L7 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L7
+      local.get 1   ; $call_5
+      call 9   ; std_io$write
+    else
+      local.get 0   ; c
       i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
+      i32.eq
+      if $L5 void
+        string.const 6   ; "error"
+        string.const 3   ; "\n"
+        call 4   ; concat_2
+        local.set 1   ; $call_5
+        i32.const 0
+        local.get 1   ; $call_5
+        call 9   ; std_io$write
+      else
+        return
+      end $L5
+    end $L4
+  end $L3
+  i32.const 1
+  call 0   ; snippet$classify
+  local.tee 0   ; c
+  i32.const 0
+  i32.eq
+  if $L6 void
+    string.const 4   ; "info"
+    string.const 3   ; "\n"
+    call 4   ; concat_2
+    local.set 1   ; $call_5
+    i32.const 0
+    local.get 1   ; $call_5
+    call 9   ; std_io$write
+  else
+    local.get 0   ; c
+    i32.const 1
+    i32.eq
+    if $L7 void
+      string.const 5   ; "warning"
+      string.const 3   ; "\n"
+      call 4   ; concat_2
+      local.set 1   ; $call_5
+      i32.const 0
+      local.get 1   ; $call_5
+      call 9   ; std_io$write
+    else
+      local.get 0   ; c
+      i32.const 2
       i32.eq
       if $L8 void
-        i32.const 0
-        local.set 33   ; $k_126
         string.const 6   ; "error"
-        local.set 34   ; $k_127
         string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
         call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
+        local.set 1   ; $call_5
+        i32.const 0
+        local.get 1   ; $call_5
         call 9   ; std_io$write
-        return.lit i32.const 0
+      else
+        return
       end $L8
-      return
-    end $L5
-    i32.const 2
-    local.set 16   ; $k_103
-    local.get 5   ; s2
-    local.get 16   ; $k_103
-    i32.eq
-    if $L9 void
-      i32.const 0
-      local.set 17   ; $k_105
-      string.const 6   ; "error"
-      local.set 18   ; $k_106
-      string.const 3   ; "\n"
-      local.set 19   ; $k_107
-      local.get 18   ; $k_106
-      local.get 19   ; $k_107
-      call 4   ; concat_2
-      local.set 20   ; $call_108
-      local.get 17   ; $k_105
-      local.get 20   ; $call_108
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L10 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L10
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L11 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L11
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L12 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L12
-      return
-    end $L9
-    return
-  end $L0
-  local.get 0   ; c
-  i32.const 1
-  i32.eq
-  if $L13 void
-    string.const 5   ; "warning"
-    string.const 3   ; "\n"
-    call 4   ; concat_2
-    local.set 1   ; $call_5
-    i32.const 0
-    local.get 1   ; $call_5
-    call 9   ; std_io$write
-    i32.const 0
-    call 0   ; snippet$classify
-    local.set 5   ; s2
-    i32.const 0
-    local.set 6   ; $k_91
-    local.get 5   ; s2
-    local.get 6   ; $k_91
-    i32.eq
-    if $L14 void
-      i32.const 0
-      local.set 7   ; $k_93
-      string.const 4   ; "info"
-      local.set 8   ; $k_94
-      string.const 3   ; "\n"
-      local.set 9   ; $k_95
-      local.get 8   ; $k_94
-      local.get 9   ; $k_95
-      call 4   ; concat_2
-      local.set 10   ; $call_96
-      local.get 7   ; $k_93
-      local.get 10   ; $call_96
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L15 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L15
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L16 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L16
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L17 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L17
-      return
-    end $L14
-    i32.const 1
-    local.set 11   ; $k_97
-    local.get 5   ; s2
-    local.get 11   ; $k_97
-    i32.eq
-    if $L18 void
-      i32.const 0
-      local.set 12   ; $k_99
-      string.const 5   ; "warning"
-      local.set 13   ; $k_100
-      string.const 3   ; "\n"
-      local.set 14   ; $k_101
-      local.get 13   ; $k_100
-      local.get 14   ; $k_101
-      call 4   ; concat_2
-      local.set 15   ; $call_102
-      local.get 12   ; $k_99
-      local.get 15   ; $call_102
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L19 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L19
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L20 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L20
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L21 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L21
-      return
-    end $L18
-    i32.const 2
-    local.set 16   ; $k_103
-    local.get 5   ; s2
-    local.get 16   ; $k_103
-    i32.eq
-    if $L22 void
-      i32.const 0
-      local.set 17   ; $k_105
-      string.const 6   ; "error"
-      local.set 18   ; $k_106
-      string.const 3   ; "\n"
-      local.set 19   ; $k_107
-      local.get 18   ; $k_106
-      local.get 19   ; $k_107
-      call 4   ; concat_2
-      local.set 20   ; $call_108
-      local.get 17   ; $k_105
-      local.get 20   ; $call_108
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L23 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L23
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L24 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L24
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L25 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L25
-      return
-    end $L22
-    return
-  end $L13
-  local.get 0   ; c
-  i32.const 2
-  i32.eq
-  if $L26 void
-    string.const 6   ; "error"
-    string.const 3   ; "\n"
-    call 4   ; concat_2
-    local.set 1   ; $call_5
-    i32.const 0
-    local.get 1   ; $call_5
-    call 9   ; std_io$write
-    i32.const 0
-    call 0   ; snippet$classify
-    local.set 5   ; s2
-    i32.const 0
-    local.set 6   ; $k_91
-    local.get 5   ; s2
-    local.get 6   ; $k_91
-    i32.eq
-    if $L27 void
-      i32.const 0
-      local.set 7   ; $k_93
-      string.const 4   ; "info"
-      local.set 8   ; $k_94
-      string.const 3   ; "\n"
-      local.set 9   ; $k_95
-      local.get 8   ; $k_94
-      local.get 9   ; $k_95
-      call 4   ; concat_2
-      local.set 10   ; $call_96
-      local.get 7   ; $k_93
-      local.get 10   ; $call_96
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L28 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L28
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L29 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L29
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L30 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L30
-      return
-    end $L27
-    i32.const 1
-    local.set 11   ; $k_97
-    local.get 5   ; s2
-    local.get 11   ; $k_97
-    i32.eq
-    if $L31 void
-      i32.const 0
-      local.set 12   ; $k_99
-      string.const 5   ; "warning"
-      local.set 13   ; $k_100
-      string.const 3   ; "\n"
-      local.set 14   ; $k_101
-      local.get 13   ; $k_100
-      local.get 14   ; $k_101
-      call 4   ; concat_2
-      local.set 15   ; $call_102
-      local.get 12   ; $k_99
-      local.get 15   ; $call_102
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L32 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L32
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L33 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L33
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L34 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L34
-      return
-    end $L31
-    i32.const 2
-    local.set 16   ; $k_103
-    local.get 5   ; s2
-    local.get 16   ; $k_103
-    i32.eq
-    if $L35 void
-      i32.const 0
-      local.set 17   ; $k_105
-      string.const 6   ; "error"
-      local.set 18   ; $k_106
-      string.const 3   ; "\n"
-      local.set 19   ; $k_107
-      local.get 18   ; $k_106
-      local.get 19   ; $k_107
-      call 4   ; concat_2
-      local.set 20   ; $call_108
-      local.get 17   ; $k_105
-      local.get 20   ; $call_108
-      call 9   ; std_io$write
-      i32.const 1
-      call 0   ; snippet$classify
-      local.set 21   ; s3
-      i32.const 0
-      local.set 22   ; $k_112
-      local.get 21   ; s3
-      local.get 22   ; $k_112
-      i32.eq
-      if $L36 void
-        i32.const 0
-        local.set 23   ; $k_114
-        string.const 4   ; "info"
-        local.set 24   ; $k_115
-        string.const 3   ; "\n"
-        local.set 25   ; $k_116
-        local.get 24   ; $k_115
-        local.get 25   ; $k_116
-        call 4   ; concat_2
-        local.set 26   ; $call_117
-        local.get 23   ; $k_114
-        local.get 26   ; $call_117
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L36
-      i32.const 1
-      local.set 27   ; $k_118
-      local.get 21   ; s3
-      local.get 27   ; $k_118
-      i32.eq
-      if $L37 void
-        i32.const 0
-        local.set 28   ; $k_120
-        string.const 5   ; "warning"
-        local.set 29   ; $k_121
-        string.const 3   ; "\n"
-        local.set 30   ; $k_122
-        local.get 29   ; $k_121
-        local.get 30   ; $k_122
-        call 4   ; concat_2
-        local.set 31   ; $call_123
-        local.get 28   ; $k_120
-        local.get 31   ; $call_123
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L37
-      i32.const 2
-      local.set 32   ; $k_124
-      local.get 21   ; s3
-      local.get 32   ; $k_124
-      i32.eq
-      if $L38 void
-        i32.const 0
-        local.set 33   ; $k_126
-        string.const 6   ; "error"
-        local.set 34   ; $k_127
-        string.const 3   ; "\n"
-        local.set 35   ; $k_128
-        local.get 34   ; $k_127
-        local.get 35   ; $k_128
-        call 4   ; concat_2
-        local.set 36   ; $call_129
-        local.get 33   ; $k_126
-        local.get 36   ; $call_129
-        call 9   ; std_io$write
-        return.lit i32.const 0
-      end $L38
-      return
-    end $L35
-    return
-  end $L26
-  return
+    end $L7
+  end $L6
+  return.lit i32.const 0
 end
 
 fn 4 concat_2 (string,string) -> string
@@ -1157,36 +427,36 @@ fn 9 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 7   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 10   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 7   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 10   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

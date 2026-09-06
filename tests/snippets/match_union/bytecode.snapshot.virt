@@ -21,21 +21,30 @@ impl 5 ByteAccess
 export main 1
 
 fn 0 snippet$describe (any) -> string
+  local if_res string
   local.get 0   ; arg 0
   type_check 2   ; i32
   if $L0 void
-    return.lit string.const 0   ; "an int"
+    string.const 0   ; "an int"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    type_check 3   ; string
+    if $L1 void
+      string.const 1   ; "a string"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      type_check 0   ; null
+      if $L2 void
+        string.const 2   ; "nothing"
+        local.set 1   ; if_res
+      else
+        return
+      end $L2
+    end $L1
   end $L0
-  local.get 0   ; arg 0
-  type_check 3   ; string
-  if $L1 void
-    return.lit string.const 1   ; "a string"
-  end $L1
-  local.get 0   ; arg 0
-  type_check 0   ; null
-  if $L2 void
-    return.lit string.const 2   ; "nothing"
-  end $L2
+  local.get 1   ; if_res
   return
 end
 
@@ -133,36 +142,36 @@ fn 5 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 7   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 6   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 7   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 6   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

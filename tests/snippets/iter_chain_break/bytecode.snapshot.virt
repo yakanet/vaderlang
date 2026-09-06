@@ -587,7 +587,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 68   ; __fuse_i_14
                     br $L13
-                  else
                   end $L14
                 end $L13
               end $L12
@@ -644,7 +643,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 77   ; __fuse_i_17
                     br $L18
-                  else
                   end $L19
                 end $L18
               end $L17
@@ -719,7 +717,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 96   ; __fuse_i_22
                     br $L23
-                  else
                   end $L24
                 end $L23
               end $L22
@@ -750,7 +747,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 101   ; __fuse_i_25
                     br $L26
-                  else
                   end $L27
                 end $L26
               end $L25
@@ -839,7 +835,6 @@ fn 0 snippet$main () -> i32
                       local.set 116   ; __fuse_i_31
                       br $L29
                     end $L31
-                  else
                   end $L30
                 end $L29
               end $L28
@@ -933,7 +928,6 @@ fn 0 snippet$main () -> i32
                             local.set 136   ; __for_i_36
                             br $L36
                           end $L38
-                        else
                         end $L37
                       end $L36
                     end $L35
@@ -944,7 +938,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 133   ; __fuse_i_39
                     br $L33
-                  else
                   end $L34
                 end $L33
               end $L32
@@ -994,7 +987,6 @@ fn 0 snippet$main () -> i32
                             local.set 145   ; __for_i_36
                             br $L43
                           end $L45
-                        else
                         end $L44
                       end $L43
                     end $L42
@@ -1005,7 +997,6 @@ fn 0 snippet$main () -> i32
                     i64.add
                     local.set 142   ; __fuse_i_42
                     br $L40
-                  else
                   end $L41
                 end $L40
               end $L39
@@ -1151,7 +1142,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 68   ; __fuse_i_14
                 br $L47
-              else
               end $L48
             end $L47
           end $L46
@@ -1208,7 +1198,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 77   ; __fuse_i_17
                 br $L52
-              else
               end $L53
             end $L52
           end $L51
@@ -1283,7 +1272,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 96   ; __fuse_i_22
                 br $L57
-              else
               end $L58
             end $L57
           end $L56
@@ -1314,7 +1302,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 101   ; __fuse_i_25
                 br $L60
-              else
               end $L61
             end $L60
           end $L59
@@ -1403,7 +1390,6 @@ fn 0 snippet$main () -> i32
                   local.set 116   ; __fuse_i_31
                   br $L63
                 end $L65
-              else
               end $L64
             end $L63
           end $L62
@@ -1497,7 +1483,6 @@ fn 0 snippet$main () -> i32
                         local.set 136   ; __for_i_36
                         br $L70
                       end $L72
-                    else
                     end $L71
                   end $L70
                 end $L69
@@ -1508,7 +1493,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 133   ; __fuse_i_39
                 br $L67
-              else
               end $L68
             end $L67
           end $L66
@@ -1558,7 +1542,6 @@ fn 0 snippet$main () -> i32
                         local.set 145   ; __for_i_36
                         br $L77
                       end $L79
-                    else
                     end $L78
                   end $L77
                 end $L76
@@ -1569,7 +1552,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 142   ; __fuse_i_42
                 br $L74
-              else
               end $L75
             end $L74
           end $L73
@@ -1823,7 +1805,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 68   ; __fuse_i_14
                 br $L85
-              else
               end $L86
             end $L85
           end $L84
@@ -1880,7 +1861,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 77   ; __fuse_i_17
                 br $L90
-              else
               end $L91
             end $L90
           end $L89
@@ -1955,7 +1935,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 96   ; __fuse_i_22
                 br $L95
-              else
               end $L96
             end $L95
           end $L94
@@ -1986,7 +1965,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 101   ; __fuse_i_25
                 br $L98
-              else
               end $L99
             end $L98
           end $L97
@@ -2075,7 +2053,6 @@ fn 0 snippet$main () -> i32
                   local.set 116   ; __fuse_i_31
                   br $L101
                 end $L103
-              else
               end $L102
             end $L101
           end $L100
@@ -2169,7 +2146,6 @@ fn 0 snippet$main () -> i32
                         local.set 136   ; __for_i_36
                         br $L108
                       end $L110
-                    else
                     end $L109
                   end $L108
                 end $L107
@@ -2180,7 +2156,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 133   ; __fuse_i_39
                 br $L105
-              else
               end $L106
             end $L105
           end $L104
@@ -2230,7 +2205,6 @@ fn 0 snippet$main () -> i32
                         local.set 145   ; __for_i_36
                         br $L115
                       end $L117
-                    else
                     end $L116
                   end $L115
                 end $L114
@@ -2241,7 +2215,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 142   ; __fuse_i_42
                 br $L112
-              else
               end $L113
             end $L112
           end $L111
@@ -2387,7 +2360,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 68   ; __fuse_i_14
             br $L119
-          else
           end $L120
         end $L119
       end $L118
@@ -2444,7 +2416,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 77   ; __fuse_i_17
             br $L124
-          else
           end $L125
         end $L124
       end $L123
@@ -2519,7 +2490,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 96   ; __fuse_i_22
             br $L129
-          else
           end $L130
         end $L129
       end $L128
@@ -2550,7 +2520,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 101   ; __fuse_i_25
             br $L132
-          else
           end $L133
         end $L132
       end $L131
@@ -2639,7 +2608,6 @@ fn 0 snippet$main () -> i32
               local.set 116   ; __fuse_i_31
               br $L135
             end $L137
-          else
           end $L136
         end $L135
       end $L134
@@ -2733,7 +2701,6 @@ fn 0 snippet$main () -> i32
                     local.set 136   ; __for_i_36
                     br $L142
                   end $L144
-                else
                 end $L143
               end $L142
             end $L141
@@ -2744,7 +2711,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 133   ; __fuse_i_39
             br $L139
-          else
           end $L140
         end $L139
       end $L138
@@ -2794,7 +2760,6 @@ fn 0 snippet$main () -> i32
                     local.set 145   ; __for_i_36
                     br $L149
                   end $L151
-                else
                 end $L150
               end $L149
             end $L148
@@ -2805,7 +2770,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 142   ; __fuse_i_42
             br $L146
-          else
           end $L147
         end $L146
       end $L145
@@ -3167,7 +3131,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 68   ; __fuse_i_14
                 br $L161
-              else
               end $L162
             end $L161
           end $L160
@@ -3224,7 +3187,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 77   ; __fuse_i_17
                 br $L166
-              else
               end $L167
             end $L166
           end $L165
@@ -3299,7 +3261,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 96   ; __fuse_i_22
                 br $L171
-              else
               end $L172
             end $L171
           end $L170
@@ -3330,7 +3291,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 101   ; __fuse_i_25
                 br $L174
-              else
               end $L175
             end $L174
           end $L173
@@ -3419,7 +3379,6 @@ fn 0 snippet$main () -> i32
                   local.set 116   ; __fuse_i_31
                   br $L177
                 end $L179
-              else
               end $L178
             end $L177
           end $L176
@@ -3513,7 +3472,6 @@ fn 0 snippet$main () -> i32
                         local.set 136   ; __for_i_36
                         br $L184
                       end $L186
-                    else
                     end $L185
                   end $L184
                 end $L183
@@ -3524,7 +3482,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 133   ; __fuse_i_39
                 br $L181
-              else
               end $L182
             end $L181
           end $L180
@@ -3574,7 +3531,6 @@ fn 0 snippet$main () -> i32
                         local.set 145   ; __for_i_36
                         br $L191
                       end $L193
-                    else
                     end $L192
                   end $L191
                 end $L190
@@ -3585,7 +3541,6 @@ fn 0 snippet$main () -> i32
                 i64.add
                 local.set 142   ; __fuse_i_42
                 br $L188
-              else
               end $L189
             end $L188
           end $L187
@@ -3731,7 +3686,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 68   ; __fuse_i_14
             br $L195
-          else
           end $L196
         end $L195
       end $L194
@@ -3788,7 +3742,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 77   ; __fuse_i_17
             br $L200
-          else
           end $L201
         end $L200
       end $L199
@@ -3863,7 +3816,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 96   ; __fuse_i_22
             br $L205
-          else
           end $L206
         end $L205
       end $L204
@@ -3894,7 +3846,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 101   ; __fuse_i_25
             br $L208
-          else
           end $L209
         end $L208
       end $L207
@@ -3983,7 +3934,6 @@ fn 0 snippet$main () -> i32
               local.set 116   ; __fuse_i_31
               br $L211
             end $L213
-          else
           end $L212
         end $L211
       end $L210
@@ -4077,7 +4027,6 @@ fn 0 snippet$main () -> i32
                     local.set 136   ; __for_i_36
                     br $L218
                   end $L220
-                else
                 end $L219
               end $L218
             end $L217
@@ -4088,7 +4037,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 133   ; __fuse_i_39
             br $L215
-          else
           end $L216
         end $L215
       end $L214
@@ -4138,7 +4086,6 @@ fn 0 snippet$main () -> i32
                     local.set 145   ; __for_i_36
                     br $L225
                   end $L227
-                else
                 end $L226
               end $L225
             end $L224
@@ -4149,7 +4096,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 142   ; __fuse_i_42
             br $L222
-          else
           end $L223
         end $L222
       end $L221
@@ -4403,7 +4349,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 68   ; __fuse_i_14
             br $L233
-          else
           end $L234
         end $L233
       end $L232
@@ -4460,7 +4405,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 77   ; __fuse_i_17
             br $L238
-          else
           end $L239
         end $L238
       end $L237
@@ -4535,7 +4479,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 96   ; __fuse_i_22
             br $L243
-          else
           end $L244
         end $L243
       end $L242
@@ -4566,7 +4509,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 101   ; __fuse_i_25
             br $L246
-          else
           end $L247
         end $L246
       end $L245
@@ -4655,7 +4597,6 @@ fn 0 snippet$main () -> i32
               local.set 116   ; __fuse_i_31
               br $L249
             end $L251
-          else
           end $L250
         end $L249
       end $L248
@@ -4749,7 +4690,6 @@ fn 0 snippet$main () -> i32
                     local.set 136   ; __for_i_36
                     br $L256
                   end $L258
-                else
                 end $L257
               end $L256
             end $L255
@@ -4760,7 +4700,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 133   ; __fuse_i_39
             br $L253
-          else
           end $L254
         end $L253
       end $L252
@@ -4810,7 +4749,6 @@ fn 0 snippet$main () -> i32
                     local.set 145   ; __for_i_36
                     br $L263
                   end $L265
-                else
                 end $L264
               end $L263
             end $L262
@@ -4821,7 +4759,6 @@ fn 0 snippet$main () -> i32
             i64.add
             local.set 142   ; __fuse_i_42
             br $L260
-          else
           end $L261
         end $L260
       end $L259
@@ -4967,7 +4904,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 68   ; __fuse_i_14
         br $L267
-      else
       end $L268
     end $L267
   end $L266
@@ -5024,7 +4960,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 77   ; __fuse_i_17
         br $L272
-      else
       end $L273
     end $L272
   end $L271
@@ -5099,7 +5034,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 96   ; __fuse_i_22
         br $L277
-      else
       end $L278
     end $L277
   end $L276
@@ -5130,7 +5064,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 101   ; __fuse_i_25
         br $L280
-      else
       end $L281
     end $L280
   end $L279
@@ -5219,7 +5152,6 @@ fn 0 snippet$main () -> i32
           local.set 116   ; __fuse_i_31
           br $L283
         end $L285
-      else
       end $L284
     end $L283
   end $L282
@@ -5313,7 +5245,6 @@ fn 0 snippet$main () -> i32
                 local.set 136   ; __for_i_36
                 br $L290
               end $L292
-            else
             end $L291
           end $L290
         end $L289
@@ -5324,7 +5255,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 133   ; __fuse_i_39
         br $L287
-      else
       end $L288
     end $L287
   end $L286
@@ -5374,7 +5304,6 @@ fn 0 snippet$main () -> i32
                 local.set 145   ; __for_i_36
                 br $L297
               end $L299
-            else
             end $L298
           end $L297
         end $L296
@@ -5385,7 +5314,6 @@ fn 0 snippet$main () -> i32
         i64.add
         local.set 142   ; __fuse_i_42
         br $L294
-      else
       end $L295
     end $L294
   end $L293
@@ -5673,7 +5601,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -5694,7 +5621,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -5741,7 +5667,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -5751,7 +5676,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 16   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -5861,36 +5785,36 @@ fn 12 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 17   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 13   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 17   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 13   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -5917,6 +5841,7 @@ fn 13 std_io$write_bytes (i32,ref,usize) -> i32
 end
 
 fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
+  local $k_32 i32
   local $field_40 i32
   local $vcall_53 any
   local $field_58 any
@@ -5934,7 +5859,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const -1
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L2
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -5945,7 +5869,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 0
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L3
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -5956,7 +5879,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 10
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L4
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -5967,7 +5889,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 2
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L5
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -5978,7 +5899,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 3
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L6
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -5989,7 +5909,6 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 1
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L7
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
@@ -6000,32 +5919,39 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.const 3
         struct.set 19 8   ; __gen_state_std_iter_0.state
         br $L1
-      else
       end $L8
       local.field 0 19 8   ; arg 0.state
       ref.cast 1   ; -> i32
       i32.const 7
       i32.eq
       if $L9 void
-      else
-        local.field 0 19 8   ; arg 0.state
+        i32.const 6
+        local.set 1   ; $k_32
+        local.get 0   ; arg 0
+        local.get 1   ; $k_32
+        struct.set 19 8   ; __gen_state_std_iter_0.state
+        local.field 0 19 7   ; arg 0.s7
         ref.cast 1   ; -> i32
-        i32.const 8
-        i32.eq
-        if $L10 void
-          local.field 0 19 6   ; arg 0.s6
-          ref.cast 6   ; -> std_core$Yield__i32
-          struct.get 6 0   ; std_core$Yield__i32.value
-          ref.cast 1   ; -> i32
-          local.set 1   ; $field_40
-          local.get 0   ; arg 0
-          local.get 1   ; $field_40
-          struct.set 19 7   ; __gen_state_std_iter_0.s7
-          local.get 0   ; arg 0
-          i32.const 7
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L10
+        struct.new 6   ; std_core$Yield__i32
+        return
+      end $L9
+      local.field 0 19 8   ; arg 0.state
+      ref.cast 1   ; -> i32
+      i32.const 8
+      i32.eq
+      if $L10 void
+        local.field 0 19 6   ; arg 0.s6
+        ref.cast 6   ; -> std_core$Yield__i32
+        struct.get 6 0   ; std_core$Yield__i32.value
+        ref.cast 1   ; -> i32
+        local.set 2   ; $field_40
+        local.get 0   ; arg 0
+        local.get 2   ; $field_40
+        struct.set 19 7   ; __gen_state_std_iter_0.s7
+        local.get 0   ; arg 0
+        i32.const 7
+        struct.set 19 8   ; __gen_state_std_iter_0.state
+      else
         local.field 0 19 8   ; arg 0.state
         ref.cast 1   ; -> i32
         i32.const 9
@@ -6042,187 +5968,190 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
             i32.const 8
             struct.set 19 8   ; __gen_state_std_iter_0.state
           end $L12
-          br $L1
-        end $L11
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 10
-        i32.eq
-        if $L13 void
-          local.field 0 19 5   ; arg 0.s5
-          virtual.call 1 Iterator.next
-          local.set 2   ; $vcall_53
-          local.get 0   ; arg 0
-          local.get 2   ; $vcall_53
-          struct.set 19 6   ; __gen_state_std_iter_0.s6
-          local.get 0   ; arg 0
-          i32.const 9
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L13
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 11
-        i32.eq
-        if $L14 void
-          local.field 0 19 1   ; arg 0.s1
-          local.set 3   ; $field_58
-          local.get 0   ; arg 0
-          local.get 3   ; $field_58
-          struct.set 19 5   ; __gen_state_std_iter_0.s5
-          local.get 0   ; arg 0
-          i32.const 2
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L14
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 12
-        i32.eq
-        if $L15 void
-          local.get 0   ; arg 0
-          i32.const 11
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L15
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 13
-        i32.eq
-        if $L16 void
-          local.get 0   ; arg 0
-          i32.const 21
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L16
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 14
-        i32.eq
-        if $L17 void
-          local.get 0   ; arg 0
-          i32.const 13
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L17
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 15
-        i32.eq
-        if $L18 void
-          local.get 0   ; arg 0
-          i32.const 14
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L18
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 16
-        i32.eq
-        if $L19 void
-          local.get 0   ; arg 0
-          i32.const 12
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L19
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 17
-        i32.eq
-        if $L20 void
-          local.get 0   ; arg 0
-          i32.const 14
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L20
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 18
-        i32.eq
-        if $L21 void
-          local.get 0   ; arg 0
-          i32.const 17
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          local.field 0 19 4   ; arg 0.s4
+        else
+          local.field 0 19 8   ; arg 0.state
           ref.cast 1   ; -> i32
-          struct.new 6   ; std_core$Yield__i32
-          return
-        end $L21
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 19
-        i32.eq
-        if $L22 void
-          local.field 0 19 3   ; arg 0.s3
-          ref.cast 6   ; -> std_core$Yield__i32
-          struct.get 6 0   ; std_core$Yield__i32.value
-          ref.cast 1   ; -> i32
-          local.set 4   ; $field_95
-          local.get 0   ; arg 0
-          local.get 4   ; $field_95
-          struct.set 19 4   ; __gen_state_std_iter_0.s4
-          local.get 0   ; arg 0
-          i32.const 18
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L22
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 20
-        i32.eq
-        if $L23 void
-          local.field 0 19 3   ; arg 0.s3
-          type_check 0   ; null
-          if $L24 void
+          i32.const 10
+          i32.eq
+          if $L13 void
+            local.field 0 19 5   ; arg 0.s5
+            virtual.call 1 Iterator.next
+            local.set 3   ; $vcall_53
             local.get 0   ; arg 0
-            i32.const 16
+            local.get 3   ; $vcall_53
+            struct.set 19 6   ; __gen_state_std_iter_0.s6
+            local.get 0   ; arg 0
+            i32.const 9
             struct.set 19 8   ; __gen_state_std_iter_0.state
           else
-            local.get 0   ; arg 0
-            i32.const 19
-            struct.set 19 8   ; __gen_state_std_iter_0.state
-          end $L24
-          br $L1
-        end $L23
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 21
-        i32.eq
-        if $L25 void
-          local.field 0 19 2   ; arg 0.s2
-          virtual.call 1 Iterator.next
-          local.set 5   ; $vcall_108
-          local.get 0   ; arg 0
-          local.get 5   ; $vcall_108
-          struct.set 19 3   ; __gen_state_std_iter_0.s3
-          local.get 0   ; arg 0
-          i32.const 20
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L25
-        local.field 0 19 8   ; arg 0.state
-        ref.cast 1   ; -> i32
-        i32.const 22
-        i32.eq
-        if $L26 void
-          local.field 0 19 0   ; arg 0.s0
-          local.set 6   ; $field_113
-          local.get 0   ; arg 0
-          local.get 6   ; $field_113
-          struct.set 19 2   ; __gen_state_std_iter_0.s2
-          local.get 0   ; arg 0
-          i32.const 13
-          struct.set 19 8   ; __gen_state_std_iter_0.state
-          br $L1
-        end $L26
-        null.const
-        box 0   ; -> null
-        return
-      end $L9
+            local.field 0 19 8   ; arg 0.state
+            ref.cast 1   ; -> i32
+            i32.const 11
+            i32.eq
+            if $L14 void
+              local.field 0 19 1   ; arg 0.s1
+              local.set 4   ; $field_58
+              local.get 0   ; arg 0
+              local.get 4   ; $field_58
+              struct.set 19 5   ; __gen_state_std_iter_0.s5
+              local.get 0   ; arg 0
+              i32.const 2
+              struct.set 19 8   ; __gen_state_std_iter_0.state
+            else
+              local.field 0 19 8   ; arg 0.state
+              ref.cast 1   ; -> i32
+              i32.const 12
+              i32.eq
+              if $L15 void
+                local.get 0   ; arg 0
+                i32.const 11
+                struct.set 19 8   ; __gen_state_std_iter_0.state
+              else
+                local.field 0 19 8   ; arg 0.state
+                ref.cast 1   ; -> i32
+                i32.const 13
+                i32.eq
+                if $L16 void
+                  local.get 0   ; arg 0
+                  i32.const 21
+                  struct.set 19 8   ; __gen_state_std_iter_0.state
+                else
+                  local.field 0 19 8   ; arg 0.state
+                  ref.cast 1   ; -> i32
+                  i32.const 14
+                  i32.eq
+                  if $L17 void
+                    local.get 0   ; arg 0
+                    i32.const 13
+                    struct.set 19 8   ; __gen_state_std_iter_0.state
+                  else
+                    local.field 0 19 8   ; arg 0.state
+                    ref.cast 1   ; -> i32
+                    i32.const 15
+                    i32.eq
+                    if $L18 void
+                      local.get 0   ; arg 0
+                      i32.const 14
+                      struct.set 19 8   ; __gen_state_std_iter_0.state
+                    else
+                      local.field 0 19 8   ; arg 0.state
+                      ref.cast 1   ; -> i32
+                      i32.const 16
+                      i32.eq
+                      if $L19 void
+                        local.get 0   ; arg 0
+                        i32.const 12
+                        struct.set 19 8   ; __gen_state_std_iter_0.state
+                      else
+                        local.field 0 19 8   ; arg 0.state
+                        ref.cast 1   ; -> i32
+                        i32.const 17
+                        i32.eq
+                        if $L20 void
+                          local.get 0   ; arg 0
+                          i32.const 14
+                          struct.set 19 8   ; __gen_state_std_iter_0.state
+                        else
+                          local.field 0 19 8   ; arg 0.state
+                          ref.cast 1   ; -> i32
+                          i32.const 18
+                          i32.eq
+                          if $L21 void
+                            local.get 0   ; arg 0
+                            i32.const 17
+                            struct.set 19 8   ; __gen_state_std_iter_0.state
+                            local.field 0 19 4   ; arg 0.s4
+                            ref.cast 1   ; -> i32
+                            struct.new 6   ; std_core$Yield__i32
+                            return
+                          end $L21
+                          local.field 0 19 8   ; arg 0.state
+                          ref.cast 1   ; -> i32
+                          i32.const 19
+                          i32.eq
+                          if $L22 void
+                            local.field 0 19 3   ; arg 0.s3
+                            ref.cast 6   ; -> std_core$Yield__i32
+                            struct.get 6 0   ; std_core$Yield__i32.value
+                            ref.cast 1   ; -> i32
+                            local.set 5   ; $field_95
+                            local.get 0   ; arg 0
+                            local.get 5   ; $field_95
+                            struct.set 19 4   ; __gen_state_std_iter_0.s4
+                            local.get 0   ; arg 0
+                            i32.const 18
+                            struct.set 19 8   ; __gen_state_std_iter_0.state
+                          else
+                            local.field 0 19 8   ; arg 0.state
+                            ref.cast 1   ; -> i32
+                            i32.const 20
+                            i32.eq
+                            if $L23 void
+                              local.field 0 19 3   ; arg 0.s3
+                              type_check 0   ; null
+                              if $L24 void
+                                local.get 0   ; arg 0
+                                i32.const 16
+                                struct.set 19 8   ; __gen_state_std_iter_0.state
+                              else
+                                local.get 0   ; arg 0
+                                i32.const 19
+                                struct.set 19 8   ; __gen_state_std_iter_0.state
+                              end $L24
+                            else
+                              local.field 0 19 8   ; arg 0.state
+                              ref.cast 1   ; -> i32
+                              i32.const 21
+                              i32.eq
+                              if $L25 void
+                                local.field 0 19 2   ; arg 0.s2
+                                virtual.call 1 Iterator.next
+                                local.set 6   ; $vcall_108
+                                local.get 0   ; arg 0
+                                local.get 6   ; $vcall_108
+                                struct.set 19 3   ; __gen_state_std_iter_0.s3
+                                local.get 0   ; arg 0
+                                i32.const 20
+                                struct.set 19 8   ; __gen_state_std_iter_0.state
+                              else
+                                local.field 0 19 8   ; arg 0.state
+                                ref.cast 1   ; -> i32
+                                i32.const 22
+                                i32.eq
+                                if $L26 void
+                                  local.field 0 19 0   ; arg 0.s0
+                                  local.set 7   ; $field_113
+                                  local.get 0   ; arg 0
+                                  local.get 7   ; $field_113
+                                  struct.set 19 2   ; __gen_state_std_iter_0.s2
+                                  local.get 0   ; arg 0
+                                  i32.const 13
+                                  struct.set 19 8   ; __gen_state_std_iter_0.state
+                                else
+                                  null.const
+                                  box 0   ; -> null
+                                  return
+                                end $L26
+                              end $L25
+                            end $L23
+                          end $L22
+                        end $L20
+                      end $L19
+                    end $L18
+                  end $L17
+                end $L16
+              end $L15
+            end $L14
+          end $L13
+        end $L11
+      end $L10
+      br $L1
     end $L1
   end $L0
-  local.get 0   ; arg 0
   i32.const 6
+  local.set 1   ; $k_32
+  local.get 0   ; arg 0
+  local.get 1   ; $k_32
   struct.set 19 8   ; __gen_state_std_iter_0.state
   local.field 0 19 7   ; arg 0.s7
   ref.cast 1   ; -> i32

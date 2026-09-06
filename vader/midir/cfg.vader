@@ -147,6 +147,13 @@ export TermCondBranch :: struct {
     cond:        LocalId
     then_block:  BlockId
     else_block:  BlockId
+    /// Where the two arms rejoin — the block the builder created for exactly
+    /// that. Post-dominance cannot recover it once an arm `return`s: the
+    /// synthetic exit swallows the join, `cond_branch_merge` degrades to the
+    /// enclosing region's end, and both arms then run past the join and emit
+    /// the continuation once EACH. `-1` when the branch has no join (a loop
+    /// header's back-edge test), which keeps the post-dominator path.
+    join:        BlockId = BlockId(-1)
 }
 
 export TermReturn :: struct {

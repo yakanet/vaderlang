@@ -92,7 +92,6 @@ static int32_t snippet_main(void) {
 #line 7 "tests/snippets/generator_basic/_main.vader"
                 l0 = (l0 + INT32_C(1));
                 goto loop_3;
-            } else {
             }
         }
     }
@@ -165,7 +164,6 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 143 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = -(l2);
-    } else {
     }
 #line 144 "lib/std/core/primitives.vader"
     l4 = (size_t) (int64_t) INT64_C(0);
@@ -173,7 +171,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     l5 = l2;
 #line 146 "lib/std/core/primitives.vader"
     {
-        loop_31: {
+        loop_30: {
             if (l5 != INT64_C(0)) {
 #line 147 "lib/std/core/primitives.vader"
                 t0 = (l4 + INT64_C(1));
@@ -181,8 +179,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 148 "lib/std/core/primitives.vader"
                 l5 = vader_div_i64(l5, INT64_C(10));
 #line 146 "lib/std/core/primitives.vader"
-                goto loop_31;
-            } else {
+                goto loop_30;
             }
         }
     }
@@ -198,7 +195,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     l4 = (size_t) (int64_t) t0;
 #line 152 "lib/std/core/primitives.vader"
     {
-        loop_64: {
+        loop_62: {
             if (l2 != INT64_C(0)) {
 #line 153 "lib/std/core/primitives.vader"
                 t0 = (l4 - INT64_C(1));
@@ -213,15 +210,13 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 155 "lib/std/core/primitives.vader"
                 l2 = vader_div_i64(l2, INT64_C(10));
 #line 152 "lib/std/core/primitives.vader"
-                goto loop_64;
-            } else {
+                goto loop_62;
             }
         }
     }
 #line 157 "lib/std/core/primitives.vader"
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(45));
-    } else {
     }
 #line 158 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -247,30 +242,30 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
             l4 = ((vader_array_t*) l2)->length;
             if ((l3 >= l4)) {
-            } else {
-#line 211 "lib/std/io/io.vader"
-                l5 = ((vader_array_t*) l2)->length;
-                vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-                l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-                l7 = ((vader_array_t*) l6)->length;
-                l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-                if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-                    { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-                }
-#line 216 "lib/std/io/io.vader"
-                t0 = ((int64_t) (int32_t) l8);
-                l9 = (size_t) (int64_t) t0;
-                t0 = (l3 + l9);
-                l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-                goto loop_6;
+#line 209 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
 #line 208 "lib/std/io/io.vader"
             }
+#line 211 "lib/std/io/io.vader"
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
+            goto loop_6;
         }
     }
 #line 209 "lib/std/io/io.vader"

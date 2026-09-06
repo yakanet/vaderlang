@@ -98,6 +98,11 @@ end
 fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
   local $add_22 i32
   local $add_41 i32
+  local $k_62 i32
+  local $field_63 i32
+  local $k_64 i32
+  local $mul_65 i32
+  local $field_66 i32
   block $L0 void
     loop $L1 void
       local.field 0 3 2   ; arg 0.state
@@ -109,7 +114,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const -1
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L2
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -120,7 +124,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 0
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L3
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -141,7 +144,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
           struct.set 3 2   ; __genstate_gen.state
         end $L5
         br $L1
-      else
       end $L4
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -160,7 +162,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 2
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L6
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -171,7 +172,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 3
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L7
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -192,7 +192,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
           struct.set 3 2   ; __genstate_gen.state
         end $L9
         br $L1
-      else
       end $L8
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -211,7 +210,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 5
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L10
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -222,7 +220,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 6
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L11
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -233,7 +230,6 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
         i32.const 1
         struct.set 3 2   ; __genstate_gen.state
         br $L1
-      else
       end $L12
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
@@ -254,27 +250,47 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
           struct.set 3 2   ; __genstate_gen.state
         end $L14
         br $L1
-      else
       end $L13
       local.field 0 3 2   ; arg 0.state
       ref.cast 2   ; -> i32
       i32.const 10
       i32.eq
       if $L15 void
-      else
-        local.field 0 3 2   ; arg 0.state
+        i32.const 9
+        local.set 3   ; $k_62
+        local.get 0   ; arg 0
+        local.get 3   ; $k_62
+        struct.set 3 2   ; __genstate_gen.state
+        local.field 0 3 0   ; arg 0.s0
         ref.cast 2   ; -> i32
-        i32.const 11
-        i32.eq
-        if $L16 void
-          local.get 0   ; arg 0
-          i32.const 0
-          struct.set 3 1   ; __genstate_gen.s1
-          local.get 0   ; arg 0
-          i32.const 5
-          struct.set 3 2   ; __genstate_gen.state
-          br $L1
-        end $L16
+        local.set 4   ; $field_63
+        i32.const 10
+        local.set 5   ; $k_64
+        local.get 4   ; $field_63
+        local.get 5   ; $k_64
+        i32.mul
+        local.set 6   ; $mul_65
+        local.field 0 3 1   ; arg 0.s1
+        ref.cast 2   ; -> i32
+        local.set 7   ; $field_66
+        local.get 6   ; $mul_65
+        local.get 7   ; $field_66
+        i32.add
+        struct.new 5   ; std_core$Yield__i32
+        return
+      end $L15
+      local.field 0 3 2   ; arg 0.state
+      ref.cast 2   ; -> i32
+      i32.const 11
+      i32.eq
+      if $L16 void
+        local.get 0   ; arg 0
+        i32.const 0
+        struct.set 3 1   ; __genstate_gen.s1
+        local.get 0   ; arg 0
+        i32.const 5
+        struct.set 3 2   ; __genstate_gen.state
+      else
         local.field 0 3 2   ; arg 0.state
         ref.cast 2   ; -> i32
         i32.const 12
@@ -286,27 +302,34 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
           local.get 0   ; arg 0
           i32.const 2
           struct.set 3 2   ; __genstate_gen.state
-          br $L1
+        else
+          null.const
+          box 0   ; -> null
+          return
         end $L17
-        null.const
-        box 0   ; -> null
-        return
-      end $L15
+      end $L16
+      br $L1
     end $L1
   end $L0
-  local.get 0   ; arg 0
   i32.const 9
+  local.set 3   ; $k_62
+  local.get 0   ; arg 0
+  local.get 3   ; $k_62
   struct.set 3 2   ; __genstate_gen.state
   local.field 0 3 0   ; arg 0.s0
   ref.cast 2   ; -> i32
+  local.set 4   ; $field_63
   i32.const 10
+  local.set 5   ; $k_64
+  local.get 4   ; $field_63
+  local.get 5   ; $k_64
   i32.mul
-  local.set 1   ; $add_22
+  local.set 6   ; $mul_65
   local.field 0 3 1   ; arg 0.s1
   ref.cast 2   ; -> i32
-  local.set 2   ; $add_41
-  local.get 1   ; $add_22
-  local.get 2   ; $add_41
+  local.set 7   ; $field_66
+  local.get 6   ; $mul_65
+  local.get 7   ; $field_66
   i32.add
   struct.new 5   ; std_core$Yield__i32
   return
@@ -495,7 +518,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 2   ; arg 2
     i64.neg
     local.set 2   ; arg 2
-  else
   end $L1
   i64.const 0
   local.set 4   ; ndigits
@@ -516,7 +538,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 5   ; m
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -563,7 +584,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         i64.div
         local.set 2   ; arg 2
         br $L7
-      else
       end $L8
     end $L7
   end $L6
@@ -573,7 +593,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 15   ; std_core$Buffer$ByteAccess$store_u8_vt
-  else
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -683,36 +702,36 @@ fn 12 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 17   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 13   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 17   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 13   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

@@ -942,7 +942,11 @@ build_short_circuit :: fn(fn_ctx: FnCtx!, e: LoweredBinary, dest: LocalId | null
     join_id :: new_block(fn_ctx, e.span)
 
     terminate(fn_ctx, TermCondBranch {
-        .cond = lhs, .then_block = then_id, .else_block = else_id, .span = e.span,
+        .cond = lhs,
+        .then_block = then_id,
+        .else_block = else_id,
+        .join = join_id,
+        .span = e.span,
     })
 
     fn_ctx.current = then_id
@@ -1084,7 +1088,8 @@ build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | 
 
     branch_target :: if else_id_opt is null { join_id } else { else_id_opt }
     terminate(fn_ctx, TermCondBranch {
-        .cond = cond_local, .then_block = then_id, .else_block = branch_target, .span = e.span,
+        .cond = cond_local, .then_block = then_id, .else_block = branch_target,
+        .join = join_id, .span = e.span,
     })
 
     fn_ctx.current = then_id

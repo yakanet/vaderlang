@@ -62,7 +62,6 @@ fn 2 snippet$main () -> i32
         i32.add
         local.set 0   ; a
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -111,19 +110,19 @@ fn 3 snippet$count__i32 (any) -> i32
         if $L3 void
           bool.const false
           local.set 2   ; cont
-          br $L1
+        else
+          local.get 3   ; __scrut_0
+          type_check 7   ; std_core$Yield__i32
+          if $L4 void
+            local.get 1   ; n
+            i32.const 1
+            i32.add
+            local.set 1   ; n
+          else
+            return
+          end $L4
         end $L3
-        local.get 3   ; __scrut_0
-        type_check 7   ; std_core$Yield__i32
-        if $L4 void
-          local.get 1   ; n
-          i32.const 1
-          i32.add
-          local.set 1   ; n
-          br $L1
-        end $L4
-        return
-      else
+        br $L1
       end $L2
     end $L1
   end $L0

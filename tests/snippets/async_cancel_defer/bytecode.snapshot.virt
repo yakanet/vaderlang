@@ -126,6 +126,7 @@ fn 5 __defer_snippet_0 (ref) -> void
 end
 
 fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
+  local $k_12 i32
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
@@ -150,7 +151,6 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         i32.const -1
         struct.set 8 5   ; __asyncstate_snippet_2.state
         br $L1
-      else
       end $L2
       local.field 0 8 5   ; arg 0.state
       ref.cast 3   ; -> i32
@@ -161,50 +161,57 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         i32.const 0
         struct.set 8 5   ; __asyncstate_snippet_2.state
         br $L1
-      else
       end $L3
       local.field 0 8 5   ; arg 0.state
       ref.cast 3   ; -> i32
       i32.const 2
       i32.eq
       if $L4 void
-      else
-        local.field 0 8 5   ; arg 0.state
+        i32.const -1
+        local.set 1   ; $k_12
+        local.get 0   ; arg 0
+        local.get 1   ; $k_12
+        struct.set 8 5   ; __asyncstate_snippet_2.state
+        local.field 0 8 2   ; arg 0.s2
         ref.cast 3   ; -> i32
-        i32.const 3
-        i32.eq
-        if $L5 void
-          local.field 0 8 3   ; arg 0.__defers
-          local.set 1   ; $field_17
-          local.field 0 8 3   ; arg 0.__defers
-          array.len
-          i64.const 1
-          i64.sub
-          local.set 2   ; $sub_21
-          local.get 1   ; $field_17
-          local.get 2   ; $sub_21
-          array.get 12   ; fn[][]
-          call.indirect 13   ; fn
-          local.field 0 8 3   ; arg 0.__defers
-          local.set 3   ; $field_23
-          local.field 0 8 3   ; arg 0.__defers
-          array.len
-          i64.const 1
-          i64.sub
-          local.set 4   ; $sub_28
-          local.get 3   ; $field_23
-          i64.const 0
-          local.get 4   ; $sub_28
-          array.slice 12   ; fn[][]
-          local.set 5   ; $slice_29
-          local.get 0   ; arg 0
-          local.get 5   ; $slice_29
-          struct.set 8 3   ; __asyncstate_snippet_2.__defers
-          local.get 0   ; arg 0
-          i32.const 2
-          struct.set 8 5   ; __asyncstate_snippet_2.state
-          br $L1
-        end $L5
+        box 3   ; -> i32
+        return
+      end $L4
+      local.field 0 8 5   ; arg 0.state
+      ref.cast 3   ; -> i32
+      i32.const 3
+      i32.eq
+      if $L5 void
+        local.field 0 8 3   ; arg 0.__defers
+        local.set 2   ; $field_17
+        local.field 0 8 3   ; arg 0.__defers
+        array.len
+        i64.const 1
+        i64.sub
+        local.set 3   ; $sub_21
+        local.get 2   ; $field_17
+        local.get 3   ; $sub_21
+        array.get 12   ; fn[][]
+        call.indirect 13   ; fn
+        local.field 0 8 3   ; arg 0.__defers
+        local.set 4   ; $field_23
+        local.field 0 8 3   ; arg 0.__defers
+        array.len
+        i64.const 1
+        i64.sub
+        local.set 5   ; $sub_28
+        local.get 4   ; $field_23
+        i64.const 0
+        local.get 5   ; $sub_28
+        array.slice 12   ; fn[][]
+        local.set 6   ; $slice_29
+        local.get 0   ; arg 0
+        local.get 6   ; $slice_29
+        struct.set 8 3   ; __asyncstate_snippet_2.__defers
+        local.get 0   ; arg 0
+        i32.const 2
+        struct.set 8 5   ; __asyncstate_snippet_2.state
+      else
         local.field 0 8 5   ; arg 0.state
         ref.cast 3   ; -> i32
         i32.const 4
@@ -212,92 +219,95 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         if $L6 void
           local.field 0 8 1   ; arg 0.s1
           ref.cast 3   ; -> i32
-          local.set 6   ; $field_34
+          local.set 7   ; $field_34
           local.get 0   ; arg 0
-          local.get 6   ; $field_34
+          local.get 7   ; $field_34
           struct.set 8 2   ; __asyncstate_snippet_2.s2
           string.const 4   ; "inner body (unreached)"
           string.const 1   ; "\n"
           call 11   ; concat_2
-          local.set 7   ; $call_38
+          local.set 8   ; $call_38
           i32.const 0
-          local.get 7   ; $call_38
+          local.get 8   ; $call_38
           call 14   ; std_io$write
           local.get 0   ; arg 0
           i32.const 3
           struct.set 8 5   ; __asyncstate_snippet_2.state
-          br $L1
-        end $L6
-        local.field 0 8 5   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 5
-        i32.eq
-        if $L7 void
-          local.field 0 8 4   ; arg 0.awaited
-          virtual.call 1 Async.resume
-          local.tee 8   ; __resumed_3
-          type_check 4   ; std_core$Suspended
-          if $L8 void
-            struct.new 4   ; std_core$Suspended
-            return
-          end $L8
-          local.get 8   ; __resumed_3
+        else
+          local.field 0 8 5   ; arg 0.state
           ref.cast 3   ; -> i32
-          local.set 9   ; $cast_48
-          local.get 0   ; arg 0
-          local.get 9   ; $cast_48
-          struct.set 8 1   ; __asyncstate_snippet_2.s1
-          local.get 0   ; arg 0
-          i32.const 4
-          struct.set 8 5   ; __asyncstate_snippet_2.state
-          br $L1
-        end $L7
-        local.field 0 8 5   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 6
-        i32.eq
-        if $L9 void
-          local.field 0 8 0   ; arg 0.s0
-          local.set 10   ; $cast_54
-          local.get 0   ; arg 0
-          local.get 10   ; $cast_54
-          struct.set 8 4   ; __asyncstate_snippet_2.awaited
-          local.get 0   ; arg 0
           i32.const 5
-          struct.set 8 5   ; __asyncstate_snippet_2.state
-          br $L1
-        end $L9
-        local.field 0 8 5   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 7
-        i32.eq
-        if $L10 void
-          local.field 0 8 3   ; arg 0.__defers
-          local.set 11   ; $field_59
-          struct.new 7   ; __defer_env_snippet_1
-          make_closure 5 13   ; __defer_snippet_0
-          ref.cast 13   ; -> fn
-          local.set 12   ; $cast_62
-          local.get 11   ; $field_59
-          local.get 12   ; $cast_62
-          array.push 13   ; fn[]
-          struct.new 1   ; snippet$Never
-          local.set 13   ; $struct_63
-          local.get 0   ; arg 0
-          local.get 13   ; $struct_63
-          struct.set 8 0   ; __asyncstate_snippet_2.s0
-          local.get 0   ; arg 0
-          i32.const 6
-          struct.set 8 5   ; __asyncstate_snippet_2.state
-          br $L1
-        end $L10
-        struct.new 4   ; std_core$Suspended
-        return
-      end $L4
+          i32.eq
+          if $L7 void
+            local.field 0 8 4   ; arg 0.awaited
+            virtual.call 1 Async.resume
+            local.tee 9   ; __resumed_3
+            type_check 4   ; std_core$Suspended
+            if $L8 void
+              struct.new 4   ; std_core$Suspended
+              return
+            end $L8
+            local.get 9   ; __resumed_3
+            ref.cast 3   ; -> i32
+            local.set 10   ; $cast_48
+            local.get 0   ; arg 0
+            local.get 10   ; $cast_48
+            struct.set 8 1   ; __asyncstate_snippet_2.s1
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 8 5   ; __asyncstate_snippet_2.state
+          else
+            local.field 0 8 5   ; arg 0.state
+            ref.cast 3   ; -> i32
+            i32.const 6
+            i32.eq
+            if $L9 void
+              local.field 0 8 0   ; arg 0.s0
+              local.set 11   ; $cast_54
+              local.get 0   ; arg 0
+              local.get 11   ; $cast_54
+              struct.set 8 4   ; __asyncstate_snippet_2.awaited
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 8 5   ; __asyncstate_snippet_2.state
+            else
+              local.field 0 8 5   ; arg 0.state
+              ref.cast 3   ; -> i32
+              i32.const 7
+              i32.eq
+              if $L10 void
+                local.field 0 8 3   ; arg 0.__defers
+                local.set 12   ; $field_59
+                struct.new 7   ; __defer_env_snippet_1
+                make_closure 5 13   ; __defer_snippet_0
+                ref.cast 13   ; -> fn
+                local.set 13   ; $cast_62
+                local.get 12   ; $field_59
+                local.get 13   ; $cast_62
+                array.push 13   ; fn[]
+                struct.new 1   ; snippet$Never
+                local.set 14   ; $struct_63
+                local.get 0   ; arg 0
+                local.get 14   ; $struct_63
+                struct.set 8 0   ; __asyncstate_snippet_2.s0
+                local.get 0   ; arg 0
+                i32.const 6
+                struct.set 8 5   ; __asyncstate_snippet_2.state
+              else
+                struct.new 4   ; std_core$Suspended
+                return
+              end $L10
+            end $L9
+          end $L7
+        end $L6
+      end $L5
+      br $L1
     end $L1
   end $L0
-  local.get 0   ; arg 0
   i32.const -1
+  local.set 1   ; $k_12
+  local.get 0   ; arg 0
+  local.get 1   ; $k_12
   struct.set 8 5   ; __asyncstate_snippet_2.state
   local.field 0 8 2   ; arg 0.s2
   ref.cast 3   ; -> i32
@@ -352,7 +362,6 @@ fn 7 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
         local.get 5   ; $slice_20
         struct.set 8 3   ; __asyncstate_snippet_2.__defers
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -375,6 +384,7 @@ fn 8 __defer_snippet_3 (ref) -> void
 end
 
 fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
+  local $k_12 i32
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
@@ -398,7 +408,6 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
         i32.const -1
         struct.set 10 4   ; __asyncstate_snippet_5.state
         br $L1
-      else
       end $L2
       local.field 0 10 4   ; arg 0.state
       ref.cast 3   ; -> i32
@@ -409,50 +418,57 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
         i32.const 0
         struct.set 10 4   ; __asyncstate_snippet_5.state
         br $L1
-      else
       end $L3
       local.field 0 10 4   ; arg 0.state
       ref.cast 3   ; -> i32
       i32.const 2
       i32.eq
       if $L4 void
-      else
-        local.field 0 10 4   ; arg 0.state
+        i32.const -1
+        local.set 1   ; $k_12
+        local.get 0   ; arg 0
+        local.get 1   ; $k_12
+        struct.set 10 4   ; __asyncstate_snippet_5.state
+        local.field 0 10 1   ; arg 0.s1
         ref.cast 3   ; -> i32
-        i32.const 3
-        i32.eq
-        if $L5 void
-          local.field 0 10 2   ; arg 0.__defers
-          local.set 1   ; $field_17
-          local.field 0 10 2   ; arg 0.__defers
-          array.len
-          i64.const 1
-          i64.sub
-          local.set 2   ; $sub_21
-          local.get 1   ; $field_17
-          local.get 2   ; $sub_21
-          array.get 12   ; fn[][]
-          call.indirect 13   ; fn
-          local.field 0 10 2   ; arg 0.__defers
-          local.set 3   ; $field_23
-          local.field 0 10 2   ; arg 0.__defers
-          array.len
-          i64.const 1
-          i64.sub
-          local.set 4   ; $sub_28
-          local.get 3   ; $field_23
-          i64.const 0
-          local.get 4   ; $sub_28
-          array.slice 12   ; fn[][]
-          local.set 5   ; $slice_29
-          local.get 0   ; arg 0
-          local.get 5   ; $slice_29
-          struct.set 10 2   ; __asyncstate_snippet_5.__defers
-          local.get 0   ; arg 0
-          i32.const 2
-          struct.set 10 4   ; __asyncstate_snippet_5.state
-          br $L1
-        end $L5
+        box 3   ; -> i32
+        return
+      end $L4
+      local.field 0 10 4   ; arg 0.state
+      ref.cast 3   ; -> i32
+      i32.const 3
+      i32.eq
+      if $L5 void
+        local.field 0 10 2   ; arg 0.__defers
+        local.set 2   ; $field_17
+        local.field 0 10 2   ; arg 0.__defers
+        array.len
+        i64.const 1
+        i64.sub
+        local.set 3   ; $sub_21
+        local.get 2   ; $field_17
+        local.get 3   ; $sub_21
+        array.get 12   ; fn[][]
+        call.indirect 13   ; fn
+        local.field 0 10 2   ; arg 0.__defers
+        local.set 4   ; $field_23
+        local.field 0 10 2   ; arg 0.__defers
+        array.len
+        i64.const 1
+        i64.sub
+        local.set 5   ; $sub_28
+        local.get 4   ; $field_23
+        i64.const 0
+        local.get 5   ; $sub_28
+        array.slice 12   ; fn[][]
+        local.set 6   ; $slice_29
+        local.get 0   ; arg 0
+        local.get 6   ; $slice_29
+        struct.set 10 2   ; __asyncstate_snippet_5.__defers
+        local.get 0   ; arg 0
+        i32.const 2
+        struct.set 10 4   ; __asyncstate_snippet_5.state
+      else
         local.field 0 10 4   ; arg 0.state
         ref.cast 3   ; -> i32
         i32.const 4
@@ -460,87 +476,90 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
         if $L6 void
           local.field 0 10 0   ; arg 0.s0
           ref.cast 3   ; -> i32
-          local.set 6   ; $field_34
+          local.set 7   ; $field_34
           local.get 0   ; arg 0
-          local.get 6   ; $field_34
+          local.get 7   ; $field_34
           struct.set 10 1   ; __asyncstate_snippet_5.s1
           string.const 6   ; "outer body (unreached)"
           string.const 1   ; "\n"
           call 11   ; concat_2
-          local.set 7   ; $call_38
+          local.set 8   ; $call_38
           i32.const 0
-          local.get 7   ; $call_38
+          local.get 8   ; $call_38
           call 14   ; std_io$write
           local.get 0   ; arg 0
           i32.const 3
           struct.set 10 4   ; __asyncstate_snippet_5.state
-          br $L1
-        end $L6
-        local.field 0 10 4   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 5
-        i32.eq
-        if $L7 void
-          local.field 0 10 3   ; arg 0.awaited
-          virtual.call 1 Async.resume
-          local.tee 8   ; __resumed_3
-          type_check 4   ; std_core$Suspended
-          if $L8 void
-            struct.new 4   ; std_core$Suspended
-            return
-          end $L8
-          local.get 8   ; __resumed_3
+        else
+          local.field 0 10 4   ; arg 0.state
           ref.cast 3   ; -> i32
-          local.set 9   ; $cast_48
-          local.get 0   ; arg 0
-          local.get 9   ; $cast_48
-          struct.set 10 0   ; __asyncstate_snippet_5.s0
-          local.get 0   ; arg 0
-          i32.const 4
-          struct.set 10 4   ; __asyncstate_snippet_5.state
-          br $L1
-        end $L7
-        local.field 0 10 4   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 6
-        i32.eq
-        if $L9 void
-          call 2   ; snippet$inner
-          local.set 10   ; $cast_54
-          local.get 0   ; arg 0
-          local.get 10   ; $cast_54
-          struct.set 10 3   ; __asyncstate_snippet_5.awaited
-          local.get 0   ; arg 0
           i32.const 5
-          struct.set 10 4   ; __asyncstate_snippet_5.state
-          br $L1
-        end $L9
-        local.field 0 10 4   ; arg 0.state
-        ref.cast 3   ; -> i32
-        i32.const 7
-        i32.eq
-        if $L10 void
-          local.field 0 10 2   ; arg 0.__defers
-          local.set 11   ; $field_59
-          struct.new 9   ; __defer_env_snippet_4
-          make_closure 8 13   ; __defer_snippet_3
-          ref.cast 13   ; -> fn
-          local.set 12   ; $cast_62
-          local.get 11   ; $field_59
-          local.get 12   ; $cast_62
-          array.push 13   ; fn[]
-          local.get 0   ; arg 0
-          i32.const 6
-          struct.set 10 4   ; __asyncstate_snippet_5.state
-          br $L1
-        end $L10
-        struct.new 4   ; std_core$Suspended
-        return
-      end $L4
+          i32.eq
+          if $L7 void
+            local.field 0 10 3   ; arg 0.awaited
+            virtual.call 1 Async.resume
+            local.tee 9   ; __resumed_3
+            type_check 4   ; std_core$Suspended
+            if $L8 void
+              struct.new 4   ; std_core$Suspended
+              return
+            end $L8
+            local.get 9   ; __resumed_3
+            ref.cast 3   ; -> i32
+            local.set 10   ; $cast_48
+            local.get 0   ; arg 0
+            local.get 10   ; $cast_48
+            struct.set 10 0   ; __asyncstate_snippet_5.s0
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 10 4   ; __asyncstate_snippet_5.state
+          else
+            local.field 0 10 4   ; arg 0.state
+            ref.cast 3   ; -> i32
+            i32.const 6
+            i32.eq
+            if $L9 void
+              call 2   ; snippet$inner
+              local.set 11   ; $cast_54
+              local.get 0   ; arg 0
+              local.get 11   ; $cast_54
+              struct.set 10 3   ; __asyncstate_snippet_5.awaited
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 10 4   ; __asyncstate_snippet_5.state
+            else
+              local.field 0 10 4   ; arg 0.state
+              ref.cast 3   ; -> i32
+              i32.const 7
+              i32.eq
+              if $L10 void
+                local.field 0 10 2   ; arg 0.__defers
+                local.set 12   ; $field_59
+                struct.new 9   ; __defer_env_snippet_4
+                make_closure 8 13   ; __defer_snippet_3
+                ref.cast 13   ; -> fn
+                local.set 13   ; $cast_62
+                local.get 12   ; $field_59
+                local.get 13   ; $cast_62
+                array.push 13   ; fn[]
+                local.get 0   ; arg 0
+                i32.const 6
+                struct.set 10 4   ; __asyncstate_snippet_5.state
+              else
+                struct.new 4   ; std_core$Suspended
+                return
+              end $L10
+            end $L9
+          end $L7
+        end $L6
+      end $L5
+      br $L1
     end $L1
   end $L0
-  local.get 0   ; arg 0
   i32.const -1
+  local.set 1   ; $k_12
+  local.get 0   ; arg 0
+  local.get 1   ; $k_12
   struct.set 10 4   ; __asyncstate_snippet_5.state
   local.field 0 10 1   ; arg 0.s1
   ref.cast 3   ; -> i32
@@ -595,7 +614,6 @@ fn 10 snippet$__asyncstate_snippet_5$Async$cancel (ref) -> void
         local.get 5   ; $slice_20
         struct.set 10 2   ; __asyncstate_snippet_5.__defers
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -670,36 +688,36 @@ fn 14 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 18   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 15   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 18   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 15   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return

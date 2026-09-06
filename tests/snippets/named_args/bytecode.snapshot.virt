@@ -202,14 +202,12 @@ fn 8 std_core$len (string) -> usize
           i64.const 1
           i64.add
           local.set 1   ; n
-        else
         end $L3
         local.get 3   ; __for_i_2
         i64.const 1
         i64.add
         local.set 3   ; __for_i_2
         br $L1
-      else
       end $L2
     end $L1
   end $L0

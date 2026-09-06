@@ -361,7 +361,6 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
         u64.div
         local.set 4   ; m
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -397,7 +396,6 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
         u64.div
         local.set 2   ; arg 2
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -598,36 +596,36 @@ fn 8 std_io$write (i32,string) -> void
       local.get 4   ; $len_6
       u64.ge
       if $L2 void
-      else
-        local.get 2   ; buf
-        array.len
-        local.set 5   ; $len_8
-        local.get 2   ; buf
-        local.get 3   ; sent
-        local.get 5   ; $len_8
-        array.slice 8   ; u8[][]
-        local.tee 6   ; chunk
-        array.len
-        local.set 7   ; $len_11
-        local.get 0   ; arg 0
-        local.get 6   ; chunk
-        local.get 7   ; $len_11
-        call 9   ; std_io$write_bytes
-        local.tee 8   ; n
-        i32.const 0
-        i32.le
-        if $L3 void
-          return
-        end $L3
-        local.get 8   ; n
-        i32.to_i64
-        local.set 9   ; $cast_16
-        local.get 3   ; sent
-        local.get 9   ; $cast_16
-        i64.add
-        local.set 3   ; sent
-        br $L1
+        return
       end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 8   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 9   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
     end $L1
   end $L0
   return
@@ -689,7 +687,6 @@ fn 10 std_string$trim (string) -> string
         i64.add
         local.set 3   ; lo
         br $L1
-      else
       end $L3
     end $L1
   end $L0
@@ -720,7 +717,6 @@ fn 10 std_string$trim (string) -> string
         i64.sub
         local.set 2   ; n
         br $L5
-      else
       end $L7
     end $L5
   end $L4
@@ -780,7 +776,6 @@ fn 11 std_string$to_upper (string) -> string
         i64.add
         local.set 4   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -837,7 +832,6 @@ fn 12 std_string$to_lower (string) -> string
         i64.add
         local.set 4   ; i
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -890,7 +884,6 @@ fn 13 std_string$starts_with (string,string) -> bool
         i64.add
         local.set 3   ; $call_4
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -951,7 +944,6 @@ fn 14 std_string$ends_with (string,string) -> bool
         i64.add
         local.set 4   ; i
         br $L2
-      else
       end $L3
     end $L2
   end $L1
@@ -1006,7 +998,6 @@ fn 15 std_string$split (string,string) -> ref
           i64.add
           local.set 6   ; i
           br $L2
-        else
         end $L3
       end $L2
     end $L1
@@ -1048,7 +1039,6 @@ fn 15 std_string$split (string,string) -> ref
         call 20   ; std_string$byte_find
         local.set 9   ; found
         br $L5
-      else
       end $L6
     end $L5
   end $L4
@@ -1332,7 +1322,6 @@ fn 20 std_string$byte_find (string,string,usize) -> isize
         i64.add
         local.set 7   ; i
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -1613,7 +1602,6 @@ fn 23 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
         i64.add
         local.set 4   ; j
         br $L1
-      else
       end $L2
     end $L1
   end $L0
@@ -1719,7 +1707,6 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 4   ; __for_i_2
         br $L3
-      else
       end $L4
     end $L3
   end $L2
@@ -1761,7 +1748,6 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         i64.add
         local.set 5   ; $call_23
         br $L6
-      else
       end $L7
     end $L6
   end $L5

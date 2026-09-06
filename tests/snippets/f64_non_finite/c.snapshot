@@ -559,7 +559,6 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 172 "lib/std/core/dtoa.vader"
             }
 #line 169 "lib/std/core/dtoa.vader"
-        } else {
         }
 #line 157 "lib/std/core/dtoa.vader"
     } else {
@@ -626,7 +625,6 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 203 "lib/std/core/dtoa.vader"
                 l12 = std_core_multiple_of_power_of_2(l5, l13);
 #line 202 "lib/std/core/dtoa.vader"
-            } else {
             }
 #line 193 "lib/std/core/dtoa.vader"
         }
@@ -645,7 +643,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     if (l19) {
 #line 213 "lib/std/core/dtoa.vader"
         {
-            loop_289: {
+            loop_287: {
 #line 214 "lib/std/core/dtoa.vader"
                 l5 = vader_div_u64(l9, INT64_C(10));
 #line 215 "lib/std/core/dtoa.vader"
@@ -690,7 +688,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 226 "lib/std/core/dtoa.vader"
                     l2 = (l2 + INT32_C(1));
 #line 213 "lib/std/core/dtoa.vader"
-                    goto loop_289;
+                    goto loop_287;
 #line 216 "lib/std/core/dtoa.vader"
                 }
 #line 213 "lib/std/core/dtoa.vader"
@@ -700,7 +698,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if (l6) {
 #line 229 "lib/std/core/dtoa.vader"
             {
-                loop_365: {
+                loop_363: {
 #line 230 "lib/std/core/dtoa.vader"
                     l5 = vader_div_u64(l10, INT64_C(10));
 #line 231 "lib/std/core/dtoa.vader"
@@ -736,14 +734,13 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 241 "lib/std/core/dtoa.vader"
                         l2 = (l2 + INT32_C(1));
 #line 229 "lib/std/core/dtoa.vader"
-                        goto loop_365;
+                        goto loop_363;
 #line 232 "lib/std/core/dtoa.vader"
                     }
 #line 229 "lib/std/core/dtoa.vader"
                 }
             }
 #line 228 "lib/std/core/dtoa.vader"
-        } else {
         }
 #line 244 "lib/std/core/dtoa.vader"
         if (l12) {
@@ -761,7 +758,6 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 246 "lib/std/core/dtoa.vader"
             l3 = (uint64_t) (int64_t) INT64_C(4);
 #line 244 "lib/std/core/dtoa.vader"
-        } else {
         }
 #line 249 "lib/std/core/dtoa.vader"
         if (l8 == l10) {
@@ -809,11 +805,10 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 264 "lib/std/core/dtoa.vader"
             l2 = (l2 + INT32_C(2));
 #line 256 "lib/std/core/dtoa.vader"
-        } else {
         }
 #line 266 "lib/std/core/dtoa.vader"
         {
-            loop_531: {
+            loop_526: {
 #line 267 "lib/std/core/dtoa.vader"
                 l5 = vader_div_u64(l9, INT64_C(10));
 #line 268 "lib/std/core/dtoa.vader"
@@ -837,7 +832,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 276 "lib/std/core/dtoa.vader"
                     l2 = (l2 + INT32_C(1));
 #line 266 "lib/std/core/dtoa.vader"
-                    goto loop_531;
+                    goto loop_526;
 #line 269 "lib/std/core/dtoa.vader"
                 }
 #line 266 "lib/std/core/dtoa.vader"
@@ -892,7 +887,6 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
                 l4 = (l4 + INT32_C(1));
 #line 350 "lib/std/core/dtoa.vader"
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -1130,7 +1124,6 @@ static void* std_core_digits_of(uint64_t l0) {
                 l2 = vader_div_u64(l2, INT64_C(10));
 #line 291 "lib/std/core/dtoa.vader"
                 goto loop_13;
-            } else {
             }
         }
     }
@@ -1142,7 +1135,7 @@ static void* std_core_digits_of(uint64_t l0) {
 #line 297 "lib/std/core/dtoa.vader"
     l6 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_50: {
+        loop_49: {
             if ((l6 < l4)) {
 #line 298 "lib/std/core/dtoa.vader"
                 t2 = ((l4 - INT64_C(1)) - l6);
@@ -1156,8 +1149,7 @@ static void* std_core_digits_of(uint64_t l0) {
 #line 297 "lib/std/core/dtoa.vader"
                 t2 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
-                goto loop_50;
-            } else {
+                goto loop_49;
             }
         }
     }
@@ -1229,7 +1221,6 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
         l5 = std_core_join_range(l0, INT32_C(1), l1);
         l4 = concat_3(l4, 11u, l5);
 #line 336 "lib/std/core/dtoa.vader"
-    } else {
     }
 #line 339 "lib/std/core/dtoa.vader"
     if ((l6 < INT32_C(0))) {
@@ -1385,7 +1376,6 @@ static vader_string_t std_core_join_range(void* l0, int32_t l1, int32_t l2) {
 #line 306 "lib/std/core/dtoa.vader"
                 l4 = (l4 + INT32_C(1));
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -1412,7 +1402,6 @@ static vader_string_t std_core_zeros(int32_t l0) {
 #line 315 "lib/std/core/dtoa.vader"
                 l2 = (l2 + INT32_C(1));
                 goto loop_5;
-            } else {
             }
         }
     }
@@ -1453,7 +1442,6 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
                 l2 = vader_div_u64(l2, INT64_C(10));
 #line 85 "lib/std/core/primitives.vader"
                 goto loop_11;
-            } else {
             }
         }
     }
@@ -1463,7 +1451,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     l4 = l1;
 #line 91 "lib/std/core/primitives.vader"
     {
-        loop_35: {
+        loop_34: {
             if (l0 != INT64_C(0)) {
 #line 92 "lib/std/core/primitives.vader"
                 t0 = (l4 - INT64_C(1));
@@ -1478,8 +1466,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
 #line 94 "lib/std/core/primitives.vader"
                 l0 = vader_div_u64(l0, INT64_C(10));
 #line 91 "lib/std/core/primitives.vader"
-                goto loop_35;
-            } else {
+                goto loop_34;
             }
         }
     }
@@ -1509,30 +1496,30 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
             l4 = ((vader_array_t*) l2)->length;
             if ((l3 >= l4)) {
-            } else {
-#line 211 "lib/std/io/io.vader"
-                l5 = ((vader_array_t*) l2)->length;
-                vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-                l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-                l7 = ((vader_array_t*) l6)->length;
-                l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-                if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-                    { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-                }
-#line 216 "lib/std/io/io.vader"
-                t0 = ((int64_t) (int32_t) l8);
-                l9 = (size_t) (int64_t) t0;
-                t0 = (l3 + l9);
-                l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-                goto loop_6;
+#line 209 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
 #line 208 "lib/std/io/io.vader"
             }
+#line 211 "lib/std/io/io.vader"
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
+            goto loop_6;
         }
     }
 #line 209 "lib/std/io/io.vader"
