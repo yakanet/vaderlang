@@ -431,7 +431,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 < INT64_C(3))) {
-        l1 = concat_2(2300u, 1u);
+        l1 = concat_2(2303u, 1u);
         std_io_write(INT32_C(1), l1);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }

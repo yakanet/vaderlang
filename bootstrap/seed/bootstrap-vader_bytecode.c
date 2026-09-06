@@ -147,19 +147,19 @@ static vader_box_t vader_bytecode_arith_op(uint8_t l0, vader_string_t l1) {
 
 uint8_t vader_bytecode_array_kind_from_name(vader_string_t l0) {
     uint8_t l1;
-    if (l0 == 2260u) {
+    if (l0 == 2263u) {
         l1 = (uint8_t) (int32_t) INT32_C(1);
     } else {
-        if (l0 == 2241u) {
+        if (l0 == 2244u) {
             l1 = (uint8_t) (int32_t) INT32_C(2);
         } else {
-            if (l0 == 2242u) {
+            if (l0 == 2245u) {
                 l1 = (uint8_t) (int32_t) INT32_C(3);
             } else {
-                if (l0 == 2251u) {
+                if (l0 == 2254u) {
                     l1 = (uint8_t) (int32_t) INT32_C(4);
                 } else {
-                    if (l0 == 2304u) {
+                    if (l0 == 2307u) {
                         l1 = (uint8_t) (int32_t) INT32_C(4);
                     } else {
                         if (l0 == 1695u) {
@@ -532,13 +532,13 @@ vader_string_t vader_bytecode_bc_type_key(void* l0, int32_t l1) {
                     if (l5.tag == 513u) {
                         l7 = l5.payload.obj;
                         l7 = ((vader_struct_vader_bytecode_BcUnion_t*) l7)->f_variants;
-                        l10 = vader_bytecode_key_join(l0, l7, 2435u);
-                        l6 = concat_3(2263u, l10, 524u);
+                        l10 = vader_bytecode_key_join(l0, l7, 2438u);
+                        l6 = concat_3(2266u, l10, 524u);
                     } else {
                         if (l5.tag == 502u) {
                             l7 = l5.payload.obj;
                             l8 = ((vader_struct_vader_bytecode_BcFn_t*) l7)->f_params;
-                            l10 = vader_bytecode_key_join(l0, l8, 2435u);
+                            l10 = vader_bytecode_key_join(l0, l8, 2438u);
                             l11 = ((vader_struct_vader_bytecode_BcFn_t*) l7)->f_return_type;
                             l12 = vader_bytecode_bc_type_key(l0, l11);
                             l6 = concat_4(1564u, l10, 353u, l12);
@@ -833,7 +833,7 @@ vader_box_t vader_bytecode_binary_op_for(uint8_t l0, uint8_t l1) {
                                         l2 = vader_bytecode_bit_op(l1, 1933u);
                                     } else {
                                         if (l0 == INT32_C(9)) {
-                                            l2 = vader_bytecode_bit_op(l1, 2424u);
+                                            l2 = vader_bytecode_bit_op(l1, 2427u);
                                         } else {
                                             if (l0 == INT32_C(10)) {
                                                 vader_struct_vader_bytecode_BoolAnd_t* _a0_obj = (vader_struct_vader_bytecode_BoolAnd_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BoolAnd_t));
@@ -2910,7 +2910,7 @@ int32_t vader_bytecode_intern_cell_type(vader_box_t l0, void* l1) {
     l5 = ((int32_t) (size_t) t1);
     vader_struct_vader_bytecode_BcField_t* _a0_obj = (vader_struct_vader_bytecode_BcField_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcField_t));
     vader_obj_header_init(_a0_obj, 501u);
-    _a0_obj->f_name = 2383u;
+    _a0_obj->f_name = 2386u;
     _a0_obj->f_type_index = l2;
     l6 = (void*) _a0_obj;
     vader_array_t* _a1_arr = vader_array_new(37u, 0u, 13u, 501u);
@@ -3061,13 +3061,13 @@ uint8_t vader_bytecode_intrinsic_id_for(vader_string_t l0) {
     if (t0) {
         { vader_gc_top = gc_frame.prev; return (uint8_t) (int32_t) INT32_C(11); }
     }
-    if (l0 == 2380u) {
+    if (l0 == 2383u) {
         { vader_gc_top = gc_frame.prev; return (uint8_t) (int32_t) INT32_C(22); }
     }
-    if (l0 == 2381u) {
+    if (l0 == 2384u) {
         { vader_gc_top = gc_frame.prev; return (uint8_t) (int32_t) INT32_C(23); }
     }
-    if (l0 == 2379u) {
+    if (l0 == 2382u) {
         { vader_gc_top = gc_frame.prev; return (uint8_t) (int32_t) INT32_C(24); }
     }
     if (l0 == 2061u) {
@@ -3327,7 +3327,7 @@ static bool vader_bytecode_is_display_to_string(vader_string_t l0) {
     }
     if (l2) {
         t0 = l1.payload.s;
-        l2 = t0 != 2394u;
+        l2 = t0 != 2397u;
     } else {
         l2 = false;
     }
@@ -3874,17 +3874,17 @@ bool vader_bytecode_is_unsigned_display(vader_string_t l0) {
     l1 = vader_bytecode_strip_core_member(l0, 249u);
     if (!(l1.tag == 0u)) {
         t0 = l1.payload.s;
-        if (t0 == 2242u) {
+        if (t0 == 2245u) {
             l2 = true;
         } else {
             t0 = l1.payload.s;
-            l2 = t0 == 2251u;
+            l2 = t0 == 2254u;
         }
         if (l2) {
             l3 = true;
         } else {
             t0 = l1.payload.s;
-            l3 = t0 == 2304u;
+            l3 = t0 == 2307u;
         }
         l2 = l3;
     } else {
@@ -4327,23 +4327,23 @@ static vader_box_t vader_bytecode_parse_val_type(vader_string_t l0) {
         t0 = vader_box_i32(175u, INT32_C(4));
         return t0;
     }
-    if (l0 == 2260u) {
+    if (l0 == 2263u) {
         t0 = vader_box_i32(175u, INT32_C(5));
         return t0;
     }
-    if (l0 == 2241u) {
+    if (l0 == 2244u) {
         t0 = vader_box_i32(175u, INT32_C(6));
         return t0;
     }
-    if (l0 == 2242u) {
+    if (l0 == 2245u) {
         t0 = vader_box_i32(175u, INT32_C(7));
         return t0;
     }
-    if (l0 == 2251u) {
+    if (l0 == 2254u) {
         t0 = vader_box_i32(175u, INT32_C(8));
         return t0;
     }
-    if (l0 == 2304u) {
+    if (l0 == 2307u) {
         t0 = vader_box_i32(175u, INT32_C(9));
         return t0;
     }
@@ -4371,7 +4371,7 @@ static vader_box_t vader_bytecode_parse_val_type(vader_string_t l0) {
         t0 = vader_box_i32(175u, INT32_C(15));
         return t0;
     }
-    if (l0 == 2394u) {
+    if (l0 == 2397u) {
         t0 = vader_box_i32(175u, INT32_C(16));
         return t0;
     }
@@ -10131,14 +10131,14 @@ vader_string_t vader_bytecode_type_intern_key(vader_box_t l0) {
             t0 = l0.payload.obj;
             l2 = vader_bytecode_symbol_key(((vader_struct_vader_types_StructType_t*) t0)->f_symbol);
             t0 = l0.payload.obj;
-            l3 = vader_bytecode_type_key_join(((vader_struct_vader_types_StructType_t*) t0)->f_args, 2435u);
+            l3 = vader_bytecode_type_key_join(((vader_struct_vader_types_StructType_t*) t0)->f_args, 2438u);
             l1 = concat_5(744u, l2, 505u, l3, 524u);
         } else {
             if (l0.tag == 929u) {
                 t0 = l0.payload.obj;
                 l2 = vader_bytecode_symbol_key(((vader_struct_vader_types_TraitType_t*) t0)->f_symbol);
                 t0 = l0.payload.obj;
-                l3 = vader_bytecode_type_key_join(((vader_struct_vader_types_TraitType_t*) t0)->f_args, 2435u);
+                l3 = vader_bytecode_type_key_join(((vader_struct_vader_types_TraitType_t*) t0)->f_args, 2438u);
                 l1 = concat_5(820u, l2, 505u, l3, 524u);
             } else {
                 if (l0.tag == 919u) {
@@ -10156,12 +10156,12 @@ vader_string_t vader_bytecode_type_intern_key(vader_box_t l0) {
                         } else {
                             if (l0.tag == 933u) {
                                 t0 = l0.payload.obj;
-                                l2 = vader_bytecode_type_key_join(((vader_struct_vader_types_UnionType_t*) t0)->f_variants, 2435u);
+                                l2 = vader_bytecode_type_key_join(((vader_struct_vader_types_UnionType_t*) t0)->f_variants, 2438u);
                                 l1 = concat_3(826u, l2, 524u);
                             } else {
                                 if (l0.tag == 930u) {
                                     t0 = l0.payload.obj;
-                                    l2 = vader_bytecode_type_key_join(((vader_struct_vader_types_TupleType_t*) t0)->f_elements, 2435u);
+                                    l2 = vader_bytecode_type_key_join(((vader_struct_vader_types_TupleType_t*) t0)->f_elements, 2438u);
                                     l1 = concat_3(822u, l2, 524u);
                                 } else {
                                     if (l0.tag == 920u) {
@@ -10313,19 +10313,19 @@ vader_string_t vader_bytecode_val_type_name(uint8_t l0) {
                         l1 = 1770u;
                     } else {
                         if (l0 == INT32_C(5)) {
-                            l1 = 2260u;
+                            l1 = 2263u;
                         } else {
                             if (l0 == INT32_C(6)) {
-                                l1 = 2241u;
+                                l1 = 2244u;
                             } else {
                                 if (l0 == INT32_C(7)) {
-                                    l1 = 2242u;
+                                    l1 = 2245u;
                                 } else {
                                     if (l0 == INT32_C(8)) {
-                                        l1 = 2251u;
+                                        l1 = 2254u;
                                     } else {
                                         if (l0 == INT32_C(9)) {
-                                            l1 = 2304u;
+                                            l1 = 2307u;
                                         } else {
                                             if (l0 == INT32_C(10)) {
                                                 l1 = 1547u;
@@ -10346,7 +10346,7 @@ vader_string_t vader_bytecode_val_type_name(uint8_t l0) {
                                                                     l1 = 1919u;
                                                                 } else {
                                                                     if (l0 == INT32_C(16)) {
-                                                                        l1 = 2394u;
+                                                                        l1 = 2397u;
                                                                     } else {
                                                                         if (l0 == INT32_C(17)) {
                                                                             l1 = 1953u;
