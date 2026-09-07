@@ -1,0 +1,6 @@
+# stdout
+first inner=1
+second inner=0
+keep then second
+# exit
+0

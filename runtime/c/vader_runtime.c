@@ -637,9 +637,9 @@ static void vader_gc_mark_cstack_conservative(void) {
 /* ============================================================
  * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
  *
- * Phase 0.a wires the table + API into the runtime alongside the
- * legacy `vader_string_t` machinery. The intern hash, slice-share,
- * and GC integration are stubbed and ship in 0.b / 0.c / Phase 4.
+ * The intern hash (`vader_atom_hash64`), slice-share (`vader_atom_slice`) and
+ * the major-cycle integration (`vader_atom_gc_collect`) all ship; the legacy
+ * fat-pointer string machinery is gone.
  *
  * The table is grow-only in indices : atoms minted at runtime can be
  * collected (their bytes freed, slot tombstoned) but the `entries[]`
@@ -685,8 +685,9 @@ static int  g_atoms_initialized = 0;
 static int  g_atom_profile = 0;
 
 /* Initial table capacity — 256 covers the keyword + primitive pre-intern
- * with room for early dynamic atoms. Grows by doubling. Phase 0.d will
- * size this from the comptime atom count emitted by codegen. */
+ * with room for early dynamic atoms. Grows by doubling. A module that carries a
+ * comptime atom count sizes both tables from it instead —
+ * `vader_atom_init_with_comptime`. */
 #define VADER_ATOM_INITIAL_CAPACITY    256u
 #define VADER_ATOM_INITIAL_BUCKETS     1024u   /* must be power of two */
 
@@ -895,12 +896,17 @@ static void vader_atom_grow_buckets(void) {
         calloc(g_atoms.bucket_capacity, sizeof(vader_u32_t));
     if (g_atoms.buckets == NULL) vader_trap("vader_atom_grow_buckets: calloc failed");
     g_atoms.bucket_count = 0;
-    /* Reinsert every live atom except the empty sentinel at index 0.
-     * Phase 4 will skip tombstones here too ; for now no tombstones
-     * exist. */
+    /* Reinsert every LIVE atom except the empty sentinel at index 0. `data ==
+     * NULL` is a tombstone the major sweep left behind — it clears every field
+     * but `hash`, so a stale id would otherwise reinstall at its old position,
+     * inflate `bucket_count` (driving further growths) and, once the free list
+     * recycles that id, occupy two buckets at once. Same test the sweep's own
+     * rebuild makes. */
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
+        const vader_atom_entry_t* e = &vader_atom_entries[i];
+        if (e->data == NULL) continue;
         /* Rehash from the cached FNV-64 (low bits) — no byte re-walk. */
-        vader_atom_bucket_install(i, (vader_u32_t) vader_atom_entries[i].hash);
+        vader_atom_bucket_install(i, (vader_u32_t) e->hash);
     }
 }
 
@@ -1102,13 +1108,17 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 
 /* ---- atom GC mark + sweep (Phase 4) ----
  *
- * Integrates with the major collection cycle. Reachable atoms are found
- * through three channels :
- *   - shadow stack `vader_box_t**` roots (conservative : the lower 4
- *     bytes of every box payload are treated as a candidate atom id)
- *   - heap objects, via `vader_type_info.string_offsets[]` (precise)
- *     plus a conservative pass over `ptr_offsets[]` boxes
+ * Integrates with the major collection cycle. `vader_atom_mark_roots` walks SIX
+ * channels — the count matters, because the last three each exist to close a
+ * use-after-free that was observed, not anticipated :
+ *   - frame `ptrs[]` boxes (conservative : the lower 4 bytes of every box
+ *     payload are treated as a candidate atom id)
+ *   - frame `stack_objs[]`, off-arena so the heap walk cannot reach them
+ *   - frame `atoms[]` — the only PRECISE atom root ; a `vader_string_t` is an
+ *     id, not a pointer, so nothing else can see a bare string local
  *   - defer stack
+ *   - `vader_atom_mark_global_arrays` : mutable module-const string arrays
+ *   - `vader_atom_mark_cstack_conservative` : what the precise rooting misses
  * Unmarked non-PERM atoms have their data buffer freed and the slot
  * tombstoned ; the bucket index is rebuilt in one pass. */
 
@@ -2021,10 +2031,13 @@ static void vader_gc_scan_raw(void** slot) {
     }
 }
 
-/* Scan one heap object's pointer-bearing slots and forward whatever they
+/* TRAPS on a type index past the info table. A `VADER_TYPE_KIND_NONE` entry
+ * still yields 0, and the `step == 0` guards at the call sites stop the walk on
+ * it — the one silent-stop path left, and the one `vader_gc_obj_size` traps on.
+ *
+ * Scan one heap object's pointer-bearing slots and forward whatever they
  * reference. Returns the byte length of the object so a Cheney scan can
- * advance its cursor. Returns 0 for malformed headers — callers treat that
- * as a stop condition. */
+ * advance its cursor. */
 static size_t vader_gc_scan_object(char* scan) {
     vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
     uint32_t type_index = hdr->type_index;
@@ -2226,7 +2239,8 @@ void vader_minor_collect(void) {
     if (saved == VADER_CYCLE_NONE) g_total_collections++;
     g_cycle = saved;
 
-    /* Atom-table GC integration lands in Phase 4. The legacy string
+    /* Atoms are collected by the MAJOR cycle only (`vader_atom_gc_collect`, called
+     * from `vader_major_collect`) — a minor never touches them. The legacy string
      * mark-sweep that used to run here was removed when `vader_string_t`
      * flipped to `u32` ; atoms are POD now and the conservative scan
      * naturally ignores them. */
@@ -2362,8 +2376,14 @@ vader_i64_t vader_sched_now(void) { return g_sched_now; }
 
 void vader_sched_arm(vader_i64_t deadline) {
     if (g_sched_len == g_sched_cap) {
-        g_sched_cap = g_sched_cap ? g_sched_cap * 2 : 8;
-        g_sched_heap = (int64_t*) realloc(g_sched_heap, g_sched_cap * sizeof(int64_t));
+        size_t cap = g_sched_cap ? g_sched_cap * 2 : 8;
+        /* Through a temporary: `realloc` returning NULL leaves the old block
+         * allocated, and assigning straight into `g_sched_heap` would both leak
+         * it and NULL the only handle the sift below writes through. */
+        int64_t* grown = (int64_t*) realloc(g_sched_heap, cap * sizeof(int64_t));
+        if (grown == NULL) vader_trap("vader_sched_arm: realloc failed");
+        g_sched_heap = grown;
+        g_sched_cap  = cap;
     }
     size_t i = g_sched_len++;
     g_sched_heap[i] = deadline;
@@ -2410,6 +2430,8 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     /* Old "arena size" now reports the lazily-committed reservation (the cap). */
     s.arena_size = g_gc_initialized ? g_old_capacity : (size_t) VADER_GC_OLD_BYTES;
     if (g_gc_initialized) {
+        /* Allocation high-water, NOT a live count — see `bytes_used`'s note in
+         * vader.h for what the two halves mean and why they differ. */
         size_t young_used = (size_t)(g_young.from.cur - g_young.from.base);
         s.bytes_used = young_used + g_old_live_bytes;
     } else {
@@ -2563,6 +2585,16 @@ void vader_prof_begin(int32_t phase_id) {
 void vader_prof_end(int32_t phase_id) {
     if (!vader_prof_enabled()) return;
     if (phase_id < 0 || phase_id >= VADER_PROF_MAX_PHASES) return;
+    /* The baselines are a SINGLE global set, so only the phase `begin` opened can
+     * be closed against them. An unpaired `end` — or the inner half of a nested
+     * pair, which `begin` warns about and could otherwise do nothing about —
+     * would charge its phase the whole span since some unrelated `begin`, and
+     * that number reads like a measurement. */
+    if (phase_id != g_prof_current) {
+        fprintf(stderr, "[VADER_PROFILE] unmatched prof end (phase %d, open is %d) — "
+                        "sample dropped\n", phase_id, g_prof_current);
+        return;
+    }
     int64_t t1 = prof_monotonic_ns();       /* stop the clock first */
     vader_gc_stats_t s = vader_gc_get_stats();
     g_prof_wall_ns[phase_id]    += t1 - g_prof_t0;
@@ -3035,8 +3067,10 @@ vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
 
 /* Load slot `i` of `buf` as a box — the symmetric read of
  * `vader_array_store_slot`. Access sites normally open-code their reads (see that
- * function's note), so this exists for the one case that cannot: copying between
- * two arrays whose element representations differ, in `vader_array_push_all`. */
+ * function's note), so this exists for the case that cannot: copying between two
+ * arrays whose element representations differ. Reached through
+ * `vader_array_src_slot`, from both `vader_array_push_all` and
+ * `vader_array_copy`. */
 static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
     uint32_t tag = buf->element_tag;
     uint8_t* base = buf->slots;
@@ -3060,6 +3094,28 @@ static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
         default: vader_trap("vader_array_load_slot: unknown element kind");
     }
     return out;
+}
+
+/* One element of a COPY SOURCE, boxed, whatever shape that source has — a packed
+ * buffer, a boxed one, or a BORROWED `const u8[]` view whose bytes live in the
+ * atom table and whose `buf` is NULL.
+ *
+ * `vader_array_load_slot` reads `buf->element_kind` on entry, so it cannot serve
+ * the borrowed case ; that one is read straight from the region pointer
+ * `vader_array_src_region` handed back, which already folds in the offset.
+ * `base` is the absolute element index of that region for every other shape.
+ *
+ * Allocates nothing, so a caller inside a no-safepoint window stays safe. */
+static vader_box_t vader_array_src_slot(vader_array_t* src, const uint8_t* src_data,
+                                        uint32_t stag, size_t base, size_t i) {
+    if (VADER_UNLIKELY(vader_array_is_borrowed(src))) {
+        vader_box_t out;
+        out._pad = 0;
+        out.tag = stag;
+        out.payload.i = src_data[i];      /* borrowed views are const u8[] */
+        return out;
+    }
+    return vader_array_load_slot(src->buf, base + i);
 }
 
 /* `dst.push_all(src)` — append every element of `src` to `dst`, growing `dst`
@@ -3125,10 +3181,8 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
          * Go through the boxed form instead, which is what the per-element `push`
          * path does. Neither helper allocates, so the no-safepoint contract above
          * still holds. */
-        vader_array_buf_t* src_buf = src->buf;
-        size_t src_base = src->offset;
         for (size_t i = 0; i < add; i++) {
-            vader_box_t v = vader_array_load_slot(src_buf, src_base + i);
+            vader_box_t v = vader_array_src_slot(src, src_data, tag, src->offset, i);
             vader_array_store_slot(dst->buf, dst->offset + dst->length + i, v);
         }
     }
@@ -3166,8 +3220,28 @@ void vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, 
     size_t   esz  = vader_array_element_size(kind);
     uint8_t  skind; uint32_t stag; size_t sesz;
     const uint8_t* src_data = vader_array_src_region(src, src_start, &skind, &stag, &sesz);
-    uint8_t* dst_data = dst->buf->slots + (dst->offset + dst_start) * esz;
-    memmove(dst_data, src_data, len * esz);
+    if (skind == kind) {
+        /* One layout on both sides, so the raw move is exact — and it is a
+         * `memmove` because this is the one array op whose ranges may overlap
+         * (`a.copy_to(0, a, 1, n)` is the shift `insert` will be built on). */
+        uint8_t* dst_data = dst->buf->slots + (dst->offset + dst_start) * esz;
+        memmove(dst_data, src_data, len * esz);
+    } else {
+        /* Same divergence `vader_array_push_all` documents above, and the same
+         * cure. Copying raw here would stride the SOURCE at the DESTINATION's
+         * width : `esz` bytes read out of `sesz`-byte slots, so a BOXED source
+         * into a REF destination writes box headers where pointers are expected
+         * and the first reader dereferences a tag word, while a REF source into
+         * a BOXED one over-reads its buffer threefold.
+         *
+         * Two different kinds mean two different buffers, so no overlap is
+         * possible in this branch and a forward walk is enough. Neither helper
+         * allocates, so the no-safepoint contract holds. */
+        for (size_t i = 0; i < len; i++) {
+            vader_box_t v = vader_array_src_slot(src, src_data, stag, src->offset + src_start, i);
+            vader_array_store_slot(dst->buf, dst->offset + dst_start + i, v);
+        }
+    }
     if (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(dst->buf);
     }

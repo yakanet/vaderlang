@@ -292,6 +292,14 @@ const C_PARITY = new Set<string>([
   "extern_callback",
   "extern_callback_slot",
   "extern_lend_across_callback",
+  // Element-REPRESENTATION divergence between a module const (BOXED slots) and a
+  // freshly allocated array (KIND_REF): the VM never runs the copy, so only the
+  // native oracle can judge these. `array_push_all_const` existed as a snippet
+  // when its own bug was fixed but was never allowlisted here — and the sibling
+  // defect in `vader_array_copy`, forty lines below the fix, survived until an
+  // audit found it. Both are on the list now so one oracle covers the family.
+  "array_push_all_const",
+  "array_copy_to_const",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

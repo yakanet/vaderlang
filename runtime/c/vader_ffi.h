@@ -38,8 +38,11 @@
 #  include <dlfcn.h>
 #endif
 
-/* Largest arity a trampoline covers. Past six, every ABI we target starts
- * passing integer arguments on the stack. */
+/* Largest arity a trampoline covers — the dispatch below writes one cast per
+ * arity from 0 to this, and traps past it. Nothing about the ABIs breaks here:
+ * AAPCS64 passes eight integer arguments in registers and Win64 four, and a
+ * stack-passed argument is fine anyway since `cc` lays it out from the written
+ * prototype. The bound is on how many casts are worth spelling out. */
 #define VADER_FFI_MAX_ARGS 8
 
 /* Open a shared library by BARE name — `"sqlite3"`, not `"libsqlite3.so"` —
@@ -55,11 +58,10 @@ void* vader_ffi_open(const char* name);
 void* vader_ffi_symbol(void* lib, const char* symbol);
 static void* vader_ffi_resolve(void* lib, const char* symbol);
 
-/* Call `fn` with `nargs` integer-or-pointer arguments.
- *
- * `_int` reads the result as an integer, `_void` discards it, `_f64` reads it
- * as a double. All three TRAP when `nargs > VADER_FFI_MAX_ARGS` rather than
- * calling with a truncated argument list. */
+/* Call `fn` with `nargs` integer-or-pointer arguments, reading the result as an
+ * integer. TRAPS when `nargs > VADER_FFI_MAX_ARGS` rather than calling with a
+ * truncated argument list. A DOUBLE result, and any shape with double arguments,
+ * goes through `vader_ffi_call_n` instead — see its float dispatch. */
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
 /* ---- implementation ---------------------------------------------------- */
@@ -191,8 +193,9 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-/* Argument / result classes for `vader_ffi_call`. Mirrored by
- * `vader/vm/host.vader::ffi_class_*` — the two must agree. */
+/* Argument / result classes for `vader_ffi_call_n`. Mirrored by
+ * `vader/vm/host.vader`'s `FFI_VOID` / `FFI_WORD` / `FFI_F64` / `FFI_ADDR` /
+ * `FFI_STR` / `FFI_STR_OPT` — the two must agree, values included. */
 #define VADER_FFI_VOID 0u
 #define VADER_FFI_WORD 1u
 #define VADER_FFI_F64  2u
@@ -299,10 +302,6 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
  * frame: it is an atom id, and the VM has no way to build a `string` from one —
  * whereas a returned `vader_string_t` IS a Vader string. Every other shape
  * returns `VADER_ATOM_EMPTY`, which callers ignore. */
-vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame) {
-    return vader_ffi_call_n(fn, desc, frame, -1);
-}
-
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
                                 int64_t nfixed) {
     vader_slice_t        dview = vader_array_bytes(desc);
@@ -354,6 +353,13 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
      * A MIX needs one form per combination of classes — the point at which
      * fabricating the call (libffi, or a thunk) starts to pay. */
     if (nreal == 0) {
+        /* Reject BEFORE the call. Trapping after it has already run means the
+         * callee's side effects happened and only the result is refused — and a
+         * zero-argument `double f(void)` lands here too (nargs 0 ⇒ nreal 0), so
+         * that shape is unreachable rather than merely unsupported. */
+        if (cls[0] == VADER_FFI_F64) {
+            vader_trap("vader_ffi: floating result from an integer call shape");
+        }
         /* `nfixed >= 0` means the callee is VARIADIC and that many of its
          * parameters are fixed — declared, because only the real prototype knows
          * where the fixed ones end. The cast has to be variadic too: see
@@ -361,9 +367,6 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
         int64_t r = nfixed >= 0
             ? vader_ffi_call_va(fn, words, nargs, (size_t) nfixed)
             : vader_ffi_call_int(fn, words, nargs);
-        if (cls[0] == VADER_FFI_F64) {
-            vader_trap("vader_ffi: floating result from an integer call shape");
-        }
         if (cls[0] == VADER_FFI_STR_OPT) {
             /* `char*` says "absent" with NULL, which `string` alone cannot carry.
              * The frame's first slot takes the presence flag; the atom is

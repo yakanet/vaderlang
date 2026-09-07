@@ -1,0 +1,57 @@
+// `copy_to` from a module const into a freshly allocated array — the sibling of
+// `array_push_all_const`, and the same defect one function further down.
+//
+// A module const materialises its array with BOXED slots (24-byte `vader_box_t`)
+// while `dst: Item[]! = [...]` allocates KIND_REF slots (8-byte raw pointers).
+// `vader_array_push_all` learned to compare the two `element_kind`s and route the
+// mismatch through the boxed form ; `vader_array_copy`, written directly below
+// it, asked `vader_array_src_region` for the source kind and width and then read
+// NEITHER — the `memmove` scaled both sides by the DESTINATION's stride. Boxes
+// landed in pointer slots and the first element read dereferenced a tag word.
+//
+// VM-only coverage cannot see it: the VM never runs this code. `array_copy_to_const`
+// and `array_push_all_const` are both on the `C_PARITY` allowlist so the emitted C
+// is compiled and RUN against `vm.snapshot`, which is what makes the two backends
+// answer the same question here.
+//
+// The nested array field is what makes the const materialise BOXED; a struct of
+// scalars alone does not reproduce.
+
+module "snippet"
+
+import "std/io"
+
+Inner :: struct {
+    tag: string
+}
+
+Item :: struct {
+    name:  string
+    inner: Inner[]
+}
+
+ITEMS: Item[]: [
+    Item { .name = "first", .inner = [Inner { .tag = "a" }] },
+    Item { .name = "second", .inner = [] },
+]
+
+main :: fn() -> i32 {
+    dst: Item[]! = [
+        Item { .name = "x", .inner = [] },
+        Item { .name = "y", .inner = [] },
+    ]
+    ITEMS.copy_to(0, dst, 0, 2)
+    for it in dst {
+        println("${it.name} inner=${it.inner.len()}")
+    }
+
+    // A partial copy into an offset region must land at the destination's stride,
+    // leaving the untouched slot intact.
+    room: Item[]! = [
+        Item { .name = "keep", .inner = [] },
+        Item { .name = "overwrite", .inner = [] },
+    ]
+    ITEMS.copy_to(1, room, 1, 1)
+    println("${room[0].name} then ${room[1].name}")
+    return 0
+}

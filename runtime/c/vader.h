@@ -207,15 +207,14 @@ static inline size_t vader_atom_len(vader_atom_t a) {
  *  into the new entry (no extra copy). The buffer MUST be malloc'd with
  *  `len + 1` bytes ; the runtime writes `buf[len] = '\0'` for the inline
  *  NUL contract. On hit, `_take` frees the passed buffer and returns the
- *  canonical atom. Phase 0 stubs return VADER_ATOM_EMPTY until the
- *  intern table is implemented in 0.b. */
+ *  canonical atom. */
 vader_atom_t vader_atom_intern(const char* data, size_t len);
 vader_atom_t vader_atom_intern_take(char* buf, size_t len);
 
 /* Slice — installs (or finds) an atom whose bytes equal
  * `entry(parent).data[offset..offset+len]`. Dedupe runs against the
  * existing hash bucket ; on a hit, returns the canonical atom regardless
- * of its ownership (which may itself be an owner). Phase 0 stub. */
+ * of its ownership (which may itself be an owner). */
 vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len);
 
 /* FFI helper — returns a NUL-terminated `const char*` view of the atom's
@@ -255,10 +254,11 @@ void vader_atom_shutdown(void);
  * set ; can also be called manually from tests. */
 void vader_atom_profile_dump(void);
 
-/* GC hook — invoked by the major collection cycle. Marks atoms reachable
- * from the shadow stack, defer stack, and live heap objects (using
- * `vader_type_info.string_offsets[]` for precision and a conservative
- * pass over `ptr_offsets[]` boxes), then sweeps unmarked non-PERM
+/* GC hook — invoked by the major collection cycle. Marks atoms reachable from
+ * the six channels `vader_atom_mark_roots` walks — frame boxes, frame stack
+ * objects, the frame's PRECISE `atoms[]` list, the defer stack, the registered
+ * global string arrays, and a conservative C-stack pass — then sweeps unmarked
+ * non-PERM
  * atoms : frees their owner buffer and tombstones the slot for reuse
  * by the next `vader_atom_intern`. */
 void vader_atom_gc_collect(void);
@@ -499,11 +499,6 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 /* One call, described by data — see vader_ffi.h. */
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
                                 int64_t nfixed);
-/* The pre-`@c_variadic` entry point, kept because the COMMITTED SEED emits a
- * call to it: a runtime change reaches stage0 immediately, while the emitter
- * change that would stop calling it only arrives with the next reseed. Drop it
- * then. */
-vader_string_t vader_ffi_call(void* fn, vader_array_t* desc, vader_array_t* frame);
 
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
@@ -522,14 +517,13 @@ typedef struct {
     size_t      len;
 } vader_slice_t;
 
-/* The three-case array lend: follow a pending GC forward on the header, then
- * branch on borrowed view (bytes live in the owner atom) versus materialised
- * buffer, honouring `offset` and the element width. Used by the `@extern`
- * shims and by the VM's `ffi_call_int_lend`.
+/* The array lend: follow a pending GC forward on the header, then branch on
+ * borrowed view (bytes live in the owner atom) versus materialised buffer,
+ * honouring `offset` and the element width. Used by the `@extern` shims
+ * (`vader/c_emit/host.vader`) and by `vader_ffi_call_n`.
  *
- * `vader_write_file_bytes` and `vader_string_as_string` still open-code the
- * same three cases; converting them is a separate cleanup, and until it lands
- * this is one of three copies, not the only one.
+ * `vader_string_as_string` still open-codes the same branch; converting it is a
+ * separate cleanup, and until it lands this is one of two copies.
  *
  * A BOXED- or REF-kind array traps: the typechecker rejects one at the ABI
  * boundary, so reaching here means a compiler bug. */
@@ -642,9 +636,11 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
 /* Sentinel index for the Target ABI byte buffer (`object_new`). A
  * variable-length, ALL-BYTES GC object : it carries no `vader_box_t` slots, so
  * the GC scanner walks past it without forwarding anything — only its size
- * (read off `byte_count`) matters to the heap walk. The boxed-slot path
- * (`load_slot` / `store_slot`, with the old->young write barrier) lands with
- * Array in a later stage ; until then those opcodes have no C-emit. */
+ * (read off `byte_count`) matters to the heap walk. The TYPED slot opcodes
+ * (`load_slot_i32` / `_i64` / `_f64` and their stores) ship and are emitted; it
+ * is the BOXED width that has none — `op_select.vader` declines `.Boxed`, so no
+ * boxed slot opcode exists to emit, and with it the old->young write barrier
+ * that width would need. */
 #define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
 
 /* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
@@ -815,9 +811,11 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * case (grow, view, borrowed) delegates back to `vader_array_push`, inheriting
  * its GC-rooted grow path unchanged. The fallback box is stamped with the buf's
  * own `element_tag` (a primitive tag, so the grow path's `scan_box` treats the
- * value as the primitive it is, never a ref) — `a->buf` is always non-NULL here,
- * as only a borrowed `const u8[]` view has a NULL buf and those are `U8` kind, so
- * the `u8` helper's `!vader_array_is_borrowed` guard routes them to the fallback. */
+ * value as the primitive it is, never a ref) — past the borrow trap at the top of
+ * `VADER_ARRAY_PUSH_BODY`, `a->buf` is non-NULL: a borrowed `const u8[]` view is
+ * the only shape with a NULL buf, and it never gets past that trap. The trap has
+ * to come FIRST — both arms of the body dereference `a->buf`, so a guard placed
+ * inside the condition would be read after the fault it is meant to prevent. */
 /* The helpers share one body — only the storage C type and the boxing
  * constructor differ. A macro factors the guard/store/grow logic so it lives
  * once, while the function signatures stay explicit and greppable. `a` / `v` are
@@ -846,8 +844,11 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
 #define VADER_ARRAY_PUSH_KIND_CHECK(ctype) /* release: no check */
 #endif
 #define VADER_ARRAY_PUSH_BODY(ctype, box_fn)                                       \
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {                              \
+        vader_trap("cannot push to a borrowed `const u8[]` byte view");             \
+    }                                                                              \
     bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;        \
-    if (a->length < a->capacity && !is_view && !vader_array_is_borrowed(a)) {       \
+    if (a->length < a->capacity && !is_view) {                                      \
         VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
         ((ctype*) a->buf->slots)[a->offset + a->length] = (ctype) v;                \
         a->length += 1;                                                             \
@@ -1032,7 +1033,12 @@ extern uintptr_t  vader_old_end;
 /* Stats — exposed for tests / `runtime_gc_stats()` in stdlib. */
 typedef struct {
     size_t arena_size;        /* size of the old-gen reservation (the cap), in bytes */
-    size_t bytes_used;        /* live bytes across young+old (post-collection) */
+    /* Old-gen LIVE bytes (recomputed at each sweep) plus the young ALLOCATION
+     * high-water — the young half counts garbage too, since a bump allocator
+     * cannot separate survivors from litter without collecting. Only right after
+     * a major does the sum approximate a live set ; the profiler and
+     * `std/runtime::bytes_used` read it at arbitrary points. */
+    size_t bytes_used;
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
     size_t total_alloc_bytes; /* cumulative bytes requested via vader_gc_alloc */
@@ -1103,9 +1109,11 @@ typedef struct {
 extern const vader_type_info_t  vader_type_info_table[];
 extern const size_t             vader_type_info_count;
 
-/* Shadow stack frame — emitted at the entry of every C function generated by
- * the C emit. The frame chains through `prev` to form the precise root list
- * the GC walks at collection time.
+/* Shadow stack frame — emitted at the entry of every C function that can reach a
+ * safepoint. A fn the emitter proves cannot allocate pushes NONE (`no_frame`,
+ * `vader/c_emit/walker.vader`), which is one reason the major collection still
+ * scans the C stack conservatively. The frames that exist chain through `prev` to
+ * form the precise root list the GC walks at collection time.
  *
  * Indirect layout: each frame holds a `ptrs` array pointing to the calling
  * C function's ref-typed locals/tmps. This avoids restructuring the body's
@@ -1180,8 +1188,9 @@ extern vader_gc_frame_t* vader_gc_top;
 /* ----------------------------------------------------------------- fn */
 
 /* Function value — fat pointer `{ code, env }`. Pushed by `fn.ref`, consumed
- * by `call.indirect`. `env == NULL` for non-capturing global fn refs; closures
- * (Phase 3) will allocate an env struct and store a pointer to it.
+ * by `call.indirect`. `env == NULL` for a non-capturing global fn ref; a CLOSURE
+ * heap-allocates its env and stores the pointer here, which `call.indirect`
+ * passes as argument 0 (`make_closure`, `vader/c_emit/walker.vader`).
  *
  * `code` always points to a function whose first parameter is `void* env`,
  * even when the underlying fn doesn't use it — the C emitter generates a
@@ -1201,10 +1210,10 @@ typedef struct {
  * entries in LIFO order. The GC scan treats the stack as a root so
  * captures stay live between push and pop_exec.
  *
- * MVP : panic-unwind is NOT wired on the C target — `vader_trap` skips
- * the defer-stack and exits the process directly. The VM target (TS
- * + Vader self-host) does unwind. The discrepancy is tracked alongside
- * the setjmp/longjmp work in TODO §3.8 "defer unwinds on panic". */
+ * Panic-unwind IS wired: `vader_trap` and `vader_panic` drain the whole defer
+ * stack LIFO before `abort()`, guarded by `g_unwinding` so a defer that itself
+ * traps does not recurse. No setjmp/longjmp is involved — see
+ * `vader_run_pending_defers`. */
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
 
