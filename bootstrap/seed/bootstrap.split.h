@@ -532,6 +532,7 @@ typedef struct vader_struct_vader_lower_BodyTemplate_t vader_struct_vader_lower_
 typedef struct vader_struct_vader_lower_BveCtx_t vader_struct_vader_lower_BveCtx_t;
 typedef struct vader_struct_vader_lower_Capture_t vader_struct_vader_lower_Capture_t;
 typedef struct vader_struct_vader_lower_CellInit_t vader_struct_vader_lower_CellInit_t;
+typedef struct vader_struct_vader_lower_CfAppend_t vader_struct_vader_lower_CfAppend_t;
 typedef struct vader_struct_vader_lower_ClosureAlias_t vader_struct_vader_lower_ClosureAlias_t;
 typedef struct vader_struct_vader_lower_ClosureAnalysis_t vader_struct_vader_lower_ClosureAnalysis_t;
 typedef struct vader_struct_vader_lower_ConstFnWrap_t vader_struct_vader_lower_ConstFnWrap_t;
@@ -3801,6 +3802,12 @@ struct vader_struct_vader_lower_CellInit_t {
     vader_obj_header_t header;
     vader_box_t f_value;
     vader_box_t f_slot_type;
+};
+struct vader_struct_vader_lower_CfAppend_t {
+    vader_obj_header_t header;
+    void* f_span;
+    void* f_target;
+    void* f_args;
 };
 struct vader_struct_vader_lower_ClosureAlias_t {
     vader_obj_header_t header;

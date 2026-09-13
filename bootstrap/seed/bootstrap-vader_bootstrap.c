@@ -250,7 +250,7 @@ static vader_string_t vader_bootstrap_entry_main_name(void* l0, vader_string_t l
     l2 = l3.payload.obj;
     t0 = ((vader_struct_vader_resolver_ResolvedModule_t*) ((vader_struct_vader_typecheck_TypedProgram_t*) l2)->f_resolved)->f_display_path;
     t1 = vader_lower_mangle_module_id(t0);
-    t0 = concat_2(t1, 256u);
+    t0 = concat_2(t1, 258u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -429,7 +429,7 @@ int32_t vader_bootstrap_main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 < INT64_C(3))) {
-        std_io_eprintln__string(2303u);
+        std_io_eprintln__string(2304u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
@@ -443,7 +443,7 @@ int32_t vader_bootstrap_main(void* l0) {
     t2 = std_path_to_posix(l2);
     t3 = std_path_to_path(t2);
     t2 = std_path_filename(t3);
-    l3 = concat_2(t2, 433u);
+    l3 = concat_2(t2, 435u);
     l5 = vader_bootstrap_emit_c_program(l1, l3);
     if (l5.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
@@ -512,7 +512,7 @@ static vader_string_t vader_bootstrap_module_name_from_file(vader_string_t l0) {
     t0 = std_path_to_posix(l0);
     t1 = std_path_to_path(t0);
     t0 = std_path_filename(t1);
-    t1 = std_string_trim_suffix(t0, 436u);
+    t1 = std_string_trim_suffix(t0, 438u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -568,7 +568,7 @@ static int32_t vader_bootstrap_write_out(vader_string_t l0, vader_string_t l1) {
     if (l2.tag == 385u) {
         t0 = l2.payload.obj;
         l3 = std_io_IOError_Error_message(t0);
-        t1 = concat_4(1279u, l0, 1076u, l3);
+        t1 = concat_4(1281u, l0, 1078u, l3);
         std_io_eprintln__string(t1);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
@@ -589,19 +589,19 @@ static int32_t vader_bootstrap_write_split_files(vader_string_t l0, void* l1) {
     vader_string_t* gc_atom_roots[4] = { &l0, &l2, &l3, &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l2 = concat_2(l0, 433u);
+    l2 = concat_2(l0, 435u);
     l3 = ((vader_struct_vader_c_emit_CProgram_t*) l1)->f_header;
     t0 = vader_bootstrap_write_out(l2, l3);
     if (t0 != INT32_C(0)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    l2 = concat_2(l0, 423u);
+    l2 = concat_2(l0, 425u);
     l3 = ((vader_struct_vader_c_emit_CProgram_t*) l1)->f_imports;
     t0 = vader_bootstrap_write_out(l2, l3);
     if (t0 != INT32_C(0)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    l2 = concat_2(l0, 432u);
+    l2 = concat_2(l0, 434u);
     l3 = ((vader_struct_vader_c_emit_CProgram_t*) l1)->f_globals;
     t0 = vader_bootstrap_write_out(l2, l3);
     if (t0 != INT32_C(0)) {
@@ -617,7 +617,7 @@ static int32_t vader_bootstrap_write_split_files(vader_string_t l0, void* l1) {
                 if ((size_t) l5 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                 t1 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
                 l2 = t1.payload.s;
-                l3 = concat_4(l0, 389u, l2, 422u);
+                l3 = concat_4(l0, 391u, l2, 424u);
                 vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_vader_c_emit_CProgram_t*) l1)->f_units);
                 if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
