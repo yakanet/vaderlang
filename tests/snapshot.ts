@@ -70,14 +70,19 @@ export function listSnippets(snippetsDir: string): Scenario[] {
     const mainPath = join(dir, MAIN_FILE);
     let source: string;
     try { source = readFileSync(mainPath, "utf8"); } catch { continue; }
-    // `native.c` is the c-emit output written by `tests/native.test.ts` ;
-    // `_main.c` is the c-emit output written by a `vader build` invocation
-    // on the snippet (left behind when a dev ran the CLI directly on a
-    // snippet). Neither defines `@extern` symbols, so neither should
-    // count as a host-fn helper — anything else `.c` in the snippet
-    // directory is a user helper for an `@extern` test.
+    // `native.c` is the c-emit output written by `tests/native.test.ts` ; every
+    // `_main*.c` is a `vader build` output left behind by a CLI run on the
+    // snippet — `_main.c` from a mono emit, and `_main-<module>.c` +
+    // `_main.split.*.c` from a `--split` one, which is the DEFAULT. None of them
+    // defines `@extern` symbols, so none should count as a host-fn helper —
+    // anything else `.c` in the directory is a user helper for an `@extern` test.
+    //
+    // The `_main-*` shapes matter more than they look: they are gitignored, so a
+    // stale one is invisible to `git status`, and counting it as a helper turns
+    // this snippet's `vader-vm` parity test into a silent skip. A real helper is
+    // never named `_main*`, so the prefix is the safe discriminator.
     const helperCFiles = readdirSync(dir)
-      .filter((f) => f.endsWith(".c") && f !== "native.c" && f !== "_main.c")
+      .filter((f) => f.endsWith(".c") && f !== "native.c" && !f.startsWith("_main"))
       .map((f) => join(dir, f))
       .sort();
     out.push({ name, dir, mainPath, source, helperCFiles });
