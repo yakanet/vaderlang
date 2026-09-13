@@ -490,3 +490,143 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
     }
     return ins
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/types"
+import "toolchain/span"
+
+// `fold_moves_in_block` holds every decision the pass makes ; `fold_moves` is the
+// per-block plumbing around it. Testing the inner fn keeps the fixtures to the
+// three things it reads — a block, the use counts, and the param slots — instead
+// of a whole CFGFunction with its MonoEntry.
+
+fm_i32 :: fn() -> Type = PrimitiveType { .name = "i32" }
+
+fm_sym :: fn() -> Symbol = Symbol {
+    .id = 1, .kind = SymbolKind.Fn, .name = "f", .module = "test",
+    .module_name = "test", .visibility = Visibility.Private, .defined_at = null,
+}
+
+fm_binop :: fn(dst: LocalId, lhs: LocalId, rhs: LocalId) -> Instruction = InstrBinOp {
+    .span = empty_span(), .dst = dst, .op = LoweredBinaryOp.Add,
+    .lhs = lhs, .rhs = rhs, .type = fm_i32(),
+}
+
+fm_move :: fn(dst: LocalId, src: LocalId) -> Instruction = InstrMove {
+    .span = empty_span(), .dst = dst, .src = src,
+}
+
+fm_call :: fn(dst: LocalId, arg: LocalId) -> Instruction = InstrCall {
+    .span = empty_span(), .dst = dst, .callee = fm_sym(), .args = [arg], .type = fm_i32(),
+}
+
+fm_block :: fn(instrs: Instruction[]) -> BasicBlock = BasicBlock {
+    .id = BlockId(0), .instructions = instrs,
+    .terminator = TermUnreachable { .span = empty_span(), .reason = "test fixture" },
+    .span = empty_span(),
+}
+
+/// Use counts as `count_uses` would report them, spelled out per test so each
+/// case states the single-use precondition it depends on.
+fm_uses :: fn(pairs: [LocalId, i32][]) -> MutableMap<LocalId, i32> {
+    m :: MutableMap<LocalId, i32> {}
+    for [l, n] in pairs {
+        m[l] = n
+    }
+    return m
+}
+
+fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}
+
+@test
+test_fold_moves_rewrites_single_use_producer :: fn() -> void {
+    // `t2 = t0 + t1 ; Move t3 <- t2` folds to `t3 = t0 + t1`, Move dropped.
+    out :: fold_moves_in_block(
+        fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
+        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(1))
+    first :: out[0]
+    assert(first is InstrBinOp, "producer survives as the binop")
+    if first is InstrBinOp {
+        assert_eq(i32(first.dst), 3)
+    }
+}
+
+@test
+test_fold_moves_keeps_move_when_source_used_twice :: fn() -> void {
+    out :: fold_moves_in_block(
+        fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
+        fm_uses([[LocalId(2), 2]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(2))
+}
+
+@test
+test_fold_moves_keeps_move_when_source_is_a_param :: fn() -> void {
+    params :: MutableSet<LocalId> {}
+    params.add(LocalId(2))
+    out :: fold_moves_in_block(
+        fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
+        fm_uses([[LocalId(2), 1]]), params,
+    )
+    assert_eq(out.len(), usize(2))
+}
+
+@test
+test_fold_moves_bails_on_intervening_read_of_destination :: fn() -> void {
+    // The swap / rotate idiom, and the bug this guard exists for : with
+    // `t2 = t0 + t1 ; t0 = t1 + t1 ; Move t1 <- t2`, folding the producer up to
+    // write `t1` makes the middle instruction read the already-clobbered slot.
+    // `examples/fibonacci` printed 2^49 instead of fib(50) when it did.
+    // End-to-end guard : `tests/snippets/swap_reassign`.
+    out :: fold_moves_in_block(
+        fm_block([
+            fm_binop(LocalId(2), LocalId(0), LocalId(1)),
+            fm_binop(LocalId(0), LocalId(1), LocalId(1)),
+            fm_move(LocalId(1), LocalId(2)),
+        ]),
+        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(3))
+    last :: out[2]
+    assert(last is InstrMove, "the Move must survive")
+}
+
+@test
+test_fold_moves_bails_on_intervening_write_of_destination :: fn() -> void {
+    // `t3` is written between the producer and the Move : folding would
+    // resurrect the stale value the intervening write had replaced.
+    out :: fold_moves_in_block(
+        fm_block([
+            fm_binop(LocalId(2), LocalId(0), LocalId(1)),
+            fm_binop(LocalId(3), LocalId(0), LocalId(0)),
+            fm_move(LocalId(3), LocalId(2)),
+        ]),
+        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(3))
+}
+
+@test
+test_fold_moves_keeps_move_when_producer_has_a_side_effect :: fn() -> void {
+    // A call writes its `dst` AND does something else ; rewriting its `dst`
+    // would move where the effect's result lands without moving the effect.
+    out :: fold_moves_in_block(
+        fm_block([fm_call(LocalId(2), LocalId(0)), fm_move(LocalId(3), LocalId(2))]),
+        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(2))
+}
+
+@test
+test_fold_moves_leaves_a_move_with_no_producer_alone :: fn() -> void {
+    // Nothing in this block writes `t2`, so there is nothing to fold into.
+    out :: fold_moves_in_block(
+        fm_block([fm_move(LocalId(3), LocalId(2))]),
+        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(1))
+}
