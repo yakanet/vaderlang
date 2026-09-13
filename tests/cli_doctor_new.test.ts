@@ -240,3 +240,27 @@ test("each --build shape writes what it says, and only that", async () => {
     }
   });
 }, MEDIUM_BUILD);
+
+// The mistake a first hand-written file makes — no `module "…"` line. Two codes
+// fire and NEITHER is pinned anywhere else: the `diag_corpus` harness provokes a
+// diagnostic with `vader dump`, and `dump` does not surface the loader's, so a
+// fixture there snapshots an empty report. Same shape as the `H6xxx` exception
+// in `.claude/CLAUDE.md` §12 — asserted explicitly rather than taught to a
+// uniform harness.
+//
+// R2020 names the cause. R2001 is its consequence, and it carries the sentence
+// that says what to write: a code that only reports "the folder declares no
+// module" leaves a beginner with nowhere to go.
+test("a file with no module declaration is told which line to add", async () => {
+  await withTempDir(async (workspace) => {
+    const entry = join(workspace, "main.vader");
+    writeFileSync(entry, 'import "std/io"\n\nmain :: fn() -> i32 {\n    return 0\n}\n');
+    // No `VADER_HOME`: this fails at module seeding, before anything resolves
+    // `std/…`, so the toolchain env would say nothing about what is pinned here.
+    const r = await spawnCapture(["check", entry], { timeoutMs: MEDIUM_BUILD });
+    expect(r.exit).toBe(1);
+    expect(r.stderr).toContain("R2020");
+    expect(r.stderr).toContain("R2001");
+    expect(r.stderr).toContain('module "main"');
+  });
+});

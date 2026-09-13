@@ -177,8 +177,11 @@ export load_project_with_overlay :: fn(
     entry_module :: seed_entry(entry_folder, loader_diags)
     match entry_module {
         is null -> {
+            // The class is "module not found", but the fix is a line the
+            // developer has to write, so the detail says which line and where.
             loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry),
-                "entry file's folder declares no module"))
+                "no `.vader` file in `${entry_folder}` has a `module` declaration ; "
+                    + "add one above the imports, e.g. `module \"main\"`"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
                 .project_root = project_root,
