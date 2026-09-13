@@ -298,7 +298,7 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 3   ; std_core$new_byte_buffer
+  call 27   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
@@ -309,7 +309,7 @@ fn 1 concat_2 (string,string) -> string
   call 30   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 4   ; std_core$finish_buffer
+  call 29   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -351,7 +351,7 @@ fn 2 concat_5 (string,string,string,string,string) -> string
   local.get 9   ; $call_16
   i64.add
   local.tee 9   ; $call_16
-  call 3   ; std_core$new_byte_buffer
+  call 27   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 10   ; buf
   i64.const 0
   local.get 0   ; arg 0
@@ -374,7 +374,7 @@ fn 2 concat_5 (string,string,string,string,string) -> string
   call 30   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 9   ; $call_16
-  call 4   ; std_core$finish_buffer
+  call 29   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 

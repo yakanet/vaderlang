@@ -3,13 +3,13 @@ type 0 primitive null
 type 1 primitive string
 type 2 primitive i32
 type 3 primitive usize
-type 4 struct std_core$Buffer {  }
-type 5 primitive u8
-type 6 array 5
+type 4 primitive u8
+type 5 array 4
+type 6 struct std_core$Buffer {  }
 type 7 primitive void
 type 8 union 9,1
-type 9 struct std_io$IOError { msg:1,kind:5,code:2 }
-type 10 union 9,6
+type 9 struct std_io$IOError { msg:1,kind:4,code:2 }
+type 10 union 9,5
 type 11 primitive isize
 type 12 union 13,0
 type 13 primitive pointer
@@ -38,17 +38,17 @@ string 21 "directory not empty"
 string 22 "bad file descriptor"
 string 23 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=1 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=6 param_mutable=0 param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,6,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=5 param_mutable=0 param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,5,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 4 extern vader_last_errno system_posix$sys_last_errno result_type=2 () -> i32
 import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
 import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 param_types=1,1 param_mutable=0,0 param_by_address= (string,string) -> any
 import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 param_types=6,3,3,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-impl 4 ByteAccess
+import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 param_types=5,3,3,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+impl 6 ByteAccess
 impl 9 Error
-vtable Error.message 9 13
+vtable Error.message 9 11
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -57,13 +57,13 @@ fn 0 snippet$describe (string) -> string
   local $field_10 string
   local.get 0   ; arg 0
   i64.const 16777216
-  call 7   ; std_io$read_file_string
+  call 5   ; std_io$read_file_string
   local.tee 1   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
     local.get 1   ; r
     ref.cast 9   ; -> std_io$IOError
-    call 13   ; std_io$IOError$Error$message
+    call 11   ; std_io$IOError$Error$message
     local.set 2   ; $call_7
     local.get 1   ; r
     ref.cast 9   ; -> std_io$IOError
@@ -86,7 +86,7 @@ fn 1 snippet$catch_all (string) -> string
   local $vcall_8 string
   local.get 0   ; arg 0
   i64.const 16777216
-  call 7   ; std_io$read_file_string
+  call 5   ; std_io$read_file_string
   local.tee 1   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
@@ -107,10 +107,10 @@ end
 fn 2 snippet$main () -> i32
   string.const 5   ; "/no/such/manifest.toml"
   call 0   ; snippet$describe
-  call 14   ; std_io$println__string
+  call 12   ; std_io$println__string
   string.const 5   ; "/no/such/manifest.toml"
   call 1   ; snippet$catch_all
-  call 14   ; std_io$println__string
+  call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -152,30 +152,30 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   local.get 9   ; $call_16
   i64.add
   local.tee 9   ; $call_16
-  call 5   ; std_core$new_byte_buffer
+  call 13   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 10   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 5   ; c0
   local.get 1   ; arg 1
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 6   ; $call_7
   local.get 2   ; arg 2
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 7   ; $call_10
   local.get 3   ; arg 3
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 8   ; $call_13
   local.get 4   ; arg 4
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 10   ; buf
   local.get 9   ; $call_16
-  call 6   ; std_core$finish_buffer
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -193,39 +193,26 @@ fn 4 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 5   ; std_core$new_byte_buffer
+  call 13   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 6   ; std_core$finish_buffer
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 5 std_core$new_byte_buffer (usize) -> ref
-  local.get 0   ; arg 0
-  call 15   ; std_core$usize$BufferAlloc$new_buffer_vt
-  return
-end
-
-fn 6 std_core$finish_buffer (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 16   ; std_core$Buffer$ByteAccess$intern_string_vt
-  return
-end
-
-fn 7 std_io$read_file_string (string,usize) -> any
+fn 5 std_io$read_file_string (string,usize) -> any
   local r any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 9   ; std_io$read_file_bytes
+  call 7   ; std_io$read_file_bytes
   local.tee 2   ; r
   type_check 9   ; std_io$IOError
   if $L0 void
@@ -234,13 +221,13 @@ fn 7 std_io$read_file_string (string,usize) -> any
     return
   end $L0
   local.get 2   ; r
-  ref.cast 6   ; -> u8[]
+  ref.cast 5   ; -> u8[]
   call.import 1   ; std_core$bytes_to_string
   box 1   ; -> string
   return
 end
 
-fn 8 std_io$write (i32,string) -> void
+fn 6 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -271,14 +258,14 @@ fn 8 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 6   ; u8[][]
+      array.slice 5   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 10   ; std_io$write_bytes
+      call 8   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -298,7 +285,7 @@ fn 8 std_io$write (i32,string) -> void
   return
 end
 
-fn 9 std_io$read_file_bytes (string,usize) -> any
+fn 7 std_io$read_file_bytes (string,usize) -> any
   local f any
   local out ref
   local chunk ref
@@ -318,13 +305,13 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
   type_check 0   ; null
   if $L0 void
     string.const 7   ; "cannot open file"
-    call 11   ; std_io$last_io_error
+    call 9   ; std_io$last_io_error
     return
   end $L0
-  array.new 6 0   ; u8[][]
+  array.new 5 0   ; u8[][]
   local.set 3   ; out
   i32.const 0
-  array.new 6 1   ; u8[][]
+  array.new 5 1   ; u8[][]
   i64.const 65536
   array.repeat
   local.set 4   ; chunk
@@ -348,7 +335,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
         local.get 4   ; chunk
         i64.const 0
         local.get 7   ; n
-        array.slice 6   ; u8[][]
+        array.slice 5   ; u8[][]
         local.set 8   ; $slice_23
         local.get 3   ; out
         local.get 8   ; $slice_23
@@ -389,7 +376,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
         i32.ne
         if $L6 void
           string.const 9   ; "read failed"
-          call 11   ; std_io$last_io_error
+          call 9   ; std_io$last_io_error
           local.set 13   ; err
         else
           null.const
@@ -430,7 +417,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
   return
 end
 
-fn 10 std_io$write_bytes (i32,ref,usize) -> i32
+fn 8 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -450,7 +437,7 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 11 std_io$last_io_error (string) -> ref
+fn 9 std_io$last_io_error (string) -> ref
   local e i32
   local kind u8
   local if_res i32
@@ -572,7 +559,7 @@ fn 11 std_io$last_io_error (string) -> ref
     local.set 2   ; kind
   end $L14
   local.get 2   ; kind
-  call 12   ; std_io$describe_io_error_kind
+  call 10   ; std_io$describe_io_error_kind
   local.tee 4   ; reason
   string.const 10   ; ""
   string.eq
@@ -590,7 +577,7 @@ fn 11 std_io$last_io_error (string) -> ref
   return
 end
 
-fn 12 std_io$describe_io_error_kind (u8) -> string
+fn 10 std_io$describe_io_error_kind (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -701,13 +688,13 @@ fn 12 std_io$describe_io_error_kind (u8) -> string
   return
 end
 
-fn 13 std_io$IOError$Error$message (ref) -> string
+fn 11 std_io$IOError$Error$message (ref) -> string
   local.field 0 9 0   ; arg 0.msg
   ref.cast 1   ; -> string
   return
 end
 
-fn 14 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 23   ; "\n"
@@ -715,24 +702,24 @@ fn 14 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 8   ; std_io$write
+  call 6   ; std_io$write
   return
 end
 
-fn 15 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

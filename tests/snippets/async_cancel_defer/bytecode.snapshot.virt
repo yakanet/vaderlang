@@ -15,9 +15,9 @@ type 12 array 13
 type 13 fn () -> 5
 type 14 ref Async
 type 15 primitive usize
-type 16 struct std_core$Buffer {  }
-type 17 primitive u8
-type 18 array 17
+type 16 primitive u8
+type 17 array 16
+type 18 struct std_core$Buffer {  }
 type 19 primitive isize
 string 0 "never cancelled"
 string 1 "done"
@@ -27,12 +27,12 @@ string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
 import 0 byte_len std_core$byte_len result_type=15 param_types=11 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=18 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=3,18,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 1 bytes std_core$bytes result_type=17 param_types=11 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=3,17,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 10 Async
-impl 16 ByteAccess
+impl 18 ByteAccess
 vtable Async.resume 1 0
 vtable Async.resume 8 6
 vtable Async.resume 10 9
@@ -48,7 +48,7 @@ end
 
 fn 1 snippet$Never$Async$cancel (ref) -> void
   string.const 0   ; "never cancelled"
-  call 16   ; std_io$println__string
+  call 14   ; std_io$println__string
   return
 end
 
@@ -97,13 +97,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; o
   virtual.call 1 Async.cancel
   string.const 1   ; "done"
-  call 16   ; std_io$println__string
+  call 14   ; std_io$println__string
   return.lit i32.const 0
 end
 
 fn 5 __defer_snippet_0 (ref) -> void
   string.const 2   ; "inner cleanup"
-  call 16   ; std_io$println__string
+  call 14   ; std_io$println__string
   return
 end
 
@@ -205,7 +205,7 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           local.get 7   ; $field_34
           struct.set 8 2   ; __asyncstate_snippet_2.s2
           string.const 3   ; "inner body (unreached)"
-          call 16   ; std_io$println__string
+          call 14   ; std_io$println__string
           local.get 0   ; arg 0
           i32.const 3
           struct.set 8 5   ; __asyncstate_snippet_2.state
@@ -349,7 +349,7 @@ end
 
 fn 8 __defer_snippet_3 (ref) -> void
   string.const 4   ; "outer cleanup"
-  call 16   ; std_io$println__string
+  call 14   ; std_io$println__string
   return
 end
 
@@ -450,7 +450,7 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
           local.get 7   ; $field_34
           struct.set 10 1   ; __asyncstate_snippet_5.s1
           string.const 5   ; "outer body (unreached)"
-          call 16   ; std_io$println__string
+          call 14   ; std_io$println__string
           local.get 0   ; arg 0
           i32.const 3
           struct.set 10 4   ; __asyncstate_snippet_5.state
@@ -601,35 +601,22 @@ fn 11 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 12   ; std_core$new_byte_buffer
+  call 15   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 19   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 19   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 17   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 13   ; std_core$finish_buffer
+  call 16   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 12 std_core$new_byte_buffer (usize) -> ref
-  local.get 0   ; arg 0
-  call 17   ; std_core$usize$BufferAlloc$new_buffer_vt
-  return
-end
-
-fn 13 std_core$finish_buffer (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 18   ; std_core$Buffer$ByteAccess$intern_string_vt
-  return
-end
-
-fn 14 std_io$write (i32,string) -> void
+fn 12 std_io$write (i32,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -660,14 +647,14 @@ fn 14 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 18   ; u8[][]
+      array.slice 17   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 15   ; std_io$write_bytes
+      call 13   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -687,7 +674,7 @@ fn 14 std_io$write (i32,string) -> void
   return
 end
 
-fn 15 std_io$write_bytes (i32,ref,usize) -> i32
+fn 13 std_io$write_bytes (i32,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -707,7 +694,7 @@ fn 15 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 16 std_io$println__string (string) -> void
+fn 14 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 6   ; "\n"
@@ -715,24 +702,24 @@ fn 16 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 14   ; std_io$write
+  call 12   ; std_io$write
   return
 end
 
-fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 15 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 19 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

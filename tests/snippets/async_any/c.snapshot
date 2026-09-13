@@ -110,8 +110,6 @@ static void snippet___asyncstate_snippet_3_Async_cancel(void* l0);
 static vader_box_t snippet___asyncstate_snippet_4_Async_resume(void* l0);
 static void snippet___asyncstate_snippet_4_Async_cancel(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static void* std_core_new_byte_buffer(size_t l0);
-static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static uint64_t std_core_usize_Hash_hash(size_t l0);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
@@ -152,7 +150,7 @@ static const uint16_t vader_type_10_refs[] = { offsetof(vader_struct___asyncstat
 static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_struct___asyncstate_snippet_4_t, f_s0), offsetof(vader_struct___asyncstate_snippet_4_t, f_s1), offsetof(vader_struct___asyncstate_snippet_4_t, f_s2), offsetof(vader_struct___asyncstate_snippet_4_t, f_awaited) };
 static const uint16_t vader_type_14_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_type_23_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_22_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_25_ptrs[] = { offsetof(vader_struct_std_async_Any__string__Any_t, f_last) };
 static const uint16_t vader_type_25_refs[] = { offsetof(vader_struct_std_async_Any__string__Any_t, f_children), offsetof(vader_struct_std_async_Any__string__Any_t, f_errors) };
 static const uint16_t vader_type_32_ptrs[] = { offsetof(vader_array_t, buf) };
@@ -172,8 +170,8 @@ const vader_type_info_t vader_type_info_table[43] = {
     [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_snippet_4_t), vader_type_11_ptrs, 4, 0, NULL, 0, NULL },
     [14] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_14_ptrs, 1, 0, NULL, 0, NULL },
     [15] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_15_ptrs, 1, 0, NULL, 0, NULL },
-    [20] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [23] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_23_ptrs, 1, 0, NULL, 0, NULL },
+    [22] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_22_ptrs, 1, 0, NULL, 0, NULL },
+    [23] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [25] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_async_Any__string__Any_t), vader_type_25_ptrs, 1, 0, NULL, 2, vader_type_25_refs },
     [30] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_async_Sleep_t), NULL, 0, 0, NULL, 0, NULL },
     [32] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_32_ptrs, 1, 0, NULL, 0, NULL },
@@ -207,9 +205,9 @@ const size_t vader_type_size[43] = {
     [17] = 16u,
     [18] = 1u,
     [19] = 8u,
-    [20] = 16u,
-    [21] = 8u,
-    [22] = 1u,
+    [20] = 8u,
+    [21] = 1u,
+    [22] = 16u,
     [23] = 16u,
     [24] = 16u,
     [25] = 16u,
@@ -236,7 +234,7 @@ const size_t vader_type_size[43] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 23u, 22u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 22u, 21u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 static int64_t vader_host_std_runtime_sched_now(void) { return vader_sched_now(); }
 static void vader_host_std_runtime_sched_arm(int64_t a0) { vader_sched_arm(a0); }
@@ -783,34 +781,11 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     l3 = vader_host_std_core_byte_len(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
-    l4 = std_core_new_byte_buffer(l3);
+    l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
     std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t1 = std_core_finish_buffer(l4, l3);
+    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* std_core_new_byte_buffer(size_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 112 "lib/std/core/primitives.vader"
-    t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-#line 115 "lib/std/core/primitives.vader"
-    t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

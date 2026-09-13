@@ -279,7 +279,7 @@ fn 4 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 7   ; std_core$new_byte_buffer
+  call 22   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
@@ -290,7 +290,7 @@ fn 4 concat_2 (string,string) -> string
   call 25   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 8   ; std_core$finish_buffer
+  call 24   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 

@@ -895,10 +895,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     l3 = vader_host_std_core_byte_len(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
-    l4 = std_core_new_byte_buffer(l3);
+    l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
     std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t1 = std_core_finish_buffer(l4, l3);
+    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -919,11 +919,11 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     l5 = vader_host_std_core_byte_len(l2);
     t0 = (l4 + l5);
     l5 = (size_t) (int64_t) t0;
-    l6 = std_core_new_byte_buffer(l5);
+    l6 = std_core_usize_BufferAlloc_new_buffer_vt(l5);
     std_core_Buffer_ByteAccess_write_string_vt(l6, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l6, l3, l1);
     std_core_Buffer_ByteAccess_write_string_vt(l6, l4, l2);
-    t1 = std_core_finish_buffer(l6, l5);
+    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l6, l5);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -947,12 +947,12 @@ static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_strin
     l7 = vader_host_std_core_byte_len(l3);
     t0 = (l6 + l7);
     l7 = (size_t) (int64_t) t0;
-    l8 = std_core_new_byte_buffer(l7);
+    l8 = std_core_usize_BufferAlloc_new_buffer_vt(l7);
     std_core_Buffer_ByteAccess_write_string_vt(l8, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l8, l4, l1);
     std_core_Buffer_ByteAccess_write_string_vt(l8, l5, l2);
     std_core_Buffer_ByteAccess_write_string_vt(l8, l6, l3);
-    t1 = std_core_finish_buffer(l8, l7);
+    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l8, l7);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

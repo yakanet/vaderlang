@@ -105,7 +105,7 @@ fn 0 snippet$main () -> i32
     ref.cast 2   ; -> string
     local.set 3   ; $field_11
     i64.const 37
-    call 2   ; std_core$new_byte_buffer
+    call 3   ; std_core$new_byte_buffer
     local.set 2   ; e
     i64.const 0
     local.set 4   ; __off_1
@@ -115,7 +115,7 @@ fn 0 snippet$main () -> i32
     call 5   ; std_core$write_string_at
     local.set 4   ; __off_1
     local.get 3   ; $field_11
-    call 4   ; std_core$len
+    call 2   ; std_core$len
     usize.to_i64
     local.set 5   ; $cast_28
     local.get 2   ; e
@@ -130,7 +130,7 @@ fn 0 snippet$main () -> i32
     local.set 4   ; __off_1
     local.get 2   ; e
     local.get 4   ; __off_1
-    call 3   ; std_core$finish_buffer
+    call 4   ; std_core$finish_buffer
     call 19   ; std_io$println__string
   end $L1
   local.get 0   ; path
@@ -202,7 +202,7 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 2   ; std_core$new_byte_buffer
+  call 20   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
@@ -213,24 +213,11 @@ fn 1 concat_2 (string,string) -> string
   call 23   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 3   ; std_core$finish_buffer
-  return
-end
-
-fn 2 std_core$new_byte_buffer (usize) -> ref
-  local.get 0   ; arg 0
-  call 20   ; std_core$usize$BufferAlloc$new_buffer_vt
-  return
-end
-
-fn 3 std_core$finish_buffer (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
   call 22   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 4 std_core$len (string) -> usize
+fn 2 std_core$len (string) -> usize
   local n usize
   local __for_len_1 usize
   local __for_i_2 usize
@@ -269,6 +256,19 @@ fn 4 std_core$len (string) -> usize
     end $L1
   end $L0
   local.get 1   ; n
+  return
+end
+
+fn 3 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  call 20   ; std_core$usize$BufferAlloc$new_buffer_vt
+  return
+end
+
+fn 4 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 22   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 

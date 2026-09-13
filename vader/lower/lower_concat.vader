@@ -76,17 +76,25 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     // free wrappers over their intrinsics ; `write_string` is the `Buffer` impl
     // member resolved directly, avoiding the `write_string_at` call layer + its
     // redundant `byte_len`.
-    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
     blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
+    // `finish_buffer` is resolved for its SIGNATURE only — its first parameter is
+    // where the `Buffer` type comes from. The call goes to the impl member below.
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
     buffer_type :: resolve_buffer_type(ctx, finish_sym) ?? return null
+    usize_ty :: mk_primitive("usize")
+    // The three `Buffer` operations are the impl members, not the expression-bodied
+    // free wrappers `new_byte_buffer` / `finish_buffer` around them. Each wrapper is
+    // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a
+    // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it —
+    // and `cc` cannot elide that, because the collector reads that global. So a
+    // 13-byte concat used to push four nested frames to do one buffer's work.
+    nbuf_member :: find_impl_member_for(ctx, usize_ty, "new_buffer") ?? return null
+    intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
-    // Harvest the free wrappers for materialisation — else the synthesised calls
-    // have an unresolved (non-materialised) callee. `write_string` is surfaced by
+    // Harvest the free wrapper for materialisation — else the synthesised call has
+    // an unresolved (non-materialised) callee. The impl members are surfaced by
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
-    register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)
-    register_nongeneric_imported_fn(ctx, finish_sym)
 
     fn_symbol :: synth_concat_symbol(ctx, SymbolKind.Fn, "concat_${n}")
 
@@ -125,7 +133,9 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     buf_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "buf")
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = mk_lowered_call(nbb_sym, [synth_ident(total_sym, usize_type, span)], buffer_type, span),
+        .value = build_member_call_or_inline(
+            nbuf_member, [synth_ident(total_sym, usize_type, span)], buffer_type, span,
+        ),
     })
     // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
@@ -141,7 +151,11 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     }
     body :: LoweredBlock {
         .span = span, .type = string_type, .stmts = stmts,
-        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, usize_type, span)], string_type, span),
+        .trailing = build_member_call_or_inline(
+            intern_member,
+            [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, usize_type, span)],
+            string_type, span,
+        ),
     }
     decl :: LoweredFnDecl {
         .mangled     = fn_symbol.name,

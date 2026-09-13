@@ -297,7 +297,7 @@
     let buf: Buffer =
       call :Buffer
         callee:
-          new_byte_buffer :Buffer
+          std_core$usize$BufferAlloc$new_buffer :Buffer
         arg0:
           c1 :usize
     call :void
@@ -321,7 +321,7 @@
     ~>
       call :string
         callee:
-          finish_buffer :string
+          std_core$Buffer$ByteAccess$intern_string :string
         arg0:
           buf :Buffer
         arg1:
