@@ -1283,7 +1283,11 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         value_type :: ctx.fn_.locals[usize(ins.value)].type
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        push_emit(ctx, ArrayPush { .type_id = intern_type(value_type, ctx.project) }, ins.span)
+        // Resolve the array's local to its bytecode slot only when the lift was
+        // proven safe — that slot IS the hint the backend needs, and it cannot be
+        // filled earlier: slots are assigned here, not in `lower`.
+        cache_slot :: if ins.cached { ctx.local_to_slot[usize(ins.target)] } else { -1 }
+        push_emit(ctx, ArrayPush { .type_id = intern_type(value_type, ctx.project), .cache_slot = cache_slot }, ins.span)
         return
     }
     if ins is InstrArraySlice {

@@ -640,7 +640,11 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
             continue
         }
         old_to_new_pc[pc] = i32(out.len())
-        out.push(op)
+        // The push-cache hint NAMES a slot, so it has to move with the
+        // renumbering like any other slot reference. It is not a use — the
+        // array's own `local.get` is — so it stays out of the liveness tables
+        // and only the number is rewritten. Same in `slot_coalesce.vader`.
+        out.push(remap_push_cache_slot(op, remap))
         pc = pc + 1
     }
     new_jt :: remap_jump_table(function.jump_table, old_to_new_pc, out.len())

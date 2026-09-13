@@ -9,7 +9,7 @@
         LoweredArrayLen
       let i: usize = int(0) :usize
       loop while (<…>)
-        LoweredArrayPush
+        LoweredArrayPush cached
         assign
           target:
             i :usize
@@ -28,7 +28,7 @@
         LoweredArrayLen
       let i: usize = int(0) :usize
       loop while (<…>)
-        LoweredArrayPush
+        LoweredArrayPush cached
         assign
           target:
             i :usize

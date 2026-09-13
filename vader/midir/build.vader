@@ -1184,7 +1184,7 @@ build_array_push :: fn(fn_ctx: FnCtx!, e: LoweredArrayPush) -> LocalId | null {
     value :: build_expr(fn_ctx, e.value)
     if target is null { return null }
     if value is null { return null }
-    emit(fn_ctx, InstrArrayPush { .target = target, .value = value, .span = e.span })
+    emit(fn_ctx, InstrArrayPush { .target = target, .value = value, .span = e.span, .cached = e.cached })
     return null
 }
 

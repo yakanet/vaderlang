@@ -24,6 +24,22 @@ slot_touched :: fn(op: Op) -> i32 {
     return -1
 }
 
+/// Rewrite `ArrayPush.cache_slot` through a slot renumbering, leaving every
+/// other op alone. The hint is a SLOT NUMBER, so every pass that renumbers slots
+/// has to carry it — `drop_dead_stores` and `slot_coalesce` are the two. A pass
+/// that forgets leaves a stale number behind; the emitter checks the hint
+/// against the array it actually pops and declines to lift on a mismatch, so the
+/// cost of forgetting is a missed optimisation, not a miscompile.
+export remap_push_cache_slot :: fn(op: Op, remap: i32[]) -> Op {
+    if !(op is ArrayPush) {
+        return op
+    }
+    if op.cache_slot < 0 || usize(op.cache_slot) >= remap.len() {
+        return op
+    }
+    return ArrayPush { .type_id = op.type_id, .cache_slot = remap[usize(op.cache_slot)] }
+}
+
 /// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
 /// when it carries no slot.
 with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
@@ -170,7 +186,9 @@ export coalesce_slots :: fn(function: BcFunction!) -> BcFunction! {
                 new_body.push(op)
             }
         } else {
-            new_body.push(op)
+            // `slot_of` reports no slot for an `array.push`, but its cache hint
+            // names one — see the note in `drop_dead_stores`.
+            new_body.push(remap_push_cache_slot(op, remap))
         }
     }
 

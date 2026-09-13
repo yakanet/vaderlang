@@ -1604,7 +1604,7 @@ fn 21 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 1   ; rev
         local.get 5   ; $idx_14
-        array.push 2   ; string[]
+        array.push 2 1   ; string[]
         local.get 2   ; m
         i64.const 10
         u64.div
@@ -1639,7 +1639,7 @@ fn 21 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 3   ; $data_const_10
         local.get 5   ; $idx_14
-        array.push 2   ; string[]
+        array.push 2 3   ; string[]
         local.get 6   ; i
         i64.const 1
         i64.add

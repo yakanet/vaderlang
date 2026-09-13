@@ -52,7 +52,8 @@ export fuse_concat_tail :: fn(ctx: FnLowerCtx!, stmts: LoweredStmt[]!) -> void {
     // held the intermediate. Reading `s` there would see a value the fusion
     // deletes, so a mention of it anywhere in those operands blocks the fuse.
     added :: last.args[1..<last.args.len()]
-    if cf_any_reads(added, last.target.symbol.id) {
+    // `true`: a push onto `s` hidden in an operand DOES observe it here.
+    if cf_any_mentions(added, last.target.symbol.id, true) {
         return
     }
     merged: LoweredExpr[]! = []
@@ -118,95 +119,102 @@ cf_is_concat_call :: fn(ctx: FnLowerCtx, call: LoweredCall) -> bool {
 
 // ---- does this subtree mention `symbol_id` ? ------------------------------
 
-// Exhaustive by design. A `_ ->` arm here would answer "no" for a variant nobody
-// taught it about, and a wrong "no" fuses away a read that mattered.
-cf_expr_reads :: fn(e: LoweredExpr, symbol_id: i32) -> bool = match e {
+// Does `e` mention `symbol_id`? Exhaustive by design — a `_ ->` arm would answer
+// "no" for a variant nobody taught it about, and a wrong "no" fuses away a read
+// that mattered.
+//
+// `push_target` decides whether a `LoweredArrayPush`'s TARGET counts. The concat
+// fusion says yes: `s = s + f(a)` where `f` pushes to `s` observes it. The push
+// cache says no: that target is exactly the use it is replacing
+// (`push_cache.vader`). Every other arm is the same question for both.
+cf_expr_mentions :: fn(e: LoweredExpr, symbol_id: i32, push_target: bool) -> bool = match e {
     is LoweredIdent -> e.symbol.id == symbol_id
     is LoweredArrayLen | LoweredFieldAccess | LoweredCellGet ->
-        cf_expr_reads(e.target, symbol_id)
+        cf_expr_mentions(e.target, symbol_id, push_target)
     is LoweredCast | LoweredTypeCheck | LoweredCellNew ->
-        cf_expr_reads(e.value, symbol_id)
-    is LoweredUnary       -> cf_expr_reads(e.operand, symbol_id)
-    is LoweredMakeClosure -> cf_expr_reads(e.env, symbol_id)
-    is LoweredBlock       -> cf_block_reads(e, symbol_id)
+        cf_expr_mentions(e.value, symbol_id, push_target)
+    is LoweredUnary       -> cf_expr_mentions(e.operand, symbol_id, push_target)
+    is LoweredMakeClosure -> cf_expr_mentions(e.env, symbol_id, push_target)
+    is LoweredBlock       -> cf_block_mentions(e, symbol_id, push_target)
     is LoweredIndex       ->
-        cf_expr_reads(e.target, symbol_id) || cf_expr_reads(e.index, symbol_id)
+        cf_expr_mentions(e.target, symbol_id, push_target) || cf_expr_mentions(e.index, symbol_id, push_target)
     is LoweredBinary      ->
-        cf_expr_reads(e.left, symbol_id) || cf_expr_reads(e.right, symbol_id)
+        cf_expr_mentions(e.left, symbol_id, push_target) || cf_expr_mentions(e.right, symbol_id, push_target)
     is LoweredArrayPush   ->
-        cf_expr_reads(e.target, symbol_id) || cf_expr_reads(e.value, symbol_id)
+        (push_target && cf_expr_mentions(e.target, symbol_id, push_target))
+            || cf_expr_mentions(e.value, symbol_id, push_target)
     is LoweredArraySlice | LoweredStringSlice ->
-        cf_expr_reads(e.target, symbol_id)
-            || cf_expr_reads(e.lo, symbol_id)
-            || cf_expr_reads(e.hi, symbol_id)
+        cf_expr_mentions(e.target, symbol_id, push_target)
+            || cf_expr_mentions(e.lo, symbol_id, push_target)
+            || cf_expr_mentions(e.hi, symbol_id, push_target)
     is LoweredCall        ->
-        cf_expr_reads(e.callee, symbol_id) || cf_any_reads(e.args, symbol_id)
+        cf_expr_mentions(e.callee, symbol_id, push_target) || cf_any_mentions(e.args, symbol_id, push_target)
     is LoweredVirtualCall ->
-        cf_expr_reads(e.receiver, symbol_id) || cf_any_reads(e.args, symbol_id)
-    is LoweredIntrinsicCall -> cf_any_reads(e.args, symbol_id)
-    is LoweredArrayLit      -> cf_any_reads(e.elements, symbol_id)
-    is LoweredStructLit     -> cf_fields_read(e.fields, symbol_id)
+        cf_expr_mentions(e.receiver, symbol_id, push_target) || cf_any_mentions(e.args, symbol_id, push_target)
+    is LoweredIntrinsicCall -> cf_any_mentions(e.args, symbol_id, push_target)
+    is LoweredArrayLit      -> cf_any_mentions(e.elements, symbol_id, push_target)
+    is LoweredStructLit     -> cf_fields_mention(e.fields, symbol_id, push_target)
     is LoweredIf            ->
-        cf_expr_reads(e.cond, symbol_id)
-            || cf_block_reads(e.then_block, symbol_id)
-            || cf_opt_block_reads(e.else_block, symbol_id)
+        cf_expr_mentions(e.cond, symbol_id, push_target)
+            || cf_block_mentions(e.then_block, symbol_id, push_target)
+            || cf_opt_block_mentions(e.else_block, symbol_id, push_target)
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit
         | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst
         | LoweredUnreachable -> false
 }
 
-cf_any_reads :: fn(items: LoweredExpr[], symbol_id: i32) -> bool {
+cf_any_mentions :: fn(items: LoweredExpr[], symbol_id: i32, push_target: bool) -> bool {
     for it in items {
-        if cf_expr_reads(it, symbol_id) {
+        if cf_expr_mentions(it, symbol_id, push_target) {
             return true
         }
     }
     return false
 }
 
-cf_fields_read :: fn(fields: LoweredStructLitField[], symbol_id: i32) -> bool {
+cf_fields_mention :: fn(fields: LoweredStructLitField[], symbol_id: i32, push_target: bool) -> bool {
     for f in fields {
-        if cf_expr_reads(f.value, symbol_id) {
+        if cf_expr_mentions(f.value, symbol_id, push_target) {
             return true
         }
     }
     return false
 }
 
-cf_opt_expr_reads :: fn(e: LoweredExpr | null, symbol_id: i32) -> bool {
+cf_opt_expr_mentions :: fn(e: LoweredExpr | null, symbol_id: i32, push_target: bool) -> bool {
     if e == null {
         return false
     }
-    return cf_expr_reads(e, symbol_id)
+    return cf_expr_mentions(e, symbol_id, push_target)
 }
 
-cf_opt_block_reads :: fn(b: LoweredBlock | null, symbol_id: i32) -> bool {
+cf_opt_block_mentions :: fn(b: LoweredBlock | null, symbol_id: i32, push_target: bool) -> bool {
     if b == null {
         return false
     }
-    return cf_block_reads(b, symbol_id)
+    return cf_block_mentions(b, symbol_id, push_target)
 }
 
-cf_block_reads :: fn(b: LoweredBlock, symbol_id: i32) -> bool {
+cf_block_mentions :: fn(b: LoweredBlock, symbol_id: i32, push_target: bool) -> bool {
     for st in b.stmts {
-        if cf_stmt_reads(st, symbol_id) {
+        if cf_stmt_mentions(st, symbol_id, push_target) {
             return true
         }
     }
-    return cf_opt_expr_reads(b.trailing, symbol_id)
+    return cf_opt_expr_mentions(b.trailing, symbol_id, push_target)
 }
 
-cf_stmt_reads :: fn(st: LoweredStmt, symbol_id: i32) -> bool = match st {
-    is LoweredLet                  -> cf_expr_reads(st.value, symbol_id)
+cf_stmt_mentions :: fn(st: LoweredStmt, symbol_id: i32, push_target: bool) -> bool = match st {
+    is LoweredLet                  -> cf_expr_mentions(st.value, symbol_id, push_target)
     is LoweredAssign | LoweredCellSet ->
-        cf_expr_reads(st.target, symbol_id) || cf_expr_reads(st.value, symbol_id)
-    is LoweredExprStmt             -> cf_expr_reads(st.expr, symbol_id)
-    is LoweredReturn               -> cf_opt_expr_reads(st.value, symbol_id)
-    is LoweredYield                -> cf_expr_reads(st.value, symbol_id)
-    is LoweredAwait                -> cf_expr_reads(st.awaited, symbol_id)
-    is LoweredDeferPush            -> cf_expr_reads(st.thunk, symbol_id)
+        cf_expr_mentions(st.target, symbol_id, push_target) || cf_expr_mentions(st.value, symbol_id, push_target)
+    is LoweredExprStmt             -> cf_expr_mentions(st.expr, symbol_id, push_target)
+    is LoweredReturn               -> cf_opt_expr_mentions(st.value, symbol_id, push_target)
+    is LoweredYield                -> cf_expr_mentions(st.value, symbol_id, push_target)
+    is LoweredAwait                -> cf_expr_mentions(st.awaited, symbol_id, push_target)
+    is LoweredDeferPush            -> cf_expr_mentions(st.thunk, symbol_id, push_target)
     is LoweredLoop                 ->
-        cf_opt_expr_reads(st.cond, symbol_id) || cf_block_reads(st.body, symbol_id)
+        cf_opt_expr_mentions(st.cond, symbol_id, push_target) || cf_block_mentions(st.body, symbol_id, push_target)
     is LoweredBreak | LoweredContinue | LoweredDeferPopExec -> false
 }
 
@@ -234,21 +242,21 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
     LoweredBlock { .span = empty_span(), .type = TY_STRING, .stmts = stmts, .trailing = trailing }
 
 @test test_cf_expr_reads_the_target_ident :: fn() -> void {
-    assert(cf_expr_reads(cf_test_target(), CF_TEST_ID), "a bare `s` is a read")
+    assert(cf_expr_mentions(cf_test_target(), CF_TEST_ID, true), "a bare `s` is a read")
 }
 
 @test test_cf_expr_reads_ignores_another_ident :: fn() -> void {
-    assert(!cf_expr_reads(cf_test_other(), CF_TEST_ID), "a different local is not `s`")
+    assert(!cf_expr_mentions(cf_test_other(), CF_TEST_ID, true), "a different local is not `s`")
 }
 
 @test test_cf_expr_reads_ignores_a_literal :: fn() -> void {
-    assert(!cf_expr_reads(fold_test_lit("x"), CF_TEST_ID), "a literal reads nothing")
+    assert(!cf_expr_mentions(fold_test_lit("x"), CF_TEST_ID, true), "a literal reads nothing")
 }
 
 // The operand that matters in practice: `s = s + f(s)`.
 @test test_cf_expr_reads_through_call_args :: fn() -> void {
     args: LoweredExpr[]! = [fold_test_lit("a"), cf_test_target()]
-    assert(cf_expr_reads(cf_test_call(args), CF_TEST_ID), "`s` buried in an argument is a read")
+    assert(cf_expr_mentions(cf_test_call(args), CF_TEST_ID, true), "`s` buried in an argument is a read")
 }
 
 @test test_cf_expr_reads_through_binary_operands :: fn() -> void {
@@ -256,7 +264,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
         .span = empty_span(), .type = TY_STRING, .op = .Add,
         .left = fold_test_lit("a"), .right = cf_test_target(),
     }
-    assert(cf_expr_reads(e, CF_TEST_ID), "`s` on either side of a binary is a read")
+    assert(cf_expr_mentions(e, CF_TEST_ID, true), "`s` on either side of a binary is a read")
 }
 
 // A block reaches the walker as an expression ; its trailing value is the part
@@ -264,7 +272,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
 @test test_cf_expr_reads_a_block_trailing :: fn() -> void {
     empty: LoweredStmt[]! = []
     assert(
-        cf_expr_reads(cf_test_block(empty, cf_test_target()), CF_TEST_ID),
+        cf_expr_mentions(cf_test_block(empty, cf_test_target()), CF_TEST_ID, true),
         "`s` as a block's trailing value is a read",
     )
 }
@@ -275,13 +283,13 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
         .span = empty_span(), .cond = null, .body = cf_test_block(inner, null), .label = "",
     }]
     body :: cf_test_block(outer, null)
-    assert(cf_expr_reads(body, CF_TEST_ID), "`s` inside a loop body is a read")
+    assert(cf_expr_mentions(body, CF_TEST_ID, true), "`s` inside a loop body is a read")
 }
 
 @test test_cf_expr_reads_a_nested_block_without_the_target :: fn() -> void {
     inner: LoweredStmt[]! = [LoweredExprStmt { .span = empty_span(), .expr = cf_test_other() }]
     assert(
-        !cf_expr_reads(cf_test_block(inner, fold_test_lit("z")), CF_TEST_ID),
+        !cf_expr_mentions(cf_test_block(inner, fold_test_lit("z")), CF_TEST_ID, true),
         "a block mentioning neither `s` nor anything holding it reads nothing",
     )
 }

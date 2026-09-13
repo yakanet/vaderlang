@@ -910,7 +910,15 @@ parse_array_new :: fn(line: string) -> bc.Op | null {
     return bc.ArrayNew { .type_id = tid, .length = len }
 }
 
+// `array.push TYPE` or `array.push TYPE SLOT` — the second form carries the
+// push-cache hint (`push_cache.vader`). The VM ignores the hint and runs the
+// ordinary push either way.
 parse_array_push :: fn(line: string) -> bc.Op | null {
+    pair :: parse_int_pair_after_prefix(line, "array.push ")
+    if pair != null {
+        [tid, cache_slot] :: pair
+        return bc.ArrayPush { .type_id = tid, .cache_slot = cache_slot }
+    }
     parsed :: parse_int_after_prefix(line, "array.push ") ?? return null
     return bc.ArrayPush { .type_id = parsed }
 }

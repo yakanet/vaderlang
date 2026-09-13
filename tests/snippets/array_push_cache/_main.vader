@@ -1,0 +1,156 @@
+/// Push loops whose array state can live in locals, and the ones that can't.
+///
+/// `push_cache_tag` marks a `push` when its loop can keep the array's length /
+/// capacity / slots out of memory: the array must be a local nothing else in the
+/// body touches, and the body must reach no GC safepoint — an allocation could
+/// move the buffer the cached pointer aims at, and on a boxed array a stale
+/// `buf->length` would make the collector skip the slots just written.
+///
+/// Read `lower.snapshot`: `cached` on a push says the analysis fired. Every
+/// function here prints its result, so a missed write-back shows up as a wrong
+/// answer and not just a changed shape.
+
+module "snippet"
+
+import "std/io"
+
+// The shape the pass exists for: nothing in the body but the push.
+tight :: fn(n: i32) -> i32[]! {
+    out: i32[]! = []
+    for i in 0..<n {
+        out.push(i * 2)
+    }
+    return out
+}
+
+// A call in the body can allocate, so the buffer may move under the cache.
+mk :: fn(i: i32) -> string = "v${i}"
+
+allocates :: fn(n: i32) -> string[]! {
+    out: string[]! = []
+    for i in 0..<n {
+        out.push(mk(i))
+    }
+    return out
+}
+
+// The body READS the array, so the cached length would have to be visible to it.
+reads_itself :: fn(n: i32) -> i32[]! {
+    out: i32[]! = []
+    for i in 0..<n {
+        out.push(i)
+        if out.len() > 3 {
+            out.push(-1)
+        }
+    }
+    return out
+}
+
+// `break` is an extra exit the first cut does not write back at.
+with_break :: fn(n: i32) -> i32[]! {
+    out: i32[]! = []
+    for i in 0..<n {
+        if i == 3 {
+            break
+        }
+        out.push(i)
+    }
+    return out
+}
+
+// Boxed elements: the collector scans `buf->length` slots here, so a stale
+// length would lose references rather than just returning a wrong count.
+boxed :: fn(n: i32) -> string[]! {
+    out: string[]! = []
+    for _ in 0..<n {
+        out.push("x")
+    }
+    return out
+}
+
+// Pushing into a VIEW must detach, never write into the parent's storage.
+into_view :: fn() -> i32[]! {
+    base: i32[]! = [10, 20, 30, 40, 50]
+    v: i32[]! = base[1..<3]
+    for i in 0..<3 {
+        v.push(100 + i)
+    }
+    return v
+}
+
+// Two loops, two arrays, one nested in the other.
+nested :: fn(n: i32) -> i32 {
+    total := 0
+    outer: i32[]! = []
+    for i in 0..<n {
+        inner: i32[]! = []
+        for j in 0..<n {
+            inner.push(i * j)
+        }
+        outer.push(i32(inner.len()))
+        total = total + i32(inner.len())
+    }
+    return total + i32(outer.len())
+}
+
+// Each packed width writes through its OWN C type and its own push helper. A
+// lift keyed on the value type instead of the element kind maps u8 / i8 / u16 /
+// i16 to `push_i32` and f32 to `push_f64`, which overruns the slot — the sums
+// below are what catches it.
+widths :: fn(n: i32) -> string {
+    // One loop each : a loop pushing to several arrays has no single target and
+    // is declined before the width ever matters.
+    bytes: u8[]! = []
+    for i in 0..<n {
+        bytes.push(u8(i % 200))
+    }
+    shorts: i16[]! = []
+    for i in 0..<n {
+        shorts.push(i16(i * 3))
+    }
+    floats: f32[]! = []
+    for i in 0..<n {
+        floats.push(f32(i) * 1.5)
+    }
+    bt := 0
+    for b in bytes {
+        bt = bt + i32(b)
+    }
+    st := 0
+    for x in shorts {
+        st = st + i32(x)
+    }
+    ft: f32 = 0.0
+    for f in floats {
+        ft = ft + f
+    }
+    return "${bt}/${st}/${i32(ft)}"
+}
+
+sum :: fn(a: i32[]) -> i32 {
+    t := 0
+    for x in a {
+        t = t + x
+    }
+    return t
+}
+
+join :: fn(a: string[]) -> string {
+    s := ""
+    for x in a {
+        s = s + x + "|"
+    }
+    return s
+}
+
+main :: fn() -> i32 {
+    println("tight        ${sum(tight(6))} n=${tight(6).len()}")
+    println("allocates    ${join(allocates(3))}")
+    println("reads_itself ${sum(reads_itself(5))} n=${reads_itself(5).len()}")
+    println("with_break   ${sum(with_break(9))} n=${with_break(9).len()}")
+    println("boxed        ${join(boxed(4))}")
+    println("into_view    ${sum(into_view())} n=${into_view().len()}")
+    println("nested       ${nested(4)}")
+    println("widths       ${widths(150)}")
+    return 0
+}

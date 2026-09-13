@@ -276,7 +276,10 @@ export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }
 export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
 /// Pop a value, then an array ; append the value to `array.elements`.
 /// Statement-form, no value pushed back. Sprint 4 (b2) addition.
-export ArrayPush :: struct { type_id: i32 }
+/// `cache_slot` is the local slot holding the array when `push_cache_tag` proved
+/// this push's loop can keep the array's state in locals (-1 otherwise). It is a
+/// HINT: a backend that ignores it emits the ordinary push and stays correct.
+export ArrayPush :: struct { type_id: i32, cache_slot: i32 = -1 }
 /// Pop an index (i32) and an array ; push `array.elements[index]`.
 /// Traps on out-of-bounds index (unless `bounds_safe`). Sprint 4 (b2) addition.
 /// `bounds_safe` : the producer PROVED the index in range (BCE) → the C backend

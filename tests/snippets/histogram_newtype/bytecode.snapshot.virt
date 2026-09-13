@@ -50,7 +50,7 @@ fn 0 snippet$Histogram$Mul$mul (ref,u32) -> ref
         local.set 5   ; $mul_10
         local.get 2   ; out
         local.get 5   ; $mul_10
-        array.push 2   ; u32[]
+        array.push 2 2   ; u32[]
         local.get 4   ; i
         i64.const 1
         i64.add
@@ -90,7 +90,7 @@ fn 1 snippet$Histogram$Div$div (ref,u32) -> ref
         local.set 5   ; $div_10
         local.get 2   ; out
         local.get 5   ; $div_10
-        array.push 2   ; u32[]
+        array.push 2 2   ; u32[]
         local.get 4   ; i
         i64.const 1
         i64.add

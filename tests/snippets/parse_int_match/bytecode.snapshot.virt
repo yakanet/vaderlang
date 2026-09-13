@@ -1717,7 +1717,7 @@ fn 12 std_core$shl (ref,i32) -> ref
       if $L2 void
         local.get 2   ; out
         i32.const 0
-        array.push 14   ; u32[]
+        array.push 14 2   ; u32[]
         local.get 4   ; _z
         i64.const 1
         i64.add
@@ -1751,7 +1751,7 @@ fn 12 std_core$shl (ref,i32) -> ref
           local.set 6   ; $idx_24
           local.get 2   ; out
           local.get 6   ; $idx_24
-          array.push 14   ; u32[]
+          array.push 14 2   ; u32[]
           local.get 4   ; _z
           i64.const 1
           i64.add
@@ -1802,7 +1802,7 @@ fn 12 std_core$shl (ref,i32) -> ref
         local.set 12   ; $cast_43
         local.get 2   ; out
         local.get 12   ; $cast_43
-        array.push 14   ; u32[]
+        array.push 14 2   ; u32[]
         local.get 11   ; v
         i64.const 32
         u64.shr
@@ -2109,7 +2109,7 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_20
         local.get 3   ; out
         local.get 10   ; $cast_20
-        array.push 14   ; u32[]
+        array.push 14 3   ; u32[]
         local.get 9   ; v
         i64.const 32
         u64.shr
@@ -2135,7 +2135,7 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_20
         local.get 3   ; out
         local.get 10   ; $cast_20
-        array.push 14   ; u32[]
+        array.push 14 3   ; u32[]
         local.get 4   ; carry
         i64.const 32
         u64.shr
@@ -2441,7 +2441,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 10   ; $cast_22
         local.get 2   ; msb
         local.get 10   ; $cast_22
-        array.push 14   ; u32[]
+        array.push 14 2   ; u32[]
         local.get 1   ; arg 1
         u32.to_i64
         local.set 11   ; $cast_23
@@ -2481,7 +2481,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 10   ; $cast_22
         local.get 12   ; out
         local.get 10   ; $cast_22
-        array.push 14   ; u32[]
+        array.push 14 12   ; u32[]
         local.get 4   ; i
         i32.const 1
         i32.sub

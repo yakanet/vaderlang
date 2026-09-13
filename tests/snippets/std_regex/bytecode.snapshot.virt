@@ -2684,7 +2684,7 @@ fn 28 regex$truncate_threads (ref,usize) -> ref
         local.set 4   ; $idx_7
         local.get 2   ; out
         local.get 4   ; $idx_7
-        array.push 21   ; regex$Thread[]
+        array.push 21 2   ; regex$Thread[]
         local.get 3   ; i
         i64.const 1
         i64.add

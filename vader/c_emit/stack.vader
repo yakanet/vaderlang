@@ -132,6 +132,10 @@ FnState :: struct {
     /// no-alloc fn given a frame for debugging, say — split the two before
     /// changing this, or the resolve cache silently goes unsound.
     no_frame: bool
+    /// Loops whose array state is currently lifted into C locals, innermost
+    /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
+    /// See `push_cache_emit.vader`.
+    push_caches: PushCache[]!
     /// Resolve-CSE cache : array C-expr (`((vader_array_t*) lN.payload.obj)`) →
     /// the `_slotarrK` local that already chased its buf-forward chain in this
     /// straight-line region. A second slot access on the same array reuses it,
@@ -176,6 +180,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .continue_targets = [],
     .break_targets = [],
     .no_frame = true,
+    .push_caches = [],
     .resolved_arrays = MutableMap<string, string> {},
     .pinned_resolves = MutableSet<string> {},
     .drop_call_result = false,

@@ -363,6 +363,10 @@ export InstrArrayPush :: struct {
     span:   Span
     target: LocalId
     value:  LocalId
+    /// Carried through from `LoweredArrayPush.cached` — see `push_cache.vader`.
+    /// midir never acts on it ; it only has to survive to the bytecode emitter,
+    /// which turns it into `ArrayPush.cache_slot` once `target` has a slot.
+    cached: bool = false
 }
 
 export InstrArraySlice :: struct {

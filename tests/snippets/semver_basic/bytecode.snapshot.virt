@@ -1274,7 +1274,7 @@ fn 14 semver$parse_clause (string) -> any
                   local.set 15   ; t
                   local.get 2   ; terms
                   local.get 15   ; t
-                  array.push 24   ; semver$RangeTerm[]
+                  array.push 24 2   ; semver$RangeTerm[]
                   local.get 14   ; __for_i_3
                   i64.const 1
                   i64.add
@@ -1372,7 +1372,7 @@ fn 14 semver$parse_clause (string) -> any
                     local.set 26   ; t
                     local.get 2   ; terms
                     local.get 26   ; t
-                    array.push 24   ; semver$RangeTerm[]
+                    array.push 24 2   ; semver$RangeTerm[]
                     local.get 25   ; __for_i_6
                     i64.const 1
                     i64.add
@@ -1444,7 +1444,7 @@ fn 14 semver$parse_clause (string) -> any
                 local.set 33   ; t
                 local.get 2   ; terms
                 local.get 33   ; t
-                array.push 24   ; semver$RangeTerm[]
+                array.push 24 2   ; semver$RangeTerm[]
                 local.get 32   ; __for_i_10
                 i64.const 1
                 i64.add

@@ -265,6 +265,11 @@ lower_project_impl :: fn(
     // callbacks and inlinable helpers in the loop body are their inlined bodies.
     // See `bce_hoist.vader`.
     bce_hoist_tag(project)
+    // Mark the pushes whose loop can keep the array's state in locals. Shares
+    // `bce_hoist_tag`'s purity question and runs beside it, but tags a different
+    // node — and answers for the WRITE path where BCE answers for the read one.
+    // See `push_cache.vader`.
+    push_cache_tag(project)
     return project
 }
 

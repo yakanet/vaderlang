@@ -682,7 +682,7 @@ fn 14 std_numbers$to_hex (u64) -> string
         local.set 4   ; $call_12
         local.get 1   ; rev
         local.get 4   ; $call_12
-        array.push 3   ; char[]
+        array.push 3 1   ; char[]
         local.get 3   ; x
         local.get 2   ; base
         u64.div
@@ -766,11 +766,11 @@ fn 15 std_numbers$to_bin (u64) -> string
         if $L4 void
           local.get 1   ; rev
           char.const 48
-          array.push 3   ; char[]
+          array.push 3 1   ; char[]
         else
           local.get 1   ; rev
           char.const 49
-          array.push 3   ; char[]
+          array.push 3 1   ; char[]
         end $L4
         local.get 3   ; x
         local.get 2   ; two

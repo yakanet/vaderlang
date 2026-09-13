@@ -388,7 +388,7 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
 // @partial: debug kind label — only a few shapes are named, the rest fall to "<unknown>".
 expr_kind_label :: fn(expr: LoweredExpr) -> string = @partial match expr {
     is LoweredArrayLen     -> "LoweredArrayLen"
-    is LoweredArrayPush    -> "LoweredArrayPush"
+    is LoweredArrayPush    -> if expr.cached { "LoweredArrayPush cached" } else { "LoweredArrayPush" }
     is LoweredStringSlice  -> "LoweredStringSlice"
     is LoweredCellNew      -> "LoweredCellNew"
     is LoweredCellGet      -> "LoweredCellGet"

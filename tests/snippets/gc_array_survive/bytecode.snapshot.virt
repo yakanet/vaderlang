@@ -43,7 +43,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; list
         local.get 1   ; i
-        array.push 1   ; i32[]
+        array.push 1 0   ; i32[]
         local.get 1   ; i
         i32.const 1
         i32.add

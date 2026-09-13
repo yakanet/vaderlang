@@ -1,0 +1,285 @@
+// vader/c_emit/push_cache_emit — emit a push loop with the array state in locals.
+//
+// `push_cache_tag` (`vader/lower`) proved which pushes sit in a loop that can
+// keep the array's `length` / `capacity` / slots out of memory, and passed the
+// array's bytecode slot along on `ArrayPush.cache_slot`. That is the whole
+// backend-independent part. What is left is a C question — where the lifted
+// state lives — and this file answers it: four C locals in the block that
+// encloses the loop, a fast arm that touches only them, and a slow arm that
+// writes them back, calls the ordinary push, and reloads.
+//
+// The ordinary fast path is 18 instructions and 6 loads for one 4-byte store,
+// because every one of those fields round-trips through memory: the stores may
+// alias anything reachable from the header, and the header sits in a slot the
+// collector may rewrite. Lifted, the loop is 6 instructions, 0 loads and 1 store
+// — the shape Go's `append` has by construction, since a Go slice is a value.
+//
+// Packed element kinds only, for now. A boxed or ref element needs a write
+// barrier and leaves the collector reading `buf->length` for the slots it must
+// scan, so lifting one is a separate argument; the hint is simply declined here.
+
+module "vader/c_emit"
+
+/// One loop's lifted array state. `opener_pc` names the locals, so nested
+/// regions cannot collide.
+PushCache :: struct {
+    opener_pc: i32
+    /// Bytecode slot of the array — matches `ArrayPush.cache_slot`.
+    slot: i32
+    /// Element kind. The C storage type, the coercion class and the slow arm's
+    /// helper all derive from it through the two shared tables, so they cannot
+    /// disagree on the width.
+    kind: ArrayKind
+}
+
+/// Decide whether the loop opening at `pc` can lift its array state.
+///
+/// Scans the loop's own region — stepping OVER a nested loop, whose pushes
+/// belong to it and whose array may not even exist yet outside it. Returns a
+/// plan when the region's cached pushes all name one slot and one packed
+/// element kind, `null` otherwise.
+///
+/// @param s   the fn emit state ; reads `function.body` and `scopes`.
+/// @param pc  the `Loop` opener's pc.
+/// @return    the plan, or `null` when nothing is liftable here.
+pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
+    sc :: scope_ending_for_opener(s.scopes, pc) ?? return null
+    slot := -1
+    kind := ArrayKind.I32
+    i: i32 = pc + 1
+    for i < sc.end_pc {
+        op :: s.function.body[usize(i)]
+        // A nested loop is refused outright by this first cut. Two loops that
+        // both push to the SAME array each get a plan, and the outer one's
+        // cached length then goes stale the moment the inner one runs — so
+        // rather than reason about which nestings are safe, none are.
+        if op is vm.Loop {
+            return null
+        }
+        if op is vm.ArrayPush {
+            if op.cache_slot < 0 {
+                // An UNCACHED push allocates like any other and is not one this
+                // region refreshes across.
+                return null
+            }
+            k :: array_kind_of(s.ctx.module.types[usize(op.type_id)], s.ctx.module.types)
+            if !pc_liftable_kind(k) {
+                return null
+            }
+            if slot >= 0 && slot != op.cache_slot {
+                return null
+            }
+            slot = op.cache_slot
+            kind = k
+            i += 1
+            continue
+        }
+        // The write-back fires from the loop's `End` alone, so every path out of
+        // the region must reach it. A `return` compiles in place and a branch
+        // past `end_pc` jumps over it — either one leaves `length` behind while
+        // `slots` already holds the pushed elements, and the array silently
+        // reports itself short. `push_cache_tag` proved the single exit on the
+        // lowered AST ; this asks the op stream, for the same reason the
+        // allocation proof is asked twice below.
+        if op is vm.Return | vm.ReturnLit {
+            return null
+        }
+        if op is vm.Branch | vm.BranchIf {
+            target :: s.function.jump_table[i]
+            // A loop back-edge lands on the opener and stays inside.
+            if target < pc || target > sc.end_pc {
+                return null
+            }
+        }
+        // The lifted `slots` pointer aims into a GC object, so ANY safepoint in
+        // the region invalidates it. `push_cache_tag` proved that on the lowered
+        // AST; this is the same question asked of the op stream that actually
+        // ships, which is where `midir` and the bytecode passes have had their
+        // say. `op_allocates` reports a call as non-allocating on purpose — the
+        // callee's verdict lives in `may_alloc` — so both are consulted.
+        if op_allocates(op) {
+            return null
+        }
+        if op is vm.Call {
+            if op.function_index in s.ctx.may_alloc {
+                return null
+            }
+        }
+        i += 1
+    }
+    if slot < 0 {
+        return null
+    }
+    // Belt and braces for the rule above: never open a second plan on a slot
+    // that already has one live.
+    for active in s.push_caches {
+        if active.slot == slot {
+            return null
+        }
+    }
+    // The preheader reads the slot BEFORE the loop, so the array has to already
+    // be in it. A module const does not qualify: `midir` materialises its read
+    // into the slot inside the body, once per iteration, and before the first
+    // one that slot can hold anything at all — a `Buffer` from the `${}` just
+    // above, in the case that found this. Only the op stream shows that; the
+    // lowered AST has a plain ident whose symbol nothing assigns.
+    if pc_slot_written_in(s, pc, sc.end_pc, slot) {
+        return null
+    }
+    return PushCache { .opener_pc = pc, .slot = slot, .kind = kind }
+}
+
+// Can this element kind be lifted? Packed only: a boxed or ref element needs a
+// write barrier, and leaves the collector reading `buf->length` for the slots it
+// must scan — a stale length would make it skip the ones just written. The two
+// tables agreeing is the definition of "packed" here.
+pc_liftable_kind :: fn(k: ArrayKind) -> bool {
+    if push_helper_for(k) == null {
+        return false
+    }
+    return typed_array_fill_for(k) != null
+}
+
+// ---- the three emission points --------------------------------------------
+
+/// Emit the lifted locals, just before the loop's opening brace.
+///
+/// The capacity local doubles as the fast-path gate: it is zeroed for any array
+/// the packed store must not touch — a borrowed view, a slice with an offset, a
+/// view shorter than its buffer — so every push on one of those falls to the
+/// slow arm, which is the ordinary `vader_array_push_*` and detaches correctly.
+///
+/// @param s   the fn emit state.
+/// @param p   the plan from `pc_plan_for_loop`.
+pc_emit_preheader :: fn(s: FnState!, p: PushCache) -> void {
+    n :: p.opener_pc
+    line(s, "vader_array_t* _pc${n}_hdr = (vader_array_t*) l${p.slot};")
+    line(s, "size_t _pc${n}_len = _pc${n}_hdr->length;")
+    line(s, "size_t _pc${n}_cap = ${pc_cap_expr(n)};")
+    line(s, "void* _pc${n}_slots = _pc${n}_hdr->buf->slots;")
+}
+
+// The capacity, or 0 when the packed store is not allowed on this array.
+pc_cap_expr :: fn(n: i32) -> string {
+    plain :: "_pc${n}_hdr->offset == 0 && !vader_array_is_borrowed(_pc${n}_hdr)"
+    whole :: "_pc${n}_hdr->length >= _pc${n}_hdr->buf->length"
+    return "(${plain} && ${whole}) ? _pc${n}_hdr->capacity : (size_t) 0"
+}
+
+/// Emit one push against the lifted state.
+///
+/// The value expression is spelled once in each arm, and exactly one arm runs,
+/// so a value with side effects is still evaluated exactly once.
+///
+/// @param s      the fn emit state.
+/// @param p      the active plan.
+/// @param obj    the array's C expression, for the slow arm.
+/// @param value  the already-coerced value expression.
+pc_emit_push :: fn(s: FnState!, p: PushCache, obj: string, value: string) -> void {
+    n :: p.opener_pc
+    line(s, "if (VADER_LIKELY(_pc${n}_len < _pc${n}_cap)) {")
+    indent_push(s)
+    cty :: pc_fill_of(p.kind).cty
+    line(s, "((${cty}*) _pc${n}_slots)[_pc${n}_len] = (${cty}) (${value});")
+    line(s, "_pc${n}_len += 1;")
+    indent_pop(s)
+    line(s, "} else {")
+    indent_push(s)
+    // Hand the real state back before a call that may grow — and therefore may
+    // collect, which is the one safepoint this region has.
+    pc_emit_writeback(s, n)
+    line(s, "${pc_helper_of(p.kind)}((vader_array_t*) ${obj}, ${value});")
+    // The grow may have moved both the header and the buffer.
+    line(s, "_pc${n}_hdr = (vader_array_t*) ${obj};")
+    line(s, "_pc${n}_len = _pc${n}_hdr->length;")
+    line(s, "_pc${n}_cap = ${pc_cap_expr(n)};")
+    line(s, "_pc${n}_slots = _pc${n}_hdr->buf->slots;")
+    indent_pop(s)
+    line(s, "}")
+}
+
+/// Emit the write-back — the loop's single exit, and before the slow arm.
+pc_emit_writeback :: fn(s: FnState!, n: i32) -> void {
+    line(s, "_pc${n}_hdr->length = _pc${n}_len;")
+    grow :: "_pc${n}_hdr->buf->length = _pc${n}_len;"
+    line(s, "if (_pc${n}_hdr->buf->length < _pc${n}_len) { ${grow} }")
+}
+
+// The shared tables again, unwrapped — `pc_liftable_kind` already proved both
+// are non-null for this kind, so the fallbacks are unreachable rather than
+// meaningful.
+pc_fill_of :: fn(k: ArrayKind) -> SlotFill =
+    typed_array_fill_for(k) ?? SlotFill { .cty = "int32_t", .val = .I32 }
+
+pc_helper_of :: fn(k: ArrayKind) -> string = push_helper_for(k) ?? "vader_array_push_i32"
+
+// ---- region state ---------------------------------------------------------
+
+/// Does anything in `[from, to)` write `slot`? Nested regions INCLUDED — a write
+/// anywhere under the loop invalidates the lifted copy just the same.
+pc_slot_written_in :: fn(s: FnState, from: i32, to: i32, slot: i32) -> bool {
+    for i in from..<to {
+        op :: s.function.body[usize(i)]
+        if op is vm.LocalSet {
+            if op.slot == slot {
+                return true
+            }
+        }
+        if op is vm.LocalTee {
+            if op.slot == slot {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+/// Hand the lifted state back when the loop this plan belongs to closes.
+///
+/// Called from `emit_end` with the closing scope's opener. A no-op unless that
+/// opener is the innermost active plan — the loop's one normal exit, which is
+/// the only one `push_cache_tag` lets a lifted region have.
+///
+/// @param s          the fn emit state.
+/// @param opener_pc  the closing scope's opener pc.
+pc_close_cache :: fn(s: FnState!, opener_pc: i32) -> void {
+    n :: s.push_caches.len()
+    if n == 0 {
+        return
+    }
+    top :: s.push_caches[n - 1]
+    if top.opener_pc != opener_pc {
+        return
+    }
+    pc_emit_writeback(s, top.opener_pc)
+    _ :: s.push_caches.remove_last()
+}
+
+/// The active plan for `slot`, or `null` when this push is not lifted.
+pc_active_for :: fn(s: FnState, slot: i32) -> PushCache | null {
+    n :: s.push_caches.len()
+    if n == 0 || slot < 0 {
+        return null
+    }
+    top :: s.push_caches[n - 1]
+    if top.slot != slot {
+        return null
+    }
+    return top
+}
+
+/// Is the popped array operand exactly the local the plan lifted?
+///
+/// The plan's slot comes from a hint minted before two slot-renumbering passes
+/// ran. This is the check that makes a stale one harmless: it reads the slot off
+/// the operand the emitter is holding right now, and a mismatch falls back to
+/// the ordinary push.
+///
+/// @param arr   the array operand popped for this push.
+/// @param slot  the slot the active plan lifted.
+pc_operand_is_slot :: fn(arr: StackVal, slot: i32) -> bool {
+    if arr is StackLocalRef {
+        return arr.slot == slot
+    }
+    return false
+}

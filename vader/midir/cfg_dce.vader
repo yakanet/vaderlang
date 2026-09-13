@@ -309,7 +309,10 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
         return InstrArrayLen { .span = ins.span, .dst = remap_local(m, ins.dst), .target = remap_local(m, ins.target), .resolve_buf = ins.resolve_buf }
     }
     if ins is InstrArrayPush {
-        return InstrArrayPush { .span = ins.span, .target = remap_local(m, ins.target), .value = remap_local(m, ins.value) }
+        return InstrArrayPush {
+            .span = ins.span, .target = remap_local(m, ins.target),
+            .value = remap_local(m, ins.value), .cached = ins.cached,
+        }
     }
     if ins is InstrArraySlice {
         return InstrArraySlice {

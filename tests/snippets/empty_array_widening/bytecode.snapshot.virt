@@ -89,7 +89,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; numbers
         local.get 1   ; i
-        array.push 2   ; i32[]
+        array.push 2 0   ; i32[]
         local.get 1   ; i
         i32.const 1
         i32.add
@@ -289,7 +289,7 @@ fn 1 snippet$main () -> i32
         local.set 9   ; $mul_88
         local.get 0   ; numbers
         local.get 9   ; $mul_88
-        array.push 2   ; i32[]
+        array.push 2 0   ; i32[]
         local.get 1   ; i
         i32.const 1
         i32.add

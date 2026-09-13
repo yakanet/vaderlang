@@ -637,7 +637,7 @@ fn 1 snippet$main () -> i32
         local.set 11   ; i
         local.get 2   ; __buf_1
         local.get 11   ; i
-        array.push 3   ; i32[]
+        array.push 3 2   ; i32[]
         local.get 9   ; i
         i32.const 1
         i32.add
@@ -3402,7 +3402,7 @@ fn 42 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 1   ; rev
         local.get 5   ; $idx_14
-        array.push 4   ; string[]
+        array.push 4 1   ; string[]
         local.get 2   ; m
         i64.const 10
         u64.div
@@ -3437,7 +3437,7 @@ fn 42 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 3   ; $data_const_10
         local.get 5   ; $idx_14
-        array.push 4   ; string[]
+        array.push 4 3   ; string[]
         local.get 6   ; i
         i64.const 1
         i64.add

@@ -94,15 +94,32 @@ static int64_t snippet_hoisted(void) {
 #line 22 "tests/snippets/bce_named_bound/_main.vader"
     l1 = INT32_C(0);
     {
+        vader_array_t* _pc5_hdr = (vader_array_t*) l0;
+        size_t _pc5_len = _pc5_hdr->length;
+        size_t _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
+        void* _pc5_slots = _pc5_hdr->buf->slots;
         loop_5: {
             if ((l1 < INT32_C(2048))) {
 #line 23 "tests/snippets/bce_named_bound/_main.vader"
                 l2 = l1;
-                vader_array_push_i32((vader_array_t*) l0, l2);
+                if (VADER_LIKELY(_pc5_len < _pc5_cap)) {
+                    ((int32_t*) _pc5_slots)[_pc5_len] = (int32_t) (l2);
+                    _pc5_len += 1;
+                } else {
+                    _pc5_hdr->length = _pc5_len;
+                    if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+                    vader_array_push_i32((vader_array_t*) l0, l2);
+                    _pc5_hdr = (vader_array_t*) l0;
+                    _pc5_len = _pc5_hdr->length;
+                    _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
+                    _pc5_slots = _pc5_hdr->buf->slots;
+                }
 #line 22 "tests/snippets/bce_named_bound/_main.vader"
                 l1 = (l1 + INT32_C(1));
                 goto loop_5;
             }
+            _pc5_hdr->length = _pc5_len;
+            if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
         }
     }
 #line 25 "tests/snippets/bce_named_bound/_main.vader"

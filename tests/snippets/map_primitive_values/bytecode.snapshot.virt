@@ -3089,7 +3089,7 @@ fn 41 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 1   ; rev
         local.get 5   ; $idx_14
-        array.push 2   ; string[]
+        array.push 2 1   ; string[]
         local.get 2   ; m
         i64.const 10
         u64.div
@@ -3124,7 +3124,7 @@ fn 41 std_core$digits_of (u64) -> ref
         local.set 5   ; $idx_14
         local.get 3   ; $data_const_10
         local.get 5   ; $idx_14
-        array.push 2   ; string[]
+        array.push 2 3   ; string[]
         local.get 6   ; i
         i64.const 1
         i64.add
@@ -4071,7 +4071,7 @@ fn 75 std_collections$ensure_index__string__bool (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4112,7 +4112,7 @@ fn 76 std_collections$ensure_index__string__char (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4153,7 +4153,7 @@ fn 77 std_collections$ensure_index__string__f32 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4194,7 +4194,7 @@ fn 78 std_collections$ensure_index__string__f64 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4235,7 +4235,7 @@ fn 79 std_collections$ensure_index__string__i16 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4276,7 +4276,7 @@ fn 80 std_collections$ensure_index__string__i64 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4317,7 +4317,7 @@ fn 81 std_collections$ensure_index__string__u16 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4358,7 +4358,7 @@ fn 82 std_collections$ensure_index__string__u8 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -4398,7 +4398,7 @@ fn 83 std_collections$rehash__string__bool (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4496,7 +4496,7 @@ fn 84 std_collections$rehash__string__char (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4594,7 +4594,7 @@ fn 85 std_collections$rehash__string__f32 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4692,7 +4692,7 @@ fn 86 std_collections$rehash__string__f64 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4790,7 +4790,7 @@ fn 87 std_collections$rehash__string__i16 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4888,7 +4888,7 @@ fn 88 std_collections$rehash__string__i64 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -4986,7 +4986,7 @@ fn 89 std_collections$rehash__string__u16 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -5084,7 +5084,7 @@ fn 90 std_collections$rehash__string__u8 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add

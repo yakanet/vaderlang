@@ -1078,7 +1078,7 @@ fn 28 std_collections$ensure_index__usize__bool (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 4   ; i32[]
+          array.push 4 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -1118,7 +1118,7 @@ fn 29 std_collections$rehash__usize__bool (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 4   ; i32[]
+        array.push 4 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add

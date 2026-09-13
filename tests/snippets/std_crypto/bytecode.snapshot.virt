@@ -547,7 +547,7 @@ fn 7 crypto$md5 (string) -> string
               local.set 28   ; $call_69
               local.get 9   ; m
               local.get 28   ; $call_69
-              array.push 10   ; u32[]
+              array.push 10 9   ; u32[]
               local.get 10   ; i
               i64.const 1
               i64.add
@@ -1025,7 +1025,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 24   ; $call_73
               local.get 6   ; w
               local.get 24   ; $call_73
-              array.push 10   ; u32[]
+              array.push 10 6   ; u32[]
               local.get 7   ; i
               i64.const 1
               i64.add
@@ -1477,7 +1477,7 @@ fn 10 crypto$pad_md5 (string) -> ref
       if $L2 void
         local.get 1   ; ib
         i32.const 0
-        array.push 6   ; u8[]
+        array.push 6 1   ; u8[]
         br $L1
       end $L2
     end $L1
@@ -1504,7 +1504,7 @@ fn 10 crypto$pad_md5 (string) -> ref
         local.set 5   ; b
         local.get 1   ; ib
         local.get 5   ; b
-        array.push 6   ; u8[]
+        array.push 6 1   ; u8[]
         local.get 3   ; k
         i32.const 1
         i32.add
@@ -1655,7 +1655,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
       if $L2 void
         local.get 2   ; out
         i32.const 0
-        array.push 6   ; u8[]
+        array.push 6 2   ; u8[]
         br $L1
       end $L2
     end $L1
@@ -1682,7 +1682,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
         local.set 5   ; b
         local.get 2   ; out
         local.get 5   ; b
-        array.push 6   ; u8[]
+        array.push 6 2   ; u8[]
         local.get 3   ; k
         i32.const 1
         i32.sub

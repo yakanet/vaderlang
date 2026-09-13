@@ -1,0 +1,11 @@
+# stdout
+tight        30 n=6
+allocates    v0|v1|v2|
+reads_itself 8 n=7
+with_break   3 n=3
+boxed        x|x|x|x|
+into_view    353 n=5
+nested       20
+widths       11175/33525/16762
+# exit
+0

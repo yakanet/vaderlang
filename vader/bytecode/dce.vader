@@ -475,7 +475,7 @@ export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
     if op is ArrayNew     { return ArrayNew     { .type_id = remap_idx(remap, op.type_id), .length = op.length } }
     if op is ArrayGet     { return ArrayGet     { .type_id = remap_idx(remap, op.type_id) } }
     if op is ArraySet     { return ArraySet     { .type_id = remap_idx(remap, op.type_id) } }
-    if op is ArrayPush    { return ArrayPush    { .type_id = remap_idx(remap, op.type_id) } }
+    if op is ArrayPush    { return ArrayPush    { .type_id = remap_idx(remap, op.type_id), .cache_slot = op.cache_slot } }
     if op is TypeCheck    { return TypeCheck    { .type_id = remap_idx(remap, op.type_id) } }
     if op is TypeConst    { return TypeConst    { .type_id = remap_idx(remap, op.type_id) } }
     if op is CallIndirect { return CallIndirect { .type_id = remap_idx(remap, op.type_id) } }

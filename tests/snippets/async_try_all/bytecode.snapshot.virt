@@ -1159,7 +1159,7 @@ fn 16 std_async$All$Async$resume__Any (ref) -> any
           local.set 5   ; $cast_19
           local.get 4   ; $field_18
           local.get 5   ; $cast_19
-          array.push 23   ; ref[]
+          array.push 23 4   ; ref[]
         end $L9
         local.get 2   ; i
         i64.const 1
@@ -1421,7 +1421,7 @@ fn 30 std_collections$ensure_index__usize__Any (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 6   ; i32[]
+          array.push 6 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -1461,7 +1461,7 @@ fn 31 std_collections$rehash__usize__Any (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 6   ; i32[]
+        array.push 6 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add

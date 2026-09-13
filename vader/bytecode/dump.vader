@@ -737,7 +737,13 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is StructSet                -> if op.stack { out.append("struct.set_stack ${op.type_id} ${op.field_index}") } else { out.append("struct.set ${op.type_id} ${op.field_index}") }
         is ArrayNew                 -> out.append("array.new ${op.type_id} ${op.length}")
         is ArrayLen                 -> out.append("array.len")
-        is ArrayPush                -> out.append("array.push ${op.type_id}")
+        // The cache slot is written only when the lift was proven — `.virt`
+        // integers are non-negative by convention, and an absent token is how
+        // the format already spells "no hint".
+        is ArrayPush                -> out.append(
+            if op.cache_slot >= 0 { "array.push ${op.type_id} ${op.cache_slot}" }
+            else { "array.push ${op.type_id}" },
+        )
         is ArrayGet                 -> out.append("array.get ${op.type_id}")
         is ArraySet                 -> out.append("array.set ${op.type_id}")
         is ArraySlice               -> out.append("array.slice ${op.type_id}")

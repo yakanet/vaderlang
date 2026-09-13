@@ -538,6 +538,12 @@ export LoweredArrayPush :: struct {
     type:   Type
     target: LoweredExpr
     value:  LoweredExpr
+    /// Set by `push_cache_tag` when this push sits in a loop that can keep the
+    /// array's length / capacity / slots in locals instead of memory — nothing
+    /// in the body observes the array, and nothing but this push's own grow can
+    /// move its buffer. A backend may honour it or ignore it; ignoring it is the
+    /// current shape and stays correct. See `push_cache.vader`.
+    cached: bool = false
 }
 
 /// Zero-copy `target[lo..hi)` view. The result is a fresh array header

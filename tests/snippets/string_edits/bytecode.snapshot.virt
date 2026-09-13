@@ -345,7 +345,7 @@ fn 10 std_string$replace (string,string,string) -> string
         local.set 7   ; $idx_15
         local.get 4   ; rest
         local.get 7   ; $idx_15
-        array.push 2   ; string[]
+        array.push 2 4   ; string[]
         local.get 6   ; i
         i64.const 1
         i64.add

@@ -20,7 +20,7 @@
       array :i32[]!
     let __i_1: usize = int(1) :usize
     loop while (<…>)
-      LoweredArrayPush
+      LoweredArrayPush cached
       assign
         target:
           __i_1 :usize
@@ -189,7 +189,7 @@
       array :i32[]!
     let __i_10: usize = int(2) :usize
     loop while (<…>)
-      LoweredArrayPush
+      LoweredArrayPush cached
       assign
         target:
           __i_10 :usize
@@ -305,7 +305,7 @@
       array :i32[]!
     let __i_14: usize = int(3) :usize
     loop while (<…>)
-      LoweredArrayPush
+      LoweredArrayPush cached
       assign
         target:
           __i_14 :usize
@@ -441,7 +441,7 @@
       array :i32[]!
     let __i_23: usize = int(1) :usize
     loop while (<…>)
-      LoweredArrayPush
+      LoweredArrayPush cached
       assign
         target:
           __i_23 :usize
@@ -538,7 +538,7 @@
       array :i32[]!
     let __i_27: usize = int(1) :usize
     loop while (<…>)
-      LoweredArrayPush
+      LoweredArrayPush cached
       assign
         target:
           __i_27 :usize

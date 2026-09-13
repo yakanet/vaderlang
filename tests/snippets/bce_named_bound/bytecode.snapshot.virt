@@ -43,7 +43,7 @@ fn 0 snippet$hoisted () -> i64
         local.set 2   ; $cast_6
         local.get 0   ; a
         local.get 2   ; $cast_6
-        array.push 2   ; i32[]
+        array.push 2 0   ; i32[]
         local.get 1   ; i
         i32.const 1
         i32.add

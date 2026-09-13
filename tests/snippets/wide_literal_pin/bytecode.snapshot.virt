@@ -552,7 +552,7 @@ fn 19 std_collections$ensure_index__i32__i64 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 2   ; i32[]
+          array.push 2 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -593,7 +593,7 @@ fn 20 std_collections$ensure_index__i64__i32 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 2   ; i32[]
+          array.push 2 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -633,7 +633,7 @@ fn 21 std_collections$rehash__i32__i64 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 2   ; i32[]
+        array.push 2 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -730,7 +730,7 @@ fn 22 std_collections$rehash__i64__i32 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 2   ; i32[]
+        array.push 2 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add

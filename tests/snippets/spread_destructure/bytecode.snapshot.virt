@@ -71,7 +71,7 @@ fn 0 snippet$main () -> i32
         local.set 6   ; $idx_17
         local.get 3   ; rest
         local.get 6   ; $idx_17
-        array.push 1   ; i32[]
+        array.push 1 3   ; i32[]
         local.get 4   ; __i_1
         i64.const 1
         i64.add
@@ -190,7 +190,7 @@ fn 0 snippet$main () -> i32
         local.set 10   ; $idx_68
         local.get 3   ; rest
         local.get 10   ; $idx_68
-        array.push 1   ; i32[]
+        array.push 1 3   ; i32[]
         local.get 4   ; __i_1
         i64.const 1
         i64.add
@@ -269,7 +269,7 @@ fn 0 snippet$main () -> i32
         local.set 2   ; first
         local.get 3   ; rest
         local.get 2   ; first
-        array.push 1   ; i32[]
+        array.push 1 3   ; i32[]
         local.get 4   ; __i_1
         i64.const 1
         i64.add
@@ -370,7 +370,7 @@ fn 0 snippet$main () -> i32
         local.set 6   ; $idx_17
         local.get 1   ; __tup_0
         local.get 6   ; $idx_17
-        array.push 1   ; i32[]
+        array.push 1 1   ; i32[]
         local.get 4   ; __i_1
         i64.const 1
         i64.add
@@ -440,7 +440,7 @@ fn 0 snippet$main () -> i32
         local.set 6   ; $idx_17
         local.get 1   ; __tup_0
         local.get 6   ; $idx_17
-        array.push 1   ; i32[]
+        array.push 1 1   ; i32[]
         local.get 4   ; __i_1
         i64.const 1
         i64.add

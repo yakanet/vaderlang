@@ -304,7 +304,7 @@ fn 9 std_collections$ensure_index__string__i32 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -344,7 +344,7 @@ fn 10 std_collections$rehash__string__i32 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1   ; i32[]
+        array.push 1 2   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
