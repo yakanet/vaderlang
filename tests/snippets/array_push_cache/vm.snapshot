@@ -7,5 +7,7 @@ boxed        x|x|x|x|
 into_view    353 n=5
 nested       20
 widths       11175/33525/16762
+aliased      36
+len_after    5
 # exit
 0

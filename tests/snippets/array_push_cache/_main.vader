@@ -68,7 +68,10 @@ boxed :: fn(n: i32) -> string[]! {
     return out
 }
 
-// Pushing into a VIEW must detach, never write into the parent's storage.
+// A view shares its parent's buffer, so `v` is an aliased array and the lift
+// declines it — `base` is a second way to reach the same storage. Pushing into
+// a view detaches it, which is what keeps the ANSWER right either way ; the
+// analysis does not get to lean on that.
 into_view :: fn() -> i32[]! {
     base: i32[]! = [10, 20, 30, 40, 50]
     v: i32[]! = base[1..<3]
@@ -127,6 +130,39 @@ widths :: fn(n: i32) -> string {
     return "${bt}/${st}/${i32(ft)}"
 }
 
+Holder :: struct { items: i32[]! }
+
+// Reads the array through the reference the HOLDER kept, while never naming
+// `out`. A name-based check passes this and the lifted form then hands back a
+// length it has not written down yet.
+observed_length :: fn(holder: Holder) -> i32 = i32(holder.items.len())
+
+// The alias arrives through the DEFINITION, not through a leak: `out` is a
+// second name for an array the holder still points at. This is what broke the
+// compiler when it first compiled itself through the lift — every case above
+// mints its array locally, so none of them could catch it.
+aliased :: fn(n: i32) -> i32 {
+    holder :: Holder { .items = [] }
+    out :: holder.items
+    witness := 0
+    for index in 0..<n {
+        out.push(index)
+        witness += observed_length(holder)
+    }
+    return witness
+}
+
+// The other side of the same rule: a `len()` AFTER the loop must not block the
+// lift — the write-back has already run. `bench/arr_push` is this shape, so
+// telling a read from a leak is what keeps it.
+len_after :: fn(n: i32) -> i32 {
+    out: i32[]! = []
+    for index in 0..<n {
+        out.push(index * 2)
+    }
+    return i32(out.len())
+}
+
 sum :: fn(a: i32[]) -> i32 {
     t := 0
     for x in a {
@@ -152,5 +188,7 @@ main :: fn() -> i32 {
     println("into_view    ${sum(into_view())} n=${into_view().len()}")
     println("nested       ${nested(4)}")
     println("widths       ${widths(150)}")
+    println("aliased      ${aliased(8)}")
+    println("len_after    ${len_after(5)}")
     return 0
 }

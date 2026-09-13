@@ -170,7 +170,7 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        LoweredArrayPush
         assign
           target:
             i :i32
@@ -457,6 +457,67 @@
               __buf_9 :Buffer
             arg1:
               __off_10 :usize
+  struct snippet$Holder { items: i32[]! }
+  fn snippet$observed_length(holder: Holder) -> i32
+    ~>
+      cast → i32
+        LoweredArrayLen
+  fn snippet$aliased(n: i32) -> i32
+    let holder: Holder! =
+      Holder! {
+        items:
+          array :i32[]!
+      }
+    let out: i32[]! =
+      .items :i32[]!
+        holder :Holder!
+    let witness: i32 = int(0) :i32
+    block :void
+      let index: i32 = int(0) :i32
+      loop while (<…>)
+        LoweredArrayPush
+        assign
+          target:
+            witness :i32
+          value:
+            add :i32
+              l:
+                witness :i32
+              r:
+                call :i32
+                  callee:
+                    observed_length :fn(Holder) -> i32
+                  arg0:
+                    holder :Holder!
+        assign
+          target:
+            index :i32
+          value:
+            add :i32
+              l:
+                index :i32
+              r:
+                int(1) :i32
+    return witness :i32
+  fn snippet$len_after(n: i32) -> i32
+    let out: i32[]! =
+      array :i32[]!
+    block :void
+      let index: i32 = int(0) :i32
+      loop while (<…>)
+        LoweredArrayPush cached
+        assign
+          target:
+            index :i32
+          value:
+            add :i32
+              l:
+                index :i32
+              r:
+                int(1) :i32
+    return
+      cast → i32
+        LoweredArrayLen
   fn snippet$sum(a: i32[]) -> i32
     let t: i32 = int(0) :i32
     block :void
@@ -958,6 +1019,108 @@
                 widths :fn(i32) -> string
               arg0:
                 int(150) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  "aliased      " :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        aliased :fn(i32) -> i32
+                      arg0:
+                        int(8) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  "len_after    " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        len_after :fn(i32) -> i32
+                      arg0:
+                        int(5) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_12 :Buffer
+              arg1:
+                __off_13 :usize
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

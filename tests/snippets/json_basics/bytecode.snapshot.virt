@@ -2209,7 +2209,7 @@ fn 15 std_core$shl (ref,i32) -> ref
         local.set 12   ; $cast_43
         local.get 2   ; out
         local.get 12   ; $cast_43
-        array.push 19 2   ; u32[]
+        array.push 19   ; u32[]
         local.get 11   ; v
         i64.const 32
         u64.shr
@@ -7601,7 +7601,7 @@ fn 100 std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumbe
         local.set 4   ; $idx_10
         local.get 1   ; $arr_1
         local.get 4   ; $idx_10
-        array.push 1 1   ; string[]
+        array.push 1   ; string[]
         local.get 2   ; $field_2
         i64.const 1
         i64.add
@@ -7645,7 +7645,7 @@ fn 101 std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNum
         local.set 4   ; $idx_10
         local.get 1   ; $arr_1
         local.get 4   ; $idx_10
-        array.push 34 1   ; union[]
+        array.push 34   ; union[]
         local.get 2   ; $field_2
         i64.const 1
         i64.add

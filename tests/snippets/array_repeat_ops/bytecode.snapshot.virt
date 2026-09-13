@@ -175,7 +175,7 @@ fn 0 snippet$main () -> i32
       if $L14 void
         local.get 1   ; zeros
         local.get 3   ; i
-        array.push 1 1   ; i32[]
+        array.push 1   ; i32[]
         local.get 3   ; i
         i32.const 1
         i32.add

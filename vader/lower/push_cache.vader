@@ -37,7 +37,9 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
             if d is LoweredFnDecl {
                 body :: d.body
                 if body != null {
-                    pc_scan_block(body, pctx)
+                    // No array is live on entry : a parameter may already be
+                    // aliased by the caller, so only a local mint starts a set.
+                    pc_scan_block(body, [], pctx)
                 }
             }
         }
@@ -46,56 +48,100 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
 
 // ---- find the loops -------------------------------------------------------
 
-pc_scan_block :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
+// `live` is the set of arrays minted fresh in an enclosing scope and not yet
+// handed to anyone else — the only ones a lift may hold in locals. It is carried
+// down and refined statement by statement, which is what makes the answer
+// flow-sensitive: `return out` AFTER the loop is harmless (the write-back has
+// run), the same `return` before it would not be.
+pc_scan_block :: fn(b: LoweredBlock!, live: i32[], pctx: BcePurityCtx!) -> void {
+    working: i32[]! = []
+    working.push_all(live)
     for st in b.stmts {
-        pc_scan_stmt(st, pctx)
+        pc_scan_stmt(st, working, pctx)
+        pc_update_live(working, st)
     }
     t :: b.trailing
     if t != null {
-        pc_scan_expr(t, pctx)
+        pc_scan_expr(t, working, pctx)
     }
 }
 
-pc_scan_stmt :: fn(st: LoweredStmt!, pctx: BcePurityCtx!) -> void {
+// Apply one statement to the live set: first drop whatever it handed away, then
+// admit the array it mints, if it mints one.
+pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
+    kept: i32[]! = []
+    for sym in live {
+        if !cf_stmt_mentions(st, sym, CF_ESCAPE_ONLY) {
+            kept.push(sym)
+        }
+    }
+    live.clear()
+    live.push_all(kept)
+    // Only an array literal is provably fresh. A field read (`out :: h.items`),
+    // a parameter or a call result all hand back an array something else may
+    // still point at, and a read through THAT reference is invisible here.
+    if st is LoweredLet {
+        if st.value is LoweredArrayLit {
+            live.push(st.symbol.id)
+        }
+    }
+}
+
+// Entering a loop, an array minted OUTSIDE it loses its standing if anything in
+// the body hands it away — the body runs again with that reference still live,
+// where a statement after a non-loop keeps its ordering.
+pc_live_entering :: fn(live: i32[], body: LoweredBlock) -> i32[]! {
+    kept: i32[]! = []
+    for sym in live {
+        if !cf_block_mentions(body, sym, CF_ESCAPE_ONLY) {
+            kept.push(sym)
+        }
+    }
+    return kept
+}
+
+pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
     if st is LoweredLoop {
-        pc_try_cache(st, pctx)
+        inner :: pc_live_entering(live, st.body)
+        pc_try_cache(st, inner, pctx)
         // Descend regardless : a nested loop is its own candidate, whether or
         // not the enclosing one qualified.
-        pc_scan_block(st.body, pctx)
+        pc_scan_block(st.body, inner, pctx)
         c :: st.cond
         if c != null {
-            pc_scan_expr(c, pctx)
+            pc_scan_expr(c, inner, pctx)
         }
         return
     }
     match st {
-        // `.value` sits at a different offset per variant, so these cannot be
-        // collapsed into one or-pattern arm (T3008).
-        is LoweredLet      -> { pc_scan_expr(st.value, pctx) }
-        is LoweredAssign   -> { pc_scan_expr(st.value, pctx) }
-        is LoweredCellSet  -> { pc_scan_expr(st.value, pctx) }
-        is LoweredYield    -> { pc_scan_expr(st.value, pctx) }
-        is LoweredExprStmt -> { pc_scan_expr(st.expr, pctx) }
-        is LoweredAwait     -> { pc_scan_expr(st.awaited, pctx) }
-        is LoweredDeferPush -> { pc_scan_expr(st.thunk, pctx) }
+        is LoweredLet       -> { pc_scan_expr(st.value, live, pctx) }
+        is LoweredAssign    -> { pc_scan_expr(st.value, live, pctx) }
+        is LoweredCellSet   -> { pc_scan_expr(st.value, live, pctx) }
+        is LoweredYield     -> { pc_scan_expr(st.value, live, pctx) }
+        is LoweredExprStmt  -> { pc_scan_expr(st.expr, live, pctx) }
+        is LoweredAwait     -> { pc_scan_expr(st.awaited, live, pctx) }
+        is LoweredDeferPush -> { pc_scan_expr(st.thunk, live, pctx) }
         is LoweredReturn    -> {
+            // `.value` sits at a different offset per variant, so these cannot be
+            // collapsed into one or-pattern arm (T3008).
+
             v :: st.value
             if v != null {
-                pc_scan_expr(v, pctx)
+                pc_scan_expr(v, live, pctx)
             }
         }
         _                   -> {}
     }
 }
 
-pc_scan_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
+pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
     match e {
-        is LoweredBlock -> { pc_scan_block(e, pctx) }
+        is LoweredBlock -> { pc_scan_block(e, live, pctx) }
         is LoweredIf    -> {
-            pc_scan_block(e.then_block, pctx)
+            pc_scan_block(e.then_block, live, pctx)
             eb :: e.else_block
             if eb != null {
-                pc_scan_block(eb, pctx)
+                pc_scan_block(eb, live, pctx)
             }
         }
         _               -> {}
@@ -105,7 +151,7 @@ pc_scan_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
 // ---- decide, then mark ----------------------------------------------------
 
 // Every condition the lifted form needs, in the order that rejects fastest.
-pc_try_cache :: fn(lp: LoweredLoop!, pctx: BcePurityCtx!) -> void {
+pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     pushes: LoweredArrayPush![]! = []
     pc_collect_pushes(lp.body, pushes)
     if pushes.len() == 0 {
@@ -126,6 +172,15 @@ pc_try_cache :: fn(lp: LoweredLoop!, pctx: BcePurityCtx!) -> void {
     if pc_used_outside_push(lp.body, sym) {
         return
     }
+    // A name says nothing about ALIASING, and the lifted form needs the array to
+    // be unreachable except through this one. Both halves are load bearing, and
+    // the repro that forced them is `array_push_cache`'s `aliased` case: an
+    // alias arrives through the DEFINITION as readily as through a leak, so
+    // `out :: holder.items` passes every check above while a call that never
+    // mentions `out` reads the length the loop is holding in a local.
+    if !(sym in live) {
+        return
+    }
     // The body must move no buffer. `bce_*_unsafe` is the shared answer to that
     // (it also catches a rebind of the array itself) — but it counts a push as
     // unsafe, since a push can grow, so the candidate pushes are held to their
@@ -144,10 +199,16 @@ pc_try_cache :: fn(lp: LoweredLoop!, pctx: BcePurityCtx!) -> void {
 pc_collect_pushes :: fn(b: LoweredBlock!, out: LoweredArrayPush![]!) -> void {
     for st in b.stmts {
         match st {
-            is LoweredExprStmt -> { pc_collect_in_expr(st.expr, out) }
-            is LoweredLet      -> { pc_collect_in_expr(st.value, out) }
-            is LoweredAssign   -> { pc_collect_in_expr(st.value, out) }
-            _ -> {}
+            is LoweredExprStmt -> {
+                pc_collect_in_expr(st.expr, out)
+            }
+            is LoweredLet      -> {
+                pc_collect_in_expr(st.value, out)
+            }
+            is LoweredAssign   -> {
+                pc_collect_in_expr(st.value, out)
+            }
+            _                  -> {}
         }
     }
     t :: b.trailing
@@ -207,15 +268,16 @@ pc_has_extra_exit :: fn(b: LoweredBlock, depth: i32) -> bool {
 }
 
 pc_stmt_exits :: fn(st: LoweredStmt, depth: i32) -> bool = match st {
-    is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush
-        | LoweredDeferPopExec -> true
-    is LoweredBreak       -> st.label != null || depth == 0
-    is LoweredContinue    -> st.label != null
-    is LoweredLoop        -> pc_has_extra_exit(st.body, depth + 1)
-    is LoweredExprStmt    -> pc_expr_exits(st.expr, depth)
-    is LoweredLet         -> pc_expr_exits(st.value, depth)
-    is LoweredAssign | LoweredCellSet ->
-        pc_expr_exits(st.target, depth) || pc_expr_exits(st.value, depth)
+    is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
+    is LoweredBreak -> st.label != null || depth == 0
+    is LoweredContinue -> st.label != null
+    is LoweredLoop -> pc_has_extra_exit(st.body, depth + 1)
+    is LoweredExprStmt -> pc_expr_exits(st.expr, depth)
+    is LoweredLet -> pc_expr_exits(st.value, depth)
+    is LoweredAssign | LoweredCellSet -> pc_expr_exits(st.target, depth) || pc_expr_exits(
+        st.value,
+        depth,
+    )
 }
 
 pc_expr_exits :: fn(e: LoweredExpr, depth: i32) -> bool = match e {
@@ -224,12 +286,14 @@ pc_expr_exits :: fn(e: LoweredExpr, depth: i32) -> bool = match e {
         e.else_block,
         depth,
     )
-    // No other expression form carries a statement, so none of them can exit.
     is LoweredArrayLen | LoweredFieldAccess | LoweredCellGet | LoweredCast | LoweredTypeCheck | LoweredCellNew | LoweredUnary | LoweredMakeClosure | LoweredIndex | LoweredBinary | LoweredArrayPush | LoweredArraySlice | LoweredStringSlice | LoweredCall | LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayLit | LoweredStructLit | LoweredIdent | LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst | LoweredUnreachable -> false
 }
+// No other expression form carries a statement, so none of them can exit.
 
-pc_opt_block_exits :: fn(b: LoweredBlock | null, depth: i32) -> bool =
-    b != null && pc_has_extra_exit(b, depth)
+pc_opt_block_exits :: fn(b: LoweredBlock | null, depth: i32) -> bool = b != null && pc_has_extra_exit(
+    b,
+    depth,
+)
 
 // Any mention of `sym` that is not a candidate push's own target — such a read
 // would see a `length` the lifted form is still holding in a local.
@@ -238,8 +302,11 @@ pc_opt_block_exits :: fn(b: LoweredBlock | null, depth: i32) -> bool =
 // `push_target = false` is exactly this pass's difference from the concat
 // fusion's: the target of a push onto `sym` is the use being replaced, not an
 // observation of it.
-pc_used_outside_push :: fn(b: LoweredBlock, sym: i32) -> bool =
-    cf_block_mentions(b, sym, false)
+pc_used_outside_push :: fn(b: LoweredBlock, sym: i32) -> bool = cf_block_mentions(
+    b,
+    sym,
+    CF_SKIP_PUSH,
+)
 
 // Can anything in the body move a buffer, or rebind the array? `bce_*_unsafe` is
 // the shared answer — but it calls a push unsafe (a push can grow), so a

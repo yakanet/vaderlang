@@ -637,7 +637,7 @@ fn 1 snippet$main () -> i32
         local.set 11   ; i
         local.get 2   ; __buf_1
         local.get 11   ; i
-        array.push 3 2   ; i32[]
+        array.push 3   ; i32[]
         local.get 9   ; i
         i32.const 1
         i32.add
