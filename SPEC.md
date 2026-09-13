@@ -3698,7 +3698,7 @@ to the program like any other argument.
 | `vader help [action]` | Usage overview, or one action's options in full |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
-`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `bytecode-cfg`, `c`/`wasm` produce text; the rest produce JSON):
+`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `c`/`wasm` produce text; the rest produce JSON):
 
 | Stage | Output |
 |-------|--------|
@@ -3711,7 +3711,6 @@ to the program like any other argument.
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
 | `bytecode` | Stack-machine ops + type/string/import tables |
-| `bytecode-cfg` | Bytecode with CFG-level const-folding (text) |
 | `c` | Generated C source |
 | `wasm` *(planned)* | WebAssembly module |
 

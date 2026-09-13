@@ -7,7 +7,7 @@
 // (`c_emit/walker.vader::emit_slot_array_local`) — the dominant cost in tight
 // `a[i] = a[i] + 1` loops (the `arr_rw` bench weak spot, 3 resolves per iter).
 //
-// Conservative, intra-block only (mirrors `const_fold` in scope) :
+// Conservative, intra-block only :
 //   - the tracked `value` is a LocalId (an already-loaded value), so a GC
 //     that relocates the array buffer does NOT invalidate it ; a write to the
 //     slot, or a redefinition of the value local itself, does.

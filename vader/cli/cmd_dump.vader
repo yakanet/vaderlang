@@ -95,9 +95,6 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "cfg" {
         return run_cfg_stage(file, module_filter, include_path_flags, target)
     }
-    if stage == "bytecode-cfg" {
-        return run_bytecode_cfg_stage(file, include_path_flags, target)
-    }
     if stage == "c" {
         return run_c_stage(file, include_path_flags, target)
     }
@@ -287,19 +284,6 @@ run_cfg_stage :: fn(
     return 0
 }
 
-run_bytecode_cfg_stage :: fn(
-    file: Path, include_path_flags: string[], target: Target | null,
-) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]! = []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    cfg :: build_cfg_project(lowered)
-    folded :: const_fold_project(cfg)
-    module :: emit_bytecode_from_cfg(folded, module_name_from_file(file), default_emit_options())
-    print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
-    print_pipeline_diags(pipeline, lower_diags, dump_scope([], pipeline.loaded))
-    return 0
-}
 
 /// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
