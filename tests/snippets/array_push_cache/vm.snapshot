@@ -9,5 +9,8 @@ nested       20
 widths       11175/33525/16762
 aliased      36
 len_after    5
+captured     36
+two_names    36
+rebound      8
 # exit
 0

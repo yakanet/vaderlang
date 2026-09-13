@@ -152,6 +152,47 @@ aliased :: fn(n: i32) -> i32 {
     return witness
 }
 
+// A closure minted BEFORE the loop holds the array in its environment, so the
+// call inside the loop reaches it without the loop body naming it.
+captured :: fn(n: i32) -> i32 {
+    out: i32[]! = []
+    observe :: () -> i32(out.len())
+    witness := 0
+    for i in 0..<n {
+        out.push(i)
+        witness += observe()
+    }
+    return witness
+}
+
+// A second NAME taken before the loop. Same hole as `aliased`, reached through a
+// plain ident rather than a field read.
+two_names :: fn(n: i32) -> i32 {
+    out: i32[]! = []
+    alias :: out
+    witness := 0
+    for i in 0..<n {
+        out.push(i)
+        witness += i32(alias.len())
+    }
+    return witness
+}
+
+// Rebound mid-loop : the lifted locals would go on describing the array from
+// before the rebind.
+rebound :: fn(n: i32) -> i32 {
+    out: i32[]! = []
+    total := 0
+    for i in 0..<n {
+        out.push(i)
+        if i % 3 == 2 {
+            total = total + i32(out.len())
+            out = []
+        }
+    }
+    return total + i32(out.len())
+}
+
 // The other side of the same rule: a `len()` AFTER the loop must not block the
 // lift — the write-back has already run. `bench/arr_push` is this shape, so
 // telling a read from a leak is what keeps it.
@@ -190,5 +231,8 @@ main :: fn() -> i32 {
     println("widths       ${widths(150)}")
     println("aliased      ${aliased(8)}")
     println("len_after    ${len_after(5)}")
+    println("captured     ${captured(8)}")
+    println("two_names    ${two_names(8)}")
+    println("rebound      ${rebound(8)}")
     return 0
 }

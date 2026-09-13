@@ -90,10 +90,14 @@ pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
 // Entering a loop, an array minted OUTSIDE it loses its standing if anything in
 // the body hands it away — the body runs again with that reference still live,
 // where a statement after a non-loop keeps its ordering.
-pc_live_entering :: fn(live: i32[], body: LoweredBlock) -> i32[]! {
+pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
     kept: i32[]! = []
     for sym in live {
-        if !cf_block_mentions(body, sym, CF_ESCAPE_ONLY) {
+        if !cf_block_mentions(lp.body, sym, CF_ESCAPE_ONLY) && !cf_opt_expr_mentions(
+            lp.cond,
+            sym,
+            CF_ESCAPE_ONLY,
+        ) {
             kept.push(sym)
         }
     }
@@ -102,7 +106,7 @@ pc_live_entering :: fn(live: i32[], body: LoweredBlock) -> i32[]! {
 
 pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
     if st is LoweredLoop {
-        inner :: pc_live_entering(live, st.body)
+        inner :: pc_live_entering(live, st)
         pc_try_cache(st, inner, pctx)
         // Descend regardless : a nested loop is its own candidate, whether or
         // not the enclosing one qualified.
@@ -179,6 +183,18 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     // `out :: holder.items` passes every check above while a call that never
     // mentions `out` reads the length the loop is holding in a local.
     if !(sym in live) {
+        return
+    }
+    // The condition is re-evaluated on every iteration, so it belongs to the
+    // region the lift covers — a read there sees a `length` the write-back has
+    // not reached. `for <cond>` lowers its test INTO the body, so nothing
+    // populates `cond` with such a read today ; the forms that do carry one
+    // (`lower_for_in`, `lower_iter_fusion`) put a counter test there. This is
+    // the region boundary being drawn where it belongs, not a repro.
+    if cf_opt_expr_mentions(lp.cond, sym, CF_SKIP_PUSH) {
+        return
+    }
+    if bce_opt_expr_unsafe(lp.cond, sym, pctx) {
         return
     }
     // The body must move no buffer. `bce_*_unsafe` is the shared answer to that

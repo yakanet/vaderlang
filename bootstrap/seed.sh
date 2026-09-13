@@ -16,6 +16,13 @@
 # themselves — otherwise the emission flags, the compiler lookup and the
 # definition of "stale" live in four places again.
 #
+# NONE of them answers whether the seed is CORRECT. `verify.sh` compares stage1
+# to stage2, and a compiler that mis-compiles itself stably passes that: both
+# stages are wrong the same way, which is what a fixed point preserves. A seed
+# emitted by a compiler carrying an unsound optimisation shipped that way on
+# 2026-09-14 with the suite green — green from BEFORE the reseed. The suite is
+# the check, and it has to run after.
+#
 # CHECK CONTRACT:
 #   exit 0  FRESH    the committed seed matches what the sources would emit
 #   exit 1  STALE    it does not ; a reseed is due
@@ -276,6 +283,9 @@ META
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
     echo "  git diff --stat bootstrap/seed"
+    echo "RE-RUN THE SUITE before committing — this seed builds the stage0 that"
+    echo "builds everything, so it changes the binary under test:"
+    echo "  bun run build:cli && bun run test"
     echo "then commit the bump separately:"
     echo "  git add bootstrap/seed bootstrap/VERSION"
     echo "  git commit -m 'chore(bootstrap): bump seed'"
