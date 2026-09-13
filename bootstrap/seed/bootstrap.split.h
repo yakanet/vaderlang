@@ -489,6 +489,7 @@ typedef struct vader_struct_vader_c_emit_EmitCtx_t vader_struct_vader_c_emit_Emi
 typedef struct vader_struct_vader_c_emit_EmitOptions_t vader_struct_vader_c_emit_EmitOptions_t;
 typedef struct vader_struct_vader_c_emit_FnState_t vader_struct_vader_c_emit_FnState_t;
 typedef struct vader_struct_vader_c_emit_FnValueUsage_t vader_struct_vader_c_emit_FnValueUsage_t;
+typedef struct vader_struct_vader_c_emit_PushCache_t vader_struct_vader_c_emit_PushCache_t;
 typedef struct vader_struct_vader_c_emit_ScopeInfo_t vader_struct_vader_c_emit_ScopeInfo_t;
 typedef struct vader_struct_vader_c_emit_SlotFill_t vader_struct_vader_c_emit_SlotFill_t;
 typedef struct vader_struct_vader_c_emit_SlotToken_t vader_struct_vader_c_emit_SlotToken_t;
@@ -2821,6 +2822,7 @@ struct vader_struct_vader_bytecode_ArrayNew_t {
 struct vader_struct_vader_bytecode_ArrayPush_t {
     vader_obj_header_t header;
     int32_t f_type_id;
+    int32_t f_cache_slot;
 };
 struct vader_struct_vader_bytecode_ArrayPushAll_t {
     vader_obj_header_t header;
@@ -3537,6 +3539,7 @@ struct vader_struct_vader_c_emit_FnState_t {
     void* f_continue_targets;
     void* f_break_targets;
     bool f_no_frame;
+    void* f_push_caches;
     void* f_resolved_arrays;
     void* f_pinned_resolves;
     bool f_drop_call_result;
@@ -3547,6 +3550,12 @@ struct vader_struct_vader_c_emit_FnValueUsage_t {
     void* f_fn_ref_type;
     void* f_is_closure;
     bool f_any;
+};
+struct vader_struct_vader_c_emit_PushCache_t {
+    vader_obj_header_t header;
+    int32_t f_opener_pc;
+    int32_t f_slot;
+    uint8_t f_kind;
 };
 struct vader_struct_vader_c_emit_ScopeInfo_t {
     vader_obj_header_t header;
@@ -4014,6 +4023,7 @@ struct vader_struct_vader_lower_LoweredArrayPush_t {
     vader_box_t f_type;
     vader_box_t f_target;
     vader_box_t f_value;
+    bool f_cached;
 };
 struct vader_struct_vader_lower_LoweredArraySlice_t {
     vader_obj_header_t header;
@@ -4562,6 +4572,7 @@ struct vader_struct_vader_midir_InstrArrayPush_t {
     void* f_span;
     int32_t f_target;
     int32_t f_value;
+    bool f_cached;
 };
 struct vader_struct_vader_midir_InstrArraySet_t {
     vader_obj_header_t header;
@@ -6073,7 +6084,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2447u
+#define VADER_COMPTIME_ATOM_COUNT 2478u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
