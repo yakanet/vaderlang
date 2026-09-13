@@ -1,0 +1,68 @@
+/// Closed-union tag dispatch — `match` over four variants, run over a tree that
+/// is built once and then walked many times, so the allocation is amortised out
+/// and what remains is the dispatch. `binary_trees` conflates the two (its walk
+/// is one pass over what it just allocated, and its match has two cases) and
+/// `selfcompile_c` covers this only as a 4.5-second aggregate that cannot
+/// localise a regression.
+///
+/// This is the compiler's own inner shape: an expression IR walked by a match
+/// per node. A regression in how a union carries its tag, in how `match` lowers
+/// a four-way dispatch, or in the narrowing that gives each arm its field
+/// offsets would land here and nowhere else.
+///
+/// Every operation is additive, so the value stays bounded by
+/// `leaf count × MAX_LITERAL` — exact in an f64 mantissa, so the Bun-TS peer
+/// needs no BigInt and the checksum stays cross-language comparable.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+
+TREE_DEPTH  :: 17
+PASS_COUNT  :: 40
+MAX_LITERAL :: 9
+
+Expression :: Literal | Add | Subtract | Negate
+
+Literal :: struct { value: i64 }
+Add :: struct { left: Expression, right: Expression }
+Subtract :: struct { left: Expression, right: Expression }
+Negate :: struct { operand: Expression }
+
+evaluate :: fn(expression: Expression) -> i64 = match expression {
+    is Literal  -> expression.value
+    is Add      -> expression.left.evaluate() + expression.right.evaluate()
+    is Subtract -> expression.left.evaluate() - expression.right.evaluate()
+    is Negate   -> -expression.operand.evaluate()
+}
+
+// The seed descends the tree deterministically, so the shape and every literal
+// are identical in all four ports. Negate wraps a binary node rather than taking
+// one child, which keeps the tree balanced.
+build :: fn(depth: i32, seed: i32) -> Expression {
+    if depth == 0 {
+        return Literal { .value = i64(seed % MAX_LITERAL + 1) }
+    }
+    left :: build(depth - 1, seed * 2 + 1)
+    right :: build(depth - 1, seed * 2 + 2)
+    kind :: seed % 3
+    if kind == 0 {
+        return Add { .left = left, .right = right }
+    }
+    if kind == 1 {
+        return Subtract { .left = left, .right = right }
+    }
+    return Negate { .operand = Add { .left = left, .right = right } }
+}
+
+main :: fn() -> i32 {
+    root :: TREE_DEPTH.build(1)
+    total: i64 = 0
+    for 0..<PASS_COUNT {
+        total += root.evaluate()
+    }
+    println("tree_eval depth=${TREE_DEPTH} passes=${PASS_COUNT} total=${total}")
+    return 0
+}

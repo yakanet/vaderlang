@@ -1,0 +1,72 @@
+/// Polymorphic trait dispatch — the counterpart to `iter_chain`, which measures
+/// dispatch being REMOVED. Nothing else in the corpus measures a call the
+/// compiler cannot devirtualize, so a regression in the vtable layout, in
+/// midir's vtable pruning, or in how a trait value carries its witness would
+/// land with the whole suite green.
+///
+/// The array holds three concrete types behind one trait, cycled so no run of
+/// elements shares a receiver type. Each `area()` is therefore an indirect call
+/// through the element's own witness — a monomorphic-inline-cache guess would
+/// miss on every third element, which is the point.
+///
+/// Dimensions are bounded by `index % DIMENSION_LIMIT` so the total stays exact
+/// in an f64 mantissa and the Bun-TS peer needs no BigInt.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+
+SHAPE_COUNT     :: 200_000
+PASS_COUNT      :: 60
+DIMENSION_LIMIT :: 1000
+
+Shape :: trait {
+    /// Twice the area, so every shape's answer is an exact integer.
+    area :: fn(self) -> i64
+}
+
+Circle :: struct { radius: i64 }
+Rectangle :: struct { width: i64, height: i64 }
+Triangle :: struct { base: i64, height: i64 }
+
+Circle implements Shape {
+    area :: fn(self) -> i64 = 6 * self.radius * self.radius
+}
+
+Rectangle implements Shape {
+    area :: fn(self) -> i64 = 2 * self.width * self.height
+}
+
+Triangle implements Shape {
+    area :: fn(self) -> i64 = self.base * self.height
+}
+
+main :: fn() -> i32 {
+    shapes :: build_shapes()
+    total: i64 = 0
+    for 0..<PASS_COUNT {
+        for shape in shapes {
+            total += shape.area()
+        }
+    }
+    println("shapes count=${SHAPE_COUNT} passes=${PASS_COUNT} total=${total}")
+    return 0
+}
+
+build_shapes :: fn() -> Shape[] {
+    shapes: Shape[]! = []
+    for index in 0..<SHAPE_COUNT {
+        dimension :: i64(index % DIMENSION_LIMIT)
+        kind :: index % 3
+        if kind == 0 {
+            shapes.push(Circle { .radius = dimension })
+        } else if kind == 1 {
+            shapes.push(Rectangle { .width = dimension, .height = dimension + 1 })
+        } else {
+            shapes.push(Triangle { .base = dimension, .height = dimension + 2 })
+        }
+    }
+    return shapes
+}

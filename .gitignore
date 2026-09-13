@@ -57,6 +57,9 @@ bench/hashmap/hashmap
 bench/ackermann/ackermann
 bench/wordcount/wordcount
 bench/quicksort/quicksort
+bench/wordfreq/wordfreq
+bench/shapes/shapes
+bench/tree_eval/tree_eval
 *.dSYM/
 
 ## POCs

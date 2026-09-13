@@ -1,0 +1,87 @@
+/// String-keyed map stress — the one path `hashmap` (i32 keys) and `wordcount`
+/// (byte scan, never interns) both leave uncovered, and the one a compiler's
+/// own symbol table runs constantly.
+///
+/// A token sliced out of a byte buffer is a FRESH string: Vader has to hash its
+/// content, probe the global atom table and either intern it or find the atom
+/// already there. Only then does the map hash it again and probe. This workload
+/// is that pair, 300 000 times, over a vocabulary of 4 096 words — so the atom
+/// table dedupes 98.6 % of the slices and the row measures lookup throughput
+/// rather than table growth.
+///
+/// Every word is exactly WORD_LENGTH bytes followed by one space, so a token
+/// sits at a computable offset and no scanning is involved — `wordcount` owns
+/// that. The vocabulary is the base-26 rendering of
+/// `index * SCRAMBLE_MULTIPLIER mod 26^WORD_LENGTH`, which is injective (the
+/// multiplier is coprime to that modulus) so all 4 096 words are distinct, and
+/// spreads the bytes so the hash sees varied input.
+///
+/// The corpus is held as a byte buffer here, in Go and in Java — that is the
+/// shape a tokenizer has, and all three pay an allocation per token to turn a
+/// byte range into a string. The Bun-TS peer holds a string and slices it,
+/// which is what a JS tokenizer does instead.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/collections"
+import "std/io"
+
+VOCABULARY_SIZE :: 4096
+TOKEN_COUNT     :: 300_000
+WORD_LENGTH     :: 6
+
+SCRAMBLE_MULTIPLIER: i64: 2654435761
+VOCABULARY_STRIDE: i64: 2731
+// 26^WORD_LENGTH — the space the scramble permutes.
+VOCABULARY_SPACE: i64: 308_915_776
+
+main :: fn() -> i32 {
+    corpus :: build_corpus()
+    counts :: MutableMap<string, i32> {}
+    for token_index in 0..<TOKEN_COUNT {
+        start :: usize(token_index) * usize(WORD_LENGTH + 1)
+        token :: corpus[start..<start + usize(WORD_LENGTH)].bytes_to_string()
+        seen :: counts[token]
+        counts[token] = if seen == null { 1 } else { seen + 1 }
+    }
+    checksum: i64 = 0
+    for index in 0..<VOCABULARY_SIZE {
+        seen :: counts[vocabulary_word(index)]
+        if seen != null {
+            checksum += i64(seen) * i64(index + 1)
+        }
+    }
+    println(
+        "wordfreq vocabulary=${VOCABULARY_SIZE} tokens=${TOKEN_COUNT} distinct=${counts.len()} checksum=${checksum}",
+    )
+    return 0
+}
+
+// Base-26 rendering of the scrambled index, little-endian. The scramble is what
+// makes consecutive vocabulary entries differ in every byte rather than only the
+// last one.
+append_word :: fn(out: u8[]!, index: i32) -> void {
+    scrambled := i64(index) * SCRAMBLE_MULTIPLIER % VOCABULARY_SPACE
+    for 0..<WORD_LENGTH {
+        out.push(u8('a' + scrambled % 26))
+        scrambled = scrambled / 26
+    }
+}
+
+vocabulary_word :: fn(index: i32) -> string {
+    out: u8[]! = []
+    out.append_word(index)
+    return out.bytes_to_string()
+}
+
+build_corpus :: fn() -> u8[] {
+    out: u8[]! = []
+    for token_index in 0..<TOKEN_COUNT {
+        word_index :: i32(i64(token_index) * VOCABULARY_STRIDE % i64(VOCABULARY_SIZE))
+        out.append_word(word_index)
+        out.push(' ')
+    }
+    return out
+}
