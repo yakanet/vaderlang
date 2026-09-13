@@ -27884,14 +27884,14 @@ static vader_box_t vader_typecheck_resolve_loop_target(void* l0, vader_string_t 
     int64_t t0;
     vader_string_t t1;
     vader_box_t t2;
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l2 = ((vader_array_t*) l0)->length;
     {
         loop_4: {
             if ((l2 > INT64_C(0))) {
                 t0 = (l2 - INT64_C(1));
                 l2 = (size_t) (int64_t) t0;
-                vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-                if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
                 if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
                 l4 = ((vader_struct_vader_typecheck_EnclosingLoop_t*) l3)->f_binding;

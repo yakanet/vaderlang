@@ -3527,53 +3527,126 @@ static void vader_lower_bh_mark_idx_stmt(vader_box_t l0) {
 }
 
 static void vader_lower_bh_pair(void* l0, void* l1) {
-    vader_box_t l2 = vader_box_null(), l6 = vader_box_null();
-    void* l3 = NULL;
-    void* l7 = NULL;
-    void* l8 = NULL;
+    vader_box_t l2 = vader_box_null(), l3 = vader_box_null(), l7 = vader_box_null(), l17 = vader_box_null();
+    void* l4 = NULL;
     void* l9 = NULL;
-    size_t l4, l5;
+    void* l10 = NULL;
+    void* l11 = NULL;
+    void* l12 = NULL;
+    void* l13 = NULL;
+    void* l14 = NULL;
+    void* l18 = NULL;
+    void* l19 = NULL;
+    size_t l5, l6, l15, l16;
+    bool l8, l21;
+    int32_t l20;
     void* t0 = NULL;
+    void* t2 = NULL;
     bool t1;
-    int64_t t2;
-    vader_box_t* gc_roots[2] = { &l2, &l6 };
-    void** gc_raw_roots[7] = { &l0, &l1, &l3, &l7, &l8, &l9, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 7u, gc_roots, gc_raw_roots, 0u, NULL };
+    int64_t t3;
+    vader_box_t* gc_roots[4] = { &l2, &l3, &l7, &l17 };
+    void** gc_raw_roots[13] = { &l0, &l1, &l4, &l9, &l10, &l11, &l12, &l13, &l14, &l18, &l19, &t0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 13u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = vader_box_obj(0u, NULL);
-    l3 = ((vader_struct_vader_lower_LoweredBlock_t*) l0)->f_stmts;
-    l4 = ((vader_array_t*) l3)->length;
-    l5 = (size_t) (int64_t) INT64_C(0);
+    l3 = vader_box_obj(0u, NULL);
+    l4 = ((vader_struct_vader_lower_LoweredBlock_t*) l0)->f_stmts;
+    l5 = ((vader_array_t*) l4)->length;
+    l6 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_9: {
-            if ((l5 < l4)) {
-                vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+        loop_11: {
+            if ((l6 < l5)) {
+                vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                 if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-                if ((size_t) l5 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-                l6 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
-                if (l6.tag == 758u) {
-                    t0 = l6.payload.obj;
+                if ((size_t) l6 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                l7 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l6);
+                l8 = false;
+                if (l7.tag == 758u) {
+                    t0 = l7.payload.obj;
                     if (((vader_struct_vader_lower_LoweredLet_t*) t0)->f_value.tag == 728u) {
-                        t0 = l6.payload.obj;
-                        l7 = ((vader_struct_vader_lower_LoweredLet_t*) t0)->f_value.payload.obj;
-                        t1 = ((vader_struct_vader_lower_LoweredArrayLen_t*) l7)->f_bce_recheck;
+                        t0 = l7.payload.obj;
+                        l9 = ((vader_struct_vader_lower_LoweredLet_t*) t0)->f_value.payload.obj;
+                        t1 = ((vader_struct_vader_lower_LoweredArrayLen_t*) l9)->f_bce_recheck;
                         if (t1) {
-                            l2 = vader_ref_box(l7);
+                            l2 = vader_ref_box(l9);
+                        } else {
+                            t1 = ((vader_struct_vader_lower_LoweredArrayLen_t*) l9)->f_resolve_buf;
+                            if (!(t1)) {
+                                l3 = vader_ref_box(l9);
+                                l8 = true;
+                            }
                         }
                     }
                 } else {
-                    if (l6.tag == 759u) {
+                    if (l7.tag == 759u) {
                         if (!(l2.tag == 0u)) {
-                            l8 = l2.payload.obj;
-                            l9 = l6.payload.obj;
-                            vader_lower_bh_try_hoist(l8, l9, l1);
+                            l10 = l2.payload.obj;
+                            l11 = l7.payload.obj;
+                            vader_lower_bh_try_hoist(l10, l11, l1);
                             l2 = vader_box_obj(0u, NULL);
+                            l8 = true;
+                        } else {
+                            if (!(l3.tag == 0u)) {
+                                l12 = l3.payload.obj;
+                                l13 = l7.payload.obj;
+                                vader_lower_bh_try_hoist(l12, l13, l1);
+                                l3 = vader_box_obj(0u, NULL);
+                                l8 = true;
+                            }
+                        }
+                    } else {
+                        if (l7.tag == 749u) {
+                            if (!(l3.tag == 0u)) {
+                                t0 = l7.payload.obj;
+                                if (((vader_struct_vader_lower_LoweredExprStmt_t*) t0)->f_expr.tag == 735u) {
+                                    t0 = l7.payload.obj;
+                                    t2 = ((vader_struct_vader_lower_LoweredExprStmt_t*) t0)->f_expr.payload.obj;
+                                    l14 = ((vader_struct_vader_lower_LoweredBlock_t*) t2)->f_stmts;
+                                    l15 = ((vader_array_t*) l14)->length;
+                                    l16 = (size_t) (int64_t) INT64_C(0);
+                                    {
+                                        loop_119: {
+                                            if ((l16 < l15)) {
+                                                vader_array_t* _a1_slotarr = ((vader_array_t*) l14);
+                                                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
+                                                if ((size_t) l16 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                                                l17 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l16);
+                                                if (l17.tag == 759u) {
+                                                    l18 = l3.payload.obj;
+                                                    l19 = l17.payload.obj;
+                                                    vader_lower_bh_try_hoist(l18, l19, l1);
+                                                } else {
+                                                    t3 = (l16 + INT64_C(1));
+                                                    l16 = (size_t) (int64_t) t3;
+                                                    goto loop_119;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                l3 = vader_box_obj(0u, NULL);
+                                l8 = true;
+                            }
                         }
                     }
                 }
-                t2 = (l5 + INT64_C(1));
-                l5 = (size_t) (int64_t) t2;
-                goto loop_9;
+                if (!(l8)) {
+                    if (!(l3.tag == 0u)) {
+                        t0 = l3.payload.obj;
+                        l20 = vader_lower_bh_guard_sym(t0);
+                        if ((l20 < INT32_C(0))) {
+                            l21 = true;
+                        } else {
+                            l21 = vader_lower_bce_stmt_unsafe(l7, l20, l1);
+                        }
+                        if (l21) {
+                            l3 = vader_box_obj(0u, NULL);
+                        }
+                    }
+                }
+                t3 = (l6 + INT64_C(1));
+                l6 = (size_t) (int64_t) t3;
+                goto loop_11;
             }
         }
     }
