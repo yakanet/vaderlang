@@ -32,14 +32,7 @@
         std_io$println__string :void
       arg0:
         d :string
-    let e: string =
-      call :string
-        callee:
-          concat_2 :string
-        arg0:
-          "" :string
-        arg1:
-          a :string
+    let e: string = a :string
     call :void
       callee:
         std_io$println__string :void

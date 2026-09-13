@@ -50,14 +50,102 @@ lower_string_lit :: fn(ctx: FnLowerCtx!, expr: StringLitExpr, type: Type) -> Low
 // cliff). It is synthesised on first use of arity N and shared across every
 // N-leaf concat ; the call site stays one `call`.
 lower_concat_chain :: fn(ctx: FnLowerCtx!, operands: LoweredExpr[]!, span: Span) -> LoweredExpr {
-    n :: operands.len()
+    leaves :: fold_literal_runs(operands, span)
+    n :: leaves.len()
     string_type :: TY_STRING
-    // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves), but the all-
-    // string `${}` path can collect a single operand ; pass it through.
-    if n == 1 { return operands[0] }
+    // A 1-leaf chain reaches here three ways : the all-string `${}` path can
+    // collect a single operand, an all-literal `+` chain folds down to one
+    // literal, and a chain of empty literals collapses to `""`.
+    if n == 1 {
+        return leaves[0]
+    }
     sym :: get_or_create_concat(ctx, i32(n))
     if sym == null { return unreachable_buffer("concat_${n} unresolved") }
-    return mk_lowered_call(sym, operands, string_type, span)
+    return mk_lowered_call(sym, leaves, string_type, span)
+}
+
+/// Collapse adjacent literal leaves of a concat chain into one literal, and drop
+/// the empty ones.
+///
+/// `"a" + "b" + x + "c" + "d"` collects five leaves and would emit a `concat_5`
+/// that allocates a buffer, writes five parts and interns the result at run
+/// time. Three of those parts are known here, so the chain becomes `["ab", x,
+/// "cd"]` — a `concat_3`. An ALL-literal chain folds to a single
+/// `LoweredStringLit`, which the caller returns directly : the whole
+/// concatenation then costs nothing at run time, the bytes being interned once
+/// as a comptime atom.
+///
+/// The leaves are already lowered, so a `LoweredStringLit` here is a genuine
+/// compile-time constant — a `const` local still arrives as a `LoweredIdent` and
+/// is left alone.
+///
+/// @param operands  the flattened chain leaves, in order. Returned as-is when
+///                  nothing folds, so the common chain pays no copy.
+/// @param span      the whole chain's span — carried by the `""` fallback when
+///                  every leaf was an empty literal and nothing else is left.
+/// @return          the folded leaves, always at least one.
+fold_literal_runs :: fn(operands: LoweredExpr[]!, span: Span) -> LoweredExpr[]! {
+    if !has_foldable_leaf(operands) {
+        return operands
+    }
+    out: LoweredExpr[]! = []
+    for op in operands {
+        if op is LoweredStringLit {
+            // An empty part writes nothing ; carrying it would cost an operand,
+            // a `byte_len` call and a zero-length write per concat. Dropping it
+            // first is also what lets `"e" + "" + "f"` reach a single `"ef"`.
+            if op.value == "" {
+                continue
+            }
+            if merge_into_literal_tail(out, op) {
+                continue
+            }
+        }
+        out.push(op)
+    }
+    if out.len() == 0 {
+        return [LoweredStringLit { .span = span, .type = TY_STRING, .value = "" }]
+    }
+    return out
+}
+
+// True when `fold_literal_runs` would change something : an empty literal to
+// drop, or two adjacent literals to merge. The shape a `${}` lowers to —
+// `"x=" + v + ", y=" + w` — has neither, so it keeps its own operand array and
+// the fold costs one scan instead of a fresh array plus a copy per leaf.
+has_foldable_leaf :: fn(operands: LoweredExpr[]) -> bool {
+    after_literal := false
+    for op in operands {
+        if op is LoweredStringLit {
+            if op.value == "" || after_literal {
+                return true
+            }
+            after_literal = true
+        } else {
+            after_literal = false
+        }
+    }
+    return false
+}
+
+// Append `lit`'s bytes to `out`'s trailing leaf when that leaf is itself a
+// literal, and report whether it happened. The merged span covers the whole run,
+// so a diagnostic on the folded value still points at every part the user wrote.
+merge_into_literal_tail :: fn(out: LoweredExpr[]!, lit: LoweredStringLit) -> bool {
+    last :: out.len()
+    if last == 0 {
+        return false
+    }
+    prev :: out[last - 1]
+    if prev is LoweredStringLit {
+        out[last - 1] = LoweredStringLit {
+            .span = Span { .start = prev.span.start, .end = lit.span.end },
+            .type = prev.type,
+            .value = prev.value + lit.value,
+        }
+        return true
+    }
+    return false
 }
 
 // ICE for the (provably-dead) std/core buffer-API resolution guards — std/core
@@ -332,4 +420,109 @@ has_interp_part :: fn(expr: StringLitExpr) -> bool {
         }
     }
     return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A literal leaf. Its span line matters only to the merge test, which builds its
+// leaves with `fold_test_lit_at` instead.
+fold_test_lit :: fn(value: string) -> LoweredExpr = fold_test_lit_at(value, 1)
+
+// A literal leaf whose span sits on `line` — the marker the merge test reads
+// back: folding keeps the run's FIRST start and its LAST end.
+fold_test_lit_at :: fn(value: string, line: i32) -> LoweredExpr = LoweredStringLit {
+    .span = Span {
+        .start = Position { .file = "t", .line = line, .column = 1, .offset = 0 },
+        .end = Position { .file = "t", .line = line, .column = 2, .offset = 1 },
+    },
+    .type = TY_STRING, .value = value,
+}
+
+// An opaque (non-literal) leaf — what a variable operand lowers to.
+fold_test_opaque :: fn(name: string) -> LoweredExpr = LoweredIdent {
+    .span = empty_span(), .type = TY_STRING,
+    .symbol = Symbol {
+        .id = 1, .kind = SymbolKind.Local, .name = name, .module = "test",
+        .module_name = "test",
+        .visibility = Visibility.Private, .defined_at = null,
+    },
+}
+
+// Fold `leaves` and render the result as `lit:<value>` / `var:<name>` entries
+// joined by `|`, so each test reads as one input/output line.
+fold_test_run :: fn(leaves: LoweredExpr[]!) -> string {
+    out := ""
+    for leaf in fold_literal_runs(leaves, empty_span()) {
+        if out != "" {
+            out = out + "|"
+        }
+        // @partial: the fixtures build literal and ident leaves only ; `?` marks
+        // a leaf shape a future test forgot to teach this renderer about.
+        out = out + @partial match leaf {
+            is LoweredStringLit -> "lit:${leaf.value}"
+            is LoweredIdent     -> "var:${leaf.symbol.name}"
+            _                   -> "?"
+        }
+    }
+    return out
+}
+
+@test test_fold_literal_runs_all_literals :: fn() -> void {
+    leaves: LoweredExpr[]! = [fold_test_lit("a"), fold_test_lit("b"), fold_test_lit("c")]
+    assert_eq(fold_test_run(leaves), "lit:abc")
+}
+
+@test test_fold_literal_runs_keeps_opaque_leaves_apart :: fn() -> void {
+    leaves: LoweredExpr[]! = [
+        fold_test_lit("a"), fold_test_lit("b"), fold_test_opaque("x"),
+        fold_test_lit("c"), fold_test_lit("d"),
+    ]
+    assert_eq(fold_test_run(leaves), "lit:ab|var:x|lit:cd")
+}
+
+@test test_fold_literal_runs_drops_empty_literals :: fn() -> void {
+    leaves: LoweredExpr[]! = [fold_test_lit(""), fold_test_opaque("x"), fold_test_lit("")]
+    assert_eq(fold_test_run(leaves), "var:x")
+}
+
+// An empty literal between two literals must not break the run — dropping it
+// first is what lets `"e" + "" + "f"` reach a single `"ef"`.
+@test test_fold_literal_runs_empty_does_not_break_a_run :: fn() -> void {
+    leaves: LoweredExpr[]! = [fold_test_lit("e"), fold_test_lit(""), fold_test_lit("f")]
+    assert_eq(fold_test_run(leaves), "lit:ef")
+}
+
+// Every leaf empty : the caller needs a leaf to return, so `""` survives.
+@test test_fold_literal_runs_all_empty_yields_one_empty :: fn() -> void {
+    assert_eq(fold_test_run([fold_test_lit(""), fold_test_lit("")]), "lit:")
+}
+
+@test test_fold_literal_runs_opaque_only_is_unchanged :: fn() -> void {
+    assert_eq(fold_test_run([fold_test_opaque("x"), fold_test_opaque("y")]), "var:x|var:y")
+}
+
+// The merged literal must span the WHOLE run, so a diagnostic on the folded
+// value still points at every part the user wrote.
+@test test_fold_literal_runs_merged_span_covers_the_run :: fn() -> void {
+    leaves: LoweredExpr[]! = [fold_test_lit_at("a", 7), fold_test_lit_at("b", 8), fold_test_lit_at("c", 9)]
+    merged :: fold_literal_runs(leaves, empty_span())[0]
+    if merged is LoweredStringLit {
+        assert_eq(merged.span.start.line, 7)
+        assert_eq(merged.span.end.line, 9)
+    } else {
+        assert(false, "an all-literal run folds to a literal")
+    }
+}
+
+// A chain with nothing to fold keeps its own array — the early-out that spares
+// the common `"x=" + v + ", y=" + w` shape a copy per leaf.
+@test test_fold_literal_runs_returns_the_input_when_nothing_folds :: fn() -> void {
+    mixed: LoweredExpr[]! = [fold_test_lit("a"), fold_test_opaque("x")]
+    pair: LoweredExpr[]! = [fold_test_lit("a"), fold_test_lit("b")]
+    empty: LoweredExpr[]! = [fold_test_lit(""), fold_test_opaque("x")]
+    assert(!has_foldable_leaf(mixed), "no adjacent pair and no empty leaf")
+    assert(has_foldable_leaf(pair), "two adjacent literals merge")
+    assert(has_foldable_leaf(empty), "an empty literal is dropped")
 }

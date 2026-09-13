@@ -11,8 +11,7 @@ type 8 primitive isize
 string 0 "foo"
 string 1 "bar"
 string 2 "baz"
-string 3 ""
-string 4 "\n"
+string 3 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,6,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -35,9 +34,7 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "baz"
   call 2   ; concat_3
   call 7   ; std_io$println__string
-  string.const 3   ; ""
   local.get 0   ; a
-  call 1   ; concat_2
   call 7   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -206,7 +203,7 @@ end
 fn 7 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 4   ; "\n"
+  string.const 3   ; "\n"
   call 1   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

@@ -1,0 +1,213 @@
+# Lower
+
+## snippet
+  fn snippet$all_literals() -> string
+    ~>
+      "abcdefghijklm" :string
+  fn snippet$mixed(x: string) -> string
+    ~>
+      call :string
+        callee:
+          concat_3 :string
+        arg0:
+          "ab" :string
+        arg1:
+          x :string
+        arg2:
+          "cd" :string
+  fn snippet$with_empties(x: string) -> string
+    ~>
+      x :string
+  fn snippet$empty_inside_run() -> string
+    ~>
+      "ef" :string
+  fn snippet$all_empty() -> string
+    ~>
+      "" :string
+  fn snippet$interpolated(x: string) -> string
+    ~>
+      call :string
+        callee:
+          concat_3 :string
+        arg0:
+          "<" :string
+        arg1:
+          x :string
+        arg2:
+          ">" :string
+  fn snippet$main() -> i32
+    let x: string = "Z" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            all_literals :fn() -> string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            mixed :fn(string) -> string
+          arg0:
+            x :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            with_empties :fn(string) -> string
+          arg0:
+            x :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            empty_inside_run :fn() -> string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_3 :string
+          arg0:
+            "[" :string
+          arg1:
+            call :string
+              callee:
+                all_empty :fn() -> string
+          arg2:
+            "]" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            interpolated :fn(string) -> string
+          arg0:
+            x :string
+    return int(0) :i32
+  fn concat_3(p0: string, p1: string, p2: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c2 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c2 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

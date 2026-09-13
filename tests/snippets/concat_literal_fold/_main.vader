@@ -1,0 +1,41 @@
+/// Adjacent literal leaves of a `+` / `${}` chain fold at lower time.
+///
+/// `lower_concat_chain` merges each run of adjacent `LoweredStringLit` leaves
+/// and drops the empty ones, so an all-literal chain collapses to ONE literal —
+/// no `concat_N` call, no buffer, no run-time intern — and a mixed chain loses
+/// the arity its literal runs were costing. Read `lower.snapshot` for the shape:
+/// `all_literals` must carry no call at all, and `mixed` must reach `concat_3`
+/// (not `concat_5`).
+
+module "snippet"
+
+import "std/io"
+
+// Every leaf is known here : the whole chain becomes one interned literal.
+all_literals :: fn() -> string = "a" + "bcd" + "efgh" + "ijklm"
+
+// Five leaves collapse to three : `["ab", x, "cd"]`.
+mixed :: fn(x: string) -> string = "a" + "b" + x + "c" + "d"
+
+// The empty parts write nothing, so they carry no operand.
+with_empties :: fn(x: string) -> string = "" + x + ""
+
+// An empty literal BETWEEN two literals must not break the run.
+empty_inside_run :: fn() -> string = "e" + "" + "f"
+
+// Nothing survives the drop, so the fallback literal does.
+all_empty :: fn() -> string = "" + ""
+
+// An interpolation's text parts are leaves of the same chain.
+interpolated :: fn(x: string) -> string = "<${x}>"
+
+main :: fn() -> i32 {
+    x :: "Z"
+    println(all_literals())
+    println(mixed(x))
+    println(with_empties(x))
+    println(empty_inside_run())
+    println("[" + all_empty() + "]")
+    println(interpolated(x))
+    return 0
+}
