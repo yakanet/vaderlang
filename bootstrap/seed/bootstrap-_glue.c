@@ -196,18 +196,6 @@ vader_box_t vader_fn_lift___lambda_vader_midir_16(void* env) {
 vader_box_t vader_fn_lift___lambda_vader_midir_18(void* env) {
     return vader_ref_box(__lambda_vader_midir_18(env));
 }
-vader_box_t vader_fn_lift___lambda_vader_midir_20(void* env, vader_box_t a0) {
-    __lambda_vader_midir_20(env, ((int32_t) a0.payload.i));
-    return vader_box_null();
-}
-vader_box_t vader_fn_lift___lambda_vader_midir_22(void* env, vader_box_t a0) {
-    __lambda_vader_midir_22(env, ((int32_t) a0.payload.i));
-    return vader_box_null();
-}
-vader_box_t vader_fn_lift___lambda_vader_midir_24(void* env, vader_box_t a0) {
-    __lambda_vader_midir_24(env, ((int32_t) a0.payload.i));
-    return vader_box_null();
-}
 vader_box_t vader_fn_lift___lambda_vader_c_emit_0(void* env, vader_box_t a0, vader_box_t a1) {
     return vader_box_bool(167u, __lambda_vader_c_emit_0(env, ((int32_t) a0.payload.i), ((int32_t) a1.payload.i)));
 }
@@ -252,21 +240,21 @@ vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 169u: return std_core_string_Display_to_string(recv.payload.s);
         case 165u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 166u: return std_core_f64_Display_to_string(((double) recv.payload.f));
-        case 392u: return std_string_builder_StringBuilder_Display_to_string(recv.payload.obj);
-        case 483u: return toolchain_span_Span_Display_to_string(recv.payload.obj);
-        case 947u: return vader_vm_I32Val_Display_to_string(recv.payload.obj);
-        case 940u: return vader_vm_F64Val_Display_to_string(recv.payload.obj);
-        case 948u: return vader_vm_I64Val_Display_to_string(recv.payload.obj);
-        case 958u: return vader_vm_StringVal_Display_to_string(recv.payload.obj);
-        case 941u: return vader_vm_FnVal_Display_to_string(recv.payload.obj);
-        case 951u: return vader_vm_NullVal_Display_to_string(recv.payload.obj);
-        case 936u: return vader_vm_BoolVal_Display_to_string(recv.payload.obj);
-        case 937u: return vader_vm_CharVal_Display_to_string(recv.payload.obj);
-        case 939u: return vader_vm_ErrorVal_Display_to_string(recv.payload.obj);
-        case 961u: return vader_vm_TypeVal_Display_to_string(recv.payload.obj);
-        case 952u: return vader_vm_ObjVal_Display_to_string(recv.payload.obj);
-        case 959u: return vader_vm_StructVal_Display_to_string(recv.payload.obj);
-        case 935u: return vader_vm_ArrayVal_Display_to_string(recv.payload.obj);
+        case 388u: return std_string_builder_StringBuilder_Display_to_string(recv.payload.obj);
+        case 479u: return toolchain_span_Span_Display_to_string(recv.payload.obj);
+        case 940u: return vader_vm_I32Val_Display_to_string(recv.payload.obj);
+        case 933u: return vader_vm_F64Val_Display_to_string(recv.payload.obj);
+        case 941u: return vader_vm_I64Val_Display_to_string(recv.payload.obj);
+        case 951u: return vader_vm_StringVal_Display_to_string(recv.payload.obj);
+        case 934u: return vader_vm_FnVal_Display_to_string(recv.payload.obj);
+        case 944u: return vader_vm_NullVal_Display_to_string(recv.payload.obj);
+        case 929u: return vader_vm_BoolVal_Display_to_string(recv.payload.obj);
+        case 930u: return vader_vm_CharVal_Display_to_string(recv.payload.obj);
+        case 932u: return vader_vm_ErrorVal_Display_to_string(recv.payload.obj);
+        case 954u: return vader_vm_TypeVal_Display_to_string(recv.payload.obj);
+        case 945u: return vader_vm_ObjVal_Display_to_string(recv.payload.obj);
+        case 952u: return vader_vm_StructVal_Display_to_string(recv.payload.obj);
+        case 928u: return vader_vm_ArrayVal_Display_to_string(recv.payload.obj);
         default: vader_unreachable("vtable miss in Display.to_string");
     }
     vader_unreachable("vtable miss in Display.to_string");
