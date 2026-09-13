@@ -2913,10 +2913,6 @@ static void* std_core_shl(void* l0, int32_t l1) {
     l3 = ((vader_array_t*) l0)->length;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
-        vader_array_t* _pc71_hdr = (vader_array_t*) l2;
-        size_t _pc71_len = _pc71_hdr->length;
-        size_t _pc71_cap = (_pc71_hdr->offset == 0 && !vader_array_is_borrowed(_pc71_hdr) && _pc71_hdr->length >= _pc71_hdr->buf->length) ? _pc71_hdr->capacity : (size_t) 0;
-        void* _pc71_slots = _pc71_hdr->buf->slots;
         loop_71: {
             if ((l4 < l3)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
@@ -2936,26 +2932,13 @@ static void* std_core_shl(void* l0, int32_t l1) {
                 l11 = (uint64_t) (int64_t) t1;
                 t0 = ((int32_t) (int64_t) (l11 & INT64_C(4294967295)));
                 l12 = (uint32_t) (int32_t) t0;
-                if (VADER_LIKELY(_pc71_len < _pc71_cap)) {
-                    ((int32_t*) _pc71_slots)[_pc71_len] = (int32_t) ((int32_t) (uint32_t) l12);
-                    _pc71_len += 1;
-                } else {
-                    _pc71_hdr->length = _pc71_len;
-                    if (_pc71_hdr->buf->length < _pc71_len) { _pc71_hdr->buf->length = _pc71_len; }
-                    vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l12);
-                    _pc71_hdr = (vader_array_t*) l2;
-                    _pc71_len = _pc71_hdr->length;
-                    _pc71_cap = (_pc71_hdr->offset == 0 && !vader_array_is_borrowed(_pc71_hdr) && _pc71_hdr->length >= _pc71_hdr->buf->length) ? _pc71_hdr->capacity : (size_t) 0;
-                    _pc71_slots = _pc71_hdr->buf->slots;
-                }
+                vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l12);
                 t0 = ((int32_t) (uint64_t) (l11 >> INT64_C(32)));
                 l6 = (uint32_t) (int32_t) t0;
                 t1 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t1;
                 goto loop_71;
             }
-            _pc71_hdr->length = _pc71_len;
-            if (_pc71_hdr->buf->length < _pc71_len) { _pc71_hdr->buf->length = _pc71_len; }
         }
     }
     if (l6 != INT32_C(0)) {
