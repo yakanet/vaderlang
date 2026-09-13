@@ -1,0 +1,287 @@
+// vader/lower/concat_fusion — fuse a run of `s = s + …` appends into ONE concat.
+//
+// `s = s + a` then `s = s + b` lowers to two `concat_N` calls, and each one is a
+// whole string construction: a right-sized byte buffer, one write per part, and
+// an atom-table intern of the result. The first result is then thrown away — the
+// second call's only use of it is to copy its bytes again. Building the string
+// in k steps costs k buffers and k interns where one would do.
+//
+// So the pass rewrites `concat_M(concat_N(s, a…), b…)` — the shape the two
+// statements form — into `concat_{N+M-1}(s, a…, b…)`. It runs from
+// `lower_block` right after each statement is lowered, which is what makes it
+// cheap and what keeps it safe: the two statements are ADJACENT by construction,
+// so nothing can read `s` between them, and a third append fuses against the
+// pair the previous step already produced.
+//
+// Fusing goes through `lower_concat_chain` rather than building the call by
+// hand, so the merged operand list also gets the adjacent-literal fold
+// (`lower_string_lit.vader`): `s = s + "a"` then `s = s + "b"` lands on
+// `concat_2(s, "ab")`, not `concat_3(s, "a", "b")`.
+
+module "vader/lower"
+
+// One `s = s + …` append statement, destructured. `args` is the concat call's
+// full operand list — `args[0]` is the `s` being appended to, the rest is what
+// this statement adds.
+CfAppend :: struct {
+    span:   Span
+    target: LoweredIdent
+    args:   LoweredExpr[]
+}
+
+/// Fuse the last two statements of `stmts` when both append to the same local.
+///
+/// A no-op unless the tail is exactly the `s = s + …` / `s = s + …` shape. Call
+/// it after every statement a block lowers: a run of k appends collapses to one
+/// concat by folding pairwise, left to right.
+///
+/// @param ctx    the lowering context — `lower_concat_chain` mints the fused
+///               arity's `concat_N` through it.
+/// @param stmts  the block's statements so far ; rewritten in place.
+export fuse_concat_tail :: fn(ctx: FnLowerCtx!, stmts: LoweredStmt[]!) -> void {
+    n :: stmts.len()
+    if n < 2 {
+        return
+    }
+    last :: cf_append_of(ctx, stmts[n - 1]) ?? return
+    prev :: cf_append_of(ctx, stmts[n - 2]) ?? return
+    if prev.target.symbol.id != last.target.symbol.id {
+        return
+    }
+    // What the SECOND statement appends used to be evaluated after `s` already
+    // held the intermediate. Reading `s` there would see a value the fusion
+    // deletes, so a mention of it anywhere in those operands blocks the fuse.
+    added :: last.args[1..<last.args.len()]
+    if cf_any_reads(added, last.target.symbol.id) {
+        return
+    }
+    merged: LoweredExpr[]! = []
+    merged.push_all(prev.args)
+    merged.push_all(added)
+    stmts[n - 2] = LoweredAssign {
+        .span = prev.span,
+        .target = prev.target,
+        .value = lower_concat_chain(ctx, merged, prev.span),
+    }
+    _ :: stmts.remove_last()
+}
+
+// Destructure `s = concat_N(s, …)`, or `null` for anything else. The target must
+// be a plain local: a captured one is rewritten to a cell, so it arrives as a
+// `LoweredCellSet` and never reaches here — which is what rules out a closure
+// observing the intermediate.
+//
+// The self-referential first argument is checked BEFORE `cf_is_concat_call`:
+// it disqualifies just as much and costs an index plus a compare, where the
+// concat check is a map probe. Every `x = f(a, b)` in the tree reaches this.
+cf_append_of :: fn(ctx: FnLowerCtx, st: LoweredStmt) -> CfAppend | null {
+    if !(st is LoweredAssign) {
+        return null
+    }
+    target :: st.target
+    if !(target is LoweredIdent) {
+        return null
+    }
+    value :: st.value
+    if !(value is LoweredCall) {
+        return null
+    }
+    if value.args.len() == 0 {
+        return null
+    }
+    head :: value.args[0]
+    if !(head is LoweredIdent) {
+        return null
+    }
+    if head.symbol.id != target.symbol.id {
+        return null
+    }
+    if !cf_is_concat_call(ctx, value) {
+        return null
+    }
+    return CfAppend { .span = st.span, .target = target, .args = value.args }
+}
+
+// True when `call` is the synthesised `concat_N` for its own arity. Keyed on the
+// symbol id in `concat_fn_syms`, not on the mangle — the name is ours to change.
+cf_is_concat_call :: fn(ctx: FnLowerCtx, call: LoweredCall) -> bool {
+    callee :: call.callee
+    if !(callee is LoweredIdent) {
+        return false
+    }
+    sym :: ctx.project.concat_fn_syms[i32(call.args.len())]
+    if sym == null {
+        return false
+    }
+    return sym.id == callee.symbol.id
+}
+
+// ---- does this subtree mention `symbol_id` ? ------------------------------
+
+// Exhaustive by design. A `_ ->` arm here would answer "no" for a variant nobody
+// taught it about, and a wrong "no" fuses away a read that mattered.
+cf_expr_reads :: fn(e: LoweredExpr, symbol_id: i32) -> bool = match e {
+    is LoweredIdent -> e.symbol.id == symbol_id
+    is LoweredArrayLen | LoweredFieldAccess | LoweredCellGet ->
+        cf_expr_reads(e.target, symbol_id)
+    is LoweredCast | LoweredTypeCheck | LoweredCellNew ->
+        cf_expr_reads(e.value, symbol_id)
+    is LoweredUnary       -> cf_expr_reads(e.operand, symbol_id)
+    is LoweredMakeClosure -> cf_expr_reads(e.env, symbol_id)
+    is LoweredBlock       -> cf_block_reads(e, symbol_id)
+    is LoweredIndex       ->
+        cf_expr_reads(e.target, symbol_id) || cf_expr_reads(e.index, symbol_id)
+    is LoweredBinary      ->
+        cf_expr_reads(e.left, symbol_id) || cf_expr_reads(e.right, symbol_id)
+    is LoweredArrayPush   ->
+        cf_expr_reads(e.target, symbol_id) || cf_expr_reads(e.value, symbol_id)
+    is LoweredArraySlice | LoweredStringSlice ->
+        cf_expr_reads(e.target, symbol_id)
+            || cf_expr_reads(e.lo, symbol_id)
+            || cf_expr_reads(e.hi, symbol_id)
+    is LoweredCall        ->
+        cf_expr_reads(e.callee, symbol_id) || cf_any_reads(e.args, symbol_id)
+    is LoweredVirtualCall ->
+        cf_expr_reads(e.receiver, symbol_id) || cf_any_reads(e.args, symbol_id)
+    is LoweredIntrinsicCall -> cf_any_reads(e.args, symbol_id)
+    is LoweredArrayLit      -> cf_any_reads(e.elements, symbol_id)
+    is LoweredStructLit     -> cf_fields_read(e.fields, symbol_id)
+    is LoweredIf            ->
+        cf_expr_reads(e.cond, symbol_id)
+            || cf_block_reads(e.then_block, symbol_id)
+            || cf_opt_block_reads(e.else_block, symbol_id)
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit
+        | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst
+        | LoweredUnreachable -> false
+}
+
+cf_any_reads :: fn(items: LoweredExpr[], symbol_id: i32) -> bool {
+    for it in items {
+        if cf_expr_reads(it, symbol_id) {
+            return true
+        }
+    }
+    return false
+}
+
+cf_fields_read :: fn(fields: LoweredStructLitField[], symbol_id: i32) -> bool {
+    for f in fields {
+        if cf_expr_reads(f.value, symbol_id) {
+            return true
+        }
+    }
+    return false
+}
+
+cf_opt_expr_reads :: fn(e: LoweredExpr | null, symbol_id: i32) -> bool {
+    if e == null {
+        return false
+    }
+    return cf_expr_reads(e, symbol_id)
+}
+
+cf_opt_block_reads :: fn(b: LoweredBlock | null, symbol_id: i32) -> bool {
+    if b == null {
+        return false
+    }
+    return cf_block_reads(b, symbol_id)
+}
+
+cf_block_reads :: fn(b: LoweredBlock, symbol_id: i32) -> bool {
+    for st in b.stmts {
+        if cf_stmt_reads(st, symbol_id) {
+            return true
+        }
+    }
+    return cf_opt_expr_reads(b.trailing, symbol_id)
+}
+
+cf_stmt_reads :: fn(st: LoweredStmt, symbol_id: i32) -> bool = match st {
+    is LoweredLet                  -> cf_expr_reads(st.value, symbol_id)
+    is LoweredAssign | LoweredCellSet ->
+        cf_expr_reads(st.target, symbol_id) || cf_expr_reads(st.value, symbol_id)
+    is LoweredExprStmt             -> cf_expr_reads(st.expr, symbol_id)
+    is LoweredReturn               -> cf_opt_expr_reads(st.value, symbol_id)
+    is LoweredYield                -> cf_expr_reads(st.value, symbol_id)
+    is LoweredAwait                -> cf_expr_reads(st.awaited, symbol_id)
+    is LoweredDeferPush            -> cf_expr_reads(st.thunk, symbol_id)
+    is LoweredLoop                 ->
+        cf_opt_expr_reads(st.cond, symbol_id) || cf_block_reads(st.body, symbol_id)
+    is LoweredBreak | LoweredContinue | LoweredDeferPopExec -> false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `cf_expr_reads` is the fuse's whole safety argument, so the fixtures below
+// drive it directly. Whether a statement PAIR is an append run is covered
+// end-to-end by `tests/snippets/concat_append_fusion` — building the
+// `FnLowerCtx` that `cf_append_of` needs would be more fixture than test.
+
+CF_TEST_ID: i32: 7
+
+// The leaf fixtures live with the fold tests in `lower_string_lit.vader` — same
+// module, so they are reachable here. Only the call/block shapes are local.
+cf_test_target :: fn() -> LoweredExpr = fold_test_opaque_at("s", CF_TEST_ID)
+cf_test_other :: fn() -> LoweredExpr = fold_test_opaque_at("other", CF_TEST_ID + 1)
+
+cf_test_call :: fn(args: LoweredExpr[]!) -> LoweredExpr = LoweredCall {
+    .span = empty_span(), .type = TY_STRING, .callee = cf_test_other(), .args = args,
+}
+
+cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> LoweredBlock =
+    LoweredBlock { .span = empty_span(), .type = TY_STRING, .stmts = stmts, .trailing = trailing }
+
+@test test_cf_expr_reads_the_target_ident :: fn() -> void {
+    assert(cf_expr_reads(cf_test_target(), CF_TEST_ID), "a bare `s` is a read")
+}
+
+@test test_cf_expr_reads_ignores_another_ident :: fn() -> void {
+    assert(!cf_expr_reads(cf_test_other(), CF_TEST_ID), "a different local is not `s`")
+}
+
+@test test_cf_expr_reads_ignores_a_literal :: fn() -> void {
+    assert(!cf_expr_reads(fold_test_lit("x"), CF_TEST_ID), "a literal reads nothing")
+}
+
+// The operand that matters in practice: `s = s + f(s)`.
+@test test_cf_expr_reads_through_call_args :: fn() -> void {
+    args: LoweredExpr[]! = [fold_test_lit("a"), cf_test_target()]
+    assert(cf_expr_reads(cf_test_call(args), CF_TEST_ID), "`s` buried in an argument is a read")
+}
+
+@test test_cf_expr_reads_through_binary_operands :: fn() -> void {
+    e :: LoweredBinary {
+        .span = empty_span(), .type = TY_STRING, .op = .Add,
+        .left = fold_test_lit("a"), .right = cf_test_target(),
+    }
+    assert(cf_expr_reads(e, CF_TEST_ID), "`s` on either side of a binary is a read")
+}
+
+// A block reaches the walker as an expression ; its trailing value is the part
+// a naive walk forgets.
+@test test_cf_expr_reads_a_block_trailing :: fn() -> void {
+    empty: LoweredStmt[]! = []
+    assert(
+        cf_expr_reads(cf_test_block(empty, cf_test_target()), CF_TEST_ID),
+        "`s` as a block's trailing value is a read",
+    )
+}
+
+@test test_cf_expr_reads_inside_a_loop_body :: fn() -> void {
+    inner: LoweredStmt[]! = [LoweredExprStmt { .span = empty_span(), .expr = cf_test_target() }]
+    outer: LoweredStmt[]! = [LoweredLoop {
+        .span = empty_span(), .cond = null, .body = cf_test_block(inner, null), .label = "",
+    }]
+    body :: cf_test_block(outer, null)
+    assert(cf_expr_reads(body, CF_TEST_ID), "`s` inside a loop body is a read")
+}
+
+@test test_cf_expr_reads_a_nested_block_without_the_target :: fn() -> void {
+    inner: LoweredStmt[]! = [LoweredExprStmt { .span = empty_span(), .expr = cf_test_other() }]
+    assert(
+        !cf_expr_reads(cf_test_block(inner, fold_test_lit("z")), CF_TEST_ID),
+        "a block mentioning neither `s` nor anything holding it reads nothing",
+    )
+}

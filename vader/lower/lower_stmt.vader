@@ -43,6 +43,13 @@ export lower_block :: fn(
             for s in stmt_out { stmts.push(s) }
         } else {
             lower_stmt_into(ctx, stmt, stmts)
+            // `s = s + a ; s = s + b` builds the string twice — one buffer and
+            // one intern per step. Fuse the pair into a single `concat_N` now,
+            // while the two statements are still adjacent and nothing can have
+            // read `s` between them. See `concat_fusion.vader`. Skipped under
+            // async, where `drain_pending_from` splices awaits between the
+            // statements this would be merging across.
+            fuse_concat_tail(ctx, stmts)
         }
     }
     trailing_base :: if ctx.in_async { ctx.pending_awaits.len() } else { usize(0) }

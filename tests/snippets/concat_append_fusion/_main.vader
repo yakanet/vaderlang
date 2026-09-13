@@ -1,0 +1,103 @@
+/// Consecutive `s = s + …` appends fuse into one `concat_N`.
+///
+/// `lower_block` calls `fuse_concat_tail` after each statement, so a run of k
+/// appends to the same local collapses left to right — and the merged operand
+/// list then goes through the adjacent-literal fold, so three literal appends
+/// land on `concat_2(s, "…")`, not `concat_4`. Read `lower.snapshot`: `fused`
+/// must carry ONE assign, and each guard case must keep its separate ones.
+
+module "snippet"
+
+import "std/io"
+
+// The shape the whole thing exists for: three appends, one concat, and the
+// three literals merged into one operand.
+fused :: fn(seed: string) -> string {
+    s := seed
+    s = s + "bcd"
+    s = s + "efgh"
+    s = s + "ijklm"
+    return s
+}
+
+// The second append READS `s`, so it would see the intermediate value the fuse
+// deletes. Must stay two statements.
+reads_itself :: fn(seed: string) -> string {
+    s := seed
+    s = s + "-"
+    s = s + s
+    return s
+}
+
+// A statement in between: the appends are no longer adjacent, and `t` observes
+// the intermediate. Must stay separate.
+observed_between :: fn(seed: string) -> string {
+    s := seed
+    s = s + "x"
+    t :: s
+    s = s + t
+    return s
+}
+
+// Two different locals interleaved — neither pair is adjacent.
+interleaved :: fn(a0: string, b0: string) -> string {
+    a := a0
+    b := b0
+    a = a + "1"
+    b = b + "2"
+    a = a + "3"
+    return a + b
+}
+
+// A non-literal operand fuses just as well; only the literals merge.
+mixed_operands :: fn(seed: string, x: string) -> string {
+    s := seed
+    s = s + "<"
+    s = s + x
+    s = s + ">"
+    return s
+}
+
+// Skipped under async: `drain_pending_from` splices hoisted awaits between the
+// statements a fuse would merge across, so the pass declines. The appends stay
+// separate — and stay correct.
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+tick :: fn(v: string) -> Async<string> = Ready<string> { .v = v }
+
+appends_in_async :: fn(seed: string) -> Async<string> {
+    s := seed
+    s = s + "p"
+    s = s + "q"
+    t :: await tick("!")
+    return s + t
+}
+
+// A local a closure captures is rewritten to a CELL, so its writes arrive as
+// `LoweredCellSet`, never the `LoweredAssign` the pass matches — which is what
+// keeps a closure from observing an intermediate the fuse deleted. `dump.vader`
+// renders no cell-set, so `lower.snapshot` shows none of this: what pins the
+// case is the OUTPUT. A wrong fuse makes `peek()` see "kmn", printing
+// `kmn/kmn` instead of `kmn/km`.
+captured_local :: fn(seed: string) -> string {
+    s := seed
+    peek :: fn() -> string { return s }
+    s = s + "m"
+    mid :: peek()
+    s = s + "n"
+    return "${s}/${mid}"
+}
+
+main :: fn() -> i32 {
+    println(fused("a"))
+    println(reads_itself("q"))
+    println(observed_between("w"))
+    println(interleaved("A", "B"))
+    println(mixed_operands("[", "M"))
+    println(await appends_in_async("z"))
+    println(captured_local("k"))
+    return 0
+}
