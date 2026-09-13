@@ -41,6 +41,7 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
+static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -100,12 +101,11 @@ static int32_t snippet_main(void) {
     int32_t l1;
     size_t l3;
     int64_t l4;
-    vader_string_t l5 = 0;
     int32_t t0, t1;
     vader_string_t t2 = 0;
     void** gc_raw_roots[2] = { &l0, &l2 };
-    vader_string_t* gc_atom_roots[2] = { &l5, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
+    vader_string_t* gc_atom_roots[1] = { &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 26 "tests/snippets/c_struct_layout/_main.vader"
     vader_struct_snippet_Div_t* _a0_obj = (vader_struct_snippet_Div_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Div_t));
@@ -133,9 +133,7 @@ static int32_t snippet_main(void) {
     l4 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l2, l3, l4);
     t2 = std_core_finish_buffer(l2, l3);
-#line 235 "lib/std/io/io.vader"
-    l5 = concat_2(t2, 4u);
-    std_io_write(INT32_C(0), l5);
+    std_io_println__string(t2);
 #line 29 "tests/snippets/c_struct_layout/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
@@ -343,6 +341,18 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_io_println__string(vader_string_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 235 "lib/std/io/io.vader"
+    l1 = concat_2(l0, 4u);
+    std_io_write(INT32_C(0), l1);
+    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

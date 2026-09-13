@@ -21,38 +21,22 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
                   call :string
                     callee:
                       concat_2 :string
                     arg0:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          "ten alice=" :string
-                        arg1:
-                          name :string
+                      "ten alice=" :string
                     arg1:
-                      "\n" :string
+                      name :string
           else:
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "other" :string
-                    arg1:
-                      "\n" :string
+                  "other" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

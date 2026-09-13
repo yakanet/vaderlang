@@ -18,6 +18,8 @@ fn 0 snippet$run (any,bool,bool) -> i32
   i32.const 3
   array.new 6 3   ; i32[][]
   local.set 3   ; items
+  i32.const 0
+  local.set 4   ; base
   local.get 0   ; arg 0
   type_check 2   ; snippet$Pair
   if $L0 void

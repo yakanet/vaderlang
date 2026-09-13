@@ -103,191 +103,180 @@
         int(20) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(51) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(51) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "free=" :string
-              assign
-                target:
+                arg2:
+                  "free=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        call :i32
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        sum_both :fn(Iterator<i32>, Iterator<i32>) -> i32
+                      arg0:
+                        call :Iterator<i32>
                           callee:
-                            sum_both :fn(Iterator<i32>, Iterator<i32>) -> i32
+                            std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            ArrayIterator<i32>! {
-                              arr: xs :i32[]!
-                              cursor: int(0) :usize
-                            }
-                          arg1:
-                            ArrayIterator<i32>! {
-                              arr: ys :i32[]!
-                              cursor: int(0) :usize
-                            }
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      " ufcs=" :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        call :i32
+                            xs :i32[]!
+                      arg1:
+                        call :Iterator<i32>
                           callee:
-                            sum_both :i32
+                            std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            ArrayIterator<i32>! {
-                              arr: xs :i32[]!
-                              cursor: int(0) :usize
-                            }
-                          arg1:
-                            ArrayIterator<i32>! {
-                              arr: ys :i32[]!
-                              cursor: int(0) :usize
-                            }
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                            ys :i32[]!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " ufcs=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        sum_both :i32
+                      arg0:
+                        call :Iterator<i32>
+                          callee:
+                            std_core$[]$Into$into__i32 :Iterator<i32>
+                          arg0:
+                            xs :i32[]!
+                      arg1:
+                        call :Iterator<i32>
+                          callee:
+                            std_core$[]$Into$into__i32 :Iterator<i32>
+                          arg0:
+                            ys :i32[]!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let t: Tally! =
       Tally! {
         base: int(100) :i32
       }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_2: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(36) :usize
-              let __off_3: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(36) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      "member=" :string
-              assign
-                target:
+                arg2:
+                  "member=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      cast → i64
-                        call :i32
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$Tally$Adder$add_all :i32
+                      arg0:
+                        t :Tally!
+                      arg1:
+                        call :Iterator<i32>
                           callee:
-                            snippet$Tally$Adder$add_all :i32
+                            std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            t :Tally!
-                          arg1:
-                            ArrayIterator<i32>! {
-                              arr: xs :i32[]!
-                              cursor: int(0) :usize
-                            }
-              assign
-                target:
+                            xs :i32[]!
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      " want=106" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_2 :Buffer
-                  arg1:
-                    __off_3 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  " want=106" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

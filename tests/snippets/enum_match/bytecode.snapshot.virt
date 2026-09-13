@@ -12,12 +12,12 @@ type 9 primitive isize
 string 0 "red"
 string 1 "green"
 string 2 "blue"
-string 3 "\n"
-string 4 "info"
-string 5 "warning"
-string 6 "error"
-string 7 "true"
-string 8 "false"
+string 3 "info"
+string 4 "warning"
+string 5 "error"
+string 6 "true"
+string 7 "false"
+string 8 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -80,127 +80,91 @@ end
 
 fn 3 snippet$main () -> i32
   local c i32
-  local $call_5 string
   local __buf_0 ref
   local __off_1 usize
-  local $call_24 bool
+  local $call_14 bool
   i32.const 1
   local.tee 0   ; c
   call 1   ; snippet$label
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i32.const 0
   call 1   ; snippet$label
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i32.const 2
   call 1   ; snippet$label
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i64.const 5
   call 5   ; std_core$new_byte_buffer
-  local.set 2   ; __buf_0
+  local.set 1   ; __buf_0
   i64.const 0
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   i32.const 0
   i32.const 0
   call 2   ; snippet$same_color
-  local.set 4   ; $call_24
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
-  local.get 4   ; $call_24
+  local.set 3   ; $call_14
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $call_14
   call 8   ; std_core$write_bool
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i64.const 5
   call 5   ; std_core$new_byte_buffer
-  local.set 2   ; __buf_0
+  local.set 1   ; __buf_0
   i64.const 0
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   i32.const 0
   i32.const 2
   call 2   ; snippet$same_color
-  local.set 4   ; $call_24
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
-  local.get 4   ; $call_24
+  local.set 3   ; $call_14
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $call_14
   call 8   ; std_core$write_bool
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i64.const 5
   call 5   ; std_core$new_byte_buffer
-  local.set 2   ; __buf_0
+  local.set 1   ; __buf_0
   i64.const 0
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   local.get 0   ; c
   i32.const 0
   i32.ne
-  local.set 4   ; $call_24
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
-  local.get 4   ; $call_24
+  local.set 3   ; $call_14
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $call_14
   call 8   ; std_core$write_bool
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i64.const 5
   call 5   ; std_core$new_byte_buffer
-  local.set 2   ; __buf_0
+  local.set 1   ; __buf_0
   i64.const 0
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   local.get 0   ; c
   i32.const 1
   i32.ne
-  local.set 4   ; $call_24
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
-  local.get 4   ; $call_24
+  local.set 3   ; $call_14
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $call_14
   call 8   ; std_core$write_bool
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 3   ; "\n"
-  call 4   ; concat_2
-  local.set 1   ; $call_5
-  i32.const 0
-  local.get 1   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   i32.const 5
   i32.neg
   call 0   ; snippet$classify
@@ -208,37 +172,22 @@ fn 3 snippet$main () -> i32
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 4   ; "info"
-    string.const 3   ; "\n"
-    call 4   ; concat_2
-    local.set 1   ; $call_5
-    i32.const 0
-    local.get 1   ; $call_5
-    call 9   ; std_io$write
+    string.const 3   ; "info"
+    call 11   ; std_io$println__string
   else
     local.get 0   ; c
     i32.const 1
     i32.eq
     if $L1 void
-      string.const 5   ; "warning"
-      string.const 3   ; "\n"
-      call 4   ; concat_2
-      local.set 1   ; $call_5
-      i32.const 0
-      local.get 1   ; $call_5
-      call 9   ; std_io$write
+      string.const 4   ; "warning"
+      call 11   ; std_io$println__string
     else
       local.get 0   ; c
       i32.const 2
       i32.eq
       if $L2 void
-        string.const 6   ; "error"
-        string.const 3   ; "\n"
-        call 4   ; concat_2
-        local.set 1   ; $call_5
-        i32.const 0
-        local.get 1   ; $call_5
-        call 9   ; std_io$write
+        string.const 5   ; "error"
+        call 11   ; std_io$println__string
       else
         return
       end $L2
@@ -250,37 +199,22 @@ fn 3 snippet$main () -> i32
   i32.const 0
   i32.eq
   if $L3 void
-    string.const 4   ; "info"
-    string.const 3   ; "\n"
-    call 4   ; concat_2
-    local.set 1   ; $call_5
-    i32.const 0
-    local.get 1   ; $call_5
-    call 9   ; std_io$write
+    string.const 3   ; "info"
+    call 11   ; std_io$println__string
   else
     local.get 0   ; c
     i32.const 1
     i32.eq
     if $L4 void
-      string.const 5   ; "warning"
-      string.const 3   ; "\n"
-      call 4   ; concat_2
-      local.set 1   ; $call_5
-      i32.const 0
-      local.get 1   ; $call_5
-      call 9   ; std_io$write
+      string.const 4   ; "warning"
+      call 11   ; std_io$println__string
     else
       local.get 0   ; c
       i32.const 2
       i32.eq
       if $L5 void
-        string.const 6   ; "error"
-        string.const 3   ; "\n"
-        call 4   ; concat_2
-        local.set 1   ; $call_5
-        i32.const 0
-        local.get 1   ; $call_5
-        call 9   ; std_io$write
+        string.const 5   ; "error"
+        call 11   ; std_io$println__string
       else
         return
       end $L5
@@ -292,37 +226,22 @@ fn 3 snippet$main () -> i32
   i32.const 0
   i32.eq
   if $L6 void
-    string.const 4   ; "info"
-    string.const 3   ; "\n"
-    call 4   ; concat_2
-    local.set 1   ; $call_5
-    i32.const 0
-    local.get 1   ; $call_5
-    call 9   ; std_io$write
+    string.const 3   ; "info"
+    call 11   ; std_io$println__string
   else
     local.get 0   ; c
     i32.const 1
     i32.eq
     if $L7 void
-      string.const 5   ; "warning"
-      string.const 3   ; "\n"
-      call 4   ; concat_2
-      local.set 1   ; $call_5
-      i32.const 0
-      local.get 1   ; $call_5
-      call 9   ; std_io$write
+      string.const 4   ; "warning"
+      call 11   ; std_io$println__string
     else
       local.get 0   ; c
       i32.const 2
       i32.eq
       if $L8 void
-        string.const 6   ; "error"
-        string.const 3   ; "\n"
-        call 4   ; concat_2
-        local.set 1   ; $call_5
-        i32.const 0
-        local.get 1   ; $call_5
-        call 9   ; std_io$write
+        string.const 5   ; "error"
+        call 11   ; std_io$println__string
       else
         return
       end $L8
@@ -349,11 +268,11 @@ fn 4 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 6   ; std_core$finish_buffer
@@ -362,14 +281,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 11   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 12   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -378,7 +297,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -393,13 +312,13 @@ fn 8 std_core$write_bool (ref,usize,bool) -> usize
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 7   ; "true"
+    string.const 6   ; "true"
     call 7   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 8   ; "false"
+  string.const 7   ; "false"
   call 7   ; std_core$write_string_at
   return
 end
@@ -482,20 +401,32 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 11 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 8   ; "\n"
+  call 4   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 9   ; std_io$write
+  return
+end
+
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

@@ -15,21 +15,21 @@
     ~>
       add :i32
         l:
-          add :i32
-            l:
-              .v :i32
-                self :N
-            r:
-              .v :i32
-                other :N
+          call :i32
+            callee:
+              default_type_param$N$Adder$add_to :i32
+            arg0:
+              self :N
+            arg1:
+              other :N
         r:
-          add :i32
-            l:
-              .v :i32
-                self :N
-            r:
-              .v :i32
-                other :N
+          call :i32
+            callee:
+              default_type_param$N$Adder$add_to :i32
+            arg0:
+              self :N
+            arg1:
+              other :N
   struct default_type_param$Tick { c: i32 }
   fn default_type_param$Tick$Counter$current(self: Tick!) -> i32
     ~>
@@ -39,11 +39,17 @@
     ~>
       add :i32
         l:
-          .c :i32
-            self :Tick
+          call :i32
+            callee:
+              default_type_param$Tick$Counter$current :i32
+            arg0:
+              self :Tick
         r:
-          .c :i32
-            self :Tick
+          call :i32
+            callee:
+              default_type_param$Tick$Counter$current :i32
+            arg0:
+              self :Tick
   fn default_type_param$main() -> i32
     let a: N! =
       N! {
@@ -55,114 +61,86 @@
       }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        add :i32
-                          l:
-                            add :i32
-                              l:
-                                .v :i32
-                                  a :N!
-                              r:
-                                .v :i32
-                                  b :N!
-                          r:
-                            add :i32
-                              l:
-                                .v :i32
-                                  a :N!
-                              r:
-                                .v :i32
-                                  b :N!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        default_type_param$N$Adder$twice :i32
+                      arg0:
+                        a :N!
+                      arg1:
+                        b :N!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let t: Tick! =
       Tick! {
         c: int(7) :i32
       }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_2: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_3: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      cast → i64
-                        add :i32
-                          l:
-                            .c :i32
-                              t :Tick!
-                          r:
-                            .c :i32
-                              t :Tick!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_2 :Buffer
-                  arg1:
-                    __off_3 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        default_type_param$Tick$Counter$bumped :i32
+                      arg0:
+                        t :Tick!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

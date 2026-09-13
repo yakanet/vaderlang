@@ -164,201 +164,39 @@
     let d: Direction = int(0) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            snippet$Direction$Display$to_string :string
           arg0:
-            block :string
-              ~>
-                if :string
-                  cond:
-                    eq :bool
-                      l:
-                        d :Direction
-                      r:
-                        int(0) :i32
-                  then:
-                    ~>
-                      "N" :string
-                  else:
-                    ~>
-                      if :string
-                        cond:
-                          eq :bool
-                            l:
-                              d :Direction
-                            r:
-                              int(1) :i32
-                        then:
-                          ~>
-                            "E" :string
-                        else:
-                          ~>
-                            if :string
-                              cond:
-                                eq :bool
-                                  l:
-                                    d :Direction
-                                  r:
-                                    int(2) :i32
-                              then:
-                                ~>
-                                  "S" :string
-                              else:
-                                ~>
-                                  if :string
-                                    cond:
-                                      eq :bool
-                                        l:
-                                          d :Direction
-                                        r:
-                                          int(3) :i32
-                                    then:
-                                      ~>
-                                        "W" :string
-                                    else:
-                                      ~>
-                                        unreachable("non-exhaustive match (T3013 should have caught this)") :string
-          arg1:
-            "\n" :string
+            d :Direction
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            snippet$Direction$Display$to_string :string
           arg0:
-            call :string
+            call :Direction
               callee:
-                snippet$Direction$Display$to_string :string
+                snippet$Direction$Turnable$turn_left :Direction
               arg0:
-                block :Direction
-                  ~>
-                    if :Direction
-                      cond:
-                        eq :bool
-                          l:
-                            d :Direction
-                          r:
-                            int(0) :i32
-                      then:
-                        ~>
-                          int(3) :i32
-                      else:
-                        ~>
-                          if :Direction
-                            cond:
-                              eq :bool
-                                l:
-                                  d :Direction
-                                r:
-                                  int(3) :i32
-                            then:
-                              ~>
-                                int(2) :i32
-                            else:
-                              ~>
-                                if :Direction
-                                  cond:
-                                    eq :bool
-                                      l:
-                                        d :Direction
-                                      r:
-                                        int(2) :i32
-                                  then:
-                                    ~>
-                                      int(1) :i32
-                                  else:
-                                    ~>
-                                      if :Direction
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              d :Direction
-                                            r:
-                                              int(1) :i32
-                                        then:
-                                          ~>
-                                            int(0) :i32
-                                        else:
-                                          ~>
-                                            unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
-          arg1:
-            "\n" :string
+                d :Direction
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            snippet$Direction$Display$to_string :string
           arg0:
-            call :string
+            call :Direction
               callee:
-                snippet$Direction$Display$to_string :string
+                snippet$Direction$Turnable$turn_right :Direction
               arg0:
-                block :Direction
-                  ~>
-                    if :Direction
-                      cond:
-                        eq :bool
-                          l:
-                            d :Direction
-                          r:
-                            int(0) :i32
-                      then:
-                        ~>
-                          int(1) :i32
-                      else:
-                        ~>
-                          if :Direction
-                            cond:
-                              eq :bool
-                                l:
-                                  d :Direction
-                                r:
-                                  int(1) :i32
-                            then:
-                              ~>
-                                int(2) :i32
-                            else:
-                              ~>
-                                if :Direction
-                                  cond:
-                                    eq :bool
-                                      l:
-                                        d :Direction
-                                      r:
-                                        int(2) :i32
-                                  then:
-                                    ~>
-                                      int(3) :i32
-                                  else:
-                                    ~>
-                                      if :Direction
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              d :Direction
-                                            r:
-                                              int(3) :i32
-                                        then:
-                                          ~>
-                                            int(0) :i32
-                                        else:
-                                          ~>
-                                            unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
-          arg1:
-            "\n" :string
+                d :Direction
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

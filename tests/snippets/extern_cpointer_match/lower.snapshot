@@ -34,24 +34,16 @@
             wrote :IOError | null
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
             call :string
               callee:
                 concat_2 :string
               arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "setup failed: " :string
-                  arg1:
-                    .msg :string
-                      e :IOError
+                "setup failed: " :string
               arg1:
-                "\n" :string
+                .msg :string
+                  e :IOError
         return int(1) :i32
     let r: CPointer | null =
       call :CPointer | null
@@ -75,17 +67,9 @@
               block :i32
                 call :void
                   callee:
-                    write :fn(Stream, string) -> void
+                    std_io$println__string :void
                   arg0:
-                    int(0) :i32
-                  arg1:
-                    call :string
-                      callee:
-                        concat_2 :string
-                      arg0:
-                        "matched CPointer" :string
-                      arg1:
-                        "\n" :string
+                    "matched CPointer" :string
                 ~>
                   call :i32
                     callee:
@@ -102,33 +86,17 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "matched null" :string
-                          arg1:
-                            "\n" :string
+                        "matched null" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "after match" :string
-          arg1:
-            "\n" :string
+        "after match" :string
     let missing: CPointer | null =
       call :CPointer | null
         callee:
@@ -159,17 +127,9 @@
               block :i32
                 call :void
                   callee:
-                    write :fn(Stream, string) -> void
+                    std_io$println__string :void
                   arg0:
-                    int(0) :i32
-                  arg1:
-                    call :string
-                      callee:
-                        concat_2 :string
-                      arg0:
-                        "unexpectedly opened" :string
-                      arg1:
-                        "\n" :string
+                    "unexpectedly opened" :string
                 ~>
                   call :i32
                     callee:
@@ -186,17 +146,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "matched null" :string
-                          arg1:
-                            "\n" :string
+                        "matched null" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void

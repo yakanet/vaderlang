@@ -4,17 +4,9 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "hello" :string
-          arg1:
-            "\n" :string
+        "hello" :string
     call :void
       callee:
         std_io$println__i32 :void

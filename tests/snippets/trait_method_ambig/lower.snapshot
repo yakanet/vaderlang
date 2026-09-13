@@ -30,12 +30,9 @@
     let s: string =
       call :string
         callee:
-          concat_2 :string
+          snippet$Cat$Greet$greet :string
         arg0:
-          "G:" :string
-        arg1:
-          .name :string
-            c :Cat!
+          c :Cat!
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

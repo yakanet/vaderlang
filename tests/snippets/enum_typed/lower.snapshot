@@ -57,38 +57,22 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe :fn(Direction) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(Direction) -> string
-              arg0:
-                int(1) :u8
-          arg1:
-            "\n" :string
+            int(1) :u8
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe :fn(Direction) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(Direction) -> string
-              arg0:
-                int(8) :u8
-          arg1:
-            "\n" :string
+            int(8) :u8
     let op: Op = int(101) :u16
     block :void
       ~>
@@ -103,17 +87,9 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "halt" :string
-                    arg1:
-                      "\n" :string
+                  "halt" :string
           else:
             ~>
               if :void
@@ -127,17 +103,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "push" :string
-                          arg1:
-                            "\n" :string
+                        "push" :string
                 else:
                   ~>
                     if :void
@@ -151,17 +119,9 @@
                         ~>
                           call :void
                             callee:
-                              write :fn(Stream, string) -> void
+                              std_io$println__string :void
                             arg0:
-                              int(0) :i32
-                            arg1:
-                              call :string
-                                callee:
-                                  concat_2 :string
-                                arg0:
-                                  "pop" :string
-                                arg1:
-                                  "\n" :string
+                              "pop" :string
                       else:
                         ~>
                           if :void
@@ -175,17 +135,9 @@
                               ~>
                                 call :void
                                   callee:
-                                    write :fn(Stream, string) -> void
+                                    std_io$println__string :void
                                   arg0:
-                                    int(0) :i32
-                                  arg1:
-                                    call :string
-                                      callee:
-                                        concat_2 :string
-                                      arg0:
-                                        "add" :string
-                                      arg1:
-                                        "\n" :string
+                                    "add" :string
                             else:
                               ~>
                                 unreachable("non-exhaustive match (T3013 should have caught this)") :void

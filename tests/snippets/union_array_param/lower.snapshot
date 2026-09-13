@@ -25,116 +25,108 @@
         int(4) :u8
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(62) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(62) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        call :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        byte_count :fn(string | u8[]) -> usize
+                      arg0:
+                        "hi" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        byte_count :fn(string | u8[]) -> usize
+                      arg0:
+                        call :u8[]
                           callee:
-                            byte_count :fn(string | u8[]) -> usize
+                            bytes :u8[]
                           arg0:
                             "hi" :string
-              assign
-                target:
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      " " :string
-              assign
-                target:
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        call :usize
-                          callee:
-                            byte_count :fn(string | u8[]) -> usize
-                          arg0:
-                            call :u8[]
-                              callee:
-                                bytes :u8[]
-                              arg0:
-                                "hi" :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      " " :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        call :usize
-                          callee:
-                            byte_count :fn(string | u8[]) -> usize
-                          arg0:
-                            a :u8[]
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        byte_count :fn(string | u8[]) -> usize
+                      arg0:
+                        a :u8[]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

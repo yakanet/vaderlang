@@ -28,30 +28,22 @@
       }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            snippet$Wrap$Display$to_string__Any :string
           arg0:
-            "wrapped" :string
-          arg1:
-            "\n" :string
+            a :Wrap<Cat>!
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            snippet$Wrap$Display$to_string__Any :string
           arg0:
-            "wrapped" :string
-          arg1:
-            "\n" :string
+            b :Wrap<Dog>!
     return int(0) :i32
   struct snippet$Wrap__Cat { value: Any }
   fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>!) -> string

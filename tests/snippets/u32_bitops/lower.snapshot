@@ -10,32 +10,16 @@
           ~>
             call :void
               callee:
-                write :fn(Stream, string) -> void
+                std_io$println__string :void
               arg0:
-                int(0) :i32
-              arg1:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    name :string
-                  arg1:
-                    "\n" :string
+                name :string
         else:
           ~>
             call :void
               callee:
-                write :fn(Stream, string) -> void
+                std_io$println__string :void
               arg0:
-                int(0) :i32
-              arg1:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "BAD" :string
-                  arg1:
-                    "\n" :string
+                "BAD" :string
   fn snippet$main() -> i32
     let a: u32 = int(4294967295) :u32
     let b: u32 = int(2147483648) :u32

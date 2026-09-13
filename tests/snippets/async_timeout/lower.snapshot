@@ -29,17 +29,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "work cleanup" :string
-            arg1:
-              "\n" :string
+          "work cleanup" :string
   struct __asyncstate_snippet_2 { s0: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> string | Suspended!
     loop
@@ -342,26 +334,18 @@
                           __self_1 :__asyncstate_snippet_3!
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          call :string
-                            callee:
-                              concat_2 :string
-                            arg0:
-                              "timed out: " :string
-                            arg1:
-                              vcall Error.message :string
-                                recv:
-                                  .s2 :Error
-                                    __self_1 :__asyncstate_snippet_3!
+                          "timed out: " :string
                         arg1:
-                          "\n" :string
+                          vcall Error.message :string
+                            recv:
+                              .s2 :Error
+                                __self_1 :__asyncstate_snippet_3!
                   assign
                     target:
                       .state :i32
@@ -380,25 +364,17 @@
                     then:
                       call :void
                         callee:
-                          write :fn(Stream, string) -> void
+                          std_io$println__string :void
                         arg0:
-                          int(0) :i32
-                        arg1:
                           call :string
                             callee:
                               concat_2 :string
                             arg0:
-                              call :string
-                                callee:
-                                  concat_2 :string
-                                arg0:
-                                  "got: " :string
-                                arg1:
-                                  cast → string
-                                    .s1 :string | TimeoutError
-                                      __self_1 :__asyncstate_snippet_3!
+                              "got: " :string
                             arg1:
-                              "\n" :string
+                              cast → string
+                                .s1 :string | TimeoutError
+                                  __self_1 :__asyncstate_snippet_3!
                       assign
                         target:
                           .state :i32
@@ -510,19 +486,15 @@
                                             __self_1 :__asyncstate_snippet_3!
                                         value:
                                           cast → Async<Any>
-                                            Timeout<string>! {
-                                              child:
+                                            call :Async<string | TimeoutError>
+                                              callee:
+                                                std_async$timeout__string :Async<string | TimeoutError>
+                                              arg0:
+                                                int(10) :i64
+                                              arg1:
                                                 call :Async<string>
                                                   callee:
                                                     work :fn() -> Async<string>
-                                              timer:
-                                                call :Async<null>
-                                                  callee:
-                                                    sleep :fn(i64) -> Async<null>
-                                                  arg0:
-                                                    int(10) :i64
-                                              ms: int(10) :i64
-                                            }
                                       assign
                                         target:
                                           .state :i32

@@ -42,22 +42,26 @@
         callee:
           snippet$count__i32 :i32
         arg0:
-          ArrayIterator<i32>! {
-            arr:
+          call :Iterator<T>
+            callee:
+              std_core$[]$Into$into__i32 :Iterator<T>
+            arg0:
               array :i32[]!
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
-            cursor: int(0) :usize
-          }
     let c: i32 =
-      vcall Greeter.greet :i32
-        recv:
+      call :i32
+        callee:
+          snippet$invoke__i32 :i32
+        arg0:
           Hello! {
           }
     let d: i32 =
-      vcall Doubler.doubled :i32
-        recv:
+      call :i32
+        callee:
+          snippet$twice__i32 :i32
+        arg0:
           int(7) :Doubler<i32>
     return
       add :i32

@@ -39,312 +39,256 @@
           specs :FlagSpec[]
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(27) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(27) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "errors=" :string
-              assign
-                target:
+                arg2:
+                  "errors=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_2: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(32) :usize
-              let __off_3: usize = int(0) :usize
-              assign
-                target:
-                  __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      "positionals=" :string
-              assign
-                target:
-                  __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_2 :Buffer
-                  arg1:
-                    __off_3 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
             call :string
               callee:
-                concat_2 :string
+                finish_buffer :string
               arg0:
-                "first=" :string
+                __buf_0 :Buffer
               arg1:
-                index :string
-                  on:
-                    .positionals :string[]
+                __off_1 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(32) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "positionals=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "first=" :string
+          arg1:
+            index :string
+              on:
+                .positionals :string[]
+                  r :ParsedArgs
+              ix:
+                int(0) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(13) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "verbose=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      bool_flag :bool
+                    arg0:
                       r :ParsedArgs
-                  ix:
-                    int(0) :i32
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_4: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(13) :usize
-              let __off_5: usize = int(0) :usize
-              assign
-                target:
-                  __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_4 :Buffer
                     arg1:
-                      __off_5 :usize
-                    arg2:
-                      "verbose=" :string
-              assign
-                target:
-                  __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_4 :Buffer
-                    arg1:
-                      __off_5 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          bool_flag :bool
-                        arg0:
-                          r :ParsedArgs
-                        arg1:
-                          "verbose" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_6: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(13) :usize
-              let __off_7: usize = int(0) :usize
-              assign
-                target:
-                  __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      "missing=" :string
-              assign
-                target:
-                  __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          bool_flag :bool
-                        arg0:
-                          r :ParsedArgs
-                        arg1:
-                          "missing" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_6 :Buffer
-                  arg1:
-                    __off_7 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
+                      "verbose" :string
+          ~>
             call :string
               callee:
-                concat_2 :string
+                finish_buffer :string
               arg0:
-                "out=" :string
+                __buf_4 :Buffer
               arg1:
-                call :string
-                  callee:
-                    string_flag :string
-                  arg0:
-                    r :ParsedArgs
-                  arg1:
-                    "out" :string
-                  arg2:
-                    "" :string
-          arg1:
-            "\n" :string
+                __off_5 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(13) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "missing=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      bool_flag :bool
+                    arg0:
+                      r :ParsedArgs
+                    arg1:
+                      "missing" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
         call :string
           callee:
             concat_2 :string
           arg0:
+            "out=" :string
+          arg1:
             call :string
               callee:
-                concat_2 :string
+                string_flag :string
               arg0:
-                "default=" :string
+                r :ParsedArgs
               arg1:
-                call :string
-                  callee:
-                    string_flag :string
-                  arg0:
-                    r :ParsedArgs
-                  arg1:
-                    "absent" :string
-                  arg2:
-                    "fallback" :string
+                "out" :string
+              arg2:
+                "" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "default=" :string
           arg1:
-            "\n" :string
+            call :string
+              callee:
+                string_flag :string
+              arg0:
+                r :ParsedArgs
+              arg1:
+                "absent" :string
+              arg2:
+                "fallback" :string
     let after: ParsedArgs =
       call :ParsedArgs
         callee:
@@ -357,119 +301,103 @@
           specs :FlagSpec[]
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_8: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(19) :usize
-              let __off_9: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(19) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
                   __off_9 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_8 :Buffer
-                    arg1:
-                      __off_9 :usize
-                    arg2:
-                      "after_verbose=" :string
-              assign
-                target:
+                arg2:
+                  "after_verbose=" :string
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
                   __off_9 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :bool
                     callee:
-                      write_bool :usize
+                      bool_flag :bool
                     arg0:
-                      __buf_8 :Buffer
+                      after :ParsedArgs
                     arg1:
-                      __off_9 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          bool_flag :bool
-                        arg0:
-                          after :ParsedArgs
-                        arg1:
-                          "verbose" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_8 :Buffer
-                  arg1:
-                    __off_9 :usize
-          arg1:
-            "\n" :string
+                      "verbose" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_10: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(38) :usize
-              let __off_11: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(38) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
                   __off_11 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_10 :Buffer
-                    arg1:
-                      __off_11 :usize
-                    arg2:
-                      "after_positionals=" :string
-              assign
-                target:
+                arg2:
+                  "after_positionals=" :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
                   __off_11 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_10 :Buffer
-                    arg1:
-                      __off_11 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_10 :Buffer
-                  arg1:
-                    __off_11 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
     let short: ParsedArgs =
       call :ParsedArgs
         callee:
@@ -483,91 +411,75 @@
           specs :FlagSpec[]
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_12: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(19) :usize
-              let __off_13: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(19) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
                   __off_13 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_12 :Buffer
-                    arg1:
-                      __off_13 :usize
-                    arg2:
-                      "short_verbose=" :string
-              assign
-                target:
+                arg2:
+                  "short_verbose=" :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
                   __off_13 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :bool
                     callee:
-                      write_bool :usize
+                      bool_flag :bool
                     arg0:
-                      __buf_12 :Buffer
+                      short :ParsedArgs
                     arg1:
-                      __off_13 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          bool_flag :bool
-                        arg0:
-                          short :ParsedArgs
-                        arg1:
-                          "verbose" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_12 :Buffer
-                  arg1:
-                    __off_13 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
+                      "verbose" :string
+          ~>
             call :string
               callee:
-                concat_2 :string
+                finish_buffer :string
               arg0:
-                "short_out=" :string
+                __buf_12 :Buffer
               arg1:
-                call :string
-                  callee:
-                    string_flag :string
-                  arg0:
-                    short :ParsedArgs
-                  arg1:
-                    "out" :string
-                  arg2:
-                    "" :string
+                __off_13 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "short_out=" :string
           arg1:
-            "\n" :string
+            call :string
+              callee:
+                string_flag :string
+              arg0:
+                short :ParsedArgs
+              arg1:
+                "out" :string
+              arg2:
+                "" :string
     let unknown: ParsedArgs =
       call :ParsedArgs
         callee:
@@ -579,59 +491,51 @@
           specs :FlagSpec[]
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_14: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(35) :usize
-              let __off_15: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_14: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(35) :usize
+          let __off_15: usize = int(0) :usize
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
                   __off_15 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_14 :Buffer
-                    arg1:
-                      __off_15 :usize
-                    arg2:
-                      "unknown_errors=" :string
-              assign
-                target:
+                arg2:
+                  "unknown_errors=" :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
                   __off_15 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_14 :Buffer
-                    arg1:
-                      __off_15 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_14 :Buffer
-                  arg1:
-                    __off_15 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_14 :Buffer
+              arg1:
+                __off_15 :usize
     block :void
       let __for_arr_16: string[] =
         .errors :string[]
@@ -648,23 +552,15 @@
               __for_i_18 :usize
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
             call :string
               callee:
                 concat_2 :string
               arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "err=" :string
-                  arg1:
-                    e :string
+                "err=" :string
               arg1:
-                "\n" :string
+                e :string
         assign
           target:
             __for_i_18 :usize
@@ -686,86 +582,70 @@
           specs :FlagSpec[]
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_19: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(37) :usize
-              let __off_20: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_19: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(37) :usize
+          let __off_20: usize = int(0) :usize
+          assign
+            target:
+              __off_20 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_19 :Buffer
+                arg1:
                   __off_20 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_19 :Buffer
-                    arg1:
-                      __off_20 :usize
-                    arg2:
-                      "forgotten_errors=" :string
-              assign
-                target:
+                arg2:
+                  "forgotten_errors=" :string
+          assign
+            target:
+              __off_20 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_19 :Buffer
+                arg1:
                   __off_20 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_19 :Buffer
-                    arg1:
-                      __off_20 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_19 :Buffer
-                  arg1:
-                    __off_20 :usize
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
             call :string
               callee:
-                concat_2 :string
+                finish_buffer :string
               arg0:
-                "forgotten_out=" :string
+                __buf_19 :Buffer
               arg1:
-                call :string
-                  callee:
-                    string_flag :string
-                  arg0:
-                    forgotten :ParsedArgs
-                  arg1:
-                    "out" :string
-                  arg2:
-                    "<unset>" :string
+                __off_20 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "forgotten_out=" :string
           arg1:
-            "\n" :string
+            call :string
+              callee:
+                string_flag :string
+              arg0:
+                forgotten :ParsedArgs
+              arg1:
+                "out" :string
+              arg2:
+                "<unset>" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

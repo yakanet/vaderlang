@@ -6,33 +6,17 @@
       LoweredMakeClosure
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "hi" :string
-          arg1:
-            "\n" :string
+        "hi" :string
     block :void
       defer.push
         LoweredMakeClosure
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "nested" :string
-            arg1:
-              "\n" :string
+          "nested" :string
       defer.pop_exec 1
     block :void
       defer.pop_exec 1
@@ -41,32 +25,16 @@
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "outer cleanup" :string
-          arg1:
-            "\n" :string
+        "outer cleanup" :string
   struct __defer_env_snippet_3 {  }
   fn __defer_snippet_2(__env_1: __defer_env_snippet_3!) -> void
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "inner cleanup" :string
-          arg1:
-            "\n" :string
+        "inner cleanup" :string
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

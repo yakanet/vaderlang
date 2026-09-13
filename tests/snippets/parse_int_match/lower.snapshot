@@ -18,17 +18,9 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "int ok" :string
-                    arg1:
-                      "\n" :string
+                  "int ok" :string
           else:
             ~>
               if :void
@@ -39,17 +31,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "int err" :string
-                          arg1:
-                            "\n" :string
+                        "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -69,17 +53,9 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "int ok" :string
-                    arg1:
-                      "\n" :string
+                  "int ok" :string
           else:
             ~>
               if :void
@@ -90,17 +66,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "int err" :string
-                          arg1:
-                            "\n" :string
+                        "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -120,17 +88,9 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "float ok" :string
-                    arg1:
-                      "\n" :string
+                  "float ok" :string
           else:
             ~>
               if :void
@@ -141,17 +101,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "float err" :string
-                          arg1:
-                            "\n" :string
+                        "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -171,17 +123,9 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      "float ok" :string
-                    arg1:
-                      "\n" :string
+                  "float ok" :string
           else:
             ~>
               if :void
@@ -192,17 +136,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "float err" :string
-                          arg1:
-                            "\n" :string
+                        "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

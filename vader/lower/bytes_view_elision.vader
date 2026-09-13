@@ -35,12 +35,10 @@
 // hoists that view into `Lexer.bytes` once. Bounds semantics are preserved:
 // `byte_at` traps on `i >= byte_len(s)`, matching `s.bytes()[i]`.
 //
-// Runs as a whole-body pass after `inline_fns` (so inlined `.bytes()` patterns are
-// covered) and before `bce_hoist_tag`. Modelled on `devirt_fn_ref.vader`; every
+// Runs as a whole-body pass before `bce_hoist_tag`. Modelled on `devirt_fn_ref.vader`; every
 // helper is `bve_`-prefixed since that sibling shares the `vader/lower` namespace.
 //
-// The callee of a `.bytes()` call is already canonical here (post-`inline_fns`),
-// so a direct `symbol.id == bytes_sym.id` match suffices — no import-binding
+// The callee of a `.bytes()` call is already canonical here, so a direct `symbol.id == bytes_sym.id` match suffices — no import-binding
 // resolution. `byte_at` needs no reachability registration either: the bytecode
 // emitter interns any call target into the import table, and c-emit classifies
 // `std_core$byte_at` → the `.ByteAt` host intrinsic by mangle.

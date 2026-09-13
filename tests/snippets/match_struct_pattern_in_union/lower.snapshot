@@ -119,41 +119,25 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe :fn(null | Point) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(null | Point) -> string
-              arg0:
-                Point! {
-                  x: int(3) :i32
-                  y: int(4) :i32
-                }
-          arg1:
-            "\n" :string
+            Point! {
+              x: int(3) :i32
+              y: int(4) :i32
+            }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe :fn(null | Point) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(null | Point) -> string
-              arg0:
-                null
-          arg1:
-            "\n" :string
+            null
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

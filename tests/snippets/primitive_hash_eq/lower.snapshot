@@ -7,235 +7,209 @@
     let c: i32 = int(7) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(30) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(30) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "hash(a) = " :string
-              assign
-                target:
+                arg2:
+                  "hash(a) = " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :u64
                     callee:
-                      write_unsigned :usize
+                      std_core$i32$Hash$hash :u64
                     arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        a :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                      a :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_2: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(14) :usize
-              let __off_3: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(14) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      "a == b : " :string
-              assign
-                target:
+                arg2:
+                  "a == b : " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :bool
                     callee:
-                      write_bool :usize
+                      std_core$i32$Equals$equals :bool
                     arg0:
-                      __buf_2 :Buffer
+                      a :i32
                     arg1:
-                      __off_3 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          std_core$i32$Equals$equals :bool
-                        arg0:
-                          a :i32
-                        arg1:
-                          b :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_2 :Buffer
-                  arg1:
-                    __off_3 :usize
-          arg1:
-            "\n" :string
+                      b :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_4: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(14) :usize
-              let __off_5: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(14) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
                   __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_4 :Buffer
-                    arg1:
-                      __off_5 :usize
-                    arg2:
-                      "a == c : " :string
-              assign
-                target:
+                arg2:
+                  "a == c : " :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
                   __off_5 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :bool
                     callee:
-                      write_bool :usize
+                      std_core$i32$Equals$equals :bool
                     arg0:
-                      __buf_4 :Buffer
+                      a :i32
                     arg1:
-                      __off_5 :usize
-                    arg2:
-                      call :bool
-                        callee:
-                          std_core$i32$Equals$equals :bool
-                        arg0:
-                          a :i32
-                        arg1:
-                          c :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
-          arg1:
-            "\n" :string
+                      c :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     let n: usize = int(100) :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_6: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(30) :usize
-              let __off_7: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(30) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
                   __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      "hash(n) = " :string
-              assign
-                target:
+                arg2:
+                  "hash(n) = " :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
                   __off_7 :usize
-                value:
-                  call :usize
+                arg2:
+                  call :u64
                     callee:
-                      write_unsigned :usize
+                      std_core$usize$Hash$hash :u64
                     arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      cast → u64
-                        n :usize
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_6 :Buffer
-                  arg1:
-                    __off_7 :usize
-          arg1:
-            "\n" :string
+                      n :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

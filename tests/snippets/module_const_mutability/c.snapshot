@@ -51,7 +51,6 @@ struct vader_struct___Tuple_i32_string_d0b3dcb6_t {
 static const char vader_atom_blob[] =
     "hello" "\0"
     " " "\0"
-    "\n" "\0"
     "origin" "\0"
     "seven" "\0"
     "counts=" "\0"
@@ -85,6 +84,7 @@ static const char vader_atom_blob[] =
     "0." "\0"
     "+" "\0"
     "e" "\0"
+    "\n" "\0"
     "1" "\0"
     "2" "\0"
     "alpha" "\0"
@@ -102,38 +102,38 @@ static const char vader_atom_blob[] =
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[6] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[78] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[85] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[91] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[98] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[107] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[117] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[120] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[131] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[138] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[146] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[153] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[158] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[164] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[166] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[170] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[175] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[179] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[184] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[188] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[190] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[193] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[195] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[31] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[61] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[76] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[83] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[89] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[96] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[105] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[115] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[118] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[129] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[136] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[144] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[151] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[156] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[162] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[164] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[168] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[173] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[177] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[182] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[186] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[188] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[191] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[193] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[196] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[198] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[200] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[202] },
@@ -157,7 +157,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[3]; } vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 4u, 0u, { 0u, 0u, 0u },
-    { { 4u, 0u, { .s = 25u } }, { 4u, 0u, { .s = 37u } }, { 4u, 0u, { .s = 38u } } }
+    { { 4u, 0u, { .s = 24u } }, { 4u, 0u, { .s = 37u } }, { 4u, 0u, { .s = 38u } } }
 };
 static const vader_array_t vader_data_0 = { { 22u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; int32_t slots[3]; } vader_data_1_buf = {
@@ -215,7 +215,7 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_10 = { { 29u, 0u, 0u, 0u, NULL }, 47u, 47u, 0u, (vader_array_buf_t*) &vader_data_10_buf };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[10]; } vader_data_11_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 10u, 10u, 4u, 0u, { 0u, 0u, 0u },
-    { { 4u, 0u, { .s = 25u } }, { 4u, 0u, { .s = 37u } }, { 4u, 0u, { .s = 38u } }, { 4u, 0u, { .s = 42u } }, { 4u, 0u, { .s = 43u } }, { 4u, 0u, { .s = 44u } }, { 4u, 0u, { .s = 45u } }, { 4u, 0u, { .s = 46u } }, { 4u, 0u, { .s = 47u } }, { 4u, 0u, { .s = 48u } } }
+    { { 4u, 0u, { .s = 24u } }, { 4u, 0u, { .s = 37u } }, { 4u, 0u, { .s = 38u } }, { 4u, 0u, { .s = 42u } }, { 4u, 0u, { .s = 43u } }, { 4u, 0u, { .s = 44u } }, { 4u, 0u, { .s = 45u } }, { 4u, 0u, { .s = 46u } }, { 4u, 0u, { .s = 47u } }, { 4u, 0u, { .s = 48u } } }
 };
 static const vader_array_t vader_data_11 = { { 22u, 0u, 0u, 0u, NULL }, 10u, 10u, 0u, (vader_array_buf_t*) &vader_data_11_buf };
 static vader_array_t* vader_global_const_arrays[] = { &vader_data_3, &vader_data_4, &vader_data_5, &vader_data_6 };
@@ -280,6 +280,7 @@ static uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2);
 static int32_t std_core_pow5_factor(uint64_t l0);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
+static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -424,9 +425,7 @@ static int32_t snippet_main(void) {
     l4 = INT32_C(0) == INT32_C(0);
     l1 = std_core_write_bool(l2, l1, l4);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 65 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_0;
 #line 94 "tests/snippets/module_const_mutability/_main.vader"
@@ -446,7 +445,7 @@ static int32_t snippet_main(void) {
 #line 74 "tests/snippets/module_const_mutability/_main.vader"
     vader_struct_snippet_Spec_t* _a3_obj = &_a2_storage;
     vader_obj_header_init(_a3_obj, 5u);
-    _a3_obj->f_name = 4u;
+    _a3_obj->f_name = 3u;
     _a3_obj->f_code = INT32_C(0);
     t1 = (void*) _a3_obj;
 #line 94 "tests/snippets/module_const_mutability/_main.vader"
@@ -476,15 +475,13 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_string_at(l2, l1, 2u);
     l1 = std_core_write_string_at(l2, l1, l6);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 95 "tests/snippets/module_const_mutability/_main.vader"
     l8 = vader_box_i32(3u, INT32_C(7));
     vader_struct___Tuple_i32_string_d0b3dcb6_t* _a6_obj = &_a5_storage;
     vader_obj_header_init(_a6_obj, 27u);
     _a6_obj->f__0 = ((int32_t) l8.payload.i);
-    _a6_obj->f__1 = 5u;
+    _a6_obj->f__1 = 4u;
     t1 = (void*) _a6_obj;
     l0 = ((vader_struct___Tuple_i32_string_d0b3dcb6_t*) t1)->f__1;
     l1 = vader_host_std_core_byte_len(l0);
@@ -494,16 +491,14 @@ static int32_t snippet_main(void) {
     vader_struct___Tuple_i32_string_d0b3dcb6_t* _a8_obj = &_a7_storage;
     vader_obj_header_init(_a8_obj, 27u);
     _a8_obj->f__0 = ((int32_t) l8.payload.i);
-    _a8_obj->f__1 = 5u;
+    _a8_obj->f__1 = 4u;
     t1 = (void*) _a8_obj;
     t4 = ((vader_struct___Tuple_i32_string_d0b3dcb6_t*) t1)->f__0;
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, l0);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 98 "tests/snippets/module_const_mutability/_main.vader"
     snippet_bump((size_t) (int64_t) INT64_C(0));
 #line 99 "tests/snippets/module_const_mutability/_main.vader"
@@ -513,7 +508,7 @@ static int32_t snippet_main(void) {
 #line 101 "tests/snippets/module_const_mutability/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(69));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 6u);
+    l1 = std_core_write_string_at(l2, l1, 5u);
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_3;
 #line 101 "tests/snippets/module_const_mutability/_main.vader"
@@ -523,7 +518,7 @@ static int32_t snippet_main(void) {
     t4 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) INT32_C(0)];
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
-    l1 = std_core_write_string_at(l2, l1, 7u);
+    l1 = std_core_write_string_at(l2, l1, 6u);
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_3;
 #line 101 "tests/snippets/module_const_mutability/_main.vader"
@@ -533,7 +528,7 @@ static int32_t snippet_main(void) {
     t4 = ((int32_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) INT32_C(1)];
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
-    l1 = std_core_write_string_at(l2, l1, 7u);
+    l1 = std_core_write_string_at(l2, l1, 6u);
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_3;
 #line 101 "tests/snippets/module_const_mutability/_main.vader"
@@ -544,13 +539,11 @@ static int32_t snippet_main(void) {
     l3 = ((int64_t) (int32_t) t4);
     l1 = std_core_write_int(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 105 "tests/snippets/module_const_mutability/_main.vader"
     l9 = INT32_C(0);
     {
-        loop_255: {
+        loop_235: {
             if ((l9 < INT32_C(24))) {
 #line 82 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_4;
@@ -559,7 +552,7 @@ static int32_t snippet_main(void) {
                 l1 = (size_t) (int64_t) t3;
                 l10 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(33));
                 l7 = (size_t) (int64_t) INT64_C(0);
-                l7 = std_core_write_string_at(l10, l7, 8u);
+                l7 = std_core_write_string_at(l10, l7, 7u);
                 l3 = ((int64_t) (int32_t) l9);
                 l7 = std_core_write_int(l10, l7, l3);
                 l0 = std_core_finish_buffer(l10, l7);
@@ -570,7 +563,7 @@ static int32_t snippet_main(void) {
                 VADER_WRITE_BARRIER(_a12_slotarr->buf);
 #line 105 "tests/snippets/module_const_mutability/_main.vader"
                 l9 = (l9 + INT32_C(1));
-                goto loop_255;
+                goto loop_235;
             }
         }
     }
@@ -581,7 +574,7 @@ static int32_t snippet_main(void) {
 #line 110 "tests/snippets/module_const_mutability/_main.vader"
     l11 = INT32_C(0);
     {
-        loop_305: {
+        loop_285: {
             if ((l11 < INT32_C(24))) {
 #line 82 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_4;
@@ -595,7 +588,7 @@ static int32_t snippet_main(void) {
                 l0 = t2.payload.s;
                 l10 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(33));
                 l7 = (size_t) (int64_t) INT64_C(0);
-                l7 = std_core_write_string_at(l10, l7, 8u);
+                l7 = std_core_write_string_at(l10, l7, 7u);
                 l3 = ((int64_t) (int32_t) l11);
                 l7 = std_core_write_int(l10, l7, l3);
                 l5 = std_core_finish_buffer(l10, l7);
@@ -606,7 +599,7 @@ static int32_t snippet_main(void) {
                 }
 #line 110 "tests/snippets/module_const_mutability/_main.vader"
                 l11 = (l11 + INT32_C(1));
-                goto loop_305;
+                goto loop_285;
             }
         }
     }
@@ -632,21 +625,19 @@ static int32_t snippet_main(void) {
     l1 = (size_t) (int64_t) t3;
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(52) + l1));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 9u);
+    l1 = std_core_write_string_at(l2, l1, 8u);
     l1 = std_core_write_string_at(l2, l1, l0);
-    l1 = std_core_write_string_at(l2, l1, 10u);
+    l1 = std_core_write_string_at(l2, l1, 9u);
     l1 = std_core_write_string_at(l2, l1, l5);
-    l1 = std_core_write_string_at(l2, l1, 11u);
+    l1 = std_core_write_string_at(l2, l1, 10u);
     l3 = ((int64_t) (int32_t) l9);
     l1 = std_core_write_int(l2, l1, l3);
-    l1 = std_core_write_string_at(l2, l1, 12u);
+    l1 = std_core_write_string_at(l2, l1, 11u);
     t4 = vader_host_std_runtime_collections();
     l4 = (t4 > INT32_C(0));
     l1 = std_core_write_bool(l2, l1, l4);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 83 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_5;
 #line 117 "tests/snippets/module_const_mutability/_main.vader"
@@ -657,7 +648,7 @@ static int32_t snippet_main(void) {
 #line 118 "tests/snippets/module_const_mutability/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(42));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 13u);
+    l1 = std_core_write_string_at(l2, l1, 12u);
 #line 83 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_5;
 #line 118 "tests/snippets/module_const_mutability/_main.vader"
@@ -667,7 +658,7 @@ static int32_t snippet_main(void) {
     t2 = vader_box_bool(6u, ((uint8_t*) _a17_slotarr->buf->slots)[_a17_slotarr->offset + (size_t) INT32_C(0)]);
     l4 = t2.payload.b;
     l1 = std_core_write_bool(l2, l1, l4);
-    l1 = std_core_write_string_at(l2, l1, 7u);
+    l1 = std_core_write_string_at(l2, l1, 6u);
 #line 83 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_5;
 #line 118 "tests/snippets/module_const_mutability/_main.vader"
@@ -677,7 +668,7 @@ static int32_t snippet_main(void) {
     t2 = vader_box_bool(6u, ((uint8_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) INT32_C(2)]);
     l4 = t2.payload.b;
     l1 = std_core_write_bool(l2, l1, l4);
-    l1 = std_core_write_string_at(l2, l1, 14u);
+    l1 = std_core_write_string_at(l2, l1, 13u);
 #line 83 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_5;
 #line 118 "tests/snippets/module_const_mutability/_main.vader"
@@ -686,13 +677,11 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 125 "tests/snippets/module_const_mutability/_main.vader"
     l9 = INT32_C(0);
     {
-        loop_507: {
+        loop_477: {
             if ((l9 < INT32_C(40))) {
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_3;
@@ -701,7 +690,7 @@ static int32_t snippet_main(void) {
                 vader_array_push_i32((vader_array_t*) l2, l11);
 #line 125 "tests/snippets/module_const_mutability/_main.vader"
                 l9 = (l9 + INT32_C(1));
-                goto loop_507;
+                goto loop_477;
             }
         }
     }
@@ -712,7 +701,7 @@ static int32_t snippet_main(void) {
 #line 130 "tests/snippets/module_const_mutability/_main.vader"
     l11 = INT32_C(0);
     {
-        loop_533: {
+        loop_503: {
             if ((l11 < INT32_C(40))) {
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_3;
@@ -731,17 +720,17 @@ static int32_t snippet_main(void) {
                 }
 #line 130 "tests/snippets/module_const_mutability/_main.vader"
                 l11 = (l11 + INT32_C(1));
-                goto loop_533;
+                goto loop_503;
             }
         }
     }
 #line 135 "tests/snippets/module_const_mutability/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(54));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 15u);
+    l1 = std_core_write_string_at(l2, l1, 14u);
     l3 = ((int64_t) (int32_t) l9);
     l1 = std_core_write_int(l2, l1, l3);
-    l1 = std_core_write_string_at(l2, l1, 16u);
+    l1 = std_core_write_string_at(l2, l1, 15u);
 #line 80 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_3;
 #line 135 "tests/snippets/module_const_mutability/_main.vader"
@@ -750,14 +739,12 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 86 "tests/snippets/module_const_mutability/_main.vader"
     l2 = (void*) &vader_data_6;
 #line 141 "tests/snippets/module_const_mutability/_main.vader"
     l0 = vader_vt_Display__to_string(vader_box_i32(3u, INT32_C(2)));
-    t0 = concat_2(17u, l0);
+    t0 = concat_2(16u, l0);
     vader_struct_snippet_Spec_t* _a20_obj = (vader_struct_snippet_Spec_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Spec_t));
     vader_obj_header_init(_a20_obj, 5u);
     _a20_obj->f_name = t0;
@@ -771,14 +758,14 @@ static int32_t snippet_main(void) {
 #line 142 "tests/snippets/module_const_mutability/_main.vader"
     l9 = INT32_C(0);
     {
-        loop_627: {
+        loop_592: {
             if ((l9 < INT32_C(8))) {
 #line 86 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_6;
 #line 143 "tests/snippets/module_const_mutability/_main.vader"
                 l10 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
                 l1 = (size_t) (int64_t) INT64_C(0);
-                l1 = std_core_write_string_at(l10, l1, 18u);
+                l1 = std_core_write_string_at(l10, l1, 17u);
                 l3 = ((int64_t) (int32_t) l9);
                 l1 = std_core_write_int(l10, l1, l3);
                 l0 = std_core_finish_buffer(l10, l1);
@@ -791,7 +778,7 @@ static int32_t snippet_main(void) {
                 vader_array_push((vader_array_t*) l2, vader_ref_box(l15));
 #line 142 "tests/snippets/module_const_mutability/_main.vader"
                 l9 = (l9 + INT32_C(1));
-                goto loop_627;
+                goto loop_592;
             }
         }
     }
@@ -807,7 +794,7 @@ static int32_t snippet_main(void) {
     if ((size_t) INT32_C(0) >= _a23_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = vader_array_ref_load_obj(_a23_slotarr->buf, _a23_slotarr->offset + (size_t) INT32_C(0));
     t0 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
-    if (t0 == 19u) {
+    if (t0 == 18u) {
 #line 148 "tests/snippets/module_const_mutability/_main.vader"
         l9 = (l9 + INT32_C(1));
 #line 147 "tests/snippets/module_const_mutability/_main.vader"
@@ -815,7 +802,7 @@ static int32_t snippet_main(void) {
 #line 150 "tests/snippets/module_const_mutability/_main.vader"
     l11 = INT32_C(0);
     {
-        loop_692: {
+        loop_657: {
             if ((l11 < INT32_C(8))) {
 #line 86 "tests/snippets/module_const_mutability/_main.vader"
                 l2 = (void*) &vader_data_6;
@@ -829,7 +816,7 @@ static int32_t snippet_main(void) {
                 l0 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
                 l10 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
                 l7 = (size_t) (int64_t) INT64_C(0);
-                l7 = std_core_write_string_at(l10, l7, 18u);
+                l7 = std_core_write_string_at(l10, l7, 17u);
                 l3 = ((int64_t) (int32_t) l11);
                 l7 = std_core_write_int(l10, l7, l3);
                 l5 = std_core_finish_buffer(l10, l7);
@@ -840,17 +827,17 @@ static int32_t snippet_main(void) {
                 }
 #line 150 "tests/snippets/module_const_mutability/_main.vader"
                 l11 = (l11 + INT32_C(1));
-                goto loop_692;
+                goto loop_657;
             }
         }
     }
 #line 155 "tests/snippets/module_const_mutability/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(53));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 20u);
+    l1 = std_core_write_string_at(l2, l1, 19u);
     l3 = ((int64_t) (int32_t) l9);
     l1 = std_core_write_int(l2, l1, l3);
-    l1 = std_core_write_string_at(l2, l1, 21u);
+    l1 = std_core_write_string_at(l2, l1, 20u);
 #line 86 "tests/snippets/module_const_mutability/_main.vader"
     t1 = (void*) &vader_data_6;
 #line 155 "tests/snippets/module_const_mutability/_main.vader"
@@ -859,9 +846,7 @@ static int32_t snippet_main(void) {
     l12 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l2, l1, l12);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 158 "tests/snippets/module_const_mutability/_main.vader"
     l9 = INT32_C(0);
 #line 67 "tests/snippets/module_const_mutability/_main.vader"
@@ -872,7 +857,7 @@ static int32_t snippet_main(void) {
     l1 = ((vader_array_t*) l2)->length;
     l7 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_799: {
+        loop_759: {
             if ((l7 < l1)) {
                 l11 = ((int32_t*) _a25_slotarr->buf->slots)[_a25_slotarr->offset + (size_t) l7];
 #line 160 "tests/snippets/module_const_mutability/_main.vader"
@@ -880,20 +865,18 @@ static int32_t snippet_main(void) {
 #line 159 "tests/snippets/module_const_mutability/_main.vader"
                 t3 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t3;
-                goto loop_799;
+                goto loop_759;
             }
         }
     }
 #line 162 "tests/snippets/module_const_mutability/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(26));
     l1 = (size_t) (int64_t) INT64_C(0);
-    l1 = std_core_write_string_at(l2, l1, 22u);
+    l1 = std_core_write_string_at(l2, l1, 21u);
     l3 = ((int64_t) (int32_t) l9);
     l1 = std_core_write_int(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
-#line 235 "lib/std/io/io.vader"
-    l0 = concat_2(t0, 3u);
-    std_io_write(INT32_C(0), l0);
+    std_io_println__string(t0);
 #line 163 "tests/snippets/module_const_mutability/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
@@ -1157,11 +1140,11 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_top = &gc_frame;
 #line 184 "lib/std/core/primitives.vader"
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 23u);
+        t0 = std_core_write_string_at(l0, l1, 22u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
 #line 185 "lib/std/core/primitives.vader"
-    t0 = std_core_write_string_at(l0, l1, 24u);
+    t0 = std_core_write_string_at(l0, l1, 23u);
     { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -1280,9 +1263,9 @@ static vader_string_t std_core_bool_Display_to_string(bool l0) {
     vader_string_t l1;
 #line 252 "lib/std/core/primitives.vader"
     if (l0) {
-        l1 = 23u;
+        l1 = 22u;
     } else {
-        l1 = 24u;
+        l1 = 23u;
     }
     return l1;
 }
@@ -1343,7 +1326,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     vader_gc_top = &gc_frame;
 #line 57 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 25u; }
+        { vader_gc_top = gc_frame.prev; return 24u; }
     }
 #line 58 "lib/std/core/primitives.vader"
     l1 = (l0 < INT64_C(0));
@@ -1426,7 +1409,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     vader_gc_top = &gc_frame;
 #line 82 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 25u; }
+        { vader_gc_top = gc_frame.prev; return 24u; }
     }
 #line 83 "lib/std/core/primitives.vader"
     l1 = (size_t) (int64_t) INT64_C(0);
@@ -1598,13 +1581,13 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l1 == INT32_C(255)) {
 #line 203 "lib/std/core/f2s.vader"
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 26u; }
+            { vader_gc_top = gc_frame.prev; return 25u; }
         }
 #line 204 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 27u;
+            l4 = 26u;
         } else {
-            l4 = 28u;
+            l4 = 27u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 202 "lib/std/core/f2s.vader"
@@ -1618,9 +1601,9 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l5) {
 #line 207 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 29u;
+            l4 = 28u;
         } else {
-            l4 = 30u;
+            l4 = 29u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 206 "lib/std/core/f2s.vader"
@@ -1663,13 +1646,13 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l1 == INT64_C(2047)) {
 #line 367 "lib/std/core/dtoa.vader"
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 26u; }
+            { vader_gc_top = gc_frame.prev; return 25u; }
         }
 #line 368 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 27u;
+            l4 = 26u;
         } else {
-            l4 = 28u;
+            l4 = 27u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 366 "lib/std/core/dtoa.vader"
@@ -1683,9 +1666,9 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l5) {
 #line 371 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 29u;
+            l4 = 28u;
         } else {
-            l4 = 30u;
+            l4 = 29u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 370 "lib/std/core/dtoa.vader"
@@ -1711,6 +1694,10 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
     void** gc_raw_roots[1] = { &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
+#line 73 "lib/std/core/f2s.vader"
+    l2 = INT32_C(0);
+#line 74 "lib/std/core/f2s.vader"
+    l3 = (uint32_t) (int32_t) INT32_C(0);
 #line 75 "lib/std/core/f2s.vader"
     if (l1 == INT32_C(0)) {
 #line 76 "lib/std/core/f2s.vader"
@@ -1744,6 +1731,14 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
 #line 90 "lib/std/core/f2s.vader"
     t0 = (((l3 * INT32_C(4)) - INT32_C(1)) - l8);
     l3 = (uint32_t) (int32_t) t0;
+#line 93 "lib/std/core/f2s.vader"
+    l9 = (uint32_t) (int32_t) INT32_C(0);
+#line 94 "lib/std/core/f2s.vader"
+    l10 = (uint32_t) (int32_t) INT32_C(0);
+#line 95 "lib/std/core/f2s.vader"
+    l11 = (uint32_t) (int32_t) INT32_C(0);
+#line 96 "lib/std/core/f2s.vader"
+    l12 = INT32_C(0);
 #line 97 "lib/std/core/f2s.vader"
     l7 = false;
 #line 98 "lib/std/core/f2s.vader"
@@ -1881,6 +1876,8 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
     }
 #line 152 "lib/std/core/f2s.vader"
     l2 = INT32_C(0);
+#line 153 "lib/std/core/f2s.vader"
+    l3 = (uint32_t) (int32_t) INT32_C(0);
 #line 154 "lib/std/core/f2s.vader"
     if (l7) {
         l17 = true;
@@ -1890,7 +1887,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
     if (l17) {
 #line 156 "lib/std/core/f2s.vader"
         {
-            loop_337: {
+            loop_351: {
                 l5 = vader_div_u32(l10, INT32_C(10));
                 l6 = vader_div_u32(l11, INT32_C(10));
                 if ((l5 > l6)) {
@@ -1920,7 +1917,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
 #line 163 "lib/std/core/f2s.vader"
                     l2 = (l2 + INT32_C(1));
 #line 156 "lib/std/core/f2s.vader"
-                    goto loop_337;
+                    goto loop_351;
                 }
             }
         }
@@ -1928,7 +1925,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
         if (l7) {
 #line 166 "lib/std/core/f2s.vader"
             {
-                loop_403: {
+                loop_417: {
                     t1 = vader_mod_u32(l11, INT32_C(10));
                     if (t1 == INT32_C(0)) {
 #line 167 "lib/std/core/f2s.vader"
@@ -1949,7 +1946,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
 #line 172 "lib/std/core/f2s.vader"
                         l2 = (l2 + INT32_C(1));
 #line 166 "lib/std/core/f2s.vader"
-                        goto loop_403;
+                        goto loop_417;
                     }
                 }
             }
@@ -1996,7 +1993,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
     } else {
 #line 183 "lib/std/core/f2s.vader"
         {
-            loop_513: {
+            loop_527: {
                 l5 = vader_div_u32(l10, INT32_C(10));
                 l6 = vader_div_u32(l11, INT32_C(10));
                 if ((l5 > l6)) {
@@ -2011,7 +2008,7 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
 #line 188 "lib/std/core/f2s.vader"
                     l2 = (l2 + INT32_C(1));
 #line 183 "lib/std/core/f2s.vader"
-                    goto loop_513;
+                    goto loop_527;
                 }
             }
         }
@@ -2077,7 +2074,7 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
     l7 = std_core_format_decimal(l5, l6, l4);
 #line 357 "lib/std/core/dtoa.vader"
     if (l2) {
-        l8 = concat_2(31u, l7);
+        l8 = concat_2(30u, l7);
     } else {
         l8 = l7;
     }
@@ -2087,18 +2084,22 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
 
 static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     int32_t l2, l11, l13, l14;
-    uint64_t l3, l5, l7, l8, l9, l10, l17, l18, l20, l21, l22;
-    bool l4, l6, l12, l19, l23;
+    uint64_t l3, l5, l7, l8, l9, l10, l16, l18, l20, l21, l22, l23;
+    bool l4, l6, l12, l19, l24;
     size_t l15;
-    void* l16 = NULL;
+    void* l17 = NULL;
     int64_t t0;
     void* t1 = NULL;
     uint64_t t2;
     bool t3;
     int32_t t4;
-    void** gc_raw_roots[2] = { &l16, &t1 };
+    void** gc_raw_roots[2] = { &l17, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
+#line 130 "lib/std/core/dtoa.vader"
+    l2 = INT32_C(0);
+#line 131 "lib/std/core/dtoa.vader"
+    l3 = (uint64_t) (int64_t) INT64_C(0);
 #line 132 "lib/std/core/dtoa.vader"
     if (l1 == INT64_C(0)) {
 #line 134 "lib/std/core/dtoa.vader"
@@ -2126,6 +2127,14 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         l6 = (l1 <= INT64_C(1));
     }
     l7 = std_core_b2u(l6);
+#line 150 "lib/std/core/dtoa.vader"
+    l8 = (uint64_t) (int64_t) INT64_C(0);
+#line 151 "lib/std/core/dtoa.vader"
+    l9 = (uint64_t) (int64_t) INT64_C(0);
+#line 152 "lib/std/core/dtoa.vader"
+    l10 = (uint64_t) (int64_t) INT64_C(0);
+#line 153 "lib/std/core/dtoa.vader"
+    l11 = INT32_C(0);
 #line 154 "lib/std/core/dtoa.vader"
     l6 = false;
 #line 155 "lib/std/core/dtoa.vader"
@@ -2133,9 +2142,9 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 157 "lib/std/core/dtoa.vader"
     if ((l2 >= INT32_C(0))) {
 #line 158 "lib/std/core/dtoa.vader"
-        l11 = std_core_log10_pow2(l2);
-        l13 = std_core_b2i((l2 > INT32_C(3)));
-        l13 = (l11 - l13);
+        l13 = std_core_log10_pow2(l2);
+        l14 = std_core_b2i((l2 > INT32_C(3)));
+        l13 = (l13 - l14);
 #line 159 "lib/std/core/dtoa.vader"
         l11 = l13;
 #line 160 "lib/std/core/dtoa.vader"
@@ -2155,30 +2164,30 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
         if ((size_t) l15 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l15];
-        l8 = (uint64_t) (int64_t) t0;
+        l16 = (uint64_t) (int64_t) t0;
 #line 96 "lib/std/core/dtoa_tables.vader"
-        l16 = (void*) &vader_data_7;
+        l17 = (void*) &vader_data_7;
 #line 164 "lib/std/core/dtoa.vader"
         t0 = (l15 + INT64_C(1));
         l15 = (size_t) (int64_t) t0;
-        vader_array_t* _a1_slotarr = ((vader_array_t*) l16);
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l17);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
         if ((size_t) l15 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l15];
-        l9 = (uint64_t) (int64_t) t0;
+        l18 = (uint64_t) (int64_t) t0;
 #line 165 "lib/std/core/dtoa.vader"
-        l16 = std_core_mul_shift_all_64(l3, l8, l9, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__2;
+        l17 = std_core_mul_shift_all_64(l3, l16, l18, l14, l7);
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__2;
 #line 169 "lib/std/core/dtoa.vader"
         if ((l13 <= INT32_C(21))) {
 #line 171 "lib/std/core/dtoa.vader"
             t2 = vader_div_u64(l5, INT64_C(5));
             t0 = (t2 * INT64_C(5));
-            l17 = (uint64_t) (int64_t) t0;
+            l16 = (uint64_t) (int64_t) t0;
 #line 172 "lib/std/core/dtoa.vader"
-            if ((l5 - l17) == INT64_C(0)) {
+            if ((l5 - l16) == INT64_C(0)) {
 #line 173 "lib/std/core/dtoa.vader"
                 l12 = std_core_multiple_of_power_of_5(l5, l13);
 #line 172 "lib/std/core/dtoa.vader"
@@ -2191,8 +2200,8 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                 } else {
 #line 177 "lib/std/core/dtoa.vader"
                     t3 = std_core_multiple_of_power_of_5((uint64_t) (int64_t) (l5 + INT64_C(2)), l13);
-                    l17 = std_core_b2u(t3);
-                    t0 = (l9 - l17);
+                    l16 = std_core_b2u(t3);
+                    t0 = (l9 - l16);
                     l9 = (uint64_t) (int64_t) t0;
 #line 174 "lib/std/core/dtoa.vader"
                 }
@@ -2227,22 +2236,22 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
         if ((size_t) l15 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l15];
-        l17 = (uint64_t) (int64_t) t0;
+        l16 = (uint64_t) (int64_t) t0;
 #line 93 "lib/std/core/dtoa_tables.vader"
-        l16 = (void*) &vader_data_8;
+        l17 = (void*) &vader_data_8;
 #line 188 "lib/std/core/dtoa.vader"
         t0 = (l15 + INT64_C(1));
         l15 = (size_t) (int64_t) t0;
-        vader_array_t* _a3_slotarr = ((vader_array_t*) l16);
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l17);
         if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
         if ((size_t) l15 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l15];
         l18 = (uint64_t) (int64_t) t0;
 #line 189 "lib/std/core/dtoa.vader"
-        l16 = std_core_mul_shift_all_64(l3, l17, l18, l14, l7);
-        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__0;
-        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__1;
-        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l16)->f__2;
+        l17 = std_core_mul_shift_all_64(l3, l16, l18, l14, l7);
+        l8 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__0;
+        l9 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__1;
+        l10 = ((vader_struct___Tuple_u64_u64_u64_2d035edd_t*) l17)->f__2;
 #line 193 "lib/std/core/dtoa.vader"
         if ((l13 <= INT32_C(1))) {
 #line 195 "lib/std/core/dtoa.vader"
@@ -2274,6 +2283,8 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     l2 = INT32_C(0);
 #line 209 "lib/std/core/dtoa.vader"
     l3 = (uint64_t) (int64_t) INT64_C(0);
+#line 210 "lib/std/core/dtoa.vader"
+    l5 = (uint64_t) (int64_t) INT64_C(0);
 #line 211 "lib/std/core/dtoa.vader"
     if (l6) {
         l19 = true;
@@ -2283,52 +2294,52 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
     if (l19) {
 #line 213 "lib/std/core/dtoa.vader"
         {
-            loop_287: {
+            loop_301: {
 #line 214 "lib/std/core/dtoa.vader"
-                l5 = vader_div_u64(l9, INT64_C(10));
+                l7 = vader_div_u64(l9, INT64_C(10));
 #line 215 "lib/std/core/dtoa.vader"
-                l7 = vader_div_u64(l10, INT64_C(10));
+                l16 = vader_div_u64(l10, INT64_C(10));
 #line 216 "lib/std/core/dtoa.vader"
-                if ((l5 <= l7)) {
+                if ((l7 <= l16)) {
                 } else {
 #line 217 "lib/std/core/dtoa.vader"
-                    t0 = (l7 * INT64_C(10));
-                    l17 = (uint64_t) (int64_t) t0;
-                    t0 = (l10 - l17);
+                    t0 = (l16 * INT64_C(10));
                     l18 = (uint64_t) (int64_t) t0;
+                    t0 = (l10 - l18);
+                    l20 = (uint64_t) (int64_t) t0;
 #line 218 "lib/std/core/dtoa.vader"
-                    l20 = vader_div_u64(l8, INT64_C(10));
+                    l21 = vader_div_u64(l8, INT64_C(10));
 #line 219 "lib/std/core/dtoa.vader"
-                    t0 = (l20 * INT64_C(10));
-                    l21 = (uint64_t) (int64_t) t0;
-                    t0 = (l8 - l21);
+                    t0 = (l21 * INT64_C(10));
                     l22 = (uint64_t) (int64_t) t0;
+                    t0 = (l8 - l22);
+                    l23 = (uint64_t) (int64_t) t0;
 #line 220 "lib/std/core/dtoa.vader"
                     if (l6) {
-                        l19 = l18 == INT64_C(0);
+                        l19 = l20 == INT64_C(0);
                     } else {
                         l19 = false;
                     }
                     l6 = l19;
 #line 221 "lib/std/core/dtoa.vader"
                     if (l12) {
-                        l23 = l3 == INT64_C(0);
+                        l24 = l3 == INT64_C(0);
                     } else {
-                        l23 = false;
+                        l24 = false;
                     }
-                    l12 = l23;
+                    l12 = l24;
 #line 222 "lib/std/core/dtoa.vader"
-                    l3 = l22;
+                    l3 = l23;
 #line 223 "lib/std/core/dtoa.vader"
-                    l8 = l20;
+                    l8 = l21;
 #line 224 "lib/std/core/dtoa.vader"
-                    l9 = l5;
+                    l9 = l7;
 #line 225 "lib/std/core/dtoa.vader"
-                    l10 = l7;
+                    l10 = l16;
 #line 226 "lib/std/core/dtoa.vader"
                     l2 = (l2 + INT32_C(1));
 #line 213 "lib/std/core/dtoa.vader"
-                    goto loop_287;
+                    goto loop_301;
 #line 216 "lib/std/core/dtoa.vader"
                 }
 #line 213 "lib/std/core/dtoa.vader"
@@ -2338,24 +2349,24 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if (l6) {
 #line 229 "lib/std/core/dtoa.vader"
             {
-                loop_363: {
+                loop_377: {
 #line 230 "lib/std/core/dtoa.vader"
-                    l5 = vader_div_u64(l10, INT64_C(10));
+                    l7 = vader_div_u64(l10, INT64_C(10));
 #line 231 "lib/std/core/dtoa.vader"
-                    t0 = (l5 * INT64_C(10));
-                    l7 = (uint64_t) (int64_t) t0;
+                    t0 = (l7 * INT64_C(10));
+                    l16 = (uint64_t) (int64_t) t0;
 #line 232 "lib/std/core/dtoa.vader"
-                    if ((l10 - l7) != INT64_C(0)) {
+                    if ((l10 - l16) != INT64_C(0)) {
                     } else {
 #line 233 "lib/std/core/dtoa.vader"
-                        l17 = vader_div_u64(l9, INT64_C(10));
+                        l18 = vader_div_u64(l9, INT64_C(10));
 #line 234 "lib/std/core/dtoa.vader"
-                        l18 = vader_div_u64(l8, INT64_C(10));
+                        l20 = vader_div_u64(l8, INT64_C(10));
 #line 235 "lib/std/core/dtoa.vader"
-                        t0 = (l18 * INT64_C(10));
-                        l20 = (uint64_t) (int64_t) t0;
-                        t0 = (l8 - l20);
+                        t0 = (l20 * INT64_C(10));
                         l21 = (uint64_t) (int64_t) t0;
+                        t0 = (l8 - l21);
+                        l22 = (uint64_t) (int64_t) t0;
 #line 236 "lib/std/core/dtoa.vader"
                         if (l12) {
                             l19 = l3 == INT64_C(0);
@@ -2364,17 +2375,17 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
                         }
                         l12 = l19;
 #line 237 "lib/std/core/dtoa.vader"
-                        l3 = l21;
+                        l3 = l22;
 #line 238 "lib/std/core/dtoa.vader"
-                        l8 = l18;
+                        l8 = l20;
 #line 239 "lib/std/core/dtoa.vader"
-                        l9 = l17;
+                        l9 = l18;
 #line 240 "lib/std/core/dtoa.vader"
-                        l10 = l5;
+                        l10 = l7;
 #line 241 "lib/std/core/dtoa.vader"
                         l2 = (l2 + INT32_C(1));
 #line 229 "lib/std/core/dtoa.vader"
-                        goto loop_363;
+                        goto loop_377;
 #line 232 "lib/std/core/dtoa.vader"
                     }
 #line 229 "lib/std/core/dtoa.vader"
@@ -2416,30 +2427,30 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
             l4 = (l3 >= INT64_C(5));
         }
 #line 250 "lib/std/core/dtoa.vader"
-        l5 = std_core_b2u(l4);
-        t0 = (l8 + l5);
-        l3 = (uint64_t) (int64_t) t0;
+        l3 = std_core_b2u(l4);
+        t0 = (l8 + l3);
+        l5 = (uint64_t) (int64_t) t0;
 #line 211 "lib/std/core/dtoa.vader"
     } else {
 #line 253 "lib/std/core/dtoa.vader"
         l4 = false;
 #line 254 "lib/std/core/dtoa.vader"
-        l5 = vader_div_u64(l9, INT64_C(100));
+        l3 = vader_div_u64(l9, INT64_C(100));
 #line 255 "lib/std/core/dtoa.vader"
         l7 = vader_div_u64(l10, INT64_C(100));
 #line 256 "lib/std/core/dtoa.vader"
-        if ((l5 > l7)) {
+        if ((l3 > l7)) {
 #line 258 "lib/std/core/dtoa.vader"
-            l17 = vader_div_u64(l8, INT64_C(100));
+            l16 = vader_div_u64(l8, INT64_C(100));
 #line 259 "lib/std/core/dtoa.vader"
-            t0 = (l17 * INT64_C(100));
+            t0 = (l16 * INT64_C(100));
             l18 = (uint64_t) (int64_t) t0;
 #line 260 "lib/std/core/dtoa.vader"
             l4 = ((l8 - l18) >= INT64_C(50));
 #line 261 "lib/std/core/dtoa.vader"
-            l8 = l17;
+            l8 = l16;
 #line 262 "lib/std/core/dtoa.vader"
-            l9 = l5;
+            l9 = l3;
 #line 263 "lib/std/core/dtoa.vader"
             l10 = l7;
 #line 264 "lib/std/core/dtoa.vader"
@@ -2448,31 +2459,31 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         }
 #line 266 "lib/std/core/dtoa.vader"
         {
-            loop_526: {
+            loop_540: {
 #line 267 "lib/std/core/dtoa.vader"
-                l5 = vader_div_u64(l9, INT64_C(10));
+                l3 = vader_div_u64(l9, INT64_C(10));
 #line 268 "lib/std/core/dtoa.vader"
                 l7 = vader_div_u64(l10, INT64_C(10));
 #line 269 "lib/std/core/dtoa.vader"
-                if ((l5 <= l7)) {
+                if ((l3 <= l7)) {
                 } else {
 #line 270 "lib/std/core/dtoa.vader"
-                    l17 = vader_div_u64(l8, INT64_C(10));
+                    l16 = vader_div_u64(l8, INT64_C(10));
 #line 271 "lib/std/core/dtoa.vader"
-                    t0 = (l17 * INT64_C(10));
+                    t0 = (l16 * INT64_C(10));
                     l18 = (uint64_t) (int64_t) t0;
 #line 272 "lib/std/core/dtoa.vader"
                     l4 = ((l8 - l18) >= INT64_C(5));
 #line 273 "lib/std/core/dtoa.vader"
-                    l8 = l17;
+                    l8 = l16;
 #line 274 "lib/std/core/dtoa.vader"
-                    l9 = l5;
+                    l9 = l3;
 #line 275 "lib/std/core/dtoa.vader"
                     l10 = l7;
 #line 276 "lib/std/core/dtoa.vader"
                     l2 = (l2 + INT32_C(1));
 #line 266 "lib/std/core/dtoa.vader"
-                    goto loop_526;
+                    goto loop_540;
 #line 269 "lib/std/core/dtoa.vader"
                 }
 #line 266 "lib/std/core/dtoa.vader"
@@ -2484,16 +2495,16 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         } else {
             l6 = l4;
         }
-        l5 = std_core_b2u(l6);
-        t0 = (l8 + l5);
-        l3 = (uint64_t) (int64_t) t0;
+        l3 = std_core_b2u(l6);
+        t0 = (l8 + l3);
+        l5 = (uint64_t) (int64_t) t0;
 #line 211 "lib/std/core/dtoa.vader"
     }
 #line 280 "lib/std/core/dtoa.vader"
     l2 = (l11 + l2);
     vader_struct_std_core_Dec64_t* _a4_obj = (vader_struct_std_core_Dec64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Dec64_t));
     vader_obj_header_init(_a4_obj, 21u);
-    _a4_obj->f_mantissa = l3;
+    _a4_obj->f_mantissa = l5;
     _a4_obj->f_exp = l2;
     t1 = (void*) _a4_obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2602,7 +2613,7 @@ static void* std_core_digits_of(uint64_t l0) {
 #line 288 "lib/std/core/dtoa.vader"
     if (l0 == INT64_C(0)) {
         vader_array_t* _a0_arr = vader_array_new(22u, 1u, 0u, 4u);
-        vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 0u] = vader_box_string(4u, 25u);
+        vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 0u] = vader_box_string(4u, 24u);
         t0 = (void*) _a0_arr;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -2686,7 +2697,7 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
 #line 325 "lib/std/core/dtoa.vader"
         l4 = std_core_join_range(l0, INT32_C(0), l1);
         l5 = std_core_zeros((l2 - l1));
-        t0 = concat_3(l4, l5, 32u);
+        t0 = concat_3(l4, l5, 31u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 324 "lib/std/core/dtoa.vader"
     }
@@ -2700,7 +2711,7 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
 #line 328 "lib/std/core/dtoa.vader"
         l4 = std_core_join_range(l0, INT32_C(0), l2);
         l5 = std_core_join_range(l0, l2, l1);
-        t0 = concat_3(l4, 33u, l5);
+        t0 = concat_3(l4, 32u, l5);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 327 "lib/std/core/dtoa.vader"
     }
@@ -2714,7 +2725,7 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
 #line 331 "lib/std/core/dtoa.vader"
         l4 = std_core_zeros(-(l2));
         l5 = std_core_join_range(l0, INT32_C(0), l1);
-        t0 = concat_3(34u, l4, l5);
+        t0 = concat_3(33u, l4, l5);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 330 "lib/std/core/dtoa.vader"
     }
@@ -2726,14 +2737,14 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
     if ((l1 > INT32_C(1))) {
 #line 337 "lib/std/core/dtoa.vader"
         l5 = std_core_join_range(l0, INT32_C(1), l1);
-        l4 = concat_3(l4, 33u, l5);
+        l4 = concat_3(l4, 32u, l5);
 #line 336 "lib/std/core/dtoa.vader"
     }
 #line 339 "lib/std/core/dtoa.vader"
     if ((l6 < INT32_C(0))) {
-        l5 = 31u;
+        l5 = 30u;
     } else {
-        l5 = 35u;
+        l5 = 34u;
     }
 #line 340 "lib/std/core/dtoa.vader"
     if ((l6 < INT32_C(0))) {
@@ -2743,7 +2754,7 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
     }
 #line 341 "lib/std/core/dtoa.vader"
     l8 = std_core_format_unsigned((uint64_t) (int64_t) ((int64_t) (int32_t) l7));
-    t0 = concat_4(l4, 36u, l5, l8);
+    t0 = concat_4(l4, 35u, l5, l8);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -2814,6 +2825,8 @@ static void* std_core_mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     t0 = ((int64_t) (int32_t) ((l3 - INT32_C(64)) - INT32_C(1)));
     l11 = (uint64_t) (int64_t) t0;
     l7 = std_core_shiftright128(l7, l10, l11);
+#line 89 "lib/std/core/dtoa.vader"
+    l10 = (uint64_t) (int64_t) INT64_C(0);
 #line 90 "lib/std/core/dtoa.vader"
     if (l4 == INT64_C(1)) {
 #line 91 "lib/std/core/dtoa.vader"
@@ -3004,7 +3017,7 @@ static vader_string_t std_core_zeros(int32_t l0) {
         loop_5: {
             if ((l2 < l0)) {
 #line 316 "lib/std/core/dtoa.vader"
-                l1 = concat_2(l1, 25u);
+                l1 = concat_2(l1, 24u);
 #line 315 "lib/std/core/dtoa.vader"
                 l2 = (l2 + INT32_C(1));
                 goto loop_5;
@@ -3186,6 +3199,18 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_io_println__string(vader_string_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 235 "lib/std/io/io.vader"
+    l1 = concat_2(l0, 36u);
+    std_io_write(INT32_C(0), l1);
+    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

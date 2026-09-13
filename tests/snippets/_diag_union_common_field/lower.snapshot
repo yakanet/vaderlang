@@ -18,64 +18,40 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            name_of :fn(Aligned | AlsoAligned) -> string
           arg0:
-            call :string
-              callee:
-                name_of :fn(Aligned | AlsoAligned) -> string
-              arg0:
-                Aligned! {
-                  name: "aligned-a" :string
-                  tag: int(1) :i32
-                }
-          arg1:
-            "\n" :string
+            Aligned! {
+              name: "aligned-a" :string
+              tag: int(1) :i32
+            }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            name_of :fn(Aligned | AlsoAligned) -> string
           arg0:
-            call :string
-              callee:
-                name_of :fn(Aligned | AlsoAligned) -> string
-              arg0:
-                AlsoAligned! {
-                  name: "aligned-b" :string
-                  extra: true
-                }
-          arg1:
-            "\n" :string
+            AlsoAligned! {
+              name: "aligned-b" :string
+              extra: true
+            }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            label_of :fn(Back | Front) -> string
           arg0:
-            call :string
-              callee:
-                label_of :fn(Back | Front) -> string
-              arg0:
-                Front! {
-                  tag: int(1) :i32
-                  label: "front" :string
-                }
-          arg1:
-            "\n" :string
+            Front! {
+              tag: int(1) :i32
+              label: "front" :string
+            }
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -48,6 +48,7 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
+static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -102,7 +103,6 @@ static int32_t snippet_main(void) {
     void* l9 = NULL;
     size_t l3, l4, l5, l6, l8, l10;
     vader_string_t l7 = 0;
-    vader_string_t l12 = 0;
     int64_t l11;
     void* t0 = NULL;
     int32_t t1;
@@ -116,8 +116,8 @@ static int32_t snippet_main(void) {
     vader_struct_snippet_Decl_t _a10_storage = {0};
     vader_struct_snippet_FileMod_t _a13_storage = {0};
     void* gc_stack_objs[6] = { (void*) &_a0_storage, (void*) &_a2_storage, (void*) &_a5_storage, (void*) &_a8_storage, (void*) &_a10_storage, (void*) &_a13_storage };
-    vader_string_t* gc_atom_roots[3] = { &l7, &l12, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 6u, gc_stack_objs, 3u, gc_atom_roots };
+    vader_string_t* gc_atom_roots[2] = { &l7, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 6u, gc_stack_objs, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/generator_struct_elem/_main.vader"
     vader_struct_snippet_Decl_t* _a1_obj = &_a0_storage;
@@ -196,9 +196,7 @@ static int32_t snippet_main(void) {
                             l11 = ((int64_t) (int32_t) t1);
                             l10 = std_core_write_int(l9, l10, l11);
                             t2 = std_core_finish_buffer(l9, l10);
-#line 235 "lib/std/io/io.vader"
-                            l12 = concat_2(t2, 5u);
-                            std_io_write(INT32_C(0), l12);
+                            std_io_println__string(t2);
 #line 11 "tests/snippets/generator_struct_elem/_main.vader"
                             t3 = (l6 + INT64_C(1));
                             l6 = (size_t) (int64_t) t3;
@@ -420,6 +418,18 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_io_println__string(vader_string_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 235 "lib/std/io/io.vader"
+    l1 = concat_2(l0, 5u);
+    std_io_write(INT32_C(0), l1);
+    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

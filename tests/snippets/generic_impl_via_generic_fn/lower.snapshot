@@ -77,47 +77,39 @@
                         __self_3 :__asyncstate_snippet_0!
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          block :string
-                            let __buf_1: Buffer =
-                              call :Buffer
-                                callee:
-                                  new_byte_buffer :Buffer
-                                arg0:
-                                  int(20) :usize
-                            let __off_2: usize = int(0) :usize
-                            assign
-                              target:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(20) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
                                 __off_2 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_int :usize
-                                  arg0:
-                                    __buf_1 :Buffer
-                                  arg1:
-                                    __off_2 :usize
-                                  arg2:
-                                    cast → i64
-                                      .s1 :i32
-                                        __self_3 :__asyncstate_snippet_0!
-                            ~>
-                              call :string
-                                callee:
-                                  finish_buffer :string
-                                arg0:
-                                  __buf_1 :Buffer
-                                arg1:
-                                  __off_2 :usize
-                        arg1:
-                          "\n" :string
+                              arg2:
+                                cast → i64
+                                  .s1 :i32
+                                    __self_3 :__asyncstate_snippet_0!
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
                   assign
                     target:
                       .state :i32
@@ -177,9 +169,11 @@
                                 __self_3 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>
-                                Box<i32>! {
-                                  v: int(5) :i32
-                                }
+                                call :Async<i32>
+                                  callee:
+                                    snippet$viagen__i32 :Async<i32>
+                                  arg0:
+                                    int(5) :i32
                           assign
                             target:
                               .state :i32

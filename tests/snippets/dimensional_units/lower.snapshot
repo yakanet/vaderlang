@@ -118,104 +118,87 @@
         int(150) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        cast → Money
-                          add :i64
-                            l:
-                              cast → i64
-                                a :Money
-                            r:
-                              cast → i64
-                                b :Money
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    call :Money
+                      callee:
+                        snippet$Money$Add$add :Money
+                      arg0:
+                        a :Money
+                      arg1:
+                        b :Money
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_2: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(5) :usize
-              let __off_3: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(5) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
                   __off_3 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_2 :Buffer
-                    arg1:
-                      __off_3 :usize
-                    arg2:
-                      gt :bool
-                        l:
-                          call :i32
-                            callee:
-                              snippet$Money$Comparable$compare :i32
-                            arg0:
-                              a :Money
-                            arg1:
-                              b :Money
-                        r:
-                          int(0) :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_2 :Buffer
-                  arg1:
-                    __off_3 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  gt :bool
+                    l:
+                      call :i32
+                        callee:
+                          snippet$Money$Comparable$compare :i32
+                        arg0:
+                          a :Money
+                        arg1:
+                          b :Money
+                    r:
+                      int(0) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     let t0: Instant =
       cast → Instant
         int(1000) :i32
@@ -223,107 +206,89 @@
       cast → Instant
         int(1250) :i32
     let elapsed: Duration =
-      cast → Duration
-        sub :i64
-          l:
-            cast → i64
-              t1 :Instant
-          r:
-            cast → i64
-              t0 :Instant
+      call :Duration
+        callee:
+          snippet$Instant$Sub$sub :Duration
+        arg0:
+          t1 :Instant
+        arg1:
+          t0 :Instant
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_4: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_5: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
                   __off_5 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_4 :Buffer
-                    arg1:
-                      __off_5 :usize
-                    arg2:
-                      cast → i64
-                        elapsed :Duration
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    elapsed :Duration
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     let later: Instant =
-      cast → Instant
-        add :i64
-          l:
-            cast → i64
-              t0 :Instant
-          r:
-            cast → i64
-              elapsed :Duration
+      call :Instant
+        callee:
+          snippet$Instant$Add$add :Instant
+        arg0:
+          t0 :Instant
+        arg1:
+          elapsed :Duration
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_6: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_7: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
                   __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      cast → i64
-                        later :Instant
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_6 :Buffer
-                  arg1:
-                    __off_7 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    later :Instant
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     let m: i64 =
       add :i64
         l:
@@ -334,45 +299,37 @@
             int(4) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_8: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_9: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
                   __off_9 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_8 :Buffer
-                    arg1:
-                      __off_9 :usize
-                    arg2:
-                      m :i64
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_8 :Buffer
-                  arg1:
-                    __off_9 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  m :i64
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

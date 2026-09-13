@@ -156,191 +156,103 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_char :fn(char) -> string
           arg0:
-            call :string
-              callee:
-                describe_char :fn(char) -> string
-              arg0:
-                char(0x3e)
-          arg1:
-            "\n" :string
+            char(0x3e)
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_char :fn(char) -> string
           arg0:
-            call :string
-              callee:
-                describe_char :fn(char) -> string
-              arg0:
-                char(0x2b)
-          arg1:
-            "\n" :string
+            char(0x2b)
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_char :fn(char) -> string
           arg0:
-            call :string
-              callee:
-                describe_char :fn(char) -> string
-              arg0:
-                char(0x78)
-          arg1:
-            "\n" :string
+            char(0x78)
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_int :fn(i32) -> string
           arg0:
-            call :string
-              callee:
-                describe_int :fn(i32) -> string
-              arg0:
-                int(0) :i32
-          arg1:
-            "\n" :string
+            int(0) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_int :fn(i32) -> string
           arg0:
-            call :string
-              callee:
-                describe_int :fn(i32) -> string
-              arg0:
-                int(1) :i32
-          arg1:
-            "\n" :string
+            int(1) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe_int :fn(i32) -> string
           arg0:
-            call :string
-              callee:
-                describe_int :fn(i32) -> string
-              arg0:
-                int(99) :i32
-          arg1:
-            "\n" :string
+            int(99) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            flag_label :fn(bool) -> string
           arg0:
-            call :string
-              callee:
-                flag_label :fn(bool) -> string
-              arg0:
-                true
-          arg1:
-            "\n" :string
+            true
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            flag_label :fn(bool) -> string
           arg0:
-            call :string
-              callee:
-                flag_label :fn(bool) -> string
-              arg0:
-                false
-          arg1:
-            "\n" :string
+            false
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            mode_name :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                mode_name :fn(string) -> string
-              arg0:
-                "r" :string
-          arg1:
-            "\n" :string
+            "r" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            mode_name :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                mode_name :fn(string) -> string
-              arg0:
-                "rw" :string
-          arg1:
-            "\n" :string
+            "rw" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            mode_name :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                mode_name :fn(string) -> string
-              arg0:
-                "nope" :string
-          arg1:
-            "\n" :string
+            "nope" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

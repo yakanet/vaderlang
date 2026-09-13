@@ -109,14 +109,13 @@
       cast → Instant
         int(250) :i32
     let d: Duration =
-      cast → Duration
-        sub :i64
-          l:
-            cast → i64
-              t1 :Instant
-          r:
-            cast → i64
-              t0 :Instant
+      call :Duration
+        callee:
+          snippet$Instant$Sub$sub :Duration
+        arg0:
+          t1 :Instant
+        arg1:
+          t0 :Instant
     if :void
       cond:
         lt :bool

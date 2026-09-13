@@ -15,10 +15,10 @@ type 12 array 11
 type 13 primitive void
 type 14 primitive isize
 string 0 "type_id(s)="
-string 1 "\n"
-string 2 "type_id(a)="
-string 3 "type_id(i)="
-string 4 "first(a)="
+string 1 "type_id(a)="
+string 2 "type_id(i)="
+string 3 "first(a)="
+string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=5,12,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -71,8 +71,7 @@ fn 2 snippet$main () -> i32
   local a any
   local i any
   local __off_1 usize
-  local $cast_24 i64
-  local $call_28 string
+  local $cast_23 i64
   i32.const 1
   i32.const 2
   array.new 7 2   ; i32[][]
@@ -105,21 +104,16 @@ fn 2 snippet$main () -> i32
   local.get 1   ; s
   call 0   ; snippet$type_id_of
   i32.to_i64
-  local.set 5   ; $cast_24
+  local.set 5   ; $cast_23
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  local.get 5   ; $cast_24
+  local.get 5   ; $cast_23
   call 7   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 3   ; concat_2
-  local.set 6   ; $call_28
-  i32.const 0
-  local.get 6   ; $call_28
-  call 8   ; std_io$write
+  call 10   ; std_io$println__string
   i64.const 31
   call 4   ; std_core$new_byte_buffer
   local.set 0   ; $arr_3
@@ -127,27 +121,22 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  string.const 2   ; "type_id(a)="
+  string.const 1   ; "type_id(a)="
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 2   ; a
   call 0   ; snippet$type_id_of
   i32.to_i64
-  local.set 5   ; $cast_24
+  local.set 5   ; $cast_23
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  local.get 5   ; $cast_24
+  local.get 5   ; $cast_23
   call 7   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 3   ; concat_2
-  local.set 6   ; $call_28
-  i32.const 0
-  local.get 6   ; $call_28
-  call 8   ; std_io$write
+  call 10   ; std_io$println__string
   i64.const 31
   call 4   ; std_core$new_byte_buffer
   local.set 0   ; $arr_3
@@ -155,27 +144,22 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  string.const 3   ; "type_id(i)="
+  string.const 2   ; "type_id(i)="
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 3   ; i
   call 0   ; snippet$type_id_of
   i32.to_i64
-  local.set 5   ; $cast_24
+  local.set 5   ; $cast_23
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  local.get 5   ; $cast_24
+  local.get 5   ; $cast_23
   call 7   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 3   ; concat_2
-  local.set 6   ; $call_28
-  i32.const 0
-  local.get 6   ; $call_28
-  call 8   ; std_io$write
+  call 10   ; std_io$println__string
   i64.const 29
   call 4   ; std_core$new_byte_buffer
   local.set 0   ; $arr_3
@@ -183,27 +167,22 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  string.const 4   ; "first(a)="
+  string.const 3   ; "first(a)="
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 2   ; a
   call 1   ; snippet$first_item
   i32.to_i64
-  local.set 5   ; $cast_24
+  local.set 5   ; $cast_23
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
-  local.get 5   ; $cast_24
+  local.get 5   ; $cast_23
   call 7   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $arr_3
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 3   ; concat_2
-  local.set 6   ; $call_28
-  i32.const 0
-  local.get 6   ; $call_28
-  call 8   ; std_io$write
+  call 10   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -225,11 +204,11 @@ fn 3 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 5   ; std_core$finish_buffer
@@ -238,14 +217,14 @@ end
 
 fn 4 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 10   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 11   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 5 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 12   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -254,7 +233,7 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 13   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -278,7 +257,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 11   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -355,7 +334,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         local.get 0   ; arg 0
         local.get 4   ; ndigits
         local.get 8   ; $add_37
-        call 11   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         i64.div
@@ -369,7 +348,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
-    call 11   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -455,13 +434,25 @@ fn 9 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 10 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 4   ; "\n"
+  call 3   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 8   ; std_io$write
+  return
+end
+
+fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -469,14 +460,14 @@ fn 11 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

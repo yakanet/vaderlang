@@ -14,8 +14,11 @@
         v:
           add :i32
             l:
-              .a :i32
-                self :A
+              call :i32
+                callee:
+                  snippet$A$Widget$base :i32
+                arg0:
+                  self :A
             r:
               int(100) :i32
       }
@@ -24,8 +27,11 @@
       mul :i64
         l:
           cast → i64
-            .a :i32
-              self :A
+            call :i32
+              callee:
+                snippet$A$Widget$base :i32
+              arg0:
+                self :A
         r:
           int(2) :i64
   fn snippet$A$Widget$label(self: A!) -> string
@@ -64,8 +70,11 @@
                 __off_1 :usize
               arg2:
                 cast → i64
-                  .a :i32
-                    self :A
+                  call :i32
+                    callee:
+                      snippet$A$Widget$base :i32
+                    arg0:
+                      self :A
         ~>
           call :string
             callee:
@@ -77,12 +86,18 @@
   fn snippet$A$Widget$pair(self: A!) -> i32[]!
     ~>
       array :i32[]!
-        .a :i32
-          self :A
+        call :i32
+          callee:
+            snippet$A$Widget$base :i32
+          arg0:
+            self :A
         add :i32
           l:
-            .a :i32
-              self :A
+            call :i32
+              callee:
+                snippet$A$Widget$base :i32
+              arg0:
+                self :A
           r:
             int(1) :i32
   fn snippet$B$Widget$base(self: B!) -> i32
@@ -95,8 +110,11 @@
         v:
           add :i32
             l:
-              .b :i32
-                self :B
+              call :i32
+                callee:
+                  snippet$B$Widget$base :i32
+                arg0:
+                  self :B
             r:
               int(100) :i32
       }
@@ -105,8 +123,11 @@
       mul :i64
         l:
           cast → i64
-            .b :i32
-              self :B
+            call :i32
+              callee:
+                snippet$B$Widget$base :i32
+              arg0:
+                self :B
         r:
           int(2) :i64
   fn snippet$B$Widget$label(self: B!) -> string
@@ -145,8 +166,11 @@
                 __off_1 :usize
               arg2:
                 cast → i64
-                  .b :i32
-                    self :B
+                  call :i32
+                    callee:
+                      snippet$B$Widget$base :i32
+                    arg0:
+                      self :B
         ~>
           call :string
             callee:
@@ -158,12 +182,18 @@
   fn snippet$B$Widget$pair(self: B!) -> i32[]!
     ~>
       array :i32[]!
-        .b :i32
-          self :B
+        call :i32
+          callee:
+            snippet$B$Widget$base :i32
+          arg0:
+            self :B
         add :i32
           l:
-            .b :i32
-              self :B
+            call :i32
+              callee:
+                snippet$B$Widget$base :i32
+              arg0:
+                self :B
           r:
             int(1) :i32
   fn snippet$main() -> i32
@@ -181,15 +211,11 @@
         neq :bool
           l:
             .v :i32
-              Box! {
-                v:
-                  add :i32
-                    l:
-                      .a :i32
-                        a :A!
-                    r:
-                      int(100) :i32
-              }
+              call :Box!
+                callee:
+                  snippet$A$Widget$boxed :Box!
+                arg0:
+                  a :A!
           r:
             int(101) :i32
       then:
@@ -203,15 +229,11 @@
         neq :bool
           l:
             .v :i32
-              Box! {
-                v:
-                  add :i32
-                    l:
-                      .b :i32
-                        b :B!
-                    r:
-                      int(100) :i32
-              }
+              call :Box!
+                callee:
+                  snippet$B$Widget$boxed :Box!
+                arg0:
+                  b :B!
           r:
             int(102) :i32
       then:
@@ -224,13 +246,11 @@
       cond:
         neq :bool
           l:
-            mul :i64
-              l:
-                cast → i64
-                  .a :i32
-                    a :A!
-              r:
-                int(2) :i64
+            call :i64
+              callee:
+                snippet$A$Widget$wide :i64
+              arg0:
+                a :A!
           r:
             int(2) :i64
       then:
@@ -243,13 +263,11 @@
       cond:
         neq :bool
           l:
-            mul :i64
-              l:
-                cast → i64
-                  .b :i32
-                    b :B!
-              r:
-                int(2) :i64
+            call :i64
+              callee:
+                snippet$B$Widget$wide :i64
+              arg0:
+                b :B!
           r:
             int(4) :i64
       then:
@@ -293,15 +311,11 @@
           value:
             false
     let pa: i32[]! =
-      array :i32[]!
-        .a :i32
+      call :i32[]!
+        callee:
+          snippet$A$Widget$pair :i32[]!
+        arg0:
           a :A!
-        add :i32
-          l:
-            .a :i32
-              a :A!
-          r:
-            int(1) :i32
     if :void
       cond:
         neq :bool
@@ -337,15 +351,11 @@
           value:
             false
     let pb: i32[]! =
-      array :i32[]!
-        .b :i32
+      call :i32[]!
+        callee:
+          snippet$B$Widget$pair :i32[]!
+        arg0:
           b :B!
-        add :i32
-          l:
-            .b :i32
-              b :B!
-          r:
-            int(1) :i32
     if :void
       cond:
         neq :bool
@@ -386,31 +396,15 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "all ok" :string
-              arg1:
-                "\n" :string
+            "all ok" :string
         return int(0) :i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "FAIL" :string
-          arg1:
-            "\n" :string
+        "FAIL" :string
     return int(1) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -21,17 +21,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "7 is prime" :string
-              arg1:
-                "\n" :string
+            "7 is prime" :string
     if :void
       cond:
         not :bool
@@ -45,17 +37,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "4 is not prime" :string
-              arg1:
-                "\n" :string
+            "4 is not prime" :string
     let vowels: u8[] =
       call :u8[]
         callee:
@@ -74,17 +58,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "e is vowel" :string
-              arg1:
-                "\n" :string
+            "e is vowel" :string
     if :void
       cond:
         not :bool
@@ -98,17 +74,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "z is not vowel" :string
-              arg1:
-                "\n" :string
+            "z is not vowel" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

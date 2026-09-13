@@ -9,10 +9,16 @@ export main 0
 fn 0 snippet$main () -> i32
   i32.const 12
   struct.new 4   ; $Cell_i32
-  struct.new_stack 2   ; __lambda_env_snippet_1
-  struct.get 2 0   ; __lambda_env_snippet_1.cap_0
-  struct.get 4 0   ; $Cell_i32.value
+  struct.new 2   ; __lambda_env_snippet_1
   i32.const 5
+  call 1   ; __lambda_snippet_0
+  return
+end
+
+fn 1 __lambda_snippet_0 (ref,i32) -> i32
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 4 0   ; $Cell_i32.value
+  local.get 1   ; arg 1
   i32.add
   return
 end

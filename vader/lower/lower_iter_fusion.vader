@@ -902,9 +902,9 @@ emit_fused_array :: fn(
     }
     arr_ref :: LoweredIdent { .span = span, .type = arr_type, .symbol = arr_sym }
     // BCE : mark the preheader `arr.len()` + the synthesized `arr[idx]` access as
-    // candidates. The post-inline `bce_hoist_tag` pass runs AFTER `inline_fns`, so
-    // by then the map/filter callbacks fused into `template.user_body` are their
-    // inlined bodies — a pure `a.map(square)` proves safe and gets the resolve
+    // candidates. `bce_hoist_tag` runs AFTER `devirtualize_fn_refs`, so by then the
+    // map/filter callbacks fused into `template.user_body` are DIRECT calls whose
+    // purity `bce_fn_pure` can resolve — a pure `a.map(square)` proves safe and gets the resolve
     // hoist ; an allocating callback keeps the per-iteration resolve. No combinator
     // is special-cased — the pass only asks "does the inlined body allocate/call?".
     len_let :: LoweredLet {

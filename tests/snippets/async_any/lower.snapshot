@@ -181,17 +181,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "winner cleanup" :string
-            arg1:
-              "\n" :string
+          "winner cleanup" :string
   struct __asyncstate_snippet_3 { s0: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_3$Async$resume(self: __asyncstate_snippet_3!) -> Boom | string | Suspended!
     loop
@@ -494,26 +486,18 @@
                           __self_1 :__asyncstate_snippet_4!
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          call :string
-                            callee:
-                              concat_2 :string
-                            arg0:
-                              "all failed: " :string
-                            arg1:
-                              vcall Error.message :string
-                                recv:
-                                  .s2 :Error
-                                    __self_1 :__asyncstate_snippet_4!
+                          "all failed: " :string
                         arg1:
-                          "\n" :string
+                          vcall Error.message :string
+                            recv:
+                              .s2 :Error
+                                __self_1 :__asyncstate_snippet_4!
                   assign
                     target:
                       .state :i32
@@ -532,25 +516,17 @@
                     then:
                       call :void
                         callee:
-                          write :fn(Stream, string) -> void
+                          std_io$println__string :void
                         arg0:
-                          int(0) :i32
-                        arg1:
                           call :string
                             callee:
                               concat_2 :string
                             arg0:
-                              call :string
-                                callee:
-                                  concat_2 :string
-                                arg0:
-                                  "first success: " :string
-                                arg1:
-                                  cast → string
-                                    .s1 :Boom! | string
-                                      __self_1 :__asyncstate_snippet_4!
+                              "first success: " :string
                             arg1:
-                              "\n" :string
+                              cast → string
+                                .s1 :Boom! | string
+                                  __self_1 :__asyncstate_snippet_4!
                       assign
                         target:
                           .state :i32
@@ -662,8 +638,10 @@
                                             __self_1 :__asyncstate_snippet_4!
                                         value:
                                           cast → Async<Any>
-                                            Any<string, Any>! {
-                                              children:
+                                            call :Async<Boom! | string>
+                                              callee:
+                                                std_async$any__string__Any :Async<Boom! | string>
+                                              arg0:
                                                 array :Async<Boom | string>[]
                                                   call :Async<Boom | string>
                                                     callee:
@@ -671,23 +649,6 @@
                                                   call :Async<Boom | string>
                                                     callee:
                                                       win_slow :fn() -> Async<Boom | string>
-                                              errors:
-                                                MutableSet<usize>! {
-                                                  inner:
-                                                    MutableMap<usize, bool>! {
-                                                      ekeys:
-                                                        array :usize[]!
-                                                      evals:
-                                                        array :bool[]!
-                                                      index:
-                                                        array :i32[]!
-                                                      mask: int(0) :usize
-                                                      size: int(0) :usize
-                                                      tombs: int(0) :usize
-                                                    }
-                                                }
-                                              last: null
-                                            }
                                       assign
                                         target:
                                           .state :i32

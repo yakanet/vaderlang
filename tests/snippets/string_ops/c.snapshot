@@ -35,6 +35,7 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static void std_io_write(int32_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
+static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
@@ -80,9 +81,8 @@ static int32_t snippet_main(void) {
     l0 = concat_2(t0, 3u);
 #line 16 "tests/snippets/string_ops/_main.vader"
     if (l0 == 4u) {
-#line 235 "lib/std/io/io.vader"
-        l0 = concat_2(l0, 5u);
-        std_io_write(INT32_C(0), l0);
+#line 17 "tests/snippets/string_ops/_main.vader"
+        std_io_println__string(l0);
 #line 18 "tests/snippets/string_ops/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 #line 16 "tests/snippets/string_ops/_main.vader"
@@ -202,6 +202,18 @@ static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_io_println__string(vader_string_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 235 "lib/std/io/io.vader"
+    l1 = concat_2(l0, 5u);
+    std_io_write(INT32_C(0), l1);
+    { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 

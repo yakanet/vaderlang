@@ -10,31 +10,23 @@
           int(10) :i32
   fn snippet$main() -> i32
     return
-      add :i32
-        l:
-          mul :i32
-            l:
-              int(7) :i32
-            r:
-              int(10) :i32
-        r:
-          mul :i32
-            l:
-              int(7) :i32
-            r:
-              int(10) :i32
+      call :i32
+        callee:
+          snippet$apply_tag__i32 :i32
+        arg0:
+          int(7) :i32
   fn snippet$apply_tag__i32(x: i32) -> i32
     return
       add :i32
         l:
-          mul :i32
-            l:
+          call :i32
+            callee:
+              snippet$i32$Tagger$tag :i32
+            arg0:
               x :i32
-            r:
-              int(10) :i32
         r:
-          mul :i32
-            l:
+          call :i32
+            callee:
+              snippet$i32$Tagger$tag :i32
+            arg0:
               x :i32
-            r:
-              int(10) :i32

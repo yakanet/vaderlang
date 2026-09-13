@@ -11,37 +11,21 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            takes :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                takes :fn(string) -> string
-              arg0:
-                cast → Tag
-                  "coerced" :string
-          arg1:
-            "\n" :string
+            cast → Tag
+              "coerced" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            cast → string
-              cast → Tag
-                "unwrapped" :string
-          arg1:
-            "\n" :string
+        cast → string
+          cast → Tag
+            "unwrapped" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

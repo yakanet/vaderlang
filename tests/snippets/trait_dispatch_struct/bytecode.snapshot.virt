@@ -1,17 +1,32 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-export main 0
+export main 1
 
-fn 0 snippet$main () -> i32
-  local $mul_2 i32
-  local $mul_5 i32
-  i32.const 70
-  local.set 0   ; $mul_2
-  i32.const 70
-  local.set 1   ; $mul_5
-  local.get 0   ; $mul_2
-  local.get 1   ; $mul_5
+fn 0 snippet$i32$Tagger$tag (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.mul
+  return
+end
+
+fn 1 snippet$main () -> i32
+  i32.const 7
+  call 2   ; snippet$apply_tag__i32
+  return
+end
+
+fn 2 snippet$apply_tag__i32 (i32) -> i32
+  local $call_1 i32
+  local $call_2 i32
+  local.get 0   ; arg 0
+  call 0   ; snippet$i32$Tagger$tag
+  local.set 1   ; $call_1
+  local.get 0   ; arg 0
+  call 0   ; snippet$i32$Tagger$tag
+  local.set 2   ; $call_2
+  local.get 1   ; $call_1
+  local.get 2   ; $call_2
   i32.add
   return
 end

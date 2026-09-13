@@ -55,17 +55,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "range yes" :string
-              arg1:
-                "\n" :string
+            "range yes" :string
     if :void
       cond:
         not :bool
@@ -84,17 +76,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "range !in yes" :string
-              arg1:
-                "\n" :string
+            "range !in yes" :string
     if :void
       cond:
         call :bool
@@ -112,17 +96,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "range incl yes" :string
-              arg1:
-                "\n" :string
+            "range incl yes" :string
     let s: DigitSet! =
       DigitSet! {
         bits:
@@ -160,17 +136,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "set has 4" :string
-              arg1:
-                "\n" :string
+            "set has 4" :string
     if :void
       cond:
         not :bool
@@ -184,17 +152,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "set lacks 5" :string
-              arg1:
-                "\n" :string
+            "set lacks 5" :string
     if :void
       cond:
         call :bool
@@ -207,17 +167,9 @@
       then:
         call :void
           callee:
-            write :fn(Stream, string) -> void
+            std_io$println__string :void
           arg0:
-            int(0) :i32
-          arg1:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "set has 7" :string
-              arg1:
-                "\n" :string
+            "set has 7" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

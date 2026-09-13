@@ -37,21 +37,13 @@
         char(0x21)
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                sb :StringBuilder!
-          arg1:
-            "\n" :string
+            sb :StringBuilder!
     let sb2: StringBuilder! =
       StringBuilder! {
         parts:
@@ -80,21 +72,13 @@
         "baz" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                sb2 :StringBuilder!
-          arg1:
-            "\n" :string
+            sb2 :StringBuilder!
     let sb3: StringBuilder! =
       StringBuilder! {
         parts:
@@ -102,29 +86,21 @@
       }
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            concat_3 :string
           arg0:
+            "empty='" :string
+          arg1:
             call :string
               callee:
-                concat_3 :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                "empty='" :string
-              arg1:
-                call :string
-                  callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
-                  arg0:
-                    sb3 :StringBuilder!
-              arg2:
-                "'" :string
-          arg1:
-            "\n" :string
+                sb3 :StringBuilder!
+          arg2:
+            "'" :string
     let sb4: StringBuilder! =
       StringBuilder! {
         parts:
@@ -146,21 +122,13 @@
         char(0x29)
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                sb4 :StringBuilder!
-          arg1:
-            "\n" :string
+            sb4 :StringBuilder!
     let n: i32 = int(42) :i32
     let sb5: StringBuilder! =
       StringBuilder! {
@@ -212,21 +180,13 @@
                 __off_1 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                sb5 :StringBuilder!
-          arg1:
-            "\n" :string
+            sb5 :StringBuilder!
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

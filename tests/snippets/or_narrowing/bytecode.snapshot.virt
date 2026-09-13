@@ -164,49 +164,23 @@ fn 5 snippet$furry_or_bird (any) -> string
 end
 
 fn 6 snippet$main () -> i32
-  local $call_4 string
   i32.const 0
   call 3   ; snippet$describe
-  string.const 7   ; "\n"
-  call 7   ; concat_2
-  local.set 0   ; $call_4
-  i32.const 0
-  local.get 0   ; $call_4
-  call 10   ; std_io$write
+  call 12   ; std_io$println__string
   i32.const 1
   call 3   ; snippet$describe
-  string.const 7   ; "\n"
-  call 7   ; concat_2
-  local.set 0   ; $call_4
-  i32.const 0
-  local.get 0   ; $call_4
-  call 10   ; std_io$write
+  call 12   ; std_io$println__string
   i32.const 2
   call 3   ; snippet$describe
-  string.const 7   ; "\n"
-  call 7   ; concat_2
-  local.set 0   ; $call_4
-  i32.const 0
-  local.get 0   ; $call_4
-  call 10   ; std_io$write
+  call 12   ; std_io$println__string
   i32.const 1
   bool.const false
   call 4   ; snippet$not_dog
-  string.const 7   ; "\n"
-  call 7   ; concat_2
-  local.set 0   ; $call_4
-  i32.const 0
-  local.get 0   ; $call_4
-  call 10   ; std_io$write
+  call 12   ; std_io$println__string
   i32.const 2
   bool.const false
   call 4   ; snippet$not_dog
-  string.const 7   ; "\n"
-  call 7   ; concat_2
-  local.set 0   ; $call_4
-  i32.const 0
-  local.get 0   ; $call_4
-  call 10   ; std_io$write
+  call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -228,11 +202,11 @@ fn 7 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 9   ; std_core$finish_buffer
@@ -241,14 +215,14 @@ end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 13   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -330,20 +304,32 @@ fn 11 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 7   ; "\n"
+  call 7   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 10   ; std_io$write
+  return
+end
+
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

@@ -30,81 +30,65 @@
                 ~>
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          "empty" :string
-                        arg1:
-                          "\n" :string
+                      "empty" :string
           else:
             ~>
               block :void
                 ~>
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          block :string
-                            let __buf_1: Buffer =
-                              call :Buffer
-                                callee:
-                                  new_byte_buffer :Buffer
-                                arg0:
-                                  int(26) :usize
-                            let __off_2: usize = int(0) :usize
-                            assign
-                              target:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(26) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
                                 __off_2 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_string_at :usize
-                                  arg0:
-                                    __buf_1 :Buffer
-                                  arg1:
-                                    __off_2 :usize
-                                  arg2:
-                                    "count=" :string
-                            assign
-                              target:
+                              arg2:
+                                "count=" :string
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
                                 __off_2 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_int :usize
-                                  arg0:
-                                    __buf_1 :Buffer
-                                  arg1:
-                                    __off_2 :usize
-                                  arg2:
-                                    cast → i64
-                                      call :i32
-                                        callee:
-                                          count :fn(i32[]) -> i32
-                                        arg0:
-                                          .items :i32[]
-                                            b :Bag!
-                            ~>
-                              call :string
-                                callee:
-                                  finish_buffer :string
-                                arg0:
-                                  __buf_1 :Buffer
-                                arg1:
-                                  __off_2 :usize
-                        arg1:
-                          "\n" :string
+                              arg2:
+                                cast → i64
+                                  call :i32
+                                    callee:
+                                      count :fn(i32[]) -> i32
+                                    arg0:
+                                      .items :i32[]
+                                        b :Bag!
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
     let empty: Bag! =
       Bag! {
         items: null
@@ -124,81 +108,65 @@
                 ~>
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          "empty" :string
-                        arg1:
-                          "\n" :string
+                      "empty" :string
           else:
             ~>
               block :void
                 ~>
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          block :string
-                            let __buf_4: Buffer =
-                              call :Buffer
-                                callee:
-                                  new_byte_buffer :Buffer
-                                arg0:
-                                  int(26) :usize
-                            let __off_5: usize = int(0) :usize
-                            assign
-                              target:
+                      block :string
+                        let __buf_4: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(26) :usize
+                        let __off_5: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_5 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
                                 __off_5 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_string_at :usize
-                                  arg0:
-                                    __buf_4 :Buffer
-                                  arg1:
-                                    __off_5 :usize
-                                  arg2:
-                                    "count=" :string
-                            assign
-                              target:
+                              arg2:
+                                "count=" :string
+                        assign
+                          target:
+                            __off_5 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
                                 __off_5 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_int :usize
-                                  arg0:
-                                    __buf_4 :Buffer
-                                  arg1:
-                                    __off_5 :usize
-                                  arg2:
-                                    cast → i64
-                                      call :i32
-                                        callee:
-                                          count :fn(i32[]) -> i32
-                                        arg0:
-                                          .items :i32[]
-                                            empty :Bag!
-                            ~>
-                              call :string
-                                callee:
-                                  finish_buffer :string
-                                arg0:
-                                  __buf_4 :Buffer
-                                arg1:
-                                  __off_5 :usize
-                        arg1:
-                          "\n" :string
+                              arg2:
+                                cast → i64
+                                  call :i32
+                                    callee:
+                                      count :fn(i32[]) -> i32
+                                    arg0:
+                                      .items :i32[]
+                                        empty :Bag!
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

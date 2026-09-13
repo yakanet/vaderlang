@@ -9,17 +9,17 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive u8
 type 8 array 7
 type 9 primitive isize
-string 0 "\n"
-string 1 "BAD"
-string 2 "shr_high"
-string 3 "shr_top_bit"
-string 4 "shl_top"
-string 5 "shl_wrap"
-string 6 "and"
-string 7 "or"
-string 8 "xor"
-string 9 "not_zero"
-string 10 "not_top"
+string 0 "BAD"
+string 1 "shr_high"
+string 2 "shr_top_bit"
+string 3 "shl_top"
+string 4 "shl_wrap"
+string 5 "and"
+string 6 "or"
+string 7 "xor"
+string 8 "not_zero"
+string 9 "not_top"
+string 10 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -27,24 +27,13 @@ impl 6 ByteAccess
 export main 1
 
 fn 0 snippet$check (string,bool) -> void
-  local $call_4 string
   local.get 1   ; arg 1
   if $L0 void
     local.get 0   ; arg 0
-    string.const 0   ; "\n"
-    call 2   ; concat_2
-    local.set 2   ; $call_4
-    i32.const 0
-    local.get 2   ; $call_4
-    call 5   ; std_io$write
+    call 7   ; std_io$println__string
   else
-    string.const 1   ; "BAD"
-    string.const 0   ; "\n"
-    call 2   ; concat_2
-    local.set 2   ; $call_4
-    i32.const 0
-    local.get 2   ; $call_4
-    call 5   ; std_io$write
+    string.const 0   ; "BAD"
+    call 7   ; std_io$println__string
   end $L0
   return
 end
@@ -63,7 +52,7 @@ fn 1 snippet$main () -> i32
   i32.const 2147483647
   i32.eq
   local.set 2   ; $eq_8
-  string.const 2   ; "shr_high"
+  string.const 1   ; "shr_high"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 1   ; b
@@ -72,7 +61,7 @@ fn 1 snippet$main () -> i32
   i32.const 1
   i32.eq
   local.set 2   ; $eq_8
-  string.const 3   ; "shr_top_bit"
+  string.const 2   ; "shr_top_bit"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   i32.const 1
@@ -81,7 +70,7 @@ fn 1 snippet$main () -> i32
   local.get 1   ; b
   i32.eq
   local.set 2   ; $eq_8
-  string.const 4   ; "shl_top"
+  string.const 3   ; "shl_top"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 1   ; b
@@ -90,7 +79,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   i32.eq
   local.set 2   ; $eq_8
-  string.const 5   ; "shl_wrap"
+  string.const 4   ; "shl_wrap"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 0   ; a
@@ -99,7 +88,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.eq
   local.set 2   ; $eq_8
-  string.const 6   ; "and"
+  string.const 5   ; "and"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 1   ; b
@@ -108,7 +97,7 @@ fn 1 snippet$main () -> i32
   i32.const -2147483647
   i32.eq
   local.set 2   ; $eq_8
-  string.const 7   ; "or"
+  string.const 6   ; "or"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 0   ; a
@@ -117,7 +106,7 @@ fn 1 snippet$main () -> i32
   i32.const 2147483647
   i32.eq
   local.set 2   ; $eq_8
-  string.const 8   ; "xor"
+  string.const 7   ; "xor"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   i32.const 0
@@ -125,7 +114,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.eq
   local.set 2   ; $eq_8
-  string.const 9   ; "not_zero"
+  string.const 8   ; "not_zero"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   local.get 1   ; b
@@ -133,7 +122,7 @@ fn 1 snippet$main () -> i32
   i32.const 2147483647
   i32.eq
   local.set 2   ; $eq_8
-  string.const 10   ; "not_top"
+  string.const 9   ; "not_top"
   local.get 2   ; $eq_8
   call 0   ; snippet$check
   return.lit i32.const 0
@@ -157,11 +146,11 @@ fn 2 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 4   ; std_core$finish_buffer
@@ -170,14 +159,14 @@ end
 
 fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 7   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 8   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 4 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 8   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 9   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -259,20 +248,32 @@ fn 6 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 7 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 10   ; "\n"
+  call 2   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 5   ; std_io$write
+  return
+end
+
+fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

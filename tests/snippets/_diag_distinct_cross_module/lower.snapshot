@@ -29,14 +29,13 @@
   fn snippet_units$elapsed(start: Instant, end: Instant) -> i64
     ~>
       cast → i64
-        cast → Duration
-          sub :i64
-            l:
-              cast → i64
-                end :Instant
-            r:
-              cast → i64
-                start :Instant
+        call :Duration
+          callee:
+            snippet_units$Instant$Sub$sub :Duration
+          arg0:
+            end :Instant
+          arg1:
+            start :Instant
   fn snippet_units$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
     ~>
       cast → Duration

@@ -31,23 +31,15 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
           call :string
             callee:
               concat_2 :string
             arg0:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "cleanup " :string
-                arg1:
-                  LoweredCellGet
+              "cleanup " :string
             arg1:
-              "\n" :string
+              LoweredCellGet
   struct __asyncstate_snippet_2 { s0: ?, s1: i64, s2: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> string | Suspended!
     loop
@@ -351,24 +343,16 @@
                         __self_1 :__asyncstate_snippet_3!
                   call :void
                     callee:
-                      write :fn(Stream, string) -> void
+                      std_io$println__string :void
                     arg0:
-                      int(0) :i32
-                    arg1:
                       call :string
                         callee:
                           concat_2 :string
                         arg0:
-                          call :string
-                            callee:
-                              concat_2 :string
-                            arg0:
-                              "winner: " :string
-                            arg1:
-                              .s1 :string
-                                __self_1 :__asyncstate_snippet_3!
+                          "winner: " :string
                         arg1:
-                          "\n" :string
+                          .s1 :string
+                            __self_1 :__asyncstate_snippet_3!
                   assign
                     target:
                       .state :i32
@@ -428,8 +412,10 @@
                                 __self_1 :__asyncstate_snippet_3!
                             value:
                               cast → Async<Any>
-                                Race<string>! {
-                                  children:
+                                call :Async<string>
+                                  callee:
+                                    std_async$race__string :Async<string>
+                                  arg0:
                                     array :Async<string>[]
                                       call :Async<string>
                                         callee:
@@ -445,7 +431,6 @@
                                           "slow" :string
                                         arg1:
                                           int(100) :i64
-                                }
                           assign
                             target:
                               .state :i32

@@ -24,17 +24,9 @@
         LoweredTypeConst
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "ok" :string
-          arg1:
-            "\n" :string
+        "ok" :string
     return int(0) :i32
   fn snippet$accept_type(t: type) -> void
   fn concat_2(p0: string, p1: string) -> string

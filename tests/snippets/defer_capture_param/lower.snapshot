@@ -11,23 +11,15 @@
       LoweredMakeClosure
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
             concat_2 :string
           arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "running " :string
-              arg1:
-                LoweredCellGet
+            "running " :string
           arg1:
-            "\n" :string
+            LoweredCellGet
     defer.pop_exec 1
   fn snippet$bump_at_exit(counter: Counter!, by: i64) -> void
     let counter: ? =
@@ -38,58 +30,50 @@
       LoweredMakeClosure
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_1: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(31) :usize
-              let __off_2: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(31) :usize
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
                   __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      "bumping by " :string
-              assign
-                target:
+                arg2:
+                  "bumping by " :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
                   __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      LoweredCellGet
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  LoweredCellGet
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
     defer.pop_exec 1
   fn snippet$make_greeter(name: string) -> void
     let name: ? =
@@ -101,23 +85,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          __lambda_snippet_4 :fn() -> void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "hello " :string
-                arg1:
-                  LoweredCellGet
-            arg1:
-              "\n" :string
+          greet :__lambda_env_snippet_5!
   fn snippet$main() -> i32
     call :void
       callee:
@@ -146,59 +116,51 @@
         int(4) :i64
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(33) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "counter.hits=" :string
-              assign
-                target:
+                arg2:
+                  "counter.hits=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      .hits :i64
-                        counter :Counter!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  .hits :i64
+                    counter :Counter!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         make_greeter :fn(string) -> void
@@ -210,94 +172,86 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              block :string
-                let __p_0: string =
-                  LoweredCellGet
-                let __buf_1: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      add :usize
-                        l:
-                          int(36) :usize
-                        r:
-                          call :usize
-                            callee:
-                              byte_len :usize
-                            arg0:
-                              __p_0 :string
-                let __off_2: usize = int(0) :usize
-                assign
-                  target:
+          block :string
+            let __p_0: string =
+              LoweredCellGet
+            let __buf_1: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  add :usize
+                    l:
+                      int(36) :usize
+                    r:
+                      call :usize
+                        callee:
+                          byte_len :usize
+                        arg0:
+                          __p_0 :string
+            let __off_2: usize = int(0) :usize
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
                     __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
-                        __off_2 :usize
-                      arg2:
-                        "exit " :string
-                assign
-                  target:
+                  arg2:
+                    "exit " :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
                     __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
-                        __off_2 :usize
-                      arg2:
-                        __p_0 :string
-                assign
-                  target:
+                  arg2:
+                    __p_0 :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
                     __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
-                        __off_2 :usize
-                      arg2:
-                        " with code=" :string
-                assign
-                  target:
+                  arg2:
+                    " with code=" :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
                     __off_2 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_int :usize
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
-                        __off_2 :usize
-                      arg2:
-                        LoweredCellGet
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-            arg1:
-              "\n" :string
+                  arg2:
+                    LoweredCellGet
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
   struct __defer_env_snippet_3 { cap_0: ?, cap_1: ? }
   fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     assign
@@ -316,23 +270,15 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
           call :string
             callee:
               concat_2 :string
             arg0:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "hello " :string
-                arg1:
-                  LoweredCellGet
+              "hello " :string
             arg1:
-              "\n" :string
+              LoweredCellGet
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

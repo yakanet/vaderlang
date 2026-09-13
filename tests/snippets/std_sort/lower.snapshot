@@ -126,17 +126,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              sb :string
-            arg1:
-              "\n" :string
+          sb :string
   fn snippet$print_strings(arr: string[]) -> void
     let sb: string = "" :string
     let i: i32 = int(0) :i32
@@ -203,17 +195,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              sb :string
-            arg1:
-              "\n" :string
+          sb :string
   fn snippet$main() -> i32
     let one: i32[] =
       call :i32[]

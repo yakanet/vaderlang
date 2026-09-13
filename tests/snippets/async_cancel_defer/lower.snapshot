@@ -10,17 +10,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "never cancelled" :string
-            arg1:
-              "\n" :string
+          "never cancelled" :string
   fn snippet$inner() -> Async<i32>
     return
       __asyncstate_snippet_2! {
@@ -56,34 +48,18 @@
         o :Async<i32>
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "done" :string
-          arg1:
-            "\n" :string
+        "done" :string
     return int(0) :i32
   struct __defer_env_snippet_1 {  }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "inner cleanup" :string
-            arg1:
-              "\n" :string
+          "inner cleanup" :string
   struct __asyncstate_snippet_2 { s0: Async<i32>, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
     loop
@@ -201,17 +177,9 @@
                                 __self_2 :__asyncstate_snippet_2!
                           call :void
                             callee:
-                              write :fn(Stream, string) -> void
+                              std_io$println__string :void
                             arg0:
-                              int(0) :i32
-                            arg1:
-                              call :string
-                                callee:
-                                  concat_2 :string
-                                arg0:
-                                  "inner body (unreached)" :string
-                                arg1:
-                                  "\n" :string
+                              "inner body (unreached)" :string
                           assign
                             target:
                               .state :i32
@@ -360,17 +328,9 @@
     ~>
       call :void
         callee:
-          write :fn(Stream, string) -> void
+          std_io$println__string :void
         arg0:
-          int(0) :i32
-        arg1:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "outer cleanup" :string
-            arg1:
-              "\n" :string
+          "outer cleanup" :string
   struct __asyncstate_snippet_5 { s0: i32, s1: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_5$Async$resume(self: __asyncstate_snippet_5!) -> i32 | Suspended!
     loop
@@ -488,17 +448,9 @@
                                 __self_2 :__asyncstate_snippet_5!
                           call :void
                             callee:
-                              write :fn(Stream, string) -> void
+                              std_io$println__string :void
                             arg0:
-                              int(0) :i32
-                            arg1:
-                              call :string
-                                callee:
-                                  concat_2 :string
-                                arg0:
-                                  "outer body (unreached)" :string
-                                arg1:
-                                  "\n" :string
+                              "outer body (unreached)" :string
                           assign
                             target:
                               .state :i32

@@ -8,11 +8,11 @@
 // `arr[idx]` access with `LoweredIndex.bce_recheck`, but DEFERS the safety
 // decision to this pass.
 //
-// Why post-inline : a `for x in a.map(f)` / a `for x in a { helper(x) }` body
-// is, at desugar time, an INDIRECT call (fn-value) or a direct call not yet
-// inlined — `bce_block_unsafe` would flag it and bail. `bce_hoist_tag` runs
-// AFTER `devirtualize_fn_refs` + `inline_fns` (see `lower.vader`), so a pure
-// callback / inlinable helper has become its inlined body and proves safe. No
+// Why post-devirt : a `for x in a.map(f)` / a `for x in a { helper(x) }` body
+// is, at desugar time, an INDIRECT call through a fn-value — `bce_block_unsafe`
+// would flag it and bail. `bce_hoist_tag` runs AFTER `devirtualize_fn_refs`
+// (see `lower.vader`), so the callback is a direct call by then and
+// `bce_fn_pure` can resolve its callee and prove it allocation-free. No
 // combinator is special-cased : the decision is purely "does the inlined loop
 // body allocate / call / yield / rebind the array ?" (`bce_block_unsafe`,
 // `vader/lower/lower_for_in.vader`).

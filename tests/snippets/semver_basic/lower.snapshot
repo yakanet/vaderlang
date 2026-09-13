@@ -22,21 +22,13 @@
               block :void
                 call :void
                   callee:
-                    write :fn(Stream, string) -> void
+                    std_io$println__string :void
                   arg0:
-                    int(0) :i32
-                  arg1:
                     call :string
                       callee:
-                        concat_2 :string
+                        semver$Version$Display$to_string :string
                       arg0:
-                        call :string
-                          callee:
-                            semver$Version$Display$to_string :string
-                          arg0:
-                            ver :Version
-                      arg1:
-                        "\n" :string
+                        ver :Version
                 let base: Version =
                   call :Version
                     callee:
@@ -49,7 +41,7 @@
                       l:
                         call :i32
                           callee:
-                            compare_versions :fn(Version, Version) -> i32
+                            semver$Version$Comparable$compare :i32
                           arg0:
                             ver :Version
                           arg1:
@@ -59,17 +51,9 @@
                   then:
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "after 1.0.0" :string
-                          arg1:
-                            "\n" :string
+                        "after 1.0.0" :string
                 ~>
                   block :void
                     let __scrut_1: ParseError | VersionRange =
@@ -108,17 +92,9 @@
                                   then:
                                     call :void
                                       callee:
-                                        write :fn(Stream, string) -> void
+                                        std_io$println__string :void
                                       arg0:
-                                        int(0) :i32
-                                      arg1:
-                                        call :string
-                                          callee:
-                                            concat_2 :string
-                                          arg0:
-                                            "1.5.0 in ^1.0.0" :string
-                                          arg1:
-                                            "\n" :string
+                                        "1.5.0 in ^1.0.0" :string
                         else:
                           ~>
                             if :void
@@ -133,24 +109,19 @@
                                   block :void
                                     call :void
                                       callee:
-                                        write :fn(Stream, string) -> void
+                                        std_io$eprintln__string :void
                                       arg0:
-                                        int(1) :i32
-                                      arg1:
                                         call :string
                                           callee:
                                             concat_2 :string
                                           arg0:
+                                            "range err: " :string
+                                          arg1:
                                             call :string
                                               callee:
-                                                concat_2 :string
+                                                std_string$ParseError$Error$message :string
                                               arg0:
-                                                "range err: " :string
-                                              arg1:
-                                                .msg :string
-                                                  e :ParseError
-                                          arg1:
-                                            "\n" :string
+                                                e :ParseError
                                     return int(1) :i32
                               else:
                                 ~>
@@ -169,24 +140,19 @@
                     block :void
                       call :void
                         callee:
-                          write :fn(Stream, string) -> void
+                          std_io$eprintln__string :void
                         arg0:
-                          int(1) :i32
-                        arg1:
                           call :string
                             callee:
                               concat_2 :string
                             arg0:
+                              "err: " :string
+                            arg1:
                               call :string
                                 callee:
-                                  concat_2 :string
+                                  std_string$ParseError$Error$message :string
                                 arg0:
-                                  "err: " :string
-                                arg1:
-                                  .msg :string
-                                    e :ParseError
-                            arg1:
-                              "\n" :string
+                                  e :ParseError
                       return int(1) :i32
                 else:
                   ~>

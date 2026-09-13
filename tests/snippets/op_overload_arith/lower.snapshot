@@ -114,421 +114,358 @@
         y: int(4) :i32
       }
     let s: Vec! =
-      Vec! {
-        x:
-          add :i32
-            l:
-              .x :i32
-                a :Vec!
-            r:
-              .x :i32
-                b :Vec!
-        y:
-          add :i32
-            l:
-              .y :i32
-                a :Vec!
-            r:
-              .y :i32
-                b :Vec!
-      }
+      call :Vec!
+        callee:
+          snippet$Vec$Add$add :Vec!
+        arg0:
+          a :Vec!
+        arg1:
+          b :Vec!
     let d: Vec! =
-      Vec! {
-        x:
-          sub :i32
-            l:
-              .x :i32
-                a :Vec!
-            r:
-              .x :i32
-                b :Vec!
-        y:
-          sub :i32
-            l:
-              .y :i32
-                a :Vec!
-            r:
-              .y :i32
-                b :Vec!
-      }
+      call :Vec!
+        callee:
+          snippet$Vec$Sub$sub :Vec!
+        arg0:
+          a :Vec!
+        arg1:
+          b :Vec!
     let m: Vec! =
-      Vec! {
-        x:
-          mul :i32
-            l:
-              .x :i32
-                a :Vec!
-            r:
-              .x :i32
-                b :Vec!
-        y:
-          mul :i32
-            l:
-              .y :i32
-                a :Vec!
-            r:
-              .y :i32
-                b :Vec!
-      }
+      call :Vec!
+        callee:
+          snippet$Vec$Mul$mul :Vec!
+        arg0:
+          a :Vec!
+        arg1:
+          b :Vec!
     let q: Vec! =
-      Vec! {
-        x:
-          div :i32
-            l:
-              .x :i32
-                a :Vec!
-            r:
-              .x :i32
-                b :Vec!
-        y:
-          div :i32
-            l:
-              .y :i32
-                a :Vec!
-            r:
-              .y :i32
-                b :Vec!
-      }
+      call :Vec!
+        callee:
+          snippet$Vec$Div$div :Vec!
+        arg0:
+          a :Vec!
+        arg1:
+          b :Vec!
     let r: Vec! =
-      Vec! {
-        x:
-          mod :i32
-            l:
-              .x :i32
-                a :Vec!
-            r:
-              .x :i32
-                b :Vec!
-        y:
-          mod :i32
-            l:
-              .y :i32
-                a :Vec!
-            r:
-              .y :i32
-                b :Vec!
-      }
+      call :Vec!
+        callee:
+          snippet$Vec$Rem$rem :Vec!
+        arg0:
+          a :Vec!
+        arg1:
+          b :Vec!
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(229) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(229) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "s=(" :string
-              assign
-                target:
+                arg2:
+                  "s=(" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .x :i32
-                          s :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .x :i32
+                      s :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "," :string
-              assign
-                target:
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .y :i32
-                          s :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .y :i32
+                      s :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      ") d=(" :string
-              assign
-                target:
+                arg2:
+                  ") d=(" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .x :i32
-                          d :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .x :i32
+                      d :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "," :string
-              assign
-                target:
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .y :i32
-                          d :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .y :i32
+                      d :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      ") m=(" :string
-              assign
-                target:
+                arg2:
+                  ") m=(" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .x :i32
-                          m :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .x :i32
+                      m :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "," :string
-              assign
-                target:
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .y :i32
-                          m :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .y :i32
+                      m :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      ") q=(" :string
-              assign
-                target:
+                arg2:
+                  ") q=(" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .x :i32
-                          q :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .x :i32
+                      q :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "," :string
-              assign
-                target:
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .y :i32
-                          q :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .y :i32
+                      q :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      ") r=(" :string
-              assign
-                target:
+                arg2:
+                  ") r=(" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .x :i32
-                          r :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .x :i32
+                      r :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "," :string
-              assign
-                target:
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .y :i32
-                          r :Vec!
-              assign
-                target:
+                arg2:
+                  cast → i64
+                    .y :i32
+                      r :Vec!
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      ")" :string
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  ")" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

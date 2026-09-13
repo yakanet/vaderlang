@@ -20,8 +20,8 @@
 // member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`)
 // — NOT the offset-returning `write_string_at` free wrapper, which adds a call
 // layer + recomputes `byte_len`. `new_byte_buffer` / `byte_len` / `finish_buffer`
-// stay the force-loaded std/core free wrappers (expression-bodied → `inline_fns`
-// folds them to their intrinsics). Mirrors `lower_string_lit::lower_interp_buffer`,
+// stay the force-loaded std/core free wrappers — expression-bodied one-liners
+// over their intrinsics, which `cc` inlines. Mirrors `lower_string_lit::lower_interp_buffer`,
 // minus the int/bool `write_*` (those keep `write_string_at`'s off-threading).
 
 module "vader/lower"
@@ -73,10 +73,9 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     // Resolve the std/core buffer API (force-loaded ; a miss is a broken
     // toolchain). Separate checks so each narrows to a non-null Symbol.
     // `new_byte_buffer` / `byte_len` / `finish_buffer` are the expression-bodied
-    // free wrappers (`inline_fns` folds them to their intrinsics) ; `write_string`
-    // is the `Buffer` impl member resolved directly (a void wrapper would NOT
-    // inline — `inline_fns` skips void), avoiding the `write_string_at` call layer
-    // + its redundant `byte_len`.
+    // free wrappers over their intrinsics ; `write_string` is the `Buffer` impl
+    // member resolved directly, avoiding the `write_string_at` call layer + its
+    // redundant `byte_len`.
     nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
     blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null

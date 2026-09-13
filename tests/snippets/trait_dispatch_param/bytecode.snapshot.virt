@@ -1,20 +1,33 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
+type 2 primitive u64
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $cast_1 u64
-  local $cast_3 u64
   i32.const 7
-  i32.to_i64
-  local.set 0   ; $cast_1
-  i32.const 7
-  i32.to_i64
-  local.set 1   ; $cast_3
-  local.get 0   ; $cast_1
-  local.get 1   ; $cast_3
-  i64.add
+  call 1   ; snippet$hash_twice__i32
   u64.to_i32
+  return
+end
+
+fn 1 snippet$hash_twice__i32 (i32) -> u64
+  local $call_1 u64
+  local $call_2 u64
+  local.get 0   ; arg 0
+  call 2   ; std_core$i32$Hash$hash
+  local.set 1   ; $call_1
+  local.get 0   ; arg 0
+  call 2   ; std_core$i32$Hash$hash
+  local.set 2   ; $call_2
+  local.get 1   ; $call_1
+  local.get 2   ; $call_2
+  i64.add
+  return
+end
+
+fn 2 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
   return
 end

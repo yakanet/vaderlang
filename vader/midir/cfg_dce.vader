@@ -1,17 +1,16 @@
-// vader/midir/cfg_dce — CFG-level dead-code elimination.
-//
-// Runs intra-procedurally on each `CFGFunction` :
+// vader/midir/cfg_dce — CFG-level cleanup on each `CFGFunction`.
 //
 //   Pass 0 — `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
 //            where X is single-use, so the producer writes directly into
 //            Y and the Move drops. Unlocks const-folding through let-
 //            bindings (`a :: 7 ; b :: 5 ; a*b` would otherwise stall at
-//            the moves).
-//   Pass 1 — `die_once` (dead instruction elimination via per-store
-//            liveness). Runs to fixpoint, max 8 iters.
-//   Pass 2 — `compact_locals` (drop unreferenced locals, renumber).
+//            the moves). It must NOT reorder across an intervening READ of
+//            the Move's destination — see `tests/snippets/swap_reassign`.
+//   Pass 1 — `compact_locals` (drop unreferenced locals, renumber).
 //
-// `optimise_function` runs all three passes in order on every fn.
+// Dead-instruction elimination used to sit between the two and is gone :
+// it removed 73 ops out of 129 772 on the compiler itself for ~10,5 % of the
+// emit time. Record : `.claude/plans/2026-09-13-audit-optimisations-transparentes.md`.
 
 module "vader/midir"
 
@@ -36,116 +35,7 @@ export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject {
     return CFGProject { ...p, .modules = new_modules }
 }
 
-optimise_function :: fn(f: CFGFunction) -> CFGFunction {
-    cur := fold_moves(f)
-    // Run `die_once` to fixpoint (capped) — each iteration may unblock
-    // more by shrinking the live set.
-    for iter in 0..<8 {
-        next :: die_once(cur)
-        if !changed_blocks(cur, next) { break }
-        cur = next
-    }
-    return compact_locals(cur)
-}
-
-changed_blocks :: fn(a: CFGFunction, b: CFGFunction) -> bool {
-    if a.blocks.len() != b.blocks.len() { return true }
-    for i in 0..<a.blocks.len() {
-        if a.blocks[i].instructions.len() != b.blocks[i].instructions.len() { return true }
-    }
-    return false
-}
-
-// ============================================================================
-// Pass 1 — die_once : per-store liveness DIE
-//
-// Walk each block backward ; drop pure instructions whose `dst` isn't
-// in the live set at that point.
-// ============================================================================
-
-die_once :: fn(f: CFGFunction) -> CFGFunction {
-    liveness :: compute_liveness(f)
-    new_blocks: BasicBlock[]! = []
-    for b in f.blocks {
-        kept :: prune_block(b, liveness.live_out[usize(b.id)], f.params.len() + f.locals.len())
-        new_blocks.push(BasicBlock {
-            .id           = b.id,
-            .instructions = kept,
-            .terminator   = b.terminator,
-            .span         = b.span,
-        })
-    }
-    return CFGFunction {
-        .mangled     = f.mangled,
-        .params      = f.params,
-        .return_type = f.return_type,
-        .locals      = f.locals,
-        .blocks      = new_blocks,
-        .entry       = f.entry,
-        .origin      = f.origin,
-        .is_extern   = f.is_extern,
-        .is_exported = f.is_exported,
-        .extern_name = f.extern_name,
-    }
-}
-
-prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usize) -> Instruction[] {
-    // bool-array indexed by LocalId for O(1) toggle without a remove
-    // primitive on MutableMap. Pre-sized to `local_count` (params + locals,
-    // the full LocalId space) so `grow_live_to` never has to `push`. That
-    // matters because the grows below run inside closures passed to
-    // `for_each_read_*`: a closure-captured array that reallocs on `push`
-    // does not propagate the new backing buffer back, so a grow from inside
-    // a closure would silently no-op and the next `live[id]` index OOBs.
-    // Pre-sizing keeps the buffer stable, so every closure shares it.
-    live: bool[]! = [false] * local_count
-    grow_live_to :: (id: LocalId) -> {
-        while_idx := live.len()
-        for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
-    }
-    for k in live_out {
-        grow_live_to(k)
-        live[usize(k)] = true
-    }
-    // Terminator reads always alive.
-    for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
-        grow_live_to(l)
-        live[usize(l)] = true
-    })
-
-    n :: b.instructions.len()
-    keep: bool[]! = [false] * n
-    i: i64 = i64(n) - 1
-    for i >= 0 {
-        ins :: b.instructions[usize(i)]
-        dst_opt :: dst_of(ins)
-        dst_live := true
-        if dst_opt is LocalId {
-            grow_live_to(dst_opt)
-            dst_live = live[usize(dst_opt)]
-        }
-        is_dead :: !instruction_has_side_effect(ins) && !dst_live
-        if is_dead {
-            keep[usize(i)] = false
-        } else {
-            keep[usize(i)] = true
-            if dst_opt is LocalId {
-                grow_live_to(dst_opt)
-                live[usize(dst_opt)] = false
-            }
-            for_each_read_local(ins, (l: LocalId) -> {
-                grow_live_to(l)
-                live[usize(l)] = true
-            })
-        }
-        i = i - 1
-    }
-    out: Instruction[]! = []
-    for j in 0..<n {
-        if keep[j] { out.push(b.instructions[j]) }
-    }
-    return out
-}
+optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_moves(f))
 
 // ============================================================================
 // Pass 0 — fold_moves : copy-fold producer → Move chains
@@ -234,7 +124,7 @@ fold_moves_in_block :: fn(
 }
 
 // ============================================================================
-// Pass 2 — compact_locals : drop unreferenced locals + renumber survivors
+// Pass 1 — compact_locals : drop unreferenced locals + renumber survivors
 //
 // Walks every instruction + terminator collecting referenced locals.
 // Params + side-effecting dsts always count (the slot must exist for

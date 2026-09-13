@@ -158,110 +158,102 @@
           __acc_14 :bool
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_21: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(30) :usize
-              let __off_22: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_21: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(30) :usize
+          let __off_22: usize = int(0) :usize
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      "any " :string
-              assign
-                target:
+                arg2:
+                  "any " :string
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      a :bool
-              assign
-                target:
+                arg2:
+                  a :bool
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      " all " :string
-              assign
-                target:
+                arg2:
+                  " all " :string
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      b :bool
-              assign
-                target:
+                arg2:
+                  b :bool
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      " all2 " :string
-              assign
-                target:
+                arg2:
+                  " all2 " :string
+          assign
+            target:
+              __off_22 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_21 :Buffer
+                arg1:
                   __off_22 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_bool :usize
-                    arg0:
-                      __buf_21 :Buffer
-                    arg1:
-                      __off_22 :usize
-                    arg2:
-                      c :bool
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_21 :Buffer
-                  arg1:
-                    __off_22 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  c :bool
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_21 :Buffer
+              arg1:
+                __off_22 :usize
     let f: i32 | null =
       block :i32 | null
         let __find_23: i32 | null = null
@@ -317,75 +309,59 @@
         ~>
           call :void
             callee:
-              write :fn(Stream, string) -> void
+              std_io$println__string :void
             arg0:
-              int(0) :i32
-            arg1:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "f none" :string
-                arg1:
-                  "\n" :string
+              "f none" :string
       else:
         ~>
           call :void
             callee:
-              write :fn(Stream, string) -> void
+              std_io$println__string :void
             arg0:
-              int(0) :i32
-            arg1:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  block :string
-                    let __buf_30: Buffer =
-                      call :Buffer
-                        callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          int(22) :usize
-                    let __off_31: usize = int(0) :usize
-                    assign
-                      target:
+              block :string
+                let __buf_30: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(22) :usize
+                let __off_31: usize = int(0) :usize
+                assign
+                  target:
+                    __off_31 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_30 :Buffer
+                      arg1:
                         __off_31 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_30 :Buffer
-                          arg1:
-                            __off_31 :usize
-                          arg2:
-                            "f " :string
-                    assign
-                      target:
+                      arg2:
+                        "f " :string
+                assign
+                  target:
+                    __off_31 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_30 :Buffer
+                      arg1:
                         __off_31 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_int :usize
-                          arg0:
-                            __buf_30 :Buffer
-                          arg1:
-                            __off_31 :usize
-                          arg2:
-                            cast → i64
-                              cast → i32
-                                f :i32 | null
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
-                        arg0:
-                          __buf_30 :Buffer
-                        arg1:
-                          __off_31 :usize
-                arg1:
-                  "\n" :string
+                      arg2:
+                        cast → i64
+                          cast → i32
+                            f :i32 | null
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_30 :Buffer
+                    arg1:
+                      __off_31 :usize
     let g: i32 | null =
       block :i32 | null
         let __find_32: i32 | null = null
@@ -444,75 +420,59 @@
         ~>
           call :void
             callee:
-              write :fn(Stream, string) -> void
+              std_io$println__string :void
             arg0:
-              int(0) :i32
-            arg1:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "g none" :string
-                arg1:
-                  "\n" :string
+              "g none" :string
       else:
         ~>
           call :void
             callee:
-              write :fn(Stream, string) -> void
+              std_io$println__string :void
             arg0:
-              int(0) :i32
-            arg1:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  block :string
-                    let __buf_39: Buffer =
-                      call :Buffer
-                        callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          int(22) :usize
-                    let __off_40: usize = int(0) :usize
-                    assign
-                      target:
+              block :string
+                let __buf_39: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(22) :usize
+                let __off_40: usize = int(0) :usize
+                assign
+                  target:
+                    __off_40 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_39 :Buffer
+                      arg1:
                         __off_40 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_39 :Buffer
-                          arg1:
-                            __off_40 :usize
-                          arg2:
-                            "g " :string
-                    assign
-                      target:
+                      arg2:
+                        "g " :string
+                assign
+                  target:
+                    __off_40 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_39 :Buffer
+                      arg1:
                         __off_40 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_int :usize
-                          arg0:
-                            __buf_39 :Buffer
-                          arg1:
-                            __off_40 :usize
-                          arg2:
-                            cast → i64
-                              cast → i32
-                                g :i32 | null
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
-                        arg0:
-                          __buf_39 :Buffer
-                        arg1:
-                          __off_40 :usize
-                arg1:
-                  "\n" :string
+                      arg2:
+                        cast → i64
+                          cast → i32
+                            g :i32 | null
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_39 :Buffer
+                    arg1:
+                      __off_40 :usize
     return int(0) :i32
   struct __lambda_env_snippet_1 {  }
   fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1!, x: i32) -> bool

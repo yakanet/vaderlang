@@ -4,61 +4,37 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            greet :string
           arg0:
-            call :string
-              callee:
-                greet :string
-              arg0:
-                "Bob" :string
-              arg1:
-                "Hi" :string
+            "Bob" :string
           arg1:
-            "\n" :string
+            "Hi" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            greet :string
           arg0:
-            call :string
-              callee:
-                greet :string
-              arg0:
-                "Eve" :string
-              arg1:
-                "Hello" :string
+            "Eve" :string
           arg1:
-            "\n" :string
+            "Hello" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            greet :string
           arg0:
-            call :string
-              callee:
-                greet :string
-              arg0:
-                "Al" :string
-              arg1:
-                "Yo" :string
+            "Al" :string
           arg1:
-            "\n" :string
+            "Yo" :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

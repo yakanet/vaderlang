@@ -12,18 +12,18 @@ type 9 array 8
 type 10 primitive void
 type 11 primitive isize
 string 0 "5 is digit"
-string 1 "\n"
-string 2 "a is not digit"
-string 3 "0 is digit"
-string 4 "9 is digit"
-string 5 ": is not digit"
-string 6 "m is lower"
-string 7 "M is not lower"
-string 8 "z is alpha"
-string 9 "Z is alpha"
-string 10 "5 is not alpha"
-string 11 "a..=e count = "
-string 12 "0..<5 count = "
+string 1 "a is not digit"
+string 2 "0 is digit"
+string 3 "9 is digit"
+string 4 ": is not digit"
+string 5 "m is lower"
+string 6 "M is not lower"
+string 7 "z is alpha"
+string 8 "Z is alpha"
+string 9 "5 is not alpha"
+string 10 "a..=e count = "
+string 11 "0..<5 count = "
+string 12 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=9 param_types=4 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=3,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -106,229 +106,168 @@ fn 2 snippet$is_alpha (char) -> bool
 end
 
 fn 3 snippet$main () -> i32
-  local $call_5 string
   local n i32
   local c char
-  local $k_72 char
+  local $k_42 char
   local __buf_0 ref
   local __off_1 usize
-  local $cast_82 i64
+  local $cast_51 i64
   char.const 53
   call 0   ; snippet$is_digit
   if $L0 void
     string.const 0   ; "5 is digit"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    call 11   ; std_io$println__string
   end $L0
   char.const 97
   call 0   ; snippet$is_digit
   bool.not
   if $L1 void
-    string.const 2   ; "a is not digit"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 1   ; "a is not digit"
+    call 11   ; std_io$println__string
   end $L1
   char.const 48
   call 0   ; snippet$is_digit
   if $L2 void
-    string.const 3   ; "0 is digit"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 2   ; "0 is digit"
+    call 11   ; std_io$println__string
   end $L2
   char.const 57
   call 0   ; snippet$is_digit
   if $L3 void
-    string.const 4   ; "9 is digit"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 3   ; "9 is digit"
+    call 11   ; std_io$println__string
   end $L3
   char.const 58
   call 0   ; snippet$is_digit
   bool.not
   if $L4 void
-    string.const 5   ; ": is not digit"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 4   ; ": is not digit"
+    call 11   ; std_io$println__string
   end $L4
   char.const 109
   call 1   ; snippet$is_lower
   if $L5 void
-    string.const 6   ; "m is lower"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 5   ; "m is lower"
+    call 11   ; std_io$println__string
   end $L5
   char.const 77
   call 1   ; snippet$is_lower
   bool.not
   if $L6 void
-    string.const 7   ; "M is not lower"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 6   ; "M is not lower"
+    call 11   ; std_io$println__string
   end $L6
   char.const 122
   call 2   ; snippet$is_alpha
   if $L7 void
-    string.const 8   ; "z is alpha"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 7   ; "z is alpha"
+    call 11   ; std_io$println__string
   end $L7
   char.const 90
   call 2   ; snippet$is_alpha
   if $L8 void
-    string.const 9   ; "Z is alpha"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 8   ; "Z is alpha"
+    call 11   ; std_io$println__string
   end $L8
   char.const 53
   call 2   ; snippet$is_alpha
   bool.not
   if $L9 void
-    string.const 10   ; "5 is not alpha"
-    string.const 1   ; "\n"
-    call 4   ; concat_2
-    local.set 0   ; $call_5
-    i32.const 0
-    local.get 0   ; $call_5
-    call 9   ; std_io$write
+    string.const 9   ; "5 is not alpha"
+    call 11   ; std_io$println__string
   end $L9
   i32.const 0
-  local.set 1   ; n
+  local.set 0   ; n
   char.const 97
-  local.set 2   ; c
+  local.set 1   ; c
   block $L10 void
     loop $L11 void
-      local.get 2   ; c
+      local.get 1   ; c
       char.const 101
       i32.le
       if $L12 void
-        local.get 1   ; n
+        local.get 0   ; n
         i32.const 1
         i32.add
-        local.set 1   ; n
+        local.set 0   ; n
         i32.const 1
-        local.set 3   ; $k_72
-        local.get 2   ; c
-        local.get 3   ; $k_72
+        local.set 2   ; $k_42
+        local.get 1   ; c
+        local.get 2   ; $k_42
         i32.add
-        local.set 2   ; c
+        local.set 1   ; c
         br $L11
       end $L12
     end $L11
   end $L10
   i64.const 34
   call 5   ; std_core$new_byte_buffer
-  local.set 4   ; __buf_0
+  local.set 3   ; __buf_0
   i64.const 0
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  string.const 11   ; "a..=e count = "
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  string.const 10   ; "a..=e count = "
   call 7   ; std_core$write_string_at
-  local.set 5   ; __off_1
-  local.get 1   ; n
+  local.set 4   ; __off_1
+  local.get 0   ; n
   i32.to_i64
-  local.set 6   ; $cast_82
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  local.get 6   ; $cast_82
+  local.set 5   ; $cast_51
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  local.get 5   ; $cast_51
   call 8   ; std_core$write_int
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 4   ; concat_2
-  local.set 0   ; $call_5
+  call 11   ; std_io$println__string
   i32.const 0
-  local.get 0   ; $call_5
-  call 9   ; std_io$write
-  i32.const 0
-  local.set 1   ; n
+  local.set 0   ; n
   char.const 48
-  local.set 2   ; c
+  local.set 1   ; c
   block $L13 void
     loop $L14 void
-      local.get 2   ; c
+      local.get 1   ; c
       char.const 53
       i32.lt
       if $L15 void
-        local.get 1   ; n
+        local.get 0   ; n
         i32.const 1
         i32.add
-        local.set 1   ; n
+        local.set 0   ; n
         i32.const 1
-        local.set 3   ; $k_72
-        local.get 2   ; c
-        local.get 3   ; $k_72
+        local.set 2   ; $k_42
+        local.get 1   ; c
+        local.get 2   ; $k_42
         i32.add
-        local.set 2   ; c
+        local.set 1   ; c
         br $L14
       end $L15
     end $L14
   end $L13
   i64.const 34
   call 5   ; std_core$new_byte_buffer
-  local.set 4   ; __buf_0
+  local.set 3   ; __buf_0
   i64.const 0
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  string.const 12   ; "0..<5 count = "
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  string.const 11   ; "0..<5 count = "
   call 7   ; std_core$write_string_at
-  local.set 5   ; __off_1
-  local.get 1   ; n
+  local.set 4   ; __off_1
+  local.get 0   ; n
   i32.to_i64
-  local.set 6   ; $cast_82
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  local.get 6   ; $cast_82
+  local.set 5   ; $cast_51
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  local.get 5   ; $cast_51
   call 8   ; std_core$write_int
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
   call 6   ; std_core$finish_buffer
-  string.const 1   ; "\n"
-  call 4   ; concat_2
-  local.set 0   ; $call_5
-  i32.const 0
-  local.get 0   ; $call_5
-  call 9   ; std_io$write
+  call 11   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -350,11 +289,11 @@ fn 4 concat_2 (string,string) -> string
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
   call 6   ; std_core$finish_buffer
@@ -363,14 +302,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 11   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
@@ -379,7 +318,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 14   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -403,7 +342,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -480,7 +419,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         local.get 0   ; arg 0
         local.get 4   ; ndigits
         local.get 8   ; $add_37
-        call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         i64.div
@@ -494,7 +433,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
-    call 12   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -580,13 +519,25 @@ fn 10 std_io$write_bytes (i32,ref,usize) -> i32
   return
 end
 
-fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 11 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 12   ; "\n"
+  call 4   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 9   ; std_io$write
+  return
+end
+
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -594,14 +545,14 @@ fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

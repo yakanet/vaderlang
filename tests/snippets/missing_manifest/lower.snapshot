@@ -22,9 +22,12 @@
             arg0:
               "unreadable (" :string
             arg1:
-              .msg :string
-                cast → IOError
-                  r :IOError | string
+              call :string
+                callee:
+                  std_io$IOError$Error$message :string
+                arg0:
+                  cast → IOError
+                    r :IOError | string
             arg2:
               " / " :string
             arg3:
@@ -67,38 +70,22 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            describe :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(string) -> string
-              arg0:
-                "/no/such/manifest.toml" :string
-          arg1:
-            "\n" :string
+            "/no/such/manifest.toml" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            catch_all :fn(string) -> string
           arg0:
-            call :string
-              callee:
-                catch_all :fn(string) -> string
-              arg0:
-                "/no/such/manifest.toml" :string
-          arg1:
-            "\n" :string
+            "/no/such/manifest.toml" :string
     return int(0) :i32
   fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
     let c0: usize =

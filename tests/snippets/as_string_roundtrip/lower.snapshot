@@ -4,75 +4,51 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            bytes_to_string :string
           arg0:
-            call :string
+            call :u8[]
               callee:
-                bytes_to_string :string
+                bytes :u8[]
               arg0:
+                "vader" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            bytes_to_string :string
+          arg0:
+            call :u8[]
+              callee:
+                bytes :u8[]
+              arg0:
+                "héllo café 你好" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            bytes_to_string :string
+          arg0:
+            slice :u8[]
+              on:
                 call :u8[]
                   callee:
                     bytes :u8[]
                   arg0:
-                    "vader" :string
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            call :string
-              callee:
-                bytes_to_string :string
-              arg0:
-                call :u8[]
-                  callee:
-                    bytes :u8[]
-                  arg0:
-                    "héllo café 你好" :string
-          arg1:
-            "\n" :string
-    call :void
-      callee:
-        write :fn(Stream, string) -> void
-      arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            call :string
-              callee:
-                bytes_to_string :string
-              arg0:
-                slice :u8[]
-                  on:
-                    call :u8[]
-                      callee:
-                        bytes :u8[]
-                      arg0:
-                        "abcde" :string
-                  lo:
-                    cast → usize
-                      int(1) :usize
-                  hi:
-                    cast → usize
-                      int(4) :usize
-          arg1:
-            "\n" :string
+                    "abcde" :string
+              lo:
+                cast → usize
+                  int(1) :usize
+              hi:
+                cast → usize
+                  int(4) :usize
     let e: string =
       call :string
         callee:
@@ -85,25 +61,17 @@
               "" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            concat_3 :string
           arg0:
-            call :string
-              callee:
-                concat_3 :string
-              arg0:
-                "[" :string
-              arg1:
-                e :string
-              arg2:
-                "]" :string
+            "[" :string
           arg1:
-            "\n" :string
+            e :string
+          arg2:
+            "]" :string
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

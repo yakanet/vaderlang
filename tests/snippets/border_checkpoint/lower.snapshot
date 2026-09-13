@@ -139,117 +139,93 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            concat_5 :string
           arg0:
             call :string
               callee:
-                concat_5 :string
+                inspect :fn(i32 | string) -> string
               arg0:
-                call :string
-                  callee:
-                    inspect :fn(i32 | string) -> string
-                  arg0:
-                    int(250) :i32 | string
-              arg1:
-                " " :string
-              arg2:
-                call :string
-                  callee:
-                    inspect :fn(i32 | string) -> string
-                  arg0:
-                    int(40) :i32 | string
-              arg3:
-                " " :string
-              arg4:
-                call :string
-                  callee:
-                    inspect :fn(i32 | string) -> string
-                  arg0:
-                    "sealed" :string
+                int(250) :i32 | string
           arg1:
-            "\n" :string
+            " " :string
+          arg2:
+            call :string
+              callee:
+                inspect :fn(i32 | string) -> string
+              arg0:
+                int(40) :i32 | string
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                inspect :fn(i32 | string) -> string
+              arg0:
+                "sealed" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            concat_3 :string
           arg0:
             call :string
               callee:
-                concat_3 :string
+                wave_through :fn(i32 | string, bool) -> string
               arg0:
-                call :string
-                  callee:
-                    wave_through :fn(i32 | string, bool) -> string
-                  arg0:
-                    int(40) :i32 | string
-                  arg1:
-                    true
+                int(40) :i32 | string
               arg1:
-                " " :string
-              arg2:
-                call :string
-                  callee:
-                    wave_through :fn(i32 | string, bool) -> string
-                  arg0:
-                    int(40) :i32 | string
-                  arg1:
-                    false
+                true
           arg1:
-            "\n" :string
+            " " :string
+          arg2:
+            call :string
+              callee:
+                wave_through :fn(i32 | string, bool) -> string
+              arg0:
+                int(40) :i32 | string
+              arg1:
+                false
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
         call :string
           callee:
-            concat_2 :string
+            concat_5 :string
           arg0:
             call :string
               callee:
-                concat_5 :string
+                lane_call :fn(Lane, bool) -> string
               arg0:
-                call :string
-                  callee:
-                    lane_call :fn(Lane, bool) -> string
-                  arg0:
-                    int(1) :u8
-                  arg1:
-                    true
+                int(1) :u8
               arg1:
-                " " :string
-              arg2:
-                call :string
-                  callee:
-                    lane_call :fn(Lane, bool) -> string
-                  arg0:
-                    int(1) :u8
-                  arg1:
-                    false
-              arg3:
-                " " :string
-              arg4:
-                call :string
-                  callee:
-                    lane_call :fn(Lane, bool) -> string
-                  arg0:
-                    int(0) :u8
-                  arg1:
-                    false
+                true
           arg1:
-            "\n" :string
+            " " :string
+          arg2:
+            call :string
+              callee:
+                lane_call :fn(Lane, bool) -> string
+              arg0:
+                int(1) :u8
+              arg1:
+                false
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                lane_call :fn(Lane, bool) -> string
+              arg0:
+                int(0) :u8
+              arg1:
+                false
     return int(0) :i32
   fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
     let c0: usize =

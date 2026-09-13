@@ -21,27 +21,19 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
                         call :string
                           callee:
-                            concat_2 :string
+                            concat_3 :string
                           arg0:
-                            call :string
-                              callee:
-                                concat_3 :string
-                              arg0:
-                                label :string
-                              arg1:
-                                ": error: " :string
-                              arg2:
-                                .msg :string
-                                  cast → JsonError
-                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                            label :string
                           arg1:
-                            "\n" :string
+                            ": error: " :string
+                          arg2:
+                            .msg :string
+                              cast → JsonError
+                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
             else:
               ~>
                 if :void
@@ -54,30 +46,22 @@
                         ~>
                           call :void
                             callee:
-                              write :fn(Stream, string) -> void
+                              std_io$println__string :void
                             arg0:
-                              int(0) :i32
-                            arg1:
                               call :string
                                 callee:
-                                  concat_2 :string
+                                  concat_3 :string
                                 arg0:
+                                  label :string
+                                arg1:
+                                  ": " :string
+                                arg2:
                                   call :string
                                     callee:
-                                      concat_3 :string
+                                      stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                     arg0:
-                                      label :string
-                                    arg1:
-                                      ": " :string
-                                    arg2:
-                                      call :string
-                                        callee:
-                                          stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                        arg0:
-                                          cast → JsonString
-                                            parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                arg1:
-                                  "\n" :string
+                                      cast → JsonString
+                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                   else:
                     ~>
                       if :void
@@ -90,30 +74,22 @@
                               ~>
                                 call :void
                                   callee:
-                                    write :fn(Stream, string) -> void
+                                    std_io$println__string :void
                                   arg0:
-                                    int(0) :i32
-                                  arg1:
                                     call :string
                                       callee:
-                                        concat_2 :string
+                                        concat_3 :string
                                       arg0:
+                                        label :string
+                                      arg1:
+                                        ": " :string
+                                      arg2:
                                         call :string
                                           callee:
-                                            concat_3 :string
+                                            stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                           arg0:
-                                            label :string
-                                          arg1:
-                                            ": " :string
-                                          arg2:
-                                            call :string
-                                              callee:
-                                                stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                              arg0:
-                                                cast → JsonNumber
-                                                  parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                      arg1:
-                                        "\n" :string
+                                            cast → JsonNumber
+                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                         else:
                           ~>
                             if :void
@@ -126,30 +102,22 @@
                                     ~>
                                       call :void
                                         callee:
-                                          write :fn(Stream, string) -> void
+                                          std_io$println__string :void
                                         arg0:
-                                          int(0) :i32
-                                        arg1:
                                           call :string
                                             callee:
-                                              concat_2 :string
+                                              concat_3 :string
                                             arg0:
+                                              label :string
+                                            arg1:
+                                              ": " :string
+                                            arg2:
                                               call :string
                                                 callee:
-                                                  concat_3 :string
+                                                  stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                 arg0:
-                                                  label :string
-                                                arg1:
-                                                  ": " :string
-                                                arg2:
-                                                  call :string
-                                                    callee:
-                                                      stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                    arg0:
-                                                      cast → JsonBool
-                                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                            arg1:
-                                              "\n" :string
+                                                  cast → JsonBool
+                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                               else:
                                 ~>
                                   if :void
@@ -162,30 +130,22 @@
                                           ~>
                                             call :void
                                               callee:
-                                                write :fn(Stream, string) -> void
+                                                std_io$println__string :void
                                               arg0:
-                                                int(0) :i32
-                                              arg1:
                                                 call :string
                                                   callee:
-                                                    concat_2 :string
+                                                    concat_3 :string
                                                   arg0:
+                                                    label :string
+                                                  arg1:
+                                                    ": " :string
+                                                  arg2:
                                                     call :string
                                                       callee:
-                                                        concat_3 :string
+                                                        stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                       arg0:
-                                                        label :string
-                                                      arg1:
-                                                        ": " :string
-                                                      arg2:
-                                                        call :string
-                                                          callee:
-                                                            stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                          arg0:
-                                                            cast → JsonNull
-                                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                  arg1:
-                                                    "\n" :string
+                                                        cast → JsonNull
+                                                          parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                     else:
                                       ~>
                                         if :void
@@ -198,30 +158,22 @@
                                                 ~>
                                                   call :void
                                                     callee:
-                                                      write :fn(Stream, string) -> void
+                                                      std_io$println__string :void
                                                     arg0:
-                                                      int(0) :i32
-                                                    arg1:
                                                       call :string
                                                         callee:
-                                                          concat_2 :string
+                                                          concat_3 :string
                                                         arg0:
+                                                          label :string
+                                                        arg1:
+                                                          ": " :string
+                                                        arg2:
                                                           call :string
                                                             callee:
-                                                              concat_3 :string
+                                                              stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                             arg0:
-                                                              label :string
-                                                            arg1:
-                                                              ": " :string
-                                                            arg2:
-                                                              call :string
-                                                                callee:
-                                                                  stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                                arg0:
-                                                                  cast → JsonArray
-                                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                        arg1:
-                                                          "\n" :string
+                                                              cast → JsonArray
+                                                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                           else:
                                             ~>
                                               if :void
@@ -234,30 +186,22 @@
                                                       ~>
                                                         call :void
                                                           callee:
-                                                            write :fn(Stream, string) -> void
+                                                            std_io$println__string :void
                                                           arg0:
-                                                            int(0) :i32
-                                                          arg1:
                                                             call :string
                                                               callee:
-                                                                concat_2 :string
+                                                                concat_3 :string
                                                               arg0:
+                                                                label :string
+                                                              arg1:
+                                                                ": " :string
+                                                              arg2:
                                                                 call :string
                                                                   callee:
-                                                                    concat_3 :string
+                                                                    stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                                   arg0:
-                                                                    label :string
-                                                                  arg1:
-                                                                    ": " :string
-                                                                  arg2:
-                                                                    call :string
-                                                                      callee:
-                                                                        stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                                      arg0:
-                                                                        cast → JsonObject
-                                                                          parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                              arg1:
-                                                                "\n" :string
+                                                                    cast → JsonObject
+                                                                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                 else:
                                                   ~>
                                                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

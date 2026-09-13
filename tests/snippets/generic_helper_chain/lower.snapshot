@@ -3,78 +3,60 @@
 ## snippet
   fn snippet$main() -> i32
     let a: Box<Box<i32>> =
-      Box<Box<Any>>! {
-        value:
-          Box<i32>! {
-            value: int(42) :i32
-          }
-      }
+      call :Box<Box<i32>>
+        callee:
+          snippet$outer__i32 :Box<Box<i32>>
+        arg0:
+          int(42) :i32
     let b: Box<Box<string>> =
-      Box<Box<Any>>! {
-        value:
-          Box<string>! {
-            value: "ok" :string
-          }
-      }
+      call :Box<Box<string>>
+        callee:
+          snippet$outer__string :Box<Box<string>>
+        arg0:
+          "ok" :string
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
                   __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .value :i32
-                          .value :Box<i32>
-                            a :Box<Box<i32>>
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-          arg1:
-            "\n" :string
+                arg2:
+                  cast → i64
+                    .value :i32
+                      .value :Box<i32>
+                        a :Box<Box<i32>>
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
-        write :fn(Stream, string) -> void
+        std_io$println__string :void
       arg0:
-        int(0) :i32
-      arg1:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            .value :string
-              .value :Box<string>
-                b :Box<Box<string>>
-          arg1:
-            "\n" :string
+        .value :string
+          .value :Box<string>
+            b :Box<Box<string>>
     return int(0) :i32
   struct snippet$Box__i32 { value: i32 }
   struct snippet$Box__string { value: string }
@@ -87,28 +69,42 @@
   fn snippet$middle__i32(x: i32) -> Box<i32>
     return
       Box<i32>! {
-        value: x :i32
+        value:
+          call :i32
+            callee:
+              snippet$inner__i32 :i32
+            arg0:
+              x :i32
       }
   fn snippet$middle__string(x: string) -> Box<string>
     return
       Box<string>! {
-        value: x :string
+        value:
+          call :string
+            callee:
+              snippet$inner__string :string
+            arg0:
+              x :string
       }
   fn snippet$outer__i32(x: i32) -> Box<Box<i32>>
     return
       Box<Box<Any>>! {
         value:
-          Box<i32>! {
-            value: x :i32
-          }
+          call :Box<i32>
+            callee:
+              snippet$middle__i32 :Box<i32>
+            arg0:
+              x :i32
       }
   fn snippet$outer__string(x: string) -> Box<Box<string>>
     return
       Box<Box<Any>>! {
         value:
-          Box<string>! {
-            value: x :string
-          }
+          call :Box<string>
+            callee:
+              snippet$middle__string :Box<string>
+            arg0:
+              x :string
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }

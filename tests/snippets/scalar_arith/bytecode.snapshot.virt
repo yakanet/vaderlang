@@ -133,9 +133,7 @@ fn 16 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 27   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.lt
+  call 28   ; std_core$i32$Comparable$lt
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -147,9 +145,7 @@ fn 16 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     local.set 2   ; $field_2
     local.get 1   ; arg 1
     local.get 2   ; $field_2
-    call 27   ; std_core$i32$Comparable$compare
-    i32.const 0
-    i32.le
+    call 29   ; std_core$i32$Comparable$lte
     return
   end $L1
   local.field 0 3 1   ; arg 0.end
@@ -157,9 +153,7 @@ fn 16 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 27   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.lt
+  call 28   ; std_core$i32$Comparable$lt
   return
 end
 
@@ -178,9 +172,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 27   ; std_core$i32$Comparable$compare
-    i32.const 0
-    i32.gt
+    call 30   ; std_core$i32$Comparable$gt
     local.set 1   ; done
   else
     local.field 0 3 3   ; arg 0.cursor
@@ -191,9 +183,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 27   ; std_core$i32$Comparable$compare
-    i32.const 0
-    i32.ge
+    call 31   ; std_core$i32$Comparable$gte
     local.set 1   ; done
   end $L0
   local.get 1   ; done
@@ -207,8 +197,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
   local.set 2   ; $field_3
   local.field 0 3 3   ; arg 0.cursor
   ref.cast 1   ; -> i32
-  i32.const 1
-  i32.add
+  call 37   ; std_core$i32$Step$step
   local.set 3   ; $field_4
   local.get 0   ; arg 0
   local.get 3   ; $field_4
@@ -330,9 +319,7 @@ fn 21 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 32   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.lt
+  call 33   ; std_core$usize$Comparable$lt
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -344,9 +331,7 @@ fn 21 std_core$Range$Contains$contains__usize (ref,usize) -> bool
     local.set 2   ; $field_2
     local.get 1   ; arg 1
     local.get 2   ; $field_2
-    call 32   ; std_core$usize$Comparable$compare
-    i32.const 0
-    i32.le
+    call 34   ; std_core$usize$Comparable$lte
     return
   end $L1
   local.field 0 8 1   ; arg 0.end
@@ -354,9 +339,7 @@ fn 21 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 32   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.lt
+  call 33   ; std_core$usize$Comparable$lt
   return
 end
 
@@ -375,9 +358,7 @@ fn 22 std_core$Range$Iterator$next__usize (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 32   ; std_core$usize$Comparable$compare
-    i32.const 0
-    i32.gt
+    call 35   ; std_core$usize$Comparable$gt
     local.set 1   ; done
   else
     local.field 0 8 3   ; arg 0.cursor
@@ -388,9 +369,7 @@ fn 22 std_core$Range$Iterator$next__usize (ref) -> any
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 32   ; std_core$usize$Comparable$compare
-    i32.const 0
-    i32.ge
+    call 36   ; std_core$usize$Comparable$gte
     local.set 1   ; done
   end $L0
   local.get 1   ; done
@@ -404,8 +383,7 @@ fn 22 std_core$Range$Iterator$next__usize (ref) -> any
   local.set 2   ; $field_3
   local.field 0 8 3   ; arg 0.cursor
   ref.cast 6   ; -> usize
-  i64.const 1
-  i64.add
+  call 38   ; std_core$usize$Step$step
   local.set 3   ; $field_4
   local.get 0   ; arg 0
   local.get 3   ; $field_4
@@ -571,132 +549,60 @@ fn 27 std_core$i32$Comparable$compare (i32,i32) -> i32
 end
 
 fn 28 std_core$i32$Comparable$lt (i32,i32) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.lt
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.lt
   return
 end
 
 fn 29 std_core$i32$Comparable$lte (i32,i32) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.le
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.le
   return
 end
 
 fn 30 std_core$i32$Comparable$gt (i32,i32) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.gt
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.gt
   return
 end
 
 fn 31 std_core$i32$Comparable$gte (i32,i32) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.ge
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 27   ; std_core$i32$Comparable$compare
   i32.const 0
   i32.ge
   return
@@ -732,132 +638,60 @@ fn 32 std_core$usize$Comparable$compare (usize,usize) -> i32
 end
 
 fn 33 std_core$usize$Comparable$lt (usize,usize) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.lt
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.lt
   return
 end
 
 fn 34 std_core$usize$Comparable$lte (usize,usize) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.le
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.le
   return
 end
 
 fn 35 std_core$usize$Comparable$gt (usize,usize) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.gt
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.gt
   return
 end
 
 fn 36 std_core$usize$Comparable$gte (usize,usize) -> bool
-  local $lt_2 bool
-  local $gt_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.ge
   return
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 26   ; std_core$three_way
+  call 32   ; std_core$usize$Comparable$compare
   i32.const 0
   i32.ge
   return

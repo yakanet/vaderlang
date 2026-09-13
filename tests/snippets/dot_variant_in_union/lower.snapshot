@@ -115,21 +115,13 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
                   call :string
                     callee:
-                      concat_2 :string
+                      dir_label :fn(Direction) -> string
                     arg0:
-                      call :string
-                        callee:
-                          dir_label :fn(Direction) -> string
-                        arg0:
-                          d :Direction
-                    arg1:
-                      "\n" :string
+                      d :Direction
           else:
             ~>
               if :void
@@ -140,17 +132,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "err" :string
-                          arg1:
-                            "\n" :string
+                        "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -173,21 +157,13 @@
             ~>
               call :void
                 callee:
-                  write :fn(Stream, string) -> void
+                  std_io$println__string :void
                 arg0:
-                  int(0) :i32
-                arg1:
                   call :string
                     callee:
-                      concat_2 :string
+                      dir_label :fn(Direction) -> string
                     arg0:
-                      call :string
-                        callee:
-                          dir_label :fn(Direction) -> string
-                        arg0:
-                          d :Direction
-                    arg1:
-                      "\n" :string
+                      d :Direction
           else:
             ~>
               if :void
@@ -198,17 +174,9 @@
                   ~>
                     call :void
                       callee:
-                        write :fn(Stream, string) -> void
+                        std_io$println__string :void
                       arg0:
-                        int(0) :i32
-                      arg1:
-                        call :string
-                          callee:
-                            concat_2 :string
-                          arg0:
-                            "err" :string
-                          arg1:
-                            "\n" :string
+                        "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
