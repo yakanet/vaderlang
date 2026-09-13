@@ -1,0 +1,63 @@
+# Typecheck
+
+## tests/snippets/bce_named_bound
+  FnDecl         guarded              :: fn() -> i64
+  FnDecl         hoisted              :: fn() -> i64
+  FnDecl         main                 :: fn() -> i32
+  expr 21:17    SeqLitExpr     :: i32[]!
+  expr 22:14    RangeExpr      :: Range<i32>!
+  expr 23:16    CallExpr       :: i32
+  expr 23:16    IdentExpr      :: type
+  expr 23:20    IdentExpr      :: i32
+  expr 23:9     CallExpr       :: void
+  expr 23:9     FieldExpr      :: fn(i32) -> void
+  expr 23:9     IdentExpr      :: i32[]!
+  expr 25:10    CallExpr       :: usize
+  expr 25:10    FieldExpr      :: fn() -> usize
+  expr 25:10    IdentExpr      :: i32[]!
+  expr 27:14    RangeExpr      :: Range<usize>!
+  expr 27:18    IdentExpr      :: usize
+  expr 28:15    BinaryExpr     :: i64
+  expr 28:15    IdentExpr      :: i64
+  expr 28:21    CallExpr       :: i64
+  expr 28:21    IdentExpr      :: type
+  expr 28:25    IdentExpr      :: i32[]!
+  expr 28:25    IndexExpr      :: i32
+  expr 28:27    IdentExpr      :: usize
+  expr 28:9     IdentExpr      :: i64
+  expr 30:12    IdentExpr      :: i64
+  expr 34:17    SeqLitExpr     :: i32[]!
+  expr 35:10    CallExpr       :: usize
+  expr 35:10    FieldExpr      :: fn() -> usize
+  expr 35:10    IdentExpr      :: i32[]!
+  expr 36:5     CallExpr       :: void
+  expr 36:5     FieldExpr      :: fn(i32) -> void
+  expr 36:5     IdentExpr      :: i32[]!
+  expr 38:14    RangeExpr      :: Range<usize>!
+  expr 38:18    IdentExpr      :: usize
+  expr 39:15    BinaryExpr     :: i64
+  expr 39:15    IdentExpr      :: i64
+  expr 39:21    CallExpr       :: i64
+  expr 39:21    IdentExpr      :: type
+  expr 39:25    IdentExpr      :: i32[]!
+  expr 39:25    IndexExpr      :: i32
+  expr 39:27    IdentExpr      :: usize
+  expr 39:9     IdentExpr      :: i64
+  expr 41:12    IdentExpr      :: i64
+  expr 45:17    SeqLitExpr     :: i32[]!
+  expr 46:10    CallExpr       :: usize
+  expr 46:10    FieldExpr      :: fn() -> usize
+  expr 46:10    IdentExpr      :: i32[]!
+  expr 47:5     CallExpr       :: void
+  expr 47:5     FieldExpr      :: fn(i32) -> void
+  expr 47:5     IdentExpr      :: i32[]!
+  expr 48:13    StringLitExpr  :: string
+  expr 48:24    CallExpr       :: i64
+  expr 48:24    IdentExpr      :: fn() -> i64
+  expr 48:45    CallExpr       :: i64
+  expr 48:45    IdentExpr      :: fn() -> i64
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 48:62    CallExpr       :: usize
+  expr 48:62    FieldExpr      :: fn() -> usize
+  expr 48:62    IdentExpr      :: i32[]!

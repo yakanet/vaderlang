@@ -241,17 +241,65 @@ bh_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
 // each is hoisted independently, not just the last.
 bh_pair :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
     pending_len: LoweredArrayLen | null = null
+    // Tier 2b — the bound is a NAME for the length rather than the call.
+    // `n :: a.len()` then `for i in 0..<n { … a[i] … }` desugars with a CHEAP
+    // Ident bound (`is_cheap_invariant`, `lower_for_in.vader`), so no `arr.len()`
+    // node reaches the loop and `pending_len` above never sees a candidate.
+    // Marking the USER's `a.len()` lands the resolve + pin where the preheader
+    // would be, and the body's `a[i]` reuse it through the c_emit resolve cache.
+    //
+    // The candidate survives only across statements that cannot change the
+    // array's length (`bce_stmt_unsafe`, the predicate the body is held to).
+    // `n` captured the length as it was, so `n :: a.len() ; a.push(x) ;
+    // for i in 0..<n` must not be hoisted — the pinned buffer could be the one
+    // the push reallocated away from. A read-only slot would NOT license
+    // dropping that check: `frozen: i32[] = xs` shares ONE `vader_array_t` with
+    // `xs`, so a push through `xs` moves `frozen.len()` too. A SLICE is the shape
+    // whose length is stable ; a read-only binding is not one.
+    pending_named: LoweredArrayLen | null = null
     for st in b.stmts {
+        used := false
         if st is LoweredLet {
             if st.value is LoweredArrayLen as al {
                 if al.bce_recheck {
                     pending_len = al
+                } else if !al.resolve_buf {
+                    pending_named = al
+                    used = true
                 }
             }
         } else if st is LoweredLoop {
             if pending_len != null {
                 bh_try_hoist(pending_len, st, pctx)
                 pending_len = null
+                used = true
+            } else if pending_named != null {
+                bh_try_hoist(pending_named, st, pctx)
+                pending_named = null
+                used = true
+            }
+        } else if st is LoweredExprStmt {
+            // The desugared `for` is a block wrapping `let <counter> = 0` then
+            // the loop, so the candidate has to reach one level in.
+            if pending_named != null {
+                if st.expr is LoweredBlock as blk {
+                    for inner in blk.stmts {
+                        if inner is LoweredLoop {
+                            bh_try_hoist(pending_named, inner, pctx)
+                            break
+                        }
+                    }
+                }
+                pending_named = null
+                used = true
+            }
+        }
+        if !used {
+            if pending_named != null {
+                guard :: bh_guard_sym(pending_named)
+                if guard < 0 || bce_stmt_unsafe(st, guard, pctx) {
+                    pending_named = null
+                }
             }
         }
     }

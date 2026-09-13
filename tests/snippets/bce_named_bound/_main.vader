@@ -1,0 +1,50 @@
+// bce_named_bound — the BCE resolve-hoist reached through a NAMED length bound.
+//
+// `n :: a.len()` immediately before `for i in 0..<n { … a[i] … }` desugars with a
+// cheap Ident bound, so no `arr.len()` node reaches the loop; `bh_pair` marks the
+// USER's `a.len()` instead, which lands the resolve + pin in the preheader. This
+// snippet pins BOTH sides of that decision:
+//
+//   `hoisted`  — nothing between the binding and the loop : the resolve is lifted
+//                out of the loop in `c.snapshot`.
+//   `guarded`  — a `push` sits between them, so `n` captured the OLD length and
+//                the pinned buffer could be stale : the resolve must stay INSIDE
+//                the loop, and the sum must cover only the first `n` elements.
+//
+// Expected: "hoisted=2096128 guarded=6 len=4".
+
+module "snippet"
+
+import "std/io"
+
+hoisted :: fn() -> i64 {
+    a: i32[]! = []
+    for i in 0..<2048 {
+        a.push(i32(i))
+    }
+    n :: a.len()
+    sum: i64 = 0
+    for i in 0..<n {
+        sum = sum + i64(a[i])
+    }
+    return sum
+}
+
+guarded :: fn() -> i64 {
+    a: i32[]! = [1, 2, 3]
+    n :: a.len()
+    a.push(4)
+    sum: i64 = 0
+    for i in 0..<n {
+        sum = sum + i64(a[i])
+    }
+    return sum
+}
+
+main :: fn() -> i32 {
+    a: i32[]! = [1, 2, 3]
+    n :: a.len()
+    a.push(4)
+    println("hoisted=${hoisted()} guarded=${guarded()} len=${a.len()}")
+    return 0
+}

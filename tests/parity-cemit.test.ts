@@ -35,6 +35,11 @@ const CC_AVAILABLE = await (async () => {
 // Snippets whose Vader-emitted C is at parity. Grows tranche by tranche
 // (see the plan's §9). T0 : the constant-return path.
 const C_PARITY = new Set<string>([
+  // The BCE resolve-hoist through a NAMED length bound lives ONLY in the emitted
+  // C — it moves two lines out of a loop and changes no bytecode op — so the C
+  // golden is the only thing that can pin it. `hoisted()` must show the resolve
+  // in the preheader, `guarded()` must show it still inside the loop.
+  "bce_named_bound",
   "return_42",
   // T1 scalar core : params + local.get + i32 binop + non-lit return.
   // No main (library) → the compile/run oracle skips the run, the
