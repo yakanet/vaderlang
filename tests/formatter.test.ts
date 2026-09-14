@@ -73,6 +73,30 @@ async function astDump(path: string): Promise<string> {
 // ---------------------------------------------------------------------------
 const REGRESSIONS: { name: string; source: string }[] = [
   {
+    // A FUNCTION TYPE as an array element. `fn(A) -> B` extends to the right,
+    // so printing the element bare turned `(fn(i64) -> i64)[]!` into
+    // `fn(i64) -> i64[]!` — a fn RETURNING an array, and four errors at the
+    // site that wrote it. The printer parenthesised unions and intersections
+    // for exactly this reason and had never met a fn type there.
+    name: "fn_type_as_array_element",
+    source: `module "reg/fn_type_as_array_element"
+
+apply_all :: fn(fns: (fn(i64) -> i64)[], seed: i64) -> i64 {
+    total :: seed
+    for f in fns {
+        total = f(total)
+    }
+    return total
+}
+
+boxed :: fn() -> (fn(i64) -> i64)[]! {
+    out: (fn(i64) -> i64)[]! = []
+    out.push((x: i64) -> x + 1)
+    return out
+}
+`,
+  },
+  {
     // F3 : nested generic in impl position. `Into<Iterator<T>>` used to gain an
     // extra `>` — the split `>>` handed both closers the whole-`>>` span.
     name: "nested_generic_impl",

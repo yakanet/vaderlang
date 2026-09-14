@@ -1318,9 +1318,21 @@ emit_expr :: fn(self: Printer!, e: p.Expr | null) -> void {
 }
 
 // Wraps the element of an `ArrayTypeExpr` (or any other tighter-than-pipe
-// postfix) in parens iff it's a `BinaryExpr.BitOr` or `BinaryExpr.BitAnd`,
+// postfix) in parens iff dropping them would change what the text parses as,
 // preserving the source-level precedence.
+//
+// Two shapes need it. A union or intersection, because `[]` and `!` bind
+// tighter than `|` / `&`. And a FUNCTION TYPE, because its result extends to
+// the right and swallows the postfix: `(fn(i64) -> i64)[]!` printed bare is
+// `fn(i64) -> i64[]!`, which is a fn RETURNING an array — source that does not
+// compile at the site that wrote it.
 emit_array_or_union_element :: fn(self: Printer!, e: p.Expr) -> void {
+    if e is p.FnTypeExpr {
+        self.write("(")
+        self.emit_expr(e)
+        self.write(")")
+        return
+    }
     match e {
         is p.BinaryExpr -> {
             if e.op == .BitOr || e.op == .BitAnd {
