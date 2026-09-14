@@ -276,12 +276,23 @@ typedef struct {
         vader_bool_t   b;
         vader_string_t s;
         void*          obj;     /* struct / array ref */
-        /* Multi-field POD packed payload. `vader_string_t` already makes
-         * this union 16 bytes wide, so the new view costs nothing. The C
-         * emit overlays a header-less mirror struct
-         * (`struct vader_packed_<name>_t`) at byte offset 0 of this
-         * array to read/write fields with natural C layout. */
-        uint8_t        packed[16];
+        /* Multi-field POD packed payload — a byte view the C emit can
+         * overlay a header-less mirror struct on, to read and write fields
+         * with natural C layout.
+         *
+         * EIGHT bytes, and that is the width of this whole union: every
+         * other member is a machine word or narrower (`vader_string_t` is
+         * a `vader_atom_t`, four bytes). Widening it widens `vader_box_t`
+         * past 16, at which point it stops travelling in two registers and
+         * every boxed value is copied to the stack and passed by pointer
+         * instead — measured at 47 % of `bench/tree_eval` and 57 % of
+         * `bench/closures`.
+         *
+         * `vader_box_eq` below compares the tag and ONE eight-byte slot, so
+         * a payload wider than this would already be wrong for `ref.eq`
+         * before it was slow. Anything needing more inline space needs a
+         * different mechanism, not a wider box. */
+        uint8_t        packed[8];
     } payload;
 } vader_box_t;
 
