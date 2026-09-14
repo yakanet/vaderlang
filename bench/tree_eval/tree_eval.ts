@@ -2,7 +2,7 @@
 // string literal, and the dispatch is a switch on that tag.
 
 const TREE_DEPTH = 17;
-const PASS_COUNT = 40;
+const PASS_COUNT = 100;
 const MAX_LITERAL = 9;
 
 type Expression =

@@ -2,7 +2,7 @@
 // the dispatch is an exhaustive pattern switch — the JIT's own tag test.
 
 static final int TREE_DEPTH = 17;
-static final int PASS_COUNT = 40;
+static final int PASS_COUNT = 100;
 static final int MAX_LITERAL = 9;
 
 sealed interface Expression permits Literal, Add, Subtract, Negate {}

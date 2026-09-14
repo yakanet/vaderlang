@@ -9,14 +9,9 @@
 /// was outside one. And a factory called many times mints one environment per
 /// closure, which is an allocation the call site cannot see.
 ///
-/// The Java peer cannot mutate a captured local at all, so it captures a
-/// one-element array instead — that is what Java code writes, and it pays the
-/// same indirection.
-///
 /// Totals stay inside an f64 mantissa so the Bun-TS peer needs no BigInt, and
-/// `CALLS` divides `ADDERS` exactly — `CALLS / ADDERS` is a FLOAT division in
-/// JS, so a remainder buys the Bun-TS peer one extra pass and a checksum of its
-/// own. Caught by the checksum, which is what it is for.
+/// `ADDERS` must divide `CALLS` exactly: `CALLS / ADDERS` is a FLOAT division in
+/// JS, so a remainder gives the Bun-TS peer one extra pass.
 ///
 /// Sized so the natively compiled binary runs in ~30-70 ms.
 
@@ -24,7 +19,7 @@ module "main"
 
 import "std/io"
 
-CALLS  :: 6_000_000
+CALLS  :: 18_000_000
 ADDERS :: 500
 
 make_adder :: fn(n: i64) -> fn(i64) -> i64 = (x: i64) -> x + n

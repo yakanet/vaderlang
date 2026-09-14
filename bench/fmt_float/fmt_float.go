@@ -16,10 +16,10 @@ func main() {
 		if i%divisor == 0 {
 			continue
 		}
-		rendered := fmt.Sprintf("%v", float64(i)/7.0)
+		rendered := fmt.Sprintf("%v", float64(i)/float64(divisor))
 		length += int64(len(rendered))
-		for _, b := range []byte(rendered) {
-			hash = (hash*31 + int64(b)) % 1_000_000_007
+		for position, b := range []byte(rendered) {
+			hash += int64(position+1) * int64(b)
 		}
 	}
 	fmt.Printf("fmt_float count=%d length=%d hash=%d\n", count, length, hash)

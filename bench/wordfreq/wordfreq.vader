@@ -38,7 +38,8 @@ VOCABULARY_STRIDE: i64: 2731
 VOCABULARY_SPACE: i64: 308_915_776
 
 main :: fn() -> i32 {
-    corpus :: build_corpus()
+    vocabulary :: build_vocabulary()
+    corpus :: build_corpus(vocabulary)
     counts :: MutableMap<string, i32> {}
     for token_index in 0..<TOKEN_COUNT {
         start :: usize(token_index) * usize(WORD_LENGTH + 1)
@@ -48,7 +49,7 @@ main :: fn() -> i32 {
     }
     checksum: i64 = 0
     for index in 0..<VOCABULARY_SIZE {
-        seen :: counts[vocabulary_word(index)]
+        seen :: counts[vocabulary[index].bytes_to_string()]
         if seen != null {
             checksum += i64(seen) * i64(index + 1)
         }
@@ -70,17 +71,25 @@ append_word :: fn(out: u8[]!, index: i32) -> void {
     }
 }
 
-vocabulary_word :: fn(index: i32) -> string {
-    out: u8[]! = []
-    out.append_word(index)
-    return out.bytes_to_string()
+// Rendered ONCE. The corpus repeats each word 73 times and the checksum reads
+// every one back, so rendering on demand did the base-26 division 74 times per
+// distinct word — more than half the Bun-TS column, spent on setup rather than
+// on the map the row is named for.
+build_vocabulary :: fn() -> u8[][] {
+    out: u8[][]! = []
+    for index in 0..<VOCABULARY_SIZE {
+        word: u8[]! = []
+        word.append_word(index)
+        out.push(word)
+    }
+    return out
 }
 
-build_corpus :: fn() -> u8[] {
+build_corpus :: fn(vocabulary: u8[][]) -> u8[] {
     out: u8[]! = []
     for token_index in 0..<TOKEN_COUNT {
         word_index :: i32(i64(token_index) * VOCABULARY_STRIDE % i64(VOCABULARY_SIZE))
-        out.append_word(word_index)
+        out.push_all(vocabulary[usize(word_index)])
         out.push(' ')
     }
     return out

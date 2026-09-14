@@ -7,7 +7,7 @@ package main
 import "fmt"
 
 const (
-	calls  = 6_000_000
+	calls  = 18_000_000
 	adders = 500
 )
 

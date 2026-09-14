@@ -8,10 +8,10 @@ let length = 0;
 let hash = 0;
 for (let i = 1; i < COUNT; i++) {
   if (i % DIVISOR === 0) continue;
-  const rendered = String(i / 7);
+  const rendered = String(i / DIVISOR);
   length += rendered.length;
-  for (let j = 0; j < rendered.length; j++) {
-    hash = (hash * 31 + rendered.charCodeAt(j)) % 1_000_000_007;
+  for (let position = 0; position < rendered.length; position++) {
+    hash += (position + 1) * rendered.charCodeAt(position);
   }
 }
 console.log(`fmt_float count=${COUNT} length=${length} hash=${hash}`);

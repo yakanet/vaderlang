@@ -21,7 +21,7 @@ module "main"
 import "std/io"
 
 TREE_DEPTH  :: 17
-PASS_COUNT  :: 40
+PASS_COUNT  :: 100
 MAX_LITERAL :: 9
 
 Expression :: Literal | Add | Subtract | Negate

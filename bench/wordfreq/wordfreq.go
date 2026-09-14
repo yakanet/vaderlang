@@ -25,15 +25,22 @@ func appendWord(out []byte, index int32) []byte {
 	return out
 }
 
-func vocabularyWord(index int32) string {
-	return string(appendWord(make([]byte, 0, wordLength), index))
+// Rendered ONCE : the corpus repeats each word 73 times and the checksum reads
+// every one back.
+func buildVocabulary() [][]byte {
+	out := make([][]byte, 0, vocabularySize)
+	for index := 0; index < vocabularySize; index++ {
+		out = append(out, appendWord(make([]byte, 0, wordLength), int32(index)))
+	}
+	return out
 }
 
 func main() {
+	vocabulary := buildVocabulary()
 	corpus := make([]byte, 0, tokenCount*(wordLength+1))
 	for tokenIndex := 0; tokenIndex < tokenCount; tokenIndex++ {
-		wordIndex := int32(int64(tokenIndex) * vocabularyStride % vocabularySize)
-		corpus = appendWord(corpus, wordIndex)
+		wordIndex := int64(tokenIndex) * vocabularyStride % vocabularySize
+		corpus = append(corpus, vocabulary[wordIndex]...)
 		corpus = append(corpus, ' ')
 	}
 
@@ -46,7 +53,7 @@ func main() {
 
 	var checksum int64
 	for index := 0; index < vocabularySize; index++ {
-		if seen, ok := counts[vocabularyWord(int32(index))]; ok {
+		if seen, ok := counts[string(vocabulary[index])]; ok {
 			checksum += int64(seen) * int64(index+1)
 		}
 	}

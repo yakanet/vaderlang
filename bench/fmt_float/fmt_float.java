@@ -8,10 +8,10 @@ void main() {
     long length = 0, hash = 0;
     for (int i = 1; i < COUNT; i++) {
         if (i % DIVISOR == 0) continue;
-        String rendered = Double.toString((double) i / 7.0);
+        String rendered = Double.toString((double) i / DIVISOR);
         length += rendered.length();
-        for (int j = 0; j < rendered.length(); j++) {
-            hash = (hash * 31 + rendered.charAt(j)) % 1_000_000_007;
+        for (int position = 0; position < rendered.length(); position++) {
+            hash += (long) (position + 1) * rendered.charAt(position);
         }
     }
     IO.println("fmt_float count=%d length=%d hash=%d".formatted(COUNT, length, hash));

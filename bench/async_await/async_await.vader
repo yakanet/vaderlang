@@ -3,14 +3,9 @@
 /// parking, no timer: the row measures the block-split lowering and the frame
 /// that carries locals across a suspension point, which nothing else does.
 ///
-/// TWO COLUMNS ON PURPOSE. Bun-TS is the only peer with the same construct —
-/// `await` on a settled promise is the same "resume a state machine" hop. Go has
-/// no async/await at all, and its nearest idiom (a goroutine and a channel
-/// round-trip) parks on the scheduler, which is a different and far heavier
-/// thing; Java is the same story with virtual threads. A row comparing those
-/// would say which concurrency model is cheaper, not whether our lowering
-/// regressed. The harness drops an implementation whose source is absent, so the
-/// two columns are simply left empty.
+/// Two columns: Bun-TS is the only peer with the same construct. Go and Java
+/// express concurrency, not resumption, so their rows would compare models
+/// rather than lowerings — `bench/README.md` carries the argument.
 ///
 /// Sized so the natively compiled binary runs in ~30-70 ms.
 
@@ -21,15 +16,13 @@ import "std/io"
 COUNT :: 3_000_000
 
 /// The v1 primitive awaitable: a future that is already settled.
-Ready :: struct<T> { v: T }
+Ready :: struct<T> { value: T }
 
 Ready<T> implements Async<T> {
-    resume :: fn(self) -> T | Suspended {
-        return self.v
-    }
+    resume :: fn(self) -> T | Suspended = self.value
 }
 
-step :: fn(x: i64) -> Async<i64> = Ready<i64> { .v = x + 1 }
+step :: fn(x: i64) -> Async<i64> = Ready<i64> { .value = x + 1 }
 
 run :: fn() -> Async<i64> {
     total: i64 = 0

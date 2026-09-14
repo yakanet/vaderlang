@@ -17,18 +17,18 @@ module "main"
 
 import "std/io"
 
-SIZE :: 260
+SIZE: usize: 260
 
 main :: fn() -> i32 {
     left :: build(7)
     right :: build(5)
     total: i64 = 0
     for row in 0..<SIZE {
-        left_row :: left[usize(row)]
+        left_row :: left[row]
         for column in 0..<SIZE {
             cell: i64 = 0
             for k in 0..<SIZE {
-                cell += left_row[usize(k)] * right[usize(k)][usize(column)]
+                cell += left_row[k] * right[k][column]
             }
             total += cell
         }

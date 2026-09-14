@@ -4,7 +4,7 @@
 
 import java.util.function.LongUnaryOperator;
 
-static final int CALLS = 6_000_000;
+static final int CALLS = 18_000_000;
 static final int ADDERS = 500;
 
 static LongUnaryOperator makeAdder(long n) {

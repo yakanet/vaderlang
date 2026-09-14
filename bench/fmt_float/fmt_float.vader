@@ -13,6 +13,12 @@
 /// Values stay inside [1e-3, 1e5) so no port switches to exponential notation ;
 /// Java crosses over at 1e7 and JS at 1e21, so the window is Java's.
 ///
+/// The checksum is a position-weighted sum rather than a rolling hash with a
+/// modulus: an i64 division per emitted character cost more than the rendering
+/// it was there to verify — 90 % of the Bun-TS column — so the row measured its
+/// own bookkeeping. `(position + 1) * byte` stays exact in an f64 mantissa and
+/// needs no division.
+///
 /// Sized so the natively compiled binary runs in ~30-70 ms.
 
 module "main"
@@ -29,10 +35,11 @@ main :: fn() -> i32 {
         if i % DIVISOR == 0 {
             continue
         }
-        rendered :: "${f64(i) / 7.0}"
-        length += i64(rendered.byte_len())
-        for b in rendered.bytes() {
-            hash = (hash * 31 + i64(b)) % 1_000_000_007
+        rendered :: "${f64(i) / f64(DIVISOR)}"
+        bytes :: rendered.bytes()
+        length += i64(bytes.len())
+        for position in 0..<bytes.len() {
+            hash += i64(position + 1) * i64(bytes[position])
         }
     }
     println("fmt_float count=${COUNT} length=${length} hash=${hash}")

@@ -2,7 +2,7 @@
 // captured environment, and calling through an array of them keeps the call
 // site megamorphic.
 
-const CALLS = 6_000_000;
+const CALLS = 18_000_000;
 const ADDERS = 500;
 
 function makeAdder(n: number): (x: number) => number {

@@ -22,18 +22,24 @@ static int appendWord(byte[] out, int at, int index) {
     return at + WORD_LENGTH;
 }
 
-static String vocabularyWord(int index) {
-    byte[] out = new byte[WORD_LENGTH];
-    appendWord(out, 0, index);
-    return new String(out, StandardCharsets.US_ASCII);
+// Rendered ONCE : the corpus repeats each word 73 times and the checksum reads
+// every one back.
+static byte[][] buildVocabulary() {
+    byte[][] out = new byte[VOCABULARY_SIZE][WORD_LENGTH];
+    for (int index = 0; index < VOCABULARY_SIZE; index++) {
+        appendWord(out[index], 0, index);
+    }
+    return out;
 }
 
 void main() {
+    byte[][] vocabulary = buildVocabulary();
     byte[] corpus = new byte[TOKEN_COUNT * (WORD_LENGTH + 1)];
     for (int tokenIndex = 0; tokenIndex < TOKEN_COUNT; tokenIndex++) {
         int wordIndex = (int) (tokenIndex * VOCABULARY_STRIDE % VOCABULARY_SIZE);
-        int at = appendWord(corpus, tokenIndex * (WORD_LENGTH + 1), wordIndex);
-        corpus[at] = ' ';
+        int at = tokenIndex * (WORD_LENGTH + 1);
+        System.arraycopy(vocabulary[wordIndex], 0, corpus, at, WORD_LENGTH);
+        corpus[at + WORD_LENGTH] = ' ';
     }
 
     Map<String, Integer> counts = new HashMap<>();
@@ -45,7 +51,7 @@ void main() {
 
     long checksum = 0;
     for (int index = 0; index < VOCABULARY_SIZE; index++) {
-        Integer seen = counts.get(vocabularyWord(index));
+        Integer seen = counts.get(new String(vocabulary[index], StandardCharsets.US_ASCII));
         if (seen != null) checksum += (long) seen * (index + 1);
     }
     IO.println("wordfreq vocabulary=%d tokens=%d distinct=%d checksum=%d"

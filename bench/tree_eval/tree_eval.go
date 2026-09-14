@@ -7,7 +7,7 @@ import "fmt"
 
 const (
 	treeDepth  = 17
-	passCount  = 40
+	passCount  = 100
 	maxLiteral = 9
 )
 
