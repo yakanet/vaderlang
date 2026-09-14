@@ -18,10 +18,9 @@
 #
 # NONE of them answers whether the seed is CORRECT. `verify.sh` compares stage1
 # to stage2, and a compiler that mis-compiles itself stably passes that: both
-# stages are wrong the same way, which is what a fixed point preserves. A seed
-# emitted by a compiler carrying an unsound optimisation shipped that way on
-# 2026-09-14 with the suite green — green from BEFORE the reseed. The suite is
-# the check, and it has to run after.
+# stages are wrong the same way, which is what a fixed point preserves. The
+# suite is the check, and a reseed changes the stage0 that builds the binary
+# under test — so it has to run AFTER.
 #
 # CHECK CONTRACT:
 #   exit 0  FRESH    the committed seed matches what the sources would emit

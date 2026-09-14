@@ -280,21 +280,19 @@ typedef struct {
          * overlay a header-less mirror struct on, to read and write fields
          * with natural C layout.
          *
-         * EIGHT bytes, and that is the width of this whole union: every
-         * other member is a machine word or narrower (`vader_string_t` is
-         * a `vader_atom_t`, four bytes). Widening it widens `vader_box_t`
-         * past 16, at which point it stops travelling in two registers and
-         * every boxed value is copied to the stack and passed by pointer
-         * instead — measured at 47 % of `bench/tree_eval` and 57 % of
-         * `bench/closures`.
-         *
-         * `vader_box_eq` below compares the tag and ONE eight-byte slot, so
-         * a payload wider than this would already be wrong for `ref.eq`
-         * before it was slow. Anything needing more inline space needs a
-         * different mechanism, not a wider box. */
+         * Do not widen it. It is the widest member, so it sets the union's
+         * width and thus the box's, and `vader_box_eq` below compares ONE
+         * eight-byte slot — a wider payload is wrong for `ref.eq` before it
+         * is anything else. The size assertion under the struct is the guard;
+         * `docs/adr/0018-*` has the measurements. */
         uint8_t        packed[8];
     } payload;
 } vader_box_t;
+
+/* A box travels in two registers or it does not: past 16 bytes the ABI passes
+ * it in memory, and every boxed value starts paying a copy per call. Nothing
+ * else in the header states this, and the union above is where it would break. */
+_Static_assert(sizeof(vader_box_t) == 16, "a box must travel in two registers");
 
 /* The null tag is reserved at index 0 of every emitted module so unboxed
  * `null` slots are well-defined without consulting the type table. */

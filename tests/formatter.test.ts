@@ -46,6 +46,10 @@ const SNIPPETS = [
   "implicit_dot_variant",
   "not_paren",
   "precedence_parens",
+  // Holds `(fn() -> void)[]!` — a fn type under a TYPE postfix, which the
+  // printer corrupted for as long as this file was not in the list. A
+  // committed snippet pins the shape better than an invented source does.
+  "capture_loop_var",
   // A PARAMETER decorator: `@c_pointer` was silently dropped by the formatter,
   // and the typechecker REQUIRES it where a `@c_struct` crosses — so formatting
   // this file used to stop it compiling. The AST round-trip is what catches it.
@@ -73,26 +77,23 @@ async function astDump(path: string): Promise<string> {
 // ---------------------------------------------------------------------------
 const REGRESSIONS: { name: string; source: string }[] = [
   {
-    // A FUNCTION TYPE as an array element. `fn(A) -> B` extends to the right,
-    // so printing the element bare turned `(fn(i64) -> i64)[]!` into
-    // `fn(i64) -> i64[]!` — a fn RETURNING an array, and four errors at the
-    // site that wrote it. The printer parenthesised unions and intersections
-    // for exactly this reason and had never met a fn type there.
-    name: "fn_type_as_array_element",
-    source: `module "reg/fn_type_as_array_element"
+    // Operands the TYPE postfixes `[]` / `!` must keep parenthesised. The
+    // printer enumerated its own short list here instead of asking the
+    // predicate the value postfixes use, so three shapes round-tripped to
+    // source that means something else — a fn type most visibly, since its
+    // result extends right and `(fn(i64) -> i64)[]!` came back as a fn
+    // RETURNING an array.
+    name: "parenthesised_postfix_element",
+    source: `module "reg/parenthesised_postfix_element"
 
-apply_all :: fn(fns: (fn(i64) -> i64)[], seed: i64) -> i64 {
-    total :: seed
-    for f in fns {
-        total = f(total)
-    }
-    return total
-}
+apply_all :: fn(fns: (fn(i64) -> i64)[], seed: i64) -> i64 = seed
 
-boxed :: fn() -> (fn(i64) -> i64)[]! {
-    out: (fn(i64) -> i64)[]! = []
-    out.push((x: i64) -> x + 1)
-    return out
+boxed :: fn() -> (fn(i64) -> i64)[]! = []
+
+ranged :: fn() -> i32 {
+    a :: (0..<3)[]
+    b :: (1 + 1)[]
+    return i32(a.len() + b.len())
 }
 `,
   },

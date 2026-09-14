@@ -93,11 +93,7 @@ pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
 pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
     kept: i32[]! = []
     for sym in live {
-        if !cf_block_mentions(lp.body, sym, CF_ESCAPE_ONLY) && !cf_opt_expr_mentions(
-            lp.cond,
-            sym,
-            CF_ESCAPE_ONLY,
-        ) {
+        if !cf_stmt_mentions(lp, sym, CF_ESCAPE_ONLY) {
             kept.push(sym)
         }
     }
@@ -173,7 +169,7 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     }
     // Anything else that names the array would read a `length` the lifted form
     // has not written back yet.
-    if pc_used_outside_push(lp.body, sym) {
+    if pc_used_outside_push(lp, sym) {
         return
     }
     // A name says nothing about ALIASING, and the lifted form needs the array to
@@ -185,24 +181,17 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     if !(sym in live) {
         return
     }
-    // The condition is re-evaluated on every iteration, so it belongs to the
-    // region the lift covers — a read there sees a `length` the write-back has
-    // not reached. `for <cond>` lowers its test INTO the body, so nothing
-    // populates `cond` with such a read today ; the forms that do carry one
-    // (`lower_for_in`, `lower_iter_fusion`) put a counter test there. This is
-    // the region boundary being drawn where it belongs, not a repro.
-    if cf_opt_expr_mentions(lp.cond, sym, CF_SKIP_PUSH) {
-        return
-    }
-    if bce_opt_expr_unsafe(lp.cond, sym, pctx) {
-        return
-    }
-    // The body must move no buffer. `bce_*_unsafe` is the shared answer to that
-    // (it also catches a rebind of the array itself) — but it counts a push as
-    // unsafe, since a push can grow, so the candidate pushes are held to their
-    // VALUE expression only. The grow is not a problem here: it is the one
-    // safepoint the lifted form knows about, and it refreshes across it.
-    if pc_body_unsafe(lp.body, sym, pctx) {
+    // The region is the loop STATEMENT, condition included : the condition is
+    // re-evaluated on every iteration, so a read there sees a `length` the
+    // write-back has not reached. The two walkers already draw that boundary in
+    // their own `LoweredLoop` arms, so asking them about `lp` rather than
+    // `lp.body` keeps it in one place.
+    //
+    // `pc_stmt_unsafe` answers "can this move a buffer" — and it counts a push
+    // as unsafe, since a push can grow, so the candidate pushes are held to
+    // their VALUE expression only. The grow is not a problem here: it is the
+    // one safepoint the lifted form knows about, and it refreshes across it.
+    if pc_stmt_unsafe(lp, sym, pctx) {
         return
     }
     for p in pushes {
@@ -318,8 +307,8 @@ pc_opt_block_exits :: fn(b: LoweredBlock | null, depth: i32) -> bool = b != null
 // `push_target = false` is exactly this pass's difference from the concat
 // fusion's: the target of a push onto `sym` is the use being replaced, not an
 // observation of it.
-pc_used_outside_push :: fn(b: LoweredBlock, sym: i32) -> bool = cf_block_mentions(
-    b,
+pc_used_outside_push :: fn(lp: LoweredLoop, sym: i32) -> bool = cf_stmt_mentions(
+    lp,
     sym,
     CF_SKIP_PUSH,
 )

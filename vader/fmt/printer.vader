@@ -1317,34 +1317,17 @@ emit_expr :: fn(self: Printer!, e: p.Expr | null) -> void {
     }
 }
 
-// Wraps the element of an `ArrayTypeExpr` (or any other tighter-than-pipe
-// postfix) in parens iff dropping them would change what the text parses as,
-// preserving the source-level precedence.
+// Wraps the element of an `ArrayTypeExpr` / `MutableTypeExpr` in parens iff
+// dropping them would change what the text parses as.
 //
-// Two shapes need it. A union or intersection, because `[]` and `!` bind
-// tighter than `|` / `&`. And a FUNCTION TYPE, because its result extends to
-// the right and swallows the postfix: `(fn(i64) -> i64)[]!` printed bare is
-// `fn(i64) -> i64[]!`, which is a fn RETURNING an array — source that does not
-// compile at the site that wrote it.
+// The TYPE postfixes `[]` and `!` ask the same question as the value postfixes
+// `.field` / `[i]` / `(...)`, so they share the predicate: an operand only
+// reaches here bearing a looser-binding shape because the source parenthesised
+// it, and re-emitting it bare rebinds the postfix into the operand. Enumerating
+// the shapes twice is how `(fn(i64) -> i64)[]`, `(0..<3)[]` and `(1 + 1)[]` were
+// all being corrupted while `(0..<3).count()` was not.
 emit_array_or_union_element :: fn(self: Printer!, e: p.Expr) -> void {
-    if e is p.FnTypeExpr {
-        self.write("(")
-        self.emit_expr(e)
-        self.write(")")
-        return
-    }
-    match e {
-        is p.BinaryExpr -> {
-            if e.op == .BitOr || e.op == .BitAnd {
-                self.write("(")
-                self.emit_expr(e)
-                self.write(")")
-                return
-            }
-            self.emit_expr(e)
-        }
-        _ -> self.emit_expr(e)
-    }
+    self.emit_postfix_target(e)
 }
 
 // Type-position emission forwards. Vader's union-alias `TypeExpr` flattens
@@ -1474,6 +1457,10 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     // parenthesised the await — keep the parens or the postfix rebinds inside
     // the await (`await x.f` = `await (x.f)`).
     if e is p.AwaitExpr  { return true }
+    // A fn type's result extends to the right, so a postfix placed after one
+    // lands inside the result : `(fn(i64) -> i64)[]` printed bare is
+    // `fn(i64) -> i64[]`, a fn RETURNING an array.
+    if e is p.FnTypeExpr { return true }
     return false
 }
 
