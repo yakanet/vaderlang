@@ -6090,7 +6090,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2480u
+#define VADER_COMPTIME_ATOM_COUNT 2471u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -6099,11 +6099,10 @@ extern const vader_array_t vader_data_3;
 extern const vader_array_t vader_data_4;
 extern const vader_array_t vader_data_5;
 extern const vader_array_t vader_data_6;
-extern const vader_array_t vader_data_7;
-extern vader_array_t vader_data_8;
+extern vader_array_t vader_data_7;
+extern const vader_array_t vader_data_8;
 extern const vader_array_t vader_data_9;
 extern const vader_array_t vader_data_10;
-extern const vader_array_t vader_data_11;
 extern vader_array_t* vader_global_const_arrays[];
 extern void* vader_global_const_objs[];
 extern vader_gc_frame_t vader_global_const_frame;
