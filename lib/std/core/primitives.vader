@@ -26,21 +26,11 @@ module "std/core"
 // Pure-Vader Display for the scalar primitives (Target ABI S1 for the
 // integers/bool/char/string, S4 for f32/f64). Real-body impls shadow the
 // former `@intrinsic` stubs (`lower_impl_member.vader` returns the first
-// non-intrinsic match). The integer formatters are built from string-literal
-// digits + concat because std/core cannot import std/string_builder / std/string
-// (import cycle — that's why std/numbers lives outside core) ; f32/f64 delegate
-// to the Ryu formatters in dtoa.vader / f2s.vader.
-
-// The integer formatters render digits into a byte buffer (emitted LSB-first,
-// then reversed once) and intern via `bytes_to_string` — O(n), where the former
-// prepend-concat (`out = digit + out`) re-allocated the whole string per digit
-// (O(n²)). The `for i in 0..<k` reverse is safe inside std/core now that the
-// duplicate-mangle dedup + per-function type pins landed : a materialised `Range`
-// no longer double-emits (`redefinition`) or leaks dead into every program.
-
-/// One-char strings per decimal digit. Used by the f64 digit collector in
-/// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
-DECIMAL_DIGITS:: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+// non-intrinsic match). std/core cannot import std/string_builder / std/string
+// (import cycle — that's why std/numbers lives outside core), so every formatter
+// here sizes its result first, fills one `Buffer` and interns it once ; f32/f64
+// delegate to the Ryu formatters in dtoa.vader / f2s.vader, which render the
+// same way.
 
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
@@ -51,8 +41,7 @@ DECIMAL_DIGITS:: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 //
 // A first pass counts the digits so the second can fill a single right-sized
 // `Buffer` from the least-significant end and intern it — one allocation, no
-// growable array and no reversal pass (the old `digits[] + finish_digits out[]`
-// minted two arrays plus their push-growth per format).
+// growable array and no reversal pass.
 format_signed :: fn(n: i64) -> string {
     if n == 0 { return "0" }
     neg :: n < 0
