@@ -64,6 +64,9 @@ bench/matmul/matmul
 bench/closures/closures
 bench/fmt_float/fmt_float
 bench/async_await/async_await
+bench/parse_float/parse_float
+bench/sort_by/sort_by
+bench/split_join/split_join
 *.dSYM/
 
 ## POCs

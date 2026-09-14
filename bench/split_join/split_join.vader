@@ -1,0 +1,51 @@
+/// `split` then `join` — the string API a text tool spends its day in, and the
+/// one surface none of the other string rows touch. `str_concat` grows one
+/// string, `string_builder` appends fragments, `wordcount` scans bytes without
+/// producing any, `wordfreq` slices by a computed offset. None of them cut a
+/// string into an array of pieces and put it back together.
+///
+/// The text is built once. Each pass splits it, keeps the pieces whose length is
+/// odd, and joins those back — so the row measures the split, the array that
+/// receives it, the filter, and the concat, in the proportions a real caller
+/// hits them.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+import "std/string"
+
+FIELD_COUNT :: 20_000
+PASS_COUNT  :: 24
+SEPARATOR   :: ","
+STRIDE: i64: 1103515245
+
+main :: fn() -> i32 {
+    text :: build_text()
+    pieces: i64 = 0
+    joined_length: i64 = 0
+    for 0..<PASS_COUNT {
+        parts :: split(text, SEPARATOR)
+        kept: string[]! = []
+        for part in parts {
+            if part.byte_len() % 2 == 1 {
+                kept.push(part)
+            }
+        }
+        pieces += i64(kept.len())
+        joined_length += i64(join(kept, SEPARATOR).byte_len())
+    }
+    println(
+        "split_join fields=${FIELD_COUNT} passes=${PASS_COUNT} pieces=${pieces} length=${joined_length}",
+    )
+    return 0
+}
+
+build_text :: fn() -> string {
+    parts: string[]! = []
+    for index in 0..<FIELD_COUNT {
+        parts.push("${i64(index) * STRIDE % 1000003}")
+    }
+    return join(parts, SEPARATOR)
+}

@@ -71,6 +71,9 @@ const WORKLOADS: readonly Workload[] = [
   { name: "closures",       description: "6 M calls through a captured cell + 500 environments",  outputMatch: "closures" },
   { name: "fmt_float",      description: "60 k shortest round-trip float renderings (Ryū)",       outputMatch: "fmt_float" },
   { name: "async_await",    description: "3 M awaits on a settled value (Vader + Bun only)",      outputMatch: "async_await" },
+  { name: "parse_float",    description: "655 k correctly-rounded decimal → f64 parses",         outputMatch: "parse_float" },
+  { name: "sort_by",        description: "24 stable comparator sorts of 20 k i64",               outputMatch: "sort_by" },
+  { name: "split_join",     description: "24 × split a 20 k-field line, filter, rejoin",         outputMatch: "split_join" },
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
   // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
   // and the one thing the runtime-only workloads above can't catch (an O(n²) crept

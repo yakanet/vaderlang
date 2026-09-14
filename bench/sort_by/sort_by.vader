@@ -1,0 +1,47 @@
+/// The stdlib's comparator sort, which is a different thing from `quicksort`.
+/// That row hand-writes a monomorphic median-of-three Lomuto partition and
+/// compares codegen; this one calls `std/sort` through a fn value, so it
+/// measures the library's merge sort plus one indirect call per comparison —
+/// the shape any user's `sort(items, by_name)` actually takes.
+///
+/// The comparator orders on a DERIVED key rather than on the element, so it
+/// cannot collapse to a bare integer compare in any of the four ports.
+///
+/// The array is rebuilt from the same seed each pass, since `std/sort` returns a
+/// fresh array and sorting an already-sorted one measures something else.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+import "std/sort"
+
+ITEM_COUNT :: 20_000
+PASS_COUNT :: 24
+STRIDE: i64: 1103515245
+
+main :: fn() -> i32 {
+    checksum: i64 = 0
+    for 0..<PASS_COUNT {
+        items :: build_items()
+        ordered :: sort(items, before)
+        for index in 0..<ordered.len() {
+            checksum += i64(index + 1) * (ordered[index] % 97)
+        }
+    }
+    println("sort_by items=${ITEM_COUNT} passes=${PASS_COUNT} checksum=${checksum}")
+    return 0
+}
+
+// Orders on the low three digits, so equal keys are common and the comparator
+// cannot be read as `a < b`.
+before :: fn(a: i64, b: i64) -> bool = a % 1000 < b % 1000
+
+build_items :: fn() -> i64[] {
+    out: i64[]! = []
+    for index in 0..<ITEM_COUNT {
+        out.push(i64(index) * STRIDE % 1000003)
+    }
+    return out
+}

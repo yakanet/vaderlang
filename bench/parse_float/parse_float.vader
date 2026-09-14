@@ -1,0 +1,58 @@
+/// Decimal → float, correctly rounded. The mirror of `fmt_float`, and the other
+/// half of a subsystem that was deliberately moved off the host: `parse_float`
+/// used to be `strtod` natively and a naive accumulator on the VM, and the two
+/// disagreed on real inputs. One pure-Vader implementation now serves both
+/// (`.claude/plans/2026-07-04-pure-vader-parse-float.md`), which means nothing
+/// but a benchmark will notice if it is slow.
+///
+/// The inputs are built ONCE and parsed PASS_COUNT times over, so the row
+/// measures parsing rather than the integer formatting that assembles them.
+/// Their shapes vary on purpose — digit count, fraction length, exponent — since
+/// a decimal parser's cost is not flat across them.
+///
+/// The checksum sums the two halves of each result's BIT PATTERN, not the values
+/// themselves. That is what correct rounding means here — a parser off by one
+/// unit in the last place changes a bit — and it sidesteps rendering entirely,
+/// which matters because the four ports disagree on how to print a large float
+/// (Java writes `E27` where JS writes `e+27`). Both sums stay under 2^53, so
+/// they are exact in an f64 mantissa.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+import "std/string"
+
+INPUT_COUNT :: 4096
+PASS_COUNT  :: 160
+
+FRACTIONS: string[]: ["5", "25", "125", "0625", "1", "7", "142857", "33333333"]
+EXPONENTS: string[]: ["", "e3", "e-3", "e17", "e-17"]
+
+main :: fn() -> i32 {
+    inputs :: build_inputs()
+    high: i64 = 0
+    low: i64 = 0
+    for 0..<PASS_COUNT {
+        for text in inputs {
+            parsed :: parse_float(text)
+            if parsed is f64 {
+                bits :: parsed.to_bits()
+                high += i64(bits >> 32)
+                low += i64(bits & 0xFFFFFFFF)
+            }
+        }
+    }
+    println("parse_float inputs=${INPUT_COUNT} passes=${PASS_COUNT} high=${high} low=${low}")
+    return 0
+}
+
+build_inputs :: fn() -> string[] {
+    out: string[]! = []
+    for index in 0..<INPUT_COUNT {
+        mantissa :: i64(index) * 1103515245 % 1000003
+        out.push("${mantissa}.${FRACTIONS[usize(index % 8)]}${EXPONENTS[usize(index % 5)]}")
+    }
+    return out
+}
