@@ -60,6 +60,10 @@ bench/quicksort/quicksort
 bench/wordfreq/wordfreq
 bench/shapes/shapes
 bench/tree_eval/tree_eval
+bench/matmul/matmul
+bench/closures/closures
+bench/fmt_float/fmt_float
+bench/async_await/async_await
 *.dSYM/
 
 ## POCs

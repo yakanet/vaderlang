@@ -1,0 +1,50 @@
+/// Nested array indexing — a row-major matrix multiply over `i64[][]`.
+///
+/// Every other array workload here is one-dimensional, and a second dimension is
+/// not more of the same: a row is its OWN `vader_array_t`, so `a[i][j]` walks two
+/// headers and two buffers where `a[i]` walks one. The inner loop also holds the
+/// row it reads across the whole of `k`, which is exactly the shape the BCE
+/// resolve-hoist is supposed to pay for — and the row is reloaded per `i`, not
+/// per element, so the hoist has somewhere to land.
+///
+/// Integer arithmetic, and the operands are bounded by a modulus, so the product
+/// stays exact in an f64 mantissa and the Bun-TS peer needs no BigInt. The
+/// classic f64 kernel would put the four ports on different rounding.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+
+SIZE :: 260
+
+main :: fn() -> i32 {
+    left :: build(7)
+    right :: build(5)
+    total: i64 = 0
+    for row in 0..<SIZE {
+        left_row :: left[usize(row)]
+        for column in 0..<SIZE {
+            cell: i64 = 0
+            for k in 0..<SIZE {
+                cell += left_row[usize(k)] * right[usize(k)][usize(column)]
+            }
+            total += cell
+        }
+    }
+    println("matmul size=${SIZE} total=${total}")
+    return 0
+}
+
+build :: fn(modulus: i64) -> i64[][] {
+    out: i64[][]! = []
+    for row in 0..<SIZE {
+        line: i64[]! = []
+        for column in 0..<SIZE {
+            line.push(i64(row + column) % modulus)
+        }
+        out.push(line)
+    }
+    return out
+}

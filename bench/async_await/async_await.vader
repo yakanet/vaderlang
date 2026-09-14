@@ -1,0 +1,46 @@
+/// The coroutine state machine — what an `await` costs when there is nothing to
+/// wait for. Every await here is on an already-ready value, so no scheduler
+/// parking, no timer: the row measures the block-split lowering and the frame
+/// that carries locals across a suspension point, which nothing else does.
+///
+/// TWO COLUMNS ON PURPOSE. Bun-TS is the only peer with the same construct —
+/// `await` on a settled promise is the same "resume a state machine" hop. Go has
+/// no async/await at all, and its nearest idiom (a goroutine and a channel
+/// round-trip) parks on the scheduler, which is a different and far heavier
+/// thing; Java is the same story with virtual threads. A row comparing those
+/// would say which concurrency model is cheaper, not whether our lowering
+/// regressed. The harness drops an implementation whose source is absent, so the
+/// two columns are simply left empty.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+
+COUNT :: 3_000_000
+
+/// The v1 primitive awaitable: a future that is already settled.
+Ready :: struct<T> { v: T }
+
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended {
+        return self.v
+    }
+}
+
+step :: fn(x: i64) -> Async<i64> = Ready<i64> { .v = x + 1 }
+
+run :: fn() -> Async<i64> {
+    total: i64 = 0
+    for 0..<COUNT {
+        total = await step(total)
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    total :: await run()
+    println("async_await count=${COUNT} total=${total}")
+    return 0
+}

@@ -1,6 +1,6 @@
 # Vader benchmarks
 
-Nineteen cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting, array accessors, string interning, trait dispatch and closed-union tag dispatch — so a perf change in any of those subsystems trips a regression.
+Twenty-three cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting, array accessors, nested-array indexing, string interning, float formatting, trait dispatch, closed-union tag dispatch, captured closures and coroutine resumption — so a perf change in any of those subsystems trips a regression. Twenty-two carry all four languages; `async_await` carries two, for the reason its row explains.
 
 Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts`, `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
 
@@ -25,6 +25,10 @@ Every workload lives in its own directory `bench/<name>/` with all four language
 | `wordfreq`       | string interning + string-keyed map              | slice each token out of a byte corpus, count it in a `MutableMap<string, i32>` | 300 000 tokens over 4 096 words |
 | `shapes`         | polymorphic trait dispatch, no devirtualization  | Σ `shape.area()` over an array of three cycled concrete types    | 200 000 shapes × 60 passes            |
 | `tree_eval`      | closed-union tag dispatch (`match`), no alloc    | walk a prebuilt expression tree, one `match` over four variants per node | 262 k nodes × 40 passes       |
+| `matmul`         | nested-array indexing, two headers per access    | row-major `i64[][]` matrix multiply, row hoisted out of the inner loop | 260 × 260                     |
+| `closures`       | captured environment on the heap + indirect call  | a mutating capture called N times, then 500 closures called round-robin | 6 M calls, 500 environments  |
+| `fmt_float`      | shortest round-trip float rendering (Ryū)        | `${f64}` over `i / 7.0`, skipping integral values, hashed               | 60 k renderings               |
+| `async_await`    | coroutine state machine, no scheduler wait       | `await` on an already-settled value, inside one coroutine               | 3 M awaits (Vader + Bun only) |
 
 Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
@@ -68,37 +72,42 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 ## Baseline (committed)
 
-Captured 2026-09-14 on a 2026 Apple Silicon laptop, `bun bench/run.ts --update --runs=40`, after the array push cache and the aliasing fix that followed it (`.claude/plans/2026-09-13-audit-optimisations-transparentes.md` §19-20): a loop whose only use of a locally minted, unaliased array is pushing to it holds the header, the buffer pointer, the length and the capacity in locals and writes `length` back at the exit. It also adds three workloads — `wordfreq`, `shapes`, `tree_eval`. Go — which nothing in that work touches — moved at most 4.2 % on any row over 20 ms against the previous capture, so this baseline is not inflated by machine drift.
+Captured 2026-09-14 on a 2026 Apple Silicon laptop, `bun bench/run.ts --update --runs=40`, after four workloads were added to close the gaps the audit named — `matmul`, `closures`, `fmt_float`, `async_await` — alongside the three from earlier the same day. Adding them was the point: three of the four landed on Vader's weakest rows, and `closures` and `fmt_float` are now the two widest ratios in the corpus. Nothing in the compiler changed between this capture and the previous one, so the seventeen older rows are a control: they all sit inside the noise band.
+
 
 **Forty runs, not twenty, and that is what the short rows needed.** Three 20-run captures of the same build put Go's `string_builder` at 4.2, 4.9 and 6.5 ms — a 55 % spread on a row nothing had touched. The 40-run floor lands at 5.3. Two other 20-run captures were discarded the same way: one read `arr_push` 15.4 ms with `interp` and `ackermann` ~10 % high, and re-measuring those two alone returned them to baseline, so the whole machine had been 2-4 % slow on all four languages that run. The rule applied here, stated so it is not cherry-picking after the fact: **a capture whose sub-10 ms rows disagree with other captures of the same build is discarded as contended, and the published one is the longest run, not the most flattering.**
 
 | workload         | vader-native | bun-ts   | go        | java     |
 |------------------|--------------|----------|-----------|----------|
-| `mandelbrot`     | 17.1 ms ★    | 26.8 ms  | 18.7 ms   | 53.1 ms  |
-| `primes`         | 25.6 ms ★    | 42.7 ms  | 26.5 ms   | 61.8 ms  |
-| `iter_chain`     | 1.6 ms ★     | 38.0 ms  | 3.0 ms    | 43.1 ms  |
-| `binary_trees`   | 6.2 ms ★     | 14.9 ms  | 6.9 ms    | 40.0 ms  |
-| `string_builder` | 7.6 ms       | 10.8 ms  | 4.5 ms ★  | 40.9 ms  |
-| `map_iter`       | 2.6 ms ★     | 35.6 ms  | 8.5 ms    | 46.6 ms  |
-| `arr_rw`         | 59.3 ms      | 85.4 ms  | 37.2 ms ★ | 95.3 ms  |
-| `arr_set`        | 10.1 ms ★    | 84.6 ms  | 37.7 ms   | 63.6 ms  |
-| `arr_map`        | 19.0 ms ★    | 522.9 ms | 89.6 ms   | 146.8 ms |
-| `arr_push`       | 14.2 ms ★    | 52.7 ms  | 32.2 ms   | 58.4 ms  |
-| `str_concat`     | 8.2 ms ★     | 10.2 ms  | 11.7 ms   | 54.0 ms  |
-| `interp`         | 31.0 ms      | 45.6 ms  | 20.5 ms ★ | 58.5 ms  |
-| `hashmap`        | 30.0 ms ★    | 123.5 ms | 45.5 ms   | 93.9 ms  |
-| `ackermann`      | 42.3 ms ★    | 46.5 ms  | 44.0 ms   | 59.3 ms  |
-| `wordcount`      | 10.4 ms ★    | 45.3 ms  | 27.5 ms   | 61.4 ms  |
-| `quicksort`      | 40.0 ms      | 78.7 ms  | 37.6 ms ★ | 86.5 ms  |
-| `wordfreq`       | 24.3 ms      | 48.9 ms  | 12.3 ms ★ | 56.8 ms  |
-| `shapes`         | 23.1 ms ★    | 44.7 ms  | 31.7 ms   | 78.3 ms  |
-| `tree_eval`      | 35.5 ms      | 57.2 ms  | 24.7 ms ★ | 68.6 ms  |
+| `mandelbrot`     | 16.8 ms ★    | 26.4 ms  | 19.0 ms   | 52.5 ms  |
+| `primes`         | 26.2 ms ★    | 43.7 ms  | 26.3 ms   | 61.4 ms  |
+| `iter_chain`     | 1.6 ms ★     | 38.1 ms  | 2.6 ms    | 39.5 ms  |
+| `binary_trees`   | 5.6 ms ★     | 12.9 ms  | 6.0 ms    | 36.0 ms  |
+| `string_builder` | 7.3 ms       | 9.9 ms   | 4.3 ms ★  | 40.0 ms  |
+| `map_iter`       | 2.5 ms ★     | 35.4 ms  | 8.3 ms    | 45.8 ms  |
+| `arr_rw`         | 59.7 ms      | 84.9 ms  | 35.7 ms ★ | 93.6 ms  |
+| `arr_set`        | 9.9 ms ★     | 84.5 ms  | 37.5 ms   | 62.7 ms  |
+| `arr_map`        | 19.4 ms ★    | 527.7 ms | 90.3 ms   | 145.1 ms |
+| `arr_push`       | 14.2 ms ★    | 53.6 ms  | 31.1 ms   | 57.5 ms  |
+| `str_concat`     | 8.1 ms ★     | 9.6 ms   | 11.4 ms   | 52.1 ms  |
+| `interp`         | 29.8 ms      | 46.0 ms  | 20.0 ms ★ | 57.7 ms  |
+| `hashmap`        | 28.9 ms ★    | 120.3 ms | 45.4 ms   | 92.7 ms  |
+| `ackermann`      | 40.7 ms ★    | 46.7 ms  | 43.8 ms   | 58.4 ms  |
+| `wordcount`      | 10.1 ms ★    | 44.8 ms  | 27.5 ms   | 59.6 ms  |
+| `quicksort`      | 39.9 ms      | 75.0 ms  | 37.3 ms ★ | 84.4 ms  |
+| `wordfreq`       | 23.4 ms      | 47.9 ms  | 11.8 ms ★ | 55.1 ms  |
+| `shapes`         | 22.7 ms ★    | 44.1 ms  | 28.3 ms   | 76.8 ms  |
+| `tree_eval`      | 35.0 ms      | 56.8 ms  | 24.9 ms ★ | 67.5 ms  |
+| `matmul`         | 29.9 ms      | 41.5 ms  | 14.8 ms ★ | 49.3 ms  |
+| `closures`       | 31.1 ms      | 22.7 ms  | 8.8 ms ★  | 44.0 ms  |
+| `fmt_float`      | 43.3 ms      | 30.0 ms  | 7.8 ms ★  | 50.5 ms  |
+| `async_await`    | 33.3 ms ★    | 73.2 ms  | —         | —        |
 
 Plus one Vader-only compile-time workload (no cross-language column):
 
 | workload         | vader-native   | what it times                                    |
 |------------------|----------------|--------------------------------------------------|
-| `selfcompile_c`  |  4559 ms       | emit C for the whole compiler (self-host C-emit) |
+| `selfcompile_c`  |  4512 ms       | emit C for the whole compiler (self-host C-emit) |
 
 ★ = fastest on the workload.
 Reading the table :
@@ -120,7 +129,12 @@ Reading the table :
 - **`wordfreq`** — Go (12.3 ms) leads, Vader (24.3 ms) is 2.0 × behind, ahead of Bun (48.9 ms) and Java (56.8 ms). Slicing a token out of a byte corpus makes a *fresh* string, and in Vader a string IS an atom (`vader_string_t` is a `u32`), so `bytes_to_string()` has to hash the bytes and probe the global atom table before the map ever sees the key. Cutting the workload in three says where the time goes: corpus build + slice alone is **8.6 ms**, adding `bytes_to_string()` takes it to **16.9 ms**, and adding the map takes it to **24.8 ms** — so the interning step costs **8.3 ms** and the map step **7.9 ms**. Go's floor for the same slice loop is 4.3 ms and its whole run is 13.1 ms, putting its map step at ~8.8 ms. **Vader's map is the faster of the two**; the gap is the other two thirds — interning, which Go does not have at all (a Go string is a pointer and a length), and the corpus build. The interning is a deliberate trade, not an oversight: that one hash is what makes `==` a single integer compare everywhere else in the language, and it dedupes 98.6 % of the 300 000 slices down to 4 096 atoms. The corpus build is a smaller, more fixable thing — `out.append_word(…)` hands the array to a helper, so the push cache declines it and every push pays the full two-level round trip, where Go's `append` returns a slice value. The ESCAPE is what refuses it, not the helper's own allocation: a loop calling a pure helper that does not take the array still lifts, and one calling a non-allocating helper that does take it does not. (Do not read Go's own three-way split as a peer decomposition: with the converted string feeding only `len()`, escape analysis deletes the conversion, so its middle step measures nothing.)
 - **`shapes`** — Vader (23.1 ms) is the *fastest*, ahead of Go (31.7 ms), ~1.9 × Bun (44.7 ms), with Java (78.3 ms) trailing. This is the counterpart to `iter_chain`: there the lowerer proves the callee and the call disappears, here it cannot and the call has to happen. Vader's trait dispatch is **not a function-pointer vtable** — emit generates one dispatcher per trait method that switches on the receiver's box tag (`vader_vt_Shape__area`, a `switch (recv.tag)` over the three impls), which `cc` compiles to a dense jump the predictor handles well; Go's is an indirect call through the itab. That is why the row tips this way, and it is also what the row does *not* prove: a switch is O(impl count) where an itab call is O(1), so a trait with many impls would narrow or reverse it. Three impls, cycled so no two consecutive elements share a receiver type, is what is pinned here — a monomorphic inline cache would miss on every third element, which is the point.
 - **`tree_eval`** — Go (24.7 ms) leads, Vader (35.5 ms) is 1.4 × behind, ahead of Bun (57.2 ms) and Java (68.6 ms). A four-variant `match` over a closed union, on a tree built once and walked forty times, so the allocation amortises out and what remains is the tag dispatch plus the recursion. `binary_trees` conflates the two — its walk is a single pass over what it just allocated, and its match has two cases — and `selfcompile_c` runs this shape constantly but only reports it as a 4.5-second aggregate that cannot localise a regression. This is the compiler's own inner loop, and the row exists so a change to how a union carries its tag, how `match` lowers a four-way dispatch, or how each arm gets its field offsets has somewhere cheap to show up. Every operation is additive, so the value stays exact in an f64 mantissa and the four ports agree on the checksum bit for bit.
-- **`selfcompile_c`** (Vader-only, compile-time) — times the compiler emitting C for the whole compiler. **4.56 s, roughly half the 8.7 s of an earlier baseline** : the 2026-07-16 fix that stopped the single-expression inliner from splicing statement-bearing trait-method bodies (e.g. an enum's `= match self { … }`) removed a pathological inline explosion in the compiler's own code — one diagnostic snippet's bytecode collapsed 13818 → 129 lines — so there is far less C to emit ; the `devirtualize_fn_refs` pass shaves a little more.
+- **`matmul`** — Go (14.8 ms) leads and Vader (29.9 ms) is 2.0 × behind, ahead of Bun (41.5 ms) and Java (49.3 ms). A second dimension is not more of the first: a row is its OWN `vader_array_t`, so `right[k][column]` walks two headers and two buffers where a 1-D access walks one, and the inner loop does that on every iteration. `left_row` is hoisted by hand in all four ports so the row measures the indexing rather than the loop shape. Go's `[][]int64` pays one indirection too — its rows are slices, not a flat block — so the gap is ours to explain and this row is where it will show up.
+- **`closures`** — Go (8.8 ms) leads by **3.5 ×** over Vader (31.1 ms), and Bun (22.7 ms) is ahead of us as well; Java trails at 44.0 ms. That is the widest ratio in the corpus, and the only row besides `fmt_float` where Bun is faster. Two costs are stacked on purpose. A capture that is MUTATED forces the local into a heap cell, so `counter = counter + 1` under a lambda becomes a load, an add and a store through a pointer where outside one it is a register. Then 500 closures are called round-robin, each with its own environment, which keeps the call site megamorphic and mints one allocation per closure. `iter_chain` and `arr_map` both exist to show the lowerer DELETING this indirection, and `devirtualize_fn_refs` removes it wherever the callee is statically known — this row is what is left when it cannot be.
+- **`fmt_float`** — Go (7.8 ms) leads by **5.5 ×** over Vader (43.3 ms), with Bun (30.0 ms) also ahead and Java at 50.5 ms. The widest gap in the corpus. `interp` covers integer formatting, which writes its digits straight into a byte buffer; a float goes through Ryū and a big-integer kernel (`lib/std/core/dtoa.vader`, `f2s.vader`, `bigint.vader`), several hundred lines of pure Vader that no benchmark had ever exercised. Multiples of the divisor are skipped because Vader and Java print `1.0` for an integral value where Go and JS print `1` — a difference of convention, not of work, and the four ports agree byte for byte on everything else (verified, not assumed). Values stay inside [1e-3, 1e5) so no port switches to exponential notation; Java crosses over at 1e7, which makes the window Java's.
+- **`async_await`** (two columns) — Vader (33.3 ms) is 2.2 × faster than Bun (73.2 ms). Every await is on an already-settled value, so nothing parks on a scheduler and nothing waits on a timer: what is measured is the block-split lowering and the frame that carries locals across a suspension point. **Go and Java are deliberately absent.** Go has no async/await, and its nearest idiom — a goroutine and a channel round-trip — parks on the scheduler, which is a different and far heavier thing; Java is the same story with virtual threads. Those rows would report which concurrency model is cheaper rather than whether our coroutine lowering regressed, which is not what this corpus is for. The harness drops an implementation whose source file is absent, so the two columns are simply empty.
+
+- **`selfcompile_c`** (Vader-only, compile-time) — times the compiler emitting C for the whole compiler. **4.51 s, roughly half the 8.7 s of an earlier baseline** : the 2026-07-16 fix that stopped the single-expression inliner from splicing statement-bearing trait-method bodies (e.g. an enum's `= match self { … }`) removed a pathological inline explosion in the compiler's own code — one diagnostic snippet's bytecode collapsed 13818 → 129 lines — so there is far less C to emit ; the `devirtualize_fn_refs` pass shaves a little more.
 
 The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, Vader-native lands at 5 705 449 (a 4-iteration drift, ~7 boundary pixels where clang's reassociation under `-O3` reorders a `z² + c` term and flips the escape test one iteration earlier), and Go lands at 5 689 008 because `gc` fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. All three are mathematically correct ; only the rounding model differs.
 

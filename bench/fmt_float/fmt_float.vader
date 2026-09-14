@@ -1,0 +1,40 @@
+/// Float formatting — shortest round-trip decimal, the one string path nothing
+/// else here touches. `interp` formats INTEGERS, which write their digits
+/// straight into a byte buffer ; a float goes through Ryū and a big-integer
+/// kernel (`lib/std/core/dtoa.vader`, `f2s.vader`), several hundred lines that
+/// no benchmark had ever exercised.
+///
+/// Multiples of the divisor are skipped, and that is not cosmetic: for an
+/// integral value Vader and Java print `1.0` where Go and JS print `1`, so the
+/// four ports would disagree on the checksum for a difference of formatting
+/// convention rather than of work. Every value kept is fractional, and all four
+/// then agree byte for byte — verified, not assumed.
+///
+/// Values stay inside [1e-3, 1e5) so no port switches to exponential notation ;
+/// Java crosses over at 1e7 and JS at 1e21, so the window is Java's.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+
+COUNT   :: 60_000
+DIVISOR :: 7
+
+main :: fn() -> i32 {
+    length: i64 = 0
+    hash: i64 = 0
+    for i in 1..<COUNT {
+        if i % DIVISOR == 0 {
+            continue
+        }
+        rendered :: "${f64(i) / 7.0}"
+        length += i64(rendered.byte_len())
+        for b in rendered.bytes() {
+            hash = (hash * 31 + i64(b)) % 1_000_000_007
+        }
+    }
+    println("fmt_float count=${COUNT} length=${length} hash=${hash}")
+    return 0
+}
