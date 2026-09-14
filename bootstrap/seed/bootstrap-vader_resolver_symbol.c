@@ -3,49 +3,49 @@
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 1629u;
+        l1 = 1630u;
     } else {
         if (l0 == INT32_C(1)) {
-            l1 = 2149u;
+            l1 = 2151u;
         } else {
             if (l0 == INT32_C(2)) {
-                l1 = 1512u;
+                l1 = 1513u;
             } else {
                 if (l0 == INT32_C(3)) {
-                    l1 = 2203u;
+                    l1 = 2205u;
                 } else {
                     if (l0 == INT32_C(4)) {
-                        l1 = 1738u;
+                        l1 = 1739u;
                     } else {
                         if (l0 == INT32_C(5)) {
-                            l1 = 2222u;
+                            l1 = 2224u;
                         } else {
                             if (l0 == INT32_C(6)) {
-                                l1 = 1433u;
+                                l1 = 1435u;
                             } else {
                                 if (l0 == INT32_C(7)) {
-                                    l1 = 1746u;
+                                    l1 = 1747u;
                                 } else {
                                     if (l0 == INT32_C(8)) {
-                                        l1 = 1974u;
+                                        l1 = 1976u;
                                     } else {
                                         if (l0 == INT32_C(9)) {
-                                            l1 = 2223u;
+                                            l1 = 2225u;
                                         } else {
                                             if (l0 == INT32_C(10)) {
-                                                l1 = 1854u;
+                                                l1 = 1855u;
                                             } else {
                                                 if (l0 == INT32_C(11)) {
-                                                    l1 = 1289u;
+                                                    l1 = 1291u;
                                                 } else {
                                                     if (l0 == INT32_C(12)) {
-                                                        l1 = 1339u;
+                                                        l1 = 1341u;
                                                     } else {
                                                         if (l0 == INT32_C(13)) {
-                                                            l1 = 1338u;
+                                                            l1 = 1340u;
                                                         } else {
                                                             if (l0 == INT32_C(14)) {
-                                                                l1 = 2168u;
+                                                                l1 = 2170u;
                                                             } else {
                                                                 vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
                                                             }
