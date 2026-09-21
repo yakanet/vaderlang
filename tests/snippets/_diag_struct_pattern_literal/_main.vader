@@ -1,0 +1,35 @@
+// Diag snippet: a literal constraint in a struct pattern is DROPPED.
+//
+// `is P { x: 10, name }` should match only when `x == 10`. It matches any `P`:
+// the lowered AST holds no trace of the `10` at all, so the arm is compiled as
+// a bare `is P`. VM and native agree, which is what makes it a lowering bug
+// rather than a backend one.
+//
+// Expected once fixed:
+//   x=10 -> matched ten, name=bob
+//   x=99 -> fell through
+// Actual today: both lines report "matched ten".
+//
+// Found 2026-09-21 while validating W0014 — the warning fired on
+// `match_struct_pattern_binding`'s wildcard, because the constrained arm
+// subtracts the whole of `P` from the remaining set. T3013 hides the
+// consequence on a non-union scrutinee (it demands a wildcard regardless), so
+// the drop only becomes visible on a union, where the match type-checks as
+// exhaustive AND takes the wrong arm.
+
+module "snippet"
+
+import "std/io"
+
+P :: struct { x: i32, name: string }
+
+main :: fn() -> i32 {
+    for v in [10, 99] {
+        p :: P { .x = v, .name = "bob" }
+        match p {
+            is P { x: 10, name } -> println("x=${v} -> matched ten, name=${name}")
+            _                    -> println("x=${v} -> fell through")
+        }
+    }
+    return 0
+}

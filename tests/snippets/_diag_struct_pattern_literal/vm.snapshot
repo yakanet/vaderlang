@@ -1,0 +1,5 @@
+# stdout
+x=10 -> matched ten, name=bob
+x=99 -> matched ten, name=bob
+# exit
+0

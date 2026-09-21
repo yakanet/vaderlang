@@ -30,6 +30,29 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 - [ ] **`T[]` should satisfy a `[C: Index]` / `[C: IndexSet]` bound — DEFERRED, a dynamic-dispatch feature, not a perf one** (revisited 2026-07-20). Direct `arr[i]` / `arr[i] = v` lower to the built-in fast op (concrete `ArrayGet`/`ArraySet`, 0 alloc) and STAY that way regardless of this item — nothing here touches the array fast path. The only thing an array-`Index` impl adds is letting an array satisfy a **generic** `[C: Index]` bound; since generics are erased (.NET model), that path is *inherently* a runtime vtable dispatch (slow, rare) — not something the fast array machinery can be "moved into". Prereq **(1) — SHIPPED** (`272af6472`, snippet `generic_index_dispatch`): the index OPERATOR `c[0]` / `c[0] = v` now dispatches through a `TypeParam` `Index`/`IndexSet` bound for user **struct** implementors (`infer_index` / `check_assign` record `bounded_dispatch_trait`; `lower_index` / `lower_assign` emit a vcall). Remaining blockers, both on the **erased array receiver** (found 2026-07-20, `@intrinsic T[] implements Index/IndexSet` attempted + fully reverted): **(a) vtable key** — a concrete `i32[]` carries its element-specific type id (header `type_index`, e.g. 2) but the single materialised row is keyed on the erased `Any[]` (e.g. 8), so both the VM (`receiver_type_id_of` → `a.type_id`) and native (`switch(recv.tag)`) miss; **(b) erased primitive read/write** — the erased body emits `array.get <ref>`, whose native path (`vader_array_ref_load_box`) only handles `element_kind ∈ {REF, BOXED}`, NOT a primitive-packed buffer (`i32[]` = 4-byte slots) → would read a 24-byte box from a 4-byte slot (the VM escapes via uniform boxing). Two design options if ever needed: **A. full erasure** — extend the runtime ref-load/store helpers to box/unbox primitive elements via `element_kind` + `element_tag`, and expand the one erased row over every array type in the table (generalises to any `T[] implements Trait` virtual dispatch); **B. per-element monomorphisation** — materialise concrete `at__<elem>` / `set_at__<elem>` keyed on the concrete array type (fast reads, no runtime change, more plumbing to track which element types reach the bound). Defer until there's a real caller passing an array to a `[C: Index]` generic.
 
+- [ ] **A literal constraint in a struct pattern is silently dropped** (found 2026-09-21 while validating W0014). `is P { x: 10, name }` compiles to a bare `is P`: the lowered AST holds no trace of the `10`, so the arm matches every `P`. VM and native agree, which places it in the lowerer rather than a backend. Pinned by `tests/snippets/_diag_struct_pattern_literal`, whose `vm.snapshot` currently records the wrong output on purpose.
+
+  ```vader
+  match p {
+      is P { x: 10, name } -> println("matched ten")
+      _                    -> println("fell through")
+  }
+  // p.x == 99 prints "matched ten"
+  ```
+
+  **On a non-union scrutinee the consequence is hidden**, which is why it survived: T3013 demands a wildcard on any non-union match, so the `_` is there regardless and the wrong arm is merely taken before it. The visible damage needs a UNION scrutinee, where the same over-subtraction makes the match type-check as exhaustive with no wildcard AND take the wrong arm:
+
+  ```vader
+  U :: A | B
+  pick :: fn(u: U) -> string = match u {   // accepted, no diagnostic
+      is A { v: 10 } -> "ten"
+      is B           -> "b"
+  }
+  pick(A { .v = 99 })   // "ten"
+  ```
+
+  Two halves to fix, and the second is what makes it dangerous: the lowerer must emit the field test, and `check_match`'s coverage must stop subtracting the whole of `A` for a constrained pattern — today it does, which is what lets the union case pass exhaustiveness.
+
 - [ ] **Three style rules the compiler could enforce and does not** (found 2026-09-21 while sweeping the `_ -> {}` wildcards). Each is a rule the tree already states in prose, each is checkable where the typechecker already holds the information, and each currently decays silently.
 
   **(a) A duplicate / unreachable `match` arm draws no diagnostic.** T3013 checks that no variant is MISSING; nothing checks that one is covered TWICE. Verified on the current compiler — all three forms compile and run, the second arm dead:
