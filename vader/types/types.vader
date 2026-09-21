@@ -463,6 +463,25 @@ export display_type :: fn(t: Type) -> string {
 /// registration wrote `"Cfg::bump"` and the whole impl dispatch would miss —
 /// silently, since a miss just means "no such method".
 export display_type_key :: fn(t: Type) -> string {
+    // Fast path, and it reaches FURTHER than `display_type`'s : with the
+    // mutability marker off, a nominal type with no args renders to the name it
+    // already carries. `StringBuilder {}` costs two allocations before the first
+    // character (the struct, then its `parts`), so the builder existed only to
+    // hand back a string the type was holding.
+    match t {
+        is PrimitiveType -> {
+            return t.name
+        }
+        is EnumType | DistinctType | TypeParamType -> {
+            return t.symbol.name
+        }
+        is StructType | TraitType                  -> {
+            if t.args.len() == 0 {
+                return t.symbol.name
+            }
+        }
+        _                                          -> {}  // fall through for composite types
+    }
     sb :: StringBuilder {}
     sb.write_type_mut(t, false)
     return sb.to_string()

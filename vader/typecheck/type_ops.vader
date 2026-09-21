@@ -318,8 +318,43 @@ export union_of :: fn(variants: Type[]) -> Type {
     }
     if dedup.len() == 0 { return TY_NEVER }
     if dedup.len() == 1 { return dedup[0] }
-    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending_ci(display_type_key(a), display_type_key(b)))
-    return mk_union(sorted)
+    return mk_union(sort_by_display_key(dedup))
+}
+
+// Order `types` by their `display_type_key`, rendering each key ONCE — the
+// comparator reads a key already in hand rather than rendering its operands.
+//
+// Sorting the INDICES preserves `sort`'s stability, which is load bearing : two
+// types can share a key (it erases `!`, `equals_type` does not) and must keep
+// the order they arrived in. Do not swap this for an unstable sort.
+sort_by_display_key :: fn(types: Type[]) -> Type[] {
+    // `T | null` and its kind are most of the unions built here ; at two
+    // variants the index detour buys nothing. Same key and the same STRICT
+    // comparator as the general path below — the two must move together, and
+    // swapping on a tie would break the stability above.
+    //
+    // The no-swap branch may ALIAS `types`, which `mk_union` keeps. Sound
+    // because `union_of` builds `dedup` fresh and never writes to it again ; a
+    // second caller would have to honour that. Both paths hand `mk_union` an
+    // array grown by `push`, so it carries up to twice its used slots — a few
+    // bytes here, more as arity grows.
+    if types.len() == 2 {
+        if compare_ascending_ci(display_type_key(types[1]), display_type_key(types[0])) {
+            return [types[1], types[0]]
+        }
+        return types
+    }
+    keys: string[]!: []
+    order: usize[]!: []
+    for i in 0..<types.len() {
+        keys.push(display_type_key(types[i]))
+        order.push(i)
+    }
+    out: Type[]!: []
+    for i in sort(order, (a: usize, b: usize) -> compare_ascending_ci(keys[a], keys[b])) {
+        out.push(types[i])
+    }
+    return out
 }
 
 // Two arrays that differ ONLY by their own mutability bit. Nested bits still

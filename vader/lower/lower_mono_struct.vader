@@ -278,7 +278,7 @@ close_over_field_shapes :: fn(
     project: LoweredProject,
 ) -> void {
     materialized :: new_string_set()
-    seen_pushed :: new_string_set()
+    seen_pushed :: MutableMap<i32, StructType[]!> {}
     worklist: StructType[]!: []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
@@ -312,19 +312,33 @@ MAX_FIELD_SHAPES :: 4096
 /// `for_each_type` visitor : push a struct shape onto `out` the first
 /// time it's seen — both concrete generic instances (`MutableMap(Any,
 /// bool)`) and plain non-generic structs (`StringBuilder`), since either
-/// can be referenced without a materialised decl. Dedup by `(symbol.id,
-/// display)` keeps the worklist to one entry per distinct shape — the
-/// same shape recurs across hundreds of field / signature slots
-/// otherwise. TypeParam-bearing shapes (a generic decl's own
-/// self-reference) are skipped.
-push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableSet<string>!) -> void {
-    if t is StructType {
-        if has_type_param(t) { return }
-        key :: "${t.symbol.id}|${display_type_key(t)}"
-        if seen.contains(key) { return }
-        seen.add(key)
-        out.push(t)
+/// can be referenced without a materialised decl. TypeParam-bearing shapes
+/// (a generic decl's own self-reference) are skipped.
+///
+/// Runs for EVERY type of every lowered decl in the project, so the repeat test
+/// must not allocate : keep the scan a plain loop — a predicate combinator would
+/// mint a closure capturing `t` on every visit.
+///
+/// A PRE-FILTER, not the authority : `close_over_field_shapes` dedups again on
+/// `shape_mangle`. It may be FINER than the mangle (which erases `!`, where
+/// `type_list_equals` reads `ArrayType.immutable`) — the surplus is dropped
+/// there. It must never be COARSER : that would drop a shape nothing
+/// materialises.
+push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableMap<i32, StructType[]!>!) -> void {
+    if t !is StructType  { return }
+    if has_type_param(t) { return }
+    shapes :: seen[t.symbol.id]
+    if shapes == null {
+        seen[t.symbol.id] = [t]
+    } else {
+        for s in shapes {
+            if type_list_equals(s.args, t.args) {
+                return
+            }
+        }
+        shapes.push(t)
     }
+    out.push(t)
 }
 
 new_string_set :: fn() = MutableSet<string> {}
