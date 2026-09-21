@@ -20,7 +20,7 @@ import "vader/resolver"
 
 /// How to spell the graph.
 GraphFormat :: enum(u8) {
-    /// Mermaid `graph LR` — renders in a Markdown viewer with no tool installed.
+    /// Mermaid `graph TB` — renders in a Markdown viewer with no tool installed.
     Mermaid
     /// Graphviz DOT — `vader graph x.vader --format=dot | dot -Tpng -o deps.png`.
     Dot
@@ -161,9 +161,12 @@ render_graph :: fn(nodes: GraphNode[], format: GraphFormat) -> string =
 // `vader_lower` and the real name rides in the label.
 mermaid_id :: fn(name: string) -> string = name.replace_all("/", "_").replace_all("-", "_")
 
+// Top-to-bottom, not left-to-right: a dependency graph is read as layers, and
+// module names are wide enough that `LR` spends its width on labels rather than
+// on depth.
 render_mermaid :: fn(nodes: GraphNode[]) -> string {
     sb :: StringBuilder {}
-    sb.append("graph LR\n")
+    sb.append("graph TB\n")
     for n in nodes {
         sb.append("    ${mermaid_id(n.name)}[\"${n.name}\"]\n")
     }

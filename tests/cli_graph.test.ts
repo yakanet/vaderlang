@@ -17,7 +17,7 @@ test("graph draws every module and every import edge", async () => {
   const r = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   const lines = r.stdout.trim().split("\n").map((l) => l.trim());
-  expect(lines[0]).toBe("graph LR");
+  expect(lines[0]).toBe("graph TB");
   expect(lines).toContain('chain["chain"]');
   expect(lines).toContain('chain_alpha["chain/alpha"]');
   expect(lines).toContain('chain_beta["chain/beta"]');

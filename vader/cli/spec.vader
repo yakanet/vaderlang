@@ -197,7 +197,7 @@ DUMP_STAGES: ValueSpec[]: [
 ]
 
 GRAPH_FORMATS: ValueSpec[]: [
-    ValueSpec { .name = "mermaid", .help = "Mermaid `graph LR` — renders with no tool installed" },
+    ValueSpec { .name = "mermaid", .help = "Mermaid `graph TB` — renders with no tool installed" },
     ValueSpec { .name = "dot",     .help = "Graphviz DOT — pipe to `dot -Tpng`" },
 ]
 
