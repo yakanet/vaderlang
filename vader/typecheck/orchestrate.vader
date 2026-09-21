@@ -1118,16 +1118,13 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     typed.node_spans = MutableMap<usize, Span> {}
     typed.ufcs_receiver_types = MutableMap<usize, Type> {}
     typed.local_types = MutableMap<u64, Type> {}
-    typed.narrowed_bindings = MutableMap<i32, NarrowSlot> {}
-    // Field-narrowings are block-scoped (push/pop), so this should be empty
-    // between passes — but clear it for the same reason as `narrowed_bindings`:
-    // any residue from a throwaway settle pass would otherwise survive into the
-    // real pass and mis-type a later field-chain `is` test (spurious T3040).
-    typed.narrowed_fields = MutableMap<string, NarrowSlot> {}
-    // Kill generations restart with the emptied tables — entries are
-    // re-pushed at generation 0 on the next pass.
-    typed.narrow_kill_gens = MutableMap<i32, i32> {}
-    typed.narrow_field_kill_gens = MutableMap<string, i32> {}
+    // The whole narrowing machine, not table by table: a sixth table added to
+    // `NarrowState` is then reset here for free instead of being silently left
+    // out of a hand-written list. `binding_scrutinee` goes with it — this reset
+    // only ever runs between a `.ReturnsOnly` settle walk and the `.Full` walk
+    // that follows, and every producer of that table runs inside the full body
+    // walk, so it is re-derived at no cost.
+    typed.narrow = NarrowState {}
 }
 
 // Walk a module's top-level decls and register every type alias

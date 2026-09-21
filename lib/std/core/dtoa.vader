@@ -9,11 +9,7 @@
 //
 // std/core constraint honoured here (same as the integer formatters above):
 //   - no `std/string_builder` / `std/string` import (cycle) — the result is
-//     built with string-literal digits + concat, never a StringBuilder.
-//
-// All 64-bit literals carry the `_u64` suffix: a free literal exceeding i32
-// range is otherwise mis-coerced in a bitwise / wide-arithmetic context
-// (sign-extended to all-ones), the same idiom std/crypto uses for MD5_K.
+//     written into a `Buffer` and interned once, never through a StringBuilder.
 //
 // The presentation layer (digits + exponent -> final string) follows the
 // ECMAScript `Number::toString` rules, with the Vader tweak that an
@@ -281,80 +277,121 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
 }
 
 // ---- presentation (ECMAScript Number::toString, with a trailing .0) --------
+//
+// The digits go into ONE right-sized `Buffer` and are interned once, the shape
+// the integer formatters use (`primitives.vader::format_unsigned`). std/core
+// still cannot reach a StringBuilder, but it does not need one: the rendering's
+// width is known before a byte is written, so there is nothing to grow.
+// Why this shape and not concatenation: `docs/adr/0019-*`.
 
-// Digits of `n` as single-char strings, most-significant first, no leading
-// zeros. `n == 0` yields ["0"].
-digits_of :: fn(n: u64) -> string[] {
-    if n == 0 { return ["0"] }
-    rev: string[]! = []
+// Widest rendering this layer produces, branch by branch: one sign byte, then
+// at most `0.` + 5 zeros + 17 significant digits (the `-6 < n <= 0` branch, 25
+// bytes) ; 21 integer digits + `.0` (24) ; 17 digits split by a point (19) ; or
+// one digit, a point, 16 more, `e`, a sign and a 3-digit exponent (24). f32
+// reaches this code with 9 digits and a 2-digit exponent, so it is strictly
+// narrower. The stores below are unchecked, so this bound is load-bearing.
+F64_RENDER_MAX: usize: 25
+
+// Number of decimal digits in `n` (1 for 0).
+decimal_width :: fn(n: u64) -> i32 {
+    if n == 0 {
+        return 1
+    }
+    width: i32 = 0
     m := n
     for m != 0 {
-        rev.push(DECIMAL_DIGITS[usize(m % 10)])
+        width = width + 1
         m = m / 10
     }
-    out: string[]! = []
-    n_digits :: rev.len()
-    for i in 0..<n_digits {
-        out.push(rev[n_digits - 1 - i])
-    }
-    return out
+    return width
 }
 
-// Concatenate parts[lo..hi).
-join_range :: fn(parts: string[], lo: i32, hi: i32) -> string {
-    out := ""
-    for i in lo..<hi {
-        out = out + parts[usize(i)]
+// Write the `width` decimal digits of `n` at `off`, most-significant first ;
+// return the offset past them. `width` must be `decimal_width(n)` — the digits
+// are emitted right to left, so a short one leaves the leading bytes untouched.
+// `Buffer.write_unsigned` does the same job and measures the width itself, but
+// this layer needs the width BEFORE it writes anything: the branch it takes
+// depends on where the decimal point falls among the digits.
+write_digits :: fn(buf: Buffer, off: usize, n_in: u64, width: i32) -> usize {
+    n := n_in
+    end :: off + usize(width)
+    i := end
+    for i > off {
+        i = i - 1
+        buf.store_u8(i, '0' + u8(n % 10))
+        n = n / 10
     }
-    return out
+    return end
 }
 
-// A string of `count` zeros (count >= 0).
-zeros :: fn(count: i32) -> string {
-    out := ""
-    for _ in 0..<count {
-        out = out + "0"
+// Write `count` zero bytes at `off` ; return the offset past them.
+write_zeros :: fn(buf: Buffer, off: usize, count: i32) -> usize {
+    for i in 0..<count {
+        buf.store_u8(off + usize(i), '0')
     }
-    return out
+    return off + usize(count)
 }
 
-// Render the shortest decimal `s * 10^(n-k)` (s = the k digits in `parts`)
-// per ECMAScript Number::toString, plus a trailing `.0` for integer values.
-format_decimal :: fn(parts: string[], k: i32, n: i32) -> string {
+// Put a `.` after the first `left` of the `width` digits already written at
+// `off`, shifting the tail one byte right (`memory_copy` is overlap-safe).
+// Returns the offset past the last byte. Requires `0 < left < width`.
+insert_point :: fn(buf: Buffer, off: usize, width: i32, left: i32) -> usize {
+    at :: off + usize(left)
+    buf.memory_copy(at + 1, buf, at, usize(width - left))
+    buf.store_u8(at, '.')
+    return off + usize(width) + 1
+}
+
+// Write the shortest decimal `digits * 10^exp` at `off`, per ECMAScript
+// Number::toString plus the Vader trailing `.0` on an integer value. Returns
+// the offset past the last byte. `k` and `n` keep their ECMA-262 meanings: how
+// many digits there are, and where the decimal point falls among them.
+write_decimal :: fn(buf: Buffer, off: usize, digits: u64, exp: i32) -> usize {
+    k :: decimal_width(digits)
+    n :: exp + k
+    // The one branch that does not open with the digits, so it goes first and
+    // the other three share the write below. `n <= 0` here and `n > 0` there,
+    // so the reorder cannot change which branch a value takes.
+    if -6 < n && n <= 0 {
+        buf.store_u8(off, '0')
+        buf.store_u8(off + 1, '.')
+        return write_digits(buf, write_zeros(buf, off + 2, -n), digits, k)
+    }
+    end :: write_digits(buf, off, digits, k)
     if k <= n && n <= 21 {
-        return join_range(parts, 0, k) + zeros(n - k) + ".0"
+        zeroed :: write_zeros(buf, end, n - k)
+        buf.store_u8(zeroed, '.')
+        buf.store_u8(zeroed + 1, '0')
+        return zeroed + 2
     }
     if 0 < n && n <= 21 {
-        return join_range(parts, 0, n) + "." + join_range(parts, n, k)
-    }
-    if -6 < n && n <= 0 {
-        return "0." + zeros(-n) + join_range(parts, 0, k)
+        return insert_point(buf, off, k, n)
     }
     // Scientific notation.
+    at :: if k > 1 { insert_point(buf, off, k, 1) } else { end }
     e :: n - 1
-    mant := join_range(parts, 0, 1)
-    if k > 1 {
-        mant = mant + "." + join_range(parts, 1, k)
-    }
-    exp_sign :: if e < 0 { "-" } else { "+" }
-    exp_abs :: if e < 0 { -e } else { e }
-    return mant + "e" + exp_sign + format_unsigned(u64(exp_abs))
+    buf.store_u8(at, 'e')
+    buf.store_u8(at + 1, if e < 0 { '-' } else { '+' })
+    return buf.write_unsigned(at + 2, u64(if e < 0 { -e } else { e }))
 }
 
 // Format a finite, non-zero shortest decimal + sign into the final string.
 render :: fn(mantissa_in: u64, exp_in: i32, sign: bool) -> string {
     mantissa := mantissa_in
     exp := exp_in
-    // Drop trailing zeros so `parts` is the minimal-length digit string
-    // (keeps mantissa * 10^exp invariant).
+    // Drop trailing zeros so the digit run is the minimal-length one (keeps
+    // mantissa * 10^exp invariant).
     for mantissa % 10 == 0 {
         mantissa = mantissa / 10
         exp = exp + 1
     }
-    parts :: digits_of(mantissa)
-    k :: i32(parts.len())
-    body :: format_decimal(parts, k, exp + k)
-    return if sign { "-" + body } else { body }
+    buf :: F64_RENDER_MAX.new_buffer()
+    off: usize = 0
+    if sign {
+        buf.store_u8(0, '-')
+        off = 1
+    }
+    return buf.intern_string(write_decimal(buf, off, mantissa, exp))
 }
 
 // Shortest round-tripping decimal string for `x`. Drives `f64.to_string()`.

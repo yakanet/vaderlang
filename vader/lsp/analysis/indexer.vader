@@ -851,16 +851,9 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
                 }
             }
         }
-        is IntLitExpr     -> {}
-        is FloatLitExpr   -> {}
-        is BoolLitExpr    -> {}
-        is NullLitExpr    -> {}
-        is CharLitExpr    -> {}
-        is IdentExpr      -> {}
-        is DotVariantExpr -> {}
-        is FnTypeExpr     -> {}
-        is ArrayTypeExpr  -> {}
-        is MutableTypeExpr -> {}
+        is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr
+         | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+         | MutableTypeExpr -> {}
     }
 }
 

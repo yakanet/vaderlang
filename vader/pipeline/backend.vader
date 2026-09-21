@@ -132,17 +132,26 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 /// @param pruned  lowered project, already pruned of unreachable fns.
 /// @param name    bytecode module name (see `module_name_from_file`).
 /// @param opts    emit options — `want_debug` gates the per-op debug table.
-export cfg_to_bytecode :: fn(pruned: LoweredProject, name: string, opts: EmitOptions) -> BytecodeModule {
+/// @param diags   accumulator for the verifier findings ; left untouched
+///                when `opts.verify` is false, which is every default build.
+export cfg_to_bytecode :: fn(
+    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[]! = [],
+) -> BytecodeModule {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
     cfg :: build_cfg_project(pruned)
     Prof.prof_end(Prof.PHASE_CFG_BUILD)
+    // One check per pass, each naming the pass it follows.
+    if opts.verify { verify_cfg(cfg, "build_cfg_project", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
     dced :: eliminate_dead_cfg(cfg)
     Prof.prof_end(Prof.PHASE_CFG_DCE)
+    if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)
     escaped :: annotate_escape(dced).project
     Prof.prof_end(Prof.PHASE_ESCAPE)
+    if opts.verify { verify_cfg(escaped, "annotate_escape", diags) }
     forwarded :: array_load_forward_project(escaped)
+    if opts.verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
     Prof.prof_begin(Prof.PHASE_BYTECODE)
     module :: emit_bytecode_from_cfg(forwarded, name, opts)
     Prof.prof_end(Prof.PHASE_BYTECODE)
@@ -181,10 +190,12 @@ export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(fi
 ///
 /// @param file                entry source.
 /// @param include_path_flags  extra module search roots.
+/// @param target              platform to lower for ; this machine when null.
+/// @param verify              run the IR verifiers between passes (`--verify`).
 export lower_to_entry_with :: fn(
-    file: Path, include_path_flags: string[], target: Target | null = null,
+    file: Path, include_path_flags: string[], target: Target | null = null, verify: bool = false,
 ) -> LoweredEntry =
-    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags, target))
+    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags, target), verify)
 
 /// Lower an ALREADY-EVALUATED pipeline.
 ///
@@ -193,7 +204,8 @@ export lower_to_entry_with :: fn(
 /// front end.
 ///
 /// @param pipeline  the evaluated project to lower.
-export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline) -> LoweredEntry {
+/// @param verify    run the IR verifiers between passes (`--verify`).
+export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = false) -> LoweredEntry {
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
     pre_diags :: gather_pipeline_diags(pipeline)
     // Don't lower a program the front end rejected : feeding the bytecode
@@ -209,6 +221,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline) -> LoweredEntry {
         lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     }
     Prof.prof_end(Prof.PHASE_LOWER)
+    if verify { verify_lowered(lowered, "lower_project", lower_diags) }
     return LoweredEntry {
         .lowered     = lowered,
         .entry       = entry,
@@ -246,10 +259,14 @@ export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode =
 /// @param want_debug          populate the per-op debug table (kept only when
 ///                            the C emit will keep `#line`).
 /// @param include_path_flags  extra module search roots.
+/// @param target              platform to build for ; this machine when null.
+/// @param verify              run the IR verifiers between passes (`--verify`).
 export prepare_cfg_bytecode_with :: fn(
     file: Path, want_debug: bool, include_path_flags: string[], target: Target | null = null,
+    verify: bool = false,
 ) -> CfgBytecode =
-    prepare_cfg_bytecode_from(lower_to_entry_with(file, include_path_flags, target), file, want_debug)
+    prepare_cfg_bytecode_from(
+        lower_to_entry_with(file, include_path_flags, target, verify), file, want_debug, verify)
 
 /// Carry an ALREADY-LOWERED entry through prune → CFG → bytecode.
 ///
@@ -260,20 +277,30 @@ export prepare_cfg_bytecode_with :: fn(
 /// @param file        entry path — names the bytecode module.
 /// @param want_debug  populate the per-op debug table (kept only when the C
 ///                    emit will keep `#line`).
-export prepare_cfg_bytecode_from :: fn(le: LoweredEntry!, file: Path, want_debug: bool) -> CfgBytecode {
+/// @param verify      run the IR verifiers between passes (`--verify`).
+export prepare_cfg_bytecode_from :: fn(
+    le: LoweredEntry!, file: Path, want_debug: bool, verify: bool = false,
+) -> CfgBytecode {
     // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_PRUNE)
     pruned :: prune_unreachable_fns(le.lowered, false)
     Prof.prof_end(Prof.PHASE_PRUNE)
+    // The prune rewrites the decl set, so it gets its own check: a dropped
+    // decl something still references is what `I7002` / `I7010` look for.
+    verify_diags: Diagnostic[]! = []
+    if verify { verify_lowered(pruned, "prune_unreachable_fns", verify_diags) }
     // `want_debug` populates the per-op `debug` table only when the emitted C
     // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /
     // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
-    opts :: EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = want_debug }
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts)
+    opts :: EmitOptions {
+        .optimize = true, .keep_mangles = [], .want_debug = want_debug, .verify = verify,
+    }
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, verify_diags)
+    lower_diags :: le.lower_diags + verify_diags
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
-        .lower_diags = le.lower_diags,
+        .lower_diags = lower_diags,
         .in_scope_files = le.in_scope_files,
         .module      = module,
     }

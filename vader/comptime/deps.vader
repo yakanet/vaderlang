@@ -257,11 +257,26 @@ collect_expr_deps :: fn(
             for p in e.parts {
                 match p {
                     is AST.StringLitInterp -> { collect_expr_deps(p.expr, typed, nodes, seen, record) }
-                    _ -> {}
+                    is AST.StringLitText   -> {}
                 }
             }
         }
-        _ -> {}
+        is AST.NullCoalesceExpr -> {
+            collect_expr_deps(e.left, typed, nodes, seen, record)
+            // A `return` / `break` / `continue` fallback carries no expression to
+            // descend into — `coalesce_fallback_expr` yields null for those.
+            fallback :: AST.coalesce_fallback_expr(e.fallback)
+            if fallback != null {
+                collect_expr_deps(fallback, typed, nodes, seen, record)
+            }
+        }
+        // Leaves: no sub-expression can name a `@comptime const`.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.DotVariantExpr -> {}
+        // Type expressions. A type mentions a const only through a generic
+        // argument, and `GenericInstExpr` above already descends into those; the
+        // written form itself contributes no dependency.
+        is AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
     }
 }
 
@@ -292,11 +307,20 @@ collect_stmt_deps :: fn(
             match s.form {
                 is AST.WhileFor as while_for -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
                 is AST.InFor    as in_for -> { collect_expr_deps(in_for.iter, typed, nodes, seen, record) }
-                _ -> {}
+                // `for { ... }` — no header expression, only the body below.
+                is AST.InfiniteFor -> {}
             }
             collect_block_deps(s.body, typed, nodes, seen, record)
         }
-        _ -> {}
+        is AST.YieldStmt -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.DeferStmt -> {
+            match s.body {
+                is AST.DeferStmtBody  as dsb -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
+                is AST.DeferBlockBody as dbb -> { collect_block_deps(dbb.block, typed, nodes, seen, record) }
+            }
+        }
+        // Control transfers carry no expression.
+        is AST.BreakStmt | AST.ContinueStmt -> {}
     }
 }
 

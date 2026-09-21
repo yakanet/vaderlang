@@ -77,5 +77,8 @@ export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
 export hook_error :: fn(code: HookCode, primary: Span, detail: string) =
     new_diagnostic(.Error, hook_info(code), primary, detail)
 
+export internal_error :: fn(code: InternalCode, primary: Span, detail: string) =
+    new_diagnostic(.Error, internal_info(code), primary, detail)
+
 export warning :: fn(code: WarningCode, primary: Span, detail: string) =
     new_diagnostic(.Warning, warning_info(code), primary, detail)

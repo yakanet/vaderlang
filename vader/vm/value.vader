@@ -321,6 +321,26 @@ export is_array_view :: fn(a: ArrayVal) -> bool {
     return a.offset != 0 || a.offset + a.length < a.elements.len()
 }
 
+/// Give `a` a backing buffer of its own, copying its window out of the shared
+/// one. A no-op when `a` already owns its backing.
+///
+/// Every op that GROWS an array must call this first: a view shares `elements`
+/// with its parent, so pushing onto it would be visible through the parent and
+/// would read past the view's own window.
+///
+/// @param a  the array to detach; mutated in place.
+export detach_array_view :: fn(a: ArrayVal!) -> void {
+    if !is_array_view(a) {
+        return
+    }
+    fresh: Value[]! = [] * a.length
+    for j in 0..<a.length {
+        fresh.push(a.elements[a.offset + j])
+    }
+    a.elements = fresh
+    a.offset = 0
+}
+
 /// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
 export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
     if v is BoolVal { return v }

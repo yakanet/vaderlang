@@ -1,10 +1,15 @@
 # Mid-IR (CFG) — Design Document
 
-> **Status**: shipped. All 6 phases listed in the §"Phase plan" table
-> below are ✅ done. CFG is the single substrate (legacy LoweredAST →
-> bytecode path dropped at Phase 6, ref. `IMPROVEMENT.md` §7). The
-> Vader self-host port of `src/midir/*` is also complete — see
-> `MIDIR_PORT.md`.
+> **Status**: shipped, with one phase since reverted. Phases 1-3, 5 and 6
+> of the §"Phase plan" table below are ✅ done; **phase 4 (SSA) was removed
+> on 2026-05-14** and no SSA pass exists — see the phase table and
+> `HISTORY.md`. CFG is the single substrate (legacy LoweredAST → bytecode
+> path dropped at Phase 6, ref. `IMPROVEMENT.md` §7). The Vader self-host
+> port of `src/midir/*` is also complete — see `MIDIR_PORT.md`.
+>
+> **Every `src/…/*.ts` path in this document names the retired TypeScript
+> tree.** The live implementation is `vader/midir/*.vader`. The design
+> contract still holds; only the filenames moved.
 
 This document captures the design that was implemented. Originally a
 Sprint 3.10 phase 1 *foundation only* doc ; the implementation
@@ -29,7 +34,9 @@ This shape blocks several optimisations the architect's audit flagged as
 | Borrow-style checks    | Future. Same need: SSA + dominators. |
 
 A CFG with explicit basic blocks + terminators is the standard substrate
-for these. SSA can be layered on top later (separate phase).
+for these. SSA can be layered on top later (separate phase) — it was, in
+phase 4, and then removed as net-negative; the two rows above remain the
+standing argument for re-opening that, and nothing else does.
 
 ## Position in the pipeline
 
@@ -178,8 +185,8 @@ the structuring approach.
 | **1** | Design doc + data types in `src/midir/cfg.ts`. No converter. No emitter. No tests. | 2 h | ✅ done |
 | **2** | LoweredAST → CFG converter (`src/midir/build.ts`) + structurer + CFG → bytecode emitter (`src/midir/emit.ts`) behind `--midir`. Behavioural parity (`tests/midir_parity.test.ts`) on every snippet. | 3-5 d | ✅ done |
 | **3** | DCE on the CFG (`src/midir/dce.ts`) : copy folding, per-store liveness + dead instruction elim, dead local elim. -11% to -36% instructions on representative snippets. | 1-2 d | ✅ done |
-| **4** | Pruned SSA conversion (`src/midir/ssa.ts`) : Cytron et al. with liveness-pruned phi placement, dom-tree-walk renaming. Out-of-SSA materialises phis as `Move` in predecessors. Wired as `toSSA → fromSSA` round-trip in the pipeline ; behaviour-preserving (145/145 parity). Sets up SSA infrastructure for phase 5. | 2-3 d | ✅ done |
-| **5a** | Escape analysis on SSA (`src/midir/escape.ts`) — annotates `StructNew`/`ArrayNew` with `stack: true` when the value can't be observed past the fn's return. Stack-promotes ~17% of allocations across the snippet corpus (60/358) ; 100% on tuple-temporary patterns (`tuple_comptime`). | 1-2 d | ✅ done |
+| **4** | ~~Pruned SSA conversion (`src/midir/ssa.ts`) : Cytron et al. with liveness-pruned phi placement, dom-tree-walk renaming. Out-of-SSA materialises phis as `Move` in predecessors.~~ **Reverted 2026-05-14** — measured against phase 5a and showed *zero* precision gain over flat-CFG escape analysis; the +95 stack-promotions credited to this era came from the loop-carried-dependency check landed the same day, not from SSA. 335 LoC of SSA + dominance-frontier code deleted, and the pass was never ported to the Vader self-host. The Mid-IR is three-address over **mutable named locals, pre-SSA** (`vader/midir/cfg.vader:179`). | 2-3 d | ❌ reverted |
+| **5a** | Escape analysis (`src/midir/escape.ts`, then `vader/midir/escape.vader`) — written against SSA, since re-based on the flat CFG when phase 4 was reverted — annotates `StructNew`/`ArrayNew` with `stack: true` when the value can't be observed past the fn's return. Stack-promotes ~17% of allocations across the snippet corpus (60/358) ; 100% on tuple-temporary patterns (`tuple_comptime`). | 1-2 d | ✅ done |
 | **5b** | Stack-allocation codegen — `struct.new_stack` bytecode op variant, VM treats it as heap (no behavioural distinction in TS), C-emit declares storage as a block-scoped local instead of `vader_gc_alloc`. Escape analysis tightened to skip blocks inside loops (block-scoped C locals would alias across iterations) and to propagate escape through StructNew/ArrayNew operands (a struct's field initialisers escape transitively when the struct does — fixed a self-host segfault). 20% of struct allocations stack-promoted across the snippet corpus (46/228) ; 100% on tuple-temporary patterns. | 2-3 d | ✅ done |
 | **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. Surfaced 6 latent runtime bugs in the lower / midir / C-emit pipeline that the legacy AST-walker dodged by coincidence (closure capture types, cell-set target types, vader_box_null tag-0 collision, dead-Move dst=-1, missing ref.cast on box↔primitive, missing match-arm narrowing cast in the converter — all fixed). 1725/1725 tests green. | 1 d | ✅ done |
 

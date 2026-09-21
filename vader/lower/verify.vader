@@ -1,0 +1,71 @@
+// vader/lower/verify — structural self-check of a `LoweredProject`.
+//
+// `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
+// pass that mints them and the state-machine transform that consumes them
+// (`lower_generator.vader`, `lower_coroutine.vader`), and never reach a
+// backend. No type says so — they are ordinary `LoweredStmt` variants — and
+// `midir/build.vader:594` panics when one survives, naming `build_stmt`, the
+// consumer, rather than the pass that failed to consume it.
+//
+// Symbol resolution is NOT checked here: it is a property of the CFG boundary
+// and lives in `vader/midir/verify.vader`. Do not replay it here.
+//
+// Pure read over the IR — no mutation, no IO — wired behind `--verify`.
+
+module "vader/lower"
+
+import "std/collections"
+import "vader/diagnostics"
+
+// ---- entry point ----------------------------------------------------------
+
+/// Check every structural invariant of `project`, pushing one diagnostic per
+/// violation.
+///
+/// Reports all violations rather than stopping at the first : a transform
+/// that drops a marker usually drops several, and the set is what identifies
+/// the pass.
+///
+/// @param project  the lowered IR to check. Read only.
+/// @param after    name of the pass that just produced `project`, carried
+///                 into every detail so the report names the producer rather
+///                 than the verifier.
+/// @param diags    accumulator ; violations are pushed as `I7xxx` errors.
+export verify_lowered :: fn(project: LoweredProject, after: string, diags: Diagnostic[]!) -> void {
+    verify_no_coroutine_markers(project, after, diags)
+}
+
+// ---- checks ---------------------------------------------------------------
+
+// I7001 — a surviving transient marker. Reported against the marker's own
+// span, which is the `yield` / `await` the user wrote, so the report points
+// at the construct the transform failed to rewrite rather than at the
+// function that contains it.
+verify_no_coroutine_markers :: fn(
+    project: LoweredProject, after: string, diags: Diagnostic[]!,
+) -> void {
+    for [_module_id, m] in project.modules {
+        for d in m.decls {
+            owner :: decl_mangle(d)
+            for_each_lowered_stmt_node(d, (s: LoweredStmt) -> {
+                if s is LoweredYield {
+                    diags.push(internal_error(.StrayCoroutineMarker, s.span,
+                        "after `${after}`: a `yield` marker survives in `${owner}` — the generator transform did not consume it"))
+                }
+                if s is LoweredAwait {
+                    diags.push(internal_error(.StrayCoroutineMarker, s.span,
+                        "after `${after}`: an `await` marker survives in `${owner}` — the coroutine transform did not consume it"))
+                }
+            })
+        }
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+// The mangle of any lowered decl, for the detail line.
+decl_mangle :: fn(d: LoweredDecl) -> string = match d {
+    is LoweredFnDecl     -> d.mangled
+    is LoweredStructDecl -> d.mangled
+    is LoweredConstDecl  -> d.mangled
+}

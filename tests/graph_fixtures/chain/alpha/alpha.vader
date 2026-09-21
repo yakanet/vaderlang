@@ -1,0 +1,7 @@
+// tests/graph_fixtures/chain/alpha — the middle of the chain.
+
+module "chain/alpha"
+
+import "chain/beta"
+
+export alpha_value :: fn() -> i32 = beta_value() + 1

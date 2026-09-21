@@ -1,0 +1,16 @@
+// tests/graph_fixtures/chain — a three-module chain for `vader graph`.
+//
+// `main` imports both `alpha` and `beta` ; `alpha` imports `beta`. That gives a
+// diamond-free shape with one transitive edge, so a renderer that drops an edge
+// and one that invents a transitive one both show up.
+
+module "chain"
+
+import "chain/alpha"
+import "chain/beta"
+import "std/io"
+
+main :: fn() -> i32 {
+    println("${alpha_value() + beta_value()}")
+    return 0
+}

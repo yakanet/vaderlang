@@ -12,7 +12,7 @@ static vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        l2 = concat_3(5u, l1, 1874u);
+        l2 = concat_3(5u, l1, 1863u);
     } else {
         l2 = 0u;
     }
@@ -32,20 +32,20 @@ static bool std_tty_is_tty(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = std_tty_tty_slot(l0);
-    t0 = (void*) &vader_data_8;
+    t0 = (void*) &vader_data_7;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l1 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
     t1 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l1];
     if ((t1 >= INT32_C(0))) {
-        t0 = (void*) &vader_data_8;
+        t0 = (void*) &vader_data_7;
         vader_array_t* _a1_slotarr = ((vader_array_t*) t0);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
         if ((size_t) l1 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l1];
         { bool __vret = t1 != INT32_C(0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = (void*) &vader_data_8;
+    t0 = (void*) &vader_data_7;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) l1 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -74,13 +74,13 @@ static bool std_tty_is_tty(int32_t l0) {
     l2 = (uint32_t) (int32_t) t3;
     t2 = vader_host_system_windows_set_console_mode(l3, l2);
     if (t2) {
-        t0 = (void*) &vader_data_8;
+        t0 = (void*) &vader_data_7;
         vader_array_t* _a5_slotarr = ((vader_array_t*) t0);
         if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
         if ((size_t) l1 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
         ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l1] = (int32_t) INT32_C(1);
     }
-    t0 = (void*) &vader_data_8;
+    t0 = (void*) &vader_data_7;
     vader_array_t* _a6_slotarr = ((vader_array_t*) t0);
     if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
     if ((size_t) l1 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -110,7 +110,7 @@ vader_string_t std_tty_red(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_tty_paint(466u, l0);
+    t0 = std_tty_paint(463u, l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -133,7 +133,7 @@ static bool std_tty_should_colorize(void) {
     if (!(l0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    l1 = vader_host_std_env_get_env(662u);
+    l1 = vader_host_std_env_get_env(652u);
     if (l1.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return true; }
     }
@@ -157,7 +157,7 @@ vader_string_t std_tty_yellow(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_tty_paint(467u, l0);
+    t0 = std_tty_paint(464u, l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

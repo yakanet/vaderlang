@@ -527,7 +527,7 @@ vader_box_t std_string_parse_float(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     l1 = std_core_parse_f64(l0);
     if (l1.tag == 0u) {
-        t0 = concat_3(1978u, l0, 959u);
+        t0 = concat_3(1967u, l0, 949u);
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 388u);
         _a0_obj->f_msg = t0;

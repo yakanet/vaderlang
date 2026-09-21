@@ -152,7 +152,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 112 "lib/std/core/primitives.vader"
+#line 101 "lib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -164,7 +164,7 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 115 "lib/std/core/primitives.vader"
+#line 104 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -176,9 +176,9 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 132 "lib/std/core/primitives.vader"
+#line 121 "lib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
-#line 133 "lib/std/core/primitives.vader"
+#line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -189,12 +189,12 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 184 "lib/std/core/primitives.vader"
+#line 173 "lib/std/core/primitives.vader"
     if (l2) {
         t0 = std_core_write_string_at(l0, l1, 3u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 185 "lib/std/core/primitives.vader"
+#line 174 "lib/std/core/primitives.vader"
     t0 = std_core_write_string_at(l0, l1, 4u);
     { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;

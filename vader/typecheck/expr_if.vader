@@ -462,7 +462,7 @@ detect_is_narrow :: fn(
         // The binding inherits the scrutinee's mutability, so when a write through it
         // is rejected the lever is the SCRUTINEE's lever, one hop away. The resolver
         // mints a `.Binding` local at this same span, which is the key.
-        typed.narrow_binding_scrutinee[cond.right.span.hash()] = cond.left
+        typed.narrow.binding_scrutinee[cond.right.span.hash()] = cond.left
     }
     // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
     if cond.left is AST.IdentExpr {

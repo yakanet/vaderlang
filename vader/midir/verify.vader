@@ -1,0 +1,273 @@
+// vader/midir/verify — structural self-check of a `CFGProject`.
+//
+// The CFG carries invariants that no type in `cfg.vader` expresses. A
+// `BlockId` is an `i32`, so nothing stops a terminator naming a block that
+// does not exist; a `LocalId` is an `i32`, so nothing stops an instruction
+// reading a slot past the end of `locals`. The emitter meets such a shape
+// late and panics (`emit.vader:999`, `:1101`, `:1144`, `:1159`, `:1420`),
+// naming the function it was emitting rather than the pass that broke it.
+//
+// This module checks the same invariants at a pass boundary and reports
+// every violation in one run. Pure read over the CFG — no mutation, no IO —
+// wired behind `--verify`, so a normal build does not pay for it.
+//
+// Symbol resolution (`I7002`) mirrors `emit.vader` exactly, and the two
+// chains differ in a way that is load-bearing:
+//   - `InstrCall` resolves through fn-mangle, fn-symbol, import-symbol, then
+//     import-mangle (`emit.vader:1086-1101`).
+//   - `InstrFnRef` / `InstrFnAddr` / `InstrMakeClosure` resolve through
+//     fn-symbol ONLY (`emit.vader:1139`, `:1154`, `:1416`) — a fn taken as a
+//     value has no import path, so an extern-only match is still a break.
+// Widening either chain here turns a real break into a pass.
+
+module "vader/midir"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+
+// ---- resolution tables ----------------------------------------------------
+
+// The four lookup tables `midir/emit` fills while reserving functions,
+// reduced to membership. Built once per project : rebuilding per function
+// would make the verifier quadratic on the self-host.
+CfgResolution :: struct {
+    fn_by_mangle:     MutableSet<string>
+    fn_by_symbol:     MutableSet<i32>
+    import_by_mangle: MutableSet<string>
+    import_by_symbol: MutableSet<i32>
+}
+
+// Mirrors `reserve_cfg_function` / `reserve_cfg_extern` : a fn is always
+// indexed by mangle, and additionally by symbol id when its origin carries
+// one (impl members and other synthetic fns set `origin.symbol = null`).
+build_cfg_resolution :: fn(project: CFGProject) -> CfgResolution {
+    r :: CfgResolution {
+        .fn_by_mangle     = MutableSet<string> {},
+        .fn_by_symbol     = MutableSet<i32> {},
+        .import_by_mangle = MutableSet<string> {},
+        .import_by_symbol = MutableSet<i32> {},
+    }
+    for [_module_id, m] in project.modules {
+        for f in m.functions {
+            r.fn_by_mangle.add(f.mangled)
+            if f.origin.symbol is Symbol as sym { r.fn_by_symbol.add(sym.id) }
+        }
+        for e in m.externs {
+            r.import_by_mangle.add(e.mangled)
+            if e.origin.symbol is Symbol as sym { r.import_by_symbol.add(sym.id) }
+        }
+    }
+    return r
+}
+
+// `InstrCall`'s full fallback chain.
+callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool {
+    if r.fn_by_mangle.contains(callee.name)     { return true }
+    if r.fn_by_symbol.contains(callee.id)       { return true }
+    if r.import_by_symbol.contains(callee.id)   { return true }
+    if r.import_by_mangle.contains(callee.name) { return true }
+    return false
+}
+
+// The fn-as-value chain : symbol id into the FUNCTION table only.
+fn_value_resolves :: fn(r: CfgResolution, target: Symbol) -> bool =
+    r.fn_by_symbol.contains(target.id)
+
+// ---- entry point ----------------------------------------------------------
+
+/// Check every structural invariant of `project`, pushing one diagnostic per
+/// violation.
+///
+/// Reports all violations rather than stopping at the first : a shape break
+/// usually surfaces at several sites, and the set is what identifies the
+/// producer.
+///
+/// @param project  the CFG to check. Read only.
+/// @param after    name of the pass that just produced `project`, carried
+///                 into every detail so the report names the producer
+///                 rather than the verifier.
+/// @param diags    accumulator ; violations are pushed as `I7xxx` errors.
+export verify_cfg :: fn(project: CFGProject, after: string, diags: Diagnostic[]!) -> void {
+    resolution :: build_cfg_resolution(project)
+    for [_module_id, m] in project.modules {
+        for f in m.functions { verify_cfg_function(f, resolution, after, diags) }
+    }
+}
+
+verify_cfg_function :: fn(
+    fn_: CFGFunction, resolution: CfgResolution, after: string, diags: Diagnostic[]!,
+) -> void {
+    where :: "after `${after}`, in `${fn_.mangled}`"
+
+    // I7008 — the entry is block 0 by convention (`cfg.vader:27`), and the
+    // structurer's dominator walk starts there unconditionally.
+    if fn_.entry != 0 {
+        diags.push(internal_error(.EntryBlockNotZero, fn_span(fn_),
+            "${where}: entry is bb${fn_.entry}"))
+    }
+
+    // Block ids first, and reachability only when they hold : `walk_rpo`
+    // indexes `blocks` by id without a bounds check, so running it on a CFG
+    // with a dangling successor crashes the verifier instead of reporting it.
+    ids_ok :: verify_block_ids(fn_, where, diags)
+    // Reads are only checked where they can run. An unreachable block is NOT
+    // a break: `build_cfg_project` mints dead join blocks by design when every
+    // arm of a match returns, and `emit.vader:1001-1006` skips them. When the
+    // ids are broken there is no sound walk, so every block is treated as live.
+    reachable :: if ids_ok { reachable_blocks(fn_) } else { all_blocks(fn_) }
+    verify_locals(fn_, reachable, where, diags)
+    verify_fn_references(fn_, resolution, reachable, where, diags)
+}
+
+// ---- structural checks ----------------------------------------------------
+
+// I7004 — every BlockId a terminator names must address a real block, and a
+// block's `id` must equal its index : `predecessors_of` and the emitter both
+// index `blocks` by id, so a mismatch silently reads the wrong block.
+// Returns false when any id is broken, which disables the reachability walk.
+verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]!) -> bool {
+    block_count :: i32(fn_.blocks.len())
+    ok: bool = true
+    for i in 0..<fn_.blocks.len() {
+        b :: fn_.blocks[i]
+        if b.id != i32(i) {
+            diags.push(internal_error(.BlockIdOutOfRange, b.span,
+                "${where}: block at index ${i32(i)} carries id bb${b.id}"))
+            ok = false
+        }
+        for succ in successors_of(b) {
+            if i32(succ) >= 0 && i32(succ) < block_count { continue }
+            diags.push(internal_error(.BlockIdOutOfRange, b.span,
+                "${where}: bb${b.id} branches to bb${succ}, but the fn has ${block_count} blocks"))
+            ok = false
+        }
+    }
+    return ok
+}
+
+// I7005 / I7006 — a LocalId indexes `locals`, and a local that is read must be
+// written somewhere.
+//
+// The write check is deliberately weak : it asks for ONE write anywhere in the
+// fn, not for a write that dominates the read. Def-before-use needs the
+// dominator tree, and `compute_dominators` is only sound on a reducible CFG —
+// itself one of the things a broken pass can violate. A cheap check that never
+// false-positives beats a precise one that fires on its own broken input.
+verify_locals :: fn(
+    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[]!,
+) -> void {
+    local_count :: i32(fn_.locals.len())
+    written :: MutableSet<LocalId> {}
+    // Params are written by the implicit entry store the translator emits
+    // (`cfg.vader::CFGParam.local`), which may carry no instruction of its own.
+    for p in fn_.params { written.add(p.local) }
+    for b in fn_.blocks {
+        for ins in b.instructions {
+            d :: dst_of(ins)
+            if d != null { written.add(d) }
+        }
+    }
+
+    // One report per offending slot : a bad local is usually read in a loop,
+    // and N copies of the same line bury the other violations.
+    ranged :: MutableSet<LocalId> {}
+    unwritten :: MutableSet<LocalId> {}
+    report :: (id: LocalId, sp: Span, site: string) -> {
+        if i32(id) < 0 || i32(id) >= local_count {
+            if ranged.contains(id) { return }
+            ranged.add(id)
+            diags.push(internal_error(.LocalIdOutOfRange, sp,
+                "${where}: ${site} names local ${id}, but the fn has ${local_count} locals"))
+            return
+        }
+        if written.contains(id) { return }
+        if unwritten.contains(id) { return }
+        unwritten.add(id)
+        diags.push(internal_error(.LocalReadNeverWritten, sp,
+            "${where}: local ${id} `${fn_.locals[i32(id)].name}` is read by ${site} but never written"))
+    }
+
+    for b in fn_.blocks {
+        if !reachable.contains(b.id) { continue }
+        for ins in b.instructions {
+            for_each_read_local(ins, (l: LocalId) -> { report(l, ins.span, "bb${b.id}") })
+            d :: dst_of(ins)
+            if d != null && (i32(d) < 0 || i32(d) >= local_count) {
+                report(d, ins.span, "bb${b.id}")
+            }
+        }
+        for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
+            report(l, b.span, "bb${b.id}'s terminator")
+        })
+    }
+}
+
+// I7002 — the four `GATE B1` panics, as one check. Reachable blocks only:
+// `emit_cfg_function_body` walks from the entry (`emit.vader:644`), so a
+// reference in a dead block never resolves and never breaks the emit. The
+// file header explains why the call chain and the fn-as-value chain differ.
+verify_fn_references :: fn(
+    fn_: CFGFunction, resolution: CfgResolution, reachable: MutableSet<BlockId>,
+    where: string, diags: Diagnostic[]!,
+) -> void {
+    for b in fn_.blocks {
+        if !reachable.contains(b.id) { continue }
+        for ins in b.instructions {
+            match ins {
+                is InstrCall -> {
+                    if callee_resolves(resolution, ins.callee) { continue }
+                    diags.push(internal_error(.UnresolvedFnReference, ins.span,
+                        "${where}: call to `${ins.callee.name}` (symbol ${ins.callee.id}) matches no emitted fn and no import"))
+                }
+                // One arm for the three: they carry `span` / `dst` /
+                // `fn_symbol` at the same positions, so the shared fields read
+                // straight off the union — and the fn-as-value rule keeps one
+                // site rather than three copies to hold in step.
+                is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
+                    if fn_value_resolves(resolution, ins.fn_symbol) { continue }
+                    diags.push(internal_error(.UnresolvedFnReference, ins.span,
+                        "${where}: ${fn_value_kind(ins)} `${ins.fn_symbol.name}` (symbol ${ins.fn_symbol.id}) was never materialised"))
+                }
+                _ -> {}
+            }
+        }
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+// Blocks the entry can reach, via the shared RPO walk.
+reachable_blocks :: fn(fn_: CFGFunction) -> MutableSet<BlockId> {
+    out :: MutableSet<BlockId> {}
+    // `walk_rpo` reads `visited[entry]` before testing anything, so an empty
+    // block list would index past the end.
+    if fn_.blocks.len() == 0 { return out }
+    for b in reverse_postorder(fn_) { out.add(b) }
+    return out
+}
+
+// Every block, for the degraded path where a broken id makes the RPO walk
+// unsound. Checking a read in a block that may be dead beats skipping it.
+all_blocks :: fn(fn_: CFGFunction) -> MutableSet<BlockId> {
+    out :: MutableSet<BlockId> {}
+    for b in fn_.blocks { out.add(b.id) }
+    return out
+}
+
+// Names the three fn-as-value instructions apart in the detail line: an
+// unresolved fn-addr points at a callback, a closure at a capture, and the
+// two are chased through different passes.
+fn_value_kind :: fn(ins: InstrFnRef | InstrFnAddr | InstrMakeClosure) = match ins {
+    is InstrFnRef       -> "fn-ref"
+    is InstrFnAddr      -> "fn-addr"
+    is InstrMakeClosure -> "closure over"
+}
+
+// A CFGFunction carries no span of its own ; its entry block holds the
+// closest one.
+fn_span :: fn(fn_: CFGFunction) -> Span {
+    if fn_.blocks.len() == 0 { return empty_span() }
+    return fn_.blocks[0].span
+}

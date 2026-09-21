@@ -729,6 +729,7 @@ typedef struct vader_struct_vader_typecheck_IsNarrow_t vader_struct_vader_typech
 typedef struct vader_struct_vader_typecheck_NamedDeclLookup_t vader_struct_vader_typecheck_NamedDeclLookup_t;
 typedef struct vader_struct_vader_typecheck_NamedDeclRefs_t vader_struct_vader_typecheck_NamedDeclRefs_t;
 typedef struct vader_struct_vader_typecheck_NarrowSlot_t vader_struct_vader_typecheck_NarrowSlot_t;
+typedef struct vader_struct_vader_typecheck_NarrowState_t vader_struct_vader_typecheck_NarrowState_t;
 typedef struct vader_struct_vader_typecheck_PushedNarrow_t vader_struct_vader_typecheck_PushedNarrow_t;
 typedef struct vader_struct_vader_typecheck_ReprRange_t vader_struct_vader_typecheck_ReprRange_t;
 typedef struct vader_struct_vader_typecheck_Substitution_t vader_struct_vader_typecheck_Substitution_t;
@@ -3073,6 +3074,7 @@ struct vader_struct_vader_bytecode_EmitOptions_t {
     bool f_optimize;
     void* f_keep_mangles;
     bool f_want_debug;
+    bool f_verify;
 };
 struct vader_struct_vader_bytecode_EmitterCtx_t {
     vader_obj_header_t header;
@@ -5198,6 +5200,14 @@ struct vader_struct_vader_typecheck_NarrowSlot_t {
     vader_box_t f_ty;
     int32_t f_gen;
 };
+struct vader_struct_vader_typecheck_NarrowState_t {
+    vader_obj_header_t header;
+    void* f_bindings;
+    void* f_fields;
+    void* f_kill_gens;
+    void* f_field_kill_gens;
+    void* f_binding_scrutinee;
+};
 struct vader_struct_vader_typecheck_PushedNarrow_t {
     vader_obj_header_t header;
     int32_t f_sym_id;
@@ -5231,10 +5241,7 @@ struct vader_struct_vader_typecheck_TypedProgram_t {
     void* f_fn_decls;
     void* f_trait_decl_owners;
     void* f_impl_methods;
-    void* f_narrowed_bindings;
-    void* f_narrowed_fields;
-    void* f_narrow_kill_gens;
-    void* f_narrow_field_kill_gens;
+    void* f_narrow;
     void* f_expr_kinds;
     vader_box_t f_import_targets;
     void* f_external_types;
@@ -5267,7 +5274,6 @@ struct vader_struct_vader_typecheck_TypedProgram_t {
     void* f_loop_var_iterable;
     void* f_local_annotation;
     void* f_local_init_index;
-    void* f_narrow_binding_scrutinee;
     void* f_const_decls;
     void* f_bounded_dispatch_trait;
     void* f_fn_trait_dispatches;
@@ -5737,6 +5743,7 @@ vader_box_t vader_typecheck_primitive_from_name(vader_string_t l0);
 vader_box_t vader_typecheck_type_to_target_symbol(vader_box_t l0);
 bool vader_typecheck_equals_type(vader_box_t l0, vader_box_t l1);
 vader_box_t vader_typecheck_default_if_free(vader_box_t l0);
+vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0);
 bool vader_typecheck_is_void(vader_box_t l0);
 vader_box_t vader_typecheck_substitute(vader_box_t l0, void* l1);
 vader_box_t vader_typecheck_union_of(void* l0);
@@ -5770,6 +5777,7 @@ vader_box_t vader_comptime_int_val_typed(int64_t l0, vader_string_t l1);
 vader_box_t vader_comptime_symbol_for_decl(vader_box_t l0, void* l1);
 int64_t vader_comptime_byte_size(vader_box_t l0);
 int64_t vader_comptime_byte_align(vader_box_t l0);
+vader_string_t vader_comptime_type_kind_label(vader_box_t l0);
 bool vader_comptime_op_or(bool l0, bool l1);
 bool vader_comptime_op_and(bool l0, bool l1);
 int64_t vader_comptime_op_bit_xor(int64_t l0, int64_t l1);
@@ -6090,7 +6098,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2480u
+#define VADER_COMPTIME_ATOM_COUNT 2469u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -6099,11 +6107,10 @@ extern const vader_array_t vader_data_3;
 extern const vader_array_t vader_data_4;
 extern const vader_array_t vader_data_5;
 extern const vader_array_t vader_data_6;
-extern const vader_array_t vader_data_7;
-extern vader_array_t vader_data_8;
+extern vader_array_t vader_data_7;
+extern const vader_array_t vader_data_8;
 extern const vader_array_t vader_data_9;
 extern const vader_array_t vader_data_10;
-extern const vader_array_t vader_data_11;
 extern vader_array_t* vader_global_const_arrays[];
 extern void* vader_global_const_objs[];
 extern vader_gc_frame_t vader_global_const_frame;

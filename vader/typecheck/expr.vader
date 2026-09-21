@@ -84,8 +84,9 @@ export record_expr :: fn(typed: TypedProgram!, expr: AST.Expr, ty: Type) -> void
     }
 }
 
-/// Map an `AST.Expr` to its variant name as a string. Used by the
-/// typed-ast dump.
+/// Map an `AST.Expr` to its variant name as a string. Read by the typed-ast dump
+/// and by `vader/comptime`'s C4001 detail, which names the variant the comptime
+/// evaluator gave up on.
 export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.IntLitExpr        -> "IntLitExpr"
     is AST.FloatLitExpr      -> "FloatLitExpr"

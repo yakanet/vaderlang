@@ -24,20 +24,23 @@ import "std/string"
 import "std/numbers"
 import "vader/types"
 
-// `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
-// same module, same shape, single source of truth. The parser threads
-// them through `ParserState` below for label resolution while reading
-// `.virt` text ; the builder uses them to wire control-flow at
-// programmatic build time.
+// `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader`, and the
+// scope stack / branch wiring that consume them in `branch_scopes.vader` —
+// same module, one source of truth for both. The parser threads them through
+// `ParserState` below while reading `.virt` text ; the builder wires the same
+// shapes at programmatic build time.
 
-/// Per-function parser state bundle. Carries the six structures that
-/// `wire_control_flow` / `defer_or_resolve_branch` / `drain_pending`
-/// all need to thread together — so each helper signature shrinks from
-/// 6-9 params to 2-3. Mutations happen through the embedded array
-/// references (Vader arrays are heap-allocated, so `state.scopes.push(...)`
-/// is visible across calls without explicit by-ref passing). The
-/// 1-element `scope_sp` / `pending_sp` arrays are the canonical
-/// "boxed scalar" pattern used elsewhere in the file.
+/// Per-function parser state bundle. Carries the six structures
+/// `wire_control_flow` threads together, so it takes one parameter instead of
+/// six. Mutations happen through the embedded array references (Vader arrays
+/// are heap-allocated, so `state.scopes.push(...)` is visible across calls
+/// without explicit by-ref passing). The 1-element `scope_sp` / `pending_sp`
+/// arrays are the canonical "boxed scalar" pattern used elsewhere in the file.
+///
+/// The bundle stops at this module's edge: the shared helpers in
+/// `branch_scopes.vader` take the arrays directly, since `FunctionBuilder`
+/// holds the same six fields under its own names and has no `ParserState` to
+/// hand over.
 ///
 /// `ops` and `table` are reset at every `fn ...` header in `parse_virt` ;
 /// `scopes` and `pending` are reused across functions (only their
@@ -229,91 +232,16 @@ wire_control_flow :: fn(state: ParserState!, cleaned: string, head: string, pc: 
             if !top.is_loop && state.table[top.opener_pc] < 0 {
                 state.table[top.opener_pc] = pc + 1
             }
-            drain_pending(state, top.label, top.is_loop, top.opener_pc, pc)
+            drain_pending(state.table, state.pending, state.pending_sp,
+                          top.label, top.is_loop, top.opener_pc, pc)
         }
-    } else if head == "br" {
-        defer_or_resolve_branch(state, cleaned, "br ", pc)
-    } else if head == "br_if" {
-        defer_or_resolve_branch(state, cleaned, "br_if ", pc)
+    } else if head == "br" || head == "br_if" {
+        // `first_token_after` slices past the prefix then trims, so the head
+        // token is the prefix — the two forms differ only in their opcode.
+        defer_or_resolve_branch(state.scopes, state.scope_sp, state.table,
+                                state.pending, state.pending_sp,
+                                first_token_after(cleaned, head), pc)
     }
-}
-
-/// Append `entry` to the grow-only `scopes` array at `sp_box[0]` and
-/// advance the cursor. Reuses an already-allocated slot when one is
-/// available (cursor < array length), saving an allocation per push
-/// for the second and subsequent functions in a module.
-///
-/// @param scopes  the grow-only scope stack (shared across functions).
-/// @param sp_box  1-element cursor — `[0]` is the logical top index.
-/// @param entry   the scope to push.
-push_scope :: fn(scopes: ScopeEntry[]!, sp_box: usize[]!, entry: ScopeEntry) -> void {
-    sp :: sp_box[0]
-    if sp == scopes.len() { scopes.push(entry) }
-    else                  { scopes[sp] = entry }
-    sp_box[0] += 1
-}
-
-/// `br`/`br_if` to a loop label resolves immediately (loop start known).
-/// Branches to a block/if/else label are deferred until that scope's
-/// `end` is seen — they're appended to `state.pending`.
-///
-/// @param state    per-function parser scratch state (mutated in place).
-/// @param cleaned  the .virt line (comment-stripped).
-/// @param prefix   `"br "` or `"br_if "` — used to locate the label.
-/// @param pc       the pc of the branching op being wired.
-defer_or_resolve_branch :: fn(state: ParserState!, cleaned: string, prefix: string, pc: i32) -> void {
-    label :: first_token_after(cleaned, prefix)
-    sp :: state.scope_sp[0]
-    // Find the matching scope by label from the top.
-    i := i32(sp) - 1
-    found_idx := -1
-    for i >= 0 {
-        if state.scopes[usize(i)].label == label {
-            found_idx = i
-            i = -1                          // break
-        } else {
-            i -= 1
-        }
-    }
-    if found_idx < 0 { return }
-    target :: state.scopes[usize(found_idx)]
-    if target.is_loop {
-        state.table[pc] = target.opener_pc + 1
-    } else {
-        psp :: state.pending_sp[0]
-        entry :: PendingBranch { .branch_pc = pc, .target_label = label }
-        if psp == state.pending.len() { state.pending.push(entry) }
-        else                          { state.pending[psp] = entry }
-        state.pending_sp[0] += 1
-    }
-}
-
-/// When a scope ends, fill in every pending branch that named it. Branches
-/// that didn't match the closing scope's label stay in the pending list,
-/// compacted to the front of the cursor window.
-///
-/// @param state      per-function parser scratch state (mutated in place).
-/// @param label      label of the scope just closed.
-/// @param is_loop    `true` for loops (back-edge target = opener+1).
-/// @param opener_pc  pc of the scope's opener (block/loop/if/else).
-/// @param end_pc     pc of the matching `end` op.
-drain_pending :: fn(state: ParserState!, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
-    psp :: state.pending_sp[0]
-    new_sp: usize = 0
-    for i in 0..<psp {
-        entry :: state.pending[i]
-        if entry.target_label == label {
-            if is_loop {
-                state.table[entry.branch_pc] = opener_pc + 1
-            } else {
-                state.table[entry.branch_pc] = end_pc + 1
-            }
-        } else {
-            state.pending[new_sp] = entry
-            new_sp += 1
-        }
-    }
-    state.pending_sp[0] = new_sp
 }
 
 /// Dispatch on the line's head token to construct the matching `Op` variant.

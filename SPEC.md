@@ -63,7 +63,7 @@ Source (.vader)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
 
-Self-host status (Vader-side under `vader/`): the full native pipeline is self-hosted — Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Type-checker ✅, Comptime/monomorphizer ✅, Lowerer ✅, Mid-IR (CFG/SSA/DCE/escape/scheduler) ✅, Bytecode emitter ✅, C emitter ✅, LSP ✅, Formatter 🟡 (partial — see §18), VM 🟡 (`.virt` subset). WASM emitter ⏳ (post-MVP — see §19). The legacy TypeScript bootstrap under `src/` has been removed; self-host correctness is verified by the bootstrap fixed-point check (`bootstrap/verify.sh`) and the snapshot suite, not by cross-toolchain parity.
+Self-host status (Vader-side under `vader/`): the full native pipeline is self-hosted — Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Type-checker ✅, Comptime/monomorphizer ✅, Lowerer ✅, Mid-IR (CFG/DCE/escape/scheduler) ✅, Bytecode emitter ✅, C emitter ✅, LSP ✅, Formatter 🟡 (partial — see §18), VM 🟡 (`.virt` subset). WASM emitter ⏳ (post-MVP — see §19). The legacy TypeScript bootstrap under `src/` has been removed; self-host correctness is verified by the bootstrap fixed-point check (`bootstrap/verify.sh`) and the snapshot suite, not by cross-toolchain parity.
 
 ### Canonical IR
 
@@ -3847,7 +3847,7 @@ Once the original TypeScript compiler could compile a syntactic subset (fns, ifs
 7. **Type-checker** ✅ (`vader/typecheck/`).
 8. **Comptime / monomorphizer** ✅ (`vader/comptime/`).
 9. **Lowerer** ✅ (`vader/lower/`).
-10. **Mid-IR (CFG / SSA / DCE / escape / scheduler)** ✅ (`vader/midir/`).
+10. **Mid-IR (CFG / DCE / escape / scheduler)** ✅ (`vader/midir/`).
 11. **Bytecode-emit** ✅ (`vader/bytecode/`).
 12. **C-emit** ✅ (`vader/c_emit/`).
 13. **WASM-emit** ⏳ (post-MVP — binary encoding, Phase 3).

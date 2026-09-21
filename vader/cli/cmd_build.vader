@@ -52,6 +52,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     use_manifest :: parsed.bool_flag("manifest")
     out_flag     :: parsed.string_flag("out", "")
     release      :: parsed.bool_flag("release")
+    verify       :: parsed.bool_flag("verify")
     cc           :: parsed.string_flag("cc", default_cc())
     ldflags      :: parsed.string_flag("ldflags", "")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
@@ -145,18 +146,18 @@ cmd_build :: fn(args: string[]) -> i32 {
                 return 2
             }
             out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-            return emit_c_for_targets(file, out, release, include_path_flags, ts)
+            return emit_c_for_targets(file, out, release, include_path_flags, ts, verify)
         }
-        return build_c(file, out_flag, release, include_path_flags, split, build_target)
+        return build_c(file, out_flag, release, include_path_flags, split, build_target, verify)
     }
     if emit == "executable" {
         // 0: the user's own build owns the machine, so it keeps the full fan-out
         // the `--split` measurements were taken with.
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0)
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0, verify)
     }
 
     if emit == "bytecode-text" {
-        return build_bytecode_text(file, out_flag, include_path_flags, build_target)
+        return build_bytecode_text(file, out_flag, include_path_flags, build_target, verify)
     }
     // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
     // above covers the textual form; this one waits on a binary writer.
@@ -177,12 +178,14 @@ cmd_build :: fn(args: string[]) -> i32 {
 /// @param out_flag            `-o` value, or "" to derive `<input>.virt`.
 /// @param include_path_flags  extra module search roots.
 /// @param target              the platform to select `@target` bodies for.
+/// @param verify              run the IR verifiers between passes.
 /// @return                    0 on success, 1 on a write failure, 2 on a
 ///                            front-end error (already reported).
 build_bytecode_text :: fn(
     file: Path, out_flag: string, include_path_flags: string[], target: Target | null,
+    verify: bool,
 ) -> i32 {
-    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target, verify)
     // Same gate as every other emit path: errors abort, warnings still print.
     if !flush_build_diags(b.pre_diags, b.lower_diags) {
         return 2
@@ -203,8 +206,8 @@ build_bytecode_text :: fn(
 // pipeline `dump --stage=c` uses) and return the generated C. Pipeline
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
-emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> string | null {
-    b :: prepared_module(file, release, include_path_flags, target)
+emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
+    b :: prepared_module(file, release, include_path_flags, target, verify)
     if b is null {
         return null
     }
@@ -226,8 +229,8 @@ emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], tar
 // paths. Debug build → populate the per-op `debug` table so the c-emit keeps
 // `#line` ; release drops it (the seed + shipped compiler stay lean). Returns
 // null when an error-severity diagnostic blocks the build.
-prepared_module :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> CfgBytecode | null {
-    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags, target)
+prepared_module :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> CfgBytecode | null {
+    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags, target, verify)
     if !flush_build_diags(b.pre_diags, b.lower_diags) {
         return null
     }
@@ -247,13 +250,13 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout, for piping into another tool.
-build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], split: bool, target: Target | null) -> i32 {
+build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], split: bool, target: Target | null, verify: bool) -> i32 {
     if split {
         out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-        prog :: emit_c_program_for(file, release, include_path_flags, out, target) ?? return 1
+        prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify) ?? return 1
         return write_split_files(out, prog)
     }
-    c_src :: emit_c_for_input(file, release, include_path_flags, target) ?? return 1
+    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify) ?? return 1
     if out_flag == "-" {
         print(c_src)
         return 0
@@ -269,11 +272,11 @@ build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: s
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
-emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null) -> string | null =
+emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null =
     if file.extension() == "virt" {
         emit_c_source_from_virt(file, release)
     } else {
-        emit_c_source(file, release, include_path_flags, target)
+        emit_c_source(file, release, include_path_flags, target, verify)
     }
 
 // Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
@@ -309,15 +312,15 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32) -> i32 {
+build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32, verify: bool = false) -> i32 {
     out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
     if split {
-        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target, cc_jobs)
+        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target, cc_jobs, verify)
     }
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
     // `vader/pipeline`, so the two cannot drift on flags.
-    c_src :: emit_c_for_input(file, release, include_path_flags, target)
+    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify)
     if c_src is null {
         return 1
     }
@@ -329,8 +332,8 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 // `--split --emit=executable` : emit the program as a header + globals TU + one
 // function TU per Vader module, then compile them concurrently and link. The
 // `.c` set is kept on failure for inspection.
-build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32) -> i32 {
-    prog :: emit_c_program_for(file, release, include_path_flags, out, target)
+build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32, verify: bool) -> i32 {
+    prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify)
     if prog is null {
         return 1
     }
@@ -417,7 +420,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // Prepare the module and emit it as a `CProgram`. The header basename embeds a
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
-emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null) -> CProgram | null {
+emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null, verify: bool) -> CProgram | null {
     // UNREACHABLE from the CLI: `split` (line 72) already excludes a `.virt`, and
     // both callers gate on it. Kept as the guard for a future third caller that
     // does not — the rule "a `.virt` has no front end to re-run" belongs next to
@@ -426,7 +429,7 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
         eprintln("vader build: split needs a `.vader` front end; `.virt` takes the single TU")
         return null
     }
-    b :: prepared_module(file, release, include_path_flags, target)
+    b :: prepared_module(file, release, include_path_flags, target, verify)
     if b is null {
         return null
     }
@@ -467,13 +470,15 @@ keys_of_each :: fn(mods: BytecodeModule[]) -> string[][] {
 /// @param include_path_flags  `-I`-style module roots, as passed on the command
 ///                            line — the same set for every target.
 /// @param targets             the targets to emit for, at least one.
+/// @param verify              run the IR verifiers between passes.
 /// @return                    0 on success, 1 when any target fails to build.
 emit_c_for_targets :: fn(
     file: Path, out: Path, release: bool, include_path_flags: string[], targets: Target[],
+    verify: bool,
 ) -> i32 {
     mods: CfgBytecode[]! = []
     for t in targets {
-        b :: prepared_module(file, release, include_path_flags, t)
+        b :: prepared_module(file, release, include_path_flags, t, verify)
         if b is null {
             return 1
         }

@@ -14,6 +14,12 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
+- [ ] **The trait default-method materialiser emits each body twice** (found 2026-09-21 while writing the IR verifiers). `dump --stage=dced-ast --module=std/core examples/hello/hello.vader` shows two identical `std_core$i32$Comparable$lt` decls; 16 mangles duplicate this way on every program (`{i32,i64,usize,char}${Comparable$lt,lte,gt,gte}` + `$Step$step`).
+
+  Harmless today — the CFG DCE prunes them before bytecode — but not benign in shape. Both carry `origin.symbol = null`, so `midir/emit.vader:324-334` resolves both through the same `function_index_by_mangle` slot and `emit_cfg_function_body` runs **twice on one slot**, appending locals and body, while the first reserved slot stays empty. A duplicate that survived the prune would ship that.
+
+  A `verify_lowered` check for this was written and withdrawn (`I7010`, removed before landing): it is a true positive that fires 24× on hello world, so it cannot ship until the materialiser stops producing the duplicates. Fix the producer, then the check is one function.
+
 - [ ] **An expression-bodied fn whose body is `f(x) ?? Enum.Variant` aborts stage1, naming a DIFFERENT function** (found 2026-09-03, reproduced twice). Writing `vader/vm/host.vader::field_val_type` as `= bc.c_field_val_type(f, types) ?? bc.ValType.I64` makes stage0 abort with `midir/emit: no field \`element\` on \`?\` in 'vader_vm$dispatch_extern'`. The brace form of the same function compiles. Deterministic: reverted and re-applied, same message both times.
 
   **`dispatch_extern` is the CALLER**, and its `b.element` is the only `.element` in it — so a type that should be `LentArray` reads as `?` there. That the failure lands in the caller rather than in the edited fn points at the post-lowering single-expression inliner splicing the `??` body into its call sites, but that is a hypothesis, not a diagnosis. Three reductions failed to reproduce it standalone (same-module two-file, namespace alias, single file), so the shape needs something the small cases lack — start from the real file rather than from a snippet.
@@ -23,6 +29,24 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
   Untested hypotheses, in the order they are worth measuring: **(a) process spawn** — `--split` runs one `cc` per module and the suite spawns the CLI a few thousand times ; `CreateProcess` is far dearer than `fork`/`exec`, and this is the one cost both halves share, which fits the uniform ×3 ; **(b) Defender** scanning every `.o` and every spawned binary — `Add-MpPreference -ExclusionPath` on the work tree is a one-line experiment ; **(c)** `build.ps1`'s `CcLinkParallel` is a `Start-Process` sliding window where `build.sh` uses `xargs -P`, so its own overhead is per-file. Measure before changing anything: the runner's core count and per-step timings come from the `actions/runs/<id>/jobs` API without auth.
 
 - [ ] **`T[]` should satisfy a `[C: Index]` / `[C: IndexSet]` bound — DEFERRED, a dynamic-dispatch feature, not a perf one** (revisited 2026-07-20). Direct `arr[i]` / `arr[i] = v` lower to the built-in fast op (concrete `ArrayGet`/`ArraySet`, 0 alloc) and STAY that way regardless of this item — nothing here touches the array fast path. The only thing an array-`Index` impl adds is letting an array satisfy a **generic** `[C: Index]` bound; since generics are erased (.NET model), that path is *inherently* a runtime vtable dispatch (slow, rare) — not something the fast array machinery can be "moved into". Prereq **(1) — SHIPPED** (`272af6472`, snippet `generic_index_dispatch`): the index OPERATOR `c[0]` / `c[0] = v` now dispatches through a `TypeParam` `Index`/`IndexSet` bound for user **struct** implementors (`infer_index` / `check_assign` record `bounded_dispatch_trait`; `lower_index` / `lower_assign` emit a vcall). Remaining blockers, both on the **erased array receiver** (found 2026-07-20, `@intrinsic T[] implements Index/IndexSet` attempted + fully reverted): **(a) vtable key** — a concrete `i32[]` carries its element-specific type id (header `type_index`, e.g. 2) but the single materialised row is keyed on the erased `Any[]` (e.g. 8), so both the VM (`receiver_type_id_of` → `a.type_id`) and native (`switch(recv.tag)`) miss; **(b) erased primitive read/write** — the erased body emits `array.get <ref>`, whose native path (`vader_array_ref_load_box`) only handles `element_kind ∈ {REF, BOXED}`, NOT a primitive-packed buffer (`i32[]` = 4-byte slots) → would read a 24-byte box from a 4-byte slot (the VM escapes via uniform boxing). Two design options if ever needed: **A. full erasure** — extend the runtime ref-load/store helpers to box/unbox primitive elements via `element_kind` + `element_tag`, and expand the one erased row over every array type in the table (generalises to any `T[] implements Trait` virtual dispatch); **B. per-element monomorphisation** — materialise concrete `at__<elem>` / `set_at__<elem>` keyed on the concrete array type (fast reads, no runtime change, more plumbing to track which element types reach the bound). Defer until there's a real caller passing an array to a `[C: Index]` generic.
+
+- [ ] **Three style rules the compiler could enforce and does not** (found 2026-09-21 while sweeping the `_ -> {}` wildcards). Each is a rule the tree already states in prose, each is checkable where the typechecker already holds the information, and each currently decays silently.
+
+  **(a) A duplicate / unreachable `match` arm draws no diagnostic.** T3013 checks that no variant is MISSING; nothing checks that one is covered TWICE. Verified on the current compiler — all three forms compile and run, the second arm dead:
+
+  ```vader
+  match u { is A -> "first"   is B -> "b"   is A -> "unreachable" }   // silent
+  match u { _    -> "catch"   is A -> "never reached" }               // only the `_`'s W0005
+  match e { .X -> "x1"        .Y -> "y"     .X -> "x2" }              // silent
+  ```
+
+  `is A | A` inside one or-pattern passes too. Zero occurrences in the tree today, so it does not bite yet — but it gets likelier as the `_ ->` arms go away, since an arm added to a 28-variant match is exactly where a variant gets duplicated unseen. `match_expr.vader` already collects the covered set to compute exhaustiveness; noticing an insert that is already present is the same table.
+
+  **(b) `:=` on a local that is never reassigned.** §3 of `CLAUDE.md` calls needless `:=` a style defect in as many words, and nothing checks it — heuristic sweep says ~188 of 550 sites, 35 in `vader/lexer/lexer.vader` alone. Design notes, including the trap that `x.f = 1` mutates what `x` designates rather than reassigning `x`: `.claude/plans/2026-09-21-warn-on-unreassigned-mutable.md`.
+
+  **(c) W0005 exempts statement-position matches.** `match_expr.vader:264` gates the warning on `!is_void(result_ty)`, so a void `match` ending in `_ -> {}` is never flagged. That is the exact class all six gaps closed on 2026-09-21 sat in (`??` and `defer` dropping comptime dependencies, four `Expr` forms the LSP's enclosing-expression walk never descended). **128** `_ -> {}` remain under `vader/` and nothing names them. The scrutinee guard is already union-or-enum, so open domains stay out, and `@partial` is already the documented opt-out — dropping the condition is one line plus fixture churn. If 128 at once is too much, scope it to unions declared under `vader/` or `toolchain/`.
+
+  Related but NOT in this family, because exhaustiveness is structurally blind to it: a walker that handles a variant but forgets one of its **fields**. `CastExpr` carries `target` and `value`; `reference_index.vader` and `dead_code.vader` read both, `ast_walk.vader` and `indexer.vader` read only `value` — all four compile clean, and the cursor on `Foo` in `y as Foo` reaches nothing in the LSP. Same shape for `LambdaExpr.return_type`, `FnTypeExpr.params`, `ArrayTypeExpr.element`, `MutableTypeExpr.inner`. Closing that needs a shared `for_each_child` in `toolchain/ast`, modelled on `types.vader::for_each_type` — an architecture decision, not a diagnostic.
 
 - [x] **`for x in self` over an abstract `Iterator<T>` typed the loop var `?`, not `T`** (found 2026-07-24, fixed 2026-08-13). Inside a generic combinator's own body — `my_map :: fn<T, U>(self: Iterator<T>, …) { for x in self { … } }` — every loop variable recorded as `?`, visible in `tests/snippets/fuse_generator_chain/typecheck.snapshot` and in LSP hover. Now `T`.
 
@@ -164,7 +188,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 **"Plus IR-like" — open architecture question**
 
-Three variants on the table for the WASM-mimicking structured-control form vs midir's CFG/SSA :
+Three variants on the table for the WASM-mimicking structured-control form vs midir's CFG :
   (a) **Drop the WASM mimicry, keep stack-machine.** `block`/`loop`/`if`/`else`/`end` + `br <depth>` → `goto label` + `branch_if cond label`. ~3-4 days. Saves ~200 lines.
   (b) **Bytecode adopts midir's CFG shape.** `BasicBlock { instrs, terminator }`. VM consumes a CFG. ~1-2 weeks.
   (c) **Promote midir directly — bytecode and midir merge.** `BytecodeModule` becomes `IRModule`. `.vir` serialises the CFG. ~2-3 weeks.

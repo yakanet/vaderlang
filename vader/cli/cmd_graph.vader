@@ -1,0 +1,179 @@
+// vader/cli/cmd_graph — the `vader graph` command.
+//
+// Renders the module import graph of a loaded project. Load + parse is enough:
+// an `import "..."` is syntax, so the graph is exact without resolving a single
+// name — the same reason `vader lint` stops at the load stage.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "cli"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "vader/diagnostics"
+import "vader/resolver"
+
+/// How to spell the graph.
+GraphFormat :: enum(u8) {
+    /// Mermaid `graph TB` — renders in a Markdown viewer with no tool installed.
+    Mermaid
+    /// Graphviz DOT — `vader graph x.vader --format=dot | dot -Tpng -o deps.png`.
+    Dot
+}
+
+/// One module and who it imports, after filtering.
+GraphNode :: struct {
+    name:    string
+    imports: string[]
+}
+
+/// `vader graph <file>` — print the module import graph rooted at `<file>`.
+///
+/// Reads the same module graph a build reads (`load_project`), so what it draws
+/// is what the compiler actually loads, include paths included. Library modules
+/// are hidden by default: a compiler-sized project pulls in enough of `std/` to
+/// bury its own shape. `--scope=all` shows them.
+///
+/// @param args  positional args ; `args[0]` is the entry `.vader` file.
+/// @return      0 on success, 1 on a missing argument or a load error.
+cmd_graph :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("graph", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("graph", parsed) {
+        return 1
+    }
+    file :: parsed.action_file()
+    if file == "" {
+        eprintln("vader graph: expected a file argument")
+        return 1
+    }
+
+    // `std/cli` has already rejected anything outside the declared `.values`
+    // sets, so neither read needs a second gate here.
+    format :: if parsed.string_flag("format", "mermaid") == "dot" { GraphFormat.Dot }
+              else { GraphFormat.Mermaid }
+    include_all :: parsed.string_flag("scope", "project") == "all"
+    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+
+    loaded :: load_project(file.as_string(), include_path_flags)
+    // A parse or import error leaves a graph with edges missing — the one thing
+    // this command exists to show. Surface it rather than draw a partial picture.
+    if any_error_diag(loaded.diags) {
+        eprintln(loaded.diags.dump_diagnostics_with_file())
+        return 1
+    }
+
+    nodes :: collect_graph(loaded, include_all)
+    if nodes.len() == 0 {
+        eprintln("vader graph: `${file}` loaded no modules")
+        return 1
+    }
+    println(render_graph(nodes, format))
+    return 0
+}
+
+// Whether a module is the user's own, under `--scope=project`.
+//
+// Two tests, the asymmetry `collect.vader::diagnose_import_path` also depends on:
+// provenance says who is the LIBRARY, the module name says who is the COMPILER.
+// `ModuleOrigin` has no `.Compiler` variant, and in a driven build `vader/*`
+// arrives through `--include-paths` as `.Build` — so provenance alone draws the
+// whole compiler as the user's project. Unless the entry is itself `vader/*`, in
+// which case the compiler IS what is being drawn.
+is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: bool) =
+    origin != .Toolchain && (entry_is_compiler || !name.starts_with("vader/"))
+
+/// Collect every loaded module with the imports that survive the scope filter.
+///
+/// An edge to a filtered-out module is dropped, not redirected — no dangling
+/// stubs. Self-imports go too: legal, and no dependency.
+collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
+    // Keyed by `module_name`: `load_project` keys modules by their FOLDER, and
+    // an `import` names the MODULE. They diverge outside a self-rooted project.
+    entry :: loaded.modules[loaded.entry]
+    entry_is_compiler :: entry != null && entry.module.module_name.starts_with("vader/")
+    kept :: MutableSet<string> {}
+    for [_, module] in loaded.modules {
+        name :: module.module.module_name
+        if include_all || is_project_module(module.module.origin, name, entry_is_compiler) {
+            kept.add(name)
+        }
+    }
+    nodes: GraphNode[]! = []
+    for [_, module] in loaded.modules {
+        name :: module.module.module_name
+        if !kept.contains(name) {
+            continue
+        }
+        // The list the loader's own BFS walks, so this is the build's graph and
+        // not a second opinion. One entry per `import` line across the module's
+        // files, so a path can repeat — hence `seen`.
+        seen :: MutableSet<string> {}
+        imports: string[]! = []
+        for target in module.collected.import_paths {
+            if target == name || !kept.contains(target) || !seen.add(target) {
+                continue
+            }
+            imports.push(target)
+        }
+        nodes.push(GraphNode {
+            .name    = name,
+            .imports = sort(imports, (a: string, b: string) -> compare_ascending(a, b)),
+        })
+    }
+    return sort(nodes, (a: GraphNode, b: GraphNode) -> compare_ascending(a.name, b.name))
+}
+
+/// Render the collected nodes in the requested syntax.
+///
+/// @param nodes   the graph, already filtered and sorted.
+/// @param format  which syntax to emit.
+/// @return        the full document, no trailing newline.
+render_graph :: fn(nodes: GraphNode[], format: GraphFormat) -> string =
+    if format == .Dot { render_dot(nodes) } else { render_mermaid(nodes) }
+
+// Mermaid node ids must be identifier-ish, so `vader/lower` becomes
+// `vader_lower` and the real name rides in the label.
+mermaid_id :: fn(name: string) -> string = name.replace_all("/", "_").replace_all("-", "_")
+
+// Top-to-bottom, not left-to-right: a dependency graph is read as layers, and
+// module names are wide enough that `LR` spends its width on labels rather than
+// on depth.
+render_mermaid :: fn(nodes: GraphNode[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("graph TB\n")
+    for n in nodes {
+        sb.append("    ${mermaid_id(n.name)}[\"${n.name}\"]\n")
+    }
+    for n in nodes {
+        from :: mermaid_id(n.name)
+        for target in n.imports {
+            sb.append("    ${from} --> ${mermaid_id(target)}\n")
+        }
+    }
+    return sb.to_string().trim_suffix("\n")
+}
+
+render_dot :: fn(nodes: GraphNode[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("digraph modules {\n")
+    sb.append("    rankdir=TB;\n")
+    sb.append("    node [shape=box, fontname=\"Helvetica\"];\n")
+    for n in nodes {
+        sb.append("    \"${n.name}\";\n")
+    }
+    for n in nodes {
+        for target in n.imports {
+            sb.append("    \"${n.name}\" -> \"${target}\";\n")
+        }
+    }
+    sb.append("}")
+    return sb.to_string()
+}

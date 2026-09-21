@@ -91,6 +91,11 @@ find_expr_with_mode :: fn(
 }
 
 hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState!) -> void {
+    // A position walk maps a cursor to a fn body; these hold none.
+    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+         | AST.TypeAliasDecl | AST.AssertDecl {
+        return
+    }
     match d {
         is AST.FnDecl -> {
             match d.body {
@@ -107,7 +112,6 @@ hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState!) -> void {
             }
         }
         is AST.ConstDecl -> { hv_walk_expr(d.value, typed, st) }
-        _ -> {}
     }
 }
 
@@ -153,6 +157,12 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState!) -> void {
 
 hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
     hv_consider(e, typed, st)
+    // Already considered above, and no child carries an independent span.
+    if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
+         | AST.ArrayTypeExpr | AST.MutableTypeExpr {
+        return
+    }
     match e {
         is AST.CallExpr -> {
             hv_walk_expr(e.callee, typed, st)
@@ -235,10 +245,6 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
                 }
             }
         }
-        // Leaves : IntLit, FloatLit, BoolLit, NullLit, CharLit, IdentExpr,
-        // DotVariantExpr, FnTypeExpr, ArrayTypeExpr — already considered
-        // above ; no children with independent expression spans.
-        _ -> {}
     }
 }
 
@@ -274,7 +280,8 @@ hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
 /// @param decls  the file's top-level declarations to descend.
 /// @param line   1-based cursor line.
 /// @param col    1-based cursor column.
-/// @param typed  the typed program (RHS type read from `expr_types`).
+/// @param typed  the typed program — `expr_types` for a single name,
+///               `local_types` for a destructuring slot.
 /// @return       the binding's inferred type, or `null`.
 export find_binding_rhs_type_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
@@ -291,6 +298,11 @@ FindBindingState :: struct {
 }
 
 binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState!) -> void {
+    // `ConstDecl` joins them: its value is an expression, not a binding site.
+    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+         | AST.TypeAliasDecl | AST.AssertDecl | AST.ConstDecl {
+        return
+    }
     match d {
         is AST.FnDecl -> {
             match d.body {
@@ -306,7 +318,6 @@ binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingStat
                 }
             }
         }
-        _ -> {}
     }
 }
 
@@ -318,17 +329,16 @@ binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindi
 }
 
 binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState!) -> void {
+    // No sub-statement and no binding of their own.
+    if s is AST.AssignStmt | AST.BreakStmt | AST.ContinueStmt {
+        return
+    }
     match s {
         is AST.LetStmt -> {
-            match s.binding {
-                is AST.SimpleBinding as sb -> {
-                    if span_contains(sb.name_span, st.line, st.col) {
-                        ty :: typed.expr_types[s.value.id]
-                        if !(ty is null) { st.ty = ty }
-                        return
-                    }
-                }
-                _ -> {}
+            ty :: binding_type_at(s.binding, s.value, typed, st.line, st.col)
+            if ty != null {
+                st.ty = ty
+                return
             }
             binding_hv_walk_expr(s.value, typed, st)
         }
@@ -346,11 +356,62 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
                 is AST.DeferBlockBody as dbb -> { binding_hv_walk_block(dbb.block, typed, st) }
             }
         }
-        _ -> {}
     }
 }
 
+/// Type of the binding under the cursor in a `let`, or `null` when the cursor is
+/// not on a bound name.
+///
+/// A single name reports the INITIALIZER's inferred type, which is the whole
+/// point of this walk — `hover.vader` wants `origin: ? | null :: span_at(…)` to
+/// surface what the typechecker resolved, not the `?` the user wrote.
+/// `local_types` holds the DECLARED type, so it is only right where there is no
+/// single initializer to read: a destructuring slot.
+binding_type_at :: fn(
+    b: AST.LetBinding, value: AST.Expr, typed: TypedProgram, line: i32, col: i32,
+) -> Type | null {
+    match b {
+        is AST.SimpleBinding -> {
+            if span_contains(b.name_span, line, col) {
+                return typed.expr_types[value.id]
+            }
+        }
+        is AST.RestBinding -> {
+            // Keyed by the whole span, not `name_span` — `assign_binding_types`
+            // writes it so, and the `...` makes the two start at different columns.
+            if span_contains(b.name_span, line, col) {
+                return typed.local_types[b.span.hash()]
+            }
+        }
+        is AST.TupleBinding -> {
+            for element in b.elements {
+                found :: binding_type_at(element, value, typed, line, col)
+                if found != null {
+                    return found
+                }
+            }
+        }
+        // `_ :: e` binds no name to hover.
+        is AST.WildcardBinding -> {}
+    }
+    return null
+}
+
 binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState!) -> void {
+    // Only the block-bearing forms reachable DIRECTLY. A binding inside a lambda
+    // passed as a call argument is not found — pre-existing gap, not a design.
+    //
+    // The list is spelled out rather than aliased on purpose: it is what makes
+    // the match below exhaustive, so a new `Expr` variant stops here.
+    if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr
+         | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr
+         | AST.NullCoalesceExpr | AST.StructLitExpr | AST.SeqLitExpr
+         | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr
+         | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
+         | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr {
+        return
+    }
     match e {
         is AST.BlockExpr -> { binding_hv_walk_block(e, typed, st) }
         is AST.IfExpr -> {
@@ -365,7 +426,6 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
             for arm in e.arms { binding_hv_walk_expr(arm.body, typed, st) }
         }
         is AST.LambdaExpr -> { binding_hv_walk_block(e.body, typed, st) }
-        _ -> {}
     }
 }
 
@@ -422,6 +482,11 @@ EncloseState :: struct {
 }
 
 ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {
+    // A position walk maps a cursor to a fn body; these hold none.
+    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+         | AST.TypeAliasDecl | AST.AssertDecl {
+        return
+    }
     match d {
         is AST.FnDecl -> {
             match d.body {
@@ -438,7 +503,6 @@ ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {
             }
         }
         is AST.ConstDecl -> { ee_walk_expr(d.value, st) }
-        _ -> {}
     }
 }
 
@@ -521,6 +585,7 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState!) -> void {
         is AST.BlockExpr -> { ee_walk_block(e, st) }
         is AST.LambdaExpr -> { ee_walk_block(e.body, st) }
         is AST.StructLitExpr -> {
+            ee_walk_expr(e.type_name, st)
             for item in e.items {
                 match item {
                     is AST.StructLitField  -> { ee_walk_expr(item.value, st) }
@@ -536,7 +601,32 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState!) -> void {
         is AST.IntrinsicCallExpr -> {
             for a in e.args { ee_walk_expr(a, st) }
         }
-        _ -> {}
+        is AST.StringLitExpr -> {
+            for part in e.parts {
+                if part is AST.StringLitInterp {
+                    ee_walk_expr(part.expr, st)
+                }
+            }
+        }
+        is AST.NullCoalesceExpr -> {
+            ee_walk_expr(e.left, st)
+            fallback :: AST.coalesce_fallback_expr(e.fallback)
+            if fallback != null {
+                ee_walk_expr(fallback, st)
+            }
+        }
+        is AST.RangeExpr -> {
+            ee_walk_expr(e.lower, st)
+            ee_walk_expr(e.upper, st)
+        }
+        is AST.GenericInstExpr -> {
+            ee_walk_expr(e.callee, st)
+            for ta in e.type_args { ee_walk_expr(ta, st) }
+        }
+        // An arm, not an early `return`: `e` itself is pushed below the match.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
+         | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
     }
     if span_contains(e.span, st.line, st.col) { st.acc.push(e) }
 }
