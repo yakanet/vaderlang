@@ -63,7 +63,9 @@ analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: Closur
                     }
                 }
                 is AST.ConstDecl -> { analyze_const_body(decl, typed, symbol_index, analysis) }
-                _ -> {}
+                // No body, so no closure to host.
+                is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+                 | AST.TypeAliasDecl | AST.AssertDecl -> {}
             }
         }
     }
