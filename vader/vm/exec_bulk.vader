@@ -1,0 +1,294 @@
+// vader/vm/exec_bulk — the bulk array / string / buffer opcodes.
+//
+// `exec_entry` is one `match` over 146 opcodes, and its correctness rests on
+// per-frame state hoisted into its locals (`cur_ops`, `cur_jump`, `cur_top`,
+// the narrow mask) so the per-op path never re-reads them. Splitting an arm out
+// only stays free while the arm touches none of that.
+//
+// These do. Each reads and writes `frame` alone — never the frame stack, the
+// op buffer or the jump table — so the split costs one call per executed op,
+// against a body that copies, slices or repeats N elements. The hot arms
+// (`local.*`, `i32.*`, the branches, the calls) stay where they are.
+//
+// Contract: return a `Trap` on a stack or range error, `null` on success, and
+// advance `frame.sp` / `frame.pc` before returning `null` — the dispatch does
+// neither for these.
+
+module "vader/vm"
+
+bc :: import "vader/bytecode"
+import "std/string"
+
+
+/// `array.copy` — overlap-safe window copy between two arrays.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_copy :: fn(frame: Frame!) -> Trap | null {
+if frame.sp < 5 {
+    return Trap { .message = "array.copy needs src + src_start + dst + dst_start + len on stack at pc=${frame.pc}" }
+}
+len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
+if len_unwrap is Trap { return len_unwrap }
+dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
+if dst_start_unwrap is Trap { return dst_start_unwrap }
+dst_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.copy dst")
+if dst_unwrap is Trap { return dst_unwrap }
+src_start_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "array.copy src_start")
+if src_start_unwrap is Trap { return src_start_unwrap }
+src_unwrap :: peek_array_mut(frame, frame.sp - 5, frame.pc, "array.copy src")
+if src_unwrap is Trap { return src_unwrap }
+n:  usize = if len_unwrap.value < 0 { 0 } else { usize(len_unwrap.value) }
+ss: usize = if src_start_unwrap.value < 0 { 0 } else { usize(src_start_unwrap.value) }
+ds: usize = if dst_start_unwrap.value < 0 { 0 } else { usize(dst_start_unwrap.value) }
+if ss + n > src_unwrap.length {
+    return Trap { .message = "array.copy source range out of bounds at pc=${frame.pc}" }
+}
+if ds + n > dst_unwrap.length {
+    return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
+}
+// Overlap-safe : snapshot the source window before writing.
+window: Value[]! = [] * n
+for j in 0..<n {
+    window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
+}
+for j in 0..<n {
+    dst_unwrap.elements[dst_unwrap.offset + ds + j] = window[j]
+}
+frame.sp = frame.sp - 5
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.slice` — a view over `[lo, hi)` of an array.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @param instr  the op itself — the view carries its own `type_id`.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_slice :: fn(frame: Frame!, instr: bc.ArraySlice) -> Trap | null {
+if frame.sp < 3 {
+    return Trap { .message = "array.slice needs array + lo + hi on stack at pc=${frame.pc}" }
+}
+hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
+if hi_unwrap is Trap { return hi_unwrap }
+lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
+if lo_unwrap is Trap { return lo_unwrap }
+array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.slice receiver")
+if array_unwrap is Trap { return array_unwrap }
+len :: array_unwrap.length
+lo_clamped: usize = if lo_unwrap.value < 0 { 0 } else { usize(lo_unwrap.value) }
+if lo_clamped > len { lo_clamped = len }
+hi_clamped: usize = if hi_unwrap.value < 0 { 0 } else { usize(hi_unwrap.value) }
+if hi_clamped < lo_clamped { hi_clamped = lo_clamped }
+if hi_clamped > len { hi_clamped = len }
+// A7 unified view : share `elements`, adjust bounds. Writes
+// through the view will alias the parent (see ArraySet).
+push_val(frame, frame.sp - 3, ArrayVal {
+    .type_id  = instr.type_id,
+    .elements = array_unwrap.elements,
+    .offset   = array_unwrap.offset + lo_clamped,
+    .length   = hi_clamped - lo_clamped,
+})
+frame.sp = frame.sp - 2
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.remove_last` — pop the tail element and push it.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_remove_last :: fn(frame: Frame!) -> Trap | null {
+if frame.sp == 0 {
+    return Trap { .message = "array.remove_last on empty stack at pc=${frame.pc}" }
+}
+array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
+if array_unwrap is Trap { return array_unwrap }
+if array_unwrap.length == 0 {
+    if stack_needs_grow(frame, frame.sp - 1) {
+        stack_grow(frame)
+    }
+    frame.tag[frame.sp - 1] = StackTag.Null
+} else {
+    last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
+    // Shrink the SHARED backing when this array owns the tail —
+    // same rule as `array.clear` below, and as the native
+    // `vader_array_remove_last`. `data.const` hands out a fresh
+    // header over the pool entry's `elements`, so a length
+    // written only on the header is lost for a module-level
+    // array: the next read rebuilds it from `elements.len()`.
+    if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+        array_unwrap.elements.remove_last()
+    }
+    array_unwrap.length = array_unwrap.length - 1
+    push_val(frame, frame.sp - 1, last)
+}
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.push_all` — append every element of one array to another.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_push_all :: fn(frame: Frame!) -> Trap | null {
+if frame.sp < 2 {
+    return Trap { .message = "array.push_all needs dst + src on stack at pc=${frame.pc}" }
+}
+src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
+if src_unwrap is Trap { return src_unwrap }
+dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
+if dst_unwrap is Trap { return dst_unwrap }
+// Detach a view before growing (mirror of array.push).
+if is_array_view(dst_unwrap) {
+    fresh: Value[]! = []
+    for j in 0..<dst_unwrap.length {
+        fresh.push(dst_unwrap.elements[dst_unwrap.offset + j])
+    }
+    dst_unwrap.elements = fresh
+    dst_unwrap.offset = 0
+}
+// `src_unwrap.length` is the range bound, evaluated once, so
+// `push_all(x, x)` (src aliases dst) doubles correctly.
+add :: src_unwrap.length
+for j in 0..<add {
+    dst_unwrap.elements.push(src_unwrap.elements[src_unwrap.offset + j])
+}
+dst_unwrap.length = dst_unwrap.length + add
+frame.sp = frame.sp - 2
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.repeat` — an array of `n` copies of one element.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
+if frame.sp < 2 {
+    return Trap { .message = "array.repeat needs array + count on stack at pc=${frame.pc}" }
+}
+count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
+if count_unwrap is Trap { return count_unwrap }
+array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
+if array_unwrap is Trap { return array_unwrap }
+count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
+// No capacity concept in the VM (capacity is a native-only perf
+// hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
+repeated: Value[]! = [] * (count * array_unwrap.length)
+for _ in 0..<count {
+    for j in 0..<array_unwrap.length {
+        repeated.push(array_unwrap.elements[array_unwrap.offset + j])
+    }
+}
+push_val(frame, frame.sp - 2, ArrayVal {
+    .type_id  = array_unwrap.type_id,
+    .elements = repeated,
+    .offset   = 0,
+    .length   = repeated.len(),
+})
+frame.sp = frame.sp - 1
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.clear` — truncate an array to length 0.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_array_clear :: fn(frame: Frame!) -> Trap | null {
+if frame.sp == 0 {
+    return Trap { .message = "array.clear on empty stack at pc=${frame.pc}" }
+}
+array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
+if array_unwrap is Trap { return array_unwrap }
+// Clear the SHARED backing when this array owns it, the way the
+// native runtime shrinks `buf->length` in `vader_array_clear`.
+// `data.const` hands out a FRESH header over the pool entry's
+// `elements`, which is how a module-level array is reached, so
+// rebinding the field here would leave that array untouched —
+// `push` mutates the shared backing and would still see three
+// elements after a `clear`. Emptying it in place keeps
+// `elements.len()` as the logical length, so nothing resurfaces
+// on the next push. A genuine slice view (offset != 0, or a
+// shorter prefix) detaches instead and keeps its isolation.
+if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+    array_unwrap.elements.clear()
+} else {
+    array_unwrap.elements = []
+}
+array_unwrap.offset = 0
+array_unwrap.length = 0
+frame.sp = frame.sp - 1
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `string.slice_codepoints` — a codepoint-indexed substring.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
+if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
+s_box  :: read_string(peek_val(frame, frame.sp - 3), frame.pc, "string.slice_codepoints receiver")
+lo_box :: read_i32   (peek_val(frame, frame.sp - 2), frame.pc, "string.slice_codepoints lo")
+hi_box :: read_i32   (peek_val(frame, frame.sp - 1), frame.pc, "string.slice_codepoints hi")
+if s_box  is Trap { return s_box  }
+if lo_box is Trap { return lo_box }
+if hi_box is Trap { return hi_box }
+s :: s_box.value
+// Walk UTF-8 to compute byte offsets for codepoint
+// indices `lo` and `hi`, clamping to the codepoint
+// count so out-of-bounds ranges produce a clamped
+// substring rather than trapping.
+lo_cp :: usize(lo_box.value)
+hi_cp :: usize(hi_box.value)
+sb :: s.bytes()
+n_bytes :: sb.len()
+cursor: usize = 0
+seen:   usize = 0
+byte_lo: usize = n_bytes
+byte_hi: usize = n_bytes
+for cursor < n_bytes {
+    if seen == lo_cp { byte_lo = cursor }
+    if seen == hi_cp { byte_hi = cursor }
+    [_c, width] :: sb.utf8_decode_len(cursor)
+    cursor = cursor + width
+    seen   = seen + 1
+}
+if seen <= lo_cp { byte_lo = n_bytes }
+if seen <= hi_cp { byte_hi = n_bytes }
+if byte_hi < byte_lo { byte_hi = byte_lo }
+push_val(frame, frame.sp - 3, StringVal { .value = sb[byte_lo..<byte_hi].bytes_to_string() })
+frame.sp = frame.sp - 2
+frame.pc = frame.pc + 1
+    return null
+}
+
+/// `buffer.write_string` — copy string bytes into a buffer at an offset.
+///
+/// @param frame  the active frame; `sp` and `pc` are advanced on success.
+/// @return       a `Trap` on a stack or range error, `null` otherwise.
+exec_buffer_write_string :: fn(frame: Frame!) -> Trap | null {
+// Pop buffer + off + string ; memcpy the string's bytes into the
+// buffer at `off` (the parts-model `to_string` assembly step).
+if frame.sp < 3 { return Trap { .message = "buffer_write_string needs object + off + string on stack at pc=${frame.pc}" } }
+str_unwrap :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "buffer_write_string source")
+if str_unwrap is Trap { return str_unwrap }
+off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "buffer_write_string off")
+if off_unwrap is Trap { return off_unwrap }
+obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "buffer_write_string receiver")
+if obj_unwrap is Trap { return obj_unwrap }
+if off_unwrap.value < 0 { return Trap { .message = "buffer_write_string negative offset at pc=${frame.pc}" } }
+src_bytes :: str_unwrap.value.bytes()
+off :: usize(off_unwrap.value)
+if off + src_bytes.len() > obj_unwrap.bytes.len() {
+    return Trap { .message = "buffer_write_string range [${off}, ${off + src_bytes.len()}) exceeds ${obj_unwrap.bytes.len()} at pc=${frame.pc}" }
+}
+for i in 0..<src_bytes.len() {
+    obj_unwrap.bytes[off + i] = src_bytes[i]
+}
+frame.sp = frame.sp - 3
+frame.pc = frame.pc + 1
+    return null
+}
