@@ -1,0 +1,1016 @@
+# Lower
+
+## snippet
+  struct snippet$Tagged { n: i32 }
+  fn snippet$Tagged$Equals$equals(self: Tagged!, other: Tagged) -> bool
+    ~>
+      eq :bool
+        l:
+          .n :i32
+            self :Tagged
+        r:
+          .n :i32
+            other :Tagged
+  fn snippet$Tagged$Equals$not_equals(self: Tagged!, other: Tagged) -> bool
+    return
+      not :bool
+        call :bool
+          callee:
+            snippet$Tagged$Equals$equals :bool
+          arg0:
+            self :Tagged
+          arg1:
+            other :Tagged
+  fn snippet$pair(n: i32, s: string) -> [i32, string]
+    ~>
+      [i32, string]! {
+        _0: n :i32
+        _1: s :string
+      }
+  fn snippet$tagged(n: i32) -> [i32, Tagged]
+    ~>
+      [i32, Tagged!]! {
+        _0: n :i32
+        _1:
+          Tagged! {
+            n: n :i32
+          }
+      }
+  fn snippet$named(a: i32, b: i32) -> Pair
+    ~>
+      cast → Pair
+        Pair {
+          _0: a :i32
+          _1: b :i32
+        }
+  fn snippet$main() -> i32
+    let a: [i32, string] =
+      call :[i32, string]
+        callee:
+          pair :fn(i32, string) -> [i32, string]
+        arg0:
+          int(1) :i32
+        arg1:
+          "x" :string
+    let b: [i32, string] =
+      call :[i32, string]
+        callee:
+          pair :fn(i32, string) -> [i32, string]
+        arg0:
+          int(1) :i32
+        arg1:
+          "x" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "equal contents, distinct objects: " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_0: [i32, string] = a :[i32, string]
+                    let __tuple_eq_r_1: [i32, string] = b :[i32, string]
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_0 :[i32, string]
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_1 :[i32, string]
+                        r:
+                          eq :bool
+                            l:
+                              ._1 :string
+                                __tuple_eq_l_0 :[i32, string]
+                            r:
+                              ._1 :string
+                                __tuple_eq_r_1 :[i32, string]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "different contents:               " :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_4: [i32, string] = a :[i32, string]
+                    let __tuple_eq_r_5: [i32, string] =
+                      call :[i32, string]
+                        callee:
+                          pair :fn(i32, string) -> [i32, string]
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          "x" :string
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_4 :[i32, string]
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_5 :[i32, string]
+                        r:
+                          eq :bool
+                            l:
+                              ._1 :string
+                                __tuple_eq_l_4 :[i32, string]
+                            r:
+                              ._1 :string
+                                __tuple_eq_r_5 :[i32, string]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  "same object:                      " :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_8: [i32, string] = a :[i32, string]
+                    let __tuple_eq_r_9: [i32, string] = a :[i32, string]
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_8 :[i32, string]
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_9 :[i32, string]
+                        r:
+                          eq :bool
+                            l:
+                              ._1 :string
+                                __tuple_eq_l_8 :[i32, string]
+                            r:
+                              ._1 :string
+                                __tuple_eq_r_9 :[i32, string]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_14: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_15: usize = int(0) :usize
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  "negation:                         " :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_12: [i32, string] = a :[i32, string]
+                    let __tuple_eq_r_13: [i32, string] =
+                      call :[i32, string]
+                        callee:
+                          pair :fn(i32, string) -> [i32, string]
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          "x" :string
+                    ~>
+                      not :bool
+                        and :bool
+                          l:
+                            eq :bool
+                              l:
+                                ._0 :i32
+                                  __tuple_eq_l_12 :[i32, string]
+                              r:
+                                ._0 :i32
+                                  __tuple_eq_r_13 :[i32, string]
+                          r:
+                            eq :bool
+                              l:
+                                ._1 :string
+                                  __tuple_eq_l_12 :[i32, string]
+                              r:
+                                ._1 :string
+                                  __tuple_eq_r_13 :[i32, string]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_14 :Buffer
+              arg1:
+                __off_15 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_18: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_19: usize = int(0) :usize
+          assign
+            target:
+              __off_19 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_18 :Buffer
+                arg1:
+                  __off_19 :usize
+                arg2:
+                  "nested equal:                     " :string
+          assign
+            target:
+              __off_19 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_18 :Buffer
+                arg1:
+                  __off_19 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_16: [i32, [i32, string]!]! =
+                      [i32, [i32, string]!]! {
+                        _0: int(1) :i32
+                        _1:
+                          [i32, string]! {
+                            _0: int(2) :i32
+                            _1: "y" :string
+                          }
+                      }
+                    let __tuple_eq_r_17: [i32, [i32, string]!]! =
+                      [i32, [i32, string]!]! {
+                        _0: int(1) :i32
+                        _1:
+                          [i32, string]! {
+                            _0: int(2) :i32
+                            _1: "y" :string
+                          }
+                      }
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_16 :[i32, [i32, string]!]!
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_17 :[i32, [i32, string]!]!
+                        r:
+                          and :bool
+                            l:
+                              eq :bool
+                                l:
+                                  ._0 :i32
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_l_16 :[i32, [i32, string]!]!
+                                r:
+                                  ._0 :i32
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_r_17 :[i32, [i32, string]!]!
+                            r:
+                              eq :bool
+                                l:
+                                  ._1 :string
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_l_16 :[i32, [i32, string]!]!
+                                r:
+                                  ._1 :string
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_r_17 :[i32, [i32, string]!]!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_18 :Buffer
+              arg1:
+                __off_19 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_22: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_23: usize = int(0) :usize
+          assign
+            target:
+              __off_23 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_22 :Buffer
+                arg1:
+                  __off_23 :usize
+                arg2:
+                  "nested different:                 " :string
+          assign
+            target:
+              __off_23 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_22 :Buffer
+                arg1:
+                  __off_23 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_20: [i32, [i32, string]!]! =
+                      [i32, [i32, string]!]! {
+                        _0: int(1) :i32
+                        _1:
+                          [i32, string]! {
+                            _0: int(2) :i32
+                            _1: "y" :string
+                          }
+                      }
+                    let __tuple_eq_r_21: [i32, [i32, string]!]! =
+                      [i32, [i32, string]!]! {
+                        _0: int(1) :i32
+                        _1:
+                          [i32, string]! {
+                            _0: int(3) :i32
+                            _1: "y" :string
+                          }
+                      }
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_20 :[i32, [i32, string]!]!
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_21 :[i32, [i32, string]!]!
+                        r:
+                          and :bool
+                            l:
+                              eq :bool
+                                l:
+                                  ._0 :i32
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_l_20 :[i32, [i32, string]!]!
+                                r:
+                                  ._0 :i32
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_r_21 :[i32, [i32, string]!]!
+                            r:
+                              eq :bool
+                                l:
+                                  ._1 :string
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_l_20 :[i32, [i32, string]!]!
+                                r:
+                                  ._1 :string
+                                    ._1 :[i32, string]!
+                                      __tuple_eq_r_21 :[i32, [i32, string]!]!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_22 :Buffer
+              arg1:
+                __off_23 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_26: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_27: usize = int(0) :usize
+          assign
+            target:
+              __off_27 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_26 :Buffer
+                arg1:
+                  __off_27 :usize
+                arg2:
+                  "struct element via Equals:        " :string
+          assign
+            target:
+              __off_27 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_26 :Buffer
+                arg1:
+                  __off_27 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_24: [i32, Tagged] =
+                      call :[i32, Tagged]
+                        callee:
+                          tagged :fn(i32) -> [i32, Tagged]
+                        arg0:
+                          int(3) :i32
+                    let __tuple_eq_r_25: [i32, Tagged] =
+                      call :[i32, Tagged]
+                        callee:
+                          tagged :fn(i32) -> [i32, Tagged]
+                        arg0:
+                          int(3) :i32
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_24 :[i32, Tagged]
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_25 :[i32, Tagged]
+                        r:
+                          call :bool
+                            callee:
+                              snippet$Tagged$Equals$equals :bool
+                            arg0:
+                              ._1 :Tagged
+                                __tuple_eq_l_24 :[i32, Tagged]
+                            arg1:
+                              ._1 :Tagged
+                                __tuple_eq_r_25 :[i32, Tagged]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_26 :Buffer
+              arg1:
+                __off_27 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_30: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_31: usize = int(0) :usize
+          assign
+            target:
+              __off_31 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_30 :Buffer
+                arg1:
+                  __off_31 :usize
+                arg2:
+                  "struct element, differing:        " :string
+          assign
+            target:
+              __off_31 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_30 :Buffer
+                arg1:
+                  __off_31 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_28: [i32, Tagged] =
+                      call :[i32, Tagged]
+                        callee:
+                          tagged :fn(i32) -> [i32, Tagged]
+                        arg0:
+                          int(3) :i32
+                    let __tuple_eq_r_29: [i32, Tagged] =
+                      call :[i32, Tagged]
+                        callee:
+                          tagged :fn(i32) -> [i32, Tagged]
+                        arg0:
+                          int(4) :i32
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_28 :[i32, Tagged]
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_29 :[i32, Tagged]
+                        r:
+                          call :bool
+                            callee:
+                              snippet$Tagged$Equals$equals :bool
+                            arg0:
+                              ._1 :Tagged
+                                __tuple_eq_l_28 :[i32, Tagged]
+                            arg1:
+                              ._1 :Tagged
+                                __tuple_eq_r_29 :[i32, Tagged]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_30 :Buffer
+              arg1:
+                __off_31 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_34: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_35: usize = int(0) :usize
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  "distinct over a tuple:            " :string
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_32: Pair =
+                      call :Pair
+                        callee:
+                          named :fn(i32, i32) -> Pair
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          int(3) :i32
+                    let __tuple_eq_r_33: Pair =
+                      call :Pair
+                        callee:
+                          named :fn(i32, i32) -> Pair
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          int(3) :i32
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_32 :Pair
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_33 :Pair
+                        r:
+                          eq :bool
+                            l:
+                              ._1 :i32
+                                __tuple_eq_l_32 :Pair
+                            r:
+                              ._1 :i32
+                                __tuple_eq_r_33 :Pair
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_34 :Buffer
+              arg1:
+                __off_35 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_38: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_39: usize = int(0) :usize
+          assign
+            target:
+              __off_39 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_38 :Buffer
+                arg1:
+                  __off_39 :usize
+                arg2:
+                  "distinct, differing:              " :string
+          assign
+            target:
+              __off_39 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_38 :Buffer
+                arg1:
+                  __off_39 :usize
+                arg2:
+                  block :bool
+                    let __tuple_eq_l_36: Pair =
+                      call :Pair
+                        callee:
+                          named :fn(i32, i32) -> Pair
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          int(3) :i32
+                    let __tuple_eq_r_37: Pair =
+                      call :Pair
+                        callee:
+                          named :fn(i32, i32) -> Pair
+                        arg0:
+                          int(2) :i32
+                        arg1:
+                          int(4) :i32
+                    ~>
+                      and :bool
+                        l:
+                          eq :bool
+                            l:
+                              ._0 :i32
+                                __tuple_eq_l_36 :Pair
+                            r:
+                              ._0 :i32
+                                __tuple_eq_r_37 :Pair
+                        r:
+                          eq :bool
+                            l:
+                              ._1 :i32
+                                __tuple_eq_l_36 :Pair
+                            r:
+                              ._1 :i32
+                                __tuple_eq_r_37 :Pair
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_38 :Buffer
+              arg1:
+                __off_39 :usize
+    let calls: ? =
+      LoweredCellNew
+    let counted: __lambda_env_snippet_1! =
+      __lambda_env_snippet_1! {
+        cap_0: calls :i32[]!
+      }
+    let _: bool =
+      block :bool
+        let __tuple_eq_l_41: [i32, string]! =
+          call :[i32, string]!
+            callee:
+              __lambda_snippet_0 :fn(i32) -> [i32, string]!
+            arg0:
+              counted :__lambda_env_snippet_1!
+            arg1:
+              int(1) :i32
+        let __tuple_eq_r_42: [i32, string]! =
+          call :[i32, string]!
+            callee:
+              __lambda_snippet_0 :fn(i32) -> [i32, string]!
+            arg0:
+              counted :__lambda_env_snippet_1!
+            arg1:
+              int(1) :i32
+        ~>
+          and :bool
+            l:
+              eq :bool
+                l:
+                  ._0 :i32
+                    __tuple_eq_l_41 :[i32, string]!
+                r:
+                  ._0 :i32
+                    __tuple_eq_r_42 :[i32, string]!
+            r:
+              eq :bool
+                l:
+                  ._1 :string
+                    __tuple_eq_l_41 :[i32, string]!
+                r:
+                  ._1 :string
+                    __tuple_eq_r_42 :[i32, string]!
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_43: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(54) :usize
+          let __off_44: usize = int(0) :usize
+          assign
+            target:
+              __off_44 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_43 :Buffer
+                arg1:
+                  __off_44 :usize
+                arg2:
+                  "operand evaluations:              " :string
+          assign
+            target:
+              __off_44 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_43 :Buffer
+                arg1:
+                  __off_44 :usize
+                arg2:
+                  cast → i64
+                    index :i32
+                      on:
+                        LoweredCellGet
+                      ix:
+                        int(0) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_43 :Buffer
+              arg1:
+                __off_44 :usize
+    return int(0) :i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_40: __lambda_env_snippet_1!, n: i32) -> [i32, string]!
+    assign
+      target:
+        index :i32
+          on:
+            LoweredCellGet
+          ix:
+            int(0) :i32
+      value:
+        add :i32
+          l:
+            index :i32
+              on:
+                LoweredCellGet
+              ix:
+                int(0) :i32
+          r:
+            int(1) :i32
+    return
+      [i32, string]! {
+        _0: n :i32
+        _1: "e" :string
+      }
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

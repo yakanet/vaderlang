@@ -1,0 +1,99 @@
+// vader/lower/lower_tuple_eq — `==` / `!=` on a tuple, compared element-wise.
+//
+// A tuple has no `Equals` impl to call, and no identity to observe: `t[0] = x`
+// is T3008, so nothing can tell two structurally equal tuples apart.
+//
+// The rewrite binds each side once, then folds a conjunction over the fields:
+//
+//     { ta :: a ; tb :: b ; ta._0 == tb._0 && ta._1 == tb._1 }
+//
+// The temporaries are what make it safe to name each operand once per element.
+// `!=` negates the whole conjunction — one node, whatever the arity.
+//
+// EVERY element form has to be handled here: these comparisons are emitted
+// directly and never go back through `lower_expr`, so a nested tuple that fell
+// through would compare two references, and a struct element would reach
+// `ref.eq`. `typecheck/binary.vader` refuses the forms with no working `==`
+// (array, fn value, type parameter, struct without an impl) and proves the two
+// operand types EQUAL, which is what lets the left type drive both sides.
+
+module "vader/lower"
+
+import "toolchain/ast"
+import "vader/types"
+import "vader/typecheck"
+import "toolchain/span"
+
+try_lower_tuple_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | null {
+    left_ty  :: ctx.types.expr_type(binary.left)
+    right_ty :: ctx.types.expr_type(binary.right)
+    // A distinct over a tuple (`Pair :: [i32, i32]`) compares through its
+    // backing: the nominal wrapper carries no identity of its own.
+    shape :: tuple_backing(left_ty) ?? return null
+    if tuple_backing(right_ty) == null {
+        return null
+    }
+    span :: binary.span
+    left_sym  :: fresh_synthetic_symbol(ctx, "tuple_eq_l")
+    right_sym :: fresh_synthetic_symbol(ctx, "tuple_eq_r")
+    stmts :: [
+        LoweredLet {
+            .span = span, .name = left_sym.name, .symbol = left_sym,
+            .type = left_ty, .value = lower_expr(ctx, binary.left),
+        },
+        LoweredLet {
+            .span = span, .name = right_sym.name, .symbol = right_sym,
+            .type = right_ty, .value = lower_expr(ctx, binary.right),
+        },
+    ]
+    all_equal :: tuple_field_conjunction(
+        ctx, synth_ident(left_sym, left_ty, span), synth_ident(right_sym, right_ty, span),
+        shape, span) ?? return null
+    result :: if binary.op == BinaryOp.Eq {
+        all_equal
+    } else {
+        LoweredUnary { .span = span, .type = TY_BOOL, .op = LoweredUnaryOp.Not, .operand = all_equal }
+    }
+    return LoweredBlock { .span = span, .type = TY_BOOL, .stmts = stmts, .trailing = result }
+}
+
+// `left == right` folded over the fields of `ty`.
+//
+// A field access has no side effect, so re-reading `ta._1` once per nested field
+// is free; only the two OPERANDS need the temporaries the caller binds.
+tuple_field_conjunction :: fn(
+    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr, ty: TupleType, span: Span,
+) -> LoweredExpr | null {
+    conjunction: LoweredExpr | null = null
+    for i in 0..<ty.elements.len() {
+        cmp :: tuple_element_eq(ctx, left, right, ty.elements[i], "_${i}", span) ?? return null
+        conjunction = if conjunction == null {
+            cmp
+        } else {
+            LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                .left = conjunction, .right = cmp,
+            }
+        }
+    }
+    return conjunction
+}
+
+// One field's comparison, by the rule its type needs.
+tuple_element_eq :: fn(
+    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr,
+    elem_ty: Type, field: string, span: Span,
+) -> LoweredExpr | null {
+    l :: LoweredFieldAccess { .span = span, .type = elem_ty, .field = field, .target = left }
+    r :: LoweredFieldAccess { .span = span, .type = elem_ty, .field = field, .target = right }
+    if elem_ty is TupleType {
+        return tuple_field_conjunction(ctx, l, r, elem_ty, span)
+    }
+    if elem_ty is StructType {
+        member :: resolve_op_member(ctx, elem_ty, TRAIT_EQUALS, METHOD_EQUALS) ?? return null
+        return build_member_call_or_inline(member, [l, r], TY_BOOL, span)
+    }
+    return LoweredBinary {
+        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq, .left = l, .right = r,
+    }
+}

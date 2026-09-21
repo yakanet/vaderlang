@@ -1,0 +1,14 @@
+# stdout
+equal contents, distinct objects: true
+different contents:               false
+same object:                      true
+negation:                         true
+nested equal:                     true
+nested different:                 false
+struct element via Equals:        true
+struct element, differing:        false
+distinct over a tuple:            true
+distinct, differing:              false
+operand evaluations:              2
+# exit
+0

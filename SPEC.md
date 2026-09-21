@@ -788,6 +788,8 @@ println(pair.1)      // "answer"
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
+- **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element is compared by its own rule: a nested tuple recurses, a struct goes through its `Equals` impl, everything else uses the built-in `==`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing, so naming the type does not change the answer.
+- **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, or a type parameter — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
 
 ### Destructuring
 

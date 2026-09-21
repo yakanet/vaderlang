@@ -482,6 +482,29 @@ check_equality :: fn(
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
+    // A tuple's `==` compares its ELEMENTS (`lower/lower_tuple_eq.vader`), so it is
+    // exactly as comparable as they are, and the rewrite is unconditional:
+    // anything this gate lets through must have a working `==` at every position.
+    //
+    // `equals_type` is the compatibility the lowerer needs — it drives both sides
+    // from the left type, at every depth — and a distinct over a tuple compares
+    // through its backing, the nominal wrapper holding no identity of its own.
+    left_tuple  :: tuple_backing(left)
+    right_tuple :: tuple_backing(right)
+    if left_tuple != null && right_tuple != null {
+        if !equals_type(left, right) {
+            diags.push(typecheck_error(.TypeMismatch, e.span,
+                "expected ${display_type(left)}, got ${display_type(right)}"))
+            return TY_BOOL
+        }
+        // Equal types, so walking one side is enough and the diagnostic cannot
+        // depend on operand order.
+        bad :: first_incomparable_element(left_tuple, typed)
+        if bad != null {
+            push_trait_missing(e, bad, TRAIT_EQUALS, diags)
+        }
+        return TY_BOOL
+    }
     // `struct` and `array` are the only kinds with NO built-in `==` — a bare
     // `a == b` on them lowers to a scalar eq on a reference and traps at runtime.
     // Both require an `Equals` impl (the lowerer rewrites `a == b` into
@@ -504,6 +527,41 @@ check_equality :: fn(
         }
     }
     return TY_BOOL
+}
+
+// The first element of `t` with no working `==`, or null when every one has.
+//
+// What reaches `ref.eq` — and therefore has to be refused — is every kind the VM
+// will not compare: it accepts null / i32 / bool / char / string only
+// (`vm/value.vader`). A primitive never gets that far, since op-select picks the
+// typed eq from the static type. So: an array (never has an impl), a struct
+// without one, a fn value, and a type parameter — whose element access is emitted
+// before the erased-receiver vcall path could route it. A nested tuple asks the
+// same question one level down.
+//
+// A UNION element is deliberately absent: `Box | null == Box | null` traps the
+// same way OUTSIDE any tuple, which is the reference-compare policy the gate
+// above describes and the compiler itself leans on. Refusing it here would be a
+// stricter rule inside a tuple than outside one.
+first_incomparable_element :: fn(t: TupleType, typed: TypedProgram) -> Type | null {
+    for el in t.elements {
+        match el {
+            is TupleType -> {
+                inner :: first_incomparable_element(el, typed)
+                if inner != null {
+                    return inner
+                }
+            }
+            is ArrayType | FnType | TypeParamType -> { return el }
+            is StructType -> {
+                if !struct_implements_trait(el, TRAIT_EQUALS, typed) {
+                    return el
+                }
+            }
+            _ -> {}
+        }
+    }
+    return null
 }
 
 is_null_type :: fn(t: Type) -> bool {

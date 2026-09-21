@@ -124,6 +124,10 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
     if binary.op == BinaryOp.Eq || binary.op == BinaryOp.Neq {
         null_rewrite :: try_lower_null_eq(ctx, binary)
         if null_rewrite != null { return null_rewrite }
+        // A tuple has no impl to overload, so it is rewritten here rather than
+        // through the trait router. See `lower_tuple_eq.vader`.
+        tuple_rewrite :: try_lower_tuple_eq(ctx, binary)
+        if tuple_rewrite != null { return tuple_rewrite }
     }
     // `[lhs] * n` — array repeat / preallocation. A numeric `*` never yields an
     // array, so an array result type uniquely marks this case. Lower to the
@@ -229,11 +233,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         // Primitive operands stay on the built-in path — primitives
         // have their own arithmetic / comparison ops.
         if left_ty is PrimitiveType { return null }
-        member :: find_impl_member_for(ctx, left_ty, info.method_name) ?? return null
-        // Verify the impl actually targets `oti.trait_name` — UFCS
-        // lookup is name-based and could match a same-named member
-        // on a different trait.
-        if !impl_provides(ctx, left_ty, info.trait_name, info.method_name) { return null }
+        member :: resolve_op_member(ctx, left_ty, info.trait_name, info.method_name) ?? return null
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
@@ -330,6 +330,18 @@ lower_op_overload_via_vcall :: fn(
 // declares a member named `method_name`. Guards against UFCS-name
 // collisions where a struct happens to have a method matching an
 // op-trait's method name but doesn't actually implement that trait.
+// The member `method` that `ty`'s impl of `trait_name` provides, or null.
+//
+// `find_impl_member_for` is name-based, so the trait is confirmed separately: a
+// same-named member on a DIFFERENT trait would otherwise match.
+resolve_op_member :: fn(ctx: FnLowerCtx!, ty: Type, trait_name: string, method: string) -> UfcsMember | null {
+    member :: find_impl_member_for(ctx, ty, method) ?? return null
+    if !impl_provides(ctx, ty, trait_name, method) {
+        return null
+    }
+    return member
+}
+
 impl_provides :: fn(ctx: FnLowerCtx, for_ty: Type, trait_name: string, method_name: string) -> bool {
     for_name :: type_surface_name(for_ty)
     if for_name == "" { return false }
