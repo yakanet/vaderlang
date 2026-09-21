@@ -257,11 +257,26 @@ collect_expr_deps :: fn(
             for p in e.parts {
                 match p {
                     is AST.StringLitInterp -> { collect_expr_deps(p.expr, typed, nodes, seen, record) }
-                    _ -> {}
+                    is AST.StringLitText   -> {}
                 }
             }
         }
-        _ -> {}
+        is AST.NullCoalesceExpr -> {
+            collect_expr_deps(e.left, typed, nodes, seen, record)
+            // A `return` / `break` / `continue` fallback carries no expression to
+            // descend into — `coalesce_fallback_expr` yields null for those.
+            fallback :: AST.coalesce_fallback_expr(e.fallback)
+            if fallback != null {
+                collect_expr_deps(fallback, typed, nodes, seen, record)
+            }
+        }
+        // Leaves: no sub-expression can name a `@comptime const`.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.DotVariantExpr -> {}
+        // Type expressions. A type mentions a const only through a generic
+        // argument, and `GenericInstExpr` above already descends into those; the
+        // written form itself contributes no dependency.
+        is AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
     }
 }
 
