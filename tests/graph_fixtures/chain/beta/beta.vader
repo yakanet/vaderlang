@@ -1,0 +1,5 @@
+// tests/graph_fixtures/chain/beta — the leaf of the chain.
+
+module "chain/beta"
+
+export beta_value :: fn() -> i32 = 41

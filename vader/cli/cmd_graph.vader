@@ -1,0 +1,194 @@
+// vader/cli/cmd_graph — the `vader graph` command.
+//
+// Renders the module import graph of a loaded project. Load + parse is enough:
+// an `import "..."` is syntax, so the graph is exact without resolving a single
+// name — the same reason `vader lint` stops at the load stage.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "cli"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "vader/diagnostics"
+import "vader/resolver"
+
+/// How to spell the graph.
+GraphFormat :: enum(u8) {
+    /// Mermaid `graph LR` — renders in a Markdown viewer with no tool installed.
+    Mermaid
+    /// Graphviz DOT — `vader graph x.vader --format=dot | dot -Tpng -o deps.png`.
+    Dot
+}
+
+/// One module and who it imports, after filtering.
+GraphNode :: struct {
+    name:    string
+    imports: string[]
+}
+
+/// `vader graph <file>` — print the module import graph rooted at `<file>`.
+///
+/// Reads the same module graph a build reads (`load_project`), so what it draws
+/// is what the compiler actually loads, include paths included. Library modules
+/// are hidden by default: a compiler-sized project pulls in enough of `std/` to
+/// bury its own shape. `--scope=all` shows them.
+///
+/// @param args  positional args ; `args[0]` is the entry `.vader` file.
+/// @return      0 on success, 1 on a missing argument or a load error.
+cmd_graph :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("graph", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("graph", parsed) {
+        return 1
+    }
+    file :: parsed.action_file()
+    if file == "" {
+        eprintln("vader graph: expected a file argument")
+        return 1
+    }
+
+    // `std/cli` has already rejected anything outside the declared `.values`
+    // sets, so neither read needs a second gate here.
+    format :: if parsed.string_flag("format", "mermaid") == "dot" { GraphFormat.Dot }
+              else { GraphFormat.Mermaid }
+    include_all :: parsed.string_flag("scope", "project") == "all"
+    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+
+    loaded :: load_project(file.as_string(), include_path_flags)
+    // A parse or import error leaves a graph with edges missing — the one thing
+    // this command exists to show. Surface it rather than draw a partial picture.
+    if any_error_diag(loaded.diags) {
+        eprintln(loaded.diags.dump_diagnostics_with_file())
+        return 1
+    }
+
+    nodes :: collect_graph(loaded, include_all)
+    if nodes.len() == 0 {
+        eprintln("vader graph: `${file}` loaded no modules")
+        return 1
+    }
+    println(render_graph(nodes, format))
+    return 0
+}
+
+// Whether a module is the user's own, under `--scope=project`.
+//
+// Two tests, because one does not cover both halves — the same asymmetry
+// `vader/resolver/collect.vader::diagnose_import_path` documents and depends on.
+// PROVENANCE says who is the library: `.Toolchain` is what the toolchain shipped,
+// and a user module may legitimately be called `json`, so only who provided it
+// settles that. The module NAME says who is the compiler: `ModuleOrigin` has no
+// `.Compiler` variant on purpose — `vader/*` is `.Build` in a checkout as in a
+// bundle — and in a DRIVEN build the compiler's own sources arrive through
+// `--include-paths`, i.e. as `.Build` too. Filtering on provenance alone therefore
+// draws the whole compiler as the user's project for any project carrying a
+// `build.vader`, which is measurably most of the picture.
+//
+// `entry_is_compiler` is the exemption: when the entry is itself a `vader/*`
+// module, the compiler IS the project being drawn.
+is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: bool) =
+    origin != .Toolchain && (entry_is_compiler || !name.starts_with("vader/"))
+
+/// Collect every loaded module with the imports that survive the scope filter.
+///
+/// Edges to a filtered-out module are dropped rather than redirected, so a
+/// `project`-scoped graph shows the project's own shape with no dangling stubs.
+/// Self-imports (a multi-file module importing its own name) are dropped too —
+/// they are legal and say nothing about dependency.
+///
+/// @param loaded      the loaded project.
+/// @param include_all `true` to keep library / toolchain modules.
+/// @return            nodes sorted by module name, each with sorted imports.
+collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
+    // Keyed by `module_name`, not by the map's own key: `load_project` keys
+    // modules by their FOLDER, while an `import "..."` names the MODULE. The two
+    // coincide for a project rooted at its own directory and diverge for one
+    // loaded from an outer root, which is where an edge would silently vanish.
+    entry :: loaded.modules[loaded.entry]
+    entry_is_compiler :: entry != null && entry.module.module_name.starts_with("vader/")
+    kept :: MutableSet<string> {}
+    for [_, module] in loaded.modules {
+        name :: module.module.module_name
+        if include_all || is_project_module(module.module.origin, name, entry_is_compiler) {
+            kept.add(name)
+        }
+    }
+    nodes: GraphNode[]! = []
+    for [_, module] in loaded.modules {
+        name :: module.module.module_name
+        if !kept.contains(name) {
+            continue
+        }
+        // `collected.import_paths` is the list the loader itself walks to build
+        // the module graph (`loader.vader`'s BFS and `walk_import_cycle` both
+        // read it), which is what makes this graph the build's rather than a
+        // second opinion on what an import edge is. It holds one entry per
+        // `import` line, across every file of a multi-file module, so a path can
+        // repeat — `seen` is what dedups it.
+        seen :: MutableSet<string> {}
+        imports: string[]! = []
+        for target in module.collected.import_paths {
+            if target == name || !kept.contains(target) || !seen.add(target) {
+                continue
+            }
+            imports.push(target)
+        }
+        nodes.push(GraphNode {
+            .name    = name,
+            .imports = sort(imports, (a: string, b: string) -> compare_ascending(a, b)),
+        })
+    }
+    return sort(nodes, (a: GraphNode, b: GraphNode) -> compare_ascending(a.name, b.name))
+}
+
+/// Render the collected nodes in the requested syntax.
+///
+/// @param nodes   the graph, already filtered and sorted.
+/// @param format  which syntax to emit.
+/// @return        the full document, no trailing newline.
+render_graph :: fn(nodes: GraphNode[], format: GraphFormat) -> string =
+    if format == .Dot { render_dot(nodes) } else { render_mermaid(nodes) }
+
+// Mermaid node ids must be identifier-ish, so `vader/lower` becomes
+// `vader_lower` and the real name rides in the label.
+mermaid_id :: fn(name: string) -> string = name.replace_all("/", "_").replace_all("-", "_")
+
+render_mermaid :: fn(nodes: GraphNode[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("graph LR\n")
+    for n in nodes {
+        sb.append("    ${mermaid_id(n.name)}[\"${n.name}\"]\n")
+    }
+    for n in nodes {
+        from :: mermaid_id(n.name)
+        for target in n.imports {
+            sb.append("    ${from} --> ${mermaid_id(target)}\n")
+        }
+    }
+    return sb.to_string().trim_suffix("\n")
+}
+
+render_dot :: fn(nodes: GraphNode[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("digraph modules {\n")
+    sb.append("    rankdir=LR;\n")
+    sb.append("    node [shape=box, fontname=\"Helvetica\"];\n")
+    for n in nodes {
+        sb.append("    \"${n.name}\";\n")
+    }
+    for n in nodes {
+        for target in n.imports {
+            sb.append("    \"${n.name}\" -> \"${target}\";\n")
+        }
+    }
+    sb.append("}")
+    return sb.to_string()
+}

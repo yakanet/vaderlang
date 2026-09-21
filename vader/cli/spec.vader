@@ -196,6 +196,41 @@ DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "wasm", .help = "WebAssembly module (not yet implemented)" },
 ]
 
+GRAPH_FORMATS: ValueSpec[]: [
+    ValueSpec { .name = "mermaid", .help = "Mermaid `graph LR` — renders with no tool installed" },
+    ValueSpec { .name = "dot",     .help = "Graphviz DOT — pipe to `dot -Tpng`" },
+]
+
+GRAPH_SCOPES: ValueSpec[]: [
+    ValueSpec { .name = "project", .help = "This project's own modules" },
+    ValueSpec { .name = "all",     .help = "Library and toolchain modules too" },
+]
+
+GRAPH_FLAGS: FlagSpec[]: [
+    // Same spelling and meaning as `build`'s — a graph that cannot see the roots
+    // a build sees is not drawing the same project.
+    FlagSpec {
+        .name = "include-paths",
+        .help = "Extra module search roots (GCC -I style), highest precedence",
+        .value_name = "a,b",
+    },
+    FlagSpec {
+        .name = "format",
+        .alias = "f",
+        .help = "Output syntax",
+        .value_name = "format",
+        .values = GRAPH_FORMATS,
+        .default_text = "mermaid",
+    },
+    FlagSpec {
+        .name = "scope",
+        .help = "Which modules to draw",
+        .value_name = "scope",
+        .values = GRAPH_SCOPES,
+        .default_text = "project",
+    },
+]
+
 DUMP_FLAGS: FlagSpec[]: [
     // Same spelling and meaning as `build`'s: a dump that cannot see the roots a
     // build sees is not dumping the same program. Reaching for a dump is the one
@@ -350,6 +385,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Project-wide lints kept out of the default build",
         .usage = "<file>",
         .flags = [],
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "graph",
+        .summary = "Print the project's module import graph",
+        .usage = "<file>",
+        .flags = GRAPH_FLAGS,
         .tail = .None,
     },
     CommandSpec {
