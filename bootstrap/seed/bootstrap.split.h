@@ -700,6 +700,7 @@ typedef struct vader_struct_vader_resolver_LoadedModule_t vader_struct_vader_res
 typedef struct vader_struct_vader_resolver_LoadedProject_t vader_struct_vader_resolver_LoadedProject_t;
 typedef struct vader_struct_vader_resolver_Manifest_t vader_struct_vader_resolver_Manifest_t;
 typedef struct vader_struct_vader_resolver_Module_t vader_struct_vader_resolver_Module_t;
+typedef struct vader_struct_vader_resolver_MutableDecl_t vader_struct_vader_resolver_MutableDecl_t;
 typedef struct vader_struct_vader_resolver_ResolveState_t vader_struct_vader_resolver_ResolveState_t;
 typedef struct vader_struct_vader_resolver_ResolvedFile_t vader_struct_vader_resolver_ResolvedFile_t;
 typedef struct vader_struct_vader_resolver_ResolvedModule_t vader_struct_vader_resolver_ResolvedModule_t;
@@ -5003,6 +5004,11 @@ struct vader_struct_vader_resolver_Module_t {
     uint8_t f_origin;
     void* f_files;
 };
+struct vader_struct_vader_resolver_MutableDecl_t {
+    vader_obj_header_t header;
+    void* f_syms;
+    void* f_span;
+};
 struct vader_struct_vader_resolver_ResolveState_t {
     vader_obj_header_t header;
     void* f_idents;
@@ -5010,6 +5016,8 @@ struct vader_struct_vader_resolver_ResolveState_t {
     void* f_immutable_borrows;
     bool f_params_immutable_default;
     void* f_type_param_bounds;
+    void* f_mutable_decls;
+    void* f_reassigned;
     void* f_diags;
     void* f_scope;
     vader_string_t f_module_path;
@@ -6098,7 +6106,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2469u
+#define VADER_COMPTIME_ATOM_COUNT 2477u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
