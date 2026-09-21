@@ -27,6 +27,9 @@ export EmitOptions :: struct {
     /// run / comptime / self-compile-release path would allocate one `DebugPos`
     /// box per op for nothing.
     want_debug: bool
+    /// Run the IR verifiers (`vader/lower/verify`, `vader/midir/verify`)
+    /// between passes. Several extra IR walks per pass, so `--verify` only.
+    verify: bool = false
 }
 
 /// Default options : peephole ON, no extra roots, debug table OFF (the VM /

@@ -303,9 +303,43 @@ export HookCode :: enum(u8) {
     GeneratedModuleNotWritten,              // H6008
 }
 
+/// IR self-check codes, emitted by the cross-pass verifiers
+/// (`vader/lower/verify`, `vader/midir/verify`) rather than by a compiling
+/// phase. Each reports a malformed IR — a compiler bug, never something a
+/// program can provoke.
+///
+/// The family takes the same no-fixture exception `H6xxx` takes: the
+/// `diag_corpus` harness provokes a diagnostic by compiling a source file,
+/// and no source file reaches these. `tests/verify.test.ts` pins them.
+export InternalCode :: enum(u8) {
+    StrayCoroutineMarker,                   // I7001
+    UnresolvedFnReference,                  // I7002
+    // RESERVED, not dead: the field check behind `midir/emit.vader:1190`
+    // needs `intern_type`, which exists only at emit time.
+    FieldNotAMember,                        // I7003
+    BlockIdOutOfRange,                      // I7004
+    LocalIdOutOfRange,                      // I7005
+    LocalReadNeverWritten,                  // I7006
+    EntryBlockNotZero,                      // I7008
+    // RESERVED, not dead: the data-pool check behind `midir/build.vader:255`
+    // needs `is_bakeable`, whose second copy would be the drift it reports.
+    NonPrimitiveDataPoolLeaf,               // I7009
+}
+
 export CodeInfo :: struct {
     id: string
     message: string
+}
+
+export internal_info :: fn(c: InternalCode) = match c {
+    .StrayCoroutineMarker     -> CodeInfo { .id = "I7001", .message = "a transient coroutine marker survived lowering" }
+    .UnresolvedFnReference    -> CodeInfo { .id = "I7002", .message = "function reference resolves to no emitted function" }
+    .FieldNotAMember          -> CodeInfo { .id = "I7003", .message = "field access names no member of its receiver" }
+    .BlockIdOutOfRange        -> CodeInfo { .id = "I7004", .message = "terminator names a block outside the function" }
+    .LocalIdOutOfRange        -> CodeInfo { .id = "I7005", .message = "instruction names a local outside the function" }
+    .LocalReadNeverWritten    -> CodeInfo { .id = "I7006", .message = "local is read but never written" }
+    .EntryBlockNotZero        -> CodeInfo { .id = "I7008", .message = "entry block is not block 0" }
+    .NonPrimitiveDataPoolLeaf -> CodeInfo { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" }
 }
 
 export hook_info :: fn(c: HookCode) = match c {

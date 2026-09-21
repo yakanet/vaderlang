@@ -290,3 +290,119 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         _ -> {}
     }
 }
+
+// ---- statement walk -------------------------------------------------------
+
+// Every arm below is listed explicitly, with no `_` fall-through: a new
+// `LoweredExpr` variant carrying a block must trip `T3013` here rather than
+// silently escape the walk.
+for_each_lowered_stmt_node :: fn(decl: LoweredDecl, visit: fn(LoweredStmt) -> void) -> void {
+    match decl {
+        is LoweredFnDecl -> {
+            body :: decl.body
+            if body != null { stmt_node_block(body, visit) }
+        }
+        is LoweredConstDecl  -> stmt_node_expr(decl.value, visit)
+        is LoweredStructDecl -> {}
+    }
+}
+
+stmt_node_block :: fn(b: LoweredBlock, visit: fn(LoweredStmt) -> void) -> void {
+    for s in b.stmts { stmt_node_stmt(s, visit) }
+    trailing :: b.trailing
+    if trailing != null { stmt_node_expr(trailing, visit) }
+}
+
+stmt_node_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
+    visit(s)
+    match s {
+        is LoweredLet     -> stmt_node_expr(s.value, visit)
+        is LoweredAssign  -> {
+            stmt_node_expr(s.target, visit)
+            stmt_node_expr(s.value, visit)
+        }
+        is LoweredCellSet -> {
+            stmt_node_expr(s.target, visit)
+            stmt_node_expr(s.value, visit)
+        }
+        is LoweredExprStmt -> stmt_node_expr(s.expr, visit)
+        is LoweredReturn   -> {
+            value :: s.value
+            if value != null { stmt_node_expr(value, visit) }
+        }
+        is LoweredYield    -> stmt_node_expr(s.value, visit)
+        is LoweredAwait    -> stmt_node_expr(s.awaited, visit)
+        is LoweredLoop     -> {
+            cond :: s.cond
+            if cond != null { stmt_node_expr(cond, visit) }
+            stmt_node_block(s.body, visit)
+        }
+        is LoweredDeferPush    -> stmt_node_expr(s.thunk, visit)
+        is LoweredBreak        -> {}
+        is LoweredContinue     -> {}
+        is LoweredDeferPopExec -> {}
+    }
+}
+
+stmt_node_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
+    match e {
+        is LoweredCall        -> {
+            stmt_node_expr(e.callee, visit)
+            for a in e.args { stmt_node_expr(a, visit) }
+        }
+        is LoweredVirtualCall -> {
+            stmt_node_expr(e.receiver, visit)
+            for a in e.args { stmt_node_expr(a, visit) }
+        }
+        is LoweredFieldAccess -> stmt_node_expr(e.target, visit)
+        is LoweredIndex       -> {
+            stmt_node_expr(e.target, visit)
+            stmt_node_expr(e.index, visit)
+        }
+        is LoweredUnary  -> stmt_node_expr(e.operand, visit)
+        is LoweredBinary -> {
+            stmt_node_expr(e.left, visit)
+            stmt_node_expr(e.right, visit)
+        }
+        is LoweredIf -> {
+            stmt_node_expr(e.cond, visit)
+            stmt_node_block(e.then_block, visit)
+            else_block :: e.else_block
+            if else_block != null { stmt_node_block(else_block, visit) }
+        }
+        is LoweredBlock     -> stmt_node_block(e, visit)
+        is LoweredStructLit -> { for f in e.fields { stmt_node_expr(f.value, visit) } }
+        is LoweredArrayLit  -> { for el in e.elements { stmt_node_expr(el, visit) } }
+        is LoweredCast      -> stmt_node_expr(e.value, visit)
+        is LoweredTypeCheck -> stmt_node_expr(e.value, visit)
+        is LoweredIntrinsicCall -> { for a in e.args { stmt_node_expr(a, visit) } }
+        is LoweredArrayLen  -> stmt_node_expr(e.target, visit)
+        is LoweredArrayPush -> {
+            stmt_node_expr(e.target, visit)
+            stmt_node_expr(e.value, visit)
+        }
+        is LoweredArraySlice -> {
+            stmt_node_expr(e.target, visit)
+            stmt_node_expr(e.lo, visit)
+            stmt_node_expr(e.hi, visit)
+        }
+        is LoweredStringSlice -> {
+            stmt_node_expr(e.target, visit)
+            stmt_node_expr(e.lo, visit)
+            stmt_node_expr(e.hi, visit)
+        }
+        is LoweredCellNew     -> stmt_node_expr(e.value, visit)
+        is LoweredCellGet     -> stmt_node_expr(e.target, visit)
+        is LoweredMakeClosure -> stmt_node_expr(e.env, visit)
+        is LoweredIntLit      -> {}
+        is LoweredFloatLit    -> {}
+        is LoweredBoolLit     -> {}
+        is LoweredNullLit     -> {}
+        is LoweredCharLit     -> {}
+        is LoweredStringLit   -> {}
+        is LoweredIdent       -> {}
+        is LoweredDataConst   -> {}
+        is LoweredUnreachable -> {}
+        is LoweredTypeConst   -> {}
+    }
+}

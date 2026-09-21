@@ -14,6 +14,12 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
+- [ ] **The trait default-method materialiser emits each body twice** (found 2026-09-21 while writing the IR verifiers). `dump --stage=dced-ast --module=std/core examples/hello/hello.vader` shows two identical `std_core$i32$Comparable$lt` decls; 16 mangles duplicate this way on every program (`{i32,i64,usize,char}${Comparable$lt,lte,gt,gte}` + `$Step$step`).
+
+  Harmless today — the CFG DCE prunes them before bytecode — but not benign in shape. Both carry `origin.symbol = null`, so `midir/emit.vader:324-334` resolves both through the same `function_index_by_mangle` slot and `emit_cfg_function_body` runs **twice on one slot**, appending locals and body, while the first reserved slot stays empty. A duplicate that survived the prune would ship that.
+
+  A `verify_lowered` check for this was written and withdrawn (`I7010`, removed before landing): it is a true positive that fires 24× on hello world, so it cannot ship until the materialiser stops producing the duplicates. Fix the producer, then the check is one function.
+
 - [ ] **An expression-bodied fn whose body is `f(x) ?? Enum.Variant` aborts stage1, naming a DIFFERENT function** (found 2026-09-03, reproduced twice). Writing `vader/vm/host.vader::field_val_type` as `= bc.c_field_val_type(f, types) ?? bc.ValType.I64` makes stage0 abort with `midir/emit: no field \`element\` on \`?\` in 'vader_vm$dispatch_extern'`. The brace form of the same function compiles. Deterministic: reverted and re-applied, same message both times.
 
   **`dispatch_extern` is the CALLER**, and its `b.element` is the only `.element` in it — so a type that should be `LentArray` reads as `?` there. That the failure lands in the caller rather than in the edited fn points at the post-lowering single-expression inliner splicing the `??` body into its call sites, but that is a hypothesis, not a diagnosis. Three reductions failed to reproduce it standalone (same-module two-file, namespace alias, single file), so the shape needs something the small cases lack — start from the real file rather than from a snippet.

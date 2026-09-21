@@ -168,6 +168,11 @@ BUILD_FLAGS: FlagSpec[]: [
         .help = "With --emit=c: emit split C for each target against one shared atom table",
         .value_name = "a,b",
     },
+    FlagSpec {
+        .name = "verify",
+        .kind = .Bool,
+        .help = "Run the IR verifiers between passes and report what they find",
+    },
 ]
 
 // The twelve IR stages. This array is the only list of them: `cmd_dump`
