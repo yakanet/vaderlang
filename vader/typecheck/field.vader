@@ -626,7 +626,7 @@ narrow_field_if_active :: fn(
 ) -> Type {
     // Fast path : the common case is no live field narrowings at all,
     // so dodge the chain walk + key build entirely.
-    if typed.narrowed_fields.is_empty() {
+    if typed.narrow.fields.is_empty() {
         return declared
     }
     key :: field_chain_key(e, typed)

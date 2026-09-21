@@ -199,33 +199,11 @@ export TypedProgram :: struct {
     /// named `method`.
     impl_methods: MutableMap<string, ImplMethod>
 
-    /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`).
-    /// `narrow.vader`'s `push_narrow` / `pop_narrow` write when a
-    /// flow-sensitive narrowing is active (e.g. inside the then-branch of
-    /// `if x is T as a`, or a match arm) ; readers go through
-    /// `narrow_for_binding` so they fall back to the static type when no
-    /// narrowing is in effect (or the entry's kill generation is stale —
-    /// see `narrow_kill_gens`). Producers live in `expr_if.vader`,
-    /// `match_expr.vader`, and `stmt.vader`.
-    narrowed_bindings: MutableMap<i32, NarrowSlot>
-
-    /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
-    /// Mirrors `narrowed_bindings` but for `expr.field` chains : when
-    /// `if b.items != null { ... }` activates a flow narrowing in the
-    /// then-branch, `field.vader::infer_field` reads this side-table
-    /// to return `i32[]` instead of `i32[] | null`.
-    narrowed_fields: MutableMap<string, NarrowSlot>
-
-    /// Kill generation per binding slot — bumped by
-    /// `invalidate_narrow_on_assign` when a reassignment invalidates the
-    /// binding's active narrowing. Entries pushed at an older generation
-    /// are ignored by `narrow_for_binding`, including the stacked `prev`
-    /// values a later `pop_narrow` restores.
-    narrow_kill_gens: MutableMap<i32, i32>
-
-    /// Kill generation per field-chain slot ; mirrors `narrow_kill_gens`
-    /// for `narrowed_fields` keys.
-    narrow_field_kill_gens: MutableMap<string, i32>
+    /// Flow-sensitive narrowing state — the five tables `narrow.vader` owns.
+    /// Grouped because they are one machine: an entry in `bindings` is only
+    /// live while its generation in `kill_gens` still matches, so a reader
+    /// that consults one without the other is wrong. See `NarrowState`.
+    narrow: NarrowState
 
     /// AST kind label for each entry in `expr_types`, keyed by the
     /// same `Expr.id`. Populated alongside `expr_types` from
@@ -457,16 +435,6 @@ export TypedProgram :: struct {
     /// reader cannot guess it: marking the local would be a strengthening.
     local_init_index: MutableMap<i32, AST.Expr>
 
-    /// `is T as x` binding DECLARATION-span hash → the scrutinee. One hop further:
-    /// the binding inherits the scrutinee's mutability, so the lever is whatever the
-    /// scrutinee's own lever is.
-    ///
-    /// Keyed by the span, not the Symbol.id, because a narrowing binding's
-    /// declaration span is not in `resolved.idents` — only its USES are, through
-    /// scope resolution. `Symbol.defined_at` is the bridge, and adding the
-    /// declaration span to `idents` instead is not an option: measured, it triples
-    /// the tree's diagnostics (that table is consulted for other purposes).
-    narrow_binding_scrutinee: MutableMap<i64, AST.Expr>
     /// Const Symbol.id → its declaration, for the span of its written type. A module
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
@@ -552,10 +520,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .fn_decls        = MutableMap<i32, FnDecl> {},
     .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
     .impl_methods    = MutableMap<string, ImplMethod> {},
-    .narrowed_bindings = MutableMap<i32, NarrowSlot> {},
-    .narrowed_fields = MutableMap<string, NarrowSlot> {},
-    .narrow_kill_gens = MutableMap<i32, i32> {},
-    .narrow_field_kill_gens = MutableMap<string, i32> {},
+    .narrow          = NarrowState {},
     .expr_kinds      = MutableMap<usize, string> {},
     .import_targets  = null,
     .external_types  = MutableMap<i32, Type> {},
@@ -587,7 +552,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
     .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .local_init_index = MutableMap<i32, AST.Expr> {},
-    .narrow_binding_scrutinee = MutableMap<i64, AST.Expr> {},
     .const_decls = MutableMap<i32, ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},

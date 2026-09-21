@@ -39,17 +39,63 @@ export NarrowSlot :: struct {
     gen: i32
 }
 
+/// The five tables that make up flow-sensitive narrowing, carried together on
+/// `TypedProgram.narrow`.
+///
+/// They are one machine, not five side-tables: an entry in `bindings` counts as
+/// live only while the generation it recorded still matches `kill_gens`, and a
+/// reader that consults one without the other sees a narrowing a reassignment
+/// already retired. Grouping them keeps that pairing visible at the type, and
+/// keeps every producer in this file.
+export NarrowState :: struct {
+    /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`). `push_narrow`
+    /// / `pop_narrow` write when a flow-sensitive narrowing is active (inside
+    /// the then-branch of `if x is T as a`, or a match arm); readers go through
+    /// `narrow_for_binding`, which falls back to the static type when no
+    /// narrowing is in effect or the entry's generation is stale. Producers live
+    /// in `expr_if.vader`, `match_expr.vader` and `stmt.vader`.
+    bindings: MutableMap<i32, NarrowSlot> = MutableMap<i32, NarrowSlot> {}
+
+    /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
+    /// Mirrors `bindings` but for `expr.field` chains: when
+    /// `if b.items != null { ... }` activates a narrowing in the then-branch,
+    /// `field.vader::infer_field` reads this to return `i32[]` rather than
+    /// `i32[] | null`.
+    fields: MutableMap<string, NarrowSlot> = MutableMap<string, NarrowSlot> {}
+
+    /// Kill generation per binding slot — bumped by `invalidate_narrow_on_assign`
+    /// when a reassignment invalidates the binding's active narrowing. Entries
+    /// pushed at an older generation are ignored by `narrow_for_binding`,
+    /// including the stacked `prev` values a later `pop_narrow` would restore.
+    kill_gens: MutableMap<i32, i32> = MutableMap<i32, i32> {}
+
+    /// Kill generation per field-chain slot; mirrors `kill_gens` for `fields`.
+    field_kill_gens: MutableMap<string, i32> = MutableMap<string, i32> {}
+
+    /// `is T as x` binding DECLARATION-span hash → the scrutinee. One hop
+    /// further: the binding inherits the scrutinee's mutability, so the lever is
+    /// whatever the scrutinee's own lever is.
+    ///
+    /// Keyed by the span, not the `Symbol.id`, because a narrowing binding's
+    /// declaration span is not in `resolved.idents` — only its USES are, through
+    /// scope resolution. `Symbol.defined_at` is the bridge; adding the
+    /// declaration span to `idents` instead is not an option — measured, it
+    /// triples the tree's diagnostics (that table is consulted for other things).
+    binding_scrutinee: MutableMap<i64, AST.Expr> = MutableMap<i64, AST.Expr> {}
+}
+
+
 // Current kill generation for a binding slot ; 0 until first bumped.
-cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 = typed.narrow_kill_gens[sym_id] ?? 0
+cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 = typed.narrow.kill_gens[sym_id] ?? 0
 
 // Current kill generation for a field-chain slot ; 0 until first bumped.
-cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narrow_field_kill_gens[key] ?? 0
+cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narrow.field_kill_gens[key] ?? 0
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
 export push_narrow :: fn(typed: TypedProgram!, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
-    prev :: typed.narrowed_bindings[sym_id]
-    typed.narrowed_bindings[sym_id] = NarrowSlot {
+    prev :: typed.narrow.bindings[sym_id]
+    typed.narrow.bindings[sym_id] = NarrowSlot {
         .ty = narrowed,
         .gen = cur_narrow_gen(typed, sym_id),
     }
@@ -72,9 +118,9 @@ export push_narrow :: fn(typed: TypedProgram!, sym_id: i32, narrowed: Type) -> N
 /// what the call needs.
 export pop_narrow :: fn(typed: TypedProgram!, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
-        _ :: typed.narrowed_bindings.remove(sym_id)
+        _ :: typed.narrow.bindings.remove(sym_id)
     } else {
-        typed.narrowed_bindings[sym_id] = prev
+        typed.narrow.bindings[sym_id] = prev
     }
 }
 
@@ -83,7 +129,7 @@ export pop_narrow :: fn(typed: TypedProgram!, sym_id: i32, prev: NarrowSlot | nu
 /// from an older kill generation (retired by a reassignment) counts as
 /// absent.
 export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
-    cur :: typed.narrowed_bindings[sym_id] ?? return static_ty
+    cur :: typed.narrow.bindings[sym_id] ?? return static_ty
     if cur.gen != cur_narrow_gen(typed, sym_id) {
         return static_ty
     }
@@ -192,8 +238,8 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
 /// returns the prior narrowing (or null) so the caller can restore it
 /// on scope exit. Mirrors `push_narrow` for ident bindings.
 export push_field_narrow :: fn(typed: TypedProgram!, key: string, narrowed: Type) -> NarrowSlot | null {
-    prev :: typed.narrowed_fields[key]
-    typed.narrowed_fields[key] = NarrowSlot {
+    prev :: typed.narrow.fields[key]
+    typed.narrow.fields[key] = NarrowSlot {
         .ty = narrowed,
         .gen = cur_field_narrow_gen(typed, key),
     }
@@ -206,17 +252,17 @@ export push_field_narrow :: fn(typed: TypedProgram!, key: string, narrowed: Type
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
 export pop_field_narrow :: fn(typed: TypedProgram!, key: string, prev: NarrowSlot | null) -> void {
     if prev == null {
-        typed.narrowed_fields.remove(key)
+        typed.narrow.fields.remove(key)
         return
     }
-    typed.narrowed_fields[key] = prev
+    typed.narrow.fields[key] = prev
 }
 
 /// Look up the current narrowed type for `key`, falling back to
 /// `static_ty` when no narrowing is active for that field slot. An
 /// entry from an older kill generation counts as absent.
 export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
-    cur :: typed.narrowed_fields[key] ?? return static_ty
+    cur :: typed.narrow.fields[key] ?? return static_ty
     if cur.gen != cur_field_narrow_gen(typed, key) {
         return static_ty
     }
@@ -251,35 +297,35 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
     // retire, and this runs on every assignment in the program — skip
     // before any symbol lookup / key interpolation allocates.
     if target is AST.IdentExpr {
-        if typed.narrowed_bindings.is_empty() && typed.narrowed_fields.is_empty() {
+        if typed.narrow.bindings.is_empty() && typed.narrow.fields.is_empty() {
             return
         }
         sym :: typed.resolved.idents[target.span.hash()] ?? return
-        cur :: typed.narrowed_bindings[sym.id]
+        cur :: typed.narrow.bindings[sym.id]
         if cur != null {
             g :: cur_narrow_gen(typed, sym.id)
             if cur.gen == g && !is_assignable(value_ty, cur.ty) {
-                typed.narrow_kill_gens[sym.id] = g + 1
+                typed.narrow.kill_gens[sym.id] = g + 1
             }
         }
-        if !typed.narrowed_fields.is_empty() {
+        if !typed.narrow.fields.is_empty() {
             retire_field_chains_under(typed, "${sym.id}#")
         }
         return
     }
     if target is AST.FieldExpr {
-        if typed.narrowed_fields.is_empty() {
+        if typed.narrow.fields.is_empty() {
             return
         }
         key :: field_chain_key(target, typed)
         if key == "" {
             return
         }
-        cur :: typed.narrowed_fields[key]
+        cur :: typed.narrow.fields[key]
         if cur != null {
             g :: cur_field_narrow_gen(typed, key)
             if cur.gen == g && !is_assignable(value_ty, cur.ty) {
-                typed.narrow_field_kill_gens[key] = g + 1
+                typed.narrow.field_kill_gens[key] = g + 1
             }
         }
         retire_field_chains_under(typed, "${key}#")
@@ -293,12 +339,12 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
 // absent here has no active region, hence no stacked `prev` a later pop
 // could restore.
 retire_field_chains_under :: fn(typed: TypedProgram!, prefix: string) -> void {
-    if typed.narrowed_fields.is_empty() {
+    if typed.narrow.fields.is_empty() {
         return
     }
-    for [k, _] in typed.narrowed_fields {
+    for [k, _] in typed.narrow.fields {
         if starts_with(k, prefix) {
-            typed.narrow_field_kill_gens[k] = cur_field_narrow_gen(typed, k) + 1
+            typed.narrow.field_kill_gens[k] = cur_field_narrow_gen(typed, k) + 1
         }
     }
 }

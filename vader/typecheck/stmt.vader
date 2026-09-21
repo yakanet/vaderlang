@@ -830,14 +830,14 @@ check_assign :: fn(
 // (`narrow.vader`) — a new narrowable lvalue shape has to be added to both.
 declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
     if target is AST.IdentExpr {
-        if typed.narrowed_bindings.is_empty() {
+        if typed.narrow.bindings.is_empty() {
             return fallback
         }
         sym :: typed.resolved.idents[target.span.hash()] ?? return fallback
         return type_of_symbol(sym, typed)
     }
     if target is AST.FieldExpr {
-        if typed.narrowed_fields.is_empty() {
+        if typed.narrow.fields.is_empty() {
             return fallback
         }
         recv :: typed.expr_types[target.target.id] ?? return fallback
@@ -1134,7 +1134,7 @@ mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32
     if budget > 0 {
         at :: sym.defined_at
         if at !is null {
-            scrut :: typed.narrow_binding_scrutinee[at.hash()]
+            scrut :: typed.narrow.binding_scrutinee[at.hash()]
             if scrut !is null {
                 return mutation_fix_hint_within(scrut, typed, budget - 1)
             }
@@ -1173,7 +1173,7 @@ iterable_behind :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> AST.Expr
         return indexed
     }
     at :: sym.defined_at ?? return null
-    scrut :: typed.narrow_binding_scrutinee[at.hash()] ?? return null
+    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return null
     next :: immutable_root_symbol(scrut, typed) ?? return null
     if next.id == sym.id {
         return null
@@ -1353,7 +1353,7 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
         return false
     }
     at :: sym.defined_at ?? return false
-    scrut :: typed.narrow_binding_scrutinee[at.hash()] ?? return false
+    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return false
     return expr_is_immutable_within(scrut, typed, budget - 1)
 }
 

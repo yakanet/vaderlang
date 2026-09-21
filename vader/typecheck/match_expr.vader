@@ -58,7 +58,7 @@ export infer_match :: fn(
         typed.local_types[key] = scrut_ty
         // Same hop as `is T as x` : the binding inherits the scrutinee's
         // mutability, so a rejected write through it points at the scrutinee.
-        typed.narrow_binding_scrutinee[key] = scrut
+        typed.narrow.binding_scrutinee[key] = scrut
     }
     scrut_sym_id    :: if alias_sym is Symbol as a { a.id } else { scrutinee_sym_id(scrut, typed) }
     scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
@@ -416,7 +416,7 @@ bind_pattern_types :: fn(
                 // Same hop as the `if … is T as x` form (`expr_if.vader`): the binding
                 // inherits the scrutinee's mutability, so a rejected write through it
                 // is fixed wherever the SCRUTINEE's own lever is.
-                typed.narrow_binding_scrutinee[p.span.hash()] = scrut_expr
+                typed.narrow.binding_scrutinee[p.span.hash()] = scrut_expr
             }
             // Nested pattern (e.g. `is T as a { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
