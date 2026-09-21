@@ -51,7 +51,12 @@ test("verify finds nothing in the examples", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
   try {
     for (const entry of exampleEntries()) {
-      const r = await buildVerify(entry, MEDIUM_BUILD, join(dir, "out.virt"));
+      // LONG_BUILD, matching this test's own declared budget rather than the
+      // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/bytecode`,
+      // so it type-checks 40 modules where the other seven load 12. That is
+      // ~2 s locally against ~85 ms, and on a 4-core runner with the suite at
+      // 4× parallel it reached the 30 s spawn kill and came back as exit 137.
+      const r = await buildVerify(entry, LONG_BUILD, join(dir, "out.virt"));
       // A verifier finding is error-severity, so it also fails the build —
       // asserting the exit code catches a check that fires without us having
       // to match on the text.
