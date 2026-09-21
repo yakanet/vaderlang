@@ -3073,6 +3073,7 @@ struct vader_struct_vader_bytecode_EmitOptions_t {
     bool f_optimize;
     void* f_keep_mangles;
     bool f_want_debug;
+    bool f_verify;
 };
 struct vader_struct_vader_bytecode_EmitterCtx_t {
     vader_obj_header_t header;
