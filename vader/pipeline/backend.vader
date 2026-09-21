@@ -147,8 +147,13 @@ export cfg_to_bytecode :: fn(
     Prof.prof_end(Prof.PHASE_CFG_DCE)
     if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)
-    escaped :: annotate_escape(dced).project
+    annotated :: annotate_escape(dced)
+    escaped :: annotated.project
     Prof.prof_end(Prof.PHASE_ESCAPE)
+    // `$VADER_OPT_REPORT` — the allocations that stayed on the heap. Reported
+    // here rather than with the lowering ones because escape analysis runs after
+    // the lowering context is gone. Empty unless the env is set.
+    report_heap_allocations(annotated.stats)
     if opts.verify { verify_cfg(escaped, "annotate_escape", diags) }
     forwarded :: array_load_forward_project(escaped)
     if opts.verify { verify_cfg(forwarded, "array_load_forward_project", diags) }

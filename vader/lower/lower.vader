@@ -265,11 +265,10 @@ lower_project_impl :: fn(
     // proven free of allocation / calls / rebinds. Runs LAST so map/filter
     // callbacks and inlinable helpers in the loop body are their inlined bodies.
     // See `bce_hoist.vader`.
-    if project_ctx.opt_report {
-        project_ctx.opt_misses.push_all(bce_hoist_tag(project))
-    } else {
-        _ :: bce_hoist_tag(project)
-    }
+    bce_hoist_tag(project)
+    // Report AFTER the tagging pass: what matters is which accesses still carry
+    // a check, whatever the route that left them there. See `bce_hoist.vader`.
+    bce_unproven_accesses(project, project_ctx)
     // Mark the pushes whose loop can keep the array's state in locals. Shares
     // `bce_hoist_tag`'s purity question and runs beside it, but tags a different
     // node — and answers for the WRITE path where BCE answers for the read one.

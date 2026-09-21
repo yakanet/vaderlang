@@ -38,10 +38,6 @@ BcePurityCtx :: struct {
     by_mangle: MutableMap<string, LoweredFnDecl>
     by_symid:  MutableMap<i32, LoweredFnDecl>
     memo:      MutableMap<string, bool>
-    /// Bounds whose resolve could not be hoisted, for `$VADER_OPT_REPORT`.
-    /// Collected here rather than on `LowerProjectCtx` because this ctx is
-    /// already threaded through every walker — see `opt_report.vader`.
-    misses:    OptMiss[]! = []
 }
 
 /// Resolve a call's callee `(name, sym_id)` to its decl — mangle first, then the
@@ -108,7 +104,7 @@ bce_build_purity_ctx :: fn(project: LoweredProject) -> BcePurityCtx {
 
 /// Run the BCE tagging pass over every function body in `project`. Idempotent
 /// per node (each `bce_recheck` marker is cleared once consumed).
-export bce_hoist_tag :: fn(project: LoweredProject) -> OptMiss[] {
+export bce_hoist_tag :: fn(project: LoweredProject) -> void {
     pctx :: bce_build_purity_ctx(project)
     for [_, m] in project.modules {
         for d in m.decls {
@@ -120,7 +116,77 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> OptMiss[] {
             }
         }
     }
-    return pctx.misses
+}
+
+// ---- the report: count the STATE, not the attempt ---------------------------
+//
+// An element access inside a loop that ends the pass without `bounds_safe` will
+// re-check its bounds on every iteration. That is the fact worth reporting, and
+// it is reached by every route — a hoist that was tried and refused, AND a loop
+// whose bound was never an `arr.len()` to pair with (`for i in 0..<n` with `n` a
+// separate local, which is `bench/arr_rw` and is why counting refusals missed
+// it entirely).
+//
+// Only accesses INSIDE a loop are counted: a one-shot `a[i]` checks once, which
+// is the cost of the language, not a missed optimisation.
+
+/// Collect every in-loop element access still carrying a bounds check.
+export bce_unproven_accesses :: fn(project: LoweredProject, ctx: LowerProjectCtx!) -> void {
+    if !ctx.opt_report {
+        return
+    }
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl {
+                body :: d.body
+                if body != null {
+                    bh_scan_block(body, false, ctx)
+                }
+            }
+        }
+    }
+}
+
+bh_scan_block :: fn(b: LoweredBlock, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    for st in b.stmts {
+        bh_scan_stmt(st, in_loop, ctx)
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        bh_scan_expr(trailing, in_loop, ctx)
+    }
+}
+
+bh_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    match s {
+        is LoweredLet       -> { bh_scan_expr(s.value, in_loop, ctx) }
+        is LoweredAssign    -> { bh_scan_expr(s.target, in_loop, ctx)  bh_scan_expr(s.value, in_loop, ctx) }
+        is LoweredExprStmt  -> { bh_scan_expr(s.expr, in_loop, ctx) }
+        is LoweredReturn    -> {
+            v :: s.value
+            if v != null {
+                bh_scan_expr(v, in_loop, ctx)
+            }
+        }
+        is LoweredLoop      -> { bh_scan_block(s.body, true, ctx) }
+        _                   -> {}
+    }
+}
+
+bh_scan_expr :: fn(e: LoweredExpr, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    if e is LoweredIndex {
+        if in_loop && !e.bounds_safe {
+            record_miss(ctx, "array bounds-check", e.span,
+                "an in-loop element access the compiler could not prove in range — "
+                + "it re-resolves the buffer and re-checks bounds on every iteration")
+        }
+        bh_scan_expr(e.target, in_loop, ctx)
+        bh_scan_expr(e.index, in_loop, ctx)
+        return
+    }
+    if e is LoweredBlock {
+        bh_scan_block(e, in_loop, ctx)
+    }
 }
 
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
@@ -321,17 +387,6 @@ bh_try_hoist :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop!, pctx: BceP
     // a user rebind of `a`.
     guard :: bh_guard_sym(the_len)
     if bce_block_unsafe(the_loop.body, guard, pctx) {
-        // THE FALL. The body allocates, calls, yields or rebinds the array, so the
-        // buffer resolve cannot be pinned in the preheader and every element access
-        // keeps its own resolve + bounds check.
-        pctx.misses.push(OptMiss {
-            .pass = "array bounds-check hoist",
-            .span = the_len.span,
-            .note = "the loop body may move or rebind the array, so its buffer is "
-                  + "re-resolved and re-checked on every access (counts hoists that "
-                  + "were TRIED and refused — a loop whose bound is not `arr.len()` "
-                  + "never reaches this point and is not counted here)",
-        })
         return
     }
     the_len.resolve_buf = true
