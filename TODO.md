@@ -30,6 +30,31 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 - [ ] **`T[]` should satisfy a `[C: Index]` / `[C: IndexSet]` bound — DEFERRED, a dynamic-dispatch feature, not a perf one** (revisited 2026-07-20). Direct `arr[i]` / `arr[i] = v` lower to the built-in fast op (concrete `ArrayGet`/`ArraySet`, 0 alloc) and STAY that way regardless of this item — nothing here touches the array fast path. The only thing an array-`Index` impl adds is letting an array satisfy a **generic** `[C: Index]` bound; since generics are erased (.NET model), that path is *inherently* a runtime vtable dispatch (slow, rare) — not something the fast array machinery can be "moved into". Prereq **(1) — SHIPPED** (`272af6472`, snippet `generic_index_dispatch`): the index OPERATOR `c[0]` / `c[0] = v` now dispatches through a `TypeParam` `Index`/`IndexSet` bound for user **struct** implementors (`infer_index` / `check_assign` record `bounded_dispatch_trait`; `lower_index` / `lower_assign` emit a vcall). Remaining blockers, both on the **erased array receiver** (found 2026-07-20, `@intrinsic T[] implements Index/IndexSet` attempted + fully reverted): **(a) vtable key** — a concrete `i32[]` carries its element-specific type id (header `type_index`, e.g. 2) but the single materialised row is keyed on the erased `Any[]` (e.g. 8), so both the VM (`receiver_type_id_of` → `a.type_id`) and native (`switch(recv.tag)`) miss; **(b) erased primitive read/write** — the erased body emits `array.get <ref>`, whose native path (`vader_array_ref_load_box`) only handles `element_kind ∈ {REF, BOXED}`, NOT a primitive-packed buffer (`i32[]` = 4-byte slots) → would read a 24-byte box from a 4-byte slot (the VM escapes via uniform boxing). Two design options if ever needed: **A. full erasure** — extend the runtime ref-load/store helpers to box/unbox primitive elements via `element_kind` + `element_tag`, and expand the one erased row over every array type in the table (generalises to any `T[] implements Trait` virtual dispatch); **B. per-element monomorphisation** — materialise concrete `at__<elem>` / `set_at__<elem>` keyed on the concrete array type (fast reads, no runtime change, more plumbing to track which element types reach the bound). Defer until there's a real caller passing an array to a `[C: Index]` generic.
 
+- [ ] **A tuple crossing a call boundary is a heap object — measured 2026-09-21, and the answer is `for c in s`, not `dtoa`.** A `fn(...) -> [A, B]` allocates in the callee and returns `void*`; a `fn(p: [A, B])` makes the CALLER allocate. Either way the object is destructured on the receiving line and never retained.
+
+  **What it costs: 3-5 ns per crossing**, measured three independent ways (a returned pair, a parameter pair, and the `utf8_decode_len` path) and stable. GC pressure adds nothing on top — the collector is a copying Cheney, so an ephemeral tuple is never a survivor and is never traced.
+
+  **Where it does NOT matter, both checked rather than assumed:**
+  - `for [k, v] in m` — already stack-promoted. `escape.vader` sees the tuple built and destructured in one fn and emits a single `_storage` slot reused every iteration, zero `vader_gc_alloc`. The big producer is already free.
+  - `dtoa` / `fmt_float` — inlining `umul128` by hand takes `f2s` from 3 allocations per float to 1, for **2.4 % against ±5 % of noise**. Not detectable. Same checksum (`425079331`), verified.
+  - The compiler itself — only 12 fns in the whole tree return a tuple, none on a hot pass. The lexer already walks `bytes()` + `utf8_decode` by hand rather than `for c in s`, so it never pays.
+
+  **Where it does matter — `for c in s`, the plain way to walk a string.** 26.8 M codepoints, three shapes of the same loop:
+
+  | | time | per codepoint |
+  |---|---|---|
+  | `for c in s` | 316 ms | |
+  | manual loop calling `utf8_decode_len` (tuple, no iterator) | 177 ms | tuple = **3.1 ns, 26 % of the run** |
+  | manual loop, no tuple and no iterator | 95 ms | iterator = 5.1 ns, 44 % |
+
+  So the idiom costs **3.3×** its hand-written equivalent, and the tuple is a quarter of that. **The iterator machinery is the bigger half** — whoever picks this up should take that first; the tuple is the second lever, not the first.
+
+  **The shape to emit, if it is taken.** Out-params (`f(inA, inB, &outA, &outB)`) beat returning a flat struct by value on 8-byte tuples (16.4 ms vs 18.8 ms, because two `i32` packed in one register have to be unpacked) and tie past 16 bytes, where the C compiler inserts the same hidden pointer itself. Out-params are also uniform — no ABI threshold to track, no flat struct type to declare beside the GC one.
+
+  **Where it belongs: midir, not `c_emit`.** The pattern is already visible there on both sides — the callee's `struct_new` has `return` as its only use, and every use of the caller's `call` is a `field_get`. That is the analysis `escape.vader` already performs, and doing it there means the VM benefits too instead of diverging from native.
+
+  **The risk that decides whether it is worth it.** With `&outA`, the caller takes the address of a local; if the tuple carries a ref field (`[i32, string]`), that local must be a shadow-stack root BEFORE the call, initialised, or the collector scans an indeterminate slot. Today one root (the tuple pointer) covers it. A first cut restricted to all-primitive tuples sidesteps this entirely and still covers `utf8_decode_len`.
+
 - [ ] **A destructuring ASSIGNMENT parses, type-checks, and does nothing** (found 2026-09-21 by the W0015 review). SPEC destructures a `[...]` pattern in a `let` and in match arms only — `[a, b] = pair` is not a form of the language. The parser reads it anyway, as an `AssignStmt` whose target is a `SeqLitExpr`; nothing downstream rejects that shape, and the write is dropped on the way to codegen. Both backends agree on the wrong output, which places it before the split.
 
   ```vader
