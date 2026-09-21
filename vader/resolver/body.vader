@@ -484,7 +484,7 @@ walk_for :: fn(self: ResolveState!, s: AST.ForStmt) -> void {
                 is AST.DiscardVar           -> {}
             }
         }
-        // The two header forms above bind nothing; only `for x in …` does.
+        // Neither header form binds a name; only `for x in …` does.
         is AST.InfiniteFor | AST.WhileFor -> {}
     }
     self.walk_block(s.body)

@@ -182,7 +182,7 @@ render_mermaid :: fn(nodes: GraphNode[]) -> string {
 render_dot :: fn(nodes: GraphNode[]) -> string {
     sb :: StringBuilder {}
     sb.append("digraph modules {\n")
-    sb.append("    rankdir=LR;\n")
+    sb.append("    rankdir=TB;\n")
     sb.append("    node [shape=box, fontname=\"Helvetica\"];\n")
     for n in nodes {
         sb.append("    \"${n.name}\";\n")

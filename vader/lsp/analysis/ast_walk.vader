@@ -92,8 +92,7 @@ find_expr_with_mode :: fn(
 
 hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState!) -> void {
     // Declarations with no body to descend into.
-    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
-         | AST.TypeAliasDecl | AST.AssertDecl {
+    if d is AST.BodylessDecl {
         return
     }
     match d {
@@ -161,9 +160,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
     // expression span. Subtracting them here rather than ending the match on a
     // wildcard is what makes the match below exhaustive — so a new `Expr`
     // variant trips T3013 instead of being silently skipped.
-    if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
-         | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.MutableTypeExpr {
+    if e is AST.LeafExpr {
         return
     }
     match e {
@@ -303,8 +300,7 @@ binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingStat
     // Declarations holding no block: nothing here binds a name with a type this
     // walk reports. `ConstDecl` joins them — its value is an expression, not a
     // binding site.
-    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
-         | AST.TypeAliasDecl | AST.ConstDecl | AST.AssertDecl {
+    if d is AST.BodylessDecl | AST.ConstDecl {
         return
     }
     match d {
@@ -339,23 +335,10 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
     }
     match s {
         is AST.LetStmt -> {
-            match s.binding {
-                is AST.SimpleBinding as sb -> {
-                    if span_contains(sb.name_span, st.line, st.col) {
-                        ty :: typed.expr_types[s.value.id]
-                        if !(ty is null) { st.ty = ty }
-                        return
-                    }
-                }
-                // Destructuring binds a SLOT of the initializer, not the whole
-                // of it, so `expr_types[s.value.id]` is the wrong type to report
-                // and there is no per-slot entry to read instead. Hovering `a` in
-                // `let [a, b] :: pair` therefore shows nothing rather than
-                // showing `pair`'s type. Named so the gap is visible; it needs a
-                // per-slot type table to close, which is more than this walk.
-                is AST.TupleBinding | AST.RestBinding -> {}
-                // `_ :: e` binds no name to hover.
-                is AST.WildcardBinding -> {}
+            ty :: binding_type_at(s.binding, typed, st.line, st.col)
+            if ty != null {
+                st.ty = ty
+                return
             }
             binding_hv_walk_expr(s.value, typed, st)
         }
@@ -374,6 +357,49 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
             }
         }
     }
+}
+
+/// Type of the binding under the cursor in a `let`, or `null` when the cursor
+/// is not on a bound name.
+///
+/// Reads `local_types`, which the typechecker fills PER SLOT — `assign_binding`
+/// writes one entry per `SimpleBinding` leaf and per `RestBinding`, recursing
+/// through `assign_tuple` for a destructuring. `expr_types[value.id]` would be
+/// the initializer's type, which is the right answer only for the single-name
+/// case and wrong for every slot of `let [a, b] :: pair`. `inlay_hint.vader`
+/// and `lower_destructure.vader` read the same table for the same reason.
+///
+/// @param b      the binding tree to search.
+/// @param typed  the typechecked program carrying `local_types`.
+/// @param line   cursor line.
+/// @param col    cursor column.
+/// @return       the slot's type, or `null` when the cursor is elsewhere.
+binding_type_at :: fn(b: AST.LetBinding, typed: TypedProgram, line: i32, col: i32) -> Type | null {
+    match b {
+        is AST.SimpleBinding -> {
+            if span_contains(b.name_span, line, col) {
+                return typed.local_types[b.name_span.hash()]
+            }
+        }
+        is AST.RestBinding -> {
+            // Keyed by the whole span, not `name_span` — that is what
+            // `assign_binding` writes for a `...rest` tail.
+            if span_contains(b.name_span, line, col) {
+                return typed.local_types[b.span.hash()]
+            }
+        }
+        is AST.TupleBinding -> {
+            for element in b.elements {
+                found :: binding_type_at(element, typed, line, col)
+                if found != null {
+                    return found
+                }
+            }
+        }
+        // `_ :: e` binds no name to hover.
+        is AST.WildcardBinding -> {}
+    }
+    return null
 }
 
 binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState!) -> void {
@@ -460,8 +486,7 @@ EncloseState :: struct {
 
 ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {
     // Declarations with no body to descend into.
-    if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
-         | AST.TypeAliasDecl | AST.AssertDecl {
+    if d is AST.BodylessDecl {
         return
     }
     match d {
@@ -595,13 +620,14 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState!) -> void {
             ee_walk_expr(e.lower, st)
             ee_walk_expr(e.upper, st)
         }
-        is AST.GenericInstExpr -> { ee_walk_expr(e.callee, st) }
+        is AST.GenericInstExpr -> {
+            ee_walk_expr(e.callee, st)
+            for ta in e.type_args { ee_walk_expr(ta, st) }
+        }
         // Leaves. An or-pattern rather than an early `return`: this fn pushes
         // `e` itself below the match, and a leaf under the cursor belongs in the
         // chain as much as any other node.
-        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
-         | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
+        is AST.LeafExpr -> {}
     }
     if span_contains(e.span, st.line, st.col) { st.acc.push(e) }
 }
