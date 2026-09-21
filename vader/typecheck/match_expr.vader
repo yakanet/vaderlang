@@ -36,6 +36,23 @@ check_pattern_bound_exprs :: fn(
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
+/// Span of a match pattern, whichever variant it is.
+///
+/// Written out rather than reaching for `p.span` on the bare union: a common
+/// field reads at a FIXED offset, so the shorthand is only sound while every
+/// variant agrees on it, and nothing checks that.
+pattern_span :: fn(p: AST.Pattern) -> Span = match p {
+    is AST.IsPattern          -> p.span
+    is AST.StructPattern      -> p.span
+    is AST.TuplePattern       -> p.span
+    is AST.WildcardPattern    -> p.span
+    is AST.BindingPattern     -> p.span
+    is AST.EnumVariantPattern -> p.span
+    is AST.LiteralPattern     -> p.span
+    is AST.RangePattern       -> p.span
+    is AST.OrPattern          -> p.span
+}
+
 export infer_match :: fn(
     e: AST.MatchExpr!,
     expected: Type | null,
@@ -67,6 +84,25 @@ export infer_match :: fn(
     has_wildcard := false
     covered_enum_variants: string[]! = []
     for arm in e.arms {
+        // W0014 — nothing is left for this arm to match: a wildcard, or arms
+        // that together consumed the scrutinee, came before it. T3013 asks the
+        // opposite question (is a variant MISSING) and T3040 compares against
+        // the scrutinee's static type, so neither sees a variant covered twice.
+        //
+        // Unions and enums only, the same domain W0005 takes. A non-union
+        // scrutinee REQUIRES a wildcard (T3013 says so in as many words), and a
+        // constrained pattern like `is P { x: 10 }` still subtracts the whole of
+        // `P` here — so on those this would flag the arm T3013 just demanded.
+        closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType
+        if closed_scrutinee && (has_wildcard || remaining is NeverType) {
+            diags.push(
+                warning(
+                    .UnreachableMatchArm,
+                    pattern_span(arm.pattern),
+                    "every value of `${display_type(scrut_ty)}` is already matched above",
+                ),
+            )
+        }
         check_pattern_bound_exprs(arm.pattern, typed, diags, check_expr_fn)
         if arm.pattern is AST.OrPattern as op {
             for sub in op.patterns {
@@ -141,7 +177,29 @@ export infer_match :: fn(
                     }
                 }
                 if !guarded {
-                    remaining = subtract_type_with_impls(remaining, matched, typed)
+                    // Subtracting a type already gone leaves `remaining` equal:
+                    // the arm restates a test an earlier one made.
+                    //
+                    // Gated on the test being possible at all. `is null` against
+                    // `Cat | Dog` also subtracts nothing, but nothing covered it
+                    // earlier either — it can never match, which is T3040's
+                    // question, not this one. Reporting it here would say "an
+                    // earlier arm covers it" of a variant no arm can hold.
+                    narrowed :: subtract_type_with_impls(remaining, matched, typed)
+                    covers_something :: is_overlap_checkable(scrut_ty)
+                        && is_overlap_checkable(matched)
+                        && types_overlap(scrut_ty, matched)
+                    if covers_something && display_type(narrowed) == display_type(remaining)
+                        && remaining !is NeverType {
+                        diags.push(
+                            warning(
+                                .UnreachableMatchArm,
+                                ip.span,
+                                "`${display_type(matched)}` is matched by an earlier arm",
+                            ),
+                        )
+                    }
+                    remaining = narrowed
                 }
             }
             is AST.EnumVariantPattern as ev -> {
@@ -158,6 +216,15 @@ export infer_match :: fn(
                     }
                 }
                 if !guarded {
+                    if covered_enum_variants.contains(ev.variant) {
+                        diags.push(
+                            warning(
+                                .UnreachableMatchArm,
+                                ev.span,
+                                "`.${ev.variant}` is matched by an earlier arm",
+                            ),
+                        )
+                    }
                     covered_enum_variants.push(ev.variant)
                 }
             }

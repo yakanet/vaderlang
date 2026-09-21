@@ -16,7 +16,6 @@ type 13 union 0,8
 string 0 "positive"
 string 1 "non-positive"
 string 2 "nothing"
-string 3 "?"
 impl 4 Contains
 impl 4 Iterator
 impl 10 Contains
@@ -63,8 +62,7 @@ fn 0 snippet$classify (any) -> string
           string.const 2   ; "nothing"
           local.set 3   ; if_res
         else
-          string.const 3   ; "?"
-          local.set 3   ; if_res
+          return
         end $L4
       end $L3
     end $L2
@@ -665,6 +663,3 @@ fn 23 std_core$usize$Step$step (usize) -> usize
   i64.add
   return
 end
-
-# Diagnostics
-[4:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `i32 | null | string` — enumerate its variants or mark the match `@partial`

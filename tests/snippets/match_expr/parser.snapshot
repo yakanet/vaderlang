@@ -143,21 +143,6 @@
                       }
                     ]
                   }
-                },
-                {
-                  "pattern": {
-                    "kind": "WildcardPattern"
-                  },
-                  "guard": null,
-                  "body": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "?"
-                      }
-                    ]
-                  }
                 }
               ]
             }

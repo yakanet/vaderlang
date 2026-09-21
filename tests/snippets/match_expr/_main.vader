@@ -6,6 +6,5 @@ export classify :: fn(x: i32 | string | null) -> string {
         is i32 -> "non-positive"
         is string -> x
         is null -> "nothing"
-        _ -> "?"
     }
 }
