@@ -16,6 +16,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/io"
 import "std/sort"
 import "std/string_builder"
 
@@ -264,12 +265,22 @@ lower_project_impl :: fn(
     // proven free of allocation / calls / rebinds. Runs LAST so map/filter
     // callbacks and inlinable helpers in the loop body are their inlined bodies.
     // See `bce_hoist.vader`.
-    bce_hoist_tag(project)
+    if project_ctx.opt_report {
+        project_ctx.opt_misses.push_all(bce_hoist_tag(project))
+    } else {
+        _ :: bce_hoist_tag(project)
+    }
     // Mark the pushes whose loop can keep the array's state in locals. Shares
     // `bce_hoist_tag`'s purity question and runs beside it, but tags a different
     // node — and answers for the WRITE path where BCE answers for the read one.
     // See `push_cache.vader`.
     push_cache_tag(project)
+    // `$VADER_OPT_REPORT` — say which optimisations handed over, and where. An
+    // empty string when the report is off, so this costs one length test.
+    report :: render_opt_report(project_ctx)
+    if report != "" {
+        eprintln(report)
+    }
     return project
 }
 

@@ -92,6 +92,13 @@ export LowerProjectCtx :: struct {
     typed:               TypedProject
     impls:               ImplRegistry
 
+    /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
+    /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
+    opt_report:          bool = false
+    /// Where an optimisation pass handed over to its general path. Only filled
+    /// when `opt_report` is on ; never a diagnostic, never gates a build.
+    opt_misses:          OptMiss[]! = []
+
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
     core_symbols:        MutableMap<string, Symbol>
@@ -326,6 +333,7 @@ export GenericFnInstance :: struct {
 /// @return           a fresh project context with empty side-tables.
 export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx! {
     return LowerProjectCtx {
+        .opt_report          = opt_report_enabled(),
         .evaluated           = evaluated,
         .loaded              = loaded,
         .typed               = typed,
