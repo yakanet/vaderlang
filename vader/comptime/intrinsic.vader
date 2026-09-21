@@ -167,12 +167,13 @@ export byte_align :: fn(t: Type) -> i64 = @partial match t {
 
 
 // Stable `@type_kind(T)` discriminator. EXHAUSTIVE over `Type` (no `_`) and
-// kept in lock-step — same arms, same strings — with
-// `vader/lower/lower_intrinsic.vader::kind_string_of_type` and the stable set
-// in SPEC §14 (`@type_kind`). The non-user-facing variants (TypeParam, Self,
-// Unresolved, Free*, Never) report "unknown". Listing every variant trips
-// T3013 at BOTH sites on a new Type kind, so the two can't silently diverge.
-type_kind_label :: fn(t: Type) -> string = match t {
+// the stable set in SPEC §14 (`@type_kind`). The non-user-facing variants
+// (TypeParam, Self, Unresolved, Free*, Never) report "unknown". Exhaustive, so a
+// new `Type` kind trips T3013 here.
+//
+// ONE copy, deliberately: `vader/lower` reads this same fn for the runtime fold,
+// so the comptime value and the runtime value of `@type_kind(T)` cannot disagree.
+export type_kind_label :: fn(t: Type) -> string = match t {
     is PrimitiveType  -> "primitive"
     is DistinctType   -> type_kind_label(t.backing)
     is StructType     -> "struct"

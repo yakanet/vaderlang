@@ -9,6 +9,7 @@
 module "vader/comptime"
 
 import "vader/diagnostics"
+import "vader/typecheck"
 AST :: import "toolchain/ast"
 
 /// Tree-walk dispatcher. Returns whatever the per-variant helper
@@ -57,7 +58,7 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext!) -> EvalRes
         is AST.IntrinsicCallExpr -> evaluate_intrinsic_call(expr, context)
         is AST.CallExpr          -> evaluate_call_expr(expr, context)
         is AST.SeqLitExpr        -> evaluate_seq_lit(expr, context, evaluate_expr)
-        _                        -> vm_required(span_of(expr), expr_kind_label(expr))
+        _                        -> vm_required(span_of(expr), expr_kind_name(expr))
     }
     context.depth = context.depth - 1
     return result
@@ -97,37 +98,10 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.MutableTypeExpr   -> expr.span
 }
 
-// Human-readable label for unsupported variants. Surfaces in the C4001
-// detail so the user sees `expression cannot be evaluated at compile time
-// : MatchExpr` rather than a generic catch-all message.
-// @partial: human label only for the unsupported-variant set; the generic
-// "Expr" fallback is intentional.
-expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
-    is AST.CallExpr          -> "CallExpr"
-    is AST.FieldExpr         -> "FieldExpr"
-    is AST.IndexExpr         -> "IndexExpr"
-    is AST.IfExpr            -> "IfExpr"
-    is AST.MatchExpr         -> "MatchExpr"
-    is AST.BlockExpr         -> "BlockExpr"
-    is AST.LambdaExpr        -> "LambdaExpr"
-    is AST.StructLitExpr     -> "StructLitExpr"
-    is AST.SeqLitExpr        -> "SeqLitExpr"
-    is AST.RangeExpr         -> "RangeExpr"
-    is AST.CastExpr          -> "CastExpr"
-    is AST.GenericInstExpr   -> "GenericInstExpr"
-    is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"
-    is AST.DotVariantExpr    -> "DotVariantExpr"
-    is AST.FnTypeExpr        -> "FnTypeExpr"
-    is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
-    is AST.MutableTypeExpr   -> "MutableTypeExpr"
-    _                        -> "Expr"
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/collections"
 import "std/testing"
-import "vader/typecheck"
 import "toolchain/span"
 
 @test test_evaluate_int_literal :: fn() -> void {
