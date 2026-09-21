@@ -1,17 +1,13 @@
 // vader/vm/branch_scopes — label-keyed scope stack and branch wiring.
 //
 // Two producers fill a function's jump table from a labelled scope stack:
-// `builder.vader` (building a body op by op) and `virt_reader.vader`
-// (replaying a `.virt` dump). Both open scopes with `block` / `loop` / `if`,
-// both resolve `br` / `br_if` against the innermost matching label, and both
-// defer a forward branch until its scope closes. The state is four arrays plus
-// two cursors, so the operations take those directly rather than a carrier
-// struct — `FunctionBuilder` and `ParserState` each keep their own fields and
-// pass them in.
+// `builder.vader` building a body op by op, and `virt_reader.vader` replaying a
+// `.virt` dump. The shared state is three arrays plus two cursors, so these take
+// those directly rather than a carrier struct — `FunctionBuilder` and
+// `ParserState` each keep their own fields and pass them in.
 //
-// `midir/emit.vader` has a sibling of `defer_or_resolve_branch` that resolves
-// by `BlockId` instead of by label, and prefers loop scopes on a tie; it is a
-// different rule, not a copy of this one.
+// `midir/emit.vader` has a sibling that resolves by `BlockId` and prefers loop
+// scopes on a tie: a different rule, not a copy of this one.
 
 module "vader/vm"
 
@@ -35,19 +31,10 @@ push_scope :: fn(scopes: ScopeEntry[]!, sp_box: usize[]!, entry: ScopeEntry) -> 
 
 /// Wire one `br` / `br_if` against the innermost scope carrying `label`.
 ///
-/// A branch to a loop label resolves immediately — the loop's opener pc is
-/// already known. A branch to a `block` / `if` / `else` label targets a pc
-/// that does not exist yet, so it is appended to the pending list and drained
-/// by `drain_pending` when that scope closes. An unmatched label is left
-/// unwired: the caller has already reported the malformed input.
-///
-/// @param scopes      the scope stack.
-/// @param scope_sp    1-element scope cursor.
-/// @param table       the jump table being filled.
-/// @param pending     the grow-only pending-branch list.
-/// @param pending_sp  1-element pending cursor.
-/// @param label       the branch's target label.
-/// @param pc          pc of the branching op being wired.
+/// A loop label resolves immediately — its opener pc is known. A `block` / `if`
+/// / `else` label targets a pc that does not exist yet, so the branch is
+/// deferred to `drain_pending`. An unmatched label is left unwired: the caller
+/// has already reported the malformed input.
 defer_or_resolve_branch :: fn(scopes: ScopeEntry[], scope_sp: usize[], table: i32[]!,
                              pending: PendingBranch[]!, pending_sp: usize[]!,
                              label: string, pc: i32) -> void {

@@ -81,37 +81,22 @@ cmd_graph :: fn(args: string[]) -> i32 {
 
 // Whether a module is the user's own, under `--scope=project`.
 //
-// Two tests, because one does not cover both halves — the same asymmetry
-// `vader/resolver/collect.vader::diagnose_import_path` documents and depends on.
-// PROVENANCE says who is the library: `.Toolchain` is what the toolchain shipped,
-// and a user module may legitimately be called `json`, so only who provided it
-// settles that. The module NAME says who is the compiler: `ModuleOrigin` has no
-// `.Compiler` variant on purpose — `vader/*` is `.Build` in a checkout as in a
-// bundle — and in a DRIVEN build the compiler's own sources arrive through
-// `--include-paths`, i.e. as `.Build` too. Filtering on provenance alone therefore
-// draws the whole compiler as the user's project for any project carrying a
-// `build.vader`, which is measurably most of the picture.
-//
-// `entry_is_compiler` is the exemption: when the entry is itself a `vader/*`
-// module, the compiler IS the project being drawn.
+// Two tests, the asymmetry `collect.vader::diagnose_import_path` also depends on:
+// provenance says who is the LIBRARY, the module name says who is the COMPILER.
+// `ModuleOrigin` has no `.Compiler` variant, and in a driven build `vader/*`
+// arrives through `--include-paths` as `.Build` — so provenance alone draws the
+// whole compiler as the user's project. Unless the entry is itself `vader/*`, in
+// which case the compiler IS what is being drawn.
 is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: bool) =
     origin != .Toolchain && (entry_is_compiler || !name.starts_with("vader/"))
 
 /// Collect every loaded module with the imports that survive the scope filter.
 ///
-/// Edges to a filtered-out module are dropped rather than redirected, so a
-/// `project`-scoped graph shows the project's own shape with no dangling stubs.
-/// Self-imports (a multi-file module importing its own name) are dropped too —
-/// they are legal and say nothing about dependency.
-///
-/// @param loaded      the loaded project.
-/// @param include_all `true` to keep library / toolchain modules.
-/// @return            nodes sorted by module name, each with sorted imports.
+/// An edge to a filtered-out module is dropped, not redirected — no dangling
+/// stubs. Self-imports go too: legal, and no dependency.
 collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
-    // Keyed by `module_name`, not by the map's own key: `load_project` keys
-    // modules by their FOLDER, while an `import "..."` names the MODULE. The two
-    // coincide for a project rooted at its own directory and diverge for one
-    // loaded from an outer root, which is where an edge would silently vanish.
+    // Keyed by `module_name`: `load_project` keys modules by their FOLDER, and
+    // an `import` names the MODULE. They diverge outside a self-rooted project.
     entry :: loaded.modules[loaded.entry]
     entry_is_compiler :: entry != null && entry.module.module_name.starts_with("vader/")
     kept :: MutableSet<string> {}
@@ -127,12 +112,9 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
         if !kept.contains(name) {
             continue
         }
-        // `collected.import_paths` is the list the loader itself walks to build
-        // the module graph (`loader.vader`'s BFS and `walk_import_cycle` both
-        // read it), which is what makes this graph the build's rather than a
-        // second opinion on what an import edge is. It holds one entry per
-        // `import` line, across every file of a multi-file module, so a path can
-        // repeat — `seen` is what dedups it.
+        // The list the loader's own BFS walks, so this is the build's graph and
+        // not a second opinion. One entry per `import` line across the module's
+        // files, so a path can repeat — hence `seen`.
         seen :: MutableSet<string> {}
         imports: string[]! = []
         for target in module.collected.import_paths {

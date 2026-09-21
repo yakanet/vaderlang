@@ -98,21 +98,6 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
 /// the resolver knows which.
 export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
-/// The `Expr` variants that hold no sub-expression — literals, a bare ident, a
-/// `.Variant` shorthand, and the three type-expression forms whose children are
-/// `TypeExpr`, not values.
-///
-/// Exists so a walker can subtract them in one named test instead of re-listing
-/// ten variants. That matters more than it looks: the exhaustiveness check is
-/// per-site, so two hand-written copies of this list can drift apart with
-/// nothing to catch it — which is exactly what the wildcards they replaced did.
-export LeafExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr
-
-/// The `Decl` variants carrying no body a walker can descend into. `ConstDecl`
-/// is NOT one of them — its value is an expression — so a walk that also skips
-/// consts tests `is BodylessDecl | ConstDecl`.
-export BodylessDecl :: ImportDecl | StructDecl | EnumDecl | TraitDecl | TypeAliasDecl | AssertDecl
-
 // ============================================================================
 // Visibility / shared shapes
 // ============================================================================

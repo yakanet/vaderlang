@@ -1,15 +1,12 @@
 // vader/vm/exec_bulk — the bulk array / string / buffer opcodes.
 //
-// Moved out of `exec_entry`'s 146-opcode dispatch, whose correctness rests on
-// per-frame state hoisted into its locals. Touching none of that is a
-// PRECONDITION for living here — most of the arms that stayed satisfy it too.
-// What qualifies an arm is being bulky and cold: an O(N) body, or one that
-// already allocates, against which the move's cost disappears.
-//
-// That cost is not a call. Returning `Trap` puts a fn in `may_alloc`, and the
-// emitter then gives it the full GC shadow-stack prologue and address-takes
-// `frame`, forcing it to memory. An O(1) arm must therefore stay in the
-// dispatch. Why, and what it measured: `docs/adr/0020-what-a-dispatch-arm-costs-to-move-out.md`.
+// Moved out of `exec_entry`'s dispatch, whose correctness rests on per-frame
+// state hoisted into its locals. Touching none of that is a PRECONDITION for
+// living here, not the reason: most arms that stayed satisfy it too. What
+// qualifies an arm is being bulky and cold — an O(N) body, or one that already
+// allocates. An O(1) arm must stay in the dispatch: returning `Trap` puts a fn
+// in `may_alloc`, and the emitter then gives it a full GC shadow-stack prologue
+// and address-takes `frame`. Measurements: `docs/adr/0020`.
 //
 // Contract: return a `Trap` on a stack or range error, `null` on success, and
 // advance `frame.sp` / `frame.pc` before returning `null` — the dispatch does
@@ -20,10 +17,8 @@ module "vader/vm"
 import "std/string"
 bc :: import "vader/bytecode"
 
-/// Clamp a signed operand to a non-negative index. The bytecode carries `i32`
-/// counts and offsets; a negative one is not an error for these ops — it
-/// saturates to an empty range, which is what a slice or a repeat of a negative
-/// count means.
+/// Clamp a signed operand to a non-negative index. A negative count or offset is
+/// not an error for these ops — it saturates to an empty range.
 clamp_nonneg :: fn(v: i32) -> usize = if v < 0 { 0 } else { usize(v) }
 
 /// `array.copy` — overlap-safe window copy between two arrays.
@@ -95,9 +90,6 @@ exec_array_slice :: fn(frame: Frame!, instr: bc.ArraySlice) -> Trap | null {
     return null
 }
 
-/// `array.remove_last` — pop the tail element and push it.
-///
-
 /// `array.push_all` — append every element of one array to another.
 exec_array_push_all :: fn(frame: Frame!) -> Trap | null {
     if frame.sp < 2 {
@@ -149,9 +141,6 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
     return null
 }
 
-/// `array.clear` — truncate an array to length 0.
-///
-
 /// `string.slice_codepoints` — a codepoint-indexed substring.
 exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
     if frame.sp < 3 {
@@ -168,8 +157,8 @@ exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
     // indices `lo` and `hi`, clamping to the codepoint
     // count so out-of-bounds ranges produce a clamped
     // substring rather than trapping.
-    lo_cp :: usize(lo_box.value)
-    hi_cp :: usize(hi_box.value)
+    lo_cp :: clamp_nonneg(lo_box.value)
+    hi_cp :: clamp_nonneg(hi_box.value)
     sb :: s.bytes()
     n_bytes :: sb.len()
     cursor: usize = 0

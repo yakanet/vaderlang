@@ -87,12 +87,12 @@ collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
         }
         is AST.ConstDecl -> {
             // Skip when the user already annotated the type.
-            match d.ty {
-                is null -> { emit_const_hint(d, ctx, out) }
-                _       -> {}
+            if d.ty is null {
+                emit_const_hint(d, ctx, out)
             }
         }
-        _ -> {}
+        is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+         | AST.TypeAliasDecl | AST.AssertDecl -> {}
     }
 }
 

@@ -324,11 +324,9 @@ export is_array_view :: fn(a: ArrayVal) -> bool {
 /// Give `a` a backing buffer of its own, copying its window out of the shared
 /// one. A no-op when `a` already owns its backing.
 ///
-/// Every op that GROWS an array has to call this first: a view shares
-/// `elements` with its parent, so pushing onto it would be visible through the
-/// parent and would read past the view's own window. Guarding on
-/// `is_array_view` rather than growing unconditionally keeps the common
-/// owns-its-backing case allocation-free.
+/// Every op that GROWS an array must call this first: a view shares `elements`
+/// with its parent, so pushing onto it would be visible through the parent and
+/// would read past the view's own window.
 ///
 /// @param a  the array to detach; mutated in place.
 export detach_array_view :: fn(a: ArrayVal!) -> void {
