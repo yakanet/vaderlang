@@ -7,7 +7,7 @@ import "std/io"
 // `let [k, v] := <synth>` prepended to the body. Resolver / lowerer don't
 // need to learn about destructure forms.
 main :: fn() -> i32 {
-    pairs: [string, i32][] = [["a", 1], ["b", 2], ["c", 3]]
+    pairs: [string, i32][]: [["a", 1], ["b", 2], ["c", 3]]
     for [k, v] in pairs {
         println("${k}=${v}")
     }

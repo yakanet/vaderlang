@@ -139,15 +139,15 @@ export shuffle :: fn<T>(self: Rng!, arr: T[]!) -> void {
 import "std/testing"
 
 @test test_new_seeded_deterministic :: fn() -> void {
-    a := new_seeded(42)
-    b := new_seeded(42)
+    a :: new_seeded(42)
+    b :: new_seeded(42)
     for k in 0..<16 {
         assert_eq(a.next_u64(), b.next_u64())
     }
 }
 
 @test test_new_seeded_zero_produces_nonzero :: fn() -> void {
-    r := new_seeded(0)
+    r :: new_seeded(0)
     // Sum a small batch — must not be all zeros (would mean a degenerate state).
     acc: u64 = 0
     for k in 0..<8 {
@@ -157,13 +157,13 @@ import "std/testing"
 }
 
 @test test_different_seeds_produce_different_streams :: fn() -> void {
-    a := new_seeded(1)
-    b := new_seeded(2)
+    a :: new_seeded(1)
+    b :: new_seeded(2)
     assert(a.next_u64() != b.next_u64(), "different seeds collided on first draw")
 }
 
 @test test_range_i32_within_bounds :: fn() -> void {
-    r := new_seeded(7)
+    r :: new_seeded(7)
     for k in 0..<200 {
         v :: r.range_i32(10, 20)
         assert(v >= 10, "range_i32 below lo")
@@ -174,7 +174,7 @@ import "std/testing"
 @test test_range_degenerate_returns_lo :: fn() -> void {
     // An empty range (`hi <= lo`) returns `lo` instead of dividing by zero
     // in the modulus.
-    r := new_seeded(7)
+    r :: new_seeded(7)
     assert_eq(r.range_i32(5, 5), 5)
     assert_eq(r.range_i32(8, 3), 8)
     assert_eq(i32(r.range_u32(4, 4)), 4)
@@ -182,7 +182,7 @@ import "std/testing"
 }
 
 @test test_unit_f64_within_bounds :: fn() -> void {
-    r := new_seeded(123)
+    r :: new_seeded(123)
     for k in 0..<200 {
         v :: r.unit_f64()
         assert(v >= 0.0, "unit_f64 below 0")
@@ -191,8 +191,8 @@ import "std/testing"
 }
 
 @test test_shuffle_preserves_length :: fn() -> void {
-    r := new_seeded(99)
-    arr: i32[]! = [1, 2, 3, 4, 5, 6, 7, 8]
+    r :: new_seeded(99)
+    arr: i32[]!: [1, 2, 3, 4, 5, 6, 7, 8]
     r.shuffle(arr)
     assert_eq(arr.len(), 8)
     // Sum is preserved (multiset preservation, weak check).
@@ -204,7 +204,7 @@ import "std/testing"
 }
 
 @test test_next_bool_both_observed :: fn() -> void {
-    r := new_seeded(2026)
+    r :: new_seeded(2026)
     seen_true: bool = false
     seen_false: bool = false
     for k in 0..<64 {

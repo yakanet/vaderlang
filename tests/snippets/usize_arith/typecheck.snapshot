@@ -2,8 +2,8 @@
 
 ## tests/snippets/usize_arith
   FnDecl         main                 :: fn() -> i32
-  expr 7:16     BinaryExpr     :: usize
-  expr 7:16     IdentExpr      :: usize
+  expr 7:15     BinaryExpr     :: usize
+  expr 7:15     IdentExpr      :: usize
   expr 8:13     StringLitExpr  :: string
   expr 8:15     IdentExpr      :: usize
   expr 8:5      CallExpr       :: void

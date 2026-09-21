@@ -176,7 +176,7 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
 // file's own `decls` with no copy. Single-file modules are the common case, and
 // this runs for every module of the project on every round.
 undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>!) -> AST.Decl[] {
-    fresh: SourceFile[]! = []
+    fresh: SourceFile[]!: []
     for f in files {
         if f.path in delivered {
             continue

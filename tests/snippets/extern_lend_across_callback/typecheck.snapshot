@@ -13,7 +13,7 @@
   expr 33:17    IdentExpr      :: fn(i32) -> void
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(fn(i32) -> void) -> void
-  expr 35:18    SeqLitExpr     :: i32[]!
+  expr 35:17    SeqLitExpr     :: i32[]!
   expr 36:21    IdentExpr      :: i32[]!
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(i32[]!, usize) -> void

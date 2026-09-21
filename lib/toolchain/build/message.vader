@@ -94,7 +94,7 @@ import "std/testing"
 }
 
 @test test_complete_carries_the_exit_code :: fn() -> void {
-    m: Message = CompleteMessage { .code = 1 }
+    m: Message: CompleteMessage { .code = 1 }
     assert(m is CompleteMessage, "completion narrows")
     if m is CompleteMessage as c {
         assert_eq(c.code, 1)

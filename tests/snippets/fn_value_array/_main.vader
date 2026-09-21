@@ -9,6 +9,6 @@ export double :: fn(x: i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    fs := [inc, double]
+    fs :: [inc, double]
     return fs[0](7) + fs[1](3)
 }

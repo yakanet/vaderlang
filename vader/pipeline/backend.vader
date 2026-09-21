@@ -95,7 +95,7 @@ export module_name_from_file :: fn(file: Path) -> string = canonicalise(file).na
 /// @param loaded  the loaded project.
 /// @param scope   module display paths, from `dump_scope`.
 export in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     for [id, lm] in loaded.modules {
         if module_in_scope(lm.module.display_path, scope) {
             for f in lm.module.files { out.push(f.path) }
@@ -110,7 +110,7 @@ export in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> stri
 /// renderer prints them in, so the flattening lives once rather than at each
 /// call site.
 export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     for d in pipeline.loaded.diags    { out.push(d) }
     for d in pipeline.resolver_diags  { out.push(d) }
     for d in pipeline.typecheck_diags { out.push(d) }
@@ -212,7 +212,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
     // caller's `flush_build_diags` gate runs — a plain user error would ICE.
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_LOWER)
     lowered :: if any_error_diag(pre_diags) {
@@ -287,7 +287,7 @@ export prepare_cfg_bytecode_from :: fn(
     Prof.prof_end(Prof.PHASE_PRUNE)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.
-    verify_diags: Diagnostic[]! = []
+    verify_diags: Diagnostic[]!: []
     if verify { verify_lowered(pruned, "prune_unreachable_fns", verify_diags) }
     // `want_debug` populates the per-op `debug` table only when the emitted C
     // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /

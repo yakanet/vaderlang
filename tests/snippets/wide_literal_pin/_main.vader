@@ -39,20 +39,20 @@ unwrap_i64 :: fn(v: i64 | null) -> i64 {
 main :: fn() -> i32 {
     // Face 1 — literal index key on a wide-keyed map round-trips against a
     // typed-local key that stores the same wide value.
-    keyed := MutableMap<i64, i32> {}
-    anchor: i64 = 9000000000
+    keyed :: MutableMap<i64, i32> {}
+    anchor: i64: 9000000000
     keyed[anchor] = 42
     println("face1 read-key:  ${unwrap(keyed[9000000000])}")
 
     // Face 2 — literal set value stays wide.
-    valued := MutableMap<i32, i64> {}
+    valued :: MutableMap<i32, i64> {}
     valued[1] = 9000000000
     println("face2 set-value: ${unwrap_i64(valued[1])}")
 
     // Face 2 — literal set key hits the same slot a typed-local key does.
-    setkey := MutableMap<i64, i32> {}
+    setkey :: MutableMap<i64, i32> {}
     setkey[9000000000] = 7
-    probe: i64 = 9000000000
+    probe: i64: 9000000000
     println("face2 set-key:   ${unwrap(setkey[probe])}")
 
     // Face 3 — explicit <i64> keeps the literal wide.

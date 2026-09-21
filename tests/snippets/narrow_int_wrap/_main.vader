@@ -29,8 +29,8 @@ import "std/io"
 add_u8 :: fn(a: u8, b: u8) -> u8 = a + b
 
 main :: fn() -> i32 {
-    a: u8 = 200
-    b: u8 = 100
+    a: u8: 200
+    b: u8: 100
 
     // NOT a divergence: unstored intermediate stays wide in both → 300 / 300.
     println("unstored=${a + b}")
@@ -44,7 +44,7 @@ main :: fn() -> i32 {
     println("fn=${add_u8(a, b)}")
 
     // widening then narrowing cast — VM 300 / native 44
-    w: i32 = 300
+    w: i32: 300
     n :: u8(w)
     println("cast=${n}")
 

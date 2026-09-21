@@ -139,7 +139,7 @@
             "stmts": [
               {
                 "kind": "LetStmt",
-                "mutable": true,
+                "mutable": false,
                 "binding": {
                   "kind": "SimpleBinding",
                   "name": "prefix"
@@ -248,7 +248,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "x"
@@ -264,7 +264,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "y"

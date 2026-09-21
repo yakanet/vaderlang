@@ -4,7 +4,7 @@ import "std/io"
 import "std/string"
 
 main :: fn() -> i32 {
-    s := "  Hello, World!  "
+    s :: "  Hello, World!  "
     println("${s.bytes().len()}")
     println(s.trim())
     println("hello".to_upper())
@@ -17,7 +17,7 @@ main :: fn() -> i32 {
     println("${"你好嗎？"[0]}")
     println("${"你好嗎？"[1]}")
     println("${"你好嗎？"[3]}")
-    parts := "a,b,c".split(",")
+    parts :: "a,b,c".split(",")
     println(parts[0])
     println(parts[1])
     println(parts[2])

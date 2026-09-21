@@ -18,7 +18,7 @@ module "snippet"
 import "std/io"
 
 hoisted :: fn() -> i64 {
-    a: i32[]! = []
+    a: i32[]!: []
     for i in 0..<2048 {
         a.push(i32(i))
     }
@@ -31,7 +31,7 @@ hoisted :: fn() -> i64 {
 }
 
 guarded :: fn() -> i64 {
-    a: i32[]! = [1, 2, 3]
+    a: i32[]!: [1, 2, 3]
     n :: a.len()
     a.push(4)
     sum: i64 = 0
@@ -42,7 +42,7 @@ guarded :: fn() -> i64 {
 }
 
 main :: fn() -> i32 {
-    a: i32[]! = [1, 2, 3]
+    a: i32[]!: [1, 2, 3]
     n :: a.len()
     a.push(4)
     println("hoisted=${hoisted()} guarded=${guarded()} len=${a.len()}")

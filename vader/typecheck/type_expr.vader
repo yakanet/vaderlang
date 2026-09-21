@@ -61,8 +61,8 @@ export type_from_expr :: fn(
             // declaration's `!` is desugared : an unmarked slot is a read-only
             // borrow. Skipping this would leave every callback slot mutable, so
             // passing a read-only value to `fn(Cfg) -> void` would be rejected.
-            params: Type[]! = []
-            marks: bool[]! = []
+            params: Type[]!: []
+            marks: bool[]!: []
             any_marked := false
             for i in 0..<expr.params.len() {
                 // The marker now rides the TYPE (`fn(u8[]!)` parses as a
@@ -105,7 +105,7 @@ export type_from_expr :: fn(
         }
         is AST.NullLitExpr -> { return TY_NULL }
         is AST.SeqLitExpr -> {
-            elements: Type[]! = []
+            elements: Type[]!: []
             for el in expr.elements { elements.push(type_from_expr(el, resolved, diags)) }
             return mk_tuple(elements, false)
         }
@@ -207,27 +207,27 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         }
         is ArrayType -> { return mk_array(walk_substitute(t.element, params, args), t.immutable) }
         is StructType -> {
-            sargs: Type[]! = []
+            sargs: Type[]!: []
             for a in t.args { sargs.push(walk_substitute(a, params, args)) }
             return mk_struct(t.symbol, sargs, t.immutable)
         }
         is TraitType -> {
-            sargs: Type[]! = []
+            sargs: Type[]!: []
             for a in t.args { sargs.push(walk_substitute(a, params, args)) }
             return mk_trait(t.symbol, sargs)
         }
         is UnionType -> {
-            vs: Type[]! = []
+            vs: Type[]!: []
             for v in t.variants { vs.push(walk_substitute(v, params, args)) }
             return union_of(vs)
         }
         is TupleType -> {
-            els: Type[]! = []
+            els: Type[]!: []
             for el in t.elements { els.push(walk_substitute(el, params, args)) }
             return mk_tuple(els, t.immutable)
         }
         is FnType -> {
-            ps: Type[]! = []
+            ps: Type[]!: []
             for p in t.params { ps.push(walk_substitute(p, params, args)) }
             return mk_fn_like(t, ps, walk_substitute(t.return_type, params, args))
         }
@@ -253,7 +253,7 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
 lower_call_in_type_position :: fn(
     e: AST.CallExpr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
-    args: Type[]! = []
+    args: Type[]!: []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
     if e.callee is AST.IdentExpr as id {
         target :: lookup_type_name(id, resolved)
@@ -283,7 +283,7 @@ lower_generic_inst :: fn(
     // its values is written `Map<K, Cfg!>`". `readonly_children` stops at nominal
     // boundaries, so without this a plain `Map<K, Cfg>` stored a MUTABLE `Cfg` and
     // the written form said nothing.
-    args: Type[]! = []
+    args: Type[]!: []
     for a in e.type_args {
         args.push(apply_readonly_default(type_from_expr(a, resolved, diags), a))
     }
@@ -325,7 +325,7 @@ lower_binary :: fn(
             "binary op not allowed in type position"))
         return TY_UNRESOLVED
     }
-    variants: Type[]! = []
+    variants: Type[]!: []
     for v in AST.collect_bitor_variants(e) {
         variants.push(type_from_expr(v, resolved, diags))
     }
@@ -416,7 +416,7 @@ export primitive_from_name :: fn(name: string) -> Type | null {
 ///            canonical "unmarked" form, never an all-`false` run.
 params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
     any_mutable := false
-    out: bool[]! = []
+    out: bool[]!: []
     for p in ps {
         m :: AST.param_is_mutable(p)
         if m { any_mutable = true }
@@ -446,7 +446,7 @@ lower_first_param_type :: fn(src: string) -> string {
     fn_decl :: parsed.program.decls[0]
     if fn_decl is AST.FnDecl {
         ty :: fn_decl.params[0].ty ?? return "<no annotation>"
-        diags: Diagnostic[]! = []
+        diags: Diagnostic[]!: []
         return display_type(type_from_expr(ty, rm, diags))
     }
     return "<not a FnDecl>"
@@ -514,7 +514,7 @@ test_value_position_expr_emits_T3002 :: fn() -> void {
         .value = 42,
     }
     rm :: resolve_test_module("")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     type_from_expr(int_lit, rm, diags)
     assert_eq(diags.len(), 1)
     assert_eq(diags[0].code.id, "T3002")
@@ -527,7 +527,7 @@ test_value_const_in_type_position_emits_T3002 :: fn() -> void {
     src :: "PI :: 3\nuse :: fn(x: PI) -> void {}"
     rm :: resolve_test_module(src)
     parsed :: parse_source(src, "t.vader")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {
             pty :: decl.params[0].ty

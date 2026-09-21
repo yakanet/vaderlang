@@ -56,7 +56,7 @@ export ArrayOps :: trait<T> {
 // fine, so the coverage lives in `tests/snippets/array_add_concat/`.
 T[] implements<T> Add<T[]> {
     add :: fn(self, other: T[]) -> T[] {
-        out: T[]! = []
+        out: T[]!: []
         out.push_all(self)
         out.push_all(other)
         return out
@@ -77,7 +77,7 @@ T[] implements<T> Add<T[]> {
 ///   rows: BlockId[][] = filled(block_count, () -> [])   // n DISTINCT arrays
 ///   seen :: filled(n, new_visited_set)                  // or a named factory
 export filled :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
-    out: T[]! = [] * n
+    out: T[]!: [] * n
     for 0..<n {
         out.push(make())
     }
@@ -96,7 +96,7 @@ export filled :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
 ///   squares :: filled_indexed(n, (i) -> i32(i * i))
 ///   rows    :: filled_indexed(n, (i) -> Row { .id = i })
 export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[]! {
-    out: T[]! = [] * n
+    out: T[]!: [] * n
     for i in 0..<n {
         out.push(make(i))
     }

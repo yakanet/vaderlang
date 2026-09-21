@@ -15,7 +15,7 @@
   expr 13:22    FieldExpr      :: i32
   expr 13:22    IdentExpr      :: CountDown!
   expr 14:20    StructLitExpr  :: Suspended!
-  expr 21:22    StructLitExpr  :: CountDown!
+  expr 21:21    StructLitExpr  :: CountDown!
   expr 22:10    AwaitExpr      :: i32
   expr 22:16    IdentExpr      :: Async<i32>
   expr 23:12    BinaryExpr     :: i32

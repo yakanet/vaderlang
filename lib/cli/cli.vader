@@ -134,8 +134,8 @@ export ParsedArgs :: struct {
 ///               `true` / `false`, and per value outside a flag's `values` set.
 export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
     flags :: MutableMap<string, string> {}
-    positionals: string[]! = []
-    errors: string[]! = []
+    positionals: string[]!: []
+    errors: string[]!: []
 
     n :: args.len()
     i: usize = 0
@@ -252,7 +252,7 @@ accepts_value :: fn(spec: FlagSpec, value: string) -> bool {
 // Comma-separated accepted values, for an error message or a usage line. Empty
 // when the flag accepts any string.
 value_list :: fn(spec: FlagSpec) -> string {
-    names: string[]! = []
+    names: string[]!: []
     for v in spec.values {
         names.push(v.name)
     }
@@ -533,7 +533,7 @@ staged_specs :: fn() -> FlagSpec[] = [
     // `Str` is the majority case, so it is what an omitted `kind` means. A `Bool`
     // has to say so — see the spec-table test that every valued flag names its
     // value, which is what catches a `Bool` declared by omission.
-    specs: FlagSpec[] = [FlagSpec { .name = "out", .help = "h", .value_name = "path" }]
+    specs: FlagSpec[]: [FlagSpec { .name = "out", .help = "h", .value_name = "path" }]
     parsed :: parse(["--out=/tmp/x"], specs)
     assert_eq(parsed.errors.len(), 0)
     assert_eq(parsed.string_flag("out", ""), "/tmp/x")
@@ -543,7 +543,7 @@ staged_specs :: fn() -> FlagSpec[] = [
 }
 
 @test test_int_flag_accepts_and_reads :: fn() -> void {
-    specs: FlagSpec[] = [
+    specs: FlagSpec[]: [
         FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
     ]
     parsed :: parse(["--jobs=8"], specs)
@@ -558,7 +558,7 @@ staged_specs :: fn() -> FlagSpec[] = [
 @test test_int_flag_rejects_a_non_number :: fn() -> void {
     // The gap `.Int` closes: `--parallel=abc` used to be clamped to 1 by the
     // reader, with nothing said.
-    specs: FlagSpec[] = [
+    specs: FlagSpec[]: [
         FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
     ]
     parsed :: parse(["--jobs=abc"], specs)
@@ -568,7 +568,7 @@ staged_specs :: fn() -> FlagSpec[] = [
 }
 
 @test test_int_flag_absent_uses_default :: fn() -> void {
-    specs: FlagSpec[] = [
+    specs: FlagSpec[]: [
         FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
     ]
     assert_eq(parse([], specs).int_flag("jobs", 4), 4)

@@ -6,7 +6,7 @@
   TraitDecl      Tag                  :: Tag
   expr 19:28    StringLitExpr  :: string
   expr 19:45    IdentExpr      :: i32
-  expr 23:22    StringLitExpr  :: string
+  expr 23:21    StringLitExpr  :: string
   expr 24:12    StringLitExpr  :: string
   expr 24:15    IdentExpr      :: string
   expr 24:24    IdentExpr      :: i64

@@ -40,9 +40,9 @@ first_item :: fn(v: Value) -> i32 {
 }
 
 main :: fn() -> i32 {
-    s: Value = StructVal { .type_id = 100, .fields = [1, 2] }
-    a: Value = ArrayVal  { .type_id = 200, .items = [42, 43] }
-    i: Value = IntVal    { .value = 7 }
+    s: Value: StructVal { .type_id = 100, .fields = [1, 2] }
+    a: Value: ArrayVal  { .type_id = 200, .items = [42, 43] }
+    i: Value: IntVal    { .value = 7 }
     println("type_id(s)=${type_id_of(s)}")
     println("type_id(a)=${type_id_of(a)}")
     println("type_id(i)=${type_id_of(i)}")

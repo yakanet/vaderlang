@@ -117,7 +117,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx!, project: Lowered
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle — exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
-    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
+    emitted_fns: MutableMap<i32, bool>: MutableMap<i32, bool> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.
@@ -157,7 +157,7 @@ PendingFnInstance :: struct {
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
 fn_instance_key :: fn(inst: GenericFnInstance) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")
@@ -241,7 +241,7 @@ build_fn_instance_decl :: fn(
     }
     force_concrete :: flavor == InstanceFlavor.Mono || flavor == InstanceFlavor.Mixed
     types :: make_entry_types(owner_typed, subst)
-    params: LoweredParam[]! = []
+    params: LoweredParam[]!: []
     for ast_param in fn_decl.params {
         symbol_or_null :: lookup_local_symbol(project_ctx, owner_typed.resolved, ast_param.span)
         sym :: synth_param_or(symbol_or_null, ast_param.name, owner_typed)
@@ -251,7 +251,7 @@ build_fn_instance_decl :: fn(
         })
     }
     return_type :: substitute(return_type_of(fn_decl, types), subst)
-    entry_decl: Decl = fn_decl
+    entry_decl: Decl: fn_decl
     // A trait-dispatching (GATE A, per-instance-concrete) free generic fn
     // carries a NULL origin symbol so the bytecode body-emit indexes it by
     // MANGLE, not by the shared source-fn symbol id. Every per-key instance
@@ -262,7 +262,7 @@ build_fn_instance_decl :: fn(
     // which sets `.symbol = null` on impl members for the same reason.
     // Erased (non-dispatching) instances keep the symbol — they collapse to
     // one decl per symbol id via the erasure-dedupe below.
-    entry_symbol: Symbol | null = if force_concrete { null } else { inst.fn_symbol }
+    entry_symbol: Symbol | null: if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
         .id             = 0,
         .is_main        = false,

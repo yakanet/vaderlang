@@ -48,9 +48,9 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
         return ParseError { .msg = "empty input" }
     }
     acc: i64 = 0
-    b: i64 = i64(base)
+    b: i64: i64(base)
     for c in s.chars() {
-        d := hex_digit_value(c)
+        d :: hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
         }
@@ -74,10 +74,10 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
         return ParseError { .msg = "empty input" }
     }
     acc: u64 = 0
-    b: u64 = u64(base)
-    u64_max: u64 = 0xFFFF_FFFF_FFFF_FFFF
+    b: u64: u64(base)
+    u64_max: u64: 0xFFFF_FFFF_FFFF_FFFF
     for c in s.chars() {
-        d := hex_digit_value(c)
+        d :: hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
         }
@@ -114,14 +114,14 @@ export to_hex :: fn(self: u64) -> string {
     }
     // Build digits LSB-first into the buffer, then walk it backwards into the
     // builder so the output reads MSB-first.
-    rev: char[]! = []
-    base: u64 = 16
+    rev: char[]!: []
+    base: u64: 16
     x := self
     for x > 0 {
         rev.push(hex_digit(x % base))
         x = x / base
     }
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     n :: rev.len()
     for k in 0..<n {
         sb.append_char(rev[n - 1 - k])
@@ -137,8 +137,8 @@ export to_bin :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
     }
-    rev: char[]! = []
-    two: u64 = 2
+    rev: char[]!: []
+    two: u64: 2
     x := self
     for x > 0 {
         if x % two == 0 {
@@ -148,7 +148,7 @@ export to_bin :: fn(self: u64) -> string {
         }
         x = x / two
     }
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     n :: rev.len()
     for k in 0..<n {
         sb.append_char(rev[n - 1 - k])
@@ -192,7 +192,7 @@ export to_compact_str :: fn(self: f64) -> string {
 ///   `strip_numeric_text("0xFF", 16)  // "FF"`
 ///   `strip_numeric_text("1_000", 10)  // "1000"`
 export strip_numeric_text :: fn(text: string, base: i32) -> string {
-    start: usize = if base == 10 { 0 } else { 2 }
+    start: usize: if base == 10 { 0 } else { 2 }
     tb :: text.bytes()
     body :: tb[start..<tb.len()].bytes_to_string()
     // Fast path : no `_` to filter → return the slice directly.

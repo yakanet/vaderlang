@@ -93,7 +93,7 @@
 [26:36-26:37] lbrace         "{"
 [27:1-27:1  ] newline        "\n"
 [27:5-27:8  ] ident          "arr"
-[27:9-27:11 ] decl_var       ":="
+[27:9-27:11 ] decl_const     "::"
 [27:12-27:13] lbracket       "["
 [27:13-27:16] int_literal    "100" =100n
 [27:16-27:17] comma          ","
@@ -117,7 +117,7 @@
 [31:21-31:22] lbrace         "{"
 [32:1-32:1  ] newline        "\n"
 [33:5-33:6  ] ident          "a"
-[33:7-33:9  ] decl_var       ":="
+[33:7-33:9  ] decl_const     "::"
 [33:10-33:14] ident          "walk"
 [33:14-33:15] lparen         "("
 [33:15-33:16] lbracket       "["
@@ -135,16 +135,16 @@
 [36:29-36:30] lt             "<"
 [36:30-36:33] ident          "i32"
 [36:33-36:34] gt             ">"
-[36:35-36:36] assign         "="
-[36:37-36:38] lbracket       "["
-[36:38-36:39] int_literal    "1" =1n
-[36:39-36:40] comma          ","
-[36:41-36:42] int_literal    "2" =2n
-[36:42-36:43] comma          ","
-[36:44-36:45] int_literal    "3" =3n
-[36:45-36:46] comma          ","
-[36:47-36:48] int_literal    "4" =4n
-[36:48-36:49] rbracket       "]"
+[36:34-36:35] colon          ":"
+[36:36-36:37] lbracket       "["
+[36:37-36:38] int_literal    "1" =1n
+[36:38-36:39] comma          ","
+[36:40-36:41] int_literal    "2" =2n
+[36:41-36:42] comma          ","
+[36:43-36:44] int_literal    "3" =3n
+[36:44-36:45] comma          ","
+[36:46-36:47] int_literal    "4" =4n
+[36:47-36:48] rbracket       "]"
 [37:1-37:1  ] newline        "\n"
 [37:5-37:21 ] ident          "typed_iter_immut"
 [37:21-37:22] colon          ":"
@@ -162,7 +162,7 @@
 [37:47-37:48] rbracket       "]"
 [38:1-38:1  ] newline        "\n"
 [38:5-38:6  ] ident          "b"
-[38:7-38:9  ] decl_var       ":="
+[38:7-38:9  ] decl_const     "::"
 [38:10-38:14] ident          "walk"
 [38:14-38:15] lparen         "("
 [38:15-38:29] ident          "typed_iter_mut"
@@ -174,7 +174,7 @@
 [38:54-38:55] rparen         ")"
 [39:1-39:1  ] newline        "\n"
 [41:5-41:6  ] ident          "c"
-[41:7-41:9  ] decl_var       ":="
+[41:7-41:9  ] decl_const     "::"
 [41:10-41:14] ident          "walk"
 [41:14-41:15] lparen         "("
 [41:15-41:24] ident          "make_iter"

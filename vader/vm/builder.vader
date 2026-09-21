@@ -127,7 +127,7 @@ export add_type :: fn(self: ModuleBuilder!, type_decl: bc.BcType) -> i32 {
 /// only reads `params.len()` / `result`, and a `.virt` round-trip
 /// reconstructs the indices from the type table.
 synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignature {
-    params: bc.ValType[] = [bc.ValType.Any] * parameter_count
+    params: bc.ValType[]: [bc.ValType.Any] * parameter_count
     return bc.BcSignature {
         .params      = params,
         .result      = if has_return { bc.ValType.Any } else { bc.ValType.Void },
@@ -206,7 +206,7 @@ export add_function :: fn(self: ModuleBuilder!, function: FunctionBuilder) -> i3
         .name = "_",
         .val = bc.ValType.Any
     })
-    debug: (bc.DebugPos | null)[]! = [null] * function.ops.len()
+    debug: (bc.DebugPos | null)[]!: [null] * function.ops.len()
     self.functions.push(bc.BcFunction {
         .name       = function.name,
         .is_main    = false,
@@ -249,8 +249,8 @@ export finish :: fn(self: ModuleBuilder!) -> bc.BytecodeModule {
     if main_index >= 0 && usize(main_index) < self.functions.len() {
         self.functions[usize(main_index)].is_main = true
     }
-    no_vtables: bc.VtableRow[] = []
-    no_exports: bc.BcExport[] = []
+    no_vtables: bc.VtableRow[]: []
+    no_exports: bc.BcExport[]: []
     return bc.BytecodeModule {
         .name       = "",
         .types      = self.types,

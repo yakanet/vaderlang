@@ -21,7 +21,7 @@
   expr 30:22    DotVariantExpr :: Direction
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 32:14    DotVariantExpr :: Op
+  expr 32:13    DotVariantExpr :: Op
   expr 33:11    IdentExpr      :: Op
   expr 33:5     MatchExpr      :: void
   expr 34:18    CallExpr       :: void

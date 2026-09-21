@@ -172,9 +172,9 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
     // VSCode pops the popup as the user opens a call and slides
     // between args.
-    tp: JsonValue = JsonString { .value = "(" }
-    tc: JsonValue = JsonString { .value = "," }
-    triggers: JsonValue[] = [tp, tc]
+    tp: JsonValue: JsonString { .value = "(" }
+    tc: JsonValue: JsonString { .value = "," }
+    triggers: JsonValue[]: [tp, tc]
     sig_help :: MutableMap<string, JsonValue> {}
     sig_help["triggerCharacters"]   = JsonArray { .items = triggers }
     caps["signatureHelpProvider"]   = JsonObject { .entries = sig_help }
@@ -183,8 +183,8 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // (auto-triggered on identifier typing) plus member completion after `.`
     // (struct fields + impl methods, resolved through the typed cache). No lazy
     // `completionItem/resolve` round-trip.
-    dot_trigger: JsonValue = JsonString { .value = "." }
-    completion_triggers: JsonValue[] = [dot_trigger]
+    dot_trigger: JsonValue: JsonString { .value = "." }
+    completion_triggers: JsonValue[]: [dot_trigger]
     completion_provider :: MutableMap<string, JsonValue> {}
     completion_provider["resolveProvider"]   = JsonBool { .value = false }
     completion_provider["triggerCharacters"] = JsonArray { .items = completion_triggers }
@@ -193,7 +193,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // codeActionProvider : cursor-driven rewrites (match↔if, UFCS) plus the
     // file-level organize-imports source action. Advertise the kinds we emit so
     // clients can group / filter them (and surface "Organize Imports").
-    ca_kinds: JsonValue[] = [
+    ca_kinds: JsonValue[]: [
         JsonString { .value = "refactor.rewrite" },
         JsonString { .value = "source.organizeImports" },
     ]
@@ -204,7 +204,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
 }
 
 string_array :: fn(items: string[]) -> JsonValue {
-    out: JsonValue[]! = []
+    out: JsonValue[]!: []
     for s in items {
         out.push(JsonString { .value = s })
     }

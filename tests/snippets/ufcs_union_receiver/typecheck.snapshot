@@ -28,8 +28,8 @@
   expr 26:28    IdentExpr      :: Square
   expr 26:38    FieldExpr      :: i32
   expr 26:38    IdentExpr      :: Square
-  expr 31:16    StructLitExpr  :: Circle!
-  expr 32:16    StructLitExpr  :: Square!
+  expr 31:15    StructLitExpr  :: Circle!
+  expr 32:15    StructLitExpr  :: Square!
   expr 33:13    CallExpr       :: string
   expr 33:13    FieldExpr      :: fn() -> string
   expr 33:13    IdentExpr      :: Circle | Square

@@ -28,7 +28,7 @@ main :: fn() -> i32 {
     println("${r == w}")            // equality    → false
     println("${r + w}")             // arithmetic  → 8
 
-    pal: Palette = [10, 20, 30]     // array-literal coercion to the distinct
+    pal: Palette: [10, 20, 30]     // array-literal coercion to the distinct
     println("${20 in pal}")         // membership  → true (array Contains fallback)
     println("${99 in pal}")         // false
     return 0

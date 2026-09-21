@@ -727,7 +727,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
 /// Join the keys of `indices` with `sep` — the shared shape behind a union's
 /// variants and a fn's parameters.
 key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for i in indices {
         parts.push(bc_type_key(types, i))
     }

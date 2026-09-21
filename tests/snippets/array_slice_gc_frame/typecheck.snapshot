@@ -20,7 +20,7 @@
   expr 18:31    IdentExpr      :: i32[]
   expr 18:9     IdentExpr      :: i32
   expr 20:12    IdentExpr      :: i32
-  expr 24:18    SeqLitExpr     :: i32[]
+  expr 24:17    SeqLitExpr     :: i32[]
   expr 25:10    StructLitExpr  :: Foo!
   expr 26:10    CallExpr       :: i32
   expr 26:10    IdentExpr      :: fn(Foo, i32[]) -> i32

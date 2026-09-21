@@ -112,7 +112,7 @@ export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
         return i32(run_one_stdout(paths[0]))
     }
 
-    files: string[]! = []
+    files: string[]!: []
     for p in paths { collect_files(p, files) }
 
     drift   := 0

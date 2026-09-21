@@ -41,7 +41,7 @@
 [15:21-15:22] lbrace         "{"
 [16:1-16:1  ] newline        "\n"
 [16:5-16:12 ] ident          "matched"
-[16:13-16:15] decl_var       ":="
+[16:13-16:15] decl_const     "::"
 [16:16-16:21] kw_false       "false"
 [17:1-17:1  ] newline        "\n"
 [17:5-17:7  ] kw_if          "if"

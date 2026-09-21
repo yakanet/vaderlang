@@ -246,8 +246,8 @@ rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
                     // the retyped local) prepended as the FIRST arg — matches the
                     // lifted-fn ABI (`lower_lambda.vader::build_lifted_params` pushes
                     // the env as param 0).
-                    env_arg: LoweredExpr = LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
-                    new_args: LoweredExpr[]! = [env_arg]
+                    env_arg: LoweredExpr: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
+                    new_args: LoweredExpr[]!: [env_arg]
                     new_args.push_all(e.args)
                     e.args = new_args
                     e.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = clo.fn_sym }

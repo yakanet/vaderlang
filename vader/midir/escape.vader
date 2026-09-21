@@ -39,7 +39,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}
     for [_, m] in p.modules {
-        functions: CFGFunction[]! = []
+        functions: CFGFunction[]!: []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
@@ -67,7 +67,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // Collect alloc-producing locals.
     alloc_locals :: MutableSet<LocalId> {}
-    struct_news: LocalId[]! = []
+    struct_news: LocalId[]!: []
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
@@ -122,10 +122,10 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     }
     // Rewrite blocks if any flag changed.
     mutated := false
-    new_blocks: BasicBlock[]! = []
+    new_blocks: BasicBlock[]!: []
     for b in fn_.blocks {
         block_mutated := false
-        new_instrs: Instruction[]! = []
+        new_instrs: Instruction[]!: []
         for ins in b.instructions {
             match ins {
                 is InstrStructNew -> {

@@ -106,7 +106,7 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
             kept.add(name)
         }
     }
-    nodes: GraphNode[]! = []
+    nodes: GraphNode[]!: []
     for [_, module] in loaded.modules {
         name :: module.module.module_name
         if !kept.contains(name) {
@@ -116,7 +116,7 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
         // not a second opinion. One entry per `import` line across the module's
         // files, so a path can repeat — hence `seen`.
         seen :: MutableSet<string> {}
-        imports: string[]! = []
+        imports: string[]!: []
         for target in module.collected.import_paths {
             if target == name || !kept.contains(target) || !seen.add(target) {
                 continue

@@ -57,7 +57,7 @@ build :: fn(args: string[]) -> i32 {
 // field whose type is a sibling struct is recognised as one however the file
 // orders them, then render.
 derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
-    structs: AST.StructDecl[]! = []
+    structs: AST.StructDecl[]!: []
     for d in t.declarations {
         if d is AST.StructDecl as s {
             structs.push(s)
@@ -66,7 +66,7 @@ derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
     if structs.len() == 0 {
         return
     }
-    names: string[]! = []
+    names: string[]!: []
     for s in structs {
         names.push(s.name)
     }
@@ -113,7 +113,7 @@ render_field :: fn(ctx: BuildContext!, f: AST.StructField, siblings: string[]) -
         if element != "" {
             items :: "items_${f.name}"
             body :: StringBuilder {}
-            body.append("    ${items}: J.JsonValue[]! = []\n")
+            body.append("    ${items}: J.JsonValue[]!: []\n")
             body.append("    for element in ${access} {\n")
             body.append("        ${items}.push(${element})\n")
             body.append("    }\n")

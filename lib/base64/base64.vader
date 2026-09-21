@@ -21,7 +21,7 @@ ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 export encode :: fn(input: u8[]) -> string {
     bs :: input
     n :: bs.len()
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     i: usize = 0
     for i + 3 <= n {
         b0 :: u32(bs[i])
@@ -115,7 +115,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     // earlier version returned a `string` built via `char()` + StringBuilder,
     // which UTF-8-encodes each codepoint — so every octet >= 0x80 was doubled,
     // corrupting binary payloads.
-    out: u8[]! = []
+    out: u8[]!: []
     i: usize = 0
     full_quads :: n - 4
     for i < full_quads {
@@ -252,7 +252,7 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
     // Octets >= 0x80 round-trip exactly now that encode/decode are byte-oriented.
     // Asserting on the raw `u8[]` keeps this backend-agnostic (no `bytes_to_string`,
     // whose invalid-UTF-8 handling differs across backends).
-    raw: u8[] = [0x00, 0x80, 0xFF, 0xC3, 0x28, 0xA9]
+    raw: u8[]: [0x00, 0x80, 0xFF, 0xC3, 0x28, 0xA9]
     out :: decode(encode(raw))
     if out is Base64Error {
         assert(false, "binary roundtrip failed")

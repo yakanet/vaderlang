@@ -76,7 +76,7 @@ ENV_TOGGLES: EnvToggle[]: [
 // Every environment override in force, one check each. Unset variables produce
 // nothing — a report listing what is NOT set would bury what is.
 check_environment :: fn() -> Check[] {
-    out: Check[]! = []
+    out: Check[]!: []
     for name in GC_BYTE_VARS {
         raw :: get_env(name)
         if raw == null {

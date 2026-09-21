@@ -355,19 +355,19 @@ NamedDeclRefs :: struct {
 collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]!) -> NamedDeclRefs | null {
     return match d {
         is AST.FnDecl        -> {
-            r: string[]! = []
+            r: string[]!: []
             fn_refs(d, r)
             named_head(d.name, d.name_span, d.visibility, d.decorators, true, r)
         }
         is AST.ConstDecl     -> {
-            r: string[]! = []
+            r: string[]!: []
             collect_decorator_names(d.decorators, r)
             collect_opt_expr_names(d.ty, r)
             collect_expr_names(d.value, r)
             named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
         is AST.StructDecl    -> {
-            r: string[]! = []
+            r: string[]!: []
             collect_decorator_names(d.decorators, r)
             collect_type_param_names(d.type_params, r)
             for f in d.fields {
@@ -377,13 +377,13 @@ collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]!) -> NamedDeclRefs | nu
             named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
         is AST.EnumDecl      -> {
-            r: string[]! = []
+            r: string[]!: []
             collect_decorator_names(d.decorators, r)
             collect_opt_expr_names(d.repr, r)
             named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
         is AST.TraitDecl     -> {
-            r: string[]! = []
+            r: string[]!: []
             collect_decorator_names(d.decorators, r)
             collect_type_param_names(d.type_params, r)
             collect_opt_expr_names(d.requires, r)
@@ -393,7 +393,7 @@ collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]!) -> NamedDeclRefs | nu
             named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
         is AST.TypeAliasDecl -> {
-            r: string[]! = []
+            r: string[]!: []
             collect_decorator_names(d.decorators, r)
             collect_type_param_names(d.type_params, r)
             collect_expr_names(d.aliased, r)
@@ -494,9 +494,9 @@ export check_dead_code :: fn(
     discarded: AST.FnDecl[] = [],
 ) -> void {
     refs_by_name :: MutableMap<string, string[]!> {}
-    root_names: string[]! = []
-    seed_refs: string[]! = []
-    flaggable: DeadDecl[]! = []
+    root_names: string[]!: []
+    seed_refs: string[]!: []
+    flaggable: DeadDecl[]!: []
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs)
         if nd == null {
@@ -576,9 +576,9 @@ export DeadExport :: struct {
 /// @return       every dead exported fn, in the order encountered.
 export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExport[] {
     refs_by_name :: MutableMap<string, string[]!> {}
-    root_names: string[]! = []
-    seed_refs: string[]! = []
-    flaggable: DeadExport[]! = []
+    root_names: string[]!: []
+    seed_refs: string[]!: []
+    flaggable: DeadExport[]!: []
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs)
         if nd == null {
@@ -603,7 +603,7 @@ export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> De
         fn_refs(d, seed_refs)
     }
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
-    out: DeadExport[]! = []
+    out: DeadExport[]!: []
     for e in flaggable {
         if e.name !in reachable {
             out.push(e)
@@ -642,8 +642,8 @@ export UnusedExportReport :: struct {
 /// @param project  the loaded module graph (from `load_project` or the LSP cache).
 /// @return         findings + `has_main` (see `UnusedExportReport`).
 export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportReport {
-    all_decls: AST.Decl[]! = []
-    all_discarded: AST.FnDecl[]! = []
+    all_decls: AST.Decl[]!: []
+    all_discarded: AST.FnDecl[]!: []
     has_main := false
     // Where a module came from, not what it is called: `lib/` hosts every
     // namespace the toolchain ships, so a `std/` name test would put `json`,
@@ -692,7 +692,7 @@ export dead_export_diag :: fn(e: DeadExport) = warning(
 ///
 /// @param es  the dead exported fns to report.
 export dead_export_diags :: fn(es: DeadExport[]) -> Diagnostic[] {
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     for e in es {
         out.push(dead_export_diag(e))
     }
@@ -711,7 +711,7 @@ dead_count :: fn(src: string) -> usize = dead_count_in(src, "t")
 // that do not exercise it pass an ordinary name.
 dead_count_in :: fn(src: string, module_name: string) -> usize {
     parsed :: Parse.parse_source(src, "t.vader")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     check_dead_code(parsed.program.decls, module_name, diags)
     return diags.len()
 }

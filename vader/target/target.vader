@@ -193,14 +193,14 @@ import "std/testing"
 @test test_every_os_round_trips :: fn() -> void {
     // Pins `Os`'s Display impl against `parse_os`, so adding an OS to one
     // without the other fails here rather than at a call site.
-    all: Os[] = [.Windows, .Linux, .Darwin, .Wasi, .Browser]
+    all: Os[]: [.Windows, .Linux, .Darwin, .Wasi, .Browser]
     for os in all {
         assert(parse_os(os.to_string()) == os, "round trip ${os.to_string()}")
     }
 }
 
 @test test_every_arch_round_trips :: fn() -> void {
-    all: Arch[] = [.X86_64, .Arm64, .Wasm32]
+    all: Arch[]: [.X86_64, .Arm64, .Wasm32]
     for arch in all {
         assert(parse_arch(arch.to_string()) == arch, "round trip ${arch.to_string()}")
     }

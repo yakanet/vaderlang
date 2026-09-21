@@ -26,7 +26,7 @@ unwrap_or :: fn(x: UserId | null, fallback: i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    ids: UserId[] = [UserId(10), UserId(20)]
+    ids: UserId[]: [UserId(10), UserId(20)]
     present :: unwrap_or(UserId(12), -1)
     return sum_ids(ids) + present
 }

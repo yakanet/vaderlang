@@ -32,10 +32,10 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     if ctx.split {
         emit_mirrored_struct_typedefs(ctx, out)
     }
-    extern_decls: string[]! = []
-    seen_extern: string[]! = []
-    headers: string[]! = []
-    shims: string[]! = []
+    extern_decls: string[]!: []
+    seen_extern: string[]!: []
+    headers: string[]!: []
+    shims: string[]!: []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
@@ -285,7 +285,7 @@ push_leaf_asserts :: fn(
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.
 c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     nested :: nested_member_mirrors(types)
     for type_index in 0..<types.len() {
         t :: types[type_index]
@@ -344,7 +344,7 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> str
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 0..<imp.signature.params.len() {
         if is_abi_array(types, imp.signature.param_types[j]) {
             // One Vader array = ONE C argument, a bare pointer. A length, when
@@ -544,7 +544,7 @@ shim_linkage_prefix :: fn(split: bool) -> string = if split { "static inline " }
 
 import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
     return "${c_type_for_val_bare(sig.result)} ${host_shim_name(imp)}(${params})"
@@ -637,12 +637,12 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 /// across the free was exactly the use-after-free this claimed to prevent.
 user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     sig :: imp.signature
-    call_args: string[]! = []
-    lines: string[]! = []
-    free_lines: string[]! = []
-    after_lines: string[]! = []
-    write_back_roots: string[]! = []
-    write_backs: string[]! = []
+    call_args: string[]!: []
+    lines: string[]!: []
+    free_lines: string[]!: []
+    after_lines: string[]!: []
+    write_back_roots: string[]!: []
+    write_backs: string[]!: []
     for j in 0..<sig.params.len() {
         if is_abi_array(types, sig.param_types[j]) {
             // Lent for the duration of the call. A callback makes that call a

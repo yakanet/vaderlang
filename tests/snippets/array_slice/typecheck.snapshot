@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_slice
   FnDecl         main                 :: fn() -> i32
-  expr 13:18    SeqLitExpr     :: i32[]
+  expr 13:17    SeqLitExpr     :: i32[]
   expr 16:11    IdentExpr      :: i32[]
   expr 16:11    IndexExpr      :: i32[]
   expr 16:15    RangeExpr      :: Range<i32>!

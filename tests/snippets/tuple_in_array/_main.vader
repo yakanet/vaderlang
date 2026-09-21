@@ -3,7 +3,7 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    rows: [i32, string][] = [[1, "one"], [2, "two"], [3, "three"]]
+    rows: [i32, string][]: [[1, "one"], [2, "two"], [3, "three"]]
     for row in rows {
         println("${row.0} -> ${row.1}")
     }

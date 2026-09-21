@@ -110,7 +110,7 @@ import "std/string"
 }
 
 @test test_sort_empty :: fn() -> void {
-    empty: i32[] = []
+    empty: i32[]: []
     out :: sort(empty, (a: i32, b: i32) -> a < b)
     assert_eq(out.len(), 0)
 }

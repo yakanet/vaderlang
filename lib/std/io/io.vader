@@ -245,7 +245,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")
 /// @return      the line text.
 /// @error       `IOError` on EOF or stdin read failure.
 export read_line :: fn() -> string | IOError {
-    out: u8[]! = []
+    out: u8[]!: []
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
     for _ in 0..<MAX_LINE {
@@ -297,7 +297,7 @@ read_stdin :: fn(n: usize) -> string | IOError {
     if n == 0 {
         return ""
     }
-    buf: u8[]! = [0] * n
+    buf: u8[]!: [0] * n
     got: usize = 0
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
@@ -305,7 +305,7 @@ read_stdin :: fn(n: usize) -> string | IOError {
         if got >= n {
             break
         }
-        slice: u8[]! = [0] * (n - got)
+        slice: u8[]!: [0] * (n - got)
         r :: sys_read(0, slice, n - got)
         if r < 0 {
             return IOError { .msg = "stdin read failed" }
@@ -441,8 +441,8 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     // Read to end of file in chunks rather than sizing it first: `fseek` +
     // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
     // anything that is not a regular file.
-    out: u8[]! = []
-    chunk: u8[]! = [0] * READ_CHUNK
+    out: u8[]!: []
+    chunk: u8[]!: [0] * READ_CHUNK
     for {
         n :: sys_fread(chunk, 1, chunk.len(), f)
         if n > 0 {
@@ -770,7 +770,7 @@ read_dir :: fn(path: string) -> string[]! | IOError {
         .msg = "read_dir: cannot open `${path}`",
     }
     defer sys_closedir(d)
-    out: string[]! = []
+    out: string[]!: []
     for {
         p :: sys_readdir(d) ?? break
         name :: dirent_name(p)
@@ -834,14 +834,14 @@ current_executable_location :: fn() -> string {
 
 @target(.Darwin)
 current_executable_location :: fn() -> string {
-    raw: u8[]! = [0] * 4096
-    cap: u32 = 4096
+    raw: u8[]!: [0] * 4096
+    cap: u32: 4096
     if ns_get_executable_path(raw, cap) != 0 {
         return "."
     }
     // What Darwin hands back may be relative or carry symlinks — `argv[0]` as
     // the kernel saw it. `realpath` is what makes it usable as a sidecar anchor.
-    resolved: u8[]! = [0] * 4096
+    resolved: u8[]!: [0] * 4096
     if sys_realpath(up_to_nul(raw), resolved) == null {
         return "."
     }
@@ -870,7 +870,7 @@ export current_working_directory :: fn() -> string
 
 @target(.Linux, .Darwin)
 current_working_directory :: fn() -> string {
-    buf: u8[]! = [0] * 4096
+    buf: u8[]!: [0] * 4096
     if sys_getcwd(buf, buf.len()) == null {
         return "."
     }
@@ -950,7 +950,7 @@ temp_dir :: fn() -> string {
 
 /// UTF-8 to a NUL-terminated UTF-16 buffer, held as BYTES; empty on failure.
 to_wide :: fn(s: string) -> u16[] {
-    empty: u16[]! = []
+    empty: u16[]!: []
     // `-1` measures the NUL-terminated input AND counts the terminator, so the
     // result is directly usable as an `LPCWSTR`. The count is in UNITS; the
     // buffer that holds them is twice that in bytes.
@@ -958,7 +958,7 @@ to_wide :: fn(s: string) -> u16[] {
     if units <= 0 {
         return []
     }
-    out: u16[]! = [0] * usize(units)
+    out: u16[]!: [0] * usize(units)
     if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, units) <= 0 {
         return []
     }
@@ -970,12 +970,12 @@ to_wide :: fn(s: string) -> u16[] {
 /// @param units  how many units to read, EXCLUDING any NUL — which is what
 ///               every Win32 length already reports.
 from_wide :: fn(w: u16[], units: i32) -> string {
-    empty: u8[]! = []
+    empty: u8[]!: []
     n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
     if n <= 0 {
         return ""
     }
-    out: u8[]! = [0] * usize(n)
+    out: u8[]!: [0] * usize(n)
     if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
         return ""
     }
@@ -987,7 +987,7 @@ from_wide :: fn(w: u16[], units: i32) -> string {
 // program that touches `std/io`, and the whole borrowing was one character.
 to_slash :: fn(p: string) -> string {
     b :: p.bytes()
-    out: u8[]! = [0] * b.len()
+    out: u8[]!: [0] * b.len()
     for i in 0..<b.len() {
         out[i] = if b[i] == '\\' { '/' } else { b[i] }
     }

@@ -46,9 +46,9 @@ twice :: fn<T>(x: Doubler<T>) -> T {
 }
 
 main :: fn() -> i32 {
-    a := count(0..<5)
-    b := count([10, 20, 30])
-    c := invoke(Hello {})
-    d := twice(7)
+    a :: count(0..<5)
+    b :: count([10, 20, 30])
+    c :: invoke(Hello {})
+    d :: twice(7)
     return a + b + c + d
 }

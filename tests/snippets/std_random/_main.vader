@@ -11,8 +11,8 @@ import "random"
 main :: fn() -> i32 {
     // Determinism : two RNGs with the same seed produce the same first
     // few draws.
-    a := new_seeded(u64(42))
-    b := new_seeded(u64(42))
+    a :: new_seeded(u64(42))
+    b :: new_seeded(u64(42))
     same: bool = true
     k: i32 = 0
     for k < 8 {
@@ -22,7 +22,7 @@ main :: fn() -> i32 {
     println("deterministic=${same}")
 
     // seed=0 must still produce a non-zero stream — splitmix64 fans out.
-    z := new_seeded(u64(0))
+    z :: new_seeded(u64(0))
     nonzero: bool = false
     j: i32 = 0
     for j < 4 {
@@ -32,7 +32,7 @@ main :: fn() -> i32 {
     println("zero_seed_nonzero=${nonzero}")
 
     // Bounded ranges
-    r := new_seeded(u64(7))
+    r :: new_seeded(u64(7))
     in_range: bool = true
     m: i32 = 0
     for m < 100 {
@@ -44,7 +44,7 @@ main :: fn() -> i32 {
     println("range_i32_in_bounds=${in_range}")
 
     // unit_f64 in [0, 1)
-    u := new_seeded(u64(123))
+    u :: new_seeded(u64(123))
     f_in_range: bool = true
     n: i32 = 0
     for n < 100 {
@@ -56,8 +56,8 @@ main :: fn() -> i32 {
     println("unit_f64_in_bounds=${f_in_range}")
 
     // shuffle preserves multiset
-    s := new_seeded(u64(99))
-    arr: i32[]! = [1, 2, 3, 4, 5, 6, 7, 8]
+    s :: new_seeded(u64(99))
+    arr: i32[]!: [1, 2, 3, 4, 5, 6, 7, 8]
     s.shuffle(arr)
     println("shuffled_len=${arr.len()}")
     sum: i32 = 0
@@ -67,7 +67,7 @@ main :: fn() -> i32 {
     println("shuffled_sum=${sum}")
 
     // next_bool sees both polarities within 64 draws
-    bs := new_seeded(u64(2026))
+    bs :: new_seeded(u64(2026))
     seen_t: bool = false
     seen_f: bool = false
     p: i32 = 0

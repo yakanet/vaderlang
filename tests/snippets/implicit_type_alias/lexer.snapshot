@@ -53,8 +53,8 @@
 [21:5-21:6  ] ident          "n"
 [21:6-21:7  ] colon          ":"
 [21:8-21:11 ] ident          "i32"
-[21:12-21:13] assign         "="
-[21:14-21:16] int_literal    "42" =42n
+[21:11-21:12] colon          ":"
+[21:13-21:15] int_literal    "42" =42n
 [22:1-22:1  ] newline        "\n"
 [22:5-22:11 ] kw_return      "return"
 [22:12-22:20] ident          "classify"

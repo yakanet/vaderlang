@@ -125,16 +125,16 @@ halve :: fn(v: i32) -> i32 | Error {
 
 @test
 test_or :: fn() -> void {
-    present: i32 | null = 7
-    absent:  i32 | null = null
+    present: i32 | null: 7
+    absent:  i32 | null: null
     assert_eq(present.or(0), 7)
     assert_eq(absent.or(0), 0)
 }
 
 @test
 test_or_else :: fn() -> void {
-    present: i32 | null = 5
-    absent:  i32 | null = null
+    present: i32 | null: 5
+    absent:  i32 | null: null
     assert_eq(present.or_else(fn() { return 99 }), 5)
     assert_eq(absent.or_else(fn() { return 99 }), 99)
 }

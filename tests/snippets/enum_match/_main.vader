@@ -29,7 +29,7 @@ export same_color :: fn(a: Color, b: Color) -> bool {
 
 main :: fn() -> i32 {
     // dot-shorthand in variable declaration
-    c: Color = .Green
+    c: Color: .Green
     println(label(c))
     println(label(.Red))
     println(label(.Blue))
@@ -43,21 +43,21 @@ main :: fn() -> i32 {
     println("${c != .Green}")
 
     // enum as return value
-    s := classify(-5)
+    s :: classify(-5)
     match s {
         .Info    -> println("info")
         .Warning -> println("warning")
         .Error   -> println("error")
     }
 
-    s2 := classify(0)
+    s2 :: classify(0)
     match s2 {
         .Info    -> println("info")
         .Warning -> println("warning")
         .Error   -> println("error")
     }
 
-    s3 := classify(1)
+    s3 :: classify(1)
     match s3 {
         .Info    -> println("info")
         .Warning -> println("warning")

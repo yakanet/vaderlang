@@ -16,7 +16,7 @@ import "std/io"
 
 // The shape the pass exists for: nothing in the body but the push.
 tight :: fn(n: i32) -> i32[]! {
-    out: i32[]! = []
+    out: i32[]!: []
     for i in 0..<n {
         out.push(i * 2)
     }
@@ -27,7 +27,7 @@ tight :: fn(n: i32) -> i32[]! {
 mk :: fn(i: i32) -> string = "v${i}"
 
 allocates :: fn(n: i32) -> string[]! {
-    out: string[]! = []
+    out: string[]!: []
     for i in 0..<n {
         out.push(mk(i))
     }
@@ -36,7 +36,7 @@ allocates :: fn(n: i32) -> string[]! {
 
 // The body READS the array, so the cached length would have to be visible to it.
 reads_itself :: fn(n: i32) -> i32[]! {
-    out: i32[]! = []
+    out: i32[]!: []
     for i in 0..<n {
         out.push(i)
         if out.len() > 3 {
@@ -48,7 +48,7 @@ reads_itself :: fn(n: i32) -> i32[]! {
 
 // `break` is an extra exit the first cut does not write back at.
 with_break :: fn(n: i32) -> i32[]! {
-    out: i32[]! = []
+    out: i32[]!: []
     for i in 0..<n {
         if i == 3 {
             break
@@ -61,7 +61,7 @@ with_break :: fn(n: i32) -> i32[]! {
 // Boxed elements: the collector scans `buf->length` slots here, so a stale
 // length would lose references rather than just returning a wrong count.
 boxed :: fn(n: i32) -> string[]! {
-    out: string[]! = []
+    out: string[]!: []
     for _ in 0..<n {
         out.push("x")
     }
@@ -73,8 +73,8 @@ boxed :: fn(n: i32) -> string[]! {
 // a view detaches it, which is what keeps the ANSWER right either way ; the
 // analysis does not get to lean on that.
 into_view :: fn() -> i32[]! {
-    base: i32[]! = [10, 20, 30, 40, 50]
-    v: i32[]! = base[1..<3]
+    base: i32[]!: [10, 20, 30, 40, 50]
+    v: i32[]!: base[1..<3]
     for i in 0..<3 {
         v.push(100 + i)
     }
@@ -84,9 +84,9 @@ into_view :: fn() -> i32[]! {
 // Two loops, two arrays, one nested in the other.
 nested :: fn(n: i32) -> i32 {
     total := 0
-    outer: i32[]! = []
+    outer: i32[]!: []
     for i in 0..<n {
-        inner: i32[]! = []
+        inner: i32[]!: []
         for j in 0..<n {
             inner.push(i * j)
         }
@@ -103,15 +103,15 @@ nested :: fn(n: i32) -> i32 {
 widths :: fn(n: i32) -> string {
     // One loop each : a loop pushing to several arrays has no single target and
     // is declined before the width ever matters.
-    bytes: u8[]! = []
+    bytes: u8[]!: []
     for i in 0..<n {
         bytes.push(u8(i % 200))
     }
-    shorts: i16[]! = []
+    shorts: i16[]!: []
     for i in 0..<n {
         shorts.push(i16(i * 3))
     }
-    floats: f32[]! = []
+    floats: f32[]!: []
     for i in 0..<n {
         floats.push(f32(i) * 1.5)
     }
@@ -155,7 +155,7 @@ aliased :: fn(n: i32) -> i32 {
 // A closure minted BEFORE the loop holds the array in its environment, so the
 // call inside the loop reaches it without the loop body naming it.
 captured :: fn(n: i32) -> i32 {
-    out: i32[]! = []
+    out: i32[]!: []
     observe :: () -> i32(out.len())
     witness := 0
     for i in 0..<n {
@@ -168,7 +168,7 @@ captured :: fn(n: i32) -> i32 {
 // A second NAME taken before the loop. Same hole as `aliased`, reached through a
 // plain ident rather than a field read.
 two_names :: fn(n: i32) -> i32 {
-    out: i32[]! = []
+    out: i32[]!: []
     alias :: out
     witness := 0
     for i in 0..<n {
@@ -197,7 +197,7 @@ rebound :: fn(n: i32) -> i32 {
 // lift — the write-back has already run. `bench/arr_push` is this shape, so
 // telling a read from a leak is what keeps it.
 len_after :: fn(n: i32) -> i32 {
-    out: i32[]! = []
+    out: i32[]!: []
     for index in 0..<n {
         out.push(index * 2)
     }

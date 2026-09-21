@@ -18,7 +18,7 @@ import "vader/text"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("# Tokens")
     for t in l.tokens {
         sb.append_char('\n')

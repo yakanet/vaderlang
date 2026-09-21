@@ -39,7 +39,7 @@ export BigInt :: u32[]
 /// @param add   a u32 addend folded into the low limb (carrying up).
 /// @return      `self * mul + add`, one limb wider when it overflows.
 export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
-    out: BigInt = []
+    out: BigInt: []
     carry: u64 = u64(add)
     for i in 0..<self.len() {
         v :: u64(self[i]) * u64(mul) + carry
@@ -67,7 +67,7 @@ BigInt implements Mul<u32, BigInt> {
 /// sticky-bit rounding in the slow-path float parser.
 BigInt implements Div<u32, [BigInt, u32]> {
     div :: fn(self, d: u32) -> [BigInt, u32] {
-        msb: BigInt = []          // quotient limbs, most-significant first
+        msb: BigInt: []          // quotient limbs, most-significant first
         rem: u64 = 0
         i: i32 = i32(self.len()) - 1
         for i >= 0 {
@@ -76,7 +76,7 @@ BigInt implements Div<u32, [BigInt, u32]> {
             rem = cur % u64(d)
             i -= 1
         }
-        out: BigInt = []          // reverse to little-endian
+        out: BigInt: []          // reverse to little-endian
         j: i32 = i32(msb.len()) - 1
         for j >= 0 {
             out.push(msb[usize(j)])
@@ -98,7 +98,7 @@ export div_small :: fn(self: BigInt, d: u32) -> BigInt {
 /// @param bits  the shift amount in bits.
 /// @return      `self << bits`.
 export shl :: fn(self: BigInt, bits: i32) -> BigInt {
-    out: BigInt = []
+    out: BigInt: []
     for _z in 0..<usize(bits / 32) { out.push(0) }
     bit_shift :: bits % 32
     if bit_shift == 0 {
@@ -181,7 +181,7 @@ export top128 :: fn(self: BigInt) -> [u64, u64] {
 /// @param k  a non-negative exponent.
 /// @return   the power of two with bit `k` set and all others clear.
 export two_pow :: fn(k: i32) -> BigInt {
-    out: BigInt = []
+    out: BigInt: []
     for _z in 0..<(k / 32) { out.push(0) }
     out.push(u32(1) << u32(k % 32))
     return out
@@ -220,7 +220,7 @@ clz32 :: fn(x: u32) -> i32 {
 import "std/testing"
 
 @test test_mul_div_small_roundtrip :: fn() -> void {
-    one: BigInt = [1]
+    one: BigInt: [1]
     p125 :: one * u32(5) * u32(5) * u32(5)   // 5^3
     assert_eq(p125.bits64(0), u64(125))
     assert_eq(p125.div_small(5).bits64(0), u64(25))
@@ -233,11 +233,11 @@ import "std/testing"
 }
 
 @test test_shl_zero_below :: fn() -> void {
-    one: BigInt = [1]
+    one: BigInt: [1]
     shifted :: one.shl(70)                    // 2^70
     assert_eq(shifted.bits64(70), u64(1))
     assert_eq(shifted.is_zero(), false)
-    zero: BigInt = [0]
+    zero: BigInt: [0]
     assert_eq(zero.is_zero(), true)
     assert_eq(shifted.any_below(71), true)    // the set bit at 70 is below 71
     assert_eq(shifted.any_below(70), false)   // nothing strictly below 70

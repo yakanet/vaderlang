@@ -244,12 +244,12 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         is TraitType     -> { return BcRef { .trait_name = t.symbol.name } }
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
         is UnionType     -> {
-            variant_indices: i32[]! = []
+            variant_indices: i32[]!: []
             for v in t.variants { variant_indices.push(intern_type(v, ctx)) }
             return BcUnion { .variants = variant_indices }
         }
         is FnType -> {
-            param_indices: i32[]! = []
+            param_indices: i32[]!: []
             for p in t.params { param_indices.push(intern_type(p, ctx)) }
             return BcFn {
                 .params = param_indices,
@@ -266,7 +266,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         // same key `intern_type` dedupes on, so two tuples share a name exactly
         // when they share a slot.
         is TupleType -> {
-            fields: BcField[]! = []
+            fields: BcField[]!: []
             for i in 0..<t.elements.len() {
                 fields.push(BcField {
                     .name       = "_${i}",
@@ -365,7 +365,7 @@ import "std/testing"
 @test test_immutability_never_reaches_the_bytecode :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "Cfg", "test", "test", .Public, null)
-    i32_ty: Type = mk_primitive("i32")
+    i32_ty: Type: mk_primitive("i32")
 
     mutable_struct   :: mk_struct(sym, [], false)
     immutable_struct :: mk_struct(sym, [], true)

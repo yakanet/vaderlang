@@ -17,7 +17,7 @@ i32 implements Describe {
 }
 
 main :: fn() -> i32 {
-    x: i32 = 42
+    x: i32: 42
     println(x.describe())
     return 0
 }

@@ -30,7 +30,7 @@ export check_block :: fn(
     // { return … }`) so subsequent stmts see the complement type.
     // Each entry holds the binding's sym_id + the static type to
     // restore on block exit (mirrors `pop_narrow` semantics).
-    divergent_narrows: DivergentNarrow[]! = []
+    divergent_narrows: DivergentNarrow[]!: []
     // W0002 — track the first stmt past a divergent guard so we can
     // warn once per block.
     first_unreachable_span: Span | null = null
@@ -2145,7 +2145,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {

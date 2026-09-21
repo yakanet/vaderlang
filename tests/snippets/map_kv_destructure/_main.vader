@@ -9,7 +9,7 @@ import "std/collections"
 // `let [k, v] := e` destructure : `Entry` is a 3-field struct, not a
 // tuple, and coerces to `[K, V]` via `Entry implements Into<[K, V]>`.
 main :: fn() -> i32 {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     m["a"] = 1
     m["b"] = 2
     m["c"] = 3

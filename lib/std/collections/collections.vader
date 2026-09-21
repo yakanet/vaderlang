@@ -83,7 +83,7 @@ slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
 ensure_index :: fn<K, V>(self: MutableMap<K, V>!) -> void {
     if self.index.len() == 0 {
-        idx: i32[]! = []
+        idx: i32[]!: []
         for 0..<MINIMAL_INDEX_COUNT { idx.push(EMPTY_SLOT) }
         self.index = idx
         self.mask = MINIMAL_INDEX_COUNT - 1
@@ -94,7 +94,7 @@ ensure_index :: fn<K, V>(self: MutableMap<K, V>!) -> void {
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
 rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, new_count: usize) -> void {
-    fresh: i32[]! = []
+    fresh: i32[]!: []
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
     for e in 0..<self.size {
@@ -268,7 +268,7 @@ MutableMap<K, V> implements Contains<K> {
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
 export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
-    out: K[]! = [] * self.size
+    out: K[]!: [] * self.size
     for e in 0..<self.size { out.push(self.ekeys[e]) }
     return out
 }
@@ -278,7 +278,7 @@ export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
 export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
-    out: V[]! = [] * self.size
+    out: V[]!: [] * self.size
     for e in 0..<self.size { out.push(self.evals[e]) }
     return out
 }
@@ -367,7 +367,7 @@ MutableSet<T> implements<T> Into<Iterator<T>> {
 import "std/testing"
 
 @test test_map_put_get :: fn() -> void {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     m["one"] = 1
     m["two"] = 2
     m["three"] = 3
@@ -383,7 +383,7 @@ import "std/testing"
 }
 
 @test test_map_overwrite :: fn() -> void {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     m["k"] = 1
     m["k"] = 99
     assert_eq(m.len(), 1)
@@ -394,21 +394,21 @@ import "std/testing"
 }
 
 @test test_map_contains_key :: fn() -> void {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     m["k"] = 1
     assert(m.contains_key("k"), "should contain k")
     assert(!m.contains_key("nope"), "should not contain nope")
 }
 
 @test test_map_is_empty :: fn() -> void {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     assert(m.is_empty(), "fresh map is empty")
     m["x"] = 1
     assert(!m.is_empty(), "after put no longer empty")
 }
 
 @test test_set_add_contains :: fn() -> void {
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     s.add(10)
     s.add(20)
     s.add(10)
@@ -418,7 +418,7 @@ import "std/testing"
 }
 
 @test test_map_remove :: fn() -> void {
-    m := MutableMap<string, i32> {}
+    m :: MutableMap<string, i32> {}
     m["a"] = 1
     m["b"] = 2
     assert(m.remove("a"), "removing present key returns true")
@@ -430,7 +430,7 @@ import "std/testing"
 }
 
 @test test_set_remove :: fn() -> void {
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     s.add(10)
     s.add(20)
     assert(s.remove(10), "removing present member returns true")
@@ -441,7 +441,7 @@ import "std/testing"
 }
 
 @test test_map_iteration_order :: fn() -> void {
-    m := MutableMap<i32, i32> {}
+    m :: MutableMap<i32, i32> {}
     for i in 0..<usize(50) { m[i32(i)] = i32(i) * 2 }
     seen := 0
     sum := 0
@@ -455,7 +455,7 @@ import "std/testing"
 }
 
 @test test_map_remove_then_reinsert :: fn() -> void {
-    m := MutableMap<i32, i32> {}
+    m :: MutableMap<i32, i32> {}
     for i in 0..<usize(100) { m[i32(i)] = i32(i) }
     for i in 0..<usize(100) { if i % 3 == 0 { m.remove(i32(i)) } }
     for i in 0..<usize(100) { if i % 3 == 0 { m[i32(i)] = i32(i) * 7 } }

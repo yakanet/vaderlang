@@ -9,7 +9,7 @@ module "snippet"
 import "std/collections"
 
 main :: fn() -> i32 {
-    s := MutableSet<i32> {}
+    s :: MutableSet<i32> {}
     s.add(1)
     return i32(s.inner.size)
 }

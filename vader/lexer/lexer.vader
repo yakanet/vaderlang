@@ -99,7 +99,7 @@ peek :: fn(l: Lexer) -> char {
 }
 
 peek_at :: fn(l: Lexer, n: usize) -> char {
-    p := l.pos + n
+    p :: l.pos + n
     if p >= l.bytes.len() {
         return '\0'
     }
@@ -146,7 +146,7 @@ emit :: fn(l: Lexer!, t: Token) -> void {
 }
 
 push_simple :: fn(l: Lexer!, kind: TokenKind, text: string, start: Position) -> void {
-    span := Span { .start = start, .end = l.position_here() }
+    span :: Span { .start = start, .end = l.position_here() }
     l.emit(make_token(kind, text, span))
 }
 
@@ -164,7 +164,7 @@ error_span :: fn(l: Lexer, start: Position) =
 skip_horizontal :: fn(l: Lexer!) -> void {
     in_interp :: l.interp_stack.len() > 0
     for !l.at_end() {
-        c := l.peek()
+        c :: l.peek()
         if c == ' ' || c == '\t' {
             l.advance(1)
         } else if in_interp && (c == '\n' || c == '\r') {
@@ -178,7 +178,7 @@ skip_horizontal :: fn(l: Lexer!) -> void {
 }
 
 lex_block_comment :: fn(l: Lexer!) -> void {
-    start := l.position_here()
+    start :: l.position_here()
     l.advance(2)  // consume `/*`
     depth := 1
     for !l.at_end() && depth > 0 {
@@ -218,8 +218,8 @@ handle_newline :: fn(l: Lexer!) -> void {
     // Mirrors the trailing-operator rule on the suppress-after side.
     if l.peeks_leading_continuation() { return }
 
-    here := l.position_here()
-    span := Span { .start = here, .end = here }
+    here :: l.position_here()
+    span :: Span { .start = here, .end = here }
     l.emit(make_token(.Newline, "\n", span))
 }
 
@@ -250,12 +250,12 @@ peeks_leading_continuation :: fn(l: Lexer) -> bool {
 // ---- identifiers ----------------------------------------------------------
 
 lex_ident :: fn(l: Lexer!) -> void {
-    start := l.position_here()
+    start :: l.position_here()
     for !l.at_end() && l.peek().is_ident_continue() {
         l.advance(1)
     }
-    text := l.bytes[start.offset..<l.pos].bytes_to_string()
-    kw := lookup_keyword(text)
+    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
+    kw :: lookup_keyword(text)
     l.push_simple(kw, text, start)
 }
 
@@ -269,14 +269,14 @@ consume_digits :: fn(l: Lexer!, base: i32, start_anchor: Position) -> void {
     last_was_underscore := false
     first := true
     for !l.at_end() {
-        c := l.peek()
+        c :: l.peek()
         if c == '_' {
             // If the next char starts an identifier and isn't a digit in this
             // base, the underscore belongs to the suffix (`42_i32`, `0xFF_u8`).
             // A second `_` is consumed in-place so `1__0` surfaces as the
             // canonical "underscore not allowed here" error rather than being
             // misclassified as a suffix start.
-            next := l.peek_at(1)
+            next :: l.peek_at(1)
             if next != '_' && next.is_ident_start() && !is_digit_in_base(next, base) {
                 return
             }
@@ -306,7 +306,7 @@ consume_digits :: fn(l: Lexer!, base: i32, start_anchor: Position) -> void {
 }
 
 lex_number :: fn(l: Lexer!) -> void {
-    start := l.position_here()
+    start :: l.position_here()
     is_float := false
 
     // Detect base prefix: `0x` / `0X` (hex), `0b` / `0B` (binary),
@@ -314,14 +314,14 @@ lex_number :: fn(l: Lexer!) -> void {
     // `00.5`). Hex/bin/oct cannot be float and reject suffixed `e`/`E`.
     base: i32 = 10
     if l.peek() == '0' {
-        next := l.peek_at(1)
+        next :: l.peek_at(1)
         if next == 'x' || next == 'X' { base = 16 }
         else if next == 'b' || next == 'B' { base = 2 }
         else if next == 'o' || next == 'O' { base = 8 }
     }
     if base != 10 {
         l.advance(2)
-        digits_start := l.pos
+        digits_start :: l.pos
         l.consume_digits(base, start)
         if l.pos == digits_start {
             l.push_error(.MalformedNumericLiteral, l.error_span(start), "expected digits after base prefix")
@@ -351,24 +351,24 @@ lex_number :: fn(l: Lexer!) -> void {
         }
     }
 
-    text := l.bytes[start.offset..<l.pos].bytes_to_string()
+    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
     // Typed numeric suffixes were removed — the literal coerces from context.
     // A trailing identifier here is a leftover suffix ; reject it with a clear
     // message instead of letting it lex as a separate token and fail downstream.
     if (l.peek() == '_' && l.peek_at(1).is_ident_start()) || l.peek().is_ident_start() {
         if l.peek() == '_' { l.advance(1) }
-        suff_start := l.pos
+        suff_start :: l.pos
         for !l.at_end() && l.peek().is_ident_continue() { l.advance(1) }
         suff :: l.bytes[suff_start..<l.pos].bytes_to_string()
         l.push_error(.MalformedNumericLiteral, l.error_span(start),
             "typed numeric suffix `${suff}` is no longer supported — the literal coerces from context")
     }
-    span := Span { .start = start, .end = l.position_here() }
+    span :: Span { .start = start, .end = l.position_here() }
     kind: TokenKind = .IntLit
     if is_float {
         kind = .FloatLit
     }
-    t := make_token(kind, text, span)
+    t :: make_token(kind, text, span)
     // Digit shape was already validated by the scan above, so any parse
     // failure here is "shouldn't happen" — swallow into 0 / 0.0 so the
     // Token carries a placeholder value instead of bubbling a Trap up
@@ -501,7 +501,7 @@ lex_char :: fn(l: Lexer!) -> void {
         l.advance(1)
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "character literal cannot be empty")
         text :: l.bytes[start.offset..<l.pos].bytes_to_string()
-        t := make_token(.CharLit, text, l.error_span(start))
+        t :: make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
         return
@@ -513,7 +513,7 @@ lex_char :: fn(l: Lexer!) -> void {
     } else if l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "unterminated character literal")
         text :: l.bytes[start.offset..<l.pos].bytes_to_string()
-        t := make_token(.CharLit, text, l.error_span(start))
+        t :: make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
         return
@@ -541,7 +541,7 @@ lex_char :: fn(l: Lexer!) -> void {
     }
 
     text :: l.bytes[start.offset..<l.pos].bytes_to_string()
-    t := make_token(.CharLit, text, l.error_span(start))
+    t :: make_token(.CharLit, text, l.error_span(start))
     t.value = cp
     l.emit(t)
 }
@@ -600,7 +600,7 @@ flush_string_part :: fn(l: Lexer!, sb: StringBuilder, part_start: Position, has_
     if !has_part { return }
     text :: sb.to_string()
     span :: Span { .start = part_start, .end = l.position_here() }
-    t := make_token(.StringPart, text, span)
+    t :: make_token(.StringPart, text, span)
     t.value = text
     l.emit(t)
 }
@@ -709,12 +709,12 @@ lex_string_body :: fn(l: Lexer!, triple: bool, raw: bool) -> void {
 // Return true if dispatched. The dispatch order matters: 3-char ops first,
 // then 2-char, then 1-char.
 try_lex_operator :: fn(l: Lexer!) -> bool {
-    c := l.peek()
-    c2 := l.peek_at(1)
+    c :: l.peek()
+    c2 :: l.peek_at(1)
 
     // Range ops: `..<` and `..=`. Spread: `...`.
     if c == '.' && c2 == '.' {
-        c3 := l.peek_at(2)
+        c3 :: l.peek_at(2)
         if c3 == '<' { return l.emit_and_advance(.RangeExcl, "..<") }
         if c3 == '=' { return l.emit_and_advance(.RangeIncl, "..=") }
         if c3 == '.' { return l.emit_and_advance(.DotDotDot, "...") }
@@ -763,28 +763,28 @@ try_lex_operator :: fn(l: Lexer!) -> bool {
     // Brackets — `(` and `[` raise paren_depth, `{` does not (blocks separate
     // statements with newlines).
     if c == '(' {
-        start := l.position_here()
+        start :: l.position_here()
         l.advance(1)
         l.paren_depth = l.paren_depth + 1
         l.push_simple(.LParen, "(", start)
         return true
     }
     if c == '[' {
-        start := l.position_here()
+        start :: l.position_here()
         l.advance(1)
         l.paren_depth = l.paren_depth + 1
         l.push_simple(.LBracket, "[", start)
         return true
     }
     if c == ')' {
-        start := l.position_here()
+        start :: l.position_here()
         l.advance(1)
         if l.paren_depth > 0 { l.paren_depth = l.paren_depth - 1 }
         l.push_simple(.RParen, ")", start)
         return true
     }
     if c == ']' {
-        start := l.position_here()
+        start :: l.position_here()
         l.advance(1)
         if l.paren_depth > 0 { l.paren_depth = l.paren_depth - 1 }
         l.push_simple(.RBracket, "]", start)
@@ -814,7 +814,7 @@ try_lex_operator :: fn(l: Lexer!) -> bool {
 // spanning [start, current). Returns `true` so call sites in `try_lex_operator`
 // can `return l.emit_and_advance(...)` directly.
 emit_and_advance :: fn(l: Lexer!, kind: TokenKind, text: string) -> bool {
-    start := l.position_here()
+    start :: l.position_here()
     l.advance(text.bytes().len())
     l.push_simple(kind, text, start)
     return true
@@ -846,7 +846,7 @@ lex_one :: fn(l: Lexer!) -> void {
         is null -> { }
     }
 
-    c := l.peek()
+    c :: l.peek()
 
     if c == '\n' || c == '\r' {
         l.handle_newline()
@@ -894,7 +894,7 @@ lex_one :: fn(l: Lexer!) -> void {
 
     // Backslash outside a string / char literal — Vader has no line
     // continuation. Emit L0007 instead of the generic L0001.
-    start := l.position_here()
+    start :: l.position_here()
     // A `#!` shebang is only consumed on line 1 (see `tokenize`). Reaching one
     // here means it's not on the first line — emit L0008 and skip the rest of
     // the line, rather than a misleading per-`#` L0001 (UnexpectedCharacter).
@@ -919,7 +919,7 @@ lex_one :: fn(l: Lexer!) -> void {
 // ---- public entry ---------------------------------------------------------
 
 export tokenize :: fn(source: string, file: string) -> Lexer {
-    l := new_lexer(source, file)
+    l :: new_lexer(source, file)
     // UTF-8 BOM (EF BB BF) — if present, must be the very first thing.
     if l.bytes.len() >= 3 &&
         l.bytes[0] == 0xEF &&
@@ -936,8 +936,8 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     for !l.at_end() {
         l.lex_one()
     }
-    here := l.position_here()
-    eof_span := Span { .start = here, .end = here }
+    here :: l.position_here()
+    eof_span :: Span { .start = here, .end = here }
     l.emit(make_token(.Eof, "", eof_span))
     return l
 }

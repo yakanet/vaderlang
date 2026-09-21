@@ -11,11 +11,11 @@ export sum_doubles :: fn(a: double, b: double) -> double {
 }
 
 main :: fn() -> i32 {
-    x: int = 42
-    y: long = 1000000000000
-    f: float = 3.14
-    d: double = 2.718281828
-    b: byte = 255
+    x: int: 42
+    y: long: 1000000000000
+    f: float: 3.14
+    d: double: 2.718281828
+    b: byte: 255
 
     println("${add(x, 10)}")
     println("${y}")

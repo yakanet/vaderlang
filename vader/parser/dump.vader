@@ -14,7 +14,7 @@ import "std/numbers"
 import "toolchain/ast"
 
 export dump_program :: fn(prog: Program) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("# AST\n")
     sb.write_program(prog, 0)
     // The CLI wrapper adds the trailing newline via `println`. Returning a

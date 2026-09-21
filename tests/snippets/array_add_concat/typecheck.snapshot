@@ -14,8 +14,8 @@
   expr 18:17    StructLitExpr  :: Item!
   expr 18:32    StringLitExpr  :: string
   expr 18:46    SeqLitExpr     :: string[]
-  expr 21:16    SeqLitExpr     :: i32[]
-  expr 22:16    SeqLitExpr     :: i32[]
+  expr 21:15    SeqLitExpr     :: i32[]
+  expr 22:15    SeqLitExpr     :: i32[]
   expr 23:15    BinaryExpr     :: i32[]
   expr 23:15    IdentExpr      :: i32[]
   expr 23:19    IdentExpr      :: i32[]
@@ -38,7 +38,7 @@
   expr 26:35    IdentExpr      :: i32[]
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
-  expr 29:20    SeqLitExpr     :: i32[]
+  expr 29:19    SeqLitExpr     :: i32[]
   expr 30:13    StringLitExpr  :: string
   expr 30:28    BinaryExpr     :: i32[]
   expr 30:28    CallExpr       :: usize
@@ -57,7 +57,7 @@
   expr 30:70    FieldExpr      :: fn() -> usize
   expr 30:70    IdentExpr      :: i32[]
   expr 30:78    IdentExpr      :: i32[]
-  expr 33:16    SeqLitExpr     :: i32[]
+  expr 33:15    SeqLitExpr     :: i32[]
   expr 34:13    StringLitExpr  :: string
   expr 34:25    BinaryExpr     :: i32[]
   expr 34:25    BinaryExpr     :: i32[]

@@ -64,7 +64,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
             if sym_or_null is Symbol {
                 fn_sym :: follow_import_binding(ctx, sym_or_null)
                 if fn_sym.kind == SymbolKind.Fn {
-                    type_args: Type[]! = []
+                    type_args: Type[]!: []
                     for ta in gi.type_args {
                         resolved :: ctx.types.type_expr_type(ta)
                         if resolved is UnresolvedType {
@@ -151,8 +151,8 @@ emit_generic_fn_call :: fn(
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
     // Build args through the shared slot preparation (literal widening + `into`
     // coercion), same as the non-generic path.
-    raw_args: LoweredExpr[]! = []
-    arg_spans: Span[]! = []
+    raw_args: LoweredExpr[]!: []
+    arg_spans: Span[]!: []
     for call_arg in call.args {
         raw_args.push(lower_expr(ctx, call_arg.value))
         arg_spans.push(call_arg.value.span)
@@ -249,7 +249,7 @@ register_and_emit_generic_call :: fn(
     // `emit_generic_fn_call`). Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(concrete_args)
     mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args)
-    lowered_args: LoweredExpr[]! = []
+    lowered_args: LoweredExpr[]!: []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {
         .id         = fn_sym.id,
@@ -275,7 +275,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // TypeParam symbol on the pattern side, record its concrete-side
     // counterpart. Repeated bindings of the same symbol must agree.
     bindings :: MutableMap<i32, Type> {}
-    order: i32[]! = []
+    order: i32[]!: []
     n :: ft.params.len()
     if n > call.args.len() { return [] }
     for i in 0..<n {
@@ -290,7 +290,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // it the instance is keyed on a dangling `T` and materialisation fails with
     // the GATE B1 "unresolved callee" panic.
     unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
-    out: Type[]! = []
+    out: Type[]!: []
     for id in order {
         v :: bindings[id]
         match v {
@@ -357,14 +357,14 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     // unbound and the call is unresolved at emit (GATE B1).
     if pattern is UnionType {
         if concrete is UnionType {
-            arg_used: bool[]! = []
+            arg_used: bool[]!: []
             for _ in concrete.variants { arg_used.push(false) }
-            remaining_pattern: Type[]! = []
+            remaining_pattern: Type[]!: []
             for pv in pattern.variants {
                 idx :: find_unused_equal(concrete.variants, arg_used, pv)
                 if idx >= 0 { arg_used[usize(idx)] = true } else { remaining_pattern.push(pv) }
             }
-            remaining_concrete: Type[]! = []
+            remaining_concrete: Type[]!: []
             for i in 0..<concrete.variants.len() {
                 if !arg_used[i] { remaining_concrete.push(concrete.variants[i]) }
             }
@@ -465,7 +465,7 @@ all_concrete :: fn(args: Type[]) -> bool {
 }
 
 mono_suffix :: fn(args: Type[]) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for a in args {
         sb.append("__")
         sb.append(mangle_type_arg(a))

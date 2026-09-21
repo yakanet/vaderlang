@@ -4,7 +4,7 @@
   FnDecl         guarded              :: fn() -> i64
   FnDecl         hoisted              :: fn() -> i64
   FnDecl         main                 :: fn() -> i32
-  expr 21:17    SeqLitExpr     :: i32[]!
+  expr 21:16    SeqLitExpr     :: i32[]!
   expr 22:14    RangeExpr      :: Range<i32>!
   expr 23:16    CallExpr       :: i32
   expr 23:16    IdentExpr      :: type
@@ -26,7 +26,7 @@
   expr 28:27    IdentExpr      :: usize
   expr 28:9     IdentExpr      :: i64
   expr 30:12    IdentExpr      :: i64
-  expr 34:17    SeqLitExpr     :: i32[]!
+  expr 34:16    SeqLitExpr     :: i32[]!
   expr 35:10    CallExpr       :: usize
   expr 35:10    FieldExpr      :: fn() -> usize
   expr 35:10    IdentExpr      :: i32[]!
@@ -44,7 +44,7 @@
   expr 39:27    IdentExpr      :: usize
   expr 39:9     IdentExpr      :: i64
   expr 41:12    IdentExpr      :: i64
-  expr 45:17    SeqLitExpr     :: i32[]!
+  expr 45:16    SeqLitExpr     :: i32[]!
   expr 46:10    CallExpr       :: usize
   expr 46:10    FieldExpr      :: fn() -> usize
   expr 46:10    IdentExpr      :: i32[]!

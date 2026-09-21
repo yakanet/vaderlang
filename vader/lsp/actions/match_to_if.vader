@@ -175,7 +175,7 @@ build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
 // otherwise wrap the single expression as the block's trailing value.
 arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
     if body is AST.BlockExpr { return body }
-    no_stmts: AST.Stmt[] = []
+    no_stmts: AST.Stmt[]: []
     return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }
 }
 

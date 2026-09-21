@@ -266,7 +266,7 @@ emit_bool_terminal :: fn(
         .value = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = init },
     }
     cond :: maybe_negate(emit_pred_call(ctx, pred, elem_sym, elem_ty, span), negate, span)
-    hit_stmts: LoweredStmt[] = [
+    hit_stmts: LoweredStmt[]: [
         LoweredAssign {
             .span = span, .target = LoweredIdent { .span = span, .type = TY_BOOL, .symbol = result_sym },
             .value = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = hit },
@@ -287,7 +287,7 @@ emit_bool_terminal :: fn(
             }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[]! = [init_let]
+    stmts: LoweredStmt[]!: [init_let]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = TY_BOOL, .stmts = stmts,
@@ -305,7 +305,7 @@ emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, spa
         .span = span, .name = result_sym.name, .symbol = result_sym, .type = result_ty,
         .value = LoweredNullLit { .span = span, .type = result_ty },
     }
-    hit_stmts: LoweredStmt[] = [
+    hit_stmts: LoweredStmt[]: [
         LoweredAssign {
             .span = span, .target = LoweredIdent { .span = span, .type = result_ty, .symbol = result_sym },
             .value = read_local_cell_aware(ctx, elem_sym, elem_ty, span),
@@ -327,7 +327,7 @@ emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, spa
             }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[]! = [init_let]
+    stmts: LoweredStmt[]!: [init_let]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = result_ty, .stmts = stmts,
@@ -359,7 +359,7 @@ emit_count_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> Lower
         .element_type = chain_element_type(chain),
         .user_body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = [step], .trailing = null },
     }
-    stmts: LoweredStmt[]! = [init]
+    stmts: LoweredStmt[]!: [init]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = usize_ty, .stmts = stmts,
@@ -404,7 +404,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type,
             .stmts = [LoweredExprStmt { .span = span, .expr = push }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[]! = [init]
+    stmts: LoweredStmt[]!: [init]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = arr_ty, .stmts = stmts,
@@ -787,7 +787,7 @@ emit_fused_opaque_iter :: fn(
     }
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
-    body_stmts: LoweredStmt[]! = []
+    body_stmts: LoweredStmt[]!: []
     body_stmts.push_all(bind_stmts)
     for s in template.user_body.stmts { body_stmts.push(s) }
     if template.user_body.trailing != null {
@@ -813,7 +813,7 @@ emit_fused_opaque_iter :: fn(
             .span = span, .type = TY_VOID, .stmts = [step_let, branch_if], .trailing = null,
         },
     }
-    out: LoweredStmt[] = [iter_let, loop_stmt]
+    out: LoweredStmt[]: [iter_let, loop_stmt]
     return out
 }
 
@@ -869,7 +869,7 @@ emit_fused_range :: fn(
             .stmts = body_stmts, .trailing = null,
         },
     }
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     out.push(counter_init)
     out.push(loop_stmt)
     return out
@@ -943,7 +943,7 @@ emit_fused_array :: fn(
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null },
     }
 
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     out.push(arr_let)
     out.push(len_let)
     out.push(idx_init)

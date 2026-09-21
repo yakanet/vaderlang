@@ -2,7 +2,7 @@
 
 ## tests/snippets/vm_array_basic
   FnDecl         main                 :: fn() -> i32
-  expr 7:18     SeqLitExpr     :: i32[]
+  expr 7:17     SeqLitExpr     :: i32[]
   expr 8:12     BinaryExpr     :: i32
   expr 8:12     BinaryExpr     :: i32
   expr 8:12     IdentExpr      :: i32[]

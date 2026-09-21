@@ -147,7 +147,7 @@ export decode :: fn(data: u8[]) -> Ppm | PpmError {
         return PpmError { .msg = "ppm: raster is ${raster_len} bytes, expected ${expected}" }
     }
 
-    pixels: u8[]! = [] * raster_len
+    pixels: u8[]!: [] * raster_len
     pixels.push_all(data[raster_start..<data.len()])
     return Ppm { .width = w.value, .height = h.value, .maxval = mv.value, .pixels = pixels }
 }
@@ -173,7 +173,7 @@ export encode :: fn(img: Ppm) -> u8[] | PpmError {
 
     header :: "P6\n${img.width} ${img.height}\n${img.maxval}\n"
     hb :: header.bytes()
-    out: u8[]! = [] * (hb.len() + img.pixels.len())
+    out: u8[]!: [] * (hb.len() + img.pixels.len())
     out.push_all(hb)
     out.push_all(img.pixels)
     return out
@@ -195,7 +195,7 @@ Ppm implements Display {
 import "std/testing"
 
 @test test_encode_header_and_raster :: fn() -> void {
-    px: u8[] = [10, 20, 30, 40, 50, 60]
+    px: u8[]: [10, 20, 30, 40, 50, 60]
     img :: Ppm { .width = 2, .height = 1, .maxval = 255, .pixels = px }
     out :: encode(img)
     if out is PpmError {
@@ -211,7 +211,7 @@ import "std/testing"
 }
 
 @test test_roundtrip_8bit :: fn() -> void {
-    px: u8[] = [0, 64, 128, 255, 1, 2, 3, 4, 5, 250, 200, 100]
+    px: u8[]: [0, 64, 128, 255, 1, 2, 3, 4, 5, 250, 200, 100]
     img :: Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px }
     enc :: encode(img)
     if enc is PpmError {
@@ -233,7 +233,7 @@ import "std/testing"
 }
 
 @test test_roundtrip_16bit :: fn() -> void {
-    px: u8[] = [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc]
+    px: u8[]: [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc]
     img :: Ppm { .width = 1, .height = 1, .maxval = 65535, .pixels = px }
     enc :: encode(img)
     if enc is PpmError {
@@ -253,9 +253,9 @@ import "std/testing"
 
 @test test_decode_with_comment :: fn() -> void {
     src :: "P6\n# a comment\n2 1\n255\n"
-    full: u8[]! = [] * (src.bytes().len() + 6)
+    full: u8[]!: [] * (src.bytes().len() + 6)
     full.push_all(src.bytes())
-    tail: u8[] = [11, 22, 33, 44, 55, 66]
+    tail: u8[]: [11, 22, 33, 44, 55, 66]
     full.push_all(tail)
     dec :: decode(full)
     if dec is PpmError {
@@ -268,23 +268,23 @@ import "std/testing"
 }
 
 @test test_decode_rejects_bad_magic :: fn() -> void {
-    bad: u8[] = ['P', '3', '\n']
+    bad: u8[]: ['P', '3', '\n']
     r :: decode(bad)
     if r is PpmError { assert(true, "rejected") } else { assert(false, "P3 must be rejected") }
 }
 
 @test test_decode_rejects_size_mismatch :: fn() -> void {
     src :: "P6\n2 2\n255\n"
-    full: u8[]! = [] * (src.bytes().len() + 3)
+    full: u8[]!: [] * (src.bytes().len() + 3)
     full.push_all(src.bytes())
-    tail: u8[] = [1, 2, 3]
+    tail: u8[]: [1, 2, 3]
     full.push_all(tail)
     r :: decode(full)
     if r is PpmError { assert(true, "rejected") } else { assert(false, "size mismatch must be rejected") }
 }
 
 @test test_encode_rejects_bad_maxval :: fn() -> void {
-    empty: u8[] = []
+    empty: u8[]: []
     r0 :: encode(Ppm { .width = 0, .height = 0, .maxval = 0, .pixels = empty })
     if r0 is PpmError { assert(true, "rejected") } else { assert(false, "maxval 0 must be rejected") }
     r1 :: encode(Ppm { .width = 1, .height = 1, .maxval = 70000, .pixels = empty })
@@ -292,13 +292,13 @@ import "std/testing"
 }
 
 @test test_encode_rejects_pixel_mismatch :: fn() -> void {
-    px: u8[] = [1, 2, 3]
+    px: u8[]: [1, 2, 3]
     r :: encode(Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px })
     if r is PpmError { assert(true, "rejected") } else { assert(false, "pixel mismatch must be rejected") }
 }
 
 @test test_display :: fn() -> void {
-    px: u8[] = [10, 20, 30, 40, 50, 60]
+    px: u8[]: [10, 20, 30, 40, 50, 60]
     img :: Ppm { .width = 2, .height = 1, .maxval = 255, .pixels = px }
     assert_eq("${img}", "Ppm 2x1 maxval=255 (6 bytes, 8-bit)")
 }

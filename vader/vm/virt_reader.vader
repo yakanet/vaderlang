@@ -120,7 +120,7 @@ head_of :: fn(s: string) -> string {
 /// @param csv  string body, e.g. `"1,2,3"` or `""`.
 /// @return     parsed ids, in order.
 parse_int_list :: fn(csv: string) -> i32[]! {
-    ids: i32[]! = []
+    ids: i32[]!: []
     if csv.bytes().len() == 0 { return ids }
     parts :: csv.split(",")
     n :: parts.len()
@@ -153,7 +153,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]!) -> void {
 /// @param s  hex digits (no `0x` prefix, no separators).
 /// @return   one byte per pair of hex digits, in input order.
 hex_to_bytes :: fn(s: string) -> u8[] {
-    out: u8[]! = []
+    out: u8[]!: []
     i: usize = 0
     sb :: s.bytes()
     len :: sb.len()
@@ -616,9 +616,9 @@ parse_f64_const :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["f64.const ".bytes().len()..<line.bytes().len()].bytes_to_string().trim()
     // Abstract non-finite words carry no bit column — map each to its canonical
     // IEEE-754 pattern (typed so the >i64 hex constants pin to `u64`).
-    pos_inf: u64 = 0x7FF0000000000000
-    neg_inf: u64 = 0xFFF0000000000000
-    quiet_nan: u64 = 0x7FF8000000000000
+    pos_inf: u64: 0x7FF0000000000000
+    neg_inf: u64: 0xFFF0000000000000
+    quiet_nan: u64: 0x7FF8000000000000
     if rest == "inf"  { return bc.F64Const { .value = pos_inf.from_bits() } }
     if rest == "-inf" { return bc.F64Const { .value = neg_inf.from_bits() } }
     if rest == "nan"  { return bc.F64Const { .value = quiet_nan.from_bits() } }
@@ -934,14 +934,14 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     // parse straight back — arch-stable by construction. A sign-set NaN (what
     // x86-64 folds `0.0 / 0.0` to) must round-trip to `nan`, never its raw
     // arch-specific bits.
-    pos_inf: u64 = 0x7FF0000000000000
-    neg_inf: u64 = 0xFFF0000000000000
-    neg_nan: u64 = 0xFFF8000000000000
+    pos_inf: u64: 0x7FF0000000000000
+    neg_inf: u64: 0xFFF0000000000000
+    neg_nan: u64: 0xFFF8000000000000
     assert_eq(roundtrip_op_text(bc.F64Const { .value = pos_inf.from_bits() }), "f64.const inf")
     assert_eq(roundtrip_op_text(bc.F64Const { .value = neg_inf.from_bits() }), "f64.const -inf")
     assert_eq(roundtrip_op_text(bc.F64Const { .value = neg_nan.from_bits() }), "f64.const nan")
 
     // A finite value keeps its exact bit column and round-trips unchanged.
-    finite: f64 = 3.5
+    finite: f64: 3.5
     assert_eq(roundtrip_op_text(bc.F64Const { .value = finite }), "f64.const ${finite} ${finite.to_bits()}")
 }

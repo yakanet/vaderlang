@@ -37,10 +37,10 @@
   expr 41:12    CallExpr       :: usize
   expr 41:12    FieldExpr      :: fn() -> usize
   expr 41:12    IdentExpr      :: string[]
-  expr 45:24    SeqLitExpr     :: i32[]!
-  expr 46:24    SeqLitExpr     :: string[]!
-  expr 46:25    StringLitExpr  :: string
-  expr 46:30    StringLitExpr  :: string
+  expr 45:23    SeqLitExpr     :: i32[]!
+  expr 46:23    SeqLitExpr     :: string[]!
+  expr 46:24    StringLitExpr  :: string
+  expr 46:29    StringLitExpr  :: string
   expr 47:13    StringLitExpr  :: string
   expr 47:21    CallExpr       :: usize
   expr 47:21    IdentExpr      :: fn(i32[]! | string[]!) -> usize

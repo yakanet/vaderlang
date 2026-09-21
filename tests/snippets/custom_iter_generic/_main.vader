@@ -21,7 +21,7 @@ Repeat<T> implements Iterator<T> {
 
 main :: fn() -> i32 {
     // Repeat i32 value 3 times
-    it := Repeat<i32> { .value = 42, .remaining = 3 }
+    it :: Repeat<i32> { .value = 42, .remaining = 3 }
     sum := 0
     for x in it {
         sum = sum + x

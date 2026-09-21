@@ -14,7 +14,7 @@
 module "snippet"
 
 sneak :: fn(a: i32[]) -> void {
-    m := a
+    m :: a
     m[0] = 99
 }
 

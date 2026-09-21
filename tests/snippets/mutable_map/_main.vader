@@ -4,7 +4,7 @@ import "std/io"
 import "std/collections"
 
 main :: fn() -> i32 {
-    m := MutableMap<i32, i32> {}
+    m :: MutableMap<i32, i32> {}
 
     m[1] = 10
     m[2] = 20

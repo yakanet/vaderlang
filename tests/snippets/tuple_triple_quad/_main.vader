@@ -6,9 +6,9 @@ import "std/io"
 // `.3` and the lowering's anonymous-struct synthesis works beyond the
 // pair case the original tuple snippets cover.
 main :: fn() -> i32 {
-    triple: [i32, string, bool] = [1, "x", true]
+    triple: [i32, string, bool]: [1, "x", true]
     println("${triple.0} ${triple.1} ${triple.2}")
-    quad: [i32, string, bool, f64] = [9, "q", false, 3.14]
+    quad: [i32, string, bool, f64]: [9, "q", false, 3.14]
     println("${quad.0} ${quad.1} ${quad.2} ${quad.3}")
     return 0
 }

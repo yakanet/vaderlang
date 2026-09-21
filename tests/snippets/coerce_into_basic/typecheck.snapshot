@@ -21,7 +21,7 @@
   expr 31:30    IdentExpr      :: UserId!
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 34:14    IdentExpr      :: UserId!
+  expr 34:13    IdentExpr      :: UserId!
   expr 35:13    StringLitExpr  :: string
   expr 35:20    IdentExpr      :: i32
   expr 35:5     CallExpr       :: void

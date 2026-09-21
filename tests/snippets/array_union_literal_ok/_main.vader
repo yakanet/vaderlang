@@ -8,15 +8,15 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    xs: (i32 | string)[]! = [1, 2, 3]
+    xs: (i32 | string)[]!: [1, 2, 3]
     xs.push("hi")
     for x in xs {
         if x is string as s { println("str ${s}") }
         else if x is i32 as n { println("int ${n}") }
     }
 
-    a: i32[] = [10, 20]
-    view: (i32 | string)[] = a
+    a: i32[]: [10, 20]
+    view: (i32 | string)[]: a
     if view[0] is i32 as n { println("view0 ${n}") }
     return 0
 }

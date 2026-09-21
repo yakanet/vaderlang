@@ -31,8 +31,8 @@ tag :: fn(x: i32 | i64 | u8) -> i32 {
 }
 
 main :: fn() -> i32 {
-    a: u8 = 5
-    b: i64 = 9999999999
+    a: u8: 5
+    b: i64: 9999999999
     // expected "1 2 3" ; VM prints "1 1 1" ; native prints "3 2 3"
     println("${tag(a)} ${tag(b)} ${tag(7)}")
     return 0

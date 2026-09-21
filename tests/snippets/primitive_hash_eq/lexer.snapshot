@@ -21,20 +21,20 @@
 [6:5-6:6    ] ident          "a"
 [6:6-6:7    ] colon          ":"
 [6:8-6:11   ] ident          "i32"
-[6:12-6:13  ] assign         "="
-[6:14-6:16  ] int_literal    "42" =42n
+[6:11-6:12  ] colon          ":"
+[6:13-6:15  ] int_literal    "42" =42n
 [7:1-7:1    ] newline        "\n"
 [7:5-7:6    ] ident          "b"
 [7:6-7:7    ] colon          ":"
 [7:8-7:11   ] ident          "i32"
-[7:12-7:13  ] assign         "="
-[7:14-7:16  ] int_literal    "42" =42n
+[7:11-7:12  ] colon          ":"
+[7:13-7:15  ] int_literal    "42" =42n
 [8:1-8:1    ] newline        "\n"
 [8:5-8:6    ] ident          "c"
 [8:6-8:7    ] colon          ":"
 [8:8-8:11   ] ident          "i32"
-[8:12-8:13  ] assign         "="
-[8:14-8:15  ] int_literal    "7" =7n
+[8:11-8:12  ] colon          ":"
+[8:13-8:14  ] int_literal    "7" =7n
 [9:1-9:1    ] newline        "\n"
 [9:5-9:12   ] ident          "println"
 [9:12-9:13  ] lparen         "("
@@ -83,8 +83,8 @@
 [13:5-13:6  ] ident          "n"
 [13:6-13:7  ] colon          ":"
 [13:8-13:13 ] ident          "usize"
-[13:14-13:15] assign         "="
-[13:16-13:19] int_literal    "100" =100n
+[13:13-13:14] colon          ":"
+[13:15-13:18] int_literal    "100" =100n
 [14:1-14:1  ] newline        "\n"
 [14:5-14:12 ] ident          "println"
 [14:12-14:13] lparen         "("

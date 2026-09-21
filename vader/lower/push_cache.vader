@@ -54,7 +54,7 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
 // flow-sensitive: `return out` AFTER the loop is harmless (the write-back has
 // run), the same `return` before it would not be.
 pc_scan_block :: fn(b: LoweredBlock!, live: i32[], pctx: BcePurityCtx!) -> void {
-    working: i32[]! = []
+    working: i32[]!: []
     working.push_all(live)
     for st in b.stmts {
         pc_scan_stmt(st, working, pctx)
@@ -69,7 +69,7 @@ pc_scan_block :: fn(b: LoweredBlock!, live: i32[], pctx: BcePurityCtx!) -> void 
 // Apply one statement to the live set: first drop whatever it handed away, then
 // admit the array it mints, if it mints one.
 pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
-    kept: i32[]! = []
+    kept: i32[]!: []
     for sym in live {
         if !cf_stmt_mentions(st, sym, CF_ESCAPE_ONLY) {
             kept.push(sym)
@@ -91,7 +91,7 @@ pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
 // the body hands it away — the body runs again with that reference still live,
 // where a statement after a non-loop keeps its ordering.
 pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
-    kept: i32[]! = []
+    kept: i32[]!: []
     for sym in live {
         if !cf_stmt_mentions(lp, sym, CF_ESCAPE_ONLY) {
             kept.push(sym)
@@ -152,7 +152,7 @@ pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
 
 // Every condition the lifted form needs, in the order that rejects fastest.
 pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
-    pushes: LoweredArrayPush![]! = []
+    pushes: LoweredArrayPush![]!: []
     pc_collect_pushes(lp.body, pushes)
     if pushes.len() == 0 {
         return

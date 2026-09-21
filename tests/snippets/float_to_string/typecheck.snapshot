@@ -2,7 +2,7 @@
 
 ## tests/snippets/float_to_string
   FnDecl         main                 :: fn() -> i32
-  expr 17:17    SeqLitExpr     :: f64[]
+  expr 17:16    SeqLitExpr     :: f64[]
   expr 22:15    UnaryExpr      :: f64
   expr 22:9     UnaryExpr      :: f64
   expr 24:14    IdentExpr      :: f64[]

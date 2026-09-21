@@ -4,7 +4,7 @@ import "std/io"
 import "json"
 
 export show :: fn(label: string, src: string) -> void {
-    parsed := parse(src)
+    parsed :: parse(src)
     match parsed {
         is JsonError -> { println("${label}: error: ${parsed.msg}") }
         is JsonString -> { println("${label}: ${stringify(parsed)}") }

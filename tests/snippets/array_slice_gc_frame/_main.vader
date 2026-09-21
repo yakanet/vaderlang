@@ -21,7 +21,7 @@ leaf :: fn(x: Foo, arr: i32[]) -> i32 {
 }
 
 main :: fn() -> i32 {
-    arr: i32[] = [10, 20, 30, 40, 50]
+    arr: i32[]: [10, 20, 30, 40, 50]
     x :: Foo { .v = 7 }
     r :: leaf(x, arr)
     expected :: 5000 * (7 + 3)

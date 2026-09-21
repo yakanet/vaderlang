@@ -124,7 +124,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
         // backing's, whose delegating impl is equivalent) wins. Without this
         // the C carries a `duplicate case value`.
-        seen_tags: i32[]! = []
+        seen_tags: i32[]!: []
         for e in row.entries {
             dup := false
             for st in seen_tags {
@@ -138,7 +138,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
-            args: string[]! = [coerce_expr(types, "recv", .Any, csig.params[0])]
+            args: string[]!: [coerce_expr(types, "recv", .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
                 args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))

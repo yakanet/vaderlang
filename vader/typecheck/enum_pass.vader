@@ -35,7 +35,7 @@ export resolve_enum_indices :: fn(
     cursor: i64 = 0
     for variant in decl.variants {
         value :: variant.value
-        v: i64 = match value {
+        v: i64: match value {
             is i64 -> value
             is null -> cursor
         }
@@ -98,7 +98,7 @@ repr_range :: fn(repr: string) -> ReprRange {
     if m == null  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
     if !m.is_int  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
     if m.size >= 8 {
-        lo: i64 = if m.is_signed { -9_223_372_036_854_775_808 } else { 0 }
+        lo: i64: if m.is_signed { -9_223_372_036_854_775_808 } else { 0 }
         return ReprRange { .min = lo, .max = 9_223_372_036_854_775_807, .has_bounds = true }
     }
     bits :: m.size * 8
@@ -150,7 +150,7 @@ Color :: enum {
     match enum_decl {
         is null -> { assert(false, "Color enum should parse") }
         is EnumDecl -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             indices :: resolve_enum_indices(enum_decl, "i32", diags)
             expect_index(indices, "Red",   0)
             expect_index(indices, "Green", 1)
@@ -175,7 +175,7 @@ Flag :: enum {
     match enum_decl {
         is null -> { assert(false, "Flag enum should parse") }
         is EnumDecl -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             indices :: resolve_enum_indices(enum_decl, "i32", diags)
             expect_index(indices, "A",   5)
             expect_index(indices, "B",   6)
@@ -198,7 +198,7 @@ Bad :: enum {
     match enum_decl {
         is null -> { assert(false, "Bad enum should parse") }
         is EnumDecl -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             resolve_enum_indices(enum_decl, "i32", diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3031")
@@ -218,7 +218,7 @@ Overflow :: enum {
     match enum_decl {
         is null -> { assert(false, "Overflow enum should parse") }
         is EnumDecl -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             resolve_enum_indices(enum_decl, "u8", diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3030")

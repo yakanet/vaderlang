@@ -18,19 +18,19 @@ LEFT: Item[]: [Item { .name = "a", .inner = ["x"] }]
 RIGHT: Item[]: [Item { .name = "b", .inner = [] }]
 
 main :: fn() -> i32 {
-    a: i32[] = [1, 2]
-    b: i32[] = [3]
+    a: i32[]: [1, 2]
+    b: i32[]: [3]
     joined :: a + b
     println("len=${joined.len()} first=${joined[0]} last=${joined[2]}")
     // Neither operand is touched: the result is a fresh allocation.
     println("sources=${a.len()},${b.len()}")
 
     // An empty operand still copies, so the result never aliases its source.
-    empty: i32[] = []
+    empty: i32[]: []
     println("with_empty=${(a + empty).len()},${(empty + a).len()},${(empty + empty).len()}")
 
     // Chains left to right.
-    c: i32[] = [4]
+    c: i32[]: [4]
     println("chained=${(a + b + c).len()}")
 
     // Structs carrying a nested array — the element shape that made a raw

@@ -3,7 +3,7 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    arr: i32[]! = [1, 2, 3]
+    arr: i32[]!: [1, 2, 3]
     arr[0] = "nope"
     return 0
 }

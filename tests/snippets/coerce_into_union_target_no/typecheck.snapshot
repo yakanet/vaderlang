@@ -6,7 +6,7 @@
   expr 11:38    FieldExpr      :: i32
   expr 11:38    IdentExpr      :: Foo
   expr 15:10    StructLitExpr  :: Foo!
-  expr 16:23    IdentExpr      :: Foo!
+  expr 16:22    IdentExpr      :: Foo!
 
 # Diagnostics
 [16:5] error[T3001] type mismatch: expected i32 | string, got Foo!

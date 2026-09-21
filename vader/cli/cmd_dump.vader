@@ -184,7 +184,7 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
     materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
-    modules: ResolvedModule[]! = []
+    modules: ResolvedModule[]!: []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {
         if !module_in_scope(lm.module.display_path, scope) {
@@ -219,7 +219,7 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
 // Body diags carry no global span ordering ; concatenated by module-
 // iteration order.
 collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
-    all: Diagnostic[]! = []
+    all: Diagnostic[]!: []
     for d in project.diags {
         all.push(d)
     }
@@ -270,7 +270,7 @@ run_cfg_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
     // Scope the dump to the entry's subtree (or `--module`) without the string
@@ -377,7 +377,7 @@ run_lower_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
     print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
@@ -425,7 +425,7 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
     println("")
     println("# Selected body")
     cwd :: current_working_directory()
-    lines: string[]! = []
+    lines: string[]!: []
     for [_, lm] in project.modules {
         for f in lm.module.files {
             for d in f.program.decls {
@@ -492,7 +492,7 @@ run_dced_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
     println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
@@ -513,7 +513,7 @@ run_dced_stage :: fn(
 // them. `build` never calls these — `flush_build_diags` shows the full set.
 
 filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     for d in diags {
         if d.primary.start.file in files {
             out.push(d)
@@ -545,7 +545,7 @@ print_dump_diags :: fn(b: CfgBytecode) -> void {
 // then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
 // stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
 merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
-    all: Diagnostic[]! = []
+    all: Diagnostic[]!: []
     for d in head {
         all.push(d)
     }

@@ -77,9 +77,9 @@ export cmd_check :: fn(args: string[]) -> i32 {
     // and type-checks", which is not what the header above promises. An `await`
     // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
     // passed `check` and failed the build.
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     for d in front {
         diags.push(d)
     }

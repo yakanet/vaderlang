@@ -1,4 +1,18 @@
 # Diagnostics
+[lib/std/io/io.vader:189:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `written`
+[lib/std/io/io.vader:330:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
+[lib/std/io/io.vader:336:9] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `slice`
+[lib/std/io/io.vader:337:9] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `read`
+[lib/std/io/io.vader:391:9] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `avail`
+[lib/std/io/io.vader:486:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `out`
+[lib/std/io/io.vader:487:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `chunk`
+[lib/std/io/io.vader:488:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `got`
+[lib/std/io/io.vader:591:9] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `written`
+[lib/std/io/io.vader:799:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `data`
+[lib/std/io/io.vader:805:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `out`
+[lib/std/io/io.vader:854:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
+[lib/std/io/io.vader:883:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
+[lib/std/io/io.vader:937:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
 [main-windows.vader:16:34] error[T3020] function body returns a value incompatible with its declared return type: expected string, got {integer}
 [main-windows.vader:19:35] error[R2006] unresolved identifier: `no_such_function_anywhere`
 

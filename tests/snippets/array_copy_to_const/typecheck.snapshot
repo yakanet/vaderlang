@@ -14,7 +14,7 @@
   expr 35:20    StringLitExpr  :: string
   expr 35:39    SeqLitExpr     :: Inner[]
   expr 35:5     StructLitExpr  :: Item!
-  expr 39:20    SeqLitExpr     :: Item[]!
+  expr 39:19    SeqLitExpr     :: Item[]!
   expr 40:24    StringLitExpr  :: string
   expr 40:38    SeqLitExpr     :: Inner[]
   expr 40:9     StructLitExpr  :: Item!
@@ -35,7 +35,7 @@
   expr 45:37    IdentExpr      :: Item
   expr 45:9     CallExpr       :: void
   expr 45:9     IdentExpr      :: fn(T) -> void
-  expr 50:21    SeqLitExpr     :: Item[]!
+  expr 50:20    SeqLitExpr     :: Item[]!
   expr 51:24    StringLitExpr  :: string
   expr 51:41    SeqLitExpr     :: Inner[]
   expr 51:9     StructLitExpr  :: Item!

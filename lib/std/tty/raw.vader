@@ -73,7 +73,7 @@ raw_mode_begin :: fn() -> bool {
     if sys_tcgetattr(0, SAVED_TERMIOS) != 0 {
         return false
     }
-    work: u8[]! = [0] * TERMIOS_BYTES
+    work: u8[]!: [0] * TERMIOS_BYTES
     if sys_tcgetattr(0, work) != 0 {
         return false
     }
@@ -212,7 +212,7 @@ read_keys :: fn(max: i32) -> string | null {
     if n == 0 {
         return null
     }
-    buf: u8[]! = [0] * usize(n)
+    buf: u8[]!: [0] * usize(n)
     for _ in 0..<READ_ATTEMPTS {
         got :: sys_read(0, buf, usize(n))
         if got > 0 {

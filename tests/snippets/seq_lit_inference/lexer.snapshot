@@ -19,7 +19,7 @@
 [10:21-10:22] lbrace         "{"
 [11:1-11:1  ] newline        "\n"
 [12:5-12:11 ] ident          "scores"
-[12:12-12:14] decl_var       ":="
+[12:12-12:14] decl_const     "::"
 [12:15-12:16] lbracket       "["
 [12:16-12:18] int_literal    "10" =10n
 [12:18-12:19] comma          ","
@@ -45,7 +45,7 @@
 [13:45-13:46] rbrace         "}"
 [14:1-14:1  ] newline        "\n"
 [16:5-16:10 ] ident          "entry"
-[16:11-16:13] decl_var       ":="
+[16:11-16:13] decl_const     "::"
 [16:14-16:15] lbracket       "["
 [16:15-16:17] int_literal    "42" =42n
 [16:17-16:18] comma          ","

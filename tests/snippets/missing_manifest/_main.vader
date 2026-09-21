@@ -17,7 +17,7 @@ describe :: fn(path: string) -> string {
 catch_all :: fn(path: string) -> string {
     r :: read_file_string(path)
     if r is IOError {
-        e: Error = r
+        e: Error: r
         return "caught by trait: ${e.message()}"
     }
     return r

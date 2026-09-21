@@ -143,13 +143,13 @@ export load_project_with_overlay :: fn(
     // Null here means "keep every body" — `select_target_bodies` returns its
     // input unchanged. That is the union view, and the ONLY thing that reaches
     // it is navigation.
-    effective_target: Target | null = if view is AllTargets {
+    effective_target: Target | null: if view is AllTargets {
         null
     } else {
         view
     }
     modules :: MutableMap<string, LoadedModule> {}
-    loader_diags: Diagnostic[]! = []
+    loader_diags: Diagnostic[]!: []
     project_root :: find_manifest_root(entry)
     // Read the project manifest once (the LSP re-loads on every didOpen).
     manifest :: match project_root {
@@ -172,7 +172,7 @@ export load_project_with_overlay :: fn(
     // namespace is known) are : the entry folder rooted at its declared module
     // name, then `plain_roots` (manifest dir + `vader.json includePaths` +
     // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
-    index: MutableMap<string, DiscoveredModule> = MutableMap<string, DiscoveredModule> {}
+    index: MutableMap<string, DiscoveredModule>: MutableMap<string, DiscoveredModule> {}
 
     entry_module :: seed_entry(entry_folder, loader_diags)
     match entry_module {
@@ -200,7 +200,7 @@ export load_project_with_overlay :: fn(
             // matches by construction.
             entry_resolved :: resolve_lazy(
                 entry_module.name, bases, index, loader_diags) ?? entry_module
-            queue: DiscoveredModule[]! = [entry_resolved]
+            queue: DiscoveredModule[]!: [entry_resolved]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
                 is DiscoveredModule -> {
@@ -221,7 +221,7 @@ export load_project_with_overlay :: fn(
             match string_builder {
                 is DiscoveredModule -> {
                     if !has_module(modules, string_builder.folder) {
-                        sb_queue: DiscoveredModule[]! = [string_builder]
+                        sb_queue: DiscoveredModule[]!: [string_builder]
                         drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
                     }
                 }
@@ -263,7 +263,7 @@ load_baked_target :: fn(
     std_target :: resolve_lazy("std/target", bases, index, diags)
     if std_target is null { return }
     if !has_module(modules, std_target.folder) {
-        pre: DiscoveredModule[]! = [std_target]
+        pre: DiscoveredModule[]!: [std_target]
         drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
     }
     // A COPY of the overlay: the parameter is read-only, and the baked source is
@@ -277,7 +277,7 @@ load_baked_target :: fn(
         .files = [BAKED_PATH],
         .origin = .Toolchain,
     }
-    queue: DiscoveredModule[]! = [baked]
+    queue: DiscoveredModule[]!: [baked]
     drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, target)
 }
 
@@ -429,7 +429,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
     // and typed into a consumer module (the `expand_tilde` return-array
     // miscompile). A global factory makes that collision impossible (mirrors
     // globally-unique Symbol ids).
-    out: SourceFile[]! = []
+    out: SourceFile[]!: []
     for path in paths {
         content :: read_with_overlay(overlay, path)
         if content == "" { continue }
@@ -469,7 +469,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> IncludePath[] {
-    roots: IncludePath[]! = []
+    roots: IncludePath[]!: []
     // A flag is probed exactly like a manifest entry — the marker decides, never
     // where the path came from. Hard-coding `.Build` here bought nothing (an
     // importer under `vader/` is already exempt from R2034 by NAME) and cost an

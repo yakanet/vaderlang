@@ -121,7 +121,7 @@ export infer_if :: fn(
             return collapse_if_unresolved(joined, then_ty, else_ty)
         }
         is AST.IfElseIf as ei -> {
-            inner: AST.Expr = ei.branch
+            inner: AST.Expr: ei.branch
             else_ty :: check_else_branch_expr(
                 inner, else_narrows, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
@@ -206,7 +206,7 @@ collect_chain_narrows :: fn(cond: AST.Expr, op: AST.BinaryOp, typed: TypedProgra
             return out
         }
     }
-    out: IsNarrow[]! = []
+    out: IsNarrow[]!: []
     single :: detect_is_narrow(cond, typed, diag_sink())
     if single is IsNarrow { out.push(single) }
     return out
@@ -260,7 +260,7 @@ same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key 
 // each leaf's own removal, and the two compose — `(base − A) − B = base − (A ∪ B)`.
 merge_or_group :: fn(group: IsNarrow[], typed: TypedProgram!) -> IsNarrow {
     first :: group[0]
-    tys: Type[]! = []
+    tys: Type[]!: []
     remainder := first.static_ty
     for n in group {
         tys.push(positive_of(n))
@@ -277,7 +277,7 @@ merge_or_group :: fn(group: IsNarrow[], typed: TypedProgram!) -> IsNarrow {
 
 // One merged record per slot the chain tests, in first-seen order.
 group_or_narrows :: fn(leaves: IsNarrow[], typed: TypedProgram!) -> IsNarrow[]! {
-    out: IsNarrow[]! = []
+    out: IsNarrow[]!: []
     for lead in leaves {
         already := false
         for done in out {
@@ -288,7 +288,7 @@ group_or_narrows :: fn(leaves: IsNarrow[], typed: TypedProgram!) -> IsNarrow[]! 
         if already {
             continue
         }
-        group: IsNarrow[]! = []
+        group: IsNarrow[]!: []
         for n in leaves {
             if same_slot(n, lead) {
                 group.push(n)
@@ -316,7 +316,7 @@ push_one_narrow :: fn(typed: TypedProgram!, n: IsNarrow, ty: Type) -> PushedNarr
 
 // Push each narrowing's `then` type and return the records to unwind later.
 push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
-    pushed: PushedNarrow[]! = []
+    pushed: PushedNarrow[]!: []
     for n in narrows { pushed.push(push_one_narrow(typed, n, n.then_ty)) }
     return pushed
 }
@@ -324,7 +324,7 @@ push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarr
 // Same, for the else side : a `||` whose operands were all false narrows each
 // slot they tested. A single `is` uses this too, with one record.
 push_else_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
-    pushed: PushedNarrow[]! = []
+    pushed: PushedNarrow[]!: []
     for n in narrows { pushed.push(push_one_narrow(typed, n, n.else_ty)) }
     return pushed
 }
@@ -552,7 +552,7 @@ checked :: fn(src: string) -> TypedProgram {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     result :: check_module(parsed.program, rm, factory, diags)
     return result.typed
 }
@@ -563,7 +563,7 @@ test_if_both_branches_int_returns_int :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "i32")
 }
@@ -574,7 +574,7 @@ test_if_without_else_yields_union_with_void :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     ty :: infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "void | {integer}")
 }
@@ -585,7 +585,7 @@ test_if_cond_not_bool_emits_T3019 :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     found := false
     for d in diags { if d.code.id == "T3019" { found = true } }

@@ -179,7 +179,7 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
 // different order and different words — drift that was already visible in the
 // same diff, and would have grown with a fourth shape.
 build_setup_labels :: fn() -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     for v in NEW_BUILD_SETUPS {
         out.push("${v.name} — ${v.help}")
     }

@@ -37,7 +37,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
     by_mangle :: MutableMap<string, LoweredDecl> {}
     reachable_sym :: MutableMap<i32, bool> {}
     reachable_mangle :: MutableMap<string, bool> {}
-    worklist: LoweredDecl[]! = []
+    worklist: LoweredDecl[]!: []
 
     has_main :: project_has_main(lp)
 
@@ -120,13 +120,13 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
         if bucket == null {
             impls_by_vtable_key[key] = [e.fn_symbol]
         } else {
-            grown := bucket
+            grown :: bucket
             grown.push(e.fn_symbol)
             impls_by_vtable_key[key] = grown
         }
     }
 
-    pending_virtual: string[]! = []
+    pending_virtual: string[]!: []
     pending_seen :: MutableMap<string, bool> {}
 
     // Const accessors are seeded as roots above, so a `LoweredIdent` referencing
@@ -184,7 +184,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
     // Filter each module's fn decls ; keep structs + consts verbatim.
     out_modules :: MutableMap<string, LoweredModule> {}
     for [module_id, m] in lp.modules {
-        kept: LoweredDecl![]! = []
+        kept: LoweredDecl![]!: []
         for d in m.decls {
             if fn_survives(d, reachable_sym, reachable_mangle) { kept.push(d) }
         }

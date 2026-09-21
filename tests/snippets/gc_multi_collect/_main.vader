@@ -17,13 +17,13 @@ main :: fn() -> i32 {
     }
 
     // Three collections in a row — each should copy the same live set.
-    c1 := collections()
+    c1 :: collections()
     collect()
     collect()
     collect()
-    c2 := collections()
+    c2 :: collections()
 
-    diff := c2 - c1
+    diff :: c2 - c1
     if diff != 3 {
         println("expected 3 collections, got ${diff}")
         return 1

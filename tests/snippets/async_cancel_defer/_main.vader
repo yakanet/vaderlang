@@ -18,7 +18,7 @@ Never implements Async<i32> {
 
 inner :: fn() -> Async<i32> {
     defer { println("inner cleanup") }
-    n: Async<i32> = Never {}
+    n: Async<i32>: Never {}
     x :: await n
     println("inner body (unreached)")
     return x

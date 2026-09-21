@@ -46,7 +46,7 @@ exec_array_copy :: fn(frame: Frame!) -> Trap | null {
         return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
     }
     // Overlap-safe : snapshot the source window before writing.
-    window: Value[]! = [] * n
+    window: Value[]!: [] * n
     for j in 0..<n {
         window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
     }
@@ -124,7 +124,7 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
     count :: clamp_nonneg(count_unwrap.value)
     // No capacity concept in the VM (capacity is a native-only perf
     // hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
-    repeated: Value[]! = [] * (count * array_unwrap.length)
+    repeated: Value[]!: [] * (count * array_unwrap.length)
     for _ in 0..<count {
         for j in 0..<array_unwrap.length {
             repeated.push(array_unwrap.elements[array_unwrap.offset + j])

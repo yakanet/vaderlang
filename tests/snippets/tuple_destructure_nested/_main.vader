@@ -9,7 +9,7 @@ make_record :: fn() -> [[i32, string], bool] {
 }
 
 main :: fn() -> i32 {
-    [[id, label], active] := make_record()
+    [[id, label], active] :: make_record()
     println("id=${id}")
     println("label=${label}")
     println("active=${active}")

@@ -18,7 +18,7 @@
 [13:18-13:21] int_literal    "100" =100n
 [14:1-14:1  ] newline        "\n"
 [14:5-14:12 ] ident          "divisor"
-[14:13-14:15] decl_var       ":="
+[14:13-14:15] decl_const     "::"
 [14:16-14:17] int_literal    "0" =0n
 [15:1-15:1  ] newline        "\n"
 [15:5-15:11 ] kw_return      "return"

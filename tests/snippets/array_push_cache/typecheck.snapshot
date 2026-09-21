@@ -20,7 +20,7 @@
   FnDecl         two_names            :: fn(i32) -> i32
   FnDecl         widths               :: fn(i32) -> string
   FnDecl         with_break           :: fn(i32) -> i32[]!
-  expr 106:20   SeqLitExpr     :: u8[]!
+  expr 106:19   SeqLitExpr     :: u8[]!
   expr 107:14   RangeExpr      :: Range<i32>!
   expr 107:18   IdentExpr      :: i32
   expr 108:20   CallExpr       :: u8
@@ -30,7 +30,7 @@
   expr 108:9    CallExpr       :: void
   expr 108:9    FieldExpr      :: fn(u8) -> void
   expr 108:9    IdentExpr      :: u8[]!
-  expr 110:22   SeqLitExpr     :: i16[]!
+  expr 110:21   SeqLitExpr     :: i16[]!
   expr 111:14   RangeExpr      :: Range<i32>!
   expr 111:18   IdentExpr      :: i32
   expr 112:21   CallExpr       :: i16
@@ -40,7 +40,7 @@
   expr 112:9    CallExpr       :: void
   expr 112:9    FieldExpr      :: fn(i16) -> void
   expr 112:9    IdentExpr      :: i16[]!
-  expr 114:22   SeqLitExpr     :: f32[]!
+  expr 114:21   SeqLitExpr     :: f32[]!
   expr 115:14   RangeExpr      :: Range<i32>!
   expr 115:18   IdentExpr      :: i32
   expr 116:21   BinaryExpr     :: f32
@@ -97,7 +97,7 @@
   expr 150:9    BinaryExpr     :: i32
   expr 150:9    IdentExpr      :: i32
   expr 152:12   IdentExpr      :: i32
-  expr 158:19   SeqLitExpr     :: i32[]!
+  expr 158:18   SeqLitExpr     :: i32[]!
   expr 159:16   LambdaExpr     :: fn() -> i32
   expr 159:22   CallExpr       :: i32
   expr 159:22   IdentExpr      :: type
@@ -115,7 +115,7 @@
   expr 163:9    BinaryExpr     :: i32
   expr 163:9    IdentExpr      :: i32
   expr 165:12   IdentExpr      :: i32
-  expr 171:19   SeqLitExpr     :: i32[]!
+  expr 171:18   SeqLitExpr     :: i32[]!
   expr 172:14   IdentExpr      :: i32[]!
   expr 174:14   RangeExpr      :: Range<i32>!
   expr 174:18   IdentExpr      :: i32
@@ -159,8 +159,8 @@
   expr 193:24   CallExpr       :: usize
   expr 193:24   FieldExpr      :: fn() -> usize
   expr 193:24   IdentExpr      :: i32[]!
-  expr 19:19    SeqLitExpr     :: i32[]!
-  expr 200:19   SeqLitExpr     :: i32[]!
+  expr 19:18    SeqLitExpr     :: i32[]!
+  expr 200:18   SeqLitExpr     :: i32[]!
   expr 201:18   RangeExpr      :: Range<i32>!
   expr 201:22   IdentExpr      :: i32
   expr 202:18   BinaryExpr     :: i32
@@ -291,7 +291,7 @@
   expr 23:12    IdentExpr      :: i32[]!
   expr 27:30    StringLitExpr  :: string
   expr 27:34    IdentExpr      :: i32
-  expr 30:22    SeqLitExpr     :: string[]!
+  expr 30:21    SeqLitExpr     :: string[]!
   expr 31:14    RangeExpr      :: Range<i32>!
   expr 31:18    IdentExpr      :: i32
   expr 32:18    CallExpr       :: string
@@ -301,7 +301,7 @@
   expr 32:9     FieldExpr      :: fn(string) -> void
   expr 32:9     IdentExpr      :: string[]!
   expr 34:12    IdentExpr      :: string[]!
-  expr 39:19    SeqLitExpr     :: i32[]!
+  expr 39:18    SeqLitExpr     :: i32[]!
   expr 40:14    RangeExpr      :: Range<i32>!
   expr 40:18    IdentExpr      :: i32
   expr 41:18    IdentExpr      :: i32
@@ -318,7 +318,7 @@
   expr 43:13    IdentExpr      :: i32[]!
   expr 43:22    UnaryExpr      :: i32
   expr 46:12    IdentExpr      :: i32[]!
-  expr 51:19    SeqLitExpr     :: i32[]!
+  expr 51:18    SeqLitExpr     :: i32[]!
   expr 52:14    RangeExpr      :: Range<i32>!
   expr 52:18    IdentExpr      :: i32
   expr 53:12    BinaryExpr     :: bool
@@ -329,7 +329,7 @@
   expr 56:9     FieldExpr      :: fn(i32) -> void
   expr 56:9     IdentExpr      :: i32[]!
   expr 58:12    IdentExpr      :: i32[]!
-  expr 64:22    SeqLitExpr     :: string[]!
+  expr 64:21    SeqLitExpr     :: string[]!
   expr 65:14    RangeExpr      :: Range<i32>!
   expr 65:18    IdentExpr      :: i32
   expr 66:18    StringLitExpr  :: string
@@ -337,10 +337,10 @@
   expr 66:9     FieldExpr      :: fn(string) -> void
   expr 66:9     IdentExpr      :: string[]!
   expr 68:12    IdentExpr      :: string[]!
-  expr 76:20    SeqLitExpr     :: i32[]!
-  expr 77:17    IdentExpr      :: i32[]!
-  expr 77:17    IndexExpr      :: i32[]!
-  expr 77:22    RangeExpr      :: Range<i32>!
+  expr 76:19    SeqLitExpr     :: i32[]!
+  expr 77:16    IdentExpr      :: i32[]!
+  expr 77:16    IndexExpr      :: i32[]!
+  expr 77:21    RangeExpr      :: Range<i32>!
   expr 78:14    RangeExpr      :: Range<i32>!
   expr 79:16    BinaryExpr     :: i32
   expr 79:22    IdentExpr      :: i32
@@ -348,10 +348,10 @@
   expr 79:9     FieldExpr      :: fn(i32) -> void
   expr 79:9     IdentExpr      :: i32[]!
   expr 81:12    IdentExpr      :: i32[]!
-  expr 87:21    SeqLitExpr     :: i32[]!
+  expr 87:20    SeqLitExpr     :: i32[]!
   expr 88:14    RangeExpr      :: Range<i32>!
   expr 88:18    IdentExpr      :: i32
-  expr 89:25    SeqLitExpr     :: i32[]!
+  expr 89:24    SeqLitExpr     :: i32[]!
   expr 90:18    RangeExpr      :: Range<i32>!
   expr 90:22    IdentExpr      :: i32
   expr 91:13    CallExpr       :: void

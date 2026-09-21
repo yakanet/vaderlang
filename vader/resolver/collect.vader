@@ -62,7 +62,7 @@ export FileWildcards :: struct {
 /// seed (`build_wildcard_seed`, `wildcard_ambiguities`), whose own body walker
 /// is `files[0]`-only anyway (TODO §1.13d).
 export all_wildcard_paths :: fn(self: CollectedModule) -> string[]! {
-    out: string[]! = []
+    out: string[]!: []
     for fw in self.wildcards {
         out.push_all(fw.paths)
     }
@@ -174,8 +174,8 @@ export collect_module_no_index :: fn(
     program: Program, module_path: string, factory: SymbolFactory!,
 ) -> CollectedModule {
     empty_index :: MutableMap<string, DiscoveredModule> {}
-    discard: Diagnostic[]! = []
-    no_paths: IncludePath[] = []
+    discard: Diagnostic[]!: []
+    no_paths: IncludePath[]: []
     return collect_module(program, module_path, module_path, factory, empty_index, no_paths, discard)
 }
 
@@ -310,7 +310,7 @@ collect_import :: fn(
             if b.names.len() == 0 {
                 diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
             }
-            excluded: string[]! = []
+            excluded: string[]!: []
             for n in b.names {
                 match n.alias {
                     is null -> {

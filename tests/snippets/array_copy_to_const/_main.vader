@@ -36,7 +36,7 @@ ITEMS: Item[]: [
 ]
 
 main :: fn() -> i32 {
-    dst: Item[]! = [
+    dst: Item[]!: [
         Item { .name = "x", .inner = [] },
         Item { .name = "y", .inner = [] },
     ]
@@ -47,7 +47,7 @@ main :: fn() -> i32 {
 
     // A partial copy into an offset region must land at the destination's stride,
     // leaving the untouched slot intact.
-    room: Item[]! = [
+    room: Item[]!: [
         Item { .name = "keep", .inner = [] },
         Item { .name = "overwrite", .inner = [] },
     ]

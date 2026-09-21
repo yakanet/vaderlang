@@ -2,8 +2,8 @@
 
 ## tests/snippets/tuple_match_pattern
   FnDecl         main                 :: fn() -> i32
-  expr 6:27     SeqLitExpr     :: [i32, string]!
-  expr 6:31     StringLitExpr  :: string
+  expr 6:26     SeqLitExpr     :: [i32, string]!
+  expr 6:30     StringLitExpr  :: string
   expr 7:11     IdentExpr      :: [i32, string]
   expr 7:5      MatchExpr      :: void
   expr 8:19     CallExpr       :: void

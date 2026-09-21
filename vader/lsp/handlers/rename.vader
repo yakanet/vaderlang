@@ -77,7 +77,7 @@ site_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> RefSi
 // rewriting a range that doesn't actually hold the old identifier (aliased
 // imports, re-export shims).
 sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, sources: MutableMap<string, string>) -> RefSite[] {
-    out: RefSite[]! = []
+    out: RefSite[]!: []
     for s in index.sites {
         if s.symbol_id != symbol_id { continue }
         if span_text(sources, s.span) != old_name { continue }
@@ -96,7 +96,7 @@ workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState
         te :: text_edit_json(e.span, new_name, state, li_cache)
         cur :: by_uri[key]
         if cur == null {
-            first: JsonValue[]! = [te]
+            first: JsonValue[]!: [te]
             by_uri[key] = first
         } else {
             cur.push(te)
@@ -201,7 +201,7 @@ test_sites_to_rename_filters_by_symbol_and_text :: fn() -> void {
 test_rename_new_name_reads_param :: fn() -> void {
     inner :: MutableMap<string, JsonValue> {}
     inner["newName"] = JsonString { .value = "renamed" }
-    params: JsonValue = JsonObject { .entries = inner }
+    params: JsonValue: JsonObject { .entries = inner }
     assert_eq(rename_new_name(params), "renamed")
     assert_eq(rename_new_name(JsonNull {}), "")
 }

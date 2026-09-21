@@ -18,14 +18,14 @@
 [9:12-9:13  ] lbracket       "["
 [9:13-9:16  ] ident          "i32"
 [9:16-9:17  ] rbracket       "]"
-[9:18-9:19  ] assign         "="
-[9:20-9:21  ] lbracket       "["
-[9:21-9:22  ] int_literal    "1" =1n
-[9:22-9:23  ] comma          ","
-[9:24-9:25  ] int_literal    "2" =2n
-[9:25-9:26  ] comma          ","
-[9:27-9:28  ] int_literal    "3" =3n
-[9:28-9:29  ] rbracket       "]"
+[9:17-9:18  ] colon          ":"
+[9:19-9:20  ] lbracket       "["
+[9:20-9:21  ] int_literal    "1" =1n
+[9:21-9:22  ] comma          ","
+[9:23-9:24  ] int_literal    "2" =2n
+[9:24-9:25  ] comma          ","
+[9:26-9:27  ] int_literal    "3" =3n
+[9:27-9:28  ] rbracket       "]"
 [10:1-10:1  ] newline        "\n"
 [10:5-10:11 ] kw_return      "return"
 [10:12-10:13] int_literal    "0" =0n

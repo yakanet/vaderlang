@@ -28,8 +28,8 @@ area :: fn(s: Shape) -> i32 {
 }
 
 main :: fn() -> i32 {
-    a: Shape = Circle { .radius = 5 }
-    b: Shape = Square { .side = 4 }
+    a: Shape: Circle { .radius = 5 }
+    b: Shape: Square { .side = 4 }
     println(a.describe())
     println(b.describe())
     println("a.area = ${a.area()}")

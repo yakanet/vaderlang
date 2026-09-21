@@ -36,13 +36,13 @@ INDENT :: "  "
 /// @param common    flags accepted by every action.
 /// @return          the full help text, newline-terminated.
 export render_help :: fn(program: string, version: string, tagline: string, commands: CommandSpec[], common: FlagSpec[]) -> string {
-    out := StringBuilder {}
+    out :: StringBuilder {}
     out.append("${program} ${version} — ${tagline}\n\n")
     out.append("USAGE:\n")
     out.append("${INDENT}${program} <action> [options] [args]\n\n")
 
     out.append("ACTIONS:\n")
-    labels: string[]! = []
+    labels: string[]!: []
     for c in commands {
         labels.push(action_label(c))
     }
@@ -71,7 +71,7 @@ export render_help :: fn(program: string, version: string, tagline: string, comm
 /// @param common   flags accepted by every action, listed after the action's own.
 /// @return         the action's help text, newline-terminated.
 export render_command_help :: fn(program: string, cmd: CommandSpec, common: FlagSpec[]) -> string {
-    out := StringBuilder {}
+    out :: StringBuilder {}
     out.append("${program} ${action_label(cmd)} — ${cmd.summary}\n")
 
     if cmd.flags.len() > 0 {
@@ -106,13 +106,13 @@ action_label :: fn(cmd: CommandSpec) -> string =
 // built once and reused for both the measurement and the output — computing them
 // twice is how a label and its column silently disagree.
 render_flag_block :: fn(flags: FlagSpec[], depth: usize) -> string {
-    labels: string[]! = []
+    labels: string[]!: []
     for f in flags {
         labels.push(flag_label(f))
     }
     width :: column_of(labels)
 
-    out := StringBuilder {}
+    out :: StringBuilder {}
     pad :: INDENT.repeat(depth)
     // Indented past the `--` of the flag above, not merely past its gutter: at
     // equal depth a value reads as another flag.
@@ -123,7 +123,7 @@ render_flag_block :: fn(flags: FlagSpec[], depth: usize) -> string {
         if values.len() == 0 {
             continue
         }
-        names: string[]! = []
+        names: string[]!: []
         for v in values {
             names.push(v.name)
         }
@@ -278,7 +278,7 @@ sample_commands :: fn() -> CommandSpec[] = [
     // padded, is the same length — so every description starts in one column.
     // Computing the width instead of fixing it is what keeps that true when a
     // long flag name is added.
-    labels: string[]! = []
+    labels: string[]!: []
     for f in sample_flags() {
         labels.push(flag_label(f))
     }

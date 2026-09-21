@@ -3,8 +3,8 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    n: usize = 10
-    m: usize = n + 1
+    n: usize: 10
+    m: usize: n + 1
     println("$m")
     return 0
 }

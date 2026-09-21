@@ -139,7 +139,7 @@ export fit :: fn(s: string, width: i32) -> string {
 export render_select :: fn(
     question: string, options: string[], cursor: usize, width: i32,
 ) -> string {
-    lines: string[]! = [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
+    lines: string[]!: [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
     for i in 0..<options.len() {
         marker :: if i == cursor { ">" } else { " " }
         lines.push(fit("${marker} ${options[i]}", width))
@@ -218,7 +218,7 @@ export render_multiselect :: fn(
     question: string, options: string[], checked: bool[], cursor: usize, width: i32,
 ) -> string {
     header :: "? ${question}  (Space to toggle, Enter to confirm, Esc to cancel)"
-    lines: string[]! = [fit(header, width)]
+    lines: string[]!: [fit(header, width)]
     for i in 0..<options.len() {
         marker :: if i == cursor { ">" } else { " " }
         box :: if checked[i] { "[x]" } else { "[ ]" }
@@ -240,7 +240,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
     }
     defer TTY.raw_mode_end()
     reader :: new_key_reader()
-    checked: bool[]! = [false] * options.len()
+    checked: bool[]!: [false] * options.len()
     cursor := usize(0)
     drawn := 0
     for {
@@ -267,7 +267,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
 
 /// The indices set in `checked`, in order.
 export checked_indices :: fn(checked: bool[]) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     for i in 0..<checked.len() {
         if checked[i] {
             out.push(i)

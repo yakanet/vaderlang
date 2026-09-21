@@ -106,7 +106,7 @@ reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
     noun :: if cmd == null { "" } else { positional_noun(cmd) }
     // Annotated, not cast: the literals are free and the slot is compared against
     // `positionals.len()`, a usize.
-    allowed: usize = if noun == "" { 0 } else { 1 }
+    allowed: usize: if noun == "" { 0 } else { 1 }
     if parsed.positionals.len() <= allowed {
         return false
     }

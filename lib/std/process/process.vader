@@ -155,8 +155,8 @@ spawn_start :: fn(argv: string[]) -> i64 {
     if argv.len() == 0 {
         return -1
     }
-    out_fds: i32[]! = [0, 0]
-    err_fds: i32[]! = [0, 0]
+    out_fds: i32[]!: [0, 0]
+    err_fds: i32[]!: [0, 0]
     if sys_pipe(out_fds) != 0 {
         return -1
     }
@@ -165,7 +165,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
         sys_close(out_fds[1])
         return -1
     }
-    actions: u8[]! = [0] * SPAWN_ACTIONS_BYTES
+    actions: u8[]!: [0] * SPAWN_ACTIONS_BYTES
     if sys_spawn_actions_init(actions) != 0 {
         close_pair(out_fds)
         close_pair(err_fds)
@@ -181,8 +181,8 @@ spawn_start :: fn(argv: string[]) -> i64 {
 
     // Two views of one vector: `owned` holds the pointers so they can be freed,
     // `vec` is the `usize[]` that lends as the `char**` the spawn wants.
-    owned: CPointer[]! = []
-    vec: usize[]! = []
+    owned: CPointer[]!: []
+    vec: usize[]!: []
     for a in argv {
         p :: sys_strdup(a)
         owned.push(p)
@@ -190,7 +190,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
     }
     vec.push(0)
 
-    pid: i32[]! = [0]
+    pid: i32[]!: [0]
     rc :: sys_posix_spawnp(pid, argv[0], actions, null, vec, sys_environ())
     sys_spawn_actions_destroy(actions)
     for p in owned {
@@ -241,7 +241,7 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool
 drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
     c :: CHILDREN[usize(child)]
     fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
-    chunk: u8[]! = [0] * DRAIN_CHUNK
+    chunk: u8[]!: [0] * DRAIN_CHUNK
     pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
     for {
         if sys_poll_one(pfd, 1, 0) <= 0 {
@@ -275,9 +275,9 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if c.done {
         return c.exit_code
     }
-    out_eof := if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
-    err_eof := if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
-    st: i32[]! = [0]
+    out_eof :: if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
+    err_eof :: if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
+    st: i32[]!: [0]
     rc :: sys_waitpid(i32(c.proc), st, WNOHANG)
     if rc == 0 {
         CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
@@ -345,7 +345,7 @@ spawn_kill :: fn(handle: i64) -> void {
     c :: CHILDREN[usize(handle)]
     if !c.done {
         sys_kill(i32(c.proc), SIGKILL)
-        st: i32[]! = [0]
+        st: i32[]!: [0]
         sys_waitpid(i32(c.proc), st, 0)
         sys_close(i32(c.out_h))
         sys_close(i32(c.err_h))
@@ -431,7 +431,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
 /// @param argv  the words.
 /// @return      the command line, NUL-terminated.
 command_line_bytes :: fn(argv: string[]) -> u8[]! {
-    out: u8[]! = []
+    out: u8[]!: []
     for i in 0..<argv.len() {
         if i > 0 {
             out.push(' ')

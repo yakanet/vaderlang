@@ -189,7 +189,7 @@ export generated_root_of :: fn(ctx: BuildContext) -> string =
 ///             module is skipped rather than the build aborted, so one
 ///             unwritable path reports once instead of cascading.
 export flush_generated :: fn(ctx: BuildContext!) -> string[] {
-    fresh: string[]! = []
+    fresh: string[]!: []
     if ctx.pending.len() == 0 {
         return fresh
     }

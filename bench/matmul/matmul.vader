@@ -38,9 +38,9 @@ main :: fn() -> i32 {
 }
 
 build :: fn(modulus: i64) -> i64[][] {
-    out: i64[][]! = []
+    out: i64[][]!: []
     for row in 0..<SIZE {
-        line: i64[]! = []
+        line: i64[]!: []
         for column in 0..<SIZE {
             line.push(i64(row + column) % modulus)
         }

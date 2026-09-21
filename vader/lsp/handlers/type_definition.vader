@@ -84,7 +84,7 @@ export type_symbol :: fn(t: Type) -> Symbol | null {
 // (one non-null member) → `T`'s symbol ; a genuine multi-member sum type has
 // no single declaration to jump to → null.
 union_symbol :: fn(u: UnionType) -> Symbol | null {
-    named: Type[]! = []
+    named: Type[]!: []
     for v in u.variants {
         if !is_null_primitive(v) { named.push(v) }
     }
@@ -108,7 +108,7 @@ test_type_symbol_extracts_named_type :: fn() -> void {
         .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
-    no_args: Type[] = []
+    no_args: Type[]: []
     extracted :: type_symbol(mk_struct(sym, no_args, immutable = false))
     if extracted == null { assert(false, "struct type must carry a symbol") }
     else { assert_eq(extracted.name, "Box") }
@@ -128,8 +128,8 @@ test_type_symbol_unwraps_nullable :: fn() -> void {
         .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
-    no_args: Type[] = []
-    members: Type[] = [mk_struct(sym, no_args, immutable = false), mk_primitive("null")]
+    no_args: Type[]: []
+    members: Type[]: [mk_struct(sym, no_args, immutable = false), mk_primitive("null")]
     extracted :: type_symbol(mk_union(members))
     if extracted == null { assert(false, "T | null must resolve to T's symbol") }
     else { assert_eq(extracted.name, "User") }

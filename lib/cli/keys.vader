@@ -206,7 +206,7 @@ codepoint_width :: fn(lead: u8) -> usize {
 /// @return       every press in order; empty when `burst` is empty.
 export decode_burst :: fn(burst: string) -> KeyPress[] {
     bytes :: burst.bytes()
-    out: KeyPress[]! = []
+    out: KeyPress[]!: []
     i := usize(0)
     for i < bytes.len() {
         d :: decode_key(bytes, i)

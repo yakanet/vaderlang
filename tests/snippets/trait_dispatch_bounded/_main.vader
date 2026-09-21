@@ -17,10 +17,10 @@ export count_matching :: fn<T: Hash & Equals>(items: T[], target: T) -> i32 {
 }
 
 main :: fn() -> i32 {
-    nums := [1, 2, 3, 2, 5, 2]
+    nums :: [1, 2, 3, 2, 5, 2]
     println("${count_matching(nums, 2)}")
 
-    words := ["foo", "bar", "foo", "baz", "foo"]
+    words :: ["foo", "bar", "foo", "baz", "foo"]
     println("${count_matching(words, "foo")}")
     return 0
 }

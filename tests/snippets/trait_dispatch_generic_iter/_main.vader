@@ -54,8 +54,8 @@ walk :: fn(it: Iterator<i32>) -> i32 {
 }
 
 main :: fn() -> i32 {
-    r := Repeat<i32> { .value = 7, .remaining = 3 }
-    o := Once<i32>   { .value = 100, .yielded = false }
+    r :: Repeat<i32> { .value = 7, .remaining = 3 }
+    o :: Once<i32>   { .value = 100, .yielded = false }
     println("repeat=${walk(r)}")
     println("once=${walk(o)}")
     return 0

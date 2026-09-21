@@ -74,7 +74,7 @@ materialize_representative :: fn(
                 if decl.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(decl, owner_typed)
-                fields: LoweredStructField[]! = []
+                fields: LoweredStructField[]!: []
                 for f in decl.fields {
                     raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
                     fields.push(LoweredStructField {
@@ -82,7 +82,7 @@ materialize_representative :: fn(
                         .type = substitute(raw_ty, erase),
                     })
                 }
-                entry_decl: Decl = decl
+                entry_decl: Decl: decl
                 entry :: MonoEntry {
                     .id             = 0,
                     .is_main        = false,
@@ -228,7 +228,7 @@ materialize_struct_instance :: fn(
         // ref arg pre-erased), so only field types change.
         subst :: build_struct_subst(decl, inst.args, owner_typed)
         erase :: build_struct_mixed_subst(decl, owner_typed, inst.args)
-        fields: LoweredStructField[]! = []
+        fields: LoweredStructField[]!: []
         for f in decl.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
             field_ty :: substitute(raw_ty, erase)
@@ -237,7 +237,7 @@ materialize_struct_instance :: fn(
                 .type = field_ty,
             })
         }
-        entry_decl: Decl = decl
+        entry_decl: Decl: decl
         entry :: MonoEntry {
             .id             = 0,
             .is_main        = false,
@@ -279,7 +279,7 @@ close_over_field_shapes :: fn(
 ) -> void {
     materialized :: new_string_set()
     seen_pushed :: new_string_set()
-    worklist: StructType[]! = []
+    worklist: StructType[]!: []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
         for decl in mod.decls {
@@ -460,7 +460,7 @@ materialize_impl_for_instance :: fn(
     // generic-struct box interns to this exact receiver key (else `vtable miss`).
     erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
-    self_type: Type = self_struct
+    self_type: Type: self_struct
     // Suffix from the ERASED args : a generic impl mangles `count__Any`
     // (not `count__i32`) so the shared erased body's sibling self-calls
     // (`self.next()` in the `count` default) and every concrete-arg call
@@ -495,7 +495,7 @@ materialize_impl_for_instance :: fn(
         // dropping the call to the panic fallback. Co-locating with the impl keeps
         // the two in lock-step. No-op when owner == impl (the colocated case).
         mangled :: "${mangle_module_id(impl_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
-        entry_decl: Decl = member
+        entry_decl: Decl: member
         entry :: MonoEntry {
             .id             = 0,
             .is_main        = false,
@@ -548,7 +548,7 @@ materialize_bound_trait_impls :: fn(
         bound :: impl_decl.type_params[i].bound ?? continue
         type_name :: type_surface_name(inst.args[i])
         if type_name == "" { continue }
-        trait_names: string[]! = []
+        trait_names: string[]!: []
         flatten_trait_bound(bound, trait_names)
         for trait_name in trait_names {
             materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)

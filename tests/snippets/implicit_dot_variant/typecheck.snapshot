@@ -12,22 +12,22 @@
   expr 20:23    StringLitExpr  :: string
   expr 21:23    StringLitExpr  :: string
   expr 22:23    StringLitExpr  :: string
-  expr 28:14    DotVariantExpr :: Day
+  expr 28:13    DotVariantExpr :: Day
   expr 29:13    CallExpr       :: string
   expr 29:13    IdentExpr      :: fn(Day) -> string
   expr 29:22    IdentExpr      :: Day
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 32:19    SeqLitExpr     :: Day[]
-  expr 32:20    DotVariantExpr :: Day
-  expr 32:29    DotVariantExpr :: Day
+  expr 32:18    SeqLitExpr     :: Day[]
+  expr 32:19    DotVariantExpr :: Day
+  expr 32:28    DotVariantExpr :: Day
   expr 33:14    IdentExpr      :: Day[]
   expr 33:21    CallExpr       :: void
   expr 33:21    IdentExpr      :: fn(T) -> void
   expr 33:29    CallExpr       :: string
   expr 33:29    IdentExpr      :: fn(Day) -> string
   expr 33:38    IdentExpr      :: Day
-  expr 36:16    StructLitExpr  :: Some!
+  expr 36:15    StructLitExpr  :: Some!
   expr 37:11    IdentExpr      :: None | Some
   expr 37:5     MatchExpr      :: void
   expr 38:21    CallExpr       :: void
@@ -38,7 +38,7 @@
   expr 39:21    CallExpr       :: void
   expr 39:21    IdentExpr      :: fn(T) -> void
   expr 39:29    StringLitExpr  :: string
-  expr 41:16    StructLitExpr  :: None!
+  expr 41:15    StructLitExpr  :: None!
   expr 42:11    IdentExpr      :: None | Some
   expr 42:5     MatchExpr      :: void
   expr 43:21    CallExpr       :: void

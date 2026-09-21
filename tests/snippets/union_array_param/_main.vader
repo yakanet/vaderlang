@@ -12,7 +12,7 @@ byte_count :: fn(x: string | u8[]) -> usize {
 }
 
 main :: fn() -> i32 {
-    a: u8[] = [1, 2, 3, 4]
+    a: u8[]: [1, 2, 3, 4]
     println("${byte_count("hi")} ${byte_count("hi".bytes())} ${byte_count(a)}")
     return 0
 }

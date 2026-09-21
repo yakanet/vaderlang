@@ -19,7 +19,7 @@ Countdown implements Iterator<i32> {
 }
 
 main :: fn() -> i32 {
-    it := Countdown { .current = 5 }
+    it :: Countdown { .current = 5 }
     for x in it {
         println("${x}")
     }

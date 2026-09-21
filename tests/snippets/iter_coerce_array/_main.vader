@@ -24,21 +24,21 @@ walk :: fn(it: Iterator<i32>) -> i32 {
 }
 
 make_iter :: fn() -> Iterator<i32> {
-    arr := [100, 200, 300]
+    arr :: [100, 200, 300]
     return arr   // Array → Iterator return coercion
 }
 
 main :: fn() -> i32 {
     // Call-arg coercion: [i32] flows into Iterator(i32) param.
-    a := walk([10, 20, 30])
+    a :: walk([10, 20, 30])
 
     // Let coercion — both binding forms : `:` (immutable) and `=` (mutable).
-    typed_iter_mut: Iterator<i32> = [1, 2, 3, 4]
+    typed_iter_mut: Iterator<i32>: [1, 2, 3, 4]
     typed_iter_immut: Iterator<i32> : [5, 6, 7]
-    b := walk(typed_iter_mut) + walk(typed_iter_immut)
+    b :: walk(typed_iter_mut) + walk(typed_iter_immut)
 
     // Return coercion: make_iter wraps its inner array on the way out.
-    c := walk(make_iter())
+    c :: walk(make_iter())
 
     println("a=${a} b=${b} c=${c}")
     return 0

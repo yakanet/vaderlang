@@ -4,7 +4,7 @@
   ConstDecl      Celsius              :: type
   ConstDecl      Histogram            :: type
   FnDecl         main                 :: fn() -> i32
-  expr 22:26    SeqLitExpr     :: Histogram
+  expr 22:25    SeqLitExpr     :: Histogram
   expr 23:18    RangeExpr      :: Range<usize>!
   expr 23:22    CallExpr       :: usize
   expr 23:22    FieldExpr      :: fn() -> usize
@@ -18,7 +18,7 @@
   expr 23:49    IdentExpr      :: usize
   expr 23:54    IdentExpr      :: u32
   expr 24:16    IdentExpr      :: Histogram
-  expr 30:26    SeqLitExpr     :: Histogram
+  expr 30:25    SeqLitExpr     :: Histogram
   expr 31:18    RangeExpr      :: Range<usize>!
   expr 31:22    CallExpr       :: usize
   expr 31:22    FieldExpr      :: fn() -> usize
@@ -37,7 +37,7 @@
   expr 32:22    IdentExpr      :: Histogram
   expr 32:22    IndexExpr      :: u32
   expr 32:32    IdentExpr      :: u32
-  expr 40:20    SeqLitExpr     :: Histogram
+  expr 40:19    SeqLitExpr     :: Histogram
   expr 41:12    CallExpr       :: u32
   expr 41:12    IdentExpr      :: type
   expr 41:5     CallExpr       :: void

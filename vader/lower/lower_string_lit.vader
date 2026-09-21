@@ -88,7 +88,7 @@ fold_literal_runs :: fn(operands: LoweredExpr[]!, span: Span) -> LoweredExpr[]! 
     if !has_foldable_leaf(operands) {
         return operands
     }
-    out: LoweredExpr[]! = []
+    out: LoweredExpr[]!: []
     for op in operands {
         if op is LoweredStringLit {
             // An empty part writes nothing ; carrying it would cost an operand,
@@ -216,8 +216,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     usize_type :: mk_primitive("usize")
     span :: expr.span
     // Lower every part once, classifying interpolated values by type.
-    values: LoweredExpr[]! = []
-    kinds: WriterKind[]! = []
+    values: LoweredExpr[]!: []
+    kinds: WriterKind[]!: []
     has_direct := false
     for part in expr.parts {
         match part {
@@ -266,9 +266,9 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     // Process parts : bind each string / `${Display}` to a tmp (referenced twice —
     // size + write — so `${f()}` isn't evaluated twice), accumulate the static byte
     // bound + the runtime `byte_len` size terms, and record what to write.
-    stmts: LoweredStmt[]! = []
-    write_values: LoweredExpr[]! = []
-    write_kinds: WriterKind[]! = []
+    stmts: LoweredStmt[]!: []
+    write_values: LoweredExpr[]!: []
+    write_kinds: WriterKind[]!: []
     const_bytes: i64 = 0
     runtime_size: LoweredExpr | null = null
     for i in 0..<values.len() {
@@ -342,7 +342,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
 // `value.to_string()`), concatenated via the same shared `concat_N` as `+`.
 // Used when no part is a direct-write primitive, or the buffer API doesn't resolve.
 concat_from_collected :: fn(ctx: FnLowerCtx!, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr {
-    operands: LoweredExpr[]! = []
+    operands: LoweredExpr[]!: []
     for i in 0..<values.len() {
         if kinds[i] == WriterKind.Str || kinds[i] == WriterKind.Text {
             operands.push(values[i])
@@ -367,7 +367,7 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
 // the impl exists per-instantiation but isn't reachable at lower-time.
 build_display_to_string_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) -> LoweredExpr {
     string_type :: TY_STRING
-    no_args: LoweredExpr[]! = []
+    no_args: LoweredExpr[]!: []
     direct :: try_direct_display_call(ctx, value, span)
     if direct != null { return direct }
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
@@ -407,7 +407,7 @@ try_direct_display_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) 
     member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING) ?? return null
     // Build the direct `to_string(value)` call — or, when the member is the
     // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
-    call_args: LoweredExpr[]! = []
+    call_args: LoweredExpr[]!: []
     call_args.push(value)
     return build_member_call_or_inline(member, call_args, string_type, span)
 }
@@ -473,12 +473,12 @@ fold_test_run :: fn(leaves: LoweredExpr[]!) -> string {
 }
 
 @test test_fold_literal_runs_all_literals :: fn() -> void {
-    leaves: LoweredExpr[]! = [fold_test_lit("a"), fold_test_lit("b"), fold_test_lit("c")]
+    leaves: LoweredExpr[]!: [fold_test_lit("a"), fold_test_lit("b"), fold_test_lit("c")]
     assert_eq(fold_test_run(leaves), "lit:abc")
 }
 
 @test test_fold_literal_runs_keeps_opaque_leaves_apart :: fn() -> void {
-    leaves: LoweredExpr[]! = [
+    leaves: LoweredExpr[]!: [
         fold_test_lit("a"), fold_test_lit("b"), fold_test_opaque("x"),
         fold_test_lit("c"), fold_test_lit("d"),
     ]
@@ -486,14 +486,14 @@ fold_test_run :: fn(leaves: LoweredExpr[]!) -> string {
 }
 
 @test test_fold_literal_runs_drops_empty_literals :: fn() -> void {
-    leaves: LoweredExpr[]! = [fold_test_lit(""), fold_test_opaque("x"), fold_test_lit("")]
+    leaves: LoweredExpr[]!: [fold_test_lit(""), fold_test_opaque("x"), fold_test_lit("")]
     assert_eq(fold_test_run(leaves), "var:x")
 }
 
 // An empty literal between two literals must not break the run — dropping it
 // first is what lets `"e" + "" + "f"` reach a single `"ef"`.
 @test test_fold_literal_runs_empty_does_not_break_a_run :: fn() -> void {
-    leaves: LoweredExpr[]! = [fold_test_lit("e"), fold_test_lit(""), fold_test_lit("f")]
+    leaves: LoweredExpr[]!: [fold_test_lit("e"), fold_test_lit(""), fold_test_lit("f")]
     assert_eq(fold_test_run(leaves), "lit:ef")
 }
 
@@ -509,7 +509,7 @@ fold_test_run :: fn(leaves: LoweredExpr[]!) -> string {
 // The merged literal must span the WHOLE run, so a diagnostic on the folded
 // value still points at every part the user wrote.
 @test test_fold_literal_runs_merged_span_covers_the_run :: fn() -> void {
-    leaves: LoweredExpr[]! = [fold_test_lit_at("a", 7), fold_test_lit_at("b", 8), fold_test_lit_at("c", 9)]
+    leaves: LoweredExpr[]!: [fold_test_lit_at("a", 7), fold_test_lit_at("b", 8), fold_test_lit_at("c", 9)]
     merged :: fold_literal_runs(leaves, empty_span())[0]
     if merged is LoweredStringLit {
         assert_eq(merged.span.start.line, 7)
@@ -522,9 +522,9 @@ fold_test_run :: fn(leaves: LoweredExpr[]!) -> string {
 // A chain with nothing to fold keeps its own array — the early-out that spares
 // the common `"x=" + v + ", y=" + w` shape a copy per leaf.
 @test test_fold_literal_runs_returns_the_input_when_nothing_folds :: fn() -> void {
-    mixed: LoweredExpr[]! = [fold_test_lit("a"), fold_test_opaque("x")]
-    pair: LoweredExpr[]! = [fold_test_lit("a"), fold_test_lit("b")]
-    empty: LoweredExpr[]! = [fold_test_lit(""), fold_test_opaque("x")]
+    mixed: LoweredExpr[]!: [fold_test_lit("a"), fold_test_opaque("x")]
+    pair: LoweredExpr[]!: [fold_test_lit("a"), fold_test_lit("b")]
+    empty: LoweredExpr[]!: [fold_test_lit(""), fold_test_opaque("x")]
     assert(!has_foldable_leaf(mixed), "no adjacent pair and no empty leaf")
     assert(has_foldable_leaf(pair), "two adjacent literals merge")
     assert(has_foldable_leaf(empty), "an empty literal is dropped")

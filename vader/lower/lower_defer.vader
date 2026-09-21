@@ -53,7 +53,7 @@ export lower_defer :: fn(
         .origin  = synth_mono_entry(ctx, env_symbol),
     }
 
-    lifted_params: LoweredParam[]! = []
+    lifted_params: LoweredParam[]!: []
     lifted_params.push(LoweredParam {
         .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type,
     })
@@ -102,12 +102,12 @@ export lower_defer :: fn(
 lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Capture[] {
     found :: ctx.project.closures.defer_captures[capture_key(ctx.typed.resolved.path, defer_stmt.id)]
     if found is Capture[] as caps { return caps }
-    empty: Capture[] = []
+    empty: Capture[]: []
     return empty
 }
 
 build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
-    fields: LoweredStructField[]! = []
+    fields: LoweredStructField[]!: []
     for i in 0..<captures.len() {
         fields.push(LoweredStructField {
             .name = "cap_${i}", .type = TY_UNRESOLVED,
@@ -117,7 +117,7 @@ build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
 }
 
 build_defer_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField![] {
-    fields: LoweredStructLitField![]! = []
+    fields: LoweredStructLitField![]!: []
     for i in 0..<captures.len() {
         capture :: captures[i]
         fields.push(LoweredStructLitField {
@@ -142,7 +142,7 @@ synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
     match defer_stmt.body {
         is AST.DeferBlockBody as bb -> { return bb.block }
         is AST.DeferStmtBody  as sb -> {
-            stmts: AST.Stmt[]! = []
+            stmts: AST.Stmt[]!: []
             stmts.push(sb.stmt)
             return AST.BlockExpr {
                 .span     = defer_stmt.span,

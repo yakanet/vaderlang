@@ -194,7 +194,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         // a fresh literal, and an inferred `::` join is not a plain array — the
         // for-in below then falls to the iterator path and the lowerer panics on an
         // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: Type[]: if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in param0.variants {
@@ -232,14 +232,14 @@ ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
 build_ufcs_args :: fn(
     ctx: FnLowerCtx!, receiver: LoweredExpr, call: CallExpr, params: Type[], first_slot: usize,
 ) -> LoweredExpr[]! {
-    args: LoweredExpr[]! = []
+    args: LoweredExpr[]!: []
     if first_slot == 1 && params.len() > 0 {
         args.push(prepare_value_for_slot(ctx, receiver, params[0], call.span))
     } else {
         args.push(receiver)
     }
-    raw_args: LoweredExpr[]! = []
-    arg_spans: Span[]! = []
+    raw_args: LoweredExpr[]!: []
+    arg_spans: Span[]!: []
     for call_arg in call.args {
         raw_args.push(lower_expr(ctx, call_arg.value))
         arg_spans.push(call_arg.value.span)
@@ -365,7 +365,7 @@ harvest_ufcs_fn_instance :: fn(
         }
         if fn_ty.params.len() == 0 { return null }
         bindings :: MutableMap<i32, Type> {}
-        order: i32[]! = []
+        order: i32[]!: []
         unify_params(fn_ty.params[0], default_if_free(recv_type), bindings, order, ctx)
         n :: fn_ty.params.len()
         for i in 1..<n {
@@ -374,7 +374,7 @@ harvest_ufcs_fn_instance :: fn(
             concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
             unify_params(fn_ty.params[i], concrete, bindings, order, ctx)
         }
-        concrete_args: Type[]! = []
+        concrete_args: Type[]!: []
         for id in order {
             v :: bindings[id]
             match v {

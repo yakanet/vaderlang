@@ -29,7 +29,7 @@ export ParsedSource :: struct {
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource {
     l :: tokenize(source, file)
-    p := new_parser(l.tokens, file)
+    p :: new_parser(l.tokens, file)
     // Carry lexer diagnostics through so the snapshot shows both phases.
     for e in l.errors { p.errors.push(e) }
     program :: parse_program(p)
@@ -426,7 +426,7 @@ export describe_token :: fn(t: Token) -> string {
 
 parse_program :: fn(p: Parser!) -> Program {
     start_tok :: p.peek()
-    decls: Decl![]! = []
+    decls: Decl![]!: []
     p.skip_newlines()
     module :: p.parse_optional_module_decl()
     p.skip_newlines()
@@ -636,11 +636,11 @@ reject_c_decorators :: fn(p: Parser!, decorators: Decorator[], what: string) -> 
 }
 
 parse_decorators :: fn(p: Parser!) -> Decorator[] {
-    out: Decorator[]! = []
+    out: Decorator[]!: []
     for p.check(.At) {
         at :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        args: Expr[]! = []
+        args: Expr[]!: []
         if p.match_kind(.LParen) != null {
             if !p.check(.RParen) {
                 first := true
@@ -725,7 +725,7 @@ parse_named_import_decl :: fn(p: Parser!, decorators: Decorator[], name_tok: Tok
 /// Parse `a, b as c` …` with the leading `{` already consumed. Closes
 /// on the matching `}`.
 parse_import_name_list_rest :: fn(p: Parser!) -> CommaList<ImportName!> {
-    names: ImportName![]! = []
+    names: ImportName![]!: []
     trailing := false
     p.skip_newlines()
     if !p.check(.RBrace) {
@@ -767,7 +767,7 @@ expect_string_literal :: fn(p: Parser!, what: string) -> StringLitInfo {
         return StringLitInfo { .text = "", .span = t.span }
     }
     begin :: p.advance()
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for !p.check(.StringEnd) && !p.check(.Eof) {
         t :: p.advance()
         if t.kind == .StringPart {
@@ -886,7 +886,7 @@ parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
         if deco.name == "intrinsic" { is_intrinsic = true }
     }
 
-    members: FnDecl![]! = []
+    members: FnDecl![]!: []
     end_tok: Token = trait_tok
     if p.check(.Arrow) {
         members.push(p.parse_sam_arrow_member())
@@ -1131,8 +1131,8 @@ CommaList :: struct<T> {
 }
 
 parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
-    type_params: TypeParam[]! = []
-    params:      FnParam![]!  = []
+    type_params: TypeParam[]!: []
+    params:      FnParam![]! : []
     trailing := false
     p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
@@ -1241,7 +1241,7 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
-    fields: StructField![]! = []
+    fields: StructField![]!: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
         // field to its declaring module (typecheck enforces, T3054). Any other
@@ -1296,7 +1296,7 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
     // their own unified surface.
     if p.check(.Lt) { return p.parse_angle_type_params() }
     if p.match_kind(.LParen) == null { return [] }
-    out: TypeParam[]! = []
+    out: TypeParam[]!: []
     p.skip_newlines()
     for !p.check(.RParen) && !p.check(.Eof) {
         // Each iteration parses one (possibly $-prefixed) type-param. After
@@ -1338,7 +1338,7 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
                     _            -> {}
                 }
             }
-            is_comptime_value := bound != null
+            is_comptime_value :: bound != null
         out.push(TypeParam {
             .span              = p.span_of(start, p.peek_at(-1)),
             .name              = name.text,
@@ -1358,7 +1358,7 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
 parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
     if !p.check(.Lt) { return [] }
     p.advance()  // `<`
-    out: TypeParam[]! = []
+    out: TypeParam[]!: []
     p.skip_newlines()
     for !p.check(.Eof) {
         if p.check_closing_angle() { break }
@@ -1402,7 +1402,7 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
 merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
     if angle.len() == 0 { return inlined }
     if inlined.len() == 0   { return angle }
-    merged: TypeParam[]! = []
+    merged: TypeParam[]!: []
     for angle_param in angle { merged.push(angle_param) }
     for inline_param in inlined {
         already_present := false
@@ -1426,7 +1426,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
     //   `Foo :: trait<T> = A & B`            (alias, no own methods)
     //   `Foo :: trait<T> : A & B { ... }`    (composes A & B + own methods)
     requires: TypeExpr | null = null
-    members: FnDecl![]! = []
+    members: FnDecl![]!: []
     if p.match_kind(.Assign) != null {
         requires = p.parse_type()
         return TraitDecl {
@@ -1477,7 +1477,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
     }
     p.expect(.LBrace, "`{` to open enum body")
     p.skip_newlines()
-    variants: EnumVariant![]! = []
+    variants: EnumVariant![]!: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         v_tok :: p.expect(.Ident, "variant name")
         value: i64 | null = null
@@ -1591,7 +1591,7 @@ desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
         .callee = ident_expr(name_tok.span, synth_name),
         .args   = [],
     }
-    decos: Decorator[]! = []
+    decos: Decorator[]!: []
     for d in decorators { decos.push(d) }
     decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
     return ConstDecl {
@@ -1622,7 +1622,7 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
     last :: block.stmts[n - 1]
     if last is ReturnStmt {
         if last.value != null {
-            kept: Stmt[]! = []
+            kept: Stmt[]!: []
             for i in 0..<(n - 1) { kept.push(block.stmts[i]) }
             return BlockExpr { .span = block.span, .stmts = kept, .trailing = last.value }
         }
@@ -1851,7 +1851,7 @@ parse_type_primary :: fn(p: Parser!) -> TypeExpr {
         //                      ArrayTypeExpr so the user-likely-meant-array
         //                      flow keeps working downstream.
         start :: p.advance()
-        elements: TypeExpr[]! = []
+        elements: TypeExpr[]!: []
         p.skip_newlines()
         if p.check(.RBracket) {
             p.error(.ExpectedType, t.span, "empty `[]` is not a valid type")
@@ -1932,8 +1932,8 @@ parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
     // The parameter list is parsed inline because a trailing `!` mutation marker
     // is legal ONLY here — everywhere else a type is parsed (`parse_type`), a `!`
     // must stay a syntax error, so the loop cannot be factored out for reuse.
-    params: TypeExpr[]! = []
-    marks: bool[]! = []
+    params: TypeExpr[]!: []
+    marks: bool[]!: []
     any_mutable := false
     p.skip_newlines()
     if !p.check(.RParen) {
@@ -1967,7 +1967,7 @@ parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
 // opening `<` must already have been consumed by the caller ; the closing
 // `>` (or first half of a `Shr`) is consumed before returning.
 parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr[]! {
-    out: TypeExpr[]! = []
+    out: TypeExpr[]!: []
     p.skip_newlines()
     if p.check_closing_angle() {
         p.consume_closing_angle()
@@ -2060,7 +2060,7 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
         return BlockExpr { .span = p.span_of(lb, p.peek_at(-1)), .stmts = [], .trailing = null }
     }
     p.skip_newlines()
-    raw: Stmt[]! = []
+    raw: Stmt[]!: []
     trailing: Expr | null = null
     for !p.check(.RBrace) && !p.check(.Eof) {
         s_opt :: p.parse_stmt()
@@ -2080,7 +2080,7 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
     }
     // Promote a trailing ExprStmt into the block's implicit return value
     // by rebuilding `stmts` without the last element (no `pop` on arrays).
-    stmts: Stmt[]! = []
+    stmts: Stmt[]!: []
     n :: raw.len()
     last_is_expr := false
     last_expr: Expr | null = null
@@ -2304,7 +2304,7 @@ parse_let_binding :: fn(p: Parser!) -> LetBinding {
     if p.check(.LBracket) {
         start :: p.advance()
         p.skip_newlines()
-        elements: LetBinding[]! = []
+        elements: LetBinding[]!: []
         if !p.check(.RBracket) {
             for {
                 p.skip_newlines()
@@ -2995,7 +2995,7 @@ parse_prefix :: fn(p: Parser!) -> Expr {
             }
             is IntrinsicSpec -> {
                 p.expect(.LParen, "`(` after `@${spec.name}`")
-                args: Expr[]! = []
+                args: Expr[]!: []
                 p.skip_newlines()
                 intr_trailing := false
                 if !p.check(.RParen) {
@@ -3122,7 +3122,7 @@ parse_postfix :: fn(p: Parser!, left: Expr, t: Token) -> Expr {
 }
 
 parse_call_args :: fn(p: Parser!) -> CommaList<CallArg!> {
-    out: CallArg![]! = []
+    out: CallArg![]!: []
     trailing := false
     p.skip_newlines()
     if p.check(.RParen) {
@@ -3299,7 +3299,7 @@ looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
 }
 
 parse_struct_lit_fields :: fn(p: Parser!) -> CommaList<StructLitField! | StructLitSpread!> {
-    out: (StructLitField! | StructLitSpread!)[]! = []
+    out: (StructLitField! | StructLitSpread!)[]!: []
     trailing := false
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
@@ -3422,7 +3422,7 @@ wrap_as_block :: fn(body: Expr) -> BlockExpr {
 
 parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr {
     lb :: p.advance()
-    elements: Expr[]! = []
+    elements: Expr[]!: []
     trailing := false
     p.skip_newlines()
     if !p.check(.RBracket) {
@@ -3446,7 +3446,7 @@ parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr {
 
 parse_string_lit :: fn(p: Parser!) -> StringLitExpr {
     begin :: p.advance()  // string_begin
-    parts: StringLitPart![]! = []
+    parts: StringLitPart![]!: []
     for !p.check(.StringEnd) && !p.check(.Eof) {
         t :: p.peek()
         if t.kind == .StringPart {
@@ -3535,7 +3535,7 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
 
     p.expect(.LBrace, "`{` to open match arms")
     p.skip_newlines()
-    arms: MatchArm![]! = []
+    arms: MatchArm![]!: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         arms.push(p.parse_match_arm())
         p.skip_newlines()
@@ -3560,7 +3560,7 @@ parse_match_arm :: fn(p: Parser!) -> MatchArm {
     // parser already folded `A | B` into a single union `IsPattern`.)
     pattern: Pattern = first
     if p.check(.Pipe) {
-        alts: Pattern[]! = [first]
+        alts: Pattern[]!: [first]
         for p.match_kind(.Pipe) != null {
             p.skip_newlines()
             alts.push(p.parse_pattern())
@@ -3618,7 +3618,7 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
     }
     if t.kind == .KwIs {
         p.advance()
-        ty: TypeExpr = if p.check(.Dot) {
+        ty: TypeExpr: if p.check(.Dot) {
             // `is .Foo` — implicit-dot variant, resolved against the
             // match scrutinee at typecheck. Plain `parse_type` would
             // reject the leading dot, so we synthesise a flagged
@@ -3694,7 +3694,7 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
 parse_tuple_pattern :: fn(p: Parser!) -> TuplePattern {
     start :: p.advance()  // `[`
     p.skip_newlines()
-    elements: Pattern[]! = []
+    elements: Pattern[]!: []
     if !p.check(.RBracket) {
         for {
             p.skip_newlines()
@@ -3718,7 +3718,7 @@ parse_tuple_pattern :: fn(p: Parser!) -> TuplePattern {
 parse_struct_pattern :: fn(p: Parser!) -> StructPattern {
     start :: p.expect(.LBrace, "`{` to open struct pattern")
     p.skip_newlines()
-    fields: StructPatternField![]! = []
+    fields: StructPatternField![]!: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         f_start :: p.peek()
         name :: p.expect(.Ident, "field name in struct pattern")

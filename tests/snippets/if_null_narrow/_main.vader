@@ -57,9 +57,9 @@ combine :: fn(a: Animal | null, b: Animal | null) -> string {
 }
 
 main :: fn() -> i32 {
-    cat: Animal | null = Cat { .name = "Whiskers", .age = 3 }
-    dog: Animal | null = Dog { .name = "Rex", .age = 7 }
-    nothing: Animal | null = null
+    cat: Animal | null: Cat { .name = "Whiskers", .age = 3 }
+    dog: Animal | null: Dog { .name = "Rex", .age = 7 }
+    nothing: Animal | null: null
     println(greet(cat))
     println(greet(nothing))
     println(greet_v2(cat))

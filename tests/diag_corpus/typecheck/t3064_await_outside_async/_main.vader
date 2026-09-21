@@ -11,7 +11,7 @@ Ready implements Async<i32> {
 // `probe` itself does NOT await (the await is in the lambda), so it stays sync.
 export probe :: fn() -> i32 {
     step :: fn() -> i32 {
-        r: Async<i32> = Ready { .v = 5 }
+        r: Async<i32>: Ready { .v = 5 }
         return await r
     }
     return step()

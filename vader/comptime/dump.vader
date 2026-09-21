@@ -28,7 +28,7 @@ AST :: import "vader/parser"
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump, no trailing newline.
 export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("# Comptime")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
@@ -64,7 +64,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
 // Build the per-decl entry lines, sorted alphabetically so the dump
 // is stable across runs regardless of MutableMap iteration order.
 format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
-    entries: string[]! = []
+    entries: string[]!: []
     typed :: module_program.typed
     for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)

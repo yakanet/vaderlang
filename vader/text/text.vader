@@ -57,7 +57,7 @@ export prefix_before_double_underscore :: fn(s: string) -> string {
     for i in 0..<n {
         if sb[i] == '$' { last_dollar = i32(i) }
     }
-    start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
+    start: usize: if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
     j: usize = start
     for j + 1 < n {
         if sb[j] == '_' && sb[j + 1] == '_' {

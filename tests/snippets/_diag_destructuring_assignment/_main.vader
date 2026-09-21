@@ -1,0 +1,27 @@
+// Diag snippet: a destructuring ASSIGNMENT parses, type-checks, and does nothing.
+//
+// SPEC destructures a `[...]` pattern in a `let` and in match arms only, so
+// `[a, b] = pair` is not a form of the language — but the parser reads it as an
+// `AssignStmt` whose target is a `SeqLitExpr`, nothing downstream rejects that
+// shape, and the write is dropped on the way to codegen. VM and native agree,
+// which places it before the split.
+//
+// Expected once fixed, whichever half is taken — a diagnostic on the target
+// shape, or an element-wise lowering:
+//   literal: a=10 b=20
+//   swap:    a=20 b=10
+// Actual today: both lines report the INITIAL values, with no diagnostic.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    a := 1
+    b := 2
+    [a, b] = [10, 20]
+    println("literal: a=${a} b=${b}")
+    [a, b] = [b, a]
+    println("swap:    a=${a} b=${b}")
+    return 0
+}

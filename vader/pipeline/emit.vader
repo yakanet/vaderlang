@@ -179,7 +179,7 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 export cc_argv :: fn(
     cc: string, c_file: string, out: Path, release: bool, ldflags: string, runtime_root: string,
 ) -> string[] {
-    argv: string[]! = [cc]
+    argv: string[]!: [cc]
     argv.push_all(cc_opt_flags(release))
     rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
     argv.push("-I")

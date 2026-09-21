@@ -56,7 +56,7 @@ export fuse_concat_tail :: fn(ctx: FnLowerCtx!, stmts: LoweredStmt[]!) -> void {
     if cf_any_mentions(added, last.target.symbol.id, CF_ANY_MENTION) {
         return
     }
-    merged: LoweredExpr[]! = []
+    merged: LoweredExpr[]!: []
     merged.push_all(prev.args)
     merged.push_all(added)
     stmts[n - 2] = LoweredAssign {
@@ -290,7 +290,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
 
 // The operand that matters in practice: `s = s + f(s)`.
 @test test_cf_expr_reads_through_call_args :: fn() -> void {
-    args: LoweredExpr[]! = [fold_test_lit("a"), cf_test_target()]
+    args: LoweredExpr[]!: [fold_test_lit("a"), cf_test_target()]
     assert(cf_expr_mentions(cf_test_call(args), CF_TEST_ID, CF_ANY_MENTION), "`s` buried in an argument is a read")
 }
 
@@ -305,7 +305,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
 // A block reaches the walker as an expression ; its trailing value is the part
 // a naive walk forgets.
 @test test_cf_expr_reads_a_block_trailing :: fn() -> void {
-    empty: LoweredStmt[]! = []
+    empty: LoweredStmt[]!: []
     assert(
         cf_expr_mentions(cf_test_block(empty, cf_test_target()), CF_TEST_ID, CF_ANY_MENTION),
         "`s` as a block's trailing value is a read",
@@ -313,8 +313,8 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
 }
 
 @test test_cf_expr_reads_inside_a_loop_body :: fn() -> void {
-    inner: LoweredStmt[]! = [LoweredExprStmt { .span = empty_span(), .expr = cf_test_target() }]
-    outer: LoweredStmt[]! = [LoweredLoop {
+    inner: LoweredStmt[]!: [LoweredExprStmt { .span = empty_span(), .expr = cf_test_target() }]
+    outer: LoweredStmt[]!: [LoweredLoop {
         .span = empty_span(), .cond = null, .body = cf_test_block(inner, null), .label = "",
     }]
     body :: cf_test_block(outer, null)
@@ -322,7 +322,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
 }
 
 @test test_cf_expr_reads_a_nested_block_without_the_target :: fn() -> void {
-    inner: LoweredStmt[]! = [LoweredExprStmt { .span = empty_span(), .expr = cf_test_other() }]
+    inner: LoweredStmt[]!: [LoweredExprStmt { .span = empty_span(), .expr = cf_test_other() }]
     assert(
         !cf_expr_mentions(cf_test_block(inner, fold_test_lit("z")), CF_TEST_ID, CF_ANY_MENTION),
         "a block mentioning neither `s` nor anything holding it reads nothing",

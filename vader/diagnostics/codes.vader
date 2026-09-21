@@ -280,6 +280,7 @@ export WarningCode :: enum(u8) {
     // immutable-by-default rollout was staged; those writes are T3070 / T3071 /
     // T3072 outright now.
     UnreachableMatchArm,                    // W0014
+    MutableNeverReassigned,                 // W0015
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -456,6 +457,7 @@ export warning_info :: fn(c: WarningCode) = match c {
     .UnusedExport                       -> CodeInfo { .id = "W0012", .message = "exported function is never reached from the project's roots" }
     .SharedRepeatElement                -> CodeInfo { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" }
     .UnreachableMatchArm                -> CodeInfo { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" }
+    .MutableNeverReassigned             -> CodeInfo { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {

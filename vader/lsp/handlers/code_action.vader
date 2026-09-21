@@ -43,7 +43,7 @@ export handle_code_action :: fn(state: ServerState!, params: JsonValue) -> JsonV
     ctx :: ActionCtx { .source = sf.content }
     li :: new_line_index(sf.content, state.position_encoding)
 
-    items: JsonValue[]! = []
+    items: JsonValue[]!: []
     // Node-driven rewrites (match→if, if→match, UFCS) on the cursor's enclosing
     // expressions ; then file-level source actions (organize-imports), which
     // don't depend on the cursor sitting inside an expression.
@@ -66,7 +66,7 @@ code_action_json :: fn(r: ActionResult, uri: string, li: LineIndex) -> JsonValue
     text_edit["range"]   = range_json(span_to_range_json(r.target_span, li))
     text_edit["newText"] = JsonString { .value = r.new_text }
 
-    edits: JsonValue[] = [JsonObject { .entries = text_edit }]
+    edits: JsonValue[]: [JsonObject { .entries = text_edit }]
     changes :: MutableMap<string, JsonValue> {}
     changes[uri] = JsonArray { .items = edits }
 

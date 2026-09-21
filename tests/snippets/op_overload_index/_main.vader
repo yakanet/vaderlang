@@ -37,7 +37,7 @@ Cell implements IndexSet<string, i32> {
 }
 
 main :: fn() -> i32 {
-    c := Cell { .keys = [], .vals = [] }
+    c :: Cell { .keys = [], .vals = [] }
     c["a"] = 10
     c["b"] = 20
     c["a"] = 100   // overwrite

@@ -160,7 +160,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // O(1)-reinterprets a borrowed slice.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
-        raw: u8[]! = []
+        raw: u8[]!: []
         for i in 0..<arr.length {
             b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
             if b is Trap { return b }
@@ -323,13 +323,13 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // A VM array holds boxed `Value`s, not contiguous bytes, so both are
         // materialised into real `u8[]`. The host takes their address right
         // before the call, and nothing runs in between.
-        desc: u8[]! = []
+        desc: u8[]!: []
         for i in 0..<desc_arr.length {
             b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
             if b is Trap { return b }
             desc.push(u8(b.value))
         }
-        frame: u8[]! = []
+        frame: u8[]!: []
         for i in 0..<frame_arr.length {
             b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
             if b is Trap { return b }
@@ -415,7 +415,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     if count.value < 0 || usize(count.value) > arr.length {
         return Trap { .message = "sys_write at pc=${at_pc}: count ${count.value} exceeds the buffer" }
     }
-    bs: u8[]! = []
+    bs: u8[]!: []
     for i in 0..<usize(count.value) {
         b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
         if b is Trap { return b }
@@ -487,12 +487,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
     // into. `vader_ffi.h` owns the classes and the dispatch.
-    desc: u8[]! = [u8(FFI_VOID)]
-    slot_words: i64[]! = []
-    addr_slots: i64[]! = []
-    data: u8[]! = []
-    borrowed: LentArray[]! = []
-    lent_structs: LentStruct[]! = []
+    desc: u8[]!: [u8(FFI_VOID)]
+    slot_words: i64[]!: []
+    addr_slots: i64[]!: []
+    data: u8[]!: []
+    borrowed: LentArray[]!: []
+    lent_structs: LentStruct[]!: []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
         // Unreachable in practice — `exec` traps on `fn.addr` before the value
@@ -619,7 +619,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     for si in addr_slots {
         slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
     }
-    frame: u8[]! = []
+    frame: u8[]!: []
     for w in slot_words {
         push_little_endian(frame, w, 8)
     }

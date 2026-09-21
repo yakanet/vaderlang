@@ -20,7 +20,7 @@ i32 implements Describe -> "the answer is ${self}"
 
 // Block form: multi-statement, signature still synthesised.
 i64 implements Describe {
-    prefix: string = "i64="
+    prefix: string: "i64="
     return "${prefix}${self}"
 }
 
@@ -29,8 +29,8 @@ i64 implements Describe {
 i32 implements Tag -> u64(self)
 
 main :: fn() -> i32 {
-    x: i32 = 42
-    y: i64 = 7
+    x: i32: 42
+    y: i64: 7
     println(x.describe())
     println(y.describe())
     println("${x.tag()}")

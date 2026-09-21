@@ -340,7 +340,7 @@ export mk_fn_drop_self :: fn(src: FnType, params: Type[], ret: Type) -> Type {
     if src.params_mutable.len() == 0 {
         return mk_fn(params, ret)
     }
-    tail: bool[]! = []
+    tail: bool[]!: []
     for i in 1..<src.params_mutable.len() {
         tail.push(src.params_mutable[i])
     }
@@ -738,7 +738,7 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 /// @param args  the concrete type arguments.
 /// @return      `args` with every distinct collapsed to its backing.
 export strip_distinct_each :: fn(args: Type[]) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for a in args { out.push(strip_distinct(a)) }
     return out
 }
@@ -774,24 +774,24 @@ test_display_array :: fn() -> void {
 
 @test
 test_display_tuple :: fn() -> void {
-    el0: Type = mk_primitive("i32")
-    el1: Type = mk_primitive("string")
+    el0: Type: mk_primitive("i32")
+    el1: Type: mk_primitive("string")
     t :: mk_tuple([el0, el1], false)
     assert_eq(display_type(t), "[i32, string]!")
 }
 
 @test
 test_display_fn :: fn() -> void {
-    p0: Type = mk_primitive("i32")
-    p1: Type = mk_primitive("string")
+    p0: Type: mk_primitive("i32")
+    p1: Type: mk_primitive("string")
     f :: mk_fn([p0, p1], mk_primitive("bool"))
     assert_eq(display_type(f), "fn(i32, string) -> bool")
 }
 
 @test
 test_display_union :: fn() -> void {
-    v0: Type = mk_primitive("i32")
-    v1: Type = mk_primitive("string")
+    v0: Type: mk_primitive("i32")
+    v1: Type: mk_primitive("string")
     u :: mk_union([v0, v1])
     assert_eq(display_type(u), "i32 | string")
 }
@@ -800,8 +800,8 @@ test_display_union :: fn() -> void {
 test_display_struct_with_args :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
-    a0: Type = mk_primitive("string")
-    a1: Type = mk_primitive("i32")
+    a0: Type: mk_primitive("string")
+    a1: Type: mk_primitive("i32")
     s :: mk_struct(sym, [a0, a1], false)
     assert_eq(display_type(s), "MutableMap<string, i32>!")
 }
@@ -854,10 +854,10 @@ test_primitive_meta_partition :: fn() -> void {
 @test
 test_display_nested :: fn() -> void {
     // fn(i32[], string) -> i32 | null
-    arr: Type = mk_array(mk_primitive("i32"), false)
-    str: Type = mk_primitive("string")
-    i32_t: Type = mk_primitive("i32")
-    null_t: Type = mk_primitive("null")
+    arr: Type: mk_array(mk_primitive("i32"), false)
+    str: Type: mk_primitive("string")
+    i32_t: Type: mk_primitive("i32")
+    null_t: Type: mk_primitive("null")
     ret :: mk_union([i32_t, null_t])
     f :: mk_fn([arr, str], ret)
     assert_eq(display_type(f), "fn(i32[]!, string) -> i32 | null")
