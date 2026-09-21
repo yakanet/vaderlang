@@ -39,6 +39,9 @@ export EscapeSite :: struct {
     span: Span
     /// `struct` or `array` — what was allocated.
     kind: string
+    /// The allocated type, rendered. Says whether a site is a candidate for a
+    /// scalarised ABI (a small all-primitive tuple) or structurally cannot be.
+    type_name: string
 }
 
 export AnnotatedProject :: struct {
@@ -69,7 +72,10 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
                             if ins.stack {
                                 stack_promoted = stack_promoted + 1
                             } else if want_sites {
-                                heap_sites.push(EscapeSite { .span = ins.span, .kind = "struct" })
+                                heap_sites.push(EscapeSite {
+                                    .span = ins.span, .kind = "struct",
+                                    .type_name = display_type(ins.type),
+                                })
                             }
                         }
                         is InstrArrayNew -> {
@@ -77,7 +83,10 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
                             if ins.stack {
                                 stack_promoted = stack_promoted + 1
                             } else if want_sites {
-                                heap_sites.push(EscapeSite { .span = ins.span, .kind = "array" })
+                                heap_sites.push(EscapeSite {
+                                    .span = ins.span, .kind = "array",
+                                    .type_name = display_type(ins.type),
+                                })
                             }
                         }
                         _ -> {}
@@ -380,7 +389,7 @@ export report_heap_allocations :: fn(stats: EscapeStats) -> void {
     out.append("  heap: ${stats.heap_sites.len()} of ${stats.total_allocs} (stack-promoted: ${stats.stack_promoted})\n\n  sites:\n")
     for site in stats.heap_sites {
         at :: "${site.span.start.file}:${site.span.start.line}:${site.span.start.column}"
-        out.append("    [${at}] ${site.kind} allocation escapes its fn — heap, plus a shadow-stack root\n")
+        out.append("    [${at}] ${site.kind} ${site.type_name} escapes its fn — heap, plus a shadow-stack root\n")
     }
     eprintln(out.to_string())
 }
