@@ -164,7 +164,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 **"Plus IR-like" — open architecture question**
 
-Three variants on the table for the WASM-mimicking structured-control form vs midir's CFG/SSA :
+Three variants on the table for the WASM-mimicking structured-control form vs midir's CFG :
   (a) **Drop the WASM mimicry, keep stack-machine.** `block`/`loop`/`if`/`else`/`end` + `br <depth>` → `goto label` + `branch_if cond label`. ~3-4 days. Saves ~200 lines.
   (b) **Bytecode adopts midir's CFG shape.** `BasicBlock { instrs, terminator }`. VM consumes a CFG. ~1-2 weeks.
   (c) **Promote midir directly — bytecode and midir merge.** `BytecodeModule` becomes `IRModule`. `.vir` serialises the CFG. ~2-3 weeks.

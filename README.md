@@ -64,7 +64,7 @@ vader run shapes.vader
 - **Compiles to fast native code.** A C backend (`vader build`) produces native binaries backed by a precise generational GC; a bytecode VM (`vader run`) executes without a build step. WASM is on the roadmap.
 - **Self-hosted, reproducibly.** The compiler is written in Vader and compiles itself to a *byte-for-byte* fixed point. A committed C seed lets any machine with a C compiler rebuild the whole toolchain from source.
 
-> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG/SSA → bytecode → C) are documented in [`SPEC.md` §2](./SPEC.md).
+> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG → bytecode → C) are documented in [`SPEC.md` §2](./SPEC.md).
 
 ## Quick start
 
@@ -198,7 +198,7 @@ Accepted by every action, after the action name. All three are **reserved** — 
 | `evaluated-ast` | `@comptime` / `@file` decl values + collected generic instances                      | See what the comptime engine baked.                                       |
 | `lowered-ast`   | desugared tree (match → if/else, `?` → match, interp → builder calls, defer inlined) | Confirm the desugarings match expectations.                               |
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
-| `cfg`           | midir CFG + SSA per fn (post DCE + escape annotation, pre fromSSA)                   | Inspect basic blocks, terminators, SSA values, escape sets, stack slots.  |
+| `cfg`           | midir CFG per fn (post DCE + escape annotation)                                     | Inspect basic blocks, terminators, three-address instructions, escape sets, stack slots. |
 | `bytecode`      | `.vir` text of the compiled module                                                   | Inspect the final stack-machine ops + type/string/import tables.          |
 
 ```sh
@@ -276,7 +276,7 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 | Phase | Goal | Status |
 |-------|------|--------|
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
-| **1 — MVP** | Full TypeScript pipeline: lexer → … → midir CFG/SSA → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
+| **1 — MVP** | Full TypeScript pipeline: lexer → … → midir CFG → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
 | **2 — Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted, a committed C seed rebuilds the toolchain from a stock C compiler, and the legacy TypeScript `src/` has been retired. | ✓ done |
 | **3 — Post-MVP** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
 
