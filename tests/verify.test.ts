@@ -18,7 +18,8 @@
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD, LONG_BUILD } from "./cli-bin.ts";
-import { readdirSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 ensureCliBuilt();
@@ -32,8 +33,11 @@ const COMPILER_ENTRY = join(ROOT, "vader", "cli", "main.vader");
 // budget on a loaded machine. Same bargain `parity-broad` takes.
 const RUN_SELF_HOST = process.env["RUN_VERIFY_SELFHOST"] === "1";
 
-const buildVerify = (entry: string, timeout: number) =>
-  runCli(["build", "--emit=bytecode-text", "--out=-", "--verify", entry], undefined, timeout);
+// `--out` into a scratch dir: the sweep runs on every example, and `--out=-`
+// would drop a file named `-` in the repo root each time.
+const buildVerify = (entry: string, timeout: number, out: string) =>
+  runCli(
+    ["build", "--emit=bytecode-text", `--out=${out}`, "--verify", entry], undefined, timeout);
 
 const exampleEntries = (): string[] =>
   readdirSync(EXAMPLES, { withFileTypes: true })
@@ -44,13 +48,18 @@ const exampleEntries = (): string[] =>
 // programs the repo ships as correct. An `I7xxx` here means a check is wrong,
 // not that the example is.
 test("verify finds nothing in the examples", async () => {
-  for (const entry of exampleEntries()) {
-    const r = await buildVerify(entry, MEDIUM_BUILD);
-    // A verifier finding is error-severity, so it also fails the build —
-    // asserting the exit code catches a check that fires without us having to
-    // match on the text.
-    expect({ entry, exit: r.exit }).toEqual({ entry, exit: 0 });
-    expect(r.stdout + r.stderr).not.toContain("error[I7");
+  const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
+  try {
+    for (const entry of exampleEntries()) {
+      const r = await buildVerify(entry, MEDIUM_BUILD, join(dir, "out.virt"));
+      // A verifier finding is error-severity, so it also fails the build —
+      // asserting the exit code catches a check that fires without us having
+      // to match on the text.
+      expect({ entry, exit: r.exit }).toEqual({ entry, exit: 0 });
+      expect(r.stdout + r.stderr).not.toContain("error[I7");
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 }, LONG_BUILD);
 
@@ -58,18 +67,42 @@ test("verify changes nothing about the emitted bytecode", async () => {
   // The verifiers are pure reads. If `--verify` perturbed the IR the checks
   // would be measuring their own effect, which is the one way a self-check can
   // be worse than no check at all.
-  const entry = join(EXAMPLES, "fizzbuzz", "fizzbuzz.vader");
-  const plain = await runCli(
-    ["build", "--emit=bytecode-text", "--out=-", entry], undefined, MEDIUM_BUILD);
-  const checked = await buildVerify(entry, MEDIUM_BUILD);
-  expect(checked.stdout).toBe(plain.stdout);
+  //
+  // Compare the EMITTED FILES, not the two runs' stdout: `--out` names a file
+  // (`--out=-` writes one called `-`), so both runs print the same one-line
+  // "wrote …" whatever the bytecode holds.
+  const entry = join(EXAMPLES, "mandelbrot", "mandelbrot.vader");
+  const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
+  try {
+    const plain = join(dir, "plain.virt");
+    const checked = join(dir, "checked.virt");
+    const a = await runCli(
+      ["build", "--emit=bytecode-text", `--out=${plain}`, entry], undefined, MEDIUM_BUILD);
+    const b = await runCli(
+      ["build", "--emit=bytecode-text", `--out=${checked}`, "--verify", entry],
+      undefined, MEDIUM_BUILD);
+    expect(a.exit).toBe(0);
+    expect(b.exit).toBe(0);
+    const emitted = readFileSync(plain, "utf8");
+    // Guard the guard: an empty or near-empty emission would make the
+    // comparison below hold for the wrong reason.
+    expect(emitted.length).toBeGreaterThan(10_000);
+    expect(readFileSync(checked, "utf8")).toBe(emitted);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 // The compiler compiling itself is the broadest IR corpus in the tree — every
 // lowering, every generic flavour. A check that starts reporting sound IR
 // fails here rather than in someone's build.
 test.skipIf(!RUN_SELF_HOST)("self-host: verify finds nothing", async () => {
-  const r = await buildVerify(COMPILER_ENTRY, LONG_BUILD);
-  expect(r.exit).toBe(0);
-  expect(r.stdout + r.stderr).not.toContain("error[I7");
+  const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
+  try {
+    const r = await buildVerify(COMPILER_ENTRY, LONG_BUILD, join(dir, "self.virt"));
+    expect(r.exit).toBe(0);
+    expect(r.stdout + r.stderr).not.toContain("error[I7");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }, LONG_BUILD);
