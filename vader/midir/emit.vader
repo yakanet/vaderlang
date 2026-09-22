@@ -837,6 +837,22 @@ loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
 /// Emit one block's instructions and dispatch on its terminator.
 /// Returns the BlockId to continue from (linear fall-through), or `-1`
 /// when the terminator already left the current scope.
+// Box a CONCRETE primitive flowing into an ERASED `ref`/union return, tagging it
+// with its semantic type so a downstream `is T` matches. The C-emit's implicit
+// return-coercion only sees the coarse ValType (`I64`) and would box `usize` as
+// `i64` — breaking `is usize`. An already-ref value (erased field) keeps its tag,
+// so it is excluded.
+emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, span: Span) -> void {
+    rv_type :: ctx.fn_.locals[usize(value)].type
+    rv_val :: val_type_of_type(rv_type)
+    ret_val :: val_type_of_type(ctx.fn_.return_type)
+    erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
+    concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
+    if erased_return && concrete_prim {
+        push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, span)
+    }
+}
+
 emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) -> BlockId {
     block :: ctx.fn_.blocks[usize(block_id)]
     for i in 0..<block.instructions.len() {
@@ -844,23 +860,17 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
     }
     t :: block.terminator
     if t is TermReturn {
-        if t.value !is null {
-            if !ctx.hints.skip_terminator_get.contains(block_id) {
-                emit_get(ctx, t.value, t.span)
+        // Values are pushed in the order the caller receives them, so the first
+        // goes down first. `skip_terminator_get` only ever applies to a lone
+        // value: with several, leaving the first on the stack would bury it
+        // under the rest.
+        single :: term_return_single(t)
+        for i in 0..<t.values.len() {
+            v :: t.values[i]
+            if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
+                emit_get(ctx, v, t.span)
             }
-            // Box a CONCRETE primitive flowing into an ERASED `ref`/union return,
-            // tagging it with its semantic type so a downstream `is T` matches.
-            // The C-emit's implicit return-coercion only sees the coarse ValType
-            // (`I64`) and would box `usize` as `i64` — breaking `is usize`. An
-            // already-ref value (erased field) keeps its tag, so it's excluded.
-            rv_type :: ctx.fn_.locals[usize(t.value)].type
-            rv_val :: val_type_of_type(rv_type)
-            ret_val :: val_type_of_type(ctx.fn_.return_type)
-            erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
-            concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
-            if erased_return && concrete_prim {
-                push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, t.span)
-            }
+            emit_return_boxing(ctx, v, t.span)
         }
         // Fuse `<const> + Return → ReturnLit X` post-emit.
         body :: ctx.slot.body

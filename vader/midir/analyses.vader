@@ -137,8 +137,8 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
             visit(t.cond)
         }
         is TermReturn -> {
-            if t.value !is null {
-                visit(t.value)
+            for v in t.values {
+                visit(v)
             }
         }
         is TermBranch          -> {}

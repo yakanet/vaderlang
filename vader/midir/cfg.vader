@@ -158,8 +158,24 @@ export TermCondBranch :: struct {
 
 export TermReturn :: struct {
     span:  Span
-    /// null for void returns.
-    value: LocalId | null
+    /// The values the callee hands back, in the order a caller receives them.
+    /// EMPTY for a void return. More than one is what lets a small composite
+    /// cross in registers instead of as a heap object — the plan is
+    /// `.claude/plans/2026-09-22-tuple-value-abi.md`, and the arity has to reach
+    /// the backends intact (see `hazard_ir_hint_plumbing`: a field that dies
+    /// quietly between lower and emit is this IR's classic failure).
+    values: LocalId[]
+}
+
+/// The single value a `TermReturn` carries, or null when it carries none or
+/// several. Callers that predate multi-value ask this rather than `values[0]`,
+/// so a site that has NOT been taught about arity answers "I don't know" instead
+/// of silently reading the first of several.
+export term_return_single :: fn(t: TermReturn) -> LocalId | null {
+    if t.values.len() != 1 {
+        return null
+    }
+    return t.values[0]
 }
 
 /// Trap at runtime ; `reason` is shown in the diagnostic. Used for

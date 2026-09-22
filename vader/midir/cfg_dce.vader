@@ -410,8 +410,12 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
         }
     }
     if t is TermReturn     {
+        remapped: LocalId[]!: []
+        for v in t.values {
+            remapped.push(remap_local(m, v))
+        }
         return TermReturn {
-            .value = remap_local_opt(m, t.value),
+            .values = remapped,
             .span = t.span,
         }
     }

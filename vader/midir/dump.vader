@@ -122,8 +122,14 @@ dump_terminator :: fn(t: Terminator) -> string {
         is TermBranch     -> { return "branch -> bb${t.target}" }
         is TermCondBranch -> { return "cond_branch %${t.cond} ? bb${t.then_block} : bb${t.else_block}" }
         is TermReturn     -> {
-            if t.value == null { return "return" }
-            return "return %${t.value}"
+            if t.values.len() == 0 {
+                return "return"
+            }
+            out := "return"
+            for v in t.values {
+                out = "${out} %${v}"
+            }
+            return out
         }
         is TermUnreachable  -> { return "unreachable ; ${t.reason}" }
     }

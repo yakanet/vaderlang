@@ -325,7 +325,9 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
             }
         }
         if b.terminator is TermReturn as r {
-            if r.value != null { escaping.add(r.value) }
+            for v in r.values {
+                escaping.add(v)
+            }
         }
     }
     // Backward propagation : if dst escapes and aliases src, src escapes too.

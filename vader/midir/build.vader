@@ -470,7 +470,10 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     if fn_ctx.current !is null {
         cur :: fn_ctx.blocks[usize(fn_ctx.current)]
         if cur.terminator is null {
-            cur.terminator = TermReturn { .value = trailing, .span = body.span }
+            cur.terminator = TermReturn {
+                .values = if trailing == null { [] } else { [trailing] },
+                .span = body.span,
+            }
         }
     }
 
@@ -580,9 +583,16 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
             _ :: build_expr(fn_ctx, s.expr)
         }
         is LoweredReturn -> {
-            value: LocalId | null = null
-            if s.value !is null { value = build_expr(fn_ctx, s.value) }
-            terminate(fn_ctx, TermReturn { .value = value, .span = s.span })
+            values: LocalId[]!: []
+            if s.value !is null {
+                // `build_expr` answers null for an expression that produced no
+                // value; that return carries nothing, exactly as before.
+                built :: build_expr(fn_ctx, s.value)
+                if built != null {
+                    values.push(built)
+                }
+            }
+            terminate(fn_ctx, TermReturn { .values = values, .span = s.span })
         }
         is LoweredLoop -> { build_loop(fn_ctx, s) }
         is LoweredBreak -> {
