@@ -6067,7 +6067,6 @@ void* vader_typecheck_check_project_with_bodies(void* l0, void* l1, bool l2) {
     l7 = vader_resolver_resolve_module_with_collected_dp_seeded(l9, l4, l11, l10, l12, l13, l7);
     l8 = vader_typecheck_new_typed_program(l7);
     ((vader_struct_vader_typecheck_TypedProgram_t*) l8)->f_dump_types = l2;
-    VADER_WRITE_BARRIER((vader_struct_vader_typecheck_TypedProgram_t*) l8);
     vader_array_t* _a6_arr = vader_array_new(8u, 0u, 0u, 176u);
     l9 = (void*) _a6_arr;
     vader_array_t* _a7_arr = vader_array_new(16u, 0u, 0u, 187u);
@@ -6127,7 +6126,6 @@ void* vader_typecheck_check_project_with_bodies(void* l0, void* l1, bool l2) {
                 t0 = vader_resolver_resolve_module_with_collected_dp_seeded(l21, l11, l22, l23, l24, l25, l26);
                 l27 = vader_typecheck_new_typed_program(t0);
                 ((vader_struct_vader_typecheck_TypedProgram_t*) l27)->f_dump_types = l2;
-                VADER_WRITE_BARRIER((vader_struct_vader_typecheck_TypedProgram_t*) l27);
                 std_collections_MutableMap_IndexSet_set_at__string__Any(l9, l11, vader_ref_box(l27));
                 goto loop_136;
             }
@@ -6730,7 +6728,6 @@ static bool vader_typecheck_check_short_impl_arity(void* l0, void* l1, void* l2)
                     if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                     t0 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
                     ((vader_struct_toolchain_ast_FnDecl_t*) t0)->f_materialized = true;
-                    VADER_WRITE_BARRIER((vader_struct_toolchain_ast_FnDecl_t*) t0);
                     l4 = true;
                 }
                 t2 = (l6 + INT64_C(1));
@@ -26965,7 +26962,6 @@ static void vader_typecheck_register_generator_iter_impls(void* l0) {
                 t4 = ((vader_array_t*) l1)->length;
                 if ((t4 > INT64_C(0))) {
                     ((vader_struct_vader_typecheck_TypedProgram_t*) l8)->f_has_generators = true;
-                    VADER_WRITE_BARRIER((vader_struct_vader_typecheck_TypedProgram_t*) l8);
                 }
                 l9 = l1;
                 l13 = ((vader_array_t*) l9)->length;

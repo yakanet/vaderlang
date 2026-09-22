@@ -583,9 +583,7 @@ static void std_collections_clear__i32__bool(void* l0) {
     size_t l1, l2;
     int64_t t0;
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_size = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_index);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l1 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_index)->length;
@@ -608,9 +606,7 @@ void std_collections_clear__string__string(void* l0) {
     size_t l1, l2;
     int64_t t0;
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_size = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_index);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l1 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_index)->length;
@@ -874,7 +870,6 @@ static void std_collections_ensure_index__i32__Any(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -924,7 +919,6 @@ static void std_collections_ensure_index__i32__bool(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -974,7 +968,6 @@ static void std_collections_ensure_index__i32__i32(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1024,7 +1017,6 @@ static void std_collections_ensure_index__i32__string(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1074,7 +1066,6 @@ static void std_collections_ensure_index__i32__usize(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1124,7 +1115,6 @@ static void std_collections_ensure_index__i64__Any(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1174,7 +1164,6 @@ static void std_collections_ensure_index__i64__bool(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1224,7 +1213,6 @@ static void std_collections_ensure_index__string__Any(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1274,7 +1262,6 @@ static void std_collections_ensure_index__string__bool(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1324,7 +1311,6 @@ static void std_collections_ensure_index__string__i32(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1374,7 +1360,6 @@ static void std_collections_ensure_index__string__i64(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1424,7 +1409,6 @@ static void std_collections_ensure_index__string__string(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1474,7 +1458,6 @@ static void std_collections_ensure_index__string__usize(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1524,7 +1507,6 @@ static void std_collections_ensure_index__u64__Any(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1574,7 +1556,6 @@ static void std_collections_ensure_index__u64__i32(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1624,7 +1605,6 @@ static void std_collections_ensure_index__u64__usize(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1674,7 +1654,6 @@ static void std_collections_ensure_index__usize__Any(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1724,7 +1703,6 @@ static void std_collections_ensure_index__usize__bool(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1774,7 +1752,6 @@ static void std_collections_ensure_index__usize__i32(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -1824,7 +1801,6 @@ static void std_collections_ensure_index__usize__string(void* l0) {
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -3255,7 +3231,6 @@ static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) 
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     }
     std_collections_write_entry__i32__Any(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_index;
@@ -3269,7 +3244,6 @@ static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) 
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3370,7 +3344,6 @@ static void std_collections_put__i32__bool(void* l0, int32_t l1, bool l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     }
     std_collections_write_entry__i32__bool(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_index;
@@ -3384,7 +3357,6 @@ static void std_collections_put__i32__bool(void* l0, int32_t l1, bool l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3485,7 +3457,6 @@ static void std_collections_put__i32__i32(void* l0, int32_t l1, int32_t l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     }
     std_collections_write_entry__i32__i32(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_index;
@@ -3499,7 +3470,6 @@ static void std_collections_put__i32__i32(void* l0, int32_t l1, int32_t l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3602,7 +3572,6 @@ static void std_collections_put__i32__string(void* l0, int32_t l1, vader_string_
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     }
     std_collections_write_entry__i32__string(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_index;
@@ -3616,7 +3585,6 @@ static void std_collections_put__i32__string(void* l0, int32_t l1, vader_string_
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3717,7 +3685,6 @@ static void std_collections_put__i32__usize(void* l0, int32_t l1, size_t l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     }
     std_collections_write_entry__i32__usize(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_index;
@@ -3731,7 +3698,6 @@ static void std_collections_put__i32__usize(void* l0, int32_t l1, size_t l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3834,7 +3800,6 @@ static void std_collections_put__i64__Any(void* l0, int64_t l1, vader_box_t l2) 
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     }
     std_collections_write_entry__i64__Any(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_index;
@@ -3848,7 +3813,6 @@ static void std_collections_put__i64__Any(void* l0, int64_t l1, vader_box_t l2) 
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -3949,7 +3913,6 @@ static void std_collections_put__i64__bool(void* l0, int64_t l1, bool l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     }
     std_collections_write_entry__i64__bool(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_index;
@@ -3963,7 +3926,6 @@ static void std_collections_put__i64__bool(void* l0, int64_t l1, bool l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4070,7 +4032,6 @@ static void std_collections_put__string__Any(void* l0, vader_string_t l1, vader_
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     }
     std_collections_write_entry__string__Any(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_index;
@@ -4084,7 +4045,6 @@ static void std_collections_put__string__Any(void* l0, vader_string_t l1, vader_
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4190,7 +4150,6 @@ static void std_collections_put__string__bool(void* l0, vader_string_t l1, bool 
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     }
     std_collections_write_entry__string__bool(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_index;
@@ -4204,7 +4163,6 @@ static void std_collections_put__string__bool(void* l0, vader_string_t l1, bool 
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4310,7 +4268,6 @@ static void std_collections_put__string__i32(void* l0, vader_string_t l1, int32_
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     }
     std_collections_write_entry__string__i32(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_index;
@@ -4324,7 +4281,6 @@ static void std_collections_put__string__i32(void* l0, vader_string_t l1, int32_
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4430,7 +4386,6 @@ static void std_collections_put__string__i64(void* l0, vader_string_t l1, int64_
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     }
     std_collections_write_entry__string__i64(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_index;
@@ -4444,7 +4399,6 @@ static void std_collections_put__string__i64(void* l0, vader_string_t l1, int64_
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4551,7 +4505,6 @@ static void std_collections_put__string__string(void* l0, vader_string_t l1, vad
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     }
     std_collections_write_entry__string__string(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_index;
@@ -4565,7 +4518,6 @@ static void std_collections_put__string__string(void* l0, vader_string_t l1, vad
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4671,7 +4623,6 @@ static void std_collections_put__string__usize(void* l0, vader_string_t l1, size
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     }
     std_collections_write_entry__string__usize(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_index;
@@ -4685,7 +4636,6 @@ static void std_collections_put__string__usize(void* l0, vader_string_t l1, size
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4788,7 +4738,6 @@ static void std_collections_put__u64__Any(void* l0, uint64_t l1, vader_box_t l2)
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     }
     std_collections_write_entry__u64__Any(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_index;
@@ -4802,7 +4751,6 @@ static void std_collections_put__u64__Any(void* l0, uint64_t l1, vader_box_t l2)
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -4903,7 +4851,6 @@ static void std_collections_put__u64__i32(void* l0, uint64_t l1, int32_t l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     }
     std_collections_write_entry__u64__i32(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_index;
@@ -4917,7 +4864,6 @@ static void std_collections_put__u64__i32(void* l0, uint64_t l1, int32_t l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5018,7 +4964,6 @@ static void std_collections_put__u64__usize(void* l0, uint64_t l1, size_t l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     }
     std_collections_write_entry__u64__usize(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_index;
@@ -5032,7 +4977,6 @@ static void std_collections_put__u64__usize(void* l0, uint64_t l1, size_t l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5135,7 +5079,6 @@ static void std_collections_put__usize__Any(void* l0, size_t l1, vader_box_t l2)
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     }
     std_collections_write_entry__usize__Any(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_index;
@@ -5149,7 +5092,6 @@ static void std_collections_put__usize__Any(void* l0, size_t l1, vader_box_t l2)
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5250,7 +5192,6 @@ static void std_collections_put__usize__bool(void* l0, size_t l1, bool l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     }
     std_collections_write_entry__usize__bool(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_index;
@@ -5264,7 +5205,6 @@ static void std_collections_put__usize__bool(void* l0, size_t l1, bool l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5365,7 +5305,6 @@ static void std_collections_put__usize__i32(void* l0, size_t l1, int32_t l2) {
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     }
     std_collections_write_entry__usize__i32(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_index;
@@ -5379,7 +5318,6 @@ static void std_collections_put__usize__i32(void* l0, size_t l1, int32_t l2) {
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5482,7 +5420,6 @@ static void std_collections_put__usize__string(void* l0, size_t l1, vader_string
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     }
     std_collections_write_entry__usize__string(l0, l1, l2);
     l9 = ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_index;
@@ -5496,7 +5433,6 @@ static void std_collections_put__usize__string(void* l0, size_t l1, vader_string
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5581,9 +5517,7 @@ static void std_collections_rehash__i32__Any(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5668,9 +5602,7 @@ static void std_collections_rehash__i32__bool(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5755,9 +5687,7 @@ static void std_collections_rehash__i32__i32(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5842,9 +5772,7 @@ static void std_collections_rehash__i32__string(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__string_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5929,9 +5857,7 @@ static void std_collections_rehash__i32__usize(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__i32__usize_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6016,9 +5942,7 @@ static void std_collections_rehash__i64__Any(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__i64__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6103,9 +6027,7 @@ static void std_collections_rehash__i64__bool(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__i64__bool_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i64__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6195,9 +6117,7 @@ static void std_collections_rehash__string__Any(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6287,9 +6207,7 @@ static void std_collections_rehash__string__bool(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6379,9 +6297,7 @@ static void std_collections_rehash__string__i32(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6471,9 +6387,7 @@ static void std_collections_rehash__string__i64(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__i64_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__i64_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6563,9 +6477,7 @@ static void std_collections_rehash__string__string(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__string_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6655,9 +6567,7 @@ static void std_collections_rehash__string__usize(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__string__usize_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6742,9 +6652,7 @@ static void std_collections_rehash__u64__Any(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6829,9 +6737,7 @@ static void std_collections_rehash__u64__i32(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__i32_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -6916,9 +6822,7 @@ static void std_collections_rehash__u64__usize(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     ((vader_struct_std_collections_MutableMap__u64__usize_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__u64__usize_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -7003,9 +6907,7 @@ static void std_collections_rehash__usize__Any(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__Any_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -7090,9 +6992,7 @@ static void std_collections_rehash__usize__bool(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -7177,9 +7077,7 @@ static void std_collections_rehash__usize__i32(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__i32_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -7264,9 +7162,7 @@ static void std_collections_rehash__usize__string(void* l0, size_t l1) {
     ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     ((vader_struct_std_collections_MutableMap__usize__string_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__string_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -7356,12 +7252,10 @@ bool std_collections_remove__i32__LoweredArrayLen___LoweredArrayLit___LoweredArr
                         t2 = (t0 + INT64_C(1));
                         l15 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t*) l0)->f_tombs = l15;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t*) l0);
                         t0 = ((vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t*) l0)->f_size;
                         t2 = (t0 - INT64_C(1));
                         l16 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t*) l0)->f_size = l16;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t*) l0);
                         return true;
                     }
                 }
@@ -7456,12 +7350,10 @@ bool std_collections_remove__i32__NarrowSlot(void* l0, int32_t l1) {
                         t2 = (t0 + INT64_C(1));
                         l15 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__NarrowSlot_t*) l0)->f_tombs = l15;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__NarrowSlot_t*) l0);
                         t0 = ((vader_struct_std_collections_MutableMap__i32__NarrowSlot_t*) l0)->f_size;
                         t2 = (t0 - INT64_C(1));
                         l16 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__NarrowSlot_t*) l0)->f_size = l16;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__NarrowSlot_t*) l0);
                         return true;
                     }
                 }
@@ -7557,12 +7449,10 @@ static bool std_collections_remove__i32__bool(void* l0, int32_t l1) {
                         t2 = (t0 + INT64_C(1));
                         l15 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_tombs = l15;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
                         t0 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_size;
                         t2 = (t0 - INT64_C(1));
                         l16 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_size = l16;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__bool_t*) l0);
                         return true;
                     }
                 }
@@ -7676,12 +7566,10 @@ bool std_collections_remove__string__NarrowSlot(void* l0, vader_string_t l1) {
                         t2 = (t0 + INT64_C(1));
                         l15 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__string__NarrowSlot_t*) l0)->f_tombs = l15;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__NarrowSlot_t*) l0);
                         t0 = ((vader_struct_std_collections_MutableMap__string__NarrowSlot_t*) l0)->f_size;
                         t2 = (t0 - INT64_C(1));
                         l16 = (size_t) (int64_t) t2;
                         ((vader_struct_std_collections_MutableMap__string__NarrowSlot_t*) l0)->f_size = l16;
-                        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__string__NarrowSlot_t*) l0);
                         { vader_gc_top = gc_frame.prev; return true; }
                     }
                 }

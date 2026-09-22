@@ -146,6 +146,7 @@ static vader_string_t vader_c_emit_erased_sibling_field_read(void* l0, int32_t l
 static vader_string_t vader_c_emit_erased_sig_params(int32_t l0);
 static vader_string_t vader_c_emit_extern_c_type(uint8_t l0);
 static vader_string_t vader_c_emit_extern_decl(void* l0, void* l1);
+static bool vader_c_emit_field_may_hold_reference(void* l0, int32_t l1);
 static void* vader_c_emit_find_erased_siblings(void* l0, int32_t l1);
 static int32_t vader_c_emit_find_main(void* l0, vader_string_t l1);
 static vader_box_t vader_c_emit_find_vtable_row(void* l0, vader_string_t l1);
@@ -515,7 +516,6 @@ static vader_string_t vader_c_emit_aux(void* l0, vader_string_t l1) {
     t0 = ((vader_struct_vader_c_emit_FnState_t*) l0)->f_aux_counter;
     l6 = (t0 + INT32_C(1));
     ((vader_struct_vader_c_emit_FnState_t*) l0)->f_aux_counter = l6;
-    VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l0);
     { vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -5613,7 +5613,6 @@ static void vader_c_emit_emit_function_body(void* l0, int32_t l1, void* l2, void
     l7 = (void*) _a1_obj;
     l8 = vader_c_emit_new_fn_state(l0, l2, l7);
     ((vader_struct_vader_c_emit_FnState_t*) l8)->f_no_frame = l4;
-    VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l8);
     l9 = vader_c_emit_precompute_scopes(l2);
     ((vader_struct_vader_c_emit_FnState_t*) l8)->f_scopes = l9;
     VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l8);
@@ -5644,7 +5643,6 @@ static void vader_c_emit_emit_function_body(void* l0, int32_t l1, void* l2, void
                 }
                 if (l15) {
                     ((vader_struct_vader_c_emit_FnState_t*) l8)->f_drop_call_result = false;
-                    VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l8);
                     t2 = (l13 + INT64_C(1));
                     l13 = (size_t) (int64_t) t2;
                     goto loop_71;
@@ -5715,7 +5713,6 @@ static void vader_c_emit_emit_function_body(void* l0, int32_t l1, void* l2, void
                         t6 = vader_c_emit_callee_result_arity(l0, l27);
                         if ((t6 <= INT64_C(1))) {
                             ((vader_struct_vader_c_emit_FnState_t*) l8)->f_drop_call_result = true;
-                            VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l8);
                         }
                     }
                 }
@@ -8967,7 +8964,8 @@ static void vader_c_emit_emit_struct_set(void* l0, void* l1) {
     vader_string_t l15 = 0;
     uint8_t l10, l13;
     int32_t l12;
-    int64_t l16;
+    bool l16;
+    int64_t l17;
     int32_t t0;
     int64_t t1;
     vader_box_t t2 = vader_box_null();
@@ -9022,6 +9020,13 @@ static void vader_c_emit_emit_struct_set(void* l0, void* l1) {
         vader_c_emit_line(l0, l9);
         t5 = ((vader_struct_vader_bytecode_StructSet_t*) l1)->f_stack;
         if (!(t5)) {
+            l8 = ((vader_struct_vader_bytecode_BytecodeModule_t*) ((vader_struct_vader_c_emit_EmitCtx_t*) ((vader_struct_vader_c_emit_FnState_t*) l0)->f_ctx)->f_module)->f_types;
+            l12 = ((vader_struct_vader_bytecode_BcField_t*) l2)->f_type_index;
+            l16 = vader_c_emit_field_may_hold_reference(l8, l12);
+        } else {
+            l16 = false;
+        }
+        if (l16) {
             l5 = concat_5(849u, l5, 382u, l14, 377u);
             vader_c_emit_line(l0, l5);
         }
@@ -9030,8 +9035,8 @@ static void vader_c_emit_emit_struct_set(void* l0, void* l1) {
         l3 = (size_t) (int64_t) INT64_C(0);
         l3 = std_core_write_string_at(l2, l3, 2206u);
         t0 = ((vader_struct_vader_bytecode_StructSet_t*) l1)->f_type_id;
-        l16 = ((int64_t) (int32_t) t0);
-        l3 = std_core_write_int(l2, l3, l16);
+        l17 = ((int64_t) (int32_t) t0);
+        l3 = std_core_write_int(l2, l3, l17);
         t4 = std_core_finish_buffer(l2, l3);
         std_abort_todo(t4);
     }
@@ -10146,6 +10151,23 @@ static vader_string_t vader_c_emit_extern_decl(void* l0, void* l1) {
     vader_gc_top = gc_frame.prev;
 }
 
+static bool vader_c_emit_field_may_hold_reference(void* l0, int32_t l1) {
+    uint8_t l2;
+    bool l3;
+    l2 = vader_c_emit_val_type_of_field(l0, l1);
+    if (l2 == INT32_C(18)) {
+        l3 = true;
+    } else {
+        l3 = l2 == INT32_C(19);
+    }
+    if (l3) {
+        l3 = true;
+    } else {
+        l3 = l2 == INT32_C(14);
+    }
+    return l3;
+}
+
 static void* vader_c_emit_find_erased_siblings(void* l0, int32_t l1) {
     void* l2 = NULL;
     void* l5 = NULL;
@@ -11149,7 +11171,6 @@ static void vader_c_emit_indent_pop(void* l0) {
     t0 = ((vader_struct_vader_c_emit_FnState_t*) l0)->f_indent;
     l1 = (t0 - INT32_C(1));
     ((vader_struct_vader_c_emit_FnState_t*) l0)->f_indent = l1;
-    VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l0);
     return;
 }
 
@@ -11159,7 +11180,6 @@ static void vader_c_emit_indent_push(void* l0) {
     t0 = ((vader_struct_vader_c_emit_FnState_t*) l0)->f_indent;
     l1 = (t0 + INT32_C(1));
     ((vader_struct_vader_c_emit_FnState_t*) l0)->f_indent = l1;
-    VADER_WRITE_BARRIER((vader_struct_vader_c_emit_FnState_t*) l0);
     return;
 }
 

@@ -3506,10 +3506,8 @@ static void vader_lower_bh_mark_idx_expr(vader_box_t l0) {
         if (t1) {
             t0 = l0.payload.obj;
             ((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_bounds_safe = true;
-            VADER_WRITE_BARRIER((vader_struct_vader_lower_LoweredIndex_t*) t0);
             t0 = l0.payload.obj;
             ((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_bce_recheck = false;
-            VADER_WRITE_BARRIER((vader_struct_vader_lower_LoweredIndex_t*) t0);
         }
         t0 = l0.payload.obj;
         vader_lower_bh_mark_idx_expr(((vader_struct_vader_lower_LoweredIndex_t*) t0)->f_target);
@@ -4012,14 +4010,12 @@ static void vader_lower_bh_try_hoist(void* l0, void* l1, void* l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     ((vader_struct_vader_lower_LoweredArrayLen_t*) l0)->f_bce_recheck = false;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LoweredArrayLen_t*) l0);
     l3 = vader_lower_bh_guard_sym(l0);
     t0 = vader_lower_bce_block_unsafe(((vader_struct_vader_lower_LoweredLoop_t*) l1)->f_body, l3, l2);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     ((vader_struct_vader_lower_LoweredArrayLen_t*) l0)->f_resolve_buf = true;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LoweredArrayLen_t*) l0);
     vader_lower_bh_mark_idx_block(((vader_struct_vader_lower_LoweredLoop_t*) l1)->f_body);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -10348,9 +10344,7 @@ static void vader_lower_drain_generic_fn_instances(void* l0, void* l1, void* l2,
         }
     }
     ((vader_struct_vader_lower_LowerProjectCtx_t*) l2)->f_generic_fn_cursor = l5;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l2);
     ((vader_struct_vader_lower_LowerProjectCtx_t*) l2)->f_generic_recv_cursor = l6;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l2);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -15362,7 +15356,6 @@ static void* vader_lower_fresh_synthetic_symbol(void* l0, vader_string_t l1) {
     l2 = ((vader_struct_vader_lower_FnLowerCtx_t*) l0)->f_uniq;
     l3 = (l2 + INT32_C(1));
     ((vader_struct_vader_lower_FnLowerCtx_t*) l0)->f_uniq = l3;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_FnLowerCtx_t*) l0);
     l3 = vader_lower_next_project_synthetic_id(((vader_struct_vader_lower_FnLowerCtx_t*) l0)->f_project);
     l4 = l1;
     l5 = vader_host_std_core_byte_len(l4);
@@ -15916,7 +15909,6 @@ static void vader_lower_gb_collect_stmt(void* l0, vader_box_t l1) {
                                 } else {
                                     if (l1.tag == 759u) {
                                         ((vader_struct_vader_lower_GenBuild_t*) l0)->f_has_defers = true;
-                                        VADER_WRITE_BARRIER((vader_struct_vader_lower_GenBuild_t*) l0);
                                         t0 = l1.payload.obj;
                                         l3 = ((vader_struct_vader_lower_LoweredDeferPush_t*) t0)->f_thunk;
                                         vader_lower_gb_collect_expr(l0, l3);
@@ -21319,7 +21311,6 @@ static void* vader_lower_lower_async_body(void* l0, void* l1, void* l2, void* l3
     vader_gc_top = &gc_frame;
     l9 = vader_lower_new_fn_lower_ctx(l0, l1, l2, l3, l7);
     ((vader_struct_vader_lower_FnLowerCtx_t*) l9)->f_in_async = true;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_FnLowerCtx_t*) l9);
     l10 = vader_lower_lower_block(l9, l5, true, false);
     t0 = vader_lower_lower_async_fn(l9, l4, l6, l10, l7, l8);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -23826,7 +23817,6 @@ static void* vader_lower_lower_generator_body(void* l0, void* l1, void* l2, void
     vader_gc_top = &gc_frame;
     l8 = vader_lower_new_fn_lower_ctx(l0, l1, l2, l3, l7);
     ((vader_struct_vader_lower_FnLowerCtx_t*) l8)->f_in_generator = true;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_FnLowerCtx_t*) l8);
     l9 = vader_lower_lower_block(l8, l5, true, false);
     t0 = vader_lower_lower_generator_fn(l8, l4, l6, l9, l7);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -28066,7 +28056,6 @@ static void vader_lower_materialize_nongeneric_imported_consts(void* l0, void* l
                 t1 = (t0 + INT64_C(1));
                 l10 = (size_t) (int64_t) t1;
                 ((vader_struct_vader_lower_LowerProjectCtx_t*) l2)->f_nongeneric_imported_const_cursor = l10;
-                VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l2);
                 l12 = ((vader_struct_vader_typecheck_TypedProject_t*) l1)->f_modules;
                 l13 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l9)->f_module;
                 l14 = std_collections_MutableMap_Index_at__string__Any(l12, l13);
@@ -28144,7 +28133,6 @@ static void vader_lower_materialize_nongeneric_imported_fns(void* l0, void* l1, 
                 t1 = (t0 + INT64_C(1));
                 l10 = (size_t) (int64_t) t1;
                 ((vader_struct_vader_lower_LowerProjectCtx_t*) l2)->f_nongeneric_imported_cursor = l10;
-                VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l2);
                 l12 = ((vader_struct_vader_typecheck_TypedProject_t*) l1)->f_modules;
                 l13 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l9)->f_module;
                 l14 = std_collections_MutableMap_Index_at__string__Any(l12, l13);
@@ -29957,7 +29945,6 @@ static int32_t vader_lower_next_mono_entry_id(void* l0) {
     l2 = ((vader_struct_vader_lower_FnLowerCtx_t*) l0)->f_project;
     l3 = (l1 + INT32_C(1));
     ((vader_struct_vader_lower_LowerProjectCtx_t*) l2)->f_next_mono_entry_id = l3;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l2);
     return l1;
 }
 
@@ -29966,7 +29953,6 @@ static int32_t vader_lower_next_project_synthetic_id(void* l0) {
     l1 = ((vader_struct_vader_lower_LowerProjectCtx_t*) l0)->f_next_synthetic_id;
     l2 = (l1 - INT32_C(1));
     ((vader_struct_vader_lower_LowerProjectCtx_t*) l0)->f_next_synthetic_id = l2;
-    VADER_WRITE_BARRIER((vader_struct_vader_lower_LowerProjectCtx_t*) l0);
     return l1;
 }
 
@@ -31232,7 +31218,6 @@ static void vader_lower_pc_try_cache(void* l0, void* l1, void* l2) {
                 if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
                 ((vader_struct_vader_lower_LoweredArrayPush_t*) t2)->f_cached = true;
-                VADER_WRITE_BARRIER((vader_struct_vader_lower_LoweredArrayPush_t*) t2);
                 t3 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t3;
                 goto loop_52;

@@ -27,7 +27,6 @@ static void json_advance(void* l0) {
     t1 = (t0 + INT64_C(1));
     l1 = (size_t) (int64_t) t1;
     ((vader_struct_json_Parser_t*) l0)->f_pos = l1;
-    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
     return;
 }
 
@@ -101,7 +100,6 @@ static bool json_decode_unicode_escape(void* l0, void* l1) {
             t2 = (t1 + INT64_C(2));
             l5 = (size_t) (int64_t) t2;
             ((vader_struct_json_Parser_t*) l0)->f_pos = l5;
-            VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
             l2 = json_read_hex4(l0);
             if ((l2 >= INT32_C(0))) {
                 l8 = ((uint32_t) (int32_t) l2);
@@ -113,7 +111,6 @@ static bool json_decode_unicode_escape(void* l0, void* l1) {
                 }
             }
             ((vader_struct_json_Parser_t*) l0)->f_pos = l4;
-            VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
         }
     }
     l3 = ((uint32_t) (int32_t) INT32_C(65533));
@@ -211,7 +208,6 @@ static bool json_match_keyword(void* l0, vader_string_t l1) {
     t1 = (t0 + l2);
     l2 = (size_t) (int64_t) t1;
     ((vader_struct_json_Parser_t*) l0)->f_pos = l2;
-    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
     { vader_gc_top = gc_frame.prev; return true; }
     vader_gc_top = gc_frame.prev;
 }
@@ -717,7 +713,6 @@ static vader_box_t json_parse_string(void* l0) {
                     t2 = (l2 + INT64_C(1));
                     l5 = (size_t) (int64_t) t2;
                     ((vader_struct_json_Parser_t*) l0)->f_pos = l5;
-                    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
                     vader_array_t* _a1_arr = vader_array_slice((vader_array_t*) ((vader_struct_json_Parser_t*) l0)->f_bytes, (size_t) l1, (size_t) l2);
                     t1 = (void*) _a1_arr;
                     t3 = vader_host_std_core_bytes_to_string(t1);
@@ -736,7 +731,6 @@ static vader_box_t json_parse_string(void* l0) {
                     l7 = vader_host_std_core_bytes_to_string(t1);
                     std_string_builder_append(l6, l7);
                     ((vader_struct_json_Parser_t*) l0)->f_pos = l2;
-                    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
                     t0 = json_parse_string_with_escapes(l0, l6);
                     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
                 }
@@ -835,7 +829,6 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
                     t4 = (l6 + l7);
                     l8 = (size_t) (int64_t) t4;
                     ((vader_struct_json_Parser_t*) l0)->f_pos = l8;
-                    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
                 }
                 goto loop_1;
             }
@@ -996,7 +989,6 @@ static int32_t json_read_hex4(void* l0) {
     t1 = (t0 + INT64_C(4));
     l1 = (size_t) (int64_t) t1;
     ((vader_struct_json_Parser_t*) l0)->f_pos = l1;
-    VADER_WRITE_BARRIER((vader_struct_json_Parser_t*) l0);
     return l3;
 }
 

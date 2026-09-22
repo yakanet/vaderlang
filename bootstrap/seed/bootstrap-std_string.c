@@ -29,7 +29,6 @@ void std_string_StringChars_Iterator_next_v(void* l0, int32_t* __o0, uint32_t* _
     t2 = (t1 + l1);
     l1 = (size_t) (int64_t) t2;
     ((vader_struct_std_string_StringChars_t*) l0)->f_cursor = l1;
-    VADER_WRITE_BARRIER((vader_struct_std_string_StringChars_t*) l0);
     *__o1 = l4; *__o0 = INT32_C(1); return;
 }
 

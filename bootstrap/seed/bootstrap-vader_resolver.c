@@ -5379,7 +5379,6 @@ static void* vader_resolver_next_clone_span(void* l0) {
     t0 = ((vader_struct_vader_resolver_StampCtx_t*) l0)->f_counter;
     l2 = (t0 + INT32_C(1));
     ((vader_struct_vader_resolver_StampCtx_t*) l0)->f_counter = l2;
-    VADER_WRITE_BARRIER((vader_struct_vader_resolver_StampCtx_t*) l0);
     l3 = ((vader_struct_vader_resolver_StampCtx_t*) l0)->f_file;
     l2 = ((vader_struct_vader_resolver_StampCtx_t*) l0)->f_base_line;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));

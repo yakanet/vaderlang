@@ -8196,7 +8196,6 @@ void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2) 
         vader_bytecode_prune_unused_imports(l3);
         vader_bytecode_prune_unused_types(l3);
         ((vader_struct_vader_bytecode_EmitterCtx_t*) l3)->f_types_frozen = true;
-        VADER_WRITE_BARRIER((vader_struct_vader_bytecode_EmitterCtx_t*) l3);
         l4 = ((vader_struct_vader_bytecode_EmitterCtx_t*) l3)->f_imports;
         l7 = ((vader_array_t*) l4)->length;
         l8 = (size_t) (int64_t) INT64_C(0);

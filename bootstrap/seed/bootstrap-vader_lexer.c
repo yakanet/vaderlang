@@ -64,9 +64,7 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                     t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
                     l8 = (t2 + INT32_C(1));
                     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line = l8;
-                    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = INT32_C(1);
-                    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                 } else {
                     if (l7 == INT32_C(13)) {
                         t3 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -87,9 +85,7 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                             t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
                             l12 = (t2 + INT32_C(1));
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line = l12;
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = INT32_C(1);
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                         }
                     } else {
                         if ((l7 < INT32_C(128))) {
@@ -101,7 +97,6 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                             t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col;
                             l14 = (t2 + INT32_C(1));
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = l14;
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                         }
                     }
                 }
@@ -109,7 +104,6 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                 t4 = (t3 + INT64_C(1));
                 l15 = (size_t) (int64_t) t4;
                 ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos = l15;
-                VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                 t4 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t4;
                 goto loop_3;
@@ -197,7 +191,6 @@ static void vader_lexer_emit(void* l0, void* l1) {
     vader_array_push((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l0)->f_tokens, vader_ref_box(l1));
     l2 = ((vader_struct_vader_lexer_Token_t*) l1)->f_kind;
     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_last_kind = l2;
-    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -2785,7 +2778,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
         l6 = (t1 + INT32_C(1));
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-        VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(72), 303u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
@@ -2795,7 +2787,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
         l6 = (t1 + INT32_C(1));
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-        VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(74), 870u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
@@ -2807,7 +2798,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
             l6 = (t1 - INT32_C(1));
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         }
         vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(73), 344u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
@@ -2820,7 +2810,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
             l6 = (t1 - INT32_C(1));
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         }
         vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(75), 874u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
@@ -2833,7 +2822,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             t1 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_brace_depth;
             l6 = (t1 + INT32_C(1));
             ((vader_struct_vader_lexer_InterpFrame_t*) l5)->f_brace_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_InterpFrame_t*) l5);
         }
         t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(76), 2513u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2849,7 +2837,6 @@ static bool vader_lexer_try_lex_operator(void* l0) {
                 t1 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_brace_depth;
                 l6 = (t1 - INT32_C(1));
                 ((vader_struct_vader_lexer_InterpFrame_t*) l5)->f_brace_depth = l6;
-                VADER_WRITE_BARRIER((vader_struct_vader_lexer_InterpFrame_t*) l5);
             }
         }
         t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(77), 2522u);

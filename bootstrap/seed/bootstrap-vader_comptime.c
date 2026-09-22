@@ -2448,7 +2448,6 @@ void* vader_comptime_evaluate_expr(vader_box_t l0, void* l1) {
     t0 = ((vader_struct_vader_comptime_ComptimeContext_t*) l1)->f_depth;
     l6 = (t0 + INT64_C(1));
     ((vader_struct_vader_comptime_ComptimeContext_t*) l1)->f_depth = l6;
-    VADER_WRITE_BARRIER((vader_struct_vader_comptime_ComptimeContext_t*) l1);
     if (l0.tag == 441u) {
         t1 = l0.payload.obj;
         l2 = vader_comptime_evaluate_int_lit(t1);
@@ -2519,7 +2518,6 @@ void* vader_comptime_evaluate_expr(vader_box_t l0, void* l1) {
     t0 = ((vader_struct_vader_comptime_ComptimeContext_t*) l1)->f_depth;
     l6 = (t0 - INT64_C(1));
     ((vader_struct_vader_comptime_ComptimeContext_t*) l1)->f_depth = l6;
-    VADER_WRITE_BARRIER((vader_struct_vader_comptime_ComptimeContext_t*) l1);
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
