@@ -2793,24 +2793,27 @@ static vader_string_t vader_c_emit_dispatcher_formal(void* l0) {
 
 static vader_string_t vader_c_emit_dispatcher_result(void* l0, vader_string_t l1, uint8_t l2, uint8_t l3) {
     bool l4;
-    vader_string_t t0 = 0;
+    vader_string_t l5 = 0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    if (l3 != INT32_C(19)) {
-        { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    if (l2 == INT32_C(19)) {
-        l4 = true;
+    if (l3 == INT32_C(19)) {
+        l4 = l2 != INT32_C(19);
     } else {
-        l4 = l2 == INT32_C(16);
+        l4 = false;
     }
     if (l4) {
-        { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+        l4 = l2 != INT32_C(16);
+    } else {
+        l4 = false;
     }
-    t0 = vader_c_emit_coerce_expr(l0, l1, l2, (uint8_t) (int32_t) INT32_C(19));
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    if (l4) {
+        l5 = vader_c_emit_coerce_expr(l0, l1, l2, (uint8_t) (int32_t) INT32_C(19));
+    } else {
+        l5 = l1;
+    }
+    { vader_string_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

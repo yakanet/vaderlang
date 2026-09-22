@@ -3896,7 +3896,6 @@ struct vader_struct_vader_lower_GenBuild_t {
     vader_box_t f_state_ty;
     vader_box_t f_i32_ty;
     vader_box_t f_step;
-    vader_box_t f_element_ty;
     void* f_span;
     void* f_states;
     void* f_field_map;
@@ -4002,6 +4001,7 @@ struct vader_struct_vader_lower_LowerProjectCtx_t {
     bool f_opt_report;
     void* f_opt_misses;
     void* f_core_symbols;
+    void* f_core_enum_types;
     void* f_module_symbol_cache;
     void* f_comptime_value_by_symbol_id;
     void* f_local_symbol_indices;
@@ -4403,6 +4403,7 @@ struct vader_struct_vader_lower_PrimDataPoolEntry_t {
 struct vader_struct_vader_lower_StepShape_t {
     vader_obj_header_t header;
     vader_box_t f_type;
+    vader_box_t f_element;
     vader_box_t f_cont;
 };
 struct vader_struct_vader_lower_StrDataPoolEntry_t {
