@@ -5904,10 +5904,10 @@ void* vader_bytecode_build_intrinsic_wrapper_body(void* l0, int32_t l1);
 uint8_t vader_bytecode_val_type_of_type(vader_box_t l0);
 vader_box_t vader_bytecode_const_op_of(vader_box_t l0);
 void* vader_bytecode_remap_jump_table(void* l0, void* l1, size_t l2);
+size_t vader_bytecode_bc_result_arity(void* l0);
 void* vader_bytecode_mark_jump_targets(void* l0, size_t l1);
 uint8_t vader_bytecode_intrinsic_id_for(vader_string_t l0);
 bool vader_bytecode_is_string_val(uint8_t l0);
-size_t vader_bytecode_bc_result_arity(void* l0);
 int32_t vader_bytecode_bc_single_result_type(void* l0);
 void* vader_bytecode_c_struct_layout(void* l0, void* l1);
 int32_t vader_bytecode_array_kind_index(uint8_t l0);
@@ -6156,7 +6156,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2527u
+#define VADER_COMPTIME_ATOM_COUNT 2529u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
