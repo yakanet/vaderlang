@@ -1,0 +1,519 @@
+# Lower
+
+## snippet
+  struct snippet$Leaf { v: i32 }
+  struct snippet$Pair { l: i32 }
+  fn snippet$unwrap(t: Leaf | Pair) -> Leaf | Pair
+    ~>
+      t :Leaf | Pair
+  fn snippet$apply(t: Leaf | Pair, visit: fn(Leaf | Pair) -> void) -> void
+    ~>
+      call :void
+        callee:
+          visit :fn(Leaf | Pair) -> void
+        arg0:
+          t :Leaf | Pair
+  fn snippet$if_form(t: Leaf | Pair) -> i32
+    call :void
+      callee:
+        apply :fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
+      arg0:
+        t :Leaf | Pair
+      arg1:
+        LoweredMakeClosure
+    return int(1) :i32
+  fn snippet$match_form(t: Leaf | Pair) -> i32
+    let cb: fn(Leaf | Pair) -> void =
+      LoweredMakeClosure
+    call :void
+      callee:
+        apply :fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
+      arg0:
+        t :Leaf | Pair
+      arg1:
+        cb :fn(Leaf | Pair) -> void
+    return int(2) :i32
+  fn snippet$defer_form(t: Leaf | Pair) -> i32
+    let t: ? =
+      LoweredCellNew
+    defer.push
+      LoweredMakeClosure
+    block :void
+      defer.pop_exec 1
+      return int(3) :i32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(23) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "if=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        if_form :fn(Leaf | Pair) -> i32
+                      arg0:
+                        Leaf! {
+                          v: int(7) :i32
+                        }
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "match=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        match_form :fn(Leaf | Pair) -> i32
+                      arg0:
+                        Leaf! {
+                          v: int(7) :i32
+                        }
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "defer=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        defer_form :fn(Leaf | Pair) -> i32
+                      arg0:
+                        Leaf! {
+                          v: int(7) :i32
+                        }
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
+    return int(0) :i32
+  struct __lambda_env_snippet_1 { cap_0: ? }
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: Leaf | Pair) -> void
+    ~>
+      if :void
+        cond:
+          is Leaf! :bool
+            call :Leaf | Pair
+              callee:
+                unwrap :fn(Leaf | Pair) -> Leaf | Pair
+              arg0:
+                x :Leaf | Pair
+        then:
+          let lf: Leaf! =
+            cast → Leaf!
+              call :Leaf | Pair
+                callee:
+                  unwrap :fn(Leaf | Pair) -> Leaf | Pair
+                arg0:
+                  x :Leaf | Pair
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_0: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(23) :usize
+                let __off_1: usize = int(0) :usize
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        "lf=" :string
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        cast → i64
+                          .v :i32
+                            LoweredCellGet
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+  struct __lambda_env_snippet_3 { cap_0: ? }
+  fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3!, x: Leaf | Pair) -> void
+    ~>
+      block :void
+        let __scrut_0: Leaf | Pair =
+          call :Leaf | Pair
+            callee:
+              unwrap :fn(Leaf | Pair) -> Leaf | Pair
+            arg0:
+              x :Leaf | Pair
+        let s: ? =
+          LoweredCellNew
+        ~>
+          if :void
+            cond:
+              is Leaf! :bool
+                __scrut_0 :Leaf | Pair
+            then:
+              ~>
+                block :void
+                  ~>
+                    call :void
+                      callee:
+                        std_io$println__string :void
+                      arg0:
+                        block :string
+                          let __buf_3: Buffer =
+                            call :Buffer
+                              callee:
+                                new_byte_buffer :Buffer
+                              arg0:
+                                int(22) :usize
+                          let __off_4: usize = int(0) :usize
+                          assign
+                            target:
+                              __off_4 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_3 :Buffer
+                                arg1:
+                                  __off_4 :usize
+                                arg2:
+                                  "s=" :string
+                          assign
+                            target:
+                              __off_4 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_3 :Buffer
+                                arg1:
+                                  __off_4 :usize
+                                arg2:
+                                  cast → i64
+                                    .v :i32
+                                      cast → Leaf
+                                        LoweredCellGet
+                          ~>
+                            call :string
+                              callee:
+                                finish_buffer :string
+                              arg0:
+                                __buf_3 :Buffer
+                              arg1:
+                                __off_4 :usize
+            else:
+              ~>
+                if :void
+                  cond:
+                    is Pair! :bool
+                      __scrut_0 :Leaf | Pair
+                  then:
+                    ~>
+                      block :void
+                        ~>
+                          call :void
+                            callee:
+                              std_io$println__string :void
+                            arg0:
+                              block :string
+                                let __buf_1: Buffer =
+                                  call :Buffer
+                                    callee:
+                                      new_byte_buffer :Buffer
+                                    arg0:
+                                      int(22) :usize
+                                let __off_2: usize = int(0) :usize
+                                assign
+                                  target:
+                                    __off_2 :usize
+                                  value:
+                                    call :usize
+                                      callee:
+                                        write_string_at :usize
+                                      arg0:
+                                        __buf_1 :Buffer
+                                      arg1:
+                                        __off_2 :usize
+                                      arg2:
+                                        "s=" :string
+                                assign
+                                  target:
+                                    __off_2 :usize
+                                  value:
+                                    call :usize
+                                      callee:
+                                        write_int :usize
+                                      arg0:
+                                        __buf_1 :Buffer
+                                      arg1:
+                                        __off_2 :usize
+                                      arg2:
+                                        cast → i64
+                                          .l :i32
+                                            cast → Pair
+                                              LoweredCellGet
+                                ~>
+                                  call :string
+                                    callee:
+                                      finish_buffer :string
+                                    arg0:
+                                      __buf_1 :Buffer
+                                    arg1:
+                                      __off_2 :usize
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :void
+  struct __defer_env_snippet_5 { cap_0: ?, cap_1: ? }
+  fn __defer_snippet_4(__env_0: __defer_env_snippet_5!) -> void
+    ~>
+      if :void
+        cond:
+          is Leaf! :bool
+            call :Leaf | Pair
+              callee:
+                unwrap :fn(Leaf | Pair) -> Leaf | Pair
+              arg0:
+                LoweredCellGet
+        then:
+          let df: Leaf! =
+            cast → Leaf!
+              call :Leaf | Pair
+                callee:
+                  unwrap :fn(Leaf | Pair) -> Leaf | Pair
+                arg0:
+                  LoweredCellGet
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_0: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(23) :usize
+                let __off_1: usize = int(0) :usize
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        "df=" :string
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        cast → i64
+                          .v :i32
+                            LoweredCellGet
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize
