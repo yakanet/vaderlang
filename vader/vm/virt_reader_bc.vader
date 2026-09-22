@@ -954,9 +954,10 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
         }
     }
     if results.len() == 0 {
-        slots :: bc.bc_result_slots(result, primitive_index_for(types, result))
-        results.push_all(slots.results)
-        result_types.push_all(slots.result_types)
+        // No parenthesised list, so the header named one result — or none, which
+        // the representation spells as a single `Void` entry.
+        results.push(result)
+        result_types.push(primitive_index_for(types, result))
     }
     return bc.BcSignature {
         .params      = params,

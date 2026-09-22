@@ -227,29 +227,7 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
     if !any {
         return sig
     }
-    return BcSignature {
-        .params = sig.params,
-        .results = sig.results,
-        .param_types = sig.param_types,
-        .result_types = sig.result_types,
-        .param_names = sig.param_names,
-        .param_mutable = sig.param_mutable,
-        .param_by_address = flags,
-    }
-}
-
-// The result slots of a scalarised return — one per value handed back.
-multi_result_slots :: fn(results: Type[], ctx: EmitterCtx!) -> BcResultSlots {
-    vals: ValType[]!: []
-    indices: i32[]!: []
-    for r in results {
-        vals.push(val_type_of_type(r))
-        indices.push(intern_type(r, ctx))
-    }
-    return BcResultSlots {
-        .results = vals,
-        .result_types = indices,
-    }
+    return BcSignature { ...sig, .param_by_address = flags }
 }
 
 build_cfg_signature :: fn(
@@ -265,16 +243,24 @@ build_cfg_signature :: fn(
         param_names.push(p.name)
         param_mutable.push(is_mutable_slot(p.type))
     }
-    slots :: if scalarised_results.len() > 1 {
-        multi_result_slots(scalarised_results, ctx)
+    // One value unless the pass scalarised the return ; a VOID return still gets
+    // one entry holding `ValType.Void`, which is the representation.
+    results: ValType[]!: []
+    result_types: i32[]!: []
+    if scalarised_results.len() > 1 {
+        for r in scalarised_results {
+            results.push(val_type_of_type(r))
+            result_types.push(intern_type(r, ctx))
+        }
     } else {
-        bc_result_slots(val_type_of_type(return_type), intern_type(return_type, ctx))
+        results.push(val_type_of_type(return_type))
+        result_types.push(intern_type(return_type, ctx))
     }
     return BcSignature {
         .params = params_val,
-        .results = slots.results,
+        .results = results,
         .param_types = param_types,
-        .result_types = slots.result_types,
+        .result_types = result_types,
         .param_names = param_names,
         .param_mutable = param_mutable,
     }

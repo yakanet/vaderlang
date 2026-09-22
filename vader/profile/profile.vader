@@ -38,6 +38,8 @@ export PHASE_ESCAPE    :: 7
 export PHASE_BYTECODE  :: 8
 /// C emission (`emit_c`).
 export PHASE_CEMIT     :: 9
+/// Value-ABI return scalarisation (`scalarise_value_returns`).
+export PHASE_VALUE_RET :: 10
 
 // ---- raw runtime bindings (fn name == C symbol) ---------------------------
 

@@ -1082,16 +1082,14 @@ emit_multi_return :: fn(s: FnState!) -> void {
         line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
         return
     }
-    exprs: string[]!: []
-    for i in 0..<arity {
-        v :: pop(s)
-        // Popped from the top, so this is result `arity - 1 - i`.
-        exprs.push(coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[arity - 1 - i]))
-    }
     body :: StringBuilder {}
     for i in 0..<arity {
+        // Popped from the top, so this is result `arity - 1 - i` — which is also
+        // the order the assignments go out in.
         idx :: arity - 1 - i
-        body.append("*${out_param_name(idx)} = ${exprs[i]}; ")
+        v :: pop(s)
+        rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[idx])
+        body.append("*${out_param_name(idx)} = ${rv}; ")
     }
     if s.no_frame {
         line(s, "${body}return;")
@@ -1478,9 +1476,7 @@ emit_multi_call :: fn(
     results :: sig.results
     names: string[]!: []
     call_args: string[]!: []
-    for a in args {
-        call_args.push(a)
-    }
+    call_args.push_all(args)
     for i in 0..<results.len() {
         name :: fresh_tmp(s, results[i])
         names.push(name)

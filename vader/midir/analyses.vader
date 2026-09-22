@@ -456,7 +456,13 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             for_each_read_local(ins, (l: LocalId) -> {
                 if !d.contains(l) { u.add(l) }
             })
-            for_each_written_local(ins, (l: LocalId) -> { d.add(l) })
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi { d.add(l) }
+            } else {
+                ds :: dst_of(ins)
+                if ds != null { d.add(ds) }
+            }
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
             if !d.contains(l) { u.add(l) }
@@ -523,22 +529,18 @@ sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
 
 // ---- dst extraction -------------------------------------------------------
 
-/// Apply `visit` to every local the instruction writes.
+/// The locals an instruction writes when there are SEVERAL — a call handing back
+/// a scalarised composite — or null when `dst_of` answers for it.
 ///
-/// The sibling of `for_each_read_local`, and the one to reach for: `dst_of`
-/// answers for ONE local, so a call handing back several is invisible to it —
-/// which reads as "this local is never written" to anything walking definitions.
-export for_each_written_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -> void {
+/// Deliberately not a `visit` callback: the definition walks that need this run
+/// over every instruction of every function, and a closure there costs two heap
+/// objects per instruction. `compute_liveness` alone visits 312k of them.
+/// The pair `multi_dsts` + `dst_of` is the whole rule, and it allocates nothing.
+export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
     if ins is InstrCall {
-        for d in ins.dsts {
-            visit(d)
-        }
-        return
+        return ins.dsts
     }
-    single :: dst_of(ins)
-    if single != null {
-        visit(single)
-    }
+    return null
 }
 
 /// The local an instruction writes to, or `null` for pure side-

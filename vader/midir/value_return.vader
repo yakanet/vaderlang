@@ -39,11 +39,12 @@ import "vader/types"
 /// @param p  the CFG project, fresh from `build_cfg_project`.
 /// @return   a fresh project; `p` is untouched.
 export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
-    chosen :: choose_functions(p)
+    by_symbol :: MutableMap<i32, string> {}
+    callers :: MutableSet<string> {}
+    chosen :: choose_functions(p, by_symbol, callers)
     if chosen.len() == 0 {
         return p
     }
-    by_symbol :: mangles_by_symbol_id(p, chosen)
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction[]!: []
@@ -54,7 +55,7 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
             } else {
                 rewrite_callee(f, elements)
             }
-            new_fns.push(rewrite_call_sites(scalarised, chosen, by_symbol))
+            new_fns.push(rewrite_call_sites(scalarised, chosen, by_symbol, callers))
         }
         out[id] = CFGModule { ...m, .functions = new_fns }
     }
@@ -64,65 +65,32 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
 // ---- which functions ------------------------------------------------------
 
 // Mangle → the element types its return tuple carries.
-choose_functions :: fn(p: CFGProject) -> MutableMap<string, Type[]> {
+//
+// The signature walk comes FIRST and alone: on a project with no tuple return —
+// which is most of them — it answers in one pass over the function list, and the
+// instruction walk below never runs.
+choose_functions :: fn(
+    p: CFGProject, by_symbol: MutableMap<i32, string>!, callers: MutableSet<string>!,
+) -> MutableMap<string, Type[]> {
     chosen :: MutableMap<string, Type[]> {}
     for [_, m] in p.modules {
         for f in m.functions {
             if f.origin.is_main || f.is_extern {
                 continue
             }
-            elements :: scalarisable_elements(f.return_type) ?? continue
+            elements :: value_abi_tuple_elements(f.return_type) ?? continue
             chosen[f.mangled] = elements
         }
     }
-    drop_functions_used_as_values(p, chosen)
+    if chosen.len() == 0 {
+        return chosen
+    }
+    // Built here rather than by the caller: the map only makes sense once
+    // `chosen` is populated, and both the disqualification sweep and the
+    // call-site rewrite read the same one.
+    fill_mangles_by_symbol_id(p, chosen, by_symbol)
+    drop_functions_used_as_values(p, chosen, by_symbol, callers)
     return chosen
-}
-
-/// The elements a return type can be handed back as, or null when it cannot.
-///
-/// A tuple whose every element is a non-reference primitive, no wider than
-/// `VALUE_ABI_MAX_BYTES` in total. A distinct over one reads through: the
-/// nominal wrapper carries no identity of its own, the same rule
-/// `lower_tuple_eq` applies to `==`.
-export scalarisable_elements :: fn(t: Type) -> Type[] | null {
-    if t is DistinctType {
-        return scalarisable_elements(t.backing)
-    }
-    if t !is TupleType {
-        return null
-    }
-    // One element is not a composite worth splitting — it already crosses in a
-    // register, and the object exists only because the tuple type does.
-    if t.elements.len() < 2 {
-        return null
-    }
-    total: i64 = 0
-    for el in t.elements {
-        size :: primitive_leaf_size(el)
-        if size < 0 || total + size > VALUE_ABI_MAX_BYTES {
-            return null
-        }
-        total = total + size
-    }
-    return t.elements
-}
-
-// A non-reference primitive's size, or -1. Nothing else may be an element: a
-// reference in an out-param would have to be a GC root at the caller BEFORE the
-// call, which is the hazard `bug_compact_dict_stale_slot_resolver` records. The
-// all-primitive rule avoids it rather than managing it.
-primitive_leaf_size :: fn(t: Type) -> i64 {
-    if t is EnumType {
-        return primitive_size(t.repr)
-    }
-    if t !is PrimitiveType {
-        return -1
-    }
-    if is_reference_name(t.name) || t.name == "void" || t.name == "null" {
-        return -1
-    }
-    return primitive_size(t.name)
 }
 
 // Drop any function reachable other than by a direct call.
@@ -132,15 +100,27 @@ primitive_leaf_size :: fn(t: Type) -> i64 {
 // reached that way would be called through the wrong shape. Disqualified by
 // both mangle and symbol id, because `midir/emit` resolves a callee either way
 // and a function answering to two names must be dropped under both.
-drop_functions_used_as_values :: fn(p: CFGProject, chosen: MutableMap<string, Type[]>!) -> void {
-    by_symbol :: mangles_by_symbol_id(p, chosen)
+drop_functions_used_as_values :: fn(
+    p: CFGProject, chosen: MutableMap<string, Type[]>!, by_symbol: MutableMap<i32, string>,
+    callers: MutableSet<string>!,
+) -> void {
     for e in p.vtable_entries {
         drop_symbol(e.fn_symbol, by_symbol, chosen)
     }
+    // The one instruction walk. It also records which functions CALL a candidate,
+    // so the rewrite below needs no second scan of the program to find them — a
+    // caller recorded for a function later dropped is a harmless false positive,
+    // since the rewrite re-asks `callee_elements` per call.
     for [_, m] in p.modules {
         for f in m.functions {
             for b in f.blocks {
                 for ins in b.instructions {
+                    if ins is InstrCall {
+                        if callee_elements(ins.callee, chosen, by_symbol) != null {
+                            callers.add(f.mangled)
+                        }
+                        continue
+                    }
                     drop_if_taken_as_value(ins, by_symbol, chosen)
                 }
             }
@@ -177,10 +157,9 @@ drop_symbol :: fn(
 // call site carries whichever the lowerer put there — an impl member carries its
 // mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
 // is how a call site keeps the old shape while its callee changed.
-mangles_by_symbol_id :: fn(
-    p: CFGProject, chosen: MutableMap<string, Type[]>,
-) -> MutableMap<i32, string> {
-    by_symbol :: MutableMap<i32, string> {}
+fill_mangles_by_symbol_id :: fn(
+    p: CFGProject, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>!,
+) -> void {
     for [_, m] in p.modules {
         for f in m.functions {
             sym :: f.origin.symbol
@@ -189,7 +168,6 @@ mangles_by_symbol_id :: fn(
             }
         }
     }
-    return by_symbol
 }
 
 /// The elements a call to `callee` now hands back, or null when it is not a
@@ -210,9 +188,7 @@ callee_elements :: fn(
 // Every `return <tuple>` becomes `return <element>, <element>…`.
 rewrite_callee :: fn(f: CFGFunction, elements: Type[]) -> CFGFunction {
     locals: CFGLocal[]!: []
-    for l in f.locals {
-        locals.push(l)
-    }
+    locals.push_all(f.locals)
     new_blocks: BasicBlock[]!: []
     for b in f.blocks {
         new_blocks.push(rewrite_return_block(b, elements, locals))
@@ -247,9 +223,7 @@ rewrite_return_block :: fn(
     // its fields out before returning them: correct everywhere, and it costs the
     // reads the caller would have done anyway.
     instrs: Instruction[]!: []
-    for ins in b.instructions {
-        instrs.push(ins)
-    }
+    instrs.push_all(b.instructions)
     values: LocalId[]!: []
     for i in 0..<elements.len() {
         dst :: add_local(locals, "ret_elem", elements[i])
@@ -291,14 +265,13 @@ last_struct_new :: fn(instrs: Instruction[], dst: LocalId) -> LocalId[] | null {
 // Every call to a scalarised function receives N values instead of one object.
 rewrite_call_sites :: fn(
     f: CFGFunction, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>,
+    callers: MutableSet<string>,
 ) -> CFGFunction {
-    if !calls_a_scalarised_fn(f, chosen, by_symbol) {
+    if !callers.contains(f.mangled) {
         return f
     }
     locals: CFGLocal[]!: []
-    for l in f.locals {
-        locals.push(l)
-    }
+    locals.push_all(f.locals)
     new_blocks: BasicBlock[]!: []
     for b in f.blocks {
         instrs: Instruction[]!: []
@@ -359,7 +332,13 @@ forward_struct_fields :: fn(instrs: Instruction[]) -> Instruction[] {
             // The name now points elsewhere — as an object, or as one of the
             // fields an object was built from. Every written local, not just
             // `dst_of`: a scalarised call writes several.
-            for_each_written_local(ins, (l: LocalId) -> { drop_records_touching(built, l) })
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi { drop_records_touching(built, l) }
+            } else {
+                d :: dst_of(ins)
+                if d != null { drop_records_touching(built, d) }
+            }
         }
         if ins is InstrStructNew {
             built[i32(ins.dst)] = ins.fields
@@ -400,15 +379,8 @@ forward_struct_fields :: fn(instrs: Instruction[]) -> Instruction[] {
 drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>!, local: LocalId) -> void {
     doomed: i32[]!: []
     for [obj, fields] in built {
-        if obj == i32(local) {
+        if obj == i32(local) || local in fields {
             doomed.push(obj)
-            continue
-        }
-        for f in fields {
-            if f == local {
-                doomed.push(obj)
-                break
-            }
         }
     }
     for k in doomed {
@@ -422,33 +394,11 @@ tuple_field_index :: fn(field: string) -> i32 {
     if !field.starts_with("_") {
         return -1
     }
-    digits :: field[1..<field.len()]
-    if digits.len() == 0 {
+    parsed :: parse_int(field[1..<field.len()])
+    if parsed !is i32 {
         return -1
     }
-    n: i32 = 0
-    for c in digits.bytes() {
-        if c < '0' || c > '9' {
-            return -1
-        }
-        n = n * 10 + i32(c - '0')
-    }
-    return n
-}
-
-// Whether `f` calls anything this pass scalarised — the cheap test that keeps an
-// untouched function from being rebuilt.
-calls_a_scalarised_fn :: fn(
-    f: CFGFunction, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>,
-) -> bool {
-    for b in f.blocks {
-        for ins in b.instructions {
-            if ins is InstrCall && callee_elements(ins.callee, chosen, by_symbol) != null {
-                return true
-            }
-        }
-    }
-    return false
+    return parsed
 }
 
 add_local :: fn(locals: CFGLocal[]!, hint: string, type: Type) -> LocalId {

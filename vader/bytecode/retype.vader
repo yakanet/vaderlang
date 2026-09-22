@@ -166,23 +166,10 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     }
 }
 
-remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
-    pts: i32[]!: []
-    for pt in sig.param_types {
-        pts.push(remap_idx(remap, pt))
-    }
-    return BcSignature {
-        .params = sig.params,
-        .results = sig.results,
-        .param_types = pts,
-        .result_types = remap_type_indices(remap, sig.result_types),
-        .param_names = sig.param_names,
-        // Carried over explicitly : the field defaults to `[]`, so a partial
-        // rebuild drops it in silence — the failure mode `types.vader` records
-        // for `FnParam.mutable`.
-        .param_mutable = sig.param_mutable,
-        .param_by_address = sig.param_by_address,
-    }
+remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature = BcSignature {
+    ...sig,
+    .param_types = remap_type_indices(remap, sig.param_types),
+    .result_types = remap_type_indices(remap, sig.result_types),
 }
 
 // Exhaustive on purpose, with no `_` arm: `BcType` is a closed union, so a new

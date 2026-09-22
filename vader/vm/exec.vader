@@ -774,9 +774,9 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 // pair is never the entry point, so the case cannot arise, and folding it in
 // would mean inventing an answer for it.
 finalise_multi_return :: fn(
-    frame: Frame!, arity: usize, frames: Frame![]!, frame_count: usize[]!,
-    signature: bc.BcSignature,
+    frame: Frame!, frames: Frame![]!, frame_count: usize[]!, signature: bc.BcSignature,
 ) -> VmResult | null {
+    arity :: bc.bc_result_arity(signature)
     if frame.sp < arity {
         return Trap {
             .message = "return: the frame holds fewer values than the signature declares",
@@ -809,12 +809,8 @@ finalise_multi_return :: fn(
 // Whether the callee's lone result needs the width truncation a narrow C return
 // would apply. Multi-value answers false: each value carries its own type and
 // the narrowing is applied per value, not once for the frame.
-is_single_narrow_result :: fn(sig: bc.BcSignature) -> bool {
-    if bc.bc_result_arity(sig) != 1 {
-        return false
-    }
-    return is_narrow_valtype(sig.results[0])
-}
+is_single_narrow_result :: fn(sig: bc.BcSignature) -> bool =
+    bc.bc_result_arity(sig) == 1 && is_narrow_valtype(sig.results[0])
 
 finalise_return :: fn(return_value: Value!, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
     pop_frame(frame_count)
@@ -2626,9 +2622,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // single-value path below stays exactly as it was — it owns the
                 // outermost frame, where a return becomes the exit code.
                 if bc.bc_result_arity(body.signature) > 1 {
-                    outcome :: finalise_multi_return(
-                        frame, bc.bc_result_arity(body.signature), frames, frame_count,
-                        body.signature)
+                    outcome :: finalise_multi_return(frame, frames, frame_count, body.signature)
                     if !(outcome is null) {
                         return outcome
                     }

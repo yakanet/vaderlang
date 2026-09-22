@@ -280,9 +280,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     // Visit transitively.
     roots: i32[]!: []
     for fn_ in ctx.functions {
-        for rt in fn_.signature.result_types {
-            roots.push(rt)
-        }
+        roots.push_all(fn_.signature.result_types)
         for pt in fn_.signature.param_types { roots.push(pt) }
         for op in fn_.body {
             tid :: type_index_of(op)
@@ -290,9 +288,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
         }
     }
     for imp in ctx.imports {
-        for rt in imp.signature.result_types {
-            roots.push(rt)
-        }
+        roots.push_all(imp.signature.result_types)
         for pt in imp.signature.param_types { roots.push(pt) }
     }
     // Pinned types : arg/result type indices that Call ops reference.
@@ -364,16 +360,9 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
         new_param_types: i32[]!: []
         for pt in fn_.signature.param_types { new_param_types.push(remap_idx(remap, pt)) }
         fn_.signature = BcSignature {
-            .params      = fn_.signature.params,
-            .results     = fn_.signature.results,
+            ...fn_.signature,
             .param_types = new_param_types,
             .result_types = remap_type_indices(remap, fn_.signature.result_types),
-            .param_names = fn_.signature.param_names,
-            // Carried over explicitly, like the import branch below: the field
-            // defaults to `[]`, so a partial rebuild widens every parameter to
-            // mutable with nothing to say so.
-            .param_mutable = fn_.signature.param_mutable,
-            .param_by_address = fn_.signature.param_by_address,
         }
         for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
@@ -388,14 +377,9 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
             .extern_name  = imp.extern_name,
             .mangled_name = imp.mangled_name,
             .signature    = BcSignature {
-                .params      = imp.signature.params,
-                .results     = imp.signature.results,
+                ...imp.signature,
                 .param_types = new_param_types,
                 .result_types = remap_type_indices(remap, imp.signature.result_types),
-                .param_names = imp.signature.param_names,
-                // Carried over explicitly — see `remap_signature` in retype.vader.
-                .param_mutable = imp.signature.param_mutable,
-                .param_by_address = imp.signature.param_by_address,
             },
             .is_extern    = imp.is_extern,
             // Carried over — a dropped header resurrects the synthesised

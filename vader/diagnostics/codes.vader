@@ -328,6 +328,7 @@ export InternalCode :: enum(u8) {
     // RESERVED, not dead: the data-pool check behind `midir/build.vader:255`
     // needs `is_bakeable`, whose second copy would be the drift it reports.
     NonPrimitiveDataPoolLeaf,               // I7009
+    ReturnArityMismatch,                    // I7010
 }
 
 export CodeInfo :: struct {
@@ -344,6 +345,7 @@ export internal_info :: fn(c: InternalCode) = match c {
     .LocalReadNeverWritten    -> CodeInfo { .id = "I7006", .message = "local is read but never written" }
     .EntryBlockNotZero        -> CodeInfo { .id = "I7008", .message = "entry block is not block 0" }
     .NonPrimitiveDataPoolLeaf -> CodeInfo { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" }
+    .ReturnArityMismatch      -> CodeInfo { .id = "I7010", .message = "a return hands back a different number of values than the function declares" }
 }
 
 export hook_info :: fn(c: HookCode) = match c {

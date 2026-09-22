@@ -54,7 +54,13 @@ export BcFunction :: struct {
 export BcSignature :: struct {
     params: ValType[]
     /// What the callee leaves on the operand stack, in the order the caller
-    /// receives it. EMPTY for void — there is no `ValType.Void` entry.
+    /// receives it.
+    ///
+    /// A VOID return carries ONE entry holding `ValType.Void`, not the empty
+    /// array — the shape this signature has always had, kept so the void type
+    /// stays rooted in the bytecode DCE and every emitted type index stays put.
+    /// `bc_result_arity` is the ONLY reader that knows this: ask it, never
+    /// `results.len()`, when the question is how many values cross.
     ///
     /// More than one is what lets a small composite cross in registers rather
     /// than as a heap object. It is also the shape WASM takes natively
@@ -122,38 +128,10 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
 /// How many values the callee leaves on the operand stack.
 ///
 /// Zero for a void return: the representation spells that as a single
-/// `ValType.Void` entry rather than the empty arrays (see `bc_result_slots`), so
+/// `ValType.Void` entry rather than the empty arrays, so
 /// asking `results.len()` directly would count one value where none is pushed.
-export bc_result_arity :: fn(sig: BcSignature) -> usize {
-    if sig.results.len() == 1 && sig.results[0] == ValType.Void {
-        return 0
-    }
-    return sig.results.len()
-}
-
-/// Signature result arrays for a slot that returns one value.
-///
-/// The pair has to stay in step, and building it by hand at twenty sites is how
-/// they drift.
-///
-/// A VOID return still gets one entry, carrying `ValType.Void` — the shape this
-/// signature has always had. Collapsing it to the empty arrays is the honest
-/// representation and the one WASM takes (`(func)` declares no result), but it
-/// un-roots the void type in the bytecode DCE and moves every type index in the
-/// emitted C. That normalisation is its own step, taken against a measurement,
-/// not a side effect of introducing arity.
-export bc_result_slots :: fn(val: ValType, type_index: i32) -> BcResultSlots {
-    return BcResultSlots {
-        .results = [val],
-        .result_types = [type_index],
-    }
-}
-
-/// The two parallel arrays a signature's result is made of.
-export BcResultSlots :: struct {
-    results: ValType[]
-    result_types: i32[]
-}
+export bc_result_arity :: fn(sig: BcSignature) -> usize =
+    if sig.results.len() == 1 && sig.results[0] == ValType.Void { 0 } else { sig.results.len() }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it

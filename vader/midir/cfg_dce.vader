@@ -55,22 +55,7 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
             .span         = b.span,
         })
     }
-    return CFGFunction {
-        .mangled      = f.mangled,
-        .params       = f.params,
-        .return_type  = f.return_type,
-        .locals       = f.locals,
-        .blocks       = new_blocks,
-        .entry        = f.entry,
-        .origin       = f.origin,
-        .is_extern    = f.is_extern,
-        .is_exported  = f.is_exported,
-        .extern_name  = f.extern_name,
-        // Carried over explicitly, like every other field here: this rebuild
-        // names each one, so a field left out is silently reset to its default
-        // — and for an arity that means the backend emits the wrong signature.
-        .scalarised_results = f.scalarised_results,
-    }
+    return CFGFunction { ...f, .blocks = new_blocks }
 }
 
 fold_moves_in_block :: fn(
@@ -151,9 +136,15 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             })
             // Side-effecting dst must keep its slot.
             if instruction_has_side_effect(ins) {
-                for_each_written_local(ins, (l: LocalId) -> {
-                    if usize(l) < n { referenced[usize(l)] = true }
-                })
+                multi :: multi_dsts(ins)
+                if multi != null {
+                    for l in multi {
+                        if usize(l) < n { referenced[usize(l)] = true }
+                    }
+                } else {
+                    d :: dst_of(ins)
+                    if d != null && usize(d) < n { referenced[usize(d)] = true }
+                }
             }
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
@@ -204,19 +195,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             .span         = b.span,
         })
     }
-    return CFGFunction {
-        .mangled     = f.mangled,
-        .params      = new_params,
-        .return_type = f.return_type,
-        .locals      = new_locals,
-        .blocks      = new_blocks,
-        .entry       = f.entry,
-        .origin      = f.origin,
-        .is_extern   = f.is_extern,
-        .is_exported = f.is_exported,
-        .extern_name = f.extern_name,
-        .scalarised_results = f.scalarised_results,
-    }
+    return CFGFunction { ...f, .params = new_params, .locals = new_locals, .blocks = new_blocks }
 }
 
 remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
@@ -417,14 +396,7 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
         }
     }
     if t is TermReturn     {
-        remapped: LocalId[]!: []
-        for v in t.values {
-            remapped.push(remap_local(m, v))
-        }
-        return TermReturn {
-            .values = remapped,
-            .span = t.span,
-        }
+        return TermReturn { .values = remap_locals(m, t.values), .span = t.span }
     }
     return t
 }

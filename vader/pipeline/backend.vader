@@ -146,7 +146,9 @@ export cfg_to_bytecode :: fn(
     // the `struct.new` that built the tuple becomes unread once the terminator
     // names its fields, and DCE is what removes it — running after would leave
     // the allocation and the pass would buy nothing. See `value_return.vader`.
+    Prof.prof_begin(Prof.PHASE_VALUE_RET)
     scalarised :: scalarise_value_returns(cfg)
+    Prof.prof_end(Prof.PHASE_VALUE_RET)
     if opts.verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
     dced :: eliminate_dead_cfg(scalarised)

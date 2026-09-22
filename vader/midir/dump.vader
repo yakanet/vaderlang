@@ -125,11 +125,7 @@ dump_terminator :: fn(t: Terminator) -> string {
             if t.values.len() == 0 {
                 return "return"
             }
-            out := "return"
-            for v in t.values {
-                out = "${out} %${v}"
-            }
-            return out
+            return "return ${dump_args(t.values)}"
         }
         is TermUnreachable  -> { return "unreachable ; ${t.reason}" }
     }
@@ -152,20 +148,8 @@ dump_dst :: fn(d: LocalId | null) -> string {
 }
 
 // The destinations of a call, `%a, %b = ` when it hands back several.
-dump_dsts :: fn(dsts: LocalId[]) -> string {
-    if dsts.len() == 0 {
-        return ""
-    }
-    sb :: StringBuilder {}
-    for i in 0..<dsts.len() {
-        if i > 0 {
-            sb.append(", ")
-        }
-        sb.append("%${dsts[i]}")
-    }
-    sb.append(" = ")
-    return sb.to_string()
-}
+dump_dsts :: fn(dsts: LocalId[]) -> string =
+    if dsts.len() == 0 { "" } else { "${dump_args(dsts)} = " }
 
 dump_args :: fn(a: LocalId[]) -> string {
     sb :: StringBuilder {}

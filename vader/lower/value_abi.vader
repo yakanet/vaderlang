@@ -119,9 +119,15 @@ value_abi_sized :: fn(
     return total
 }
 
-// A composite a bare `Type` can size on its own — a tuple or a distinct over
-// one. A struct is not here: only a lowered decl carries its field types.
-value_abi_type_size :: fn(t: Type) -> i64 {
+/// Size of a composite a bare `Type` can judge on its own — a tuple, or a
+/// distinct over one — or -1 when it does not qualify.
+///
+/// A struct is not here: only a lowered decl carries its field types.
+///
+/// Exported because `vader/midir/value_return.vader` decides what to scalarise
+/// with it. Two answers to "is this eligible" would drift, and the report would
+/// then describe a set the pass does not act on.
+export value_abi_type_size :: fn(t: Type) -> i64 {
     // @partial: the two composites below are the only ones a `Type` can size.
     // Every other variant answers "not a candidate", which is one answer for all
     // of them, not a degraded placeholder.
@@ -130,6 +136,28 @@ value_abi_type_size :: fn(t: Type) -> i64 {
         is DistinctType -> { return value_abi_type_size(t.backing) }
         _               -> { return -1 }
     }
+}
+
+/// The elements a tuple return can be handed back as, or null when it cannot.
+///
+/// The single gate both the report and `vader/midir/value_return.vader` ask.
+/// ONE element is refused: it already crosses in a register, and the object
+/// exists only because the tuple type does — splitting it buys nothing and the
+/// caller would rebuild it anyway.
+export value_abi_tuple_elements :: fn(t: Type) -> Type[] | null {
+    if t is DistinctType {
+        return value_abi_tuple_elements(t.backing)
+    }
+    if t !is TupleType {
+        return null
+    }
+    if t.elements.len() < 2 {
+        return null
+    }
+    if value_abi_sum_leaves(t.elements) < 0 {
+        return null
+    }
+    return t.elements
 }
 
 // Summed size of `members` as leaves, or -1 when one disqualifies the whole or
@@ -154,14 +182,26 @@ value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
 
 // One leaf of a candidate composite: a non-reference primitive, an enum (its
 // `repr`), or a nested composite flattened into the same registers.
-// @partial: the four shapes below are what a composite can hold and still
-// qualify. Every other variant is a reference or has no size — one answer for
-// all of them, not a degraded placeholder.
-value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
-    is PrimitiveType            -> if is_reference_name(t.name) { -1 } else { primitive_size(t.name) }
-    is TupleType | DistinctType -> value_abi_type_size(t)
-    is EnumType                 -> primitive_size(t.repr)
-    _                           -> -1
+/// Size of one LEAF of a candidate composite, or -1 when the leaf disqualifies
+/// it.
+///
+/// A leaf must cross in ONE register, so it is a non-reference primitive or an
+/// enum (which rides its `repr`) — and nothing else. A nested composite is NOT a
+/// leaf: it is a heap object of its own, and returning it as a "value" would
+/// hand back a reference under a name that promises otherwise. Flattening it
+/// recursively is a different ABI, and nothing implements it.
+///
+/// @partial: the three shapes below are what a composite can hold and still
+/// qualify. Every other variant is a reference or names no storage — one answer
+/// for all of them, not a degraded placeholder.
+export value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
+    is PrimitiveType -> if is_reference_name(t.name) || primitive_size(t.name) == 0 {
+        -1
+    } else {
+        primitive_size(t.name)
+    }
+    is EnumType -> primitive_size(t.repr)
+    _           -> -1
 }
 
 over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size }

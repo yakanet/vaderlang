@@ -601,16 +601,19 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         }
     }
 
+    // Bound once: an `@extern` returns one value or none, and re-asking costs a
+    // call with two length tests where reading a field used to be free.
+    result :: bc_single_result(info.signature)
     // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
     // returning `float` leaves only the low half of the result register
     // meaningful, so reading 64 bits of it would give an arbitrary value.
-    if bc_single_result(info.signature) == bc.ValType.F32 {
+    if result == bc.ValType.F32 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
     desc[0] = if ffi_result_is_opt(types, bc_single_result_type(info.signature), bc.ValType.String) {
         u8(FFI_STR_OPT)
     } else {
-        u8(ffi_result_class(bc_single_result(info.signature)))
+        u8(ffi_result_class(result))
     }
 
     // An ADDR slot carries an offset into the WHOLE frame, so it only becomes
@@ -656,10 +659,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     for ls in lent_structs {
         read_back_mirror(frame, base + ls.at, ls.target, ls.fields, types, 0)
     }
-    if bc_single_result(info.signature) == bc.ValType.Void {
+    if result == bc.ValType.Void {
         return HostOk { .value = zero_value() }
     }
-    if bc_single_result(info.signature) == bc.ValType.F64 {
+    if result == bc.ValType.F64 {
         return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
     }
     // A `string` result comes back as the call's RETURN value, not through the
@@ -670,7 +673,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         }
         return HostOk { .value = StringVal { .value = returned } }
     }
-    if bc_single_result(info.signature) == bc.ValType.String {
+    if result == bc.ValType.String {
         return HostOk { .value = StringVal { .value = returned } }
     }
     // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
@@ -679,7 +682,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         && read_little_endian(frame, 0, 8, false) == 0 {
         return HostOk { .value = NullVal {} }
     }
-    return extern_result(bc_single_result(info.signature), read_little_endian(frame, 0, 8, true))
+    return extern_result(result, read_little_endian(frame, 0, 8, true))
 }
 
 /// Argument / result classes for `ffi_call` — mirrors `VADER_FFI_*` in

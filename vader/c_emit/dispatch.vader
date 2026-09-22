@@ -51,19 +51,27 @@ find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
 vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     first :: ctx.module.functions[usize(row.entries[0].fn_index)]
     first_sig :: first.signature
+    // Bound once each: loop-invariant, and re-asking is a call where reading a
+    // field used to be free.
+    first_result :: bc_single_result(first_sig)
+    first_result_type :: bc_single_result_type(first_sig)
     uniform := true
     for e in row.entries {
         f :: ctx.module.functions[usize(e.fn_index)]
-        if bc_single_result(f.signature) != bc_single_result(first_sig) || bc_single_result_type(f.signature) != bc_single_result_type(first_sig) {
+        if bc_single_result(f.signature) != first_result
+            || bc_single_result_type(f.signature) != first_result_type {
             uniform = false
         }
     }
     if uniform { return first_sig }
     return BcSignature {
         .params = first_sig.params,
+        // The receiver's own result type, so the two arrays stay the same
+        // length — a vtable target is never scalarised (`value_return.vader`
+        // drops every function a row names), so this is always one entry.
         .results = [ValType.Any],
         .param_types = first_sig.param_types,
-        .result_types = first_sig.result_types,
+        .result_types = [first_result_type],
         .param_names = first_sig.param_names,
     }
 }
