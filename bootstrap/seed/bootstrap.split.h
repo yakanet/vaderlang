@@ -4843,6 +4843,7 @@ struct vader_struct_vader_midir_ProjectCtx_t {
     void* f_const_fn_wrap;
     void* f_const_inline;
     void* f_extern_callbacks;
+    void* f_diags;
 };
 struct vader_struct_vader_midir_ScheduleHints_t {
     vader_obj_header_t header;
@@ -5852,7 +5853,7 @@ void* vader_lower_span_of(vader_box_t l0);
 vader_box_t vader_lower_lower_expr(void* l0, vader_box_t l1);
 bool __lambda_vader_lower_6(void* l0, vader_string_t l1, vader_string_t l2);
 vader_string_t vader_lower_binary_op_name(uint8_t l0);
-void* vader_midir_build_cfg_project(void* l0);
+void* vader_midir_build_cfg_project(void* l0, void* l1);
 void* vader_midir_eliminate_dead_cfg(void* l0);
 void* vader_midir_annotate_escape(void* l0);
 void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2);
@@ -6139,7 +6140,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2494u
+#define VADER_COMPTIME_ATOM_COUNT 2495u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
