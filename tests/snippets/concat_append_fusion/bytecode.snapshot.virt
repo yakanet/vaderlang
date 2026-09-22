@@ -13,9 +13,9 @@ type 10 struct snippet$Ready__string { v:1 }
 type 11 primitive void
 type 12 ref Async
 type 13 ref _
-type 14 primitive usize
-type 15 primitive u8
-type 16 array 15
+type 14 primitive u8
+type 15 primitive usize
+type 16 array 14
 type 17 struct std_core$Buffer {  }
 type 18 primitive isize
 type 19 struct $Cell_string { value:1 }
@@ -44,9 +44,9 @@ string 20 "B"
 string 21 "["
 string 22 "M"
 string 23 "\n"
-import 0 byte_len std_core$byte_len result_type=14 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=15 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,16,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,16,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 Async
 impl 8 Async
 impl 10 Async

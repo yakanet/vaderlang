@@ -5,50 +5,40 @@
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
+      let __tup_0: [i32, Continuation]! =
+        vcall Iterator.next :[i32, Continuation]!
+          recv:
+            it :Iterator<i32>
+      let v: i32 =
+        ._0 :i32
+          __tup_0 :[i32, Continuation]!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            vcall Iterator.next :null | Yield<i32>!
-              recv:
-                it :Iterator<i32>
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        cont :bool
-                      value:
-                        false
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      let y: Yield<i32>! =
-                        cast → Yield<i32>!
-                          __scrut_0 :null | Yield<i32>!
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              sum :i32
-                            value:
-                              add :i32
-                                l:
-                                  sum :i32
-                                r:
-                                  .value :i32
-                                    y :Yield<i32>!
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                cont :bool
+              value:
+                false
+          else:
+            assign
+              target:
+                sum :i32
+              value:
+                add :i32
+                  l:
+                    sum :i32
+                  r:
+                    v :i32
     return sum :i32
   fn snippet$main() -> i32
     let r: Repeat<i32>! =
@@ -165,7 +155,7 @@
                 __off_3 :usize
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
-  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> null | Yield<i32>!
+  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]!
     if :void
       cond:
         lte :bool
@@ -175,7 +165,13 @@
           r:
             int(0) :i32
       then:
-        return null
+        return
+          [i32, Continuation]! {
+            _0:
+              .value :i32
+                self :Repeat<i32>!
+            _1: int(1) :u8
+          }
     let v: i32 =
       .value :i32
         self :Repeat<i32>!
@@ -191,140 +187,115 @@
           r:
             int(1) :i32
     return
-      Yield<i32>! {
-        value: v :i32
+      [i32, Continuation]! {
+        _0: v :i32
+        _1: int(0) :u8
       }
   fn snippet$Repeat$Iterator$is_empty__i32(self: Repeat<i32>!) -> bool
-    ~>
-      block :bool
-        let __scrut_0: null | Yield<i32>! =
-          call :null | Yield<i32>!
-            callee:
-              snippet$Repeat$Iterator$next__i32 :null | Yield<i32>!
-            arg0:
-              self :Repeat<i32>!
-        ~>
-          if :bool
-            cond:
-              is null :bool
-                __scrut_0 :null | Yield<i32>!
-            then:
-              ~>
-                true
-            else:
-              ~>
-                if :bool
-                  cond:
-                    is Yield<i32>! :bool
-                      __scrut_0 :null | Yield<i32>!
-                  then:
-                    ~>
-                      false
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :bool
+    let __tup_0: [i32, Continuation]! =
+      call :[i32, Continuation]!
+        callee:
+          snippet$Repeat$Iterator$next__i32 :[i32, Continuation]!
+        arg0:
+          self :Repeat<i32>!
+    let c: Continuation =
+      ._1 :Continuation
+        __tup_0 :[i32, Continuation]!
+    return
+      eq :bool
+        l:
+          c :Continuation
+        r:
+          int(1) :u8
   fn snippet$Repeat$Iterator$count__i32(self: Repeat<i32>!) -> usize
     let total: usize = int(0) :usize
     let finished: bool = false
     loop while (<…>)
+      let __tup_0: [i32, Continuation]! =
+        call :[i32, Continuation]!
+          callee:
+            snippet$Repeat$Iterator$next__i32 :[i32, Continuation]!
+          arg0:
+            self :Repeat<i32>!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            call :null | Yield<i32>!
-              callee:
-                snippet$Repeat$Iterator$next__i32 :null | Yield<i32>!
-              arg0:
-                self :Repeat<i32>!
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        finished :bool
-                      value:
-                        true
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              total :usize
-                            value:
-                              add :usize
-                                l:
-                                  total :usize
-                                r:
-                                  int(1) :usize
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                finished :bool
+              value:
+                true
+          else:
+            assign
+              target:
+                total :usize
+              value:
+                add :usize
+                  l:
+                    total :usize
+                  r:
+                    int(1) :usize
     return total :usize
   fn snippet$Repeat$Iterator$last__i32(self: Repeat<i32>!) -> i32 | null
     let result: i32 | null = null
     let finished: bool = false
     loop while (<…>)
+      let __tup_0: [i32, Continuation]! =
+        call :[i32, Continuation]!
+          callee:
+            snippet$Repeat$Iterator$next__i32 :[i32, Continuation]!
+          arg0:
+            self :Repeat<i32>!
+      let v: i32 =
+        ._0 :i32
+          __tup_0 :[i32, Continuation]!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            call :null | Yield<i32>!
-              callee:
-                snippet$Repeat$Iterator$next__i32 :null | Yield<i32>!
-              arg0:
-                self :Repeat<i32>!
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        finished :bool
-                      value:
-                        true
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      let y: Yield<i32>! =
-                        cast → Yield<i32>!
-                          __scrut_0 :null | Yield<i32>!
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              result :i32 | null
-                            value:
-                              .value :i32
-                                y :Yield<i32>!
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                finished :bool
+              value:
+                true
+          else:
+            assign
+              target:
+                result :i32 | null
+              value:
+                v :i32
     return result :i32 | null
   struct snippet$Once__i32 { value: i32, yielded: bool }
-  fn snippet$Once$Iterator$next__i32(self: Once<i32>!) -> null | Yield<i32>!
+  fn snippet$Once$Iterator$next__i32(self: Once<i32>!) -> [i32, Continuation]!
     if :void
       cond:
         .yielded :bool
           self :Once<i32>!
       then:
-        return null
+        return
+          [i32, Continuation]! {
+            _0:
+              .value :i32
+                self :Once<i32>!
+            _1: int(1) :u8
+          }
     assign
       target:
         .yielded :bool
@@ -332,133 +303,102 @@
       value:
         true
     return
-      Yield<i32>! {
-        value:
+      [i32, Continuation]! {
+        _0:
           .value :i32
             self :Once<i32>!
+        _1: int(0) :u8
       }
   fn snippet$Once$Iterator$is_empty__i32(self: Once<i32>!) -> bool
-    ~>
-      block :bool
-        let __scrut_0: null | Yield<i32>! =
-          call :null | Yield<i32>!
-            callee:
-              snippet$Once$Iterator$next__i32 :null | Yield<i32>!
-            arg0:
-              self :Once<i32>!
-        ~>
-          if :bool
-            cond:
-              is null :bool
-                __scrut_0 :null | Yield<i32>!
-            then:
-              ~>
-                true
-            else:
-              ~>
-                if :bool
-                  cond:
-                    is Yield<i32>! :bool
-                      __scrut_0 :null | Yield<i32>!
-                  then:
-                    ~>
-                      false
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :bool
+    let __tup_0: [i32, Continuation]! =
+      call :[i32, Continuation]!
+        callee:
+          snippet$Once$Iterator$next__i32 :[i32, Continuation]!
+        arg0:
+          self :Once<i32>!
+    let c: Continuation =
+      ._1 :Continuation
+        __tup_0 :[i32, Continuation]!
+    return
+      eq :bool
+        l:
+          c :Continuation
+        r:
+          int(1) :u8
   fn snippet$Once$Iterator$count__i32(self: Once<i32>!) -> usize
     let total: usize = int(0) :usize
     let finished: bool = false
     loop while (<…>)
+      let __tup_0: [i32, Continuation]! =
+        call :[i32, Continuation]!
+          callee:
+            snippet$Once$Iterator$next__i32 :[i32, Continuation]!
+          arg0:
+            self :Once<i32>!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            call :null | Yield<i32>!
-              callee:
-                snippet$Once$Iterator$next__i32 :null | Yield<i32>!
-              arg0:
-                self :Once<i32>!
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        finished :bool
-                      value:
-                        true
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              total :usize
-                            value:
-                              add :usize
-                                l:
-                                  total :usize
-                                r:
-                                  int(1) :usize
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                finished :bool
+              value:
+                true
+          else:
+            assign
+              target:
+                total :usize
+              value:
+                add :usize
+                  l:
+                    total :usize
+                  r:
+                    int(1) :usize
     return total :usize
   fn snippet$Once$Iterator$last__i32(self: Once<i32>!) -> i32 | null
     let result: i32 | null = null
     let finished: bool = false
     loop while (<…>)
+      let __tup_0: [i32, Continuation]! =
+        call :[i32, Continuation]!
+          callee:
+            snippet$Once$Iterator$next__i32 :[i32, Continuation]!
+          arg0:
+            self :Once<i32>!
+      let v: i32 =
+        ._0 :i32
+          __tup_0 :[i32, Continuation]!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            call :null | Yield<i32>!
-              callee:
-                snippet$Once$Iterator$next__i32 :null | Yield<i32>!
-              arg0:
-                self :Once<i32>!
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        finished :bool
-                      value:
-                        true
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      let y: Yield<i32>! =
-                        cast → Yield<i32>!
-                          __scrut_0 :null | Yield<i32>!
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              result :i32 | null
-                            value:
-                              .value :i32
-                                y :Yield<i32>!
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                finished :bool
+              value:
+                true
+          else:
+            assign
+              target:
+                result :i32 | null
+              value:
+                v :i32
     return result :i32 | null
   struct snippet$Repeat__Any { value: Any, remaining: i32 }
   struct snippet$Once__Any { value: Any, yielded: bool }

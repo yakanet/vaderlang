@@ -573,14 +573,6 @@ mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool)
 }
 
 descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    result_ty :: ctx.types.expr_type(call)
-    if result_ty is StructType {
-        if result_ty.symbol.name == STRUCT_ARRAY_ITERATOR {
-            arr_expr :: array_from_iter_call(ctx, call) ?? return null
-            elem :: if result_ty.args.len() > 0 { result_ty.args[0] } else { TY_UNRESOLVED }
-            return mk_array_chain(arr_expr, elem, call.span, false)
-        }
-    }
     // `arr.into()` — erased `Iterator<T>` head over a statically-array receiver.
     // Its result type is the trait (not `ArrayIterator`), but the receiver is an
     // array, so fuse over the raw array. This is the implicit-array head the
@@ -611,24 +603,6 @@ array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
             arg :: call.args[0].value
             if ctx.types.expr_type(arg) is ArrayType { return arg }
             return null
-        }
-        _ -> { return null }
-    }
-}
-
-// The source array of an `arr.iter()` (UFCS) / `iter(arr)` (direct) call, or
-// null when the callee isn't the `std/core` `iter` cursor.
-array_from_iter_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
-    @partial match call.callee {
-        is AST.FieldExpr as fe -> {
-            if fe.field != METHOD_ITER { return null }
-            if ctx.typed.ufcs_receiver_types[fe.id] is null { return null }
-            return fe.target
-        }
-        is AST.IdentExpr as id -> {
-            if id.name != METHOD_ITER { return null }
-            if call.args.len() != 1 { return null }
-            return call.args[0].value
         }
         _ -> { return null }
     }

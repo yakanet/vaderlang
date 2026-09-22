@@ -3,6 +3,7 @@
 ## tests/snippets/wide_literal_pin
 
 ## generic instances
+  __genstate_array_iter<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<i32, i64>
@@ -57,15 +58,10 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

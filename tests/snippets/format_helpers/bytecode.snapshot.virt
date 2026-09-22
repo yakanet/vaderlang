@@ -4,10 +4,10 @@ type 1 primitive i32
 type 2 primitive string
 type 3 primitive char
 type 4 primitive bool
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 array 8
-type 8 primitive u8
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 array 5
 type 9 primitive void
 type 10 primitive u64
 type 11 primitive isize
@@ -30,11 +30,11 @@ string 12 "false"
 string 13 "\n"
 string 14 "0"
 string 15 ""
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 param_mutable=0 param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,8,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 impl 12 Display
 export main 0
 
@@ -297,7 +297,7 @@ fn 7 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 7 0   ; u8[][]
+  array.new 8 0   ; u8[][]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -308,7 +308,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 8   ; u8[]
+    array.push 5   ; u8[]
   else
     local.get 1   ; cp
     i32.const 2048
@@ -325,7 +325,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 8   ; u8[]
+      array.push 5   ; u8[]
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -337,7 +337,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 8   ; u8[]
+      array.push 5   ; u8[]
     else
       local.get 1   ; cp
       i32.const 65536
@@ -354,7 +354,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -368,7 +368,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -380,7 +380,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
       else
         local.get 1   ; cp
         i32.const 18
@@ -393,7 +393,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -407,7 +407,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -421,7 +421,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -433,7 +433,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 5   ; u8[]
       end $L2
     end $L1
   end $L0
@@ -472,7 +472,7 @@ fn 8 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 8   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

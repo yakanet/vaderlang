@@ -8,13 +8,13 @@ export Countdown :: struct {
 }
 
 Countdown implements Iterator<i32> {
-    next :: fn(self!) -> Yield<i32> | null {
+    next :: fn(self!) -> [i32, Continuation] {
         if (self.current <= 0) {
-            return null
+            return [0, Continuation.Stop]
         }
         v :: self.current
         self.current = self.current - 1
-        return Yield<i32> { .value = v }
+        return [v, Continuation.Continue]
     }
 }
 

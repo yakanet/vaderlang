@@ -4,12 +4,12 @@ type 1 primitive string
 type 2 primitive usize
 type 3 primitive i32
 type 4 primitive bool
-type 5 struct std_core$Buffer {  }
-type 6 primitive u64
-type 7 array 1
-type 8 primitive i64
-type 9 primitive u8
-type 10 array 9
+type 5 primitive u8
+type 6 struct std_core$Buffer {  }
+type 7 primitive u64
+type 8 array 1
+type 9 primitive i64
+type 10 array 5
 type 11 primitive void
 type 12 primitive isize
 string 0 "number"
@@ -30,17 +30,17 @@ data 1 str "alice" "bob"
 import 0 byte_len std_core$byte_len result_type=2 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=3,10,2 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 5 ByteAccess
+impl 6 ByteAccess
 export main 5
 
 fn 0 snippet$kind (string) -> string
-  data.const 0 7   ; pool[0] : string[]
+  data.const 0 8   ; pool[0] : string[]
   local.get 0   ; arg 0
   call 13   ; std_core$[]$Contains$contains__string
   if $L0 void
     return.lit string.const 0   ; "number"
   end $L0
-  data.const 1 7   ; pool[1] : string[]
+  data.const 1 8   ; pool[1] : string[]
   local.get 0   ; arg 0
   call 13   ; std_core$[]$Contains$contains__string
   if $L1 void
@@ -50,15 +50,15 @@ fn 0 snippet$kind (string) -> string
 end
 
 fn 1 snippet$count_numeric () -> usize
-  data.const 0 7   ; pool[0] : string[]
+  data.const 0 8   ; pool[0] : string[]
   array.len
   return
 end
 
 fn 2 snippet$first_name () -> string
-  data.const 1 7   ; pool[1] : string[]
+  data.const 1 8   ; pool[1] : string[]
   i32.const 0
-  array.get 7   ; string[][]
+  array.get 8   ; string[][]
   ref.cast 1   ; -> string
   return
 end
@@ -71,7 +71,7 @@ fn 3 snippet$joined () -> string
   local n string
   string.const 3   ; ""
   local.set 0   ; out
-  data.const 1 7   ; pool[1] : string[]
+  data.const 1 8   ; pool[1] : string[]
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -85,7 +85,7 @@ fn 3 snippet$joined () -> string
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 7   ; string[][]
+        array.get 8   ; string[][]
         ref.cast 1   ; -> string
         local.set 4   ; n
         local.get 0   ; out
@@ -473,7 +473,7 @@ fn 13 std_core$[]$Contains$contains__string (ref,string) -> bool
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 7   ; string[][]
+        array.get 8   ; string[][]
         ref.cast 1   ; -> string
         local.get 1   ; arg 1
         string.eq

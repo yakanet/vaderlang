@@ -3,35 +3,33 @@ type 0 primitive null
 type 1 ref Iterator
 type 2 primitive i32
 type 3 struct snippet$Repeat__i32 { value:2,remaining:2 }
-type 4 union 0,5
-type 5 struct std_core$Yield__i32 { value:2 }
+type 4 struct __Tuple_i32_u8_99ae0d29 { _0:2,_1:5 }
+type 5 primitive u8
 type 6 primitive bool
 type 7 primitive usize
 type 8 struct snippet$Once__i32 { value:2,yielded:6 }
 type 9 primitive string
 type 10 struct std_core$Range__i32 { start:2,end:2,inclusive:6,cursor:2 }
 type 11 struct std_core$Range__usize { start:7,end:7,inclusive:6,cursor:7 }
-type 12 union 0,13
-type 13 struct std_core$Yield__usize { value:7 }
-type 14 struct std_core$Buffer {  }
-type 15 primitive i64
-type 16 primitive u8
-type 17 array 16
-type 18 primitive void
-type 19 primitive isize
+type 12 struct __Tuple_usize_u8_de11f1ad { _0:7,_1:5 }
+type 13 struct std_core$Buffer {  }
+type 14 primitive i64
+type 15 array 5
+type 16 primitive void
+type 17 primitive isize
 string 0 "repeat="
 string 1 "once="
 string 2 "\n"
 import 0 byte_len std_core$byte_len result_type=7 param_types=9 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=17 param_types=9 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=2,17,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 1 bytes std_core$bytes result_type=15 param_types=9 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=2,15,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 Iterator
 impl 8 Iterator
 impl 10 Contains
 impl 10 Iterator
 impl 11 Contains
 impl 11 Iterator
-impl 14 ByteAccess
+impl 13 ByteAccess
 vtable Iterator.next 3 2
 vtable Iterator.next 8 4
 vtable Iterator.next 10 7
@@ -41,8 +39,8 @@ export main 1
 fn 0 snippet$walk (any) -> i32
   local sum i32
   local cont bool
-  local __scrut_0 any
-  local $field_12 i32
+  local __tup_0 ref
+  local v i32
   i32.const 0
   local.set 1   ; sum
   bool.const true
@@ -53,27 +51,21 @@ fn 0 snippet$walk (any) -> i32
       if $L2 void
         local.get 0   ; arg 0
         virtual.call 1 Iterator.next
-        local.tee 3   ; __scrut_0
-        type_check 0   ; null
+        local.set 3   ; __tup_0
+        local.field 3 4 0   ; __tup_0._0
+        ref.cast 2   ; -> i32
+        local.set 4   ; v
+        local.field 3 4 1   ; __tup_0._1
+        i32.const 1
+        i32.eq
         if $L3 void
           bool.const false
           local.set 2   ; cont
         else
-          local.get 3   ; __scrut_0
-          type_check 5   ; std_core$Yield__i32
-          if $L4 void
-            local.get 3   ; __scrut_0
-            ref.cast 5   ; -> std_core$Yield__i32
-            struct.get 5 0   ; std_core$Yield__i32.value
-            ref.cast 2   ; -> i32
-            local.set 4   ; $field_12
-            local.get 1   ; sum
-            local.get 4   ; $field_12
-            i32.add
-            local.set 1   ; sum
-          else
-            return
-          end $L4
+          local.get 1   ; sum
+          local.get 4   ; v
+          i32.add
+          local.set 1   ; sum
         end $L3
         br $L1
       end $L2
@@ -146,36 +138,27 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$Repeat$Iterator$next__i32 (ref) -> any
-  local $fwd_1 any
-  local $call_elem_3 i32
+fn 2 snippet$Repeat$Iterator$next__i32 (ref) -> ref
+  local $call_elem_3 u8
   local.get 0   ; arg 0
   call 3   ; snippet$Repeat$Iterator$next__i32$v
-  local.set 2   ; $call_elem_3
-  i32.const 0
-  i32.eq
-  if $L0 void
-    null.const
-    local.set 1   ; $fwd_1
-  else
-    local.get 2   ; $call_elem_3
-    struct.new 5   ; std_core$Yield__i32
-    local.set 1   ; $fwd_1
-  end $L0
-  local.get 1   ; $fwd_1
+  local.set 1   ; $call_elem_3
+  local.get 1   ; $call_elem_3
+  struct.new 4   ; __Tuple_i32_u8_99ae0d29
   return
 end
 
-fn 3 snippet$Repeat$Iterator$next__i32$v (ref) -> (i32,i32)
+fn 3 snippet$Repeat$Iterator$next__i32$v (ref) -> (i32,u8)
   local v i32
-  local $sub_9 i32
+  local $sub_11 i32
   local.field 0 3 1   ; arg 0.remaining
   ref.cast 2   ; -> i32
   i32.const 0
   i32.le
   if $L0 void
-    i32.const 0
-    i32.const 0
+    local.field 0 3 0   ; arg 0.value
+    ref.cast 2   ; -> i32
+    i32.const 1
     return
   end $L0
   local.field 0 3 0   ; arg 0.value
@@ -185,42 +168,32 @@ fn 3 snippet$Repeat$Iterator$next__i32$v (ref) -> (i32,i32)
   ref.cast 2   ; -> i32
   i32.const 1
   i32.sub
-  local.set 2   ; $sub_9
+  local.set 2   ; $sub_11
   local.get 0   ; arg 0
-  local.get 2   ; $sub_9
+  local.get 2   ; $sub_11
   struct.set 3 1   ; snippet$Repeat__i32.remaining
-  i32.const 1
   local.get 1   ; v
+  i32.const 0
   return
 end
 
-fn 4 snippet$Once$Iterator$next__i32 (ref) -> any
-  local $fwd_1 any
-  local $call_elem_3 i32
+fn 4 snippet$Once$Iterator$next__i32 (ref) -> ref
+  local $call_elem_3 u8
   local.get 0   ; arg 0
   call 5   ; snippet$Once$Iterator$next__i32$v
-  local.set 2   ; $call_elem_3
-  i32.const 0
-  i32.eq
-  if $L0 void
-    null.const
-    local.set 1   ; $fwd_1
-  else
-    local.get 2   ; $call_elem_3
-    struct.new 5   ; std_core$Yield__i32
-    local.set 1   ; $fwd_1
-  end $L0
-  local.get 1   ; $fwd_1
+  local.set 1   ; $call_elem_3
+  local.get 1   ; $call_elem_3
+  struct.new 4   ; __Tuple_i32_u8_99ae0d29
   return
 end
 
-fn 5 snippet$Once$Iterator$next__i32$v (ref) -> (i32,i32)
-  local $field_4 i32
+fn 5 snippet$Once$Iterator$next__i32$v (ref) -> (i32,u8)
   local.field 0 8 1   ; arg 0.yielded
   ref.cast 6   ; -> bool
   if $L0 void
-    i32.const 0
-    i32.const 0
+    local.field 0 8 0   ; arg 0.value
+    ref.cast 2   ; -> i32
+    i32.const 1
     return
   end $L0
   local.get 0   ; arg 0
@@ -228,9 +201,7 @@ fn 5 snippet$Once$Iterator$next__i32$v (ref) -> (i32,i32)
   struct.set 8 1   ; snippet$Once__i32.yielded
   local.field 0 8 0   ; arg 0.value
   ref.cast 2   ; -> i32
-  local.set 1   ; $field_4
-  i32.const 1
-  local.get 1   ; $field_4
+  i32.const 0
   return
 end
 
@@ -263,27 +234,17 @@ fn 6 concat_2 (string,string) -> string
   return
 end
 
-fn 7 std_core$Range$Iterator$next__i32 (ref) -> any
-  local $fwd_1 any
-  local $call_elem_3 i32
+fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
+  local $call_elem_3 u8
   local.get 0   ; arg 0
   call 8   ; std_core$Range$Iterator$next__i32$v
-  local.set 2   ; $call_elem_3
-  i32.const 0
-  i32.eq
-  if $L0 void
-    null.const
-    local.set 1   ; $fwd_1
-  else
-    local.get 2   ; $call_elem_3
-    struct.new 5   ; std_core$Yield__i32
-    local.set 1   ; $fwd_1
-  end $L0
-  local.get 1   ; $fwd_1
+  local.set 1   ; $call_elem_3
+  local.get 1   ; $call_elem_3
+  struct.new 4   ; __Tuple_i32_u8_99ae0d29
   return
 end
 
-fn 8 std_core$Range$Iterator$next__i32$v (ref) -> (i32,i32)
+fn 8 std_core$Range$Iterator$next__i32$v (ref) -> (i32,u8)
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -314,8 +275,9 @@ fn 8 std_core$Range$Iterator$next__i32$v (ref) -> (i32,i32)
   end $L0
   local.get 1   ; done
   if $L1 void
-    i32.const 0
-    i32.const 0
+    local.field 0 10 3   ; arg 0.cursor
+    ref.cast 2   ; -> i32
+    i32.const 1
     return
   end $L1
   local.field 0 10 3   ; arg 0.cursor
@@ -328,32 +290,22 @@ fn 8 std_core$Range$Iterator$next__i32$v (ref) -> (i32,i32)
   local.get 0   ; arg 0
   local.get 3   ; $field_4
   struct.set 10 3   ; std_core$Range__i32.cursor
-  i32.const 1
   local.get 2   ; $field_3
+  i32.const 0
   return
 end
 
-fn 9 std_core$Range$Iterator$next__usize (ref) -> any
-  local $fwd_1 any
-  local $call_elem_3 usize
+fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
+  local $call_elem_3 u8
   local.get 0   ; arg 0
   call 10   ; std_core$Range$Iterator$next__usize$v
-  local.set 2   ; $call_elem_3
-  i32.const 0
-  i32.eq
-  if $L0 void
-    null.const
-    local.set 1   ; $fwd_1
-  else
-    local.get 2   ; $call_elem_3
-    struct.new 13   ; std_core$Yield__usize
-    local.set 1   ; $fwd_1
-  end $L0
-  local.get 1   ; $fwd_1
+  local.set 1   ; $call_elem_3
+  local.get 1   ; $call_elem_3
+  struct.new 12   ; __Tuple_usize_u8_de11f1ad
   return
 end
 
-fn 10 std_core$Range$Iterator$next__usize$v (ref) -> (i32,usize)
+fn 10 std_core$Range$Iterator$next__usize$v (ref) -> (usize,u8)
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -384,8 +336,9 @@ fn 10 std_core$Range$Iterator$next__usize$v (ref) -> (i32,usize)
   end $L0
   local.get 1   ; done
   if $L1 void
-    i32.const 0
-    i64.const 0
+    local.field 0 11 3   ; arg 0.cursor
+    ref.cast 7   ; -> usize
+    i32.const 1
     return
   end $L1
   local.field 0 11 3   ; arg 0.cursor
@@ -398,8 +351,8 @@ fn 10 std_core$Range$Iterator$next__usize$v (ref) -> (i32,usize)
   local.get 0   ; arg 0
   local.get 3   ; $field_4
   struct.set 11 3   ; std_core$Range__usize.cursor
-  i32.const 1
   local.get 2   ; $field_3
+  i32.const 0
   return
 end
 
@@ -736,7 +689,7 @@ fn 24 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 17   ; u8[][]
+      array.slice 15   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

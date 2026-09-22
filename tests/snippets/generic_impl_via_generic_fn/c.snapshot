@@ -63,7 +63,7 @@ const vader_type_info_t vader_type_info_table[16] = {
     [2] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_snippet_0_t), vader_type_2_ptrs, 1, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Box__i32_t), NULL, 0, 0, NULL, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [12] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [14] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_14_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 16;
@@ -79,10 +79,10 @@ const size_t vader_type_size[16] = {
     [7] = 16u,
     [8] = 16u,
     [9] = 16u,
-    [10] = 8u,
-    [11] = 16u,
-    [12] = 8u,
-    [13] = 1u,
+    [10] = 1u,
+    [11] = 8u,
+    [12] = 16u,
+    [13] = 8u,
     [14] = 16u,
     [15] = 8u,
 };
@@ -91,7 +91,7 @@ const size_t vader_type_size[16] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 14u, 13u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 14u, 10u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 
 

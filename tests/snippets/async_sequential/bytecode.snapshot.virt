@@ -14,9 +14,9 @@ type 11 struct snippet$Ready__string { v:6 }
 type 12 struct std_core$Buffer {  }
 type 13 primitive usize
 type 14 ref Async
-type 15 primitive i64
-type 16 primitive u8
-type 17 array 16
+type 15 primitive u8
+type 16 primitive i64
+type 17 array 15
 type 18 primitive isize
 string 0 "hi"
 string 1 ""

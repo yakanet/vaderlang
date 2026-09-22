@@ -7,9 +7,9 @@ type 4 struct std_core$Suspended {  }
 type 5 primitive string
 type 6 ref Async
 type 7 primitive bool
-type 8 primitive usize
-type 9 primitive u8
-type 10 array 9
+type 8 primitive u8
+type 9 primitive usize
+type 10 array 8
 type 11 struct std_core$Buffer {  }
 type 12 primitive void
 type 13 primitive i64
@@ -24,9 +24,9 @@ string 1 "woke at 2"
 string 2 "start"
 string 3 "\n"
 string 4 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=9 param_types=5 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=10 param_types=5 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,10,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,10,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=13 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=12 param_types=13 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=1 () -> i32

@@ -3,6 +3,7 @@
 ## tests/snippets/json_basics
 
 ## generic instances
+  __genstate_array_iter<T>
   __genstate_zip<[string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString]>
   __genstate_window<i32[]>
   __genstate_chain<i32>
@@ -45,10 +46,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<char>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -95,6 +93,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

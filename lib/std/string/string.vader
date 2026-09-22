@@ -68,13 +68,15 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator<char> {
-    next :: fn(self!) -> Yield<char> | null {
+    next :: fn(self!) -> [char, Continuation] {
         if (self.cursor >= self.length) {
-            return null
+            // The element beside `Stop` is never read; `char` is concrete here,
+            // so any one does.
+            return [' ', Continuation.Stop]
         }
         [c, width] :: self.bytes.utf8_decode_len(self.cursor)
         self.cursor = self.cursor + width
-        return Yield<char> { .value = c }
+        return [c, Continuation.Continue]
     }
 }
 

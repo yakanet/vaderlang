@@ -118,7 +118,7 @@ const vader_type_info_t vader_type_info_table[19] = {
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_snippet_1_t), vader_type_6_ptrs, 2, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___defer_env_snippet_3_t), vader_type_7_ptrs, 2, 0, NULL, 0, NULL },
     [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_snippet_5_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [12] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
     [15] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_string_t), NULL, 0, 1, vader_type_15_strs, 0, NULL },
     [16] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_i64_t), NULL, 0, 0, NULL, 0, NULL },
@@ -138,9 +138,9 @@ const size_t vader_type_size[19] = {
     [7] = 16u,
     [8] = 16u,
     [9] = 16u,
-    [10] = 8u,
-    [11] = 16u,
-    [12] = 1u,
+    [10] = 1u,
+    [11] = 8u,
+    [12] = 16u,
     [13] = 16u,
     [14] = 8u,
     [15] = 16u,
@@ -153,7 +153,7 @@ const size_t vader_type_size[19] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 13u, 12u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 13u, 10u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 
 static void snippet_log_at_exit(vader_string_t l0, int64_t l1) {

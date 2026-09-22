@@ -14,9 +14,9 @@ type 11 primitive string
 type 12 array 13
 type 13 fn () -> 5
 type 14 ref Async
-type 15 primitive usize
-type 16 primitive u8
-type 17 array 16
+type 15 primitive u8
+type 16 primitive usize
+type 17 array 15
 type 18 struct std_core$Buffer {  }
 type 19 primitive isize
 string 0 "never cancelled"
@@ -26,9 +26,9 @@ string 3 "inner body (unreached)"
 string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=15 param_types=11 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=16 param_types=11 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=3,17,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=3,17,16 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 10 Async

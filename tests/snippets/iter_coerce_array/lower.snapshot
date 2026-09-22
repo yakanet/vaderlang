@@ -5,50 +5,40 @@
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
+      let __tup_0: [i32, Continuation]! =
+        vcall Iterator.next :[i32, Continuation]!
+          recv:
+            it :Iterator<i32>
+      let v: i32 =
+        ._0 :i32
+          __tup_0 :[i32, Continuation]!
+      let c: Continuation =
+        ._1 :Continuation
+          __tup_0 :[i32, Continuation]!
       ~>
-        block :void
-          let __scrut_0: null | Yield<i32>! =
-            vcall Iterator.next :null | Yield<i32>!
-              recv:
-                it :Iterator<i32>
-          ~>
-            if :void
-              cond:
-                is null :bool
-                  __scrut_0 :null | Yield<i32>!
-              then:
-                ~>
-                  block :void
-                    assign
-                      target:
-                        cont :bool
-                      value:
-                        false
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Yield<i32>! :bool
-                        __scrut_0 :null | Yield<i32>!
-                    then:
-                      let y: Yield<i32>! =
-                        cast → Yield<i32>!
-                          __scrut_0 :null | Yield<i32>!
-                      ~>
-                        block :void
-                          assign
-                            target:
-                              sum :i32
-                            value:
-                              add :i32
-                                l:
-                                  sum :i32
-                                r:
-                                  .value :i32
-                                    y :Yield<i32>!
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+        if :void
+          cond:
+            eq :bool
+              l:
+                c :Continuation
+              r:
+                int(1) :u8
+          then:
+            assign
+              target:
+                cont :bool
+              value:
+                false
+          else:
+            assign
+              target:
+                sum :i32
+              value:
+                add :i32
+                  l:
+                    sum :i32
+                  r:
+                    v :i32
     return sum :i32
   fn snippet$make_iter() -> Iterator<i32>
     let arr: i32[]! =

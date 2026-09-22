@@ -3,6 +3,7 @@
 ## tests/snippets/async_fallible
 
 ## generic instances
+  __genstate_array_iter<T>
   Ready<i32>
   Ready<T>
   Ready<T>
@@ -17,9 +18,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<i32 | LoadError>
   Async<i32>
   Async<T>
@@ -28,7 +27,4 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>

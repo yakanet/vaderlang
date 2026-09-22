@@ -78,7 +78,7 @@ static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
 const vader_type_info_t vader_type_info_table[20] = {
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_snippet_0_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
-    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
     [16] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_async_Sleep_t), NULL, 0, 0, NULL, 0, NULL },
 };
@@ -94,10 +94,10 @@ const size_t vader_type_size[20] = {
     [6] = 16u,
     [7] = 16u,
     [8] = 1u,
-    [9] = 8u,
-    [10] = 16u,
-    [11] = 8u,
-    [12] = 1u,
+    [9] = 1u,
+    [10] = 8u,
+    [11] = 16u,
+    [12] = 8u,
     [13] = 16u,
     [14] = 0u,
     [15] = 16u,
@@ -111,7 +111,7 @@ const size_t vader_type_size[20] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 13u, 12u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 13u, 9u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 static int64_t vader_host_std_runtime_sched_now(void) { return vader_sched_now(); }
 static void vader_host_std_runtime_sched_arm(int64_t a0) { vader_sched_arm(a0); }

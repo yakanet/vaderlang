@@ -167,14 +167,23 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
 }
 
-/// The per-arm return expression : box the impl's primitive result when the
-/// dispatcher returns the erased `any`, otherwise return it as-is (ref / any
-/// impls pass through ; matching concrete results need no wrap).
+/// The per-arm return expression : wrap the impl's result when the dispatcher
+/// returns the erased `any` and the impl does not.
+///
+/// A `Ref` is NOT already a box — it is a bare `void*`, and returning one from a
+/// `vader_box_t` function does not compile. It used to be unreachable here
+/// because an erased method's impls returned a union, hence `Any` on both sides;
+/// an impl returning a CONCRETE composite (an `Iterator.next` handing back
+/// `[T, Continuation]`) is what brought the case in.
 dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string {
-    impl_is_box :: impl_result == ValType.Any || impl_result == ValType.Ref || impl_result == ValType.Void
-    boxes :: sig_result == ValType.Any && !impl_is_box
-    if boxes { return coerce_expr(types, call_expr, impl_result, .Any) }
-    return call_expr
+    if sig_result != ValType.Any {
+        return call_expr
+    }
+    // `Void` has nothing to wrap, and `Any` is already the target shape.
+    if impl_result == ValType.Any || impl_result == ValType.Void {
+        return call_expr
+    }
+    return coerce_expr(types, call_expr, impl_result, .Any)
 }
 
 

@@ -427,14 +427,9 @@ try_array_iter_coercion :: fn(
         if target_type is TraitType {
             if target_type.symbol.name != TRAIT_ITERATOR { return null }
             if target_type.args.len() != 1 { return null }
-            // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
-            // std/core's struct isn't loaded (nothing to materialise).
-            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arg_type.element]) ?? return null
-            // Register the `ArrayIterator<element>` instance so its `Iterator`
-            // impl (`next__<element>`) materialises + lands in the vtable — the
-            // value slot dispatches `it.next()` virtually (the for-in path inlines
-            // `next` and never needs the table).
-            if wrapped is StructType { queue_generic_impl_receiver(ctx, wrapped) }
+            // `into` returns `array_iter(self)`, a generator: its state struct
+            // and `Iterator` impl are synthesised when that call is lowered, so
+            // there is nothing named to pre-register here.
             member :: find_impl_member_for(ctx, arg_type, METHOD_INTO)
             if member is null { return mk_bare_into_call(ctx, arg, target_type, span) }
             return LoweredCall {

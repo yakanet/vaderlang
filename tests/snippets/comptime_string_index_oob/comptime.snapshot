@@ -3,6 +3,7 @@
 ## tests/snippets/comptime_string_index_oob
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>
@@ -15,18 +16,13 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
 
 # Diagnostics
 [14:8] error[C4002] comptime evaluation panicked: string codepoint index out of bounds

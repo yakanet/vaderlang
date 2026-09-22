@@ -6,21 +6,24 @@
     block :void
       let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_1: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_1: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let x: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_1 :Yield<i32>! | null
+              ._0 :i32
+                __step_1 :[i32, Continuation]!
             assign
               target:
                 total :i32
@@ -50,23 +53,26 @@
             arg0:
               s :string
         loop
-          let __fuse_step_3: Yield<char>! | null =
-            call :Yield<char>! | null
+          let __fuse_step_3: [char, Continuation]! =
+            call :[char, Continuation]!
               callee:
                 std_string$StringChars$Iterator$next :?
               arg0:
                 __fuse_iter_2 :StringChars
           if :void
             cond:
-              is null :bool
-                __fuse_step_3 :Yield<char>! | null
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_3 :[char, Continuation]!
+                r:
+                  int(1) :u8
             then:
               break
             else:
               let x: char =
-                .value :char
-                  cast → Yield<char>!
-                    __fuse_step_3 :Yield<char>! | null
+                ._0 :char
+                  __fuse_step_3 :[char, Continuation]!
               if :void
                 cond:
                   call :bool

@@ -204,9 +204,9 @@ const size_t vader_type_size[43] = {
     [16] = 16u,
     [17] = 16u,
     [18] = 1u,
-    [19] = 8u,
+    [19] = 1u,
     [20] = 8u,
-    [21] = 1u,
+    [21] = 8u,
     [22] = 16u,
     [23] = 16u,
     [24] = 16u,
@@ -234,7 +234,7 @@ const size_t vader_type_size[43] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 22u, 21u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 22u, 19u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 static int64_t vader_host_std_runtime_sched_now(void) { return vader_sched_now(); }
 static void vader_host_std_runtime_sched_arm(int64_t a0) { vader_sched_arm(a0); }
@@ -1093,7 +1093,7 @@ static vader_box_t std_async_any__string__Any(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 54 "lib/std/collections/collections.vader"
-    vader_array_t* _a0_arr = vader_array_new(38u, 0u, 4u, 19u);
+    vader_array_t* _a0_arr = vader_array_new(38u, 0u, 4u, 20u);
     l1 = (void*) _a0_arr;
 #line 57 "lib/std/collections/collections.vader"
     vader_array_t* _a1_arr = vader_array_new(40u, 0u, 12u, 18u);

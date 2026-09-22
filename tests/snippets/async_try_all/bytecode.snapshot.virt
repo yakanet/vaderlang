@@ -18,10 +18,10 @@ type 15 array 16
 type 16 union 6,1
 type 17 ref Error
 type 18 primitive usize
-type 19 struct std_core$Buffer {  }
-type 20 primitive u64
-type 21 primitive u8
-type 22 array 21
+type 19 primitive u8
+type 20 struct std_core$Buffer {  }
+type 21 primitive u64
+type 22 array 19
 type 23 ref _
 type 24 struct std_async$All__Any { children:39,results:40 }
 type 25 union 26,9
@@ -68,7 +68,7 @@ import 6 panic std_abort$panic result_type=10 param_types=2 param_mutable=0 para
 impl 1 Error
 impl 7 Async
 impl 11 Async
-impl 19 ByteAccess
+impl 20 ByteAccess
 impl 24 Async
 impl 27 Async
 impl 33 Async

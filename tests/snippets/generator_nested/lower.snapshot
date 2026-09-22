@@ -109,7 +109,7 @@
                 int(1) :usize
     return int(0) :i32
   struct __genstate_pairs { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: i32[], s7: usize, s8: usize, s9: i32, state: i32 }
-  fn snippet$__genstate_pairs$Iterator$next(self: __genstate_pairs!) -> Yield<i32>! | null
+  fn snippet$__genstate_pairs$Iterator$next(self: __genstate_pairs!) -> [i32, Continuation]!
     loop
       if :void
         cond:
@@ -295,8 +295,8 @@
                                         value:
                                           int(6) :i32
                                       return
-                                        Yield<i32>! {
-                                          value:
+                                        [i32, Continuation]! {
+                                          _0:
                                             add :i32
                                               l:
                                                 .s5 :i32
@@ -304,6 +304,7 @@
                                               r:
                                                 .s9 :i32
                                                   __self_6 :__genstate_pairs!
+                                          _1: int(0) :u8
                                         }
                                     else:
                                       if :void
@@ -432,7 +433,11 @@
                                                         value:
                                                           int(2) :i32
                                                     else:
-                                                      return null
+                                                      return
+                                                        [i32, Continuation]! {
+                                                          _0: int(0) :i32
+                                                          _1: int(1) :u8
+                                                        }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

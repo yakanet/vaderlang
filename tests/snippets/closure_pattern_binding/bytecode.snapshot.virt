@@ -8,11 +8,11 @@ type 5 struct __lambda_env_snippet_1 { cap_0:8 }
 type 6 struct __lambda_env_snippet_3 { cap_0:8 }
 type 7 primitive string
 type 8 ref _
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 primitive i64
-type 12 primitive u8
-type 13 array 12
+type 9 primitive u8
+type 10 primitive usize
+type 11 struct std_core$Buffer {  }
+type 12 primitive i64
+type 13 array 9
 type 14 primitive isize
 type 15 struct "$Cell_Struct#snippet.P<>" { value:3 }
 type 16 struct $Cell_i32 { value:2 }
@@ -21,10 +21,10 @@ string 1 "twice = "
 string 2 "world"
 string 3 "HELLO "
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=7 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=10 param_types=7 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=13 param_types=7 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=2,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=2,13,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 11 ByteAccess
 export main 1
 
 fn 0 snippet$greet (any) -> void

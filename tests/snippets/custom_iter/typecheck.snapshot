@@ -3,36 +3,49 @@
 ## tests/snippets/custom_iter
   StructDecl     Countdown            :: Countdown!
   FnDecl         main                 :: fn() -> i32
-  expr 10262:1  MatchExpr      :: bool
-  expr 10262:2  CallExpr       :: null | Yield<i32>!
-  expr 10262:23 UnaryExpr      :: bool
-  expr 10262:24 IdentExpr      :: bool
-  expr 10262:26 MatchExpr      :: void
-  expr 10262:27 CallExpr       :: null | Yield<i32>!
-  expr 10262:28 FieldExpr      :: fn() -> null | Yield<i32>!
-  expr 10262:29 IdentExpr      :: Countdown!
-  expr 10262:3  FieldExpr      :: fn() -> null | Yield<i32>!
-  expr 10262:34 IdentExpr      :: bool
-  expr 10262:4  IdentExpr      :: Countdown!
-  expr 10262:40 IdentExpr      :: usize
-  expr 10262:41 BinaryExpr     :: usize
-  expr 10262:42 IdentExpr      :: usize
-  expr 10262:45 IdentExpr      :: usize
-  expr 10262:60 UnaryExpr      :: bool
-  expr 10262:61 IdentExpr      :: bool
-  expr 10262:63 MatchExpr      :: void
-  expr 10262:64 CallExpr       :: null | Yield<i32>!
-  expr 10262:65 FieldExpr      :: fn() -> null | Yield<i32>!
-  expr 10262:66 IdentExpr      :: Countdown!
-  expr 10262:71 IdentExpr      :: bool
-  expr 10262:77 IdentExpr      :: i32 | null
-  expr 10262:78 FieldExpr      :: i32
-  expr 10262:79 IdentExpr      :: Yield<i32>!
-  expr 10262:81 IdentExpr      :: i32 | null
+  expr 10262:10 BinaryExpr     :: bool
+  expr 10262:11 IdentExpr      :: Continuation
+  expr 10262:12 FieldExpr      :: Continuation
+  expr 10262:13 IdentExpr      :: Continuation
+  expr 10262:26 UnaryExpr      :: bool
+  expr 10262:27 IdentExpr      :: bool
+  expr 10262:34 CallExpr       :: [i32, Continuation]!
+  expr 10262:35 FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 10262:36 IdentExpr      :: Countdown!
+  expr 10262:37 IfExpr         :: void
+  expr 10262:38 BinaryExpr     :: bool
+  expr 10262:39 IdentExpr      :: Continuation
+  expr 10262:40 FieldExpr      :: Continuation
+  expr 10262:41 IdentExpr      :: Continuation
+  expr 10262:44 IdentExpr      :: bool
+  expr 10262:48 IdentExpr      :: usize
+  expr 10262:49 BinaryExpr     :: usize
+  expr 10262:50 IdentExpr      :: usize
+  expr 10262:53 IdentExpr      :: usize
+  expr 10262:6  CallExpr       :: [i32, Continuation]!
+  expr 10262:68 UnaryExpr      :: bool
+  expr 10262:69 IdentExpr      :: bool
+  expr 10262:7  FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 10262:77 CallExpr       :: [i32, Continuation]!
+  expr 10262:78 FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 10262:79 IdentExpr      :: Countdown!
+  expr 10262:8  IdentExpr      :: Countdown!
+  expr 10262:80 IfExpr         :: void
+  expr 10262:81 BinaryExpr     :: bool
+  expr 10262:82 IdentExpr      :: Continuation
+  expr 10262:83 FieldExpr      :: Continuation
+  expr 10262:84 IdentExpr      :: Continuation
+  expr 10262:87 IdentExpr      :: bool
+  expr 10262:91 IdentExpr      :: i32 | null
+  expr 10262:92 IdentExpr      :: i32
+  expr 10262:94 IdentExpr      :: i32 | null
   expr 12:13    BinaryExpr     :: bool
   expr 12:13    FieldExpr      :: i32
   expr 12:13    IdentExpr      :: Countdown!
   expr 12:9     IfExpr         :: void
+  expr 13:20    SeqLitExpr     :: [i32, Continuation]!
+  expr 13:24    FieldExpr      :: Continuation
+  expr 13:24    IdentExpr      :: Continuation
   expr 15:14    FieldExpr      :: i32
   expr 15:14    IdentExpr      :: Countdown!
   expr 16:24    BinaryExpr     :: i32
@@ -40,8 +53,10 @@
   expr 16:24    IdentExpr      :: Countdown!
   expr 16:9     FieldExpr      :: i32
   expr 16:9     IdentExpr      :: Countdown!
-  expr 17:16    StructLitExpr  :: Yield<i32>!
-  expr 17:38    IdentExpr      :: i32
+  expr 17:16    SeqLitExpr     :: [i32, Continuation]!
+  expr 17:17    IdentExpr      :: i32
+  expr 17:20    FieldExpr      :: Continuation
+  expr 17:20    IdentExpr      :: Continuation
   expr 22:11    StructLitExpr  :: Countdown!
   expr 23:14    IdentExpr      :: Countdown!
   expr 24:17    StringLitExpr  :: string

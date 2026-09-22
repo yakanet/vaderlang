@@ -3,6 +3,7 @@
 ## tests/snippets/iter_zip_chain
 
 ## generic instances
+  __genstate_array_iter<T>
   __genstate_zip<[string, i32]>
   __genstate_window<i32[]>
   __genstate_chain<i32>
@@ -43,15 +44,10 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

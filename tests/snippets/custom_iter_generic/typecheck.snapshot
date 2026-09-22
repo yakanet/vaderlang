@@ -3,52 +3,69 @@
 ## tests/snippets/custom_iter_generic
   FnDecl         main                 :: fn() -> i32
   StructDecl     Repeat               :: Repeat<T>!
-  expr 11286:1  MatchExpr      :: bool
-  expr 11286:2  CallExpr       :: null | Yield<T>!
-  expr 11286:23 UnaryExpr      :: bool
-  expr 11286:24 IdentExpr      :: bool
-  expr 11286:26 MatchExpr      :: void
-  expr 11286:27 CallExpr       :: null | Yield<T>!
-  expr 11286:28 FieldExpr      :: fn() -> null | Yield<T>!
-  expr 11286:29 IdentExpr      :: Repeat<T>!
-  expr 11286:3  FieldExpr      :: fn() -> null | Yield<T>!
-  expr 11286:34 IdentExpr      :: bool
-  expr 11286:4  IdentExpr      :: Repeat<T>!
-  expr 11286:40 IdentExpr      :: usize
-  expr 11286:41 BinaryExpr     :: usize
-  expr 11286:42 IdentExpr      :: usize
-  expr 11286:45 IdentExpr      :: usize
-  expr 11286:60 UnaryExpr      :: bool
-  expr 11286:61 IdentExpr      :: bool
-  expr 11286:63 MatchExpr      :: void
-  expr 11286:64 CallExpr       :: null | Yield<T>!
-  expr 11286:65 FieldExpr      :: fn() -> null | Yield<T>!
-  expr 11286:66 IdentExpr      :: Repeat<T>!
-  expr 11286:71 IdentExpr      :: bool
-  expr 11286:77 IdentExpr      :: null | T
-  expr 11286:78 FieldExpr      :: T
-  expr 11286:79 IdentExpr      :: Yield<T>!
-  expr 11286:81 IdentExpr      :: null | T
-  expr 13:13    BinaryExpr     :: bool
-  expr 13:13    FieldExpr      :: i32
-  expr 13:13    IdentExpr      :: Repeat<T>!
-  expr 13:9     IfExpr         :: void
-  expr 16:14    FieldExpr      :: T
-  expr 16:14    IdentExpr      :: Repeat<T>!
-  expr 17:26    BinaryExpr     :: i32
-  expr 17:26    FieldExpr      :: i32
-  expr 17:26    IdentExpr      :: Repeat<T>!
-  expr 17:9     FieldExpr      :: i32
-  expr 17:9     IdentExpr      :: Repeat<T>!
-  expr 18:16    StructLitExpr  :: Yield<T>!
-  expr 18:36    IdentExpr      :: T
-  expr 24:11    StructLitExpr  :: Repeat<i32>!
-  expr 26:14    IdentExpr      :: Repeat<i32>!
-  expr 27:15    BinaryExpr     :: i32
-  expr 27:15    IdentExpr      :: i32
-  expr 27:21    IdentExpr      :: i32
-  expr 27:9     IdentExpr      :: i32
-  expr 30:13    StringLitExpr  :: string
-  expr 30:16    IdentExpr      :: i32
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 11286:10 BinaryExpr     :: bool
+  expr 11286:11 IdentExpr      :: Continuation
+  expr 11286:12 FieldExpr      :: Continuation
+  expr 11286:13 IdentExpr      :: Continuation
+  expr 11286:26 UnaryExpr      :: bool
+  expr 11286:27 IdentExpr      :: bool
+  expr 11286:34 CallExpr       :: [T, Continuation]!
+  expr 11286:35 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 11286:36 IdentExpr      :: Repeat<T>!
+  expr 11286:37 IfExpr         :: void
+  expr 11286:38 BinaryExpr     :: bool
+  expr 11286:39 IdentExpr      :: Continuation
+  expr 11286:40 FieldExpr      :: Continuation
+  expr 11286:41 IdentExpr      :: Continuation
+  expr 11286:44 IdentExpr      :: bool
+  expr 11286:48 IdentExpr      :: usize
+  expr 11286:49 BinaryExpr     :: usize
+  expr 11286:50 IdentExpr      :: usize
+  expr 11286:53 IdentExpr      :: usize
+  expr 11286:6  CallExpr       :: [T, Continuation]!
+  expr 11286:68 UnaryExpr      :: bool
+  expr 11286:69 IdentExpr      :: bool
+  expr 11286:7  FieldExpr      :: fn() -> [T, Continuation]!
+  expr 11286:77 CallExpr       :: [T, Continuation]!
+  expr 11286:78 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 11286:79 IdentExpr      :: Repeat<T>!
+  expr 11286:8  IdentExpr      :: Repeat<T>!
+  expr 11286:80 IfExpr         :: void
+  expr 11286:81 BinaryExpr     :: bool
+  expr 11286:82 IdentExpr      :: Continuation
+  expr 11286:83 FieldExpr      :: Continuation
+  expr 11286:84 IdentExpr      :: Continuation
+  expr 11286:87 IdentExpr      :: bool
+  expr 11286:91 IdentExpr      :: null | T
+  expr 11286:92 IdentExpr      :: T
+  expr 11286:94 IdentExpr      :: null | T
+  expr 15:13    BinaryExpr     :: bool
+  expr 15:13    FieldExpr      :: i32
+  expr 15:13    IdentExpr      :: Repeat<T>!
+  expr 15:9     IfExpr         :: void
+  expr 16:20    SeqLitExpr     :: [T, Continuation]!
+  expr 16:21    FieldExpr      :: T
+  expr 16:21    IdentExpr      :: Repeat<T>!
+  expr 16:33    FieldExpr      :: Continuation
+  expr 16:33    IdentExpr      :: Continuation
+  expr 18:14    FieldExpr      :: T
+  expr 18:14    IdentExpr      :: Repeat<T>!
+  expr 19:26    BinaryExpr     :: i32
+  expr 19:26    FieldExpr      :: i32
+  expr 19:26    IdentExpr      :: Repeat<T>!
+  expr 19:9     FieldExpr      :: i32
+  expr 19:9     IdentExpr      :: Repeat<T>!
+  expr 20:16    SeqLitExpr     :: [T, Continuation]!
+  expr 20:17    IdentExpr      :: T
+  expr 20:20    FieldExpr      :: Continuation
+  expr 20:20    IdentExpr      :: Continuation
+  expr 26:11    StructLitExpr  :: Repeat<i32>!
+  expr 28:14    IdentExpr      :: Repeat<i32>!
+  expr 29:15    BinaryExpr     :: i32
+  expr 29:15    IdentExpr      :: i32
+  expr 29:21    IdentExpr      :: i32
+  expr 29:9     IdentExpr      :: i32
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    IdentExpr      :: i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void

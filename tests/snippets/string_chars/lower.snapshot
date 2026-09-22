@@ -15,23 +15,26 @@
           arg0:
             "vader" :string
       loop
-        let __step_1: Yield<char>! | null =
-          call :Yield<char>! | null
+        let __step_1: [char, Continuation]! =
+          call :[char, Continuation]!
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
               __iter_0 :StringChars
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield<char>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[char, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let c: char =
-              .value :char
-                cast → Yield<char>!
-                  __step_1 :Yield<char>! | null
+              ._0 :char
+                __step_1 :[char, Continuation]!
             call :void
               callee:
                 std_io$println__string :void
@@ -54,23 +57,26 @@
           arg0:
             "你好嗎？" :string
       loop
-        let __step_3: Yield<char>! | null =
-          call :Yield<char>! | null
+        let __step_3: [char, Continuation]! =
+          call :[char, Continuation]!
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
               __iter_2 :StringChars
         if :void
           cond:
-            is null :bool
-              __step_3 :Yield<char>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_3 :[char, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let c: char =
-              .value :char
-                cast → Yield<char>!
-                  __step_3 :Yield<char>! | null
+              ._0 :char
+                __step_3 :[char, Continuation]!
             call :void
               callee:
                 std_io$println__string :void
@@ -89,23 +95,26 @@
           arg0:
             "héllo" :string
       loop
-        let __step_5: Yield<char>! | null =
-          call :Yield<char>! | null
+        let __step_5: [char, Continuation]! =
+          call :[char, Continuation]!
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
               __iter_4 :StringChars
         if :void
           cond:
-            is null :bool
-              __step_5 :Yield<char>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_5 :[char, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let c: char =
-              .value :char
-                cast → Yield<char>!
-                  __step_5 :Yield<char>! | null
+              ._0 :char
+                __step_5 :[char, Continuation]!
             assign
               target:
                 n :i32
@@ -206,23 +215,26 @@
           arg0:
             "" :string
       loop
-        let __step_9: Yield<char>! | null =
-          call :Yield<char>! | null
+        let __step_9: [char, Continuation]! =
+          call :[char, Continuation]!
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
               __iter_8 :StringChars
         if :void
           cond:
-            is null :bool
-              __step_9 :Yield<char>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_9 :[char, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let c: char =
-              .value :char
-                cast → Yield<char>!
-                  __step_9 :Yield<char>! | null
+              ._0 :char
+                __step_9 :[char, Continuation]!
             call :void
               callee:
                 std_io$println__string :void

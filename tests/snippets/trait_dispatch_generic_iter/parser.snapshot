@@ -86,25 +86,17 @@
             }
           ],
           "returnType": {
-            "kind": "BinaryExpr",
-            "op": "bitor",
-            "left": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
                 "kind": "IdentExpr",
-                "name": "Yield"
+                "name": "T"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                }
-              ]
-            },
-            "right": {
-              "kind": "IdentExpr",
-              "name": "null"
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "Continuation"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -135,7 +127,25 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "NullLitExpr"
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "self"
+                              },
+                              "field": "value"
+                            },
+                            {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "Continuation"
+                              },
+                              "field": "Stop"
+                            }
+                          ]
                         }
                       }
                     ],
@@ -191,28 +201,19 @@
               {
                 "kind": "ReturnStmt",
                 "value": {
-                  "kind": "StructLitExpr",
-                  "typeName": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "Yield"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "T"
-                      }
-                    ]
-                  },
-                  "items": [
+                  "kind": "SeqLitExpr",
+                  "elements": [
                     {
-                      "kind": "field",
-                      "name": "value",
-                      "value": {
+                      "kind": "IdentExpr",
+                      "name": "v"
+                    },
+                    {
+                      "kind": "FieldExpr",
+                      "target": {
                         "kind": "IdentExpr",
-                        "name": "v"
-                      }
+                        "name": "Continuation"
+                      },
+                      "field": "Continue"
                     }
                   ]
                 }
@@ -297,25 +298,17 @@
             }
           ],
           "returnType": {
-            "kind": "BinaryExpr",
-            "op": "bitor",
-            "left": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
                 "kind": "IdentExpr",
-                "name": "Yield"
+                "name": "T"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                }
-              ]
-            },
-            "right": {
-              "kind": "IdentExpr",
-              "name": "null"
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "Continuation"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -338,7 +331,25 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "NullLitExpr"
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "self"
+                              },
+                              "field": "value"
+                            },
+                            {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "Continuation"
+                              },
+                              "field": "Stop"
+                            }
+                          ]
                         }
                       }
                     ],
@@ -365,32 +376,23 @@
               {
                 "kind": "ReturnStmt",
                 "value": {
-                  "kind": "StructLitExpr",
-                  "typeName": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "Yield"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "T"
-                      }
-                    ]
-                  },
-                  "items": [
+                  "kind": "SeqLitExpr",
+                  "elements": [
                     {
-                      "kind": "field",
-                      "name": "value",
-                      "value": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "self"
-                        },
-                        "field": "value"
-                      }
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "self"
+                      },
+                      "field": "value"
+                    },
+                    {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "Continuation"
+                      },
+                      "field": "Continue"
                     }
                   ]
                 }
@@ -473,102 +475,98 @@
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [],
+              "stmts": [
+                {
+                  "kind": "LetStmt",
+                  "mutable": false,
+                  "binding": {
+                    "kind": "TupleBinding",
+                    "elements": [
+                      {
+                        "kind": "SimpleBinding",
+                        "name": "v"
+                      },
+                      {
+                        "kind": "SimpleBinding",
+                        "name": "c"
+                      }
+                    ]
+                  },
+                  "type": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "it"
+                      },
+                      "field": "next"
+                    },
+                    "args": []
+                  }
+                }
+              ],
               "trailing": {
-                "kind": "MatchExpr",
-                "scrutinee": {
-                  "kind": "CallExpr",
-                  "callee": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "c"
+                  },
+                  "right": {
                     "kind": "FieldExpr",
                     "target": {
                       "kind": "IdentExpr",
-                      "name": "it"
+                      "name": "Continuation"
                     },
-                    "field": "next"
-                  },
-                  "args": []
-                },
-                "arms": [
-                  {
-                    "pattern": {
-                      "kind": "IsPattern",
-                      "type": {
-                        "kind": "IdentExpr",
-                        "name": "null"
-                      },
-                      "inner": null,
-                      "bindAs": null
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [
-                        {
-                          "kind": "AssignStmt",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "cont"
-                          },
-                          "value": {
-                            "kind": "BoolLitExpr",
-                            "value": false
-                          }
-                        }
-                      ],
-                      "trailing": null
-                    }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "IsPattern",
-                      "type": {
-                        "kind": "GenericInstExpr",
-                        "callee": {
-                          "kind": "IdentExpr",
-                          "name": "Yield"
-                        },
-                        "typeArgs": [
-                          {
-                            "kind": "IdentExpr",
-                            "name": "i32"
-                          }
-                        ]
-                      },
-                      "inner": null,
-                      "bindAs": "y"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [
-                        {
-                          "kind": "AssignStmt",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "sum"
-                          },
-                          "value": {
-                            "kind": "BinaryExpr",
-                            "op": "add",
-                            "left": {
-                              "kind": "IdentExpr",
-                              "name": "sum"
-                            },
-                            "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "y"
-                              },
-                              "field": "value"
-                            }
-                          }
-                        }
-                      ],
-                      "trailing": null
-                    }
+                    "field": "Stop"
                   }
-                ]
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "AssignStmt",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "cont"
+                      },
+                      "value": {
+                        "kind": "BoolLitExpr",
+                        "value": false
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "AssignStmt",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "sum"
+                      },
+                      "value": {
+                        "kind": "BinaryExpr",
+                        "op": "add",
+                        "left": {
+                          "kind": "IdentExpr",
+                          "name": "sum"
+                        },
+                        "right": {
+                          "kind": "IdentExpr",
+                          "name": "v"
+                        }
+                      }
+                    }
+                  ],
+                  "trailing": null
+                }
               }
             },
             "isComptime": false

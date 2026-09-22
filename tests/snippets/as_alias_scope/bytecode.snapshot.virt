@@ -11,11 +11,11 @@ type 8 struct __lambda_env_snippet_3 {  }
 type 9 struct __defer_env_snippet_5 { cap_0:11 }
 type 10 primitive string
 type 11 ref _
-type 12 primitive usize
-type 13 struct std_core$Buffer {  }
-type 14 primitive i64
-type 15 primitive u8
-type 16 array 15
+type 12 primitive u8
+type 13 primitive usize
+type 14 struct std_core$Buffer {  }
+type 15 primitive i64
+type 16 array 12
 type 17 primitive isize
 type 18 struct "$Cell_Union<Struct#snippet.Leaf<>|Struct#snippet.Pair<>>" { value:1 }
 type 19 fn () -> 5
@@ -26,10 +26,10 @@ string 3 "lf="
 string 4 "s="
 string 5 "df="
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=12 param_types=10 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=13 param_types=10 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=10 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=6,16,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 13 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=6,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 14 ByteAccess
 export main 5
 
 fn 0 snippet$unwrap (any) -> any

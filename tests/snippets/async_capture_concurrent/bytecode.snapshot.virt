@@ -15,16 +15,16 @@ type 12 ref Async
 type 13 array 1
 type 14 primitive usize
 type 15 primitive bool
-type 16 union 1,0
-type 17 struct std_core$Buffer {  }
-type 18 primitive i64
-type 19 primitive u64
-type 20 primitive u8
-type 21 array 20
+type 16 primitive u8
+type 17 union 1,0
+type 18 struct std_core$Buffer {  }
+type 19 primitive i64
+type 20 primitive u64
+type 21 array 16
 type 22 struct std_async$All__i32 { children:27,results:29 }
 type 23 union 13,7
 type 24 ref Async
-type 25 struct std_async$Sleep { ms:18,deadline:18,armed:15 }
+type 25 struct std_async$Sleep { ms:19,deadline:19,armed:15 }
 type 26 union 0,7
 type 27 array 2
 type 28 ref Async
@@ -38,13 +38,13 @@ string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=21 param_types=9 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,21,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now result_type=18 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=18 param_mutable=0 param_by_address= (i64) -> void
+import 3 sched_now std_runtime$sched_now result_type=19 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=19 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=1 () -> i32
 import 6 panic std_abort$panic result_type=4 param_types=9 param_mutable=0 param_by_address= (string) -> void
 impl 5 Async
 impl 8 Async
-impl 17 ByteAccess
+impl 18 ByteAccess
 impl 22 Async
 impl 25 Async
 impl 29 Index
@@ -1007,7 +1007,7 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_4
     local.field 0 25 0   ; arg 0.ms
-    ref.cast 18   ; -> i64
+    ref.cast 19   ; -> i64
     local.set 2   ; $field_5
     local.get 1   ; $call_4
     local.get 2   ; $field_5
@@ -1017,13 +1017,13 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
     local.get 1   ; $call_4
     struct.set 25 1   ; std_async$Sleep.deadline
     local.field 0 25 1   ; arg 0.deadline
-    ref.cast 18   ; -> i64
+    ref.cast 19   ; -> i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_4
   local.field 0 25 1   ; arg 0.deadline
-  ref.cast 18   ; -> i64
+  ref.cast 19   ; -> i64
   local.set 2   ; $field_5
   local.get 1   ; $call_4
   local.get 2   ; $field_5

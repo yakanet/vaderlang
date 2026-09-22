@@ -3,6 +3,7 @@
 ## tests/snippets/array_of_union
 
 ## generic instances
+  __genstate_array_iter<T>
   Node<i32>
   Node<T>
   ArrayOps<T>
@@ -17,15 +18,10 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

@@ -14,9 +14,11 @@ count :: fn<T>(it: Iterator<T>) -> i32 {
     n := 0
     cont := true
     for cont {
-        match it.next() {
-            is null -> { cont = false }
-            is Yield<T> -> { n = n + 1 }
+        [_, c] :: it.next()
+        if c == Continuation.Stop {
+            cont = false
+        } else {
+            n = n + 1
         }
     }
     return n

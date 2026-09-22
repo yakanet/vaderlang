@@ -6,6 +6,7 @@
   @comptime  DEFAULT_ID           = 99_usize
 
 ## generic instances
+  __genstate_array_iter<T>
   ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
@@ -18,15 +19,10 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

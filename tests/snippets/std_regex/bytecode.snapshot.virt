@@ -1,27 +1,27 @@
 module _main
 type 0 primitive null
 type 1 primitive string
-type 2 struct regex$Pattern { insts:25,group_count:7 }
+type 2 struct regex$Pattern { insts:25,group_count:8 }
 type 3 primitive void
 type 4 primitive i32
 type 5 primitive char
 type 6 primitive bool
-type 7 primitive usize
-type 8 struct std_core$Buffer {  }
-type 9 primitive u64
-type 10 array 11
-type 11 primitive u8
+type 7 primitive u8
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 primitive u64
+type 11 array 7
 type 12 union 13,0
-type 13 struct regex$Match { start:7,end:7,groups:23 }
+type 13 struct regex$Match { start:8,end:8,groups:23 }
 type 14 union 2,15
-type 15 struct regex$RegexError { msg:1,position:7 }
+type 15 struct regex$RegexError { msg:1,position:8 }
 type 16 array 13
-type 17 struct regex$Parser { bytes:10,cursor:7,insts:25,next_group_id:7,depth:7 }
+type 17 struct regex$Parser { bytes:11,cursor:8,insts:25,next_group_id:8,depth:8 }
 type 18 union 0,15
 type 19 struct std_string_builder$StringBuilder { parts:23 }
 type 20 array 21
-type 21 struct regex$Thread { pc:7,groups:22 }
-type 22 array 7
+type 21 struct regex$Thread { pc:8,groups:22 }
+type 22 array 8
 type 23 array 1
 type 24 struct regex$InstClass { ranges:37,negated:6 }
 type 25 array 26
@@ -30,15 +30,15 @@ type 27 struct regex$InstAnchorEnd {  }
 type 28 struct regex$InstAnchorStart {  }
 type 29 struct regex$InstAny {  }
 type 30 struct regex$InstChar { c:5 }
-type 31 struct regex$InstJump { target:7 }
+type 31 struct regex$InstJump { target:8 }
 type 32 struct regex$InstMatch {  }
-type 33 struct regex$InstSave { slot:7 }
-type 34 struct regex$InstSplit { a:7,b:7 }
-type 35 union 15,7
+type 33 struct regex$InstSave { slot:8 }
+type 34 struct regex$InstSplit { a:8,b:8 }
+type 35 union 15,8
 type 36 union 5,15
 type 37 array 38
 type 38 struct regex$CharRange { lo:5,hi:5 }
-type 39 struct regex$WorkItem { pc:7,groups:22 }
+type 39 struct regex$WorkItem { pc:8,groups:22 }
 type 40 primitive isize
 type 41 array 39
 type 42 union 29,30,24,32
@@ -123,11 +123,11 @@ string 76 "trailing backslash"
 string 77 "expected digit"
 string 78 "unexpected end inside character class"
 string 79 "trailing backslash inside class"
-import 0 byte_len std_core$byte_len result_type=7 param_types=1 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=10 param_mutable=0 param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=40 param_types=4,10,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 ByteAccess
+import 0 byte_len std_core$byte_len result_type=8 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=11 param_mutable=0 param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=11 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=40 param_types=4,11,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 9 ByteAccess
 impl 19 Display
 impl 15 Error
 export main 2
@@ -227,7 +227,7 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.get 3   ; r
     ref.cast 13   ; -> regex$Match
     struct.get 13 0   ; regex$Match.start
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     usize.to_i64
     local.set 9   ; $cast_26
     local.get 8   ; __buf_2
@@ -243,7 +243,7 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.get 3   ; r
     ref.cast 13   ; -> regex$Match
     struct.get 13 1   ; regex$Match.end
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     usize.to_i64
     local.set 9   ; $cast_26
     local.get 8   ; __buf_2
@@ -833,7 +833,7 @@ fn 10 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 10 0   ; u8[][]
+  array.new 11 0   ; u8[][]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -844,7 +844,7 @@ fn 10 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 11   ; u8[]
+    array.push 7   ; u8[]
   else
     local.get 1   ; cp
     i32.const 2048
@@ -861,7 +861,7 @@ fn 10 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 11   ; u8[]
+      array.push 7   ; u8[]
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -873,7 +873,7 @@ fn 10 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 11   ; u8[]
+      array.push 7   ; u8[]
     else
       local.get 1   ; cp
       i32.const 65536
@@ -890,7 +890,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -904,7 +904,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -916,7 +916,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
       else
         local.get 1   ; cp
         i32.const 18
@@ -929,7 +929,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -943,7 +943,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -957,7 +957,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -969,7 +969,7 @@ fn 10 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 7   ; u8[]
       end $L2
     end $L1
   end $L0
@@ -1015,7 +1015,7 @@ fn 12 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 11   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -1186,7 +1186,7 @@ fn 17 regex$compile (string) -> any
     return
   end $L0
   local.field 1 17 1   ; $call_1.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 5   ; $field_15
   local.field 1 17 0   ; $call_1.bytes
   array.len
@@ -1198,7 +1198,7 @@ fn 17 regex$compile (string) -> any
     local.field 1 17 0   ; $call_1.bytes
     local.set 2   ; $arr_3
     local.field 1 17 1   ; $call_1.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 5   ; $field_15
     local.get 2   ; $arr_3
     local.get 5   ; $field_15
@@ -1211,7 +1211,7 @@ fn 17 regex$compile (string) -> any
     call 4   ; concat_3
     local.set 7   ; $call_23
     local.field 1 17 1   ; $call_1.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 5   ; $field_15
     local.get 7   ; $call_23
     local.get 5   ; $field_15
@@ -1236,7 +1236,7 @@ fn 17 regex$compile (string) -> any
   local.field 1 17 2   ; $call_1.insts
   local.set 2   ; $arr_3
   local.field 1 17 3   ; $call_1.next_group_id
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.sub
   local.set 5   ; $field_15
@@ -1289,7 +1289,7 @@ fn 18 regex$find_all (ref,string) -> ref
           local.get 6   ; m
           ref.cast 13   ; -> regex$Match
           struct.get 13 1   ; regex$Match.end
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           local.get 4   ; start
           i64.eq
           if $L4 void
@@ -1315,7 +1315,7 @@ fn 18 regex$find_all (ref,string) -> ref
             local.get 6   ; m
             ref.cast 13   ; -> regex$Match
             struct.get 13 1   ; regex$Match.end
-            ref.cast 7   ; -> usize
+            ref.cast 8   ; -> usize
             local.set 4   ; start
           end $L4
         else
@@ -1387,12 +1387,12 @@ fn 19 regex$replace_all (ref,string,string) -> string
         array.get 16   ; regex$Match[][]
         local.set 10   ; m
         local.field 10 13 0   ; m.start
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 11   ; $field_21
         local.get 3   ; ib
         local.get 6   ; cursor
         local.get 11   ; $field_21
-        array.slice 10   ; u8[][]
+        array.slice 11   ; u8[][]
         call.import 1   ; std_core$bytes_to_string
         local.set 12   ; $call_23
         local.get 5   ; sb
@@ -1403,7 +1403,7 @@ fn 19 regex$replace_all (ref,string,string) -> string
         local.get 10   ; m
         call 24   ; regex$expand_replacement
         local.field 10 13 1   ; m.end
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 6   ; cursor
         local.get 9   ; i
         i64.const 1
@@ -1426,7 +1426,7 @@ fn 19 regex$replace_all (ref,string,string) -> string
     local.get 3   ; ib
     local.get 6   ; cursor
     local.get 8   ; __for_hi_0
-    array.slice 10   ; u8[][]
+    array.slice 11   ; u8[][]
     call.import 1   ; std_core$bytes_to_string
     local.set 12   ; $call_23
     local.get 5   ; sb
@@ -1482,7 +1482,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
   local $len_132 usize
   local $call_elem_142 usize
   local.field 0 2 1   ; arg 0.group_count
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 4   ; $add_7
@@ -1570,7 +1570,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
               local.field 0 2 0   ; arg 0.insts
               local.set 17   ; $field_50
               local.field 9 21 0   ; seed_groups.pc
-              ref.cast 7   ; -> usize
+              ref.cast 8   ; -> usize
               local.set 18   ; $field_51
               local.get 17   ; $field_50
               local.get 18   ; $field_51
@@ -1601,7 +1601,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                 local.get 21   ; and_res
                 if $L9 void
                   local.field 9 21 0   ; seed_groups.pc
-                  ref.cast 7   ; -> usize
+                  ref.cast 8   ; -> usize
                   i64.const 1
                   i64.add
                   local.set 23   ; $add_64
@@ -1647,7 +1647,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                   local.get 28   ; and_res
                   if $L12 void
                     local.field 9 21 0   ; seed_groups.pc
-                    ref.cast 7   ; -> usize
+                    ref.cast 8   ; -> usize
                     i64.const 1
                     i64.add
                     local.set 29   ; $add_78
@@ -1694,7 +1694,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                     local.get 34   ; and_res
                     if $L15 void
                       local.field 9 21 0   ; seed_groups.pc
-                      ref.cast 7   ; -> usize
+                      ref.cast 8   ; -> usize
                       i64.const 1
                       i64.add
                       local.set 35   ; $add_92
@@ -1939,7 +1939,7 @@ fn 23 regex$parse_alternation (ref) -> any
     return
   end $L0
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 3   ; $field_8
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -1954,12 +1954,12 @@ fn 23 regex$parse_alternation (ref) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 6   ; $field_14
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 3   ; $field_8
     local.get 6   ; $field_14
     local.get 3   ; $field_8
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 124
     i32.ne
     local.set 5   ; or_res
@@ -1993,7 +1993,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local.set 3   ; $field_8
   local.get 7   ; branch_offsets
   local.get 3   ; $field_8
-  array.push 7   ; usize[]
+  array.push 8   ; usize[]
   local.field 0 17 2   ; arg 0.insts
   local.get 1   ; branch_start
   call 32   ; regex$truncate_to
@@ -2004,7 +2004,7 @@ fn 23 regex$parse_alternation (ref) -> any
   block $L3 void
     loop $L4 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 3   ; $field_8
       local.field 0 17 0   ; arg 0.bytes
       array.len
@@ -2016,12 +2016,12 @@ fn 23 regex$parse_alternation (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 8   ; $field_25
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 9   ; $field_38
         local.get 8   ; $field_25
         local.get 9   ; $field_38
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 124
         i32.eq
         local.set 5   ; or_res
@@ -2032,7 +2032,7 @@ fn 23 regex$parse_alternation (ref) -> any
       local.get 5   ; or_res
       if $L6 void
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         i64.const 1
         i64.add
         local.set 10   ; $add_45
@@ -2069,7 +2069,7 @@ fn 23 regex$parse_alternation (ref) -> any
         local.set 15   ; $len_57
         local.get 7   ; branch_offsets
         local.get 15   ; $len_57
-        array.push 7   ; usize[]
+        array.push 8   ; usize[]
         local.field 0 17 2   ; arg 0.insts
         local.get 11   ; next_start
         call 32   ; regex$truncate_to
@@ -2146,7 +2146,7 @@ fn 23 regex$parse_alternation (ref) -> any
             array.push 31   ; regex$InstJump[]
             local.get 18   ; end_jumps
             local.get 29   ; jump_pos
-            array.push 7   ; usize[]
+            array.push 8   ; usize[]
             local.field 0 17 2   ; arg 0.insts
             array.len
             local.set 32   ; next_split_pos
@@ -2263,8 +2263,8 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
       if $L2 void
         local.get 1   ; arg 1
         local.get 4   ; i
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 36
         i32.eq
         if $L3 void
@@ -2286,8 +2286,8 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
           local.set 6   ; $add_18
           local.get 1   ; arg 1
           local.get 6   ; $add_18
-          array.get 10   ; u8[][]
-          ref.cast 11   ; -> u8
+          array.get 11   ; u8[][]
+          ref.cast 7   ; -> u8
           local.tee 7   ; d
           i32.const 48
           u32.ge
@@ -2408,7 +2408,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
         array.remove_last
         drop
         local.field 10 39 0   ; item.pc
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 11   ; pc
         local.field 10 39 1   ; item.groups
         local.set 12   ; groups
@@ -2433,7 +2433,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
           local.get 13   ; inst
           ref.cast 31   ; -> regex$InstJump
           struct.get 31 0   ; regex$InstJump.target
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           local.get 12   ; groups
           struct.new 39   ; regex$WorkItem
           local.set 14   ; $struct_32
@@ -2447,7 +2447,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
             local.get 13   ; inst
             ref.cast 34   ; -> regex$InstSplit
             struct.get 34 1   ; regex$InstSplit.b
-            ref.cast 7   ; -> usize
+            ref.cast 8   ; -> usize
             local.get 12   ; groups
             struct.new 39   ; regex$WorkItem
             local.set 15   ; $struct_36
@@ -2457,7 +2457,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
             local.get 13   ; inst
             ref.cast 34   ; -> regex$InstSplit
             struct.get 34 0   ; regex$InstSplit.a
-            ref.cast 7   ; -> usize
+            ref.cast 8   ; -> usize
             local.get 12   ; groups
             struct.new 39   ; regex$WorkItem
             local.set 16   ; $struct_39
@@ -2475,7 +2475,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
               local.get 13   ; inst
               ref.cast 33   ; -> regex$InstSave
               struct.get 33 0   ; regex$InstSave.slot
-              ref.cast 7   ; -> usize
+              ref.cast 8   ; -> usize
               local.set 18   ; $field_44
               local.get 17   ; g
               local.get 18   ; $field_44
@@ -2637,7 +2637,7 @@ fn 27 regex$captured_groups (ref,ref) -> ref
           local.get 1   ; arg 1
           local.get 7   ; lo_slot
           local.get 10   ; hi_slot
-          array.slice 10   ; u8[][]
+          array.slice 11   ; u8[][]
           call.import 1   ; std_core$bytes_to_string
           local.set 12   ; $call_32
           local.get 3   ; out
@@ -2759,7 +2759,7 @@ fn 30 regex$parse_concat (ref) -> any
   block $L0 void
     loop $L1 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 1   ; $field_1
       local.field 0 17 0   ; arg 0.bytes
       array.len
@@ -2771,12 +2771,12 @@ fn 30 regex$parse_concat (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 3   ; $field_5
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 4   ; $field_6
         local.get 3   ; $field_5
         local.get 4   ; $field_6
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         local.tee 5   ; b
         i32.const 41
         i32.eq
@@ -2874,14 +2874,14 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
           local.get 7   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 0   ; regex$InstSplit.a
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
           local.set 8   ; $add_15
           local.get 7   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 1   ; regex$InstSplit.b
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
           local.set 9   ; $add_18
@@ -2899,7 +2899,7 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
             local.get 7   ; inst
             ref.cast 31   ; -> regex$InstJump
             struct.get 31 0   ; regex$InstJump.target
-            ref.cast 7   ; -> usize
+            ref.cast 8   ; -> usize
             local.get 5   ; shift
             i64.add
             struct.new 31   ; regex$InstJump
@@ -2946,7 +2946,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     return
   end $L0
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 3   ; $field_8
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -2962,18 +2962,18 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 5   ; $field_13
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 3   ; $field_8
   local.get 5   ; $field_13
   local.get 3   ; $field_8
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.tee 6   ; q
   i32.const 42
   i32.eq
   if $L2 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 3   ; $field_8
@@ -2992,7 +2992,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
   i32.eq
   if $L3 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 3   ; $field_8
@@ -3011,7 +3011,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
   i32.eq
   if $L4 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 3   ; $field_8
@@ -3052,7 +3052,7 @@ fn 35 regex$parse_atom (ref) -> any
   local or_res bool
   local c char
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -3062,7 +3062,7 @@ fn 35 regex$parse_atom (ref) -> any
   u64.ge
   if $L0 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     string.const 66   ; "unexpected end of pattern"
     local.get 1   ; $field_1
@@ -3072,18 +3072,18 @@ fn 35 regex$parse_atom (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 3   ; $field_8
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.get 3   ; $field_8
   local.get 1   ; $field_1
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.tee 4   ; b
   i32.const 40
   i32.eq
   if $L1 void
     local.field 0 17 4   ; arg 0.depth
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -3091,7 +3091,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 1   ; $field_1
     struct.set 17 4   ; regex$Parser.depth
     local.field 0 17 4   ; arg 0.depth
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 200
     u64.gt
     if $L2 void
@@ -3123,7 +3123,7 @@ fn 35 regex$parse_atom (ref) -> any
       call 6   ; std_core$finish_buffer
       local.set 6   ; $call_32
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 1   ; $field_1
       local.get 6   ; $call_32
       local.get 1   ; $field_1
@@ -3131,7 +3131,7 @@ fn 35 regex$parse_atom (ref) -> any
       return
     end $L2
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -3139,10 +3139,10 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 1   ; $field_1
     struct.set 17 1   ; regex$Parser.cursor
     local.field 0 17 3   ; arg 0.next_group_id
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     local.field 0 17 3   ; arg 0.next_group_id
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 2   ; $len_3
@@ -3169,7 +3169,7 @@ fn 35 regex$parse_atom (ref) -> any
       return
     end $L3
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 2   ; $len_3
     local.field 0 17 0   ; arg 0.bytes
     array.len
@@ -3184,12 +3184,12 @@ fn 35 regex$parse_atom (ref) -> any
       local.field 0 17 0   ; arg 0.bytes
       local.set 3   ; $field_8
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 2   ; $len_3
       local.get 3   ; $field_8
       local.get 2   ; $len_3
-      array.get 10   ; u8[][]
-      ref.cast 11   ; -> u8
+      array.get 11   ; u8[][]
+      ref.cast 7   ; -> u8
       i32.const 41
       i32.ne
       local.set 10   ; or_res
@@ -3197,7 +3197,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 10   ; or_res
     if $L5 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 2   ; $len_3
       string.const 69   ; "unterminated group"
       local.get 2   ; $len_3
@@ -3205,7 +3205,7 @@ fn 35 regex$parse_atom (ref) -> any
       return
     end $L5
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 2   ; $len_3
@@ -3213,7 +3213,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 2   ; $len_3
     struct.set 17 1   ; regex$Parser.cursor
     local.field 0 17 4   ; arg 0.depth
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.sub
     local.set 2   ; $len_3
@@ -3241,7 +3241,7 @@ fn 35 regex$parse_atom (ref) -> any
   i32.eq
   if $L6 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -3264,7 +3264,7 @@ fn 35 regex$parse_atom (ref) -> any
   i32.eq
   if $L7 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -3287,7 +3287,7 @@ fn 35 regex$parse_atom (ref) -> any
   i32.eq
   if $L8 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -3324,7 +3324,7 @@ fn 35 regex$parse_atom (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 3   ; $field_8
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.get 3   ; $field_8
   local.get 1   ; $field_1
@@ -3334,7 +3334,7 @@ fn 35 regex$parse_atom (ref) -> any
   local.get 2   ; $len_3
   local.set 1   ; $field_1
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.get 1   ; $field_1
   i64.add
   local.set 1   ; $field_1
@@ -3530,12 +3530,12 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 2   ; $field_2
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   i32.const 123
   i32.ne
   if $L0 void
@@ -3544,10 +3544,10 @@ fn 39 regex$apply_counted (ref,usize) -> any
     return
   end $L0
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 3   ; $field_3
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 4   ; $add_12
@@ -3564,7 +3564,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     return
   end $L1
   local.get 5   ; n_outcome
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.tee 4   ; $add_12
   local.set 6   ; m
   bool.const false
@@ -3572,7 +3572,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   bool.const false
   local.set 8   ; has_upper
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 9   ; $field_24
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -3584,12 +3584,12 @@ fn 39 regex$apply_counted (ref,usize) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 2   ; $field_2
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 9   ; $field_24
     local.get 2   ; $field_2
     local.get 9   ; $field_24
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 44
     i32.eq
     local.set 11   ; and_res
@@ -3600,7 +3600,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.get 11   ; and_res
   if $L3 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 9   ; $field_24
@@ -3610,7 +3610,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     bool.const true
     local.set 7   ; has_comma
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 9   ; $field_24
     local.field 0 17 0   ; arg 0.bytes
     array.len
@@ -3622,12 +3622,12 @@ fn 39 regex$apply_counted (ref,usize) -> any
       local.field 0 17 0   ; arg 0.bytes
       local.set 2   ; $field_2
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 9   ; $field_24
       local.get 2   ; $field_2
       local.get 9   ; $field_24
-      array.get 10   ; u8[][]
-      ref.cast 11   ; -> u8
+      array.get 11   ; u8[][]
+      ref.cast 7   ; -> u8
       i32.const 125
       i32.ne
       local.set 11   ; and_res
@@ -3647,14 +3647,14 @@ fn 39 regex$apply_counted (ref,usize) -> any
         return
       end $L6
       local.get 5   ; n_outcome
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 6   ; m
       bool.const true
       local.set 8   ; has_upper
     end $L5
   end $L3
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 9   ; $field_24
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -3669,12 +3669,12 @@ fn 39 regex$apply_counted (ref,usize) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 2   ; $field_2
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 9   ; $field_24
     local.get 2   ; $field_2
     local.get 9   ; $field_24
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 125
     i32.ne
     local.set 11   ; and_res
@@ -3687,7 +3687,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     return
   end $L8
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 9   ; $field_24
@@ -3808,7 +3808,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
           local.set 9   ; $field_24
           local.get 13   ; $call_101
           local.get 9   ; $field_24
-          array.push 7   ; usize[]
+          array.push 8   ; usize[]
           local.field 0 17 2   ; arg 0.insts
           local.set 14   ; $field_118
           i64.const 0
@@ -3988,10 +3988,10 @@ fn 40 regex$parse_char_class (ref) -> any
   local $field_90 ref
   local $struct_91 ref
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; start_pos
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 2   ; $add_5
@@ -4001,7 +4001,7 @@ fn 40 regex$parse_char_class (ref) -> any
   bool.const false
   local.set 3   ; negated
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 2   ; $add_5
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -4013,12 +4013,12 @@ fn 40 regex$parse_char_class (ref) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 6   ; $field_13
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 2   ; $add_5
     local.get 6   ; $field_13
     local.get 2   ; $add_5
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 94
     i32.eq
     local.set 5   ; and_res
@@ -4031,7 +4031,7 @@ fn 40 regex$parse_char_class (ref) -> any
     bool.const true
     local.set 3   ; negated
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 2   ; $add_5
@@ -4044,7 +4044,7 @@ fn 40 regex$parse_char_class (ref) -> any
   block $L2 void
     loop $L3 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 2   ; $add_5
       local.field 0 17 0   ; arg 0.bytes
       array.len
@@ -4056,12 +4056,12 @@ fn 40 regex$parse_char_class (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 7   ; $field_30
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 8   ; $field_31
         local.get 7   ; $field_30
         local.get 8   ; $field_31
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 93
         i32.ne
         local.set 5   ; and_res
@@ -4081,7 +4081,7 @@ fn 40 regex$parse_char_class (ref) -> any
           return
         end $L6
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 11   ; $field_41
         local.field 0 17 0   ; arg 0.bytes
         array.len
@@ -4093,12 +4093,12 @@ fn 40 regex$parse_char_class (ref) -> any
           local.field 0 17 0   ; arg 0.bytes
           local.set 14   ; $field_46
           local.field 0 17 1   ; arg 0.cursor
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           local.set 15   ; $field_47
           local.get 14   ; $field_46
           local.get 15   ; $field_47
-          array.get 10   ; u8[][]
-          ref.cast 11   ; -> u8
+          array.get 11   ; u8[][]
+          ref.cast 7   ; -> u8
           i32.const 45
           i32.eq
           local.set 13   ; and_res
@@ -4109,7 +4109,7 @@ fn 40 regex$parse_char_class (ref) -> any
         local.get 13   ; and_res
         if $L8 void
           local.field 0 17 1   ; arg 0.cursor
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           i64.const 1
           i64.add
           local.set 17   ; $add_55
@@ -4129,14 +4129,14 @@ fn 40 regex$parse_char_class (ref) -> any
           local.field 0 17 0   ; arg 0.bytes
           local.set 19   ; $field_60
           local.field 0 17 1   ; arg 0.cursor
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           i64.const 1
           i64.add
           local.set 20   ; $add_63
           local.get 19   ; $field_60
           local.get 20   ; $add_63
-          array.get 10   ; u8[][]
-          ref.cast 11   ; -> u8
+          array.get 11   ; u8[][]
+          ref.cast 7   ; -> u8
           i32.const 93
           i32.ne
           local.set 10   ; is_range
@@ -4147,7 +4147,7 @@ fn 40 regex$parse_char_class (ref) -> any
         local.get 10   ; is_range
         if $L10 void
           local.field 0 17 1   ; arg 0.cursor
-          ref.cast 7   ; -> usize
+          ref.cast 8   ; -> usize
           i64.const 1
           i64.add
           local.set 21   ; $add_70
@@ -4194,7 +4194,7 @@ fn 40 regex$parse_char_class (ref) -> any
         br $L3
       end $L5
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 29   ; $field_81
       local.field 0 17 0   ; arg 0.bytes
       array.len
@@ -4209,7 +4209,7 @@ fn 40 regex$parse_char_class (ref) -> any
         return
       end $L12
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       i64.const 1
       i64.add
       local.set 31   ; $add_89
@@ -4242,7 +4242,7 @@ fn 41 regex$parse_escape (ref) -> any
   local e u8
   local $struct_22 ref
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 1   ; $add_3
@@ -4250,7 +4250,7 @@ fn 41 regex$parse_escape (ref) -> any
   local.get 1   ; $add_3
   struct.set 17 1   ; regex$Parser.cursor
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $add_3
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -4260,7 +4260,7 @@ fn 41 regex$parse_escape (ref) -> any
   u64.ge
   if $L0 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $add_3
     string.const 76   ; "trailing backslash"
     local.get 1   ; $add_3
@@ -4270,15 +4270,15 @@ fn 41 regex$parse_escape (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 3   ; $field_11
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $add_3
   local.get 3   ; $field_11
   local.get 1   ; $add_3
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.set 4   ; e
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   i64.const 1
   i64.add
   local.set 1   ; $add_3
@@ -4486,7 +4486,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
   local $cast_49 usize
   local $add_53 usize
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -4501,12 +4501,12 @@ fn 43 regex$parse_decimal_usize (ref) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 4   ; $field_7
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     local.get 4   ; $field_7
     local.get 1   ; $field_1
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 48
     u32.lt
     local.set 3   ; or_res
@@ -4519,12 +4519,12 @@ fn 43 regex$parse_decimal_usize (ref) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 4   ; $field_7
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     local.get 4   ; $field_7
     local.get 1   ; $field_1
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     i32.const 57
     u32.gt
     local.set 3   ; or_res
@@ -4532,7 +4532,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
   local.get 3   ; or_res
   if $L2 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     string.const 77   ; "expected digit"
     local.get 1   ; $field_1
@@ -4544,7 +4544,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
   block $L3 void
     loop $L4 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 2   ; $len_3
       local.field 0 17 0   ; arg 0.bytes
       array.len
@@ -4556,12 +4556,12 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 4   ; $field_7
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 6   ; $field_30
         local.get 4   ; $field_7
         local.get 6   ; $field_30
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 48
         u32.ge
         local.set 3   ; or_res
@@ -4574,12 +4574,12 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 8   ; $field_36
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 9   ; $field_37
         local.get 8   ; $field_36
         local.get 9   ; $field_37
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 57
         u32.le
         local.set 7   ; and_res
@@ -4596,12 +4596,12 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         local.field 0 17 0   ; arg 0.bytes
         local.set 11   ; $field_44
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         local.set 12   ; $field_45
         local.get 11   ; $field_44
         local.get 12   ; $field_45
-        array.get 10   ; u8[][]
-        ref.cast 11   ; -> u8
+        array.get 11   ; u8[][]
+        ref.cast 7   ; -> u8
         i32.const 48
         i32.sub
         u8.to_i64
@@ -4611,7 +4611,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         i64.add
         local.set 1   ; $field_1
         local.field 0 17 1   ; arg 0.cursor
-        ref.cast 7   ; -> usize
+        ref.cast 8   ; -> usize
         i64.const 1
         i64.add
         local.set 14   ; $add_53
@@ -4623,7 +4623,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
     end $L4
   end $L3
   local.get 1   ; $field_1
-  box 7   ; -> usize
+  box 8   ; -> usize
   return
 end
 
@@ -4634,7 +4634,7 @@ fn 44 regex$read_class_char (ref) -> any
   local e u8
   local c char
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.field 0 17 0   ; arg 0.bytes
   array.len
@@ -4644,7 +4644,7 @@ fn 44 regex$read_class_char (ref) -> any
   u64.ge
   if $L0 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     string.const 78   ; "unexpected end inside character class"
     local.get 1   ; $field_1
@@ -4654,17 +4654,17 @@ fn 44 regex$read_class_char (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 3   ; $field_8
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.get 3   ; $field_8
   local.get 1   ; $field_1
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   i32.const 92
   i32.eq
   if $L1 void
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -4672,7 +4672,7 @@ fn 44 regex$read_class_char (ref) -> any
     local.get 1   ; $field_1
     struct.set 17 1   ; regex$Parser.cursor
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     local.field 0 17 0   ; arg 0.bytes
     array.len
@@ -4682,7 +4682,7 @@ fn 44 regex$read_class_char (ref) -> any
     u64.ge
     if $L2 void
       local.field 0 17 1   ; arg 0.cursor
-      ref.cast 7   ; -> usize
+      ref.cast 8   ; -> usize
       local.set 1   ; $field_1
       string.const 79   ; "trailing backslash inside class"
       local.get 1   ; $field_1
@@ -4692,15 +4692,15 @@ fn 44 regex$read_class_char (ref) -> any
     local.field 0 17 0   ; arg 0.bytes
     local.set 3   ; $field_8
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     local.set 1   ; $field_1
     local.get 3   ; $field_8
     local.get 1   ; $field_1
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     local.set 4   ; e
     local.field 0 17 1   ; arg 0.cursor
-    ref.cast 7   ; -> usize
+    ref.cast 8   ; -> usize
     i64.const 1
     i64.add
     local.set 1   ; $field_1
@@ -4734,7 +4734,7 @@ fn 44 regex$read_class_char (ref) -> any
   local.field 0 17 0   ; arg 0.bytes
   local.set 3   ; $field_8
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.set 1   ; $field_1
   local.get 3   ; $field_8
   local.get 1   ; $field_1
@@ -4744,7 +4744,7 @@ fn 44 regex$read_class_char (ref) -> any
   local.get 2   ; $len_3
   local.set 1   ; $field_1
   local.field 0 17 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  ref.cast 8   ; -> usize
   local.get 1   ; $field_1
   i64.add
   local.set 1   ; $field_1
@@ -4828,8 +4828,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.tee 3   ; b
   i32.const 128
   u32.lt
@@ -4867,8 +4867,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     local.set 5   ; b1
     local.get 3   ; b
     u8.to_i32
@@ -4906,8 +4906,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
@@ -4915,8 +4915,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 11   ; u8[][]
+    ref.cast 7   ; -> u8
     local.set 8   ; b2
     local.get 3   ; b
     u8.to_i32
@@ -4961,8 +4961,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.set 5   ; b1
   local.get 1   ; arg 1
   i64.const 2
@@ -4970,8 +4970,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.set 8   ; b2
   local.get 1   ; arg 1
   i64.const 3
@@ -4979,8 +4979,8 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 11   ; u8[][]
+  ref.cast 7   ; -> u8
   local.set 9   ; b3
   local.get 3   ; b
   u8.to_i32

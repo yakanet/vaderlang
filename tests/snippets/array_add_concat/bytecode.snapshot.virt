@@ -4,14 +4,14 @@ type 1 primitive i32
 type 2 primitive string
 type 3 struct snippet$Item { name:2,inner:4 }
 type 4 array 2
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive i64
-type 8 primitive u64
-type 9 array 1
-type 10 array 3
-type 11 primitive u8
-type 12 array 11
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 primitive i64
+type 9 primitive u64
+type 10 array 1
+type 11 array 3
+type 12 array 5
 type 13 primitive void
 type 14 primitive isize
 string 0 "len="
@@ -30,10 +30,10 @@ string 12 "x"
 string 13 "b"
 data 0 structs 1 2 1 strref 11 array string 1 strref 12
 data 1 structs 1 2 1 strref 13 array string 0
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,12,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,12,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -49,10 +49,10 @@ fn 0 snippet$main () -> i32
   local $call_104 usize
   i32.const 1
   i32.const 2
-  array.new 9 2   ; i32[][]
+  array.new 10 2   ; i32[][]
   local.set 0   ; a
   i32.const 3
-  array.new 9 1   ; i32[][]
+  array.new 10 1   ; i32[][]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
@@ -148,7 +148,7 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  array.new 9 0   ; i32[][]
+  array.new 10 0   ; i32[][]
   local.set 2   ; joined
   i64.const 73
   call 2   ; std_core$new_byte_buffer
@@ -208,7 +208,7 @@ fn 0 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   i32.const 4
-  array.new 9 1   ; i32[][]
+  array.new 10 1   ; i32[][]
   local.set 2   ; joined
   i64.const 28
   call 2   ; std_core$new_byte_buffer
@@ -237,22 +237,22 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  data.const 0 10   ; pool[0] : snippet$Item[]
+  data.const 0 11   ; pool[0] : snippet$Item[]
   local.set 0   ; a
-  data.const 1 10   ; pool[1] : snippet$Item[]
+  data.const 1 11   ; pool[1] : snippet$Item[]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
   call 8   ; std_core$[]$Add$add__Item
   local.tee 0   ; a
   i32.const 0
-  array.get 10   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[][]
   struct.get 3 0   ; snippet$Item.name
   ref.cast 2   ; -> string
   local.set 7   ; __p_8
   local.get 0   ; a
   i32.const 1
-  array.get 10   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[][]
   struct.get 3 0   ; snippet$Item.name
   ref.cast 2   ; -> string
   local.set 8   ; __p_9
@@ -304,7 +304,7 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   i32.const 0
-  array.get 10   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[][]
   struct.get 3 1   ; snippet$Item.inner
   array.len
   usize.to_i64
@@ -331,7 +331,7 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   i32.const 1
-  array.get 10   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[][]
   struct.get 3 1   ; snippet$Item.inner
   array.len
   usize.to_i64
@@ -602,7 +602,7 @@ end
 
 fn 7 std_core$[]$Add$add__i32 (ref,ref) -> ref
   local out ref
-  array.new 9 0   ; i32[][]
+  array.new 10 0   ; i32[][]
   local.tee 2   ; out
   local.get 0   ; arg 0
   array.push_all
@@ -615,7 +615,7 @@ end
 
 fn 8 std_core$[]$Add$add__Item (ref,ref) -> ref
   local out ref
-  array.new 10 0   ; snippet$Item[][]
+  array.new 11 0   ; snippet$Item[][]
   local.tee 2   ; out
   local.get 0   ; arg 0
   array.push_all

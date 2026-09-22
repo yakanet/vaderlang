@@ -311,21 +311,6 @@ try_wrap_array_iter :: fn(
     // @partial: only arrays and `string` need wrapping; every other Type is
     // returned verbatim (already an iterator or handled upstream).
     @partial match iter_type {
-        is ArrayType -> {
-            wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [iter_type.element])
-            if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
-            fields :: [
-                LoweredStructLitField { .name = "arr", .value = iter },
-                LoweredStructLitField {
-                    .name = "cursor",
-                    .value = LoweredIntLit {
-                        .span = span, .type = mk_primitive("usize"), .value = 0,
-                    },
-                },
-            ]
-            wrapped :: build_core_struct_lit(ctx, wrapped_type, fields, span)
-            return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
-        }
         is PrimitiveType -> {
             if iter_type.name != "string" {
                 return WrapResult { .iter = iter, .iter_type = iter_type }

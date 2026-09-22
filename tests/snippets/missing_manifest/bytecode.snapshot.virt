@@ -2,13 +2,13 @@ module _main
 type 0 primitive null
 type 1 primitive string
 type 2 primitive i32
-type 3 primitive usize
-type 4 primitive u8
-type 5 array 4
+type 3 primitive u8
+type 4 primitive usize
+type 5 array 3
 type 6 struct std_core$Buffer {  }
 type 7 primitive void
 type 8 union 9,1
-type 9 struct std_io$IOError { msg:1,kind:4,code:2 }
+type 9 struct std_io$IOError { msg:1,kind:3,code:2 }
 type 10 union 9,5
 type 11 primitive isize
 type 12 union 13,0
@@ -37,15 +37,15 @@ string 20 "invalid argument"
 string 21 "directory not empty"
 string 22 "bad file descriptor"
 string 23 "\n"
-import 0 byte_len std_core$byte_len result_type=3 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=5 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,5,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=2,5,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 4 extern vader_last_errno system_posix$sys_last_errno result_type=2 () -> i32
 import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
 import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 param_types=1,1 param_mutable=0,0 param_by_address= (string,string) -> any
 import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=3 param_types=5,3,3,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=5,4,4,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 impl 6 ByteAccess
 impl 9 Error
 vtable Error.message 9 11

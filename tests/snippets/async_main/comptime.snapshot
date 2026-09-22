@@ -3,6 +3,7 @@
 ## tests/snippets/async_main
 
 ## generic instances
+  __genstate_array_iter<T>
   Ready<string>
   Ready<T>
   Ready<T>
@@ -18,9 +19,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<string>
   Async<T>
   Range<i32>
@@ -28,6 +27,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

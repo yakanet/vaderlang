@@ -3,6 +3,7 @@
 ## tests/snippets/trait_box_range_iter
 
 ## generic instances
+  __genstate_array_iter<T>
   Greeter<T>
   Greeter<T>
   Doubler<i32>
@@ -20,17 +21,11 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>

@@ -15,9 +15,11 @@ walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0
     cont := true
     for cont {
-        match it.next() {
-            is null -> { cont = false }
-            is Yield<i32> as y -> { sum = sum + y.value }
+        [v, c] :: it.next()
+        if c == Continuation.Stop {
+            cont = false
+        } else {
+            sum = sum + v
         }
     }
     return sum

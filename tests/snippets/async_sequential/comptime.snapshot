@@ -3,6 +3,7 @@
 ## tests/snippets/async_sequential
 
 ## generic instances
+  __genstate_array_iter<T>
   Ready<i32>
   Ready<string>
   Ready<T>
@@ -18,18 +19,13 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<i32>
   Async<string>
   Async<T>
-  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
+  ArrayOps<T>

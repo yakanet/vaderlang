@@ -16,9 +16,9 @@ type 13 array 14
 type 14 fn () -> 6
 type 15 ref Async
 type 16 primitive bool
-type 17 primitive usize
-type 18 primitive u8
-type 19 array 18
+type 17 primitive u8
+type 18 primitive usize
+type 19 array 17
 type 20 struct std_core$Buffer {  }
 type 21 struct std_async$Race__string { children:26 }
 type 22 ref Async
@@ -36,9 +36,9 @@ string 3 "fast"
 string 4 "slow"
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=17 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=18 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=19 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=4,19,17 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=4,19,18 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=2 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=6 param_types=2 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32

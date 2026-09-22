@@ -4,13 +4,13 @@ type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
 type 4 primitive bool
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive u64
-type 8 primitive char
-type 9 array 10
-type 10 primitive u8
-type 11 union 12,9
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 primitive u64
+type 9 primitive char
+type 10 array 5
+type 11 union 12,10
 type 12 struct base64$Base64Error { msg:1 }
 type 13 primitive isize
 type 14 struct std_string_builder$StringBuilder { parts:15 }
@@ -61,13 +61,13 @@ string 42 "base64: invalid character at offset "
 string 43 "base64: invalid character in final quad"
 string 44 "base64: invalid character before padding"
 string 45 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-import 0 byte_len std_core$byte_len result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=10 param_types=1,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 param_mutable=0 param_by_address= (ref) -> string
-import 3 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 4 at std_core$string$Index$at result_type=8 param_types=1,5 param_mutable=0,0 param_by_address= (string,usize) -> char
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=3,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=5 param_types=1,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=10 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 4 at std_core$string$Index$at result_type=9 param_types=1,6 param_mutable=0,0 param_by_address= (string,usize) -> char
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=3,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 impl 12 Error
 impl 14 Display
 export main 1
@@ -91,7 +91,7 @@ fn 0 snippet$show_decode (string,string) -> void
     call 12   ; std_io$println__string
   else
     local.get 2   ; out
-    ref.cast 9   ; -> u8[]
+    ref.cast 10   ; -> u8[]
     call.import 2   ; std_core$bytes_to_string
     local.set 3   ; $call_7
     local.get 0   ; arg 0
@@ -241,7 +241,7 @@ fn 1 snippet$main () -> i32
           call 6   ; std_core$write_string_at
           local.set 8   ; __off_5
           local.get 4   ; decoded
-          ref.cast 9   ; -> u8[]
+          ref.cast 10   ; -> u8[]
           call.import 2   ; std_core$bytes_to_string
           local.get 0   ; $call_3
           string.eq
@@ -477,7 +477,7 @@ fn 9 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 9 0   ; u8[][]
+  array.new 10 0   ; u8[][]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -488,7 +488,7 @@ fn 9 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 10   ; u8[]
+    array.push 5   ; u8[]
   else
     local.get 1   ; cp
     i32.const 2048
@@ -505,7 +505,7 @@ fn 9 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 10   ; u8[]
+      array.push 5   ; u8[]
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -517,7 +517,7 @@ fn 9 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 10   ; u8[]
+      array.push 5   ; u8[]
     else
       local.get 1   ; cp
       i32.const 65536
@@ -534,7 +534,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -548,7 +548,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -560,7 +560,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
       else
         local.get 1   ; cp
         i32.const 18
@@ -573,7 +573,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -587,7 +587,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -601,7 +601,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -613,7 +613,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
       end $L2
     end $L1
   end $L0
@@ -652,7 +652,7 @@ fn 10 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 10   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -745,7 +745,7 @@ fn 13 base64$decode (string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 9 0   ; u8[][]
+    array.new 10 0   ; u8[][]
     return
   end $L0
   local.get 1   ; n
@@ -801,7 +801,7 @@ fn 13 base64$decode (string) -> any
       return
     end $L4
   end $L2
-  array.new 9 0   ; u8[][]
+  array.new 10 0   ; u8[][]
   local.set 4   ; out
   i64.const 0
   local.set 3   ; $sub_15
@@ -943,7 +943,7 @@ fn 13 base64$decode (string) -> any
         local.set 25   ; $cast_102
         local.get 4   ; out
         local.get 25   ; $cast_102
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 24   ; triple
         i32.const 8
         u32.shr
@@ -953,7 +953,7 @@ fn 13 base64$decode (string) -> any
         local.set 26   ; $cast_107
         local.get 4   ; out
         local.get 26   ; $cast_107
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 24   ; triple
         i32.const 255
         i32.bitand
@@ -961,7 +961,7 @@ fn 13 base64$decode (string) -> any
         local.set 27   ; $cast_110
         local.get 4   ; out
         local.get 27   ; $cast_110
-        array.push 10   ; u8[]
+        array.push 5   ; u8[]
         local.get 3   ; $sub_15
         i64.const 4
         i64.add
@@ -1024,7 +1024,7 @@ fn 13 base64$decode (string) -> any
   local.set 25   ; $cast_102
   local.get 4   ; out
   local.get 25   ; $cast_102
-  array.push 10   ; u8[]
+  array.push 5   ; u8[]
   local.get 2   ; pad_count
   i64.const 0
   i64.eq
@@ -1089,7 +1089,7 @@ fn 13 base64$decode (string) -> any
     local.set 25   ; $cast_102
     local.get 4   ; out
     local.get 25   ; $cast_102
-    array.push 10   ; u8[]
+    array.push 5   ; u8[]
     local.get 19   ; $shl_89
     i32.const 255
     i32.bitand
@@ -1097,7 +1097,7 @@ fn 13 base64$decode (string) -> any
     local.set 25   ; $cast_102
     local.get 4   ; out
     local.get 25   ; $cast_102
-    array.push 10   ; u8[]
+    array.push 5   ; u8[]
   else
     local.get 2   ; pad_count
     i64.const 1
@@ -1135,7 +1135,7 @@ fn 13 base64$decode (string) -> any
       local.set 25   ; $cast_102
       local.get 4   ; out
       local.get 25   ; $cast_102
-      array.push 10   ; u8[]
+      array.push 5   ; u8[]
     end $L17
   end $L14
   local.get 4   ; out
@@ -1182,8 +1182,8 @@ fn 14 base64$encode (ref) -> string
       if $L2 void
         local.get 1   ; bs
         local.get 4   ; i
-        array.get 9   ; u8[][]
-        ref.cast 10   ; -> u8
+        array.get 10   ; u8[][]
+        ref.cast 5   ; -> u8
         u8.to_i32
         local.set 5   ; b0
         local.get 4   ; i
@@ -1192,8 +1192,8 @@ fn 14 base64$encode (ref) -> string
         local.set 6   ; $add_16
         local.get 1   ; bs
         local.get 6   ; $add_16
-        array.get 9   ; u8[][]
-        ref.cast 10   ; -> u8
+        array.get 10   ; u8[][]
+        ref.cast 5   ; -> u8
         u8.to_i32
         local.set 7   ; b1
         local.get 4   ; i
@@ -1202,8 +1202,8 @@ fn 14 base64$encode (ref) -> string
         local.set 8   ; $add_21
         local.get 1   ; bs
         local.get 8   ; $add_21
-        array.get 9   ; u8[][]
-        ref.cast 10   ; -> u8
+        array.get 10   ; u8[][]
+        ref.cast 5   ; -> u8
         u8.to_i32
         local.set 9   ; b2
         local.get 5   ; b0
@@ -1290,8 +1290,8 @@ fn 14 base64$encode (ref) -> string
   if $L3 void
     local.get 1   ; bs
     local.get 4   ; i
-    array.get 9   ; u8[][]
-    ref.cast 10   ; -> u8
+    array.get 10   ; u8[][]
+    ref.cast 5   ; -> u8
     u8.to_i32
     i32.const 16
     i32.shl
@@ -1336,8 +1336,8 @@ fn 14 base64$encode (ref) -> string
     if $L4 void
       local.get 1   ; bs
       local.get 4   ; i
-      array.get 9   ; u8[][]
-      ref.cast 10   ; -> u8
+      array.get 10   ; u8[][]
+      ref.cast 5   ; -> u8
       u8.to_i32
       local.set 5   ; b0
       local.get 4   ; i
@@ -1346,8 +1346,8 @@ fn 14 base64$encode (ref) -> string
       local.set 2   ; n
       local.get 1   ; bs
       local.get 2   ; n
-      array.get 9   ; u8[][]
-      ref.cast 10   ; -> u8
+      array.get 10   ; u8[][]
+      ref.cast 5   ; -> u8
       u8.to_i32
       local.set 7   ; b1
       local.get 5   ; b0

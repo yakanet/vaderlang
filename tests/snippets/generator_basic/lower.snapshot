@@ -60,7 +60,7 @@
                   int(1) :i32
     return int(0) :i32
   struct __genstate_count_up { s0: i32, s1: i32, state: i32 }
-  fn snippet$__genstate_count_up$Iterator$next(self: __genstate_count_up!) -> Yield<i32>! | null
+  fn snippet$__genstate_count_up$Iterator$next(self: __genstate_count_up!) -> [i32, Continuation]!
     loop
       if :void
         cond:
@@ -170,10 +170,11 @@
                             value:
                               int(3) :i32
                           return
-                            Yield<i32>! {
-                              value:
+                            [i32, Continuation]! {
+                              _0:
                                 .s1 :i32
                                   __self_0 :__genstate_count_up!
+                              _1: int(0) :u8
                             }
                         else:
                           if :void
@@ -198,7 +199,11 @@
                                 value:
                                   int(2) :i32
                             else:
-                              return null
+                              return
+                                [i32, Continuation]! {
+                                  _0: int(0) :i32
+                                  _1: int(1) :u8
+                                }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize
