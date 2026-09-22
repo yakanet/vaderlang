@@ -51,6 +51,7 @@ typedef struct vader_struct___Tuple_2_cfe16e3087d4116c_t vader_struct___Tuple_2_
 typedef struct vader_struct___Tuple_2_edd3c91327bcb309_t vader_struct___Tuple_2_edd3c91327bcb309_t;
 typedef struct vader_struct___Tuple_2_f25c6c168f8e2d66_t vader_struct___Tuple_2_f25c6c168f8e2d66_t;
 typedef struct vader_struct___Tuple_Array_u32_u32_6fc96a7e_t vader_struct___Tuple_Array_u32_u32_6fc96a7e_t;
+typedef struct vader_struct___Tuple_char_u8_37971378_t vader_struct___Tuple_char_u8_37971378_t;
 typedef struct vader_struct___Tuple_i32_Array_i32__9e989074_t vader_struct___Tuple_i32_Array_i32__9e989074_t;
 typedef struct vader_struct___Tuple_i32_Union_i32_null__4a877297_t vader_struct___Tuple_i32_Union_i32_null__4a877297_t;
 typedef struct vader_struct___Tuple_i32_bool_cd1657f9_t vader_struct___Tuple_i32_bool_cd1657f9_t;
@@ -208,7 +209,6 @@ typedef struct vader_struct_std_core_Dec64_t vader_struct_std_core_Dec64_t;
 typedef struct vader_struct_std_core_DecimalParts_t vader_struct_std_core_DecimalParts_t;
 typedef struct vader_struct_std_core_FloatDec32_t vader_struct_std_core_FloatDec32_t;
 typedef struct vader_struct_std_core_SlowParts_t vader_struct_std_core_SlowParts_t;
-typedef struct vader_struct_std_core_Yield__char_t vader_struct_std_core_Yield__char_t;
 typedef struct vader_struct_std_io_IOError_t vader_struct_std_io_IOError_t;
 typedef struct vader_struct_std_string_ParseError_t vader_struct_std_string_ParseError_t;
 typedef struct vader_struct_std_string_StringChars_t vader_struct_std_string_StringChars_t;
@@ -1005,6 +1005,11 @@ struct vader_struct___Tuple_Array_u32_u32_6fc96a7e_t {
     vader_obj_header_t header;
     void* f__0;
     uint32_t f__1;
+};
+struct vader_struct___Tuple_char_u8_37971378_t {
+    vader_obj_header_t header;
+    uint32_t f__0;
+    uint8_t f__1;
 };
 struct vader_struct___Tuple_i32_Array_i32__9e989074_t {
     vader_obj_header_t header;
@@ -2134,10 +2139,6 @@ struct vader_struct_std_core_SlowParts_t {
     vader_obj_header_t header;
     void* f_d;
     int32_t f_e;
-};
-struct vader_struct_std_core_Yield__char_t {
-    vader_obj_header_t header;
-    uint32_t f_value;
 };
 struct vader_struct_std_io_IOError_t {
     vader_obj_header_t header;
@@ -5748,7 +5749,7 @@ bool std_string_is_high_surrogate(uint32_t l0);
 bool std_string_is_low_surrogate(uint32_t l0);
 uint32_t std_string_combine_surrogates(uint32_t l0, uint32_t l1);
 size_t std_string_utf8_lead_len(uint8_t l0);
-void std_string_StringChars_Iterator_next_v(void* l0, int32_t* __o0, uint32_t* __o1);
+void std_string_StringChars_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1);
 bool std_string_string_Contains_contains(vader_string_t l0, vader_string_t l1);
 vader_string_t std_path_to_posix(vader_string_t l0);
 bool __lambda_std_path_0(void* l0, uint32_t l1);
@@ -6164,7 +6165,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2532u
+#define VADER_COMPTIME_ATOM_COUNT 2531u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
