@@ -143,28 +143,13 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
     return raw
 }
 
-// Primitive byte sizes match `intrinsic_assert`'s expectations
-// (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite
-// reference types (struct / enum / array / tuple / union / trait /
-// fn / any) report as `vader_box_t` width (16 bytes — tag + payload).
-// Comptime-only / unsized types (TypeMeta / TypeParam / Self /
-// Unresolved / Free* / Never / void) report 0.
-// @partial: representable types have a fixed size; abstract types (TypeParam/Self/Unresolved/…) → 0.
-export byte_size :: fn(t: Type) -> i64 = @partial match t {
-    is PrimitiveType -> primitive_size(t.name)
-    is DistinctType -> byte_size(t.backing)
-    is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 16
-    _ -> 0
-}
+// `@size_of` / `@align_of` report the width of the SLOT that carries the type —
+// what the C emitter declares for a field, a local or a parameter, not the size
+// of the object a reference points at. `vader/types::slot_byte_size` owns the
+// answer for every kind and names the two functions that make it operational.
+export byte_size :: fn(t: Type) -> i64 = slot_byte_size(t)
 
-// @partial: representable types have a fixed alignment; abstract types → 0.
-export byte_align :: fn(t: Type) -> i64 = @partial match t {
-    is PrimitiveType -> primitive_align(t.name)
-    is DistinctType -> byte_align(t.backing)
-    is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 8
-    _ -> 0
-}
-
+export byte_align :: fn(t: Type) -> i64 = slot_byte_align(t)
 
 // Stable `@type_kind(T)` discriminator. EXHAUSTIVE over `Type` (no `_`) and
 // the stable set in SPEC §14 (`@type_kind`). The non-user-facing variants
@@ -210,7 +195,8 @@ import "std/testing"
 @test test_primitive_size_table :: fn() -> void {
     assert_eq(primitive_size("i32"), 4)
     assert_eq(primitive_size("i64"), 8)
-    assert_eq(primitive_size("string"), 16)
+    // An atom id, not the retired `{ptr, len}` fat pointer.
+    assert_eq(primitive_size("string"), 4)
     assert_eq(primitive_size("unknown_type"), 0)
 }
 

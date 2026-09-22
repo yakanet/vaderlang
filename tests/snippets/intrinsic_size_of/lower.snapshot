@@ -1,13 +1,20 @@
 # Lower
 
 ## snippet
+  struct snippet$Point { x: i32 }
   fn snippet$main() -> i32
     let s8: usize = int(1) :usize
     let s32: usize = int(4) :usize
     let s64: usize = int(8) :usize
-    let sstr: usize = int(16) :usize
+    let sstr: usize = int(4) :usize
+    let narrow: usize = int(1) :usize
+    let wide: usize = int(4) :usize
+    let ref: usize = int(8) :usize
+    let arr: usize = int(8) :usize
+    let erased: usize = int(16) :usize
     let a32: usize = int(4) :usize
     let a64: usize = int(8) :usize
+    let abox: usize = int(8) :usize
     let name: string = "i32" :string
     return
       cast → i32
@@ -21,14 +28,38 @@
                       l:
                         add :usize
                           l:
-                            s8 :usize
+                            add :usize
+                              l:
+                                add :usize
+                                  l:
+                                    add :usize
+                                      l:
+                                        add :usize
+                                          l:
+                                            add :usize
+                                              l:
+                                                add :usize
+                                                  l:
+                                                    s8 :usize
+                                                  r:
+                                                    s32 :usize
+                                              r:
+                                                s64 :usize
+                                          r:
+                                            sstr :usize
+                                      r:
+                                        narrow :usize
+                                  r:
+                                    wide :usize
+                              r:
+                                ref :usize
                           r:
-                            s32 :usize
+                            arr :usize
                       r:
-                        s64 :usize
+                        erased :usize
                   r:
-                    sstr :usize
+                    a32 :usize
               r:
-                a32 :usize
+                a64 :usize
           r:
-            a64 :usize
+            abox :usize

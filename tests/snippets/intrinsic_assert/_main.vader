@@ -8,7 +8,7 @@ module "snippet"
 @assert(@size_of(i8)     == 1)
 @assert(@size_of(i32)    == 4)
 @assert(@size_of(i64)    == 8)
-@assert(@size_of(string) == 16)
+@assert(@size_of(string) == 4)
 
 @assert(@align_of(i32) == 4)
 @assert(@align_of(i64) == 8)

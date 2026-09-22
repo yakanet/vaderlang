@@ -3,7 +3,6 @@
 ## tests/snippets/intrinsic_size_of
 
 ## generic instances
-  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -11,6 +10,7 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
+  ArrayOps<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>

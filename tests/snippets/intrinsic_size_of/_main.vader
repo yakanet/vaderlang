@@ -1,8 +1,17 @@
-// Reflection intrinsics — @size_of, @align_of, @type_name on primitives.
-// Layer 6 of the type-first design ; values are folded to constants at lower
-// time so the runtime sees plain literals.
+// Reflection intrinsics — @size_of, @align_of, @type_name.
+//
+// `@size_of` reports the width of the SLOT that carries the type, which is what
+// the C emitter declares for a field or a local — NOT the size of the object a
+// reference points at. The cases below pin one per class, because a uniform 16
+// for every composite is what this used to report: `string` is an interned atom
+// id (4, not the retired `{ptr, len}`), an enum rides its `repr`, a concrete
+// reference is a bare pointer since T12, and only an erased slot keeps a box.
 
 module "snippet"
+
+Color :: enum(u8) { Red, Green }
+Wide  :: enum { A, B }
+Point :: struct { x: i32 }
 
 main :: fn() -> i32 {
     s8   :: @size_of(i8)
@@ -10,10 +19,17 @@ main :: fn() -> i32 {
     s64  :: @size_of(i64)
     sstr :: @size_of(string)
 
-    a32  :: @align_of(i32)
-    a64  :: @align_of(i64)
+    narrow :: @size_of(Color)
+    wide   :: @size_of(Wide)
+    ref    :: @size_of(Point)
+    arr    :: @size_of(i32[])
+    erased :: @size_of(i32 | string)
+
+    a32 :: @align_of(i32)
+    a64 :: @align_of(i64)
+    abox :: @align_of(i32 | string)
 
     name :: @type_name(i32)
 
-    return i32(s8 + s32 + s64 + sstr + a32 + a64)
+    return i32(s8 + s32 + s64 + sstr + narrow + wide + ref + arr + erased + a32 + a64 + abox)
 }
