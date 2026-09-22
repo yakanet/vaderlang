@@ -4,6 +4,7 @@ static vader_box_t vader_bytecode_arith_op(uint8_t l0, vader_string_t l1);
 static uint8_t vader_bytecode_array_kind_of_val(uint8_t l0);
 static uint64_t vader_bytecode_bare_hash(vader_string_t l0);
 static vader_string_t vader_bytecode_bare_intern_name(vader_box_t l0);
+static void* vader_bytecode_bc_peephole_unchanged(void* l0);
 static vader_box_t vader_bytecode_bc_type_of_with_ctx(vader_box_t l0, void* l1, int32_t l2);
 static vader_box_t vader_bytecode_bit_op(uint8_t l0, vader_string_t l1);
 static vader_box_t vader_bytecode_bitnot_op(uint8_t l0);
@@ -469,6 +470,27 @@ static vader_string_t vader_bytecode_bare_intern_name(vader_box_t l0) {
         }
     }
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void* vader_bytecode_bc_peephole_unchanged(void* l0) {
+    void* l1 = NULL;
+    void* l2 = NULL;
+    void* l3 = NULL;
+    void* t0 = NULL;
+    void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l1 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_body;
+    l2 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_jump_table;
+    l3 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug;
+    vader_struct_vader_bytecode_BcPeepholeOut_t* _a0_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
+    vader_obj_header_init(_a0_obj, 510u);
+    _a0_obj->f_body = l1;
+    _a0_obj->f_jump_table = l2;
+    _a0_obj->f_debug = l3;
+    t0 = (void*) _a0_obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -9235,10 +9257,10 @@ void* vader_bytecode_run_bc_peephole(void* l0) {
 
 void* vader_bytecode_run_bc_return_lit_fold(void* l0) {
     void* l1 = NULL;
-    void* l2 = NULL;
     void* l3 = NULL;
+    void* l5 = NULL;
     void* l13 = NULL;
-    size_t l4, l5, l6, l9, l10, l12, l15, l16;
+    size_t l2, l4, l6, l9, l10, l12, l15, l16;
     int32_t l7, l14;
     vader_box_t l8 = vader_box_null(), l11 = vader_box_null();
     size_t t0;
@@ -9246,151 +9268,143 @@ void* vader_bytecode_run_bc_return_lit_fold(void* l0) {
     int64_t t2;
     vader_box_t t3 = vader_box_null();
     vader_box_t* gc_roots[3] = { &l8, &l11, &t3 };
-    void** gc_raw_roots[6] = { &l0, &l1, &l2, &l3, &l13, &t1 };
+    void** gc_raw_roots[6] = { &l0, &l1, &l3, &l5, &l13, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_bytecode_bc_result_arity(((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_signature);
     if ((t0 > INT64_C(1))) {
-        l1 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_body;
-        l2 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_jump_table;
-        l3 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug;
-        vader_struct_vader_bytecode_BcPeepholeOut_t* _a0_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
-        vader_obj_header_init(_a0_obj, 510u);
-        _a0_obj->f_body = l1;
-        _a0_obj->f_jump_table = l2;
-        _a0_obj->f_debug = l3;
-        t1 = (void*) _a0_obj;
+        t1 = vader_bytecode_bc_peephole_unchanged(l0);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l1 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_body;
-    l4 = ((vader_array_t*) l1)->length;
-    vader_array_t* _a1_arr = vader_array_new(129u, 0u, 13u, 1113u);
-    l2 = (void*) _a1_arr;
-    l5 = (size_t) (int64_t) INT64_C(0);
-    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 179u);
-    l3 = (void*) _a2_arr;
+    l2 = ((vader_array_t*) l1)->length;
+    vader_array_t* _a0_arr = vader_array_new(129u, 0u, 13u, 1113u);
+    l3 = (void*) _a0_arr;
+    l4 = (size_t) (int64_t) INT64_C(0);
+    vader_array_t* _a1_arr = vader_array_new(9u, 0u, 7u, 179u);
+    l5 = (void*) _a1_arr;
     l6 = (size_t) (int64_t) INT64_C(0);
     {
-        vader_array_t* _pc30_hdr = (vader_array_t*) l3;
-        size_t _pc30_len = _pc30_hdr->length;
-        size_t _pc30_cap = (_pc30_hdr->offset == 0 && !vader_array_is_borrowed(_pc30_hdr) && _pc30_hdr->length >= _pc30_hdr->buf->length) ? _pc30_hdr->capacity : (size_t) 0;
-        void* _pc30_slots = _pc30_hdr->buf->slots;
-        loop_30: {
-            if ((l6 < l4)) {
+        vader_array_t* _pc22_hdr = (vader_array_t*) l5;
+        size_t _pc22_len = _pc22_hdr->length;
+        size_t _pc22_cap = (_pc22_hdr->offset == 0 && !vader_array_is_borrowed(_pc22_hdr) && _pc22_hdr->length >= _pc22_hdr->buf->length) ? _pc22_hdr->capacity : (size_t) 0;
+        void* _pc22_slots = _pc22_hdr->buf->slots;
+        loop_22: {
+            if ((l6 < l2)) {
                 l7 = -(INT32_C(1));
-                if (VADER_LIKELY(_pc30_len < _pc30_cap)) {
-                    ((int32_t*) _pc30_slots)[_pc30_len] = (int32_t) (l7);
-                    _pc30_len += 1;
+                if (VADER_LIKELY(_pc22_len < _pc22_cap)) {
+                    ((int32_t*) _pc22_slots)[_pc22_len] = (int32_t) (l7);
+                    _pc22_len += 1;
                 } else {
-                    _pc30_hdr->length = _pc30_len;
-                    if (_pc30_hdr->buf->length < _pc30_len) { _pc30_hdr->buf->length = _pc30_len; }
-                    vader_array_push_i32((vader_array_t*) l3, l7);
-                    _pc30_hdr = (vader_array_t*) l3;
-                    _pc30_len = _pc30_hdr->length;
-                    _pc30_cap = (_pc30_hdr->offset == 0 && !vader_array_is_borrowed(_pc30_hdr) && _pc30_hdr->length >= _pc30_hdr->buf->length) ? _pc30_hdr->capacity : (size_t) 0;
-                    _pc30_slots = _pc30_hdr->buf->slots;
+                    _pc22_hdr->length = _pc22_len;
+                    if (_pc22_hdr->buf->length < _pc22_len) { _pc22_hdr->buf->length = _pc22_len; }
+                    vader_array_push_i32((vader_array_t*) l5, l7);
+                    _pc22_hdr = (vader_array_t*) l5;
+                    _pc22_len = _pc22_hdr->length;
+                    _pc22_cap = (_pc22_hdr->offset == 0 && !vader_array_is_borrowed(_pc22_hdr) && _pc22_hdr->length >= _pc22_hdr->buf->length) ? _pc22_hdr->capacity : (size_t) 0;
+                    _pc22_slots = _pc22_hdr->buf->slots;
                 }
                 t2 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
-                goto loop_30;
+                goto loop_22;
             }
-            _pc30_hdr->length = _pc30_len;
-            if (_pc30_hdr->buf->length < _pc30_len) { _pc30_hdr->buf->length = _pc30_len; }
+            _pc22_hdr->length = _pc22_len;
+            if (_pc22_hdr->buf->length < _pc22_len) { _pc22_hdr->buf->length = _pc22_len; }
         }
     }
     l6 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_52: {
-            if ((l6 < l4)) {
-                vader_array_t* _a3_slotarr = ((vader_array_t*) l1);
-                if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
-                if ((size_t) l6 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-                l8 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l6);
+        loop_44: {
+            if ((l6 < l2)) {
+                vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
+                if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
+                if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                l8 = vader_array_ref_load_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
                 if (l8.tag == 629u) {
-                    l9 = ((vader_array_t*) l2)->length;
+                    l9 = ((vader_array_t*) l3)->length;
                     if ((l9 > INT64_C(0))) {
                         t2 = (l9 - INT64_C(1));
                         l10 = (size_t) (int64_t) t2;
-                        vader_array_t* _a4_slotarr = ((vader_array_t*) l2);
-                        if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
-                        if ((size_t) l10 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-                        t3 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l10);
+                        vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
+                        if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
+                        if ((size_t) l10 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+                        t3 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l10);
                         l11 = vader_bytecode_const_op_of(t3);
                         if (!(l11.tag == 0u)) {
                             t2 = (l9 - INT64_C(1));
                             l12 = (size_t) (int64_t) t2;
-                            vader_struct_vader_bytecode_ReturnLit_t* _a5_obj = (vader_struct_vader_bytecode_ReturnLit_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ReturnLit_t));
-                            vader_obj_header_init(_a5_obj, 630u);
-                            _a5_obj->f_value = l11;
-                            l13 = (void*) _a5_obj;
-                            vader_array_t* _a6_slotarr = ((vader_array_t*) l2);
-                            if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
-                            if ((size_t) l12 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
-                            vader_array_ref_store(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l12, l13);
-                            VADER_WRITE_BARRIER(_a6_slotarr->buf);
+                            vader_struct_vader_bytecode_ReturnLit_t* _a4_obj = (vader_struct_vader_bytecode_ReturnLit_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_ReturnLit_t));
+                            vader_obj_header_init(_a4_obj, 630u);
+                            _a4_obj->f_value = l11;
+                            l13 = (void*) _a4_obj;
+                            vader_array_t* _a5_slotarr = ((vader_array_t*) l3);
+                            if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
+                            if ((size_t) l12 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                            vader_array_ref_store(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l12, l13);
+                            VADER_WRITE_BARRIER(_a5_slotarr->buf);
                             l7 = ((int32_t) (int64_t) (l9 - INT64_C(1)));
-                            vader_array_t* _a7_slotarr = ((vader_array_t*) l3);
-                            if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
-                            if ((size_t) l6 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
-                            ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l6] = (int32_t) l7;
+                            vader_array_t* _a6_slotarr = ((vader_array_t*) l5);
+                            if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
+                            if ((size_t) l6 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
+                            ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l6] = (int32_t) l7;
                             t2 = (l6 + INT64_C(1));
                             l6 = (size_t) (int64_t) t2;
-                            goto loop_52;
+                            goto loop_44;
                         }
-                        vader_bytecode_push_or_assign(l2, l5, l8);
-                        l14 = ((int32_t) (size_t) l5);
-                        vader_array_t* _a8_slotarr = ((vader_array_t*) l3);
-                        if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
-                        if ((size_t) l6 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
-                        ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l6] = (int32_t) l14;
+                        vader_bytecode_push_or_assign(l3, l4, l8);
+                        l14 = ((int32_t) (size_t) l4);
+                        vader_array_t* _a7_slotarr = ((vader_array_t*) l5);
+                        if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
+                        if ((size_t) l6 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
+                        ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l6] = (int32_t) l14;
                         l15 = (size_t) (int64_t) INT64_C(1);
-                        t2 = (l5 + l15);
-                        l5 = (size_t) (int64_t) t2;
+                        t2 = (l4 + l15);
+                        l4 = (size_t) (int64_t) t2;
                         l16 = (size_t) (int64_t) INT64_C(1);
                         t2 = (l6 + l16);
                         l6 = (size_t) (int64_t) t2;
-                        goto loop_52;
+                        goto loop_44;
                     }
-                    vader_bytecode_push_or_assign(l2, l5, l8);
-                    l14 = ((int32_t) (size_t) l5);
-                    vader_array_t* _a9_slotarr = ((vader_array_t*) l3);
-                    if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
-                    if ((size_t) l6 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
-                    ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l6] = (int32_t) l14;
+                    vader_bytecode_push_or_assign(l3, l4, l8);
+                    l14 = ((int32_t) (size_t) l4);
+                    vader_array_t* _a8_slotarr = ((vader_array_t*) l5);
+                    if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
+                    if ((size_t) l6 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+                    ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l6] = (int32_t) l14;
                     l15 = (size_t) (int64_t) INT64_C(1);
-                    t2 = (l5 + l15);
-                    l5 = (size_t) (int64_t) t2;
+                    t2 = (l4 + l15);
+                    l4 = (size_t) (int64_t) t2;
                     l16 = (size_t) (int64_t) INT64_C(1);
                     t2 = (l6 + l16);
                     l6 = (size_t) (int64_t) t2;
-                    goto loop_52;
+                    goto loop_44;
                 }
-                vader_bytecode_push_or_assign(l2, l5, l8);
-                l14 = ((int32_t) (size_t) l5);
-                vader_array_t* _a10_slotarr = ((vader_array_t*) l3);
-                if (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = vader_array_buf_forward(_a10_slotarr->buf); }
-                if ((size_t) l6 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
-                ((int32_t*) _a10_slotarr->buf->slots)[_a10_slotarr->offset + (size_t) l6] = (int32_t) l14;
+                vader_bytecode_push_or_assign(l3, l4, l8);
+                l14 = ((int32_t) (size_t) l4);
+                vader_array_t* _a9_slotarr = ((vader_array_t*) l5);
+                if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
+                if ((size_t) l6 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
+                ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l6] = (int32_t) l14;
                 l15 = (size_t) (int64_t) INT64_C(1);
-                t2 = (l5 + l15);
-                l5 = (size_t) (int64_t) t2;
+                t2 = (l4 + l15);
+                l4 = (size_t) (int64_t) t2;
                 l16 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l6 + l16);
                 l6 = (size_t) (int64_t) t2;
-                goto loop_52;
+                goto loop_44;
             }
         }
     }
-    vader_array_t* _a11_arr = vader_array_slice((vader_array_t*) l2, (size_t) INT64_C(0), (size_t) l5);
-    l1 = (void*) _a11_arr;
-    l2 = vader_bytecode_remap_jump_table(((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_jump_table, l3, l5);
-    l3 = vader_bytecode_remap_debug(((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug, l3, l5);
-    vader_struct_vader_bytecode_BcPeepholeOut_t* _a12_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
-    vader_obj_header_init(_a12_obj, 510u);
-    _a12_obj->f_body = l1;
-    _a12_obj->f_jump_table = l2;
-    _a12_obj->f_debug = l3;
-    t1 = (void*) _a12_obj;
+    vader_array_t* _a10_arr = vader_array_slice((vader_array_t*) l3, (size_t) INT64_C(0), (size_t) l4);
+    l1 = (void*) _a10_arr;
+    l3 = vader_bytecode_remap_jump_table(((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_jump_table, l5, l4);
+    l5 = vader_bytecode_remap_debug(((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug, l5, l4);
+    vader_struct_vader_bytecode_BcPeepholeOut_t* _a11_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
+    vader_obj_header_init(_a11_obj, 510u);
+    _a11_obj->f_body = l1;
+    _a11_obj->f_jump_table = l3;
+    _a11_obj->f_debug = l5;
+    t1 = (void*) _a11_obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -10085,75 +10099,68 @@ void* vader_bytecode_strip_self_copies(void* l0) {
         }
     }
     if (!(l4)) {
-        l6 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_jump_table;
-        l7 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug;
-        vader_struct_vader_bytecode_BcPeepholeOut_t* _a0_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
-        vader_obj_header_init(_a0_obj, 510u);
-        _a0_obj->f_body = l1;
-        _a0_obj->f_jump_table = l6;
-        _a0_obj->f_debug = l7;
-        t2 = (void*) _a0_obj;
+        t2 = vader_bytecode_bc_peephole_unchanged(l0);
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a1_arr = vader_array_new(129u, 0u, 13u, 1113u);
-    l6 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(9u, 1u, 7u, 179u);
-    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) -(INT32_C(1));
-    t2 = (void*) _a2_arr;
-    vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) t2, (size_t) l2);
-    l7 = (void*) _a3_arr;
+    vader_array_t* _a0_arr = vader_array_new(129u, 0u, 13u, 1113u);
+    l6 = (void*) _a0_arr;
+    vader_array_t* _a1_arr = vader_array_new(9u, 1u, 7u, 179u);
+    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) -(INT32_C(1));
+    t2 = (void*) _a1_arr;
+    vader_array_t* _a2_arr = vader_array_repeat((vader_array_t*) t2, (size_t) l2);
+    l7 = (void*) _a2_arr;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_60: {
+        loop_54: {
             if ((l5 < l2)) {
-                vader_array_t* _a4_slotarr = ((vader_array_t*) l1);
-                if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
-                if ((size_t) l5 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-                l8 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l5);
+                vader_array_t* _a3_slotarr = ((vader_array_t*) l1);
+                if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
+                if ((size_t) l5 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+                l8 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l5);
                 t0 = vader_bytecode_foldable_self_copy(l1, l5, l2, l3);
                 if (t0) {
                     t1 = (l5 + INT64_C(1));
                     l9 = (size_t) (int64_t) t1;
-                    vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-                    if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
-                    if ((size_t) l9 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t3 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l9);
+                    vader_array_t* _a4_slotarr = ((vader_array_t*) l1);
+                    if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
+                    if ((size_t) l9 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
+                    t3 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l9);
                     if (t3.tag == 621u) {
                         t4 = ((vader_array_t*) l6)->length;
                         l10 = ((int32_t) (size_t) t4);
-                        vader_array_t* _a6_slotarr = ((vader_array_t*) l7);
-                        if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
-                        if ((size_t) l5 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
-                        ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l5] = (int32_t) l10;
+                        vader_array_t* _a5_slotarr = ((vader_array_t*) l7);
+                        if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
+                        if ((size_t) l5 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                        ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l5] = (int32_t) l10;
                         vader_array_push((vader_array_t*) l6, l8);
                     } else {
                         l11 = -(INT32_C(1));
-                        vader_array_t* _a7_slotarr = ((vader_array_t*) l7);
-                        if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
-                        if ((size_t) l5 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
-                        ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l5] = (int32_t) l11;
+                        vader_array_t* _a6_slotarr = ((vader_array_t*) l7);
+                        if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
+                        if ((size_t) l5 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
+                        ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l5] = (int32_t) l11;
                     }
                     t1 = (l5 + INT64_C(1));
                     l12 = (size_t) (int64_t) t1;
                     l13 = -(INT32_C(1));
-                    vader_array_t* _a8_slotarr = ((vader_array_t*) l7);
-                    if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
-                    if ((size_t) l12 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
-                    ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l12] = (int32_t) l13;
+                    vader_array_t* _a7_slotarr = ((vader_array_t*) l7);
+                    if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
+                    if ((size_t) l12 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
+                    ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l12] = (int32_t) l13;
                     t1 = (l5 + INT64_C(2));
                     l5 = (size_t) (int64_t) t1;
-                    goto loop_60;
+                    goto loop_54;
                 }
                 t4 = ((vader_array_t*) l6)->length;
                 l14 = ((int32_t) (size_t) t4);
-                vader_array_t* _a9_slotarr = ((vader_array_t*) l7);
-                if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
-                if ((size_t) l5 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
-                ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l5] = (int32_t) l14;
+                vader_array_t* _a8_slotarr = ((vader_array_t*) l7);
+                if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
+                if ((size_t) l5 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+                ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l5] = (int32_t) l14;
                 vader_array_push((vader_array_t*) l6, l8);
                 t1 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t1;
-                goto loop_60;
+                goto loop_54;
             }
         }
     }
@@ -10163,12 +10170,12 @@ void* vader_bytecode_strip_self_copies(void* l0) {
     l3 = ((vader_struct_vader_bytecode_BcFunction_t*) l0)->f_debug;
     l2 = ((vader_array_t*) l6)->length;
     l3 = vader_bytecode_remap_debug(l3, l7, l2);
-    vader_struct_vader_bytecode_BcPeepholeOut_t* _a10_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
-    vader_obj_header_init(_a10_obj, 510u);
-    _a10_obj->f_body = l6;
-    _a10_obj->f_jump_table = l1;
-    _a10_obj->f_debug = l3;
-    t2 = (void*) _a10_obj;
+    vader_struct_vader_bytecode_BcPeepholeOut_t* _a9_obj = (vader_struct_vader_bytecode_BcPeepholeOut_t*) vader_gc_alloc(sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t));
+    vader_obj_header_init(_a9_obj, 510u);
+    _a9_obj->f_body = l6;
+    _a9_obj->f_jump_table = l1;
+    _a9_obj->f_debug = l3;
+    t2 = (void*) _a9_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
