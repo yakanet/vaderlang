@@ -30,10 +30,9 @@ type 27 union 0,3
 type 28 array 21
 type 29 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
 type 30 primitive isize
-type 31 struct __Tuple_char_usize_8bd920da { _0:4,_1:8 }
-type 32 struct std_string_builder$StringBuilder { parts:19 }
-type 33 array 1
-type 34 union 7,0
+type 31 struct std_string_builder$StringBuilder { parts:19 }
+type 32 array 1
+type 33 union 7,0
 string 0 "1.2.3-rc.1"
 string 1 "1.0.0"
 string 2 "after 1.0.0"
@@ -97,7 +96,7 @@ impl 3 Comparable
 impl 17 Contains
 impl 29 Iterator
 impl 15 Error
-impl 32 Display
+impl 31 Display
 impl 3 Equals
 export main 0
 
@@ -550,7 +549,7 @@ fn 7 semver$parse (string) -> any
   i32.const 0
   i32.const 0
   i32.const 0
-  array.new 33 3   ; i32[][]
+  array.new 32 3   ; i32[][]
   local.set 1   ; sb
   i64.const 0
   local.set 6   ; j
@@ -3074,7 +3073,7 @@ fn 35 semver$Version$Display$to_string (ref) -> string
   local $cast_10 i64
   local $call_22 string
   array.new 19 0   ; string[][]
-  struct.new 32   ; std_string_builder$StringBuilder
+  struct.new 31   ; std_string_builder$StringBuilder
   local.set 1   ; sb
   i64.const 62
   call 3   ; std_core$new_byte_buffer
@@ -4338,12 +4337,9 @@ fn 52 std_string$StringChars$Iterator$next (ref) -> any
   local.get 3   ; $field_5
   local.get 1   ; $field_1
   call 54   ; std_string$utf8_decode_len
-  local.set 3   ; $field_5
-  local.field 3 31 0   ; $field_5._0
-  ref.cast 4   ; -> char
+  local.set 2   ; $field_2
   local.set 4   ; c
-  local.field 3 31 1   ; $field_5._1
-  ref.cast 8   ; -> usize
+  local.get 2   ; $field_2
   local.set 1   ; $field_1
   local.field 0 29 1   ; arg 0.cursor
   ref.cast 8   ; -> usize
@@ -4364,7 +4360,7 @@ fn 53 std_string$ParseError$Error$message (ref) -> string
   return
 end
 
-fn 54 std_string$utf8_decode_len (ref,usize) -> ref
+fn 54 std_string$utf8_decode_len (ref,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
@@ -4375,7 +4371,6 @@ fn 54 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 31   ; __Tuple_char_usize_8bd920da
   return
 end
 
@@ -4853,7 +4848,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 32 0   ; arg 0.parts
+  local.field 0 31 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -4865,7 +4860,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 32 0   ; arg 0.parts
+    local.field 0 31 0   ; arg 0.parts
     i32.const 0
     array.get 19   ; string[][]
     ref.cast 2   ; -> string
@@ -4873,7 +4868,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 32 0   ; arg 0.parts
+  local.field 0 31 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -4908,7 +4903,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 32 0   ; arg 0.parts
+  local.field 0 31 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -4951,7 +4946,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
 end
 
 fn 67 std_string_builder$append (ref,string) -> void
-  local.field 0 32 0   ; arg 0.parts
+  local.field 0 31 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 2   ; string[]
   return

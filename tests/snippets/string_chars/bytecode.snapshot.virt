@@ -14,9 +14,8 @@ type 11 primitive void
 type 12 struct std_core$Yield__char { value:8 }
 type 13 struct std_string$StringChars { bytes:9,cursor:4,length:4 }
 type 14 union 0,12
-type 15 struct __Tuple_char_usize_8bd920da { _0:8,_1:4 }
-type 16 primitive isize
-type 17 union 12,0
+type 15 primitive isize
+type 16 union 12,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -32,7 +31,7 @@ string 11 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Iterator
 export main 0
@@ -720,12 +719,9 @@ fn 13 std_string$StringChars$Iterator$next (ref) -> any
   local.get 3   ; $field_5
   local.get 1   ; $field_1
   call 14   ; std_string$utf8_decode_len
-  local.set 3   ; $field_5
-  local.field 3 15 0   ; $field_5._0
-  ref.cast 8   ; -> char
+  local.set 2   ; $field_2
   local.set 4   ; c
-  local.field 3 15 1   ; $field_5._1
-  ref.cast 4   ; -> usize
+  local.get 2   ; $field_2
   local.set 1   ; $field_1
   local.field 0 13 1   ; arg 0.cursor
   ref.cast 4   ; -> usize
@@ -740,7 +736,7 @@ fn 13 std_string$StringChars$Iterator$next (ref) -> any
   return
 end
 
-fn 14 std_string$utf8_decode_len (ref,usize) -> ref
+fn 14 std_string$utf8_decode_len (ref,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
@@ -751,7 +747,6 @@ fn 14 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 15   ; __Tuple_char_usize_8bd920da
   return
 end
 

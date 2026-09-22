@@ -165,8 +165,7 @@ verify_locals :: fn(
     for p in fn_.params { written.add(p.local) }
     for b in fn_.blocks {
         for ins in b.instructions {
-            d :: dst_of(ins)
-            if d != null { written.add(d) }
+            for_each_written_local(ins, (l: LocalId) -> { written.add(l) })
         }
     }
 

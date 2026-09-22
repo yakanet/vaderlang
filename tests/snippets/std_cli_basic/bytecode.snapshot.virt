@@ -23,8 +23,7 @@ type 20 primitive isize
 type 21 array 1
 type 22 union 1,23
 type 23 struct std_string$ParseError { msg:2 }
-type 24 struct __Tuple_char_usize_8bd920da { _0:10,_1:4 }
-type 25 struct std_string_builder$StringBuilder { parts:11 }
+type 24 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "verbose"
 string 1 "Say more"
 string 2 "V"
@@ -99,7 +98,7 @@ impl 16 Index
 impl 16 IndexSet
 impl 16 Contains
 impl 16 Into
-impl 25 Display
+impl 24 Display
 impl 23 Error
 export main 0
 
@@ -2317,9 +2316,9 @@ fn 32 std_string$index_of (string,char,usize) -> isize
   local sb ref
   local n usize
   local i usize
-  local __tup_0 ref
   local cp char
   local width usize
+  local $call_elem_21 usize
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
   local.tee 3   ; sb
@@ -2336,14 +2335,11 @@ fn 32 std_string$index_of (string,char,usize) -> isize
         local.get 3   ; sb
         local.get 5   ; i
         call 34   ; std_string$utf8_decode_len
-        local.set 6   ; __tup_0
-        local.field 6 24 0   ; __tup_0._0
-        ref.cast 10   ; -> char
-        local.set 7   ; cp
-        local.field 6 24 1   ; __tup_0._1
-        ref.cast 4   ; -> usize
-        local.set 8   ; width
-        local.get 7   ; cp
+        local.set 8   ; $call_elem_21
+        local.set 6   ; cp
+        local.get 8   ; $call_elem_21
+        local.set 7   ; width
+        local.get 6   ; cp
         local.get 1   ; arg 1
         i32.eq
         if $L3 void
@@ -2352,7 +2348,7 @@ fn 32 std_string$index_of (string,char,usize) -> isize
           return
         end $L3
         local.get 5   ; i
-        local.get 8   ; width
+        local.get 7   ; width
         i64.add
         local.set 5   ; i
         br $L1
@@ -2493,7 +2489,7 @@ fn 33 std_string$parse_int (string) -> any
   return
 end
 
-fn 34 std_string$utf8_decode_len (ref,usize) -> ref
+fn 34 std_string$utf8_decode_len (ref,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
@@ -2504,7 +2500,6 @@ fn 34 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 24   ; __Tuple_char_usize_8bd920da
   return
 end
 
@@ -2748,7 +2743,7 @@ fn 37 std_string$join (ref,string) -> string
   local i usize
   local $idx_12 string
   array.new 11 0   ; string[][]
-  struct.new 25   ; std_string_builder$StringBuilder
+  struct.new 24   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   local.get 0   ; arg 0
   array.len
@@ -2809,7 +2804,7 @@ fn 38 std_string$is_utf8_continuation (u8) -> bool
 end
 
 fn 39 std_string_builder$append (ref,string) -> void
-  local.field 0 25 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 2   ; string[]
   return
@@ -2824,7 +2819,7 @@ fn 40 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 25 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -2836,7 +2831,7 @@ fn 40 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 25 0   ; arg 0.parts
+    local.field 0 24 0   ; arg 0.parts
     i32.const 0
     array.get 11   ; string[][]
     ref.cast 2   ; -> string
@@ -2844,7 +2839,7 @@ fn 40 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 25 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -2879,7 +2874,7 @@ fn 40 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 25 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

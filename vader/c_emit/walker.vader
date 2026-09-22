@@ -353,9 +353,16 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         }
         // Look ahead : a value-returning direct call consumed by the next op's
         // `drop` needs no result temp — flag `emit_call_result` to emit it bare.
+        //
+        // NOT for a call handing back several values: the `drop` then consumes
+        // ONE of them and the rest are live, so skipping it would leave them on
+        // the stack. That is what `assert_stack_empty` catches at the next scope
+        // boundary, and the pairing has to see the arity to stay right.
         if op is vm.Call || op is vm.CallImport {
             if i + 1 < function.body.len() && function.body[i + 1] is vm.Drop {
-                s.drop_call_result = true
+                if callee_result_arity(ctx, op) <= 1 {
+                    s.drop_call_result = true
+                }
             }
         }
         emit_op(s, i32(i), op)
@@ -1285,6 +1292,27 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
     return null
 }
 
+// How many values the callee of a `call` / `call.import` leaves on the stack.
+//
+// One for anything this does not recognise: the caller only uses it to decide
+// whether a lookahead optimisation is safe, and "one" is the shape every call
+// had before multi-value.
+callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> usize {
+    if op is vm.Call {
+        if usize(op.function_index) >= ctx.module.functions.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.functions[usize(op.function_index)].signature)
+    }
+    if op is vm.CallImport {
+        if usize(op.index) >= ctx.module.imports.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.imports[usize(op.index)].signature)
+    }
+    return 1
+}
+
 // The operand stack MUST be empty at every scope boundary : the lowerer
 // materialises all control-flow results into locals (`vader/midir/build.vader`
 // — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
@@ -1296,7 +1324,7 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
 assert_stack_empty :: fn(s: FnState, where: string) -> void {
     if s.stack.len() != 0 {
         panic(
-            "c_emit: operand stack not empty at ${where} (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
+            "c_emit: operand stack not empty at ${where} in `${s.function.name}` (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
         )
     }
 }

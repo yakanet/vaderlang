@@ -142,8 +142,14 @@ export cfg_to_bytecode :: fn(
     Prof.prof_end(Prof.PHASE_CFG_BUILD)
     // One check per pass, each naming the pass it follows.
     if opts.verify { verify_cfg(cfg, "build_cfg_project", diags) }
+    // Return a small tuple in registers instead of a heap object. BEFORE DCE:
+    // the `struct.new` that built the tuple becomes unread once the terminator
+    // names its fields, and DCE is what removes it — running after would leave
+    // the allocation and the pass would buy nothing. See `value_return.vader`.
+    scalarised :: scalarise_value_returns(cfg)
+    if opts.verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
-    dced :: eliminate_dead_cfg(cfg)
+    dced :: eliminate_dead_cfg(scalarised)
     Prof.prof_end(Prof.PHASE_CFG_DCE)
     if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)

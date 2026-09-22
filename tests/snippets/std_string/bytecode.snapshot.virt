@@ -11,10 +11,9 @@ type 8 array 9
 type 9 primitive u8
 type 10 primitive void
 type 11 array 2
-type 12 struct __Tuple_char_usize_8bd920da { _0:7,_1:4 }
-type 13 primitive u32
-type 14 primitive isize
-type 15 struct std_string_builder$StringBuilder { parts:11 }
+type 12 primitive u32
+type 13 primitive isize
+type 14 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "  Hello, World!  "
 string 1 "hello"
 string 2 "VADER"
@@ -35,9 +34,9 @@ import 1 byte_at std_core$byte_at result_type=9 param_types=2,4 param_mutable=0,
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 param_mutable=0 param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 at std_core$string$Index$at result_type=7 param_types=2,4 param_mutable=0,0 param_by_address= (string,usize) -> char
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,8,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
-impl 15 Display
+impl 14 Display
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -672,12 +671,12 @@ fn 13 std_string$to_upper (string) -> string
   local bs ref
   local n usize
   local i usize
-  local __tup_0 ref
   local c char
   local w usize
   local $cast_19 char
+  local $call_elem_23 usize
   array.new 11 0   ; string[][]
-  struct.new 15   ; std_string_builder$StringBuilder
+  struct.new 14   ; std_string_builder$StringBuilder
   local.set 1   ; sb
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
@@ -695,23 +694,20 @@ fn 13 std_string$to_upper (string) -> string
         local.get 2   ; bs
         local.get 4   ; i
         call 19   ; std_string$utf8_decode_len
-        local.set 5   ; __tup_0
-        local.field 5 12 0   ; __tup_0._0
-        ref.cast 7   ; -> char
-        local.set 6   ; c
-        local.field 5 12 1   ; __tup_0._1
-        ref.cast 4   ; -> usize
-        local.set 7   ; w
-        local.get 6   ; c
+        local.set 8   ; $call_elem_23
+        local.set 5   ; c
+        local.get 8   ; $call_elem_23
+        local.set 6   ; w
+        local.get 5   ; c
         char.to_i32
         call 20   ; std_string$to_upper_cp
         u32.to_char
-        local.set 8   ; $cast_19
+        local.set 7   ; $cast_19
         local.get 1   ; sb
-        local.get 8   ; $cast_19
+        local.get 7   ; $cast_19
         call 29   ; std_string_builder$append_char
         local.get 4   ; i
-        local.get 7   ; w
+        local.get 6   ; w
         i64.add
         local.set 4   ; i
         br $L1
@@ -728,12 +724,12 @@ fn 14 std_string$to_lower (string) -> string
   local bs ref
   local n usize
   local i usize
-  local __tup_0 ref
   local c char
   local w usize
   local $cast_19 char
+  local $call_elem_23 usize
   array.new 11 0   ; string[][]
-  struct.new 15   ; std_string_builder$StringBuilder
+  struct.new 14   ; std_string_builder$StringBuilder
   local.set 1   ; sb
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
@@ -751,23 +747,20 @@ fn 14 std_string$to_lower (string) -> string
         local.get 2   ; bs
         local.get 4   ; i
         call 19   ; std_string$utf8_decode_len
-        local.set 5   ; __tup_0
-        local.field 5 12 0   ; __tup_0._0
-        ref.cast 7   ; -> char
-        local.set 6   ; c
-        local.field 5 12 1   ; __tup_0._1
-        ref.cast 4   ; -> usize
-        local.set 7   ; w
-        local.get 6   ; c
+        local.set 8   ; $call_elem_23
+        local.set 5   ; c
+        local.get 8   ; $call_elem_23
+        local.set 6   ; w
+        local.get 5   ; c
         char.to_i32
         call 21   ; std_string$to_lower_cp
         u32.to_char
-        local.set 8   ; $cast_19
+        local.set 7   ; $cast_19
         local.get 1   ; sb
-        local.get 8   ; $cast_19
+        local.get 7   ; $cast_19
         call 29   ; std_string_builder$append_char
         local.get 4   ; i
-        local.get 7   ; w
+        local.get 6   ; w
         i64.add
         local.set 4   ; i
         br $L1
@@ -1032,7 +1025,7 @@ fn 18 std_string$is_white_byte (u8) -> bool
   return
 end
 
-fn 19 std_string$utf8_decode_len (ref,usize) -> ref
+fn 19 std_string$utf8_decode_len (ref,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
@@ -1043,7 +1036,6 @@ fn 19 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 12   ; __Tuple_char_usize_8bd920da
   return
 end
 
@@ -1585,7 +1577,7 @@ end
 fn 29 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 7   ; std_core$utf8_encode
@@ -1606,7 +1598,7 @@ fn 30 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1618,7 +1610,7 @@ fn 30 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 15 0   ; arg 0.parts
+    local.field 0 14 0   ; arg 0.parts
     i32.const 0
     array.get 11   ; string[][]
     ref.cast 2   ; -> string
@@ -1626,7 +1618,7 @@ fn 30 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1661,7 +1653,7 @@ fn 30 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 15 0   ; arg 0.parts
+  local.field 0 14 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

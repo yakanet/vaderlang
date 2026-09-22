@@ -66,6 +66,10 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
         .is_extern    = f.is_extern,
         .is_exported  = f.is_exported,
         .extern_name  = f.extern_name,
+        // Carried over explicitly, like every other field here: this rebuild
+        // names each one, so a field left out is silently reset to its default
+        // — and for an arity that means the backend emits the wrong signature.
+        .scalarised_results = f.scalarised_results,
     }
 }
 
@@ -147,10 +151,9 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             })
             // Side-effecting dst must keep its slot.
             if instruction_has_side_effect(ins) {
-                d :: dst_of(ins)
-                if d is LocalId {
-                    if usize(d) < n { referenced[usize(d)] = true }
-                }
+                for_each_written_local(ins, (l: LocalId) -> {
+                    if usize(l) < n { referenced[usize(l)] = true }
+                })
             }
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
@@ -212,6 +215,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
         .is_extern   = f.is_extern,
         .is_exported = f.is_exported,
         .extern_name = f.extern_name,
+        .scalarised_results = f.scalarised_results,
     }
 }
 

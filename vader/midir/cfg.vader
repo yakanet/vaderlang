@@ -61,6 +61,14 @@ export CFGFunction :: struct {
     is_extern:   bool
     /// True when @export-decorated. Drives the bytecode export table.
     is_exported: bool
+    /// When non-empty, the values this fn hands back INSTEAD of the single
+    /// object `return_type` names — set by `scalarise_value_returns`.
+    ///
+    /// `return_type` is deliberately left alone: it is what the callee's
+    /// composite still IS, and a caller that needs the object rebuilds it from
+    /// these. The bytecode signature is what carries the arity to the backends,
+    /// and it is built from this list when it is set.
+    scalarised_results: Type[] = []
 }
 
 /// Declaration of a bodyless fn (typically @extern). Bytecode emit

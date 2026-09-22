@@ -456,8 +456,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             for_each_read_local(ins, (l: LocalId) -> {
                 if !d.contains(l) { u.add(l) }
             })
-            ds :: dst_of(ins)
-            if ds != null { d.add(ds) }
+            for_each_written_local(ins, (l: LocalId) -> { d.add(l) })
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
             if !d.contains(l) { u.add(l) }
@@ -524,8 +523,28 @@ sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
 
 // ---- dst extraction -------------------------------------------------------
 
+/// Apply `visit` to every local the instruction writes.
+///
+/// The sibling of `for_each_read_local`, and the one to reach for: `dst_of`
+/// answers for ONE local, so a call handing back several is invisible to it —
+/// which reads as "this local is never written" to anything walking definitions.
+export for_each_written_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -> void {
+    if ins is InstrCall {
+        for d in ins.dsts {
+            visit(d)
+        }
+        return
+    }
+    single :: dst_of(ins)
+    if single != null {
+        visit(single)
+    }
+}
+
 /// The local an instruction writes to, or `null` for pure side-
-/// effecting ops (FieldSet, ArraySet, …) and zero-result calls.
+/// effecting ops (FieldSet, ArraySet, …), zero-result calls — and a call
+/// handing back SEVERAL values, where there is no single answer. Walk
+/// `for_each_written_local` when every written local matters.
 export dst_of :: fn(ins: Instruction) -> LocalId | null {
     match ins {
         is InstrConst             -> { return ins.dst }

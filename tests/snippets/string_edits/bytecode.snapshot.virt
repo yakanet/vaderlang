@@ -11,8 +11,7 @@ type 8 primitive void
 type 9 primitive char
 type 10 array 2
 type 11 primitive isize
-type 12 struct __Tuple_char_usize_8bd920da { _0:9,_1:4 }
-type 13 struct std_string_builder$StringBuilder { parts:10 }
+type 12 struct std_string_builder$StringBuilder { parts:10 }
 string 0 "hello world"
 string 1 "o"
 string 2 "0"
@@ -34,7 +33,7 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 pa
 import 2 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,7,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
-impl 13 Display
+impl 12 Display
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -383,7 +382,7 @@ fn 12 std_string$repeat (string,usize) -> string
   local sb ref
   local _ usize
   array.new 10 0   ; string[][]
-  struct.new 13   ; std_string_builder$StringBuilder
+  struct.new 12   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
   local.set 3   ; _
@@ -530,7 +529,7 @@ fn 15 std_string$join (ref,string) -> string
   local i usize
   local $idx_12 string
   array.new 10 0   ; string[][]
-  struct.new 13   ; std_string_builder$StringBuilder
+  struct.new 12   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   local.get 0   ; arg 0
   array.len
@@ -576,9 +575,9 @@ fn 16 std_string$index_of (string,char,usize) -> isize
   local sb ref
   local n usize
   local i usize
-  local __tup_0 ref
   local cp char
   local width usize
+  local $call_elem_21 usize
   local.get 0   ; arg 0
   call.import 2   ; std_core$bytes
   local.tee 3   ; sb
@@ -595,14 +594,11 @@ fn 16 std_string$index_of (string,char,usize) -> isize
         local.get 3   ; sb
         local.get 5   ; i
         call 18   ; std_string$utf8_decode_len
-        local.set 6   ; __tup_0
-        local.field 6 12 0   ; __tup_0._0
-        ref.cast 9   ; -> char
-        local.set 7   ; cp
-        local.field 6 12 1   ; __tup_0._1
-        ref.cast 4   ; -> usize
-        local.set 8   ; width
-        local.get 7   ; cp
+        local.set 8   ; $call_elem_21
+        local.set 6   ; cp
+        local.get 8   ; $call_elem_21
+        local.set 7   ; width
+        local.get 6   ; cp
         local.get 1   ; arg 1
         i32.eq
         if $L3 void
@@ -611,7 +607,7 @@ fn 16 std_string$index_of (string,char,usize) -> isize
           return
         end $L3
         local.get 5   ; i
-        local.get 8   ; width
+        local.get 7   ; width
         i64.add
         local.set 5   ; i
         br $L1
@@ -691,7 +687,7 @@ fn 17 std_string$byte_find (string,string,usize) -> isize
   return
 end
 
-fn 18 std_string$utf8_decode_len (ref,usize) -> ref
+fn 18 std_string$utf8_decode_len (ref,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
@@ -702,7 +698,6 @@ fn 18 std_string$utf8_decode_len (ref,usize) -> ref
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
-  struct.new 12   ; __Tuple_char_usize_8bd920da
   return
 end
 
@@ -1003,7 +998,7 @@ fn 22 std_string$is_utf8_continuation (u8) -> bool
 end
 
 fn 23 std_string_builder$append (ref,string) -> void
-  local.field 0 13 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 2   ; string[]
   return
@@ -1018,7 +1013,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 13 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1030,7 +1025,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 13 0   ; arg 0.parts
+    local.field 0 12 0   ; arg 0.parts
     i32.const 0
     array.get 10   ; string[][]
     ref.cast 2   ; -> string
@@ -1038,7 +1033,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 13 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1073,7 +1068,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 13 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

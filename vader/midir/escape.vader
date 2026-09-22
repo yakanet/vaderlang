@@ -210,7 +210,19 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         new_blocks.push(BasicBlock { .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span })
     }
     if !mutated { return fn_ }
-    return CFGFunction { .mangled = fn_.mangled, .params = fn_.params, .return_type = fn_.return_type, .locals = fn_.locals, .blocks = new_blocks, .entry = fn_.entry, .origin = fn_.origin, .extern_name = fn_.extern_name, .is_extern = fn_.is_extern, .is_exported = fn_.is_exported }
+    return CFGFunction {
+        .mangled = fn_.mangled,
+        .params = fn_.params,
+        .return_type = fn_.return_type,
+        .locals = fn_.locals,
+        .blocks = new_blocks,
+        .entry = fn_.entry,
+        .origin = fn_.origin,
+        .extern_name = fn_.extern_name,
+        .is_extern = fn_.is_extern,
+        .is_exported = fn_.is_exported,
+        .scalarised_results = fn_.scalarised_results,
+    }
 }
 
 // ---- loop-carried detection ----------------------------------------------
@@ -229,8 +241,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
         for b_id in body {
             block :: fn_.blocks[i32(b_id)]
             for ins in block.instructions {
-                d :: dst_of(ins)
-                if d != null { defs_in_body.add(d) }
+                for_each_written_local(ins, (l: LocalId) -> { defs_in_body.add(l) })
             }
         }
         for l in live.live_in[i32(header)] {

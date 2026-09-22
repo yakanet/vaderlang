@@ -41,7 +41,7 @@ AST :: import "toolchain/ast"
 // ============================================================================
 
 reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
-    signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, ctx)
+    signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, cfg_fn.scalarised_results, ctx)
     function_index :: i32(ctx.functions.len())
     empty_body: Op[]!: []
     empty_debug: (DebugPos | null)[]!: []
@@ -96,7 +96,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
-    base :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
     // `@c_pointer` is read straight off the origin AST rather than threaded
     // through `CFGParam`: it exists only on an `@extern`, which has no body to
     // lower, so there is nothing for the intervening passes to carry it on.
@@ -238,7 +238,23 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
     }
 }
 
-build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx!) -> BcSignature {
+// The result slots of a scalarised return — one per value handed back.
+multi_result_slots :: fn(results: Type[], ctx: EmitterCtx!) -> BcResultSlots {
+    vals: ValType[]!: []
+    indices: i32[]!: []
+    for r in results {
+        vals.push(val_type_of_type(r))
+        indices.push(intern_type(r, ctx))
+    }
+    return BcResultSlots {
+        .results = vals,
+        .result_types = indices,
+    }
+}
+
+build_cfg_signature :: fn(
+    params: CFGParam[], return_type: Type, scalarised_results: Type[], ctx: EmitterCtx!,
+) -> BcSignature {
     params_val: ValType[]!: []
     param_types: i32[]!: []
     param_names: string[]!: []
@@ -249,7 +265,11 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
         param_names.push(p.name)
         param_mutable.push(is_mutable_slot(p.type))
     }
-    slots :: bc_result_slots(val_type_of_type(return_type), intern_type(return_type, ctx))
+    slots :: if scalarised_results.len() > 1 {
+        multi_result_slots(scalarised_results, ctx)
+    } else {
+        bc_result_slots(val_type_of_type(return_type), intern_type(return_type, ctx))
+    }
     return BcSignature {
         .params = params_val,
         .results = slots.results,
@@ -854,10 +874,19 @@ loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
 // return-coercion only sees the coarse ValType (`I64`) and would box `usize` as
 // `i64` — breaking `is usize`. An already-ref value (erased field) keeps its tag,
 // so it is excluded.
-emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, span: Span) -> void {
+emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Span) -> void {
     rv_type :: ctx.fn_.locals[usize(value)].type
     rv_val :: val_type_of_type(rv_type)
-    ret_val :: val_type_of_type(ctx.fn_.return_type)
+    // A scalarised return hands back each value under ITS OWN declared type, so
+    // that is what decides whether it needs boxing. Judging by `return_type`
+    // there would see the composite — a `ref` — and box every concrete element
+    // into a slot the signature says is an `i32`.
+    declared :: if ctx.fn_.scalarised_results.len() > index {
+        ctx.fn_.scalarised_results[index]
+    } else {
+        ctx.fn_.return_type
+    }
+    ret_val :: val_type_of_type(declared)
     erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
     concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
     if erased_return && concrete_prim {
@@ -882,7 +911,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
             if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
                 emit_get(ctx, v, t.span)
             }
-            emit_return_boxing(ctx, v, t.span)
+            emit_return_boxing(ctx, v, i, t.span)
         }
         // Fuse `<const> + Return → ReturnLit X` post-emit.
         body :: ctx.slot.body
