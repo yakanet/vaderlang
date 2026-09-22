@@ -108,7 +108,7 @@ export bc_single_result :: fn(sig: BcSignature) -> ValType {
         return ValType.Void
     }
     if sig.results.len() > 1 {
-        panic("bytecode: a multi-value result reached a single-value consumer")
+        panic("bytecode: `bc_single_result` reached a signature with ${sig.results.len()} results — this consumer was not taught about arity")
     }
     return sig.results[0]
 }
@@ -120,7 +120,7 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
         return 0
     }
     if sig.result_types.len() > 1 {
-        panic("bytecode: a multi-value result reached a single-value consumer")
+        panic("bytecode: `bc_single_result_type` reached a signature with ${sig.result_types.len()} results — this consumer was not taught about arity")
     }
     return sig.result_types[0]
 }

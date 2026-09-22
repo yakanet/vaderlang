@@ -49,11 +49,11 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
     for [id, m] in p.modules {
         new_fns: CFGFunction[]!: []
         for f in m.functions {
-            elements :: chosen[f.mangled]
-            scalarised :: if elements == null {
+            shape :: chosen[f.mangled]
+            scalarised :: if shape == null {
                 f
             } else {
-                rewrite_callee(f, elements)
+                rewrite_callee(f, shape.elements, shape.rebuilt != null)
             }
             new_fns.push(rewrite_call_sites(scalarised, chosen, by_symbol, callers))
         }
@@ -64,22 +64,42 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
 
 // ---- which functions ------------------------------------------------------
 
-// Mangle → the element types its return tuple carries.
+/// What one scalarised function hands back.
+ReturnShape :: struct {
+    /// The values that cross, tag excluded.
+    elements: Type[]
+    /// The struct each call site rebuilds from them, or null for a tuple — whose
+    /// elements ARE the value and need no object. Doubles as "carries a tag".
+    rebuilt: Type | null
+}
+
+// Mangle → the shape its return now carries.
 //
-// The signature walk comes FIRST and alone: on a project with no tuple return —
-// which is most of them — it answers in one pass over the function list, and the
-// instruction walk below never runs.
+// The TYPE walk comes FIRST and alone: both gates read `f.return_type` and
+// nothing else, so a project whose functions return neither a tuple nor a
+// nullable struct — which is most of them — answers in one pass over the
+// function list, and no block is ever touched.
 choose_functions :: fn(
     p: CFGProject, by_symbol: MutableMap<i32, string>!, callers: MutableSet<string>!,
-) -> MutableMap<string, Type[]> {
-    chosen :: MutableMap<string, Type[]> {}
+) -> MutableMap<string, ReturnShape> {
+    chosen :: MutableMap<string, ReturnShape> {}
     for [_, m] in p.modules {
         for f in m.functions {
             if f.origin.is_main || f.is_extern {
                 continue
             }
-            elements :: value_abi_tuple_elements(f.return_type) ?? continue
-            chosen[f.mangled] = elements
+            tuple :: value_abi_tuple_elements(f.return_type)
+            if tuple != null {
+                chosen[f.mangled] = ReturnShape { .elements = tuple, .rebuilt = null }
+                continue
+            }
+            // `S | null` built at every return — one more value than the tuple
+            // case, the tag, and a rebuild at each call site.
+            shape :: nullable_return_of(f) ?? continue
+            chosen[f.mangled] = ReturnShape {
+                .elements = shape.fields,
+                .rebuilt = shape.struct_type,
+            }
         }
     }
     if chosen.len() == 0 {
@@ -101,7 +121,7 @@ choose_functions :: fn(
 // both mangle and symbol id, because `midir/emit` resolves a callee either way
 // and a function answering to two names must be dropped under both.
 drop_functions_used_as_values :: fn(
-    p: CFGProject, chosen: MutableMap<string, Type[]>!, by_symbol: MutableMap<i32, string>,
+    p: CFGProject, chosen: MutableMap<string, ReturnShape>!, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>!,
 ) -> void {
     for e in p.vtable_entries {
@@ -110,13 +130,13 @@ drop_functions_used_as_values :: fn(
     // The one instruction walk. It also records which functions CALL a candidate,
     // so the rewrite below needs no second scan of the program to find them — a
     // caller recorded for a function later dropped is a harmless false positive,
-    // since the rewrite re-asks `callee_elements` per call.
+    // since the rewrite re-asks `callee_shape` per call.
     for [_, m] in p.modules {
         for f in m.functions {
             for b in f.blocks {
                 for ins in b.instructions {
                     if ins is InstrCall {
-                        if callee_elements(ins.callee, chosen, by_symbol) != null {
+                        if callee_shape(ins.callee, chosen, by_symbol) != null {
                             callers.add(f.mangled)
                         }
                         continue
@@ -129,7 +149,7 @@ drop_functions_used_as_values :: fn(
 }
 
 drop_if_taken_as_value :: fn(
-    ins: Instruction, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, Type[]>!,
+    ins: Instruction, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, ReturnShape>!,
 ) -> void {
     // @partial: only the three instructions that name a function WITHOUT
     // calling it matter here. Every other variant either calls directly (which
@@ -142,7 +162,7 @@ drop_if_taken_as_value :: fn(
 }
 
 drop_symbol :: fn(
-    sym: Symbol, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, Type[]>!,
+    sym: Symbol, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, ReturnShape>!,
 ) -> void {
     _ :: chosen.remove(sym.name)
     mangled :: by_symbol[sym.id]
@@ -158,7 +178,7 @@ drop_symbol :: fn(
 // mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
 // is how a call site keeps the old shape while its callee changed.
 fill_mangles_by_symbol_id :: fn(
-    p: CFGProject, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>!,
+    p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>!,
 ) -> void {
     for [_, m] in p.modules {
         for f in m.functions {
@@ -170,11 +190,11 @@ fill_mangles_by_symbol_id :: fn(
     }
 }
 
-/// The elements a call to `callee` now hands back, or null when it is not a
+/// The shape a call to `callee` now hands back, or null when it is not a
 /// scalarised function. Mirrors `midir/emit`'s resolution order.
-callee_elements :: fn(
-    callee: Symbol, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>,
-) -> Type[] | null {
+callee_shape :: fn(
+    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+) -> ReturnShape | null {
     direct :: chosen[callee.name]
     if direct != null {
         return direct
@@ -185,19 +205,24 @@ callee_elements :: fn(
 
 // ---- the callee -----------------------------------------------------------
 
-// Every `return <tuple>` becomes `return <element>, <element>…`.
-rewrite_callee :: fn(f: CFGFunction, elements: Type[]) -> CFGFunction {
+// Every `return` hands back the scalarised values instead of one object: the
+// tuple's elements, or — when `nullable` — the tag then the struct's fields.
+rewrite_callee :: fn(f: CFGFunction, elements: Type[], nullable: bool) -> CFGFunction {
     locals: CFGLocal[]!: []
     locals.push_all(f.locals)
     new_blocks: BasicBlock[]!: []
     for b in f.blocks {
-        new_blocks.push(rewrite_return_block(b, elements, locals))
+        new_blocks.push(if nullable {
+            rewrite_nullable_return(b, elements, locals)
+        } else {
+            rewrite_return_block(b, elements, locals)
+        })
     }
     return CFGFunction {
         ...f,
         .locals = locals,
         .blocks = new_blocks,
-        .scalarised_results = elements,
+        .scalarised_results = if nullable { nullable_results(elements) } else { elements },
     }
 }
 
@@ -208,16 +233,16 @@ rewrite_return_block :: fn(
     if t !is TermReturn {
         return b
     }
-    if t.values.len() != 1 {
-        return b
-    }
-    returned :: t.values[0]
+    returned :: term_return_single(t) ?? return b
     // The common shape: the tuple is built right here, so its field locals ARE
     // the values to hand back and the `struct.new` becomes unread — DCE drops
     // it, and that is where the allocation goes.
-    built :: last_struct_new(b.instructions, returned)
-    if built != null && built.len() == elements.len() {
-        return BasicBlock { ...b, .terminator = TermReturn { .span = t.span, .values = built } }
+    built :: return_source(b.instructions, returned)
+    if built is ReturnsStruct && built.fields.len() == elements.len() {
+        return BasicBlock {
+            ...b,
+            .terminator = TermReturn { .span = t.span, .values = built.fields },
+        }
     }
     // Otherwise the object came from elsewhere (a parameter, another call). Read
     // its fields out before returning them: correct everywhere, and it costs the
@@ -243,28 +268,11 @@ rewrite_return_block :: fn(
     }
 }
 
-// The field locals of the last `struct.new` writing `dst` in this block, or null
-// when the block's last definition of `dst` is something else.
-last_struct_new :: fn(instrs: Instruction[], dst: LocalId) -> LocalId[] | null {
-    found: LocalId[] | null = null
-    for ins in instrs {
-        d :: dst_of(ins)
-        if d == null {
-            continue
-        }
-        if d != dst {
-            continue
-        }
-        found = if ins is InstrStructNew { ins.fields } else { null }
-    }
-    return found
-}
-
 // ---- the call sites -------------------------------------------------------
 
 // Every call to a scalarised function receives N values instead of one object.
 rewrite_call_sites :: fn(
-    f: CFGFunction, chosen: MutableMap<string, Type[]>, by_symbol: MutableMap<i32, string>,
+    f: CFGFunction, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>,
 ) -> CFGFunction {
     if !callers.contains(f.mangled) {
@@ -272,58 +280,145 @@ rewrite_call_sites :: fn(
     }
     locals: CFGLocal[]!: []
     locals.push_all(f.locals)
-    new_blocks: BasicBlock[]!: []
+    // A rewritten block keeps `b.id`, so `kept` stays indexed by id — which is
+    // how `emit.vader` reads it (`blocks[usize(id)]`). A nullable rebuild needs
+    // extra blocks; they take fresh ids ABOVE every existing one, in the order
+    // they are minted, so appending `extra` keeps the whole array indexed.
+    kept: BasicBlock[]!: []
+    extra: BasicBlock[]!: []
+    next_id := i32(f.blocks.len())
     for b in f.blocks {
-        instrs: Instruction[]!: []
-        for ins in b.instructions {
-            if ins !is InstrCall {
-                instrs.push(ins)
-                continue
-            }
-            if ins.dsts.len() != 1 {
-                instrs.push(ins)
-                continue
-            }
-            elements :: callee_elements(ins.callee, chosen, by_symbol)
-            if elements == null {
-                instrs.push(ins)
-                continue
-            }
+        next_id = emit_rewritten_block(b, chosen, by_symbol, locals, kept, extra, next_id)
+    }
+    kept.push_all(extra)
+    return CFGFunction { ...f, .locals = locals, .blocks = kept }
+}
+
+// Rewrite one block's calls, pushing the block that keeps `b.id` onto `kept` and
+// any block a nullable rebuild needs onto `extra`. Returns the next free id.
+//
+// A nullable rebuild closes the current block on a branch and continues in a
+// fresh one, so a block holding two such calls becomes seven.
+emit_rewritten_block :: fn(
+    b: BasicBlock, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    locals: CFGLocal[]!, kept: BasicBlock[]!, extra: BasicBlock[]!, next_id: i32,
+) -> i32 {
+    id := next_id
+    current := b.id
+    instrs: Instruction[]! = []
+    for ins in b.instructions {
+        if ins !is InstrCall {
+            instrs.push(ins)
+            continue
+        }
+        dst :: call_single_dst(ins)
+        if dst == null {
+            instrs.push(ins)
+            continue
+        }
+        shape :: callee_shape(ins.callee, chosen, by_symbol)
+        if shape == null {
+            instrs.push(ins)
+            continue
+        }
+        // A nullable callee hands back ONE MORE value than it has fields: the
+        // tag comes first, and the destinations have to match the arity the
+        // signature declares, not the field count.
+        fields: LocalId[]!: []
+        if shape.rebuilt != null {
+            fields.push(add_local(locals, "call_tag", TY_TAG))
+        }
+        for e in shape.elements {
+            fields.push(add_local(locals, "call_elem", e))
+        }
+        instrs.push(InstrCall { ...ins, .dsts = fields })
+        if shape.rebuilt == null {
             // The object is rebuilt on the spot. A caller that only destructures
             // it leaves the `struct.new` unread — DCE removes it, and nothing was
-            // allocated. A caller that stores or passes the object keeps it and
-            // pays what it already paid (§7.3 of the plan).
-            object :: ins.dsts[0]
-            fields: LocalId[]!: []
-            for i in 0..<elements.len() {
-                fields.push(add_local(locals, "call_elem", elements[i]))
-            }
-            instrs.push(InstrCall { ...ins, .dsts = fields })
+            // allocated. A caller that keeps the object pays what it already paid.
             instrs.push(InstrStructNew {
                 .span = ins.span,
-                .dst = object,
+                .dst = dst,
                 .type = ins.type,
                 .fields = fields,
                 .stack = false,
             })
+            continue
         }
-        new_blocks.push(BasicBlock { ...b, .instructions = forward_struct_fields(instrs) })
+        // Nullable: the tag decides between `null` and the rebuilt struct, so the
+        // block ends here and the rest continues in a join block.
+        absent_id :: BlockId(id)
+        present_id :: BlockId(id + 1)
+        join_id :: BlockId(id + 2)
+        id = id + 3
+        is_absent :: add_local(locals, "absent_tag", TY_BOOL)
+        zero :: const_i32(instrs, locals, 0, ins.span)
+        instrs.push(InstrBinOp {
+            .span = ins.span,
+            .dst = is_absent,
+            .op = LoweredBinaryOp.Eq,
+            .lhs = fields[0],
+            .rhs = zero,
+            .type = TY_BOOL,
+        })
+        place(kept, extra, current, b.id, BasicBlock {
+            .id = current,
+            .instructions = forward_struct_fields(instrs),
+            .terminator = TermCondBranch {
+                .span = ins.span,
+                .cond = is_absent,
+                .then_block = absent_id,
+                .else_block = present_id,
+                .join = join_id,
+            },
+            .span = b.span,
+        })
+        extra.push(absent_arm(ins, dst, absent_id, join_id, b.span))
+        extra.push(present_arm(ins, dst, fields, shape.rebuilt, present_id, join_id, b.span))
+        current = join_id
+        instrs = []
     }
-    return CFGFunction { ...f, .locals = locals, .blocks = new_blocks }
+    place(kept, extra, current, b.id, BasicBlock {
+        .id = current,
+        .instructions = forward_struct_fields(instrs),
+        .terminator = b.terminator,
+        .span = b.span,
+    })
+    return id
+}
+
+// The block that kept the original id goes to `kept`, which stays indexed by id;
+// every block minted here goes to `extra`, appended after them.
+place :: fn(
+    kept: BasicBlock[]!, extra: BasicBlock[]!, id: BlockId, original: BlockId, b: BasicBlock,
+) -> void {
+    if id == original {
+        kept.push(b)
+        return
+    }
+    extra.push(b)
 }
 
 // Read a field straight off the value that built it, within one block.
 //
-// This is what makes the pass pay. Rebuilding the object at the call site keeps
-// every caller correct, but on its own it only MOVES the allocation from callee
-// to caller. A caller that just destructures reads `_0` and `_1` back out of the
-// object it was just handed the pieces of, and those reads become moves from the
+// This is what makes the TUPLE case pay. Rebuilding the object at the call site
+// keeps every caller correct, but on its own it only MOVES the allocation from
+// callee to caller. A caller that just destructures reads the fields back out of
+// the object it was handed the pieces of, and those reads become moves from the
 // pieces — leaving the `struct.new` unread for DCE to remove. A caller that does
 // anything else with the object keeps it, and pays what it already paid.
 //
-// Intra-block and conservative, the same rules as `array_load_forward`: a
-// redefinition of the object local or of a field local drops the record, and the
-// object is tracked only from the `struct.new` that wrote it.
+// It does NOT reach the nullable case, on two counts: `tuple_field_index` only
+// follows `_N`, and the rebuild sits in its own block while the reads are in the
+// join. What pays there is escape analysis, which stack-places the rebuilt
+// object — the callee's heap allocation is gone either way.
+//
+// Intra-block and conservative: a redefinition of the object local or of a field
+// local drops the record, and the object is tracked only from the `struct.new`
+// that wrote it. Unlike `array_load_forward` it does NOT clear on a
+// side-effecting instruction, because a tuple field cannot be written (T3008)
+// and the structs this pass admits are built here and never escape before the
+// read — that is the assumption to revisit before widening it to named structs.
 forward_struct_fields :: fn(instrs: Instruction[]) -> Instruction[] {
     built :: MutableMap<i32, LocalId[]> {}
     out: Instruction[]!: []
@@ -389,7 +484,7 @@ drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>!, local: LocalId) 
 }
 
 // `_0` → 0. Negative when the name is not a tuple position — a named struct
-// field, which this pass never builds.
+// field, which only the nullable path builds, and whose reads this leaves alone.
 tuple_field_index :: fn(field: string) -> i32 {
     if !field.starts_with("_") {
         return -1

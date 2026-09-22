@@ -166,10 +166,17 @@ export value_abi_tuple_elements :: fn(t: Type) -> Type[] | null {
     return t.elements
 }
 
-// Summed size of `members` as leaves, or -1 when one disqualifies the whole or
-// the total passes the bound. A tuple's elements and a struct's fields are the
-// same question asked of two carriers.
-value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
+/// Summed size of `members` as leaves, or -1 when one disqualifies the whole or
+/// the total passes the bound.
+///
+/// A tuple's elements, a struct's fields and a scalarised return's results are
+/// the same question asked of three carriers — `midir/value_return` asks it of
+/// the third, so that no second answer to "does this fit in registers" exists to
+/// drift from this one.
+///
+/// @param members  the leaves to sum, in the order they cross.
+/// @return         the total byte size, or -1.
+export value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
     if members.len() == 0 {
         return -1
     }

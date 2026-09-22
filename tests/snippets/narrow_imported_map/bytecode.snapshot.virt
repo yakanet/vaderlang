@@ -15,16 +15,15 @@ type 12 union 10,0
 type 13 struct std_collections$MutableMap__i32__i32___Wrap { ekeys:14,evals:15,index:14,mask:3,size:3,tombs:3 }
 type 14 array 1
 type 15 array 10
-type 16 union 0,17
+type 16 struct snippet_lib$Wrap { items:14 }
 type 17 struct snippet_lib$Out { first:1 }
-type 18 struct snippet_lib$Wrap { items:14 }
-type 19 primitive isize
-type 20 union 1,0,18
+type 18 primitive isize
+type 19 union 1,0,16
 string 0 "null"
 string 1 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=1,8,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,8,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 ByteAccess
 impl 11 Index
 impl 11 IndexSet
@@ -40,9 +39,10 @@ fn 0 snippet$main () -> i32
   local $arr_0 ref
   local $arr_1 ref
   local $arr_2 ref
-  local r any
+  local $call_14 any
   local __off_1 usize
   local $cast_26 i64
+  local $call_elem_31 i32
   array.new 14 0   ; i32[][]
   local.set 0   ; $arr_0
   array.new 15 0   ; ref[][]
@@ -60,7 +60,7 @@ fn 0 snippet$main () -> i32
   i32.const 42
   i32.const 7
   array.new 14 2   ; i32[][]
-  struct.new 18   ; snippet_lib$Wrap
+  struct.new 16   ; snippet_lib$Wrap
   local.set 1   ; $arr_1
   local.get 0   ; $arr_0
   i32.const 1
@@ -69,19 +69,30 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $arr_0
   i32.const 1
   call 17   ; snippet_lib$pick
-  local.tee 3   ; r
-  type_check 0   ; null
+  local.set 6   ; $call_elem_31
+  i32.const 0
+  i32.eq
   if $L0 void
+    null.const
+    local.set 3   ; $call_14
+  else
+    local.get 6   ; $call_elem_31
+    struct.new_stack 17   ; snippet_lib$Out
+    local.set 3   ; $call_14
+  end $L0
+  local.get 3   ; $call_14
+  type_check 0   ; null
+  if $L1 void
     string.const 0   ; "null"
     call 8   ; std_io$println__string
     return.lit i32.const 1
-  end $L0
+  end $L1
   i64.const 20
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; $arr_0
   i64.const 0
   local.set 4   ; __off_1
-  local.get 3   ; r
+  local.get 3   ; $call_14
   ref.cast 17   ; -> snippet_lib$Out
   struct.get 17 0   ; snippet_lib$Out.first
   ref.cast 1   ; -> i32
@@ -821,32 +832,35 @@ fn 16 std_collections$get__i32__Any (ref,i32) -> any
   return
 end
 
-fn 17 snippet_lib$pick (ref,i32) -> any
+fn 17 snippet_lib$pick (ref,i32) -> (i32,i32)
   local v any
+  local $idx_12 i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 9   ; std_collections$MutableMap$Index$at__i32__Any
   local.tee 2   ; v
   type_check 0   ; null
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    i32.const 0
     return
   end $L0
   local.get 2   ; v
-  type_check 18   ; snippet_lib$Wrap
+  type_check 16   ; snippet_lib$Wrap
   bool.not
   if $L1 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    i32.const 0
     return
   end $L1
   local.get 2   ; v
-  ref.cast 18   ; -> snippet_lib$Wrap
-  struct.get 18 0   ; snippet_lib$Wrap.items
+  ref.cast 16   ; -> snippet_lib$Wrap
+  struct.get 16 0   ; snippet_lib$Wrap.items
   i32.const 0
   load_slot_i32
-  struct.new 17   ; snippet_lib$Out
+  local.set 3   ; $idx_12
+  i32.const 1
+  local.get 3   ; $idx_12
   return
 end
 

@@ -899,9 +899,11 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
             }
             emit_return_boxing(ctx, v, i, t.span)
         }
-        // Fuse `<const> + Return → ReturnLit X` post-emit.
+        // Fuse `<const> + Return → ReturnLit X` post-emit. Only for a lone
+        // value: `ReturnLit` carries ONE literal, so on a scalarised return it
+        // would keep the last and drop the rest.
         body :: ctx.slot.body
-        if body.len() > 0 {
+        if body.len() > 0 && term_return_single(t) != null {
             last :: body[body.len() - 1]
             cv :: const_op_of(last)
             if cv !is null {

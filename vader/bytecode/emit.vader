@@ -36,6 +36,16 @@ Lo :: import "vader/lower"
 /// Returning the rewritten body keeps the by-value rebuild
 /// contract identical to `run_bc_peephole`.
 export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
+    // `ReturnLit` carries ONE literal, so it can only stand in for a return that
+    // hands back one value. A scalarised return leaves several on the stack and
+    // the fold would keep the last and drop the rest.
+    if bc_result_arity(function.signature) > 1 {
+        return BcPeepholeOut {
+            .body = function.body,
+            .jump_table = function.jump_table,
+            .debug = function.debug,
+        }
+    }
     body :: function.body
     n :: body.len()
     out: Op[]!: []
@@ -230,6 +240,7 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
 /// @param function  the emitted fn to rewrite (not mutated — see the return).
 /// @return          the rewritten body with `jump_table` / `debug` remapped.
 export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
+    multi_value :: bc_result_arity(function.signature) > 1
     body :: function.body
     n :: body.len()
     // Per-slot set / get / tee counts over the original body. They keep the
@@ -323,8 +334,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
         // Return.lit fold — `<const>.const X ; Return` → `ReturnLit X`.
         // Branches don't target the collapsed Return op (terminator) so
-        // depth-safety holds.
-        if op is Return {
+        // depth-safety holds. Skipped on a scalarised return: `ReturnLit` carries
+        // ONE literal and the fold would keep the last value and drop the rest.
+        if op is Return && !multi_value {
             cur_len :: out.len()
             if cur_len > 0 {
                 prev :: out[cur_len - 1]
