@@ -81,7 +81,18 @@ export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
     if symbol.kind != SymbolKind.Enum {
         return null
     }
-    return unwrap_enum_type(mk_struct(symbol, [], immutable = false), ctx)
+    placeholder :: mk_struct(symbol, [], immutable = false)
+    // `unwrap_enum_type` reads `ctx.typed.decl_types`, which is the CURRENT
+    // module's — and a core enum is declared in std/core, so it is never there.
+    // Sweep the project's modules for the one that typed it; `Symbol.id` is
+    // unique project-wide, so at most one answers.
+    for [_, program] in ctx.project.typed.modules {
+        real :: program.decl_types[symbol.id]
+        if real is EnumType {
+            return real
+        }
+    }
+    return placeholder
 }
 
 /// The pair an `Iterator<T>.next` hands back once the wrapper is gone: the
