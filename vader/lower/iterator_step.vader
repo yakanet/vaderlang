@@ -1,0 +1,164 @@
+// vader/lower/iterator_step — what one `Iterator.next` hands back, and how to
+// read it.
+//
+// `for x in it`, the fusion path and the generator state machine all build the
+// same three things: the type `next` returns, the test for "the iteration is
+// over", and the element it carries. They used to spell those out three times;
+// this file owns them once.
+//
+// It also holds BOTH shapes while the stdlib migrates from the `Yield<T> | null`
+// wrapper to the `[T, Continuation]` pair. The switch needs no flag and no
+// version: the wrapper's own presence decides. A stdlib that still declares
+// `Yield` keeps the old shape; the commit that drops it moves every site at
+// once. Step 3 of `.claude/plans/2026-09-22-tuple-value-abi.md` §25 deletes the
+// wrapper arm from each function below.
+
+module "vader/lower"
+
+import "vader/types"
+
+/// How this project's `Iterator<T>.next` hands a step back.
+export StepShape :: struct {
+    /// The type `next` returns — `[T, Continuation]`, or `Yield<T> | null`.
+    type: Type
+    /// The `Continuation` enum on the pair shape, null on the wrapper shape.
+    cont: Type | null
+    /// The `Yield<T>` struct on the wrapper shape, null on the pair shape.
+    wrapper: Type | null
+}
+
+/// Resolve the step shape for an iterator over `element`.
+///
+/// The wrapper is probed FIRST and its presence is the whole decision — see the
+/// file header.
+///
+/// @param ctx      the fn-body context.
+/// @param element  the iterator's element type.
+/// @return         the shape, or null when neither `Yield` nor `Continuation` is
+///                 reachable (std/core not loaded).
+export resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
+    wrapper :: find_core_type(ctx, STRUCT_YIELD, build_one(element))
+    if wrapper != null {
+        return StepShape {
+            .type = union_of_yield_null(wrapper),
+            .cont = null,
+            .wrapper = wrapper,
+        }
+    }
+    cont :: find_core_enum(ctx, ENUM_CONTINUATION) ?? return null
+    return StepShape {
+        .type = iterator_step_type(element, cont),
+        .cont = cont,
+        .wrapper = null,
+    }
+}
+
+/// The test that says the iteration is over.
+///
+/// `step` is evaluated once by the caller (it binds a local first), so naming it
+/// twice across this and `step_value` is free.
+///
+/// @param shape  the resolved step shape.
+/// @param step   an expression naming the step — normally a `LoweredIdent`.
+/// @param span   the source span to attribute the test to.
+/// @param ctx    the fn-body context, for the variant lookup.
+/// @return       a `bool`-typed expression.
+export step_is_done :: fn(
+    shape: StepShape, step: LoweredExpr, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr {
+    cont :: shape.cont
+    if cont == null {
+        return LoweredTypeCheck {
+            .span = span, .type = TY_BOOL, .value = step, .check_type = TY_NULL,
+        }
+    }
+    return LoweredBinary {
+        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+        .left = LoweredFieldAccess {
+            .span = span, .type = cont, .target = step, .field = "_1",
+        },
+        .right = enum_variant_literal(cont, CONTINUATION_STOP, span, ctx),
+    }
+}
+
+/// The element `step` carries.
+///
+/// @param shape    the resolved step shape.
+/// @param step     an expression naming the step.
+/// @param element  the iterator's element type.
+/// @param span     the source span to attribute the read to.
+/// @return         an `element`-typed expression.
+export step_value :: fn(
+    shape: StepShape, step: LoweredExpr, element: Type, span: Span,
+) -> LoweredExpr {
+    wrapper :: shape.wrapper
+    if wrapper == null {
+        return LoweredFieldAccess {
+            .span = span, .type = element, .target = step, .field = "_0",
+        }
+    }
+    return LoweredFieldAccess {
+        .span = span, .type = element,
+        .target = LoweredCast { .span = span, .type = wrapper, .value = step },
+        .field = "value",
+    }
+}
+
+/// The step a generator returns when it yields `value`.
+///
+/// @param shape  the resolved step shape.
+/// @param value  the yielded element.
+/// @param span   the source span.
+/// @param ctx    the fn-body context.
+/// @return       a `shape.type`-typed expression.
+export step_of_value :: fn(
+    shape: StepShape, value: LoweredExpr, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr {
+    wrapper :: shape.wrapper
+    if wrapper != null {
+        return build_core_struct_lit(ctx, wrapper, [
+            LoweredStructLitField { .name = "value", .value = value },
+        ], span)
+    }
+    return step_pair(shape, value, CONTINUATION_CONTINUE, span, ctx)
+}
+
+/// The step a generator returns when it is done.
+///
+/// On the pair shape the element beside `Stop` is never read, and a generator
+/// has no `T` of its own to hand over — so it pairs the type's zero. That is
+/// expressible HERE and not in source: a ref slot takes NULL whatever `T`
+/// promises.
+///
+/// @param shape    the resolved step shape.
+/// @param element  the iterator's element type.
+/// @param span     the source span.
+/// @param ctx      the fn-body context.
+/// @return         a `shape.type`-typed expression.
+export step_of_done :: fn(
+    shape: StepShape, element: Type, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr {
+    if shape.wrapper != null {
+        return LoweredNullLit { .span = span, .type = TY_NULL }
+    }
+    return step_pair(shape, zero_value_lit(span, element), CONTINUATION_STOP, span, ctx)
+}
+
+// `[value, Continuation.<variant>]`. A tuple lowers to the `_0` / `_1` struct
+// layout (mirrors `lower_seq_lit`).
+step_pair :: fn(
+    shape: StepShape, value: LoweredExpr, variant: string, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr {
+    cont :: shape.cont ?? return value
+    return LoweredStructLit {
+        .span = span,
+        .type = shape.type,
+        .fields = [
+            LoweredStructLitField { .name = "_0", .value = value },
+            LoweredStructLitField {
+                .name = "_1",
+                .value = enum_variant_literal(cont, variant, span, ctx),
+            },
+        ],
+    }
+}

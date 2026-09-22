@@ -30,7 +30,11 @@ GenBuild :: struct {
     self_sym: Symbol
     state_ty: Type            // the `g$State` StructType (self's type)
     i32_ty:   Type
-    yield_ty: Type            // `Yield<T>` StructType
+    /// How this generator's `next` hands a step back. Null on the async driver,
+    /// which shares this builder but completes with `T | Suspended`.
+    step:       StepShape | null = null
+    /// The generator's element type — what a done step pairs its zero with.
+    element_ty: Type = TY_VOID
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt[]![]!
@@ -129,18 +133,30 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
         .right = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
     }
 
-// `return Yield<T> { .value = e }`.
-gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt =
-    LoweredReturn {
-        .span = gb.span,
-        .value = build_core_struct_lit(gb.fn_ctx, gb.yield_ty, [
-            LoweredStructLitField { .name = "value", .value = e },
-        ], gb.span),
+// `return <step carrying e>`.
+gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt {
+    shape :: gb.step
+    if shape == null {
+        return LoweredReturn { .span = gb.span, .value = e }
     }
+    return LoweredReturn {
+        .span = gb.span, .value = step_of_value(shape, e, gb.span, gb.fn_ctx),
+    }
+}
 
-// `return null`.
-gb_null_return :: fn(gb: GenBuild) -> LoweredStmt =
-    LoweredReturn { .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL } }
+// `return <done step>`.
+gb_null_return :: fn(gb: GenBuild) -> LoweredStmt {
+    shape :: gb.step
+    if shape == null {
+        return LoweredReturn {
+            .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
+        }
+    }
+    return LoweredReturn {
+        .span = gb.span,
+        .value = step_of_done(shape, gb.element_ty, gb.span, gb.fn_ctx),
+    }
+}
 
 // A bare `null` value expression — the done-marker a void `async fn` completes
 // with (its result normalizes to `null`, so `resume` returns `null | Suspended`).

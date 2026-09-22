@@ -150,7 +150,7 @@ export lower_async_fn :: fn(
 
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty, .i32_ty = i32_ty,
-        .yield_ty = TY_VOID, .span = span,
+        .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx, .is_async = true, .result_ty = result_type,
         .suspended_ty = suspended_ty, .async_any_ty = async_any_ty,

@@ -66,6 +66,33 @@ export union_of_yield_null :: fn(yielded: Type) -> Type {
     return mk_union([yielded, TY_NULL])
 }
 
+/// Resolve a `std/core` ENUM type by name.
+///
+/// Separate from `find_core_type` because an enum decl reaches lowering as a
+/// placeholder `StructType` whose symbol is `SymbolKind.Enum`; only
+/// `unwrap_enum_type` turns that back into the `EnumType` carrying the variant
+/// indices.
+///
+/// @param ctx   the fn-body context.
+/// @param name  the source-level enum name (e.g. `"Continuation"`).
+/// @return      the enum type, or `null` when not resolvable.
+export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
+    symbol :: lookup_core_symbol(ctx, name) ?? return null
+    if symbol.kind != SymbolKind.Enum {
+        return null
+    }
+    return unwrap_enum_type(mk_struct(symbol, [], immutable = false), ctx)
+}
+
+/// The pair an `Iterator<T>.next` hands back once the wrapper is gone: the
+/// element, then whether the iteration goes on.
+///
+/// @param element  the iterator's element type.
+/// @param cont     the `Continuation` enum type.
+/// @return         the tuple type `[T, Continuation]`.
+export iterator_step_type :: fn(element: Type, cont: Type) -> Type =
+    mk_tuple([element, cont], immutable = false)
+
 /// Build the `T | Suspended` union an `async fn`'s synthesised `resume`
 /// returns. Flattening (via `union_of`) keeps a fallible `T = U | Error` from
 /// nesting : `(U | Error) | Suspended` collapses to `U | Error | Suspended`,

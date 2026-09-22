@@ -762,9 +762,8 @@ emit_fused_opaque_iter :: fn(
     raw_iter_type :: type_of(iter_lowered)
     iter_type :: erase_genstate_for_dispatch(ctx, raw_iter_type, element_type)
 
-    yield_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type)) ?? return []
-    yield_type :: yield_opt
-    step_union :: union_of_yield_null(yield_type)
+    shape :: resolve_step_shape(ctx, element_type) ?? return []
+    step_type :: shape.type
 
     iter_symbol :: fresh_synthetic_symbol(ctx, "fuse_iter")
     step_symbol :: fresh_synthetic_symbol(ctx, "fuse_step")
@@ -774,17 +773,14 @@ emit_fused_opaque_iter :: fn(
         .type = iter_type, .value = iter_lowered,
     }
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
-    step_call :: build_step_call(ctx, iter_ref, iter_type, step_union, span)
+    step_call :: build_step_call(ctx, iter_ref, iter_type, step_type, span)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
-        .type = step_union, .value = step_call,
+        .type = step_type, .value = step_call,
     }
-    step_ref :: LoweredIdent { .span = span, .type = step_union, .symbol = step_symbol }
-    is_done :: LoweredTypeCheck { .span = span, .type = TY_BOOL, .value = step_ref, .check_type = TY_NULL }
-    yield_cast :: LoweredCast { .span = span, .type = yield_type, .value = step_ref }
-    value_access :: LoweredFieldAccess {
-        .span = span, .type = element_type, .target = yield_cast, .field = "value",
-    }
+    step_ref :: LoweredIdent { .span = span, .type = step_type, .symbol = step_symbol }
+    is_done :: step_is_done(shape, step_ref, span, ctx)
+    value_access :: step_value(shape, step_ref, element_type, span)
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
     body_stmts: LoweredStmt[]!: []

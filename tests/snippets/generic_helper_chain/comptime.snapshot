@@ -26,12 +26,12 @@
   Yield<T>
   Yield<T>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayOps<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

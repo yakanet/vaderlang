@@ -68,7 +68,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // here for the next fn + state struct.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+    step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
@@ -79,7 +79,7 @@ push_generator_decls :: fn(
     next_decl :: LoweredFnDecl {
         .mangled = next_mangled,
         .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
-        .return_type = union_of_yield_null(yield_ty), .body = next_body,
+        .return_type = step_type, .body = next_body,
         .origin = synth_mono_entry(fn_ctx, next_sym),
     }
     state_decl :: LoweredStructDecl {
@@ -132,15 +132,15 @@ export lower_generator_fn :: fn(
     state_ty :: mk_struct(state_sym, [], immutable = false)
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
-    yield_opt :: find_core_type(fn_ctx, STRUCT_YIELD, [element_ty])
-    if yield_opt == null {
-        panic("generator lowering: `Yield` core type not found")
+    shape_opt :: resolve_step_shape(fn_ctx, element_ty)
+    if shape_opt == null {
+        panic("generator lowering: no `Iterator` step type in std/core")
     }
-    yield_ty :: yield_opt
+    shape :: shape_opt
 
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty,
-        .i32_ty = i32_ty, .yield_ty = yield_ty, .span = span,
+        .i32_ty = i32_ty, .step = shape, .element_ty = element_ty, .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }
@@ -164,7 +164,7 @@ export lower_generator_fn :: fn(
         state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
     }
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
-    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, gb_next_body(gb), state_fields)
+    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
     // Param fields carry the incoming args (a captured param is cell-wrapped here
