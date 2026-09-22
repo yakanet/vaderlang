@@ -157,6 +157,13 @@ export PrimitiveMeta :: struct {
     is_int:    bool
     is_signed: bool
     is_float:  bool
+    /// The value is a handle the runtime follows, not storage the slot owns.
+    /// `string` is an interned atom the collector tracks ; `CPointer` addresses
+    /// memory the Vader side does not own. A pass deciding whether a value can
+    /// be copied into registers, embedded in a flat layout, or taken the address
+    /// of has to ask this — the size alone says `CPointer` is eight bytes like a
+    /// `u64`, and that is the wrong answer.
+    is_reference: bool = false
 }
 
 export PRIMITIVE_META: PrimitiveMeta[]: [
@@ -174,10 +181,10 @@ export PRIMITIVE_META: PrimitiveMeta[]: [
     PrimitiveMeta { .name = "f64",    .size = 8,  .is_int = false, .is_signed = false, .is_float = true  },
     PrimitiveMeta { .name = "bool",   .size = 1,  .is_int = false, .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "char",   .size = 4,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "string", .size = 16, .is_int = false, .is_signed = false, .is_float = false },
+    PrimitiveMeta { .name = "string", .size = 16, .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
     PrimitiveMeta { .name = "void",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "null",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "CPointer", .size = 8, .is_int = false, .is_signed = false, .is_float = false },
+    PrimitiveMeta { .name = "CPointer", .size = 8, .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
 ]
 
 /// The `PrimitiveMeta` row for `name`, or null when `name` is not a primitive.
@@ -189,6 +196,15 @@ export primitive_meta :: fn(name: string) -> PrimitiveMeta | null {
 }
 
 export is_primitive_name :: fn(name: string) -> bool = primitive_meta(name) != null
+
+/// Whether `name` is a primitive the runtime reaches through a handle.
+///
+/// False for anything that is not a primitive at all — the question only has a
+/// meaning for a row of the table.
+export is_reference_name :: fn(name: string) -> bool {
+    m :: primitive_meta(name)
+    return m != null && m.is_reference
+}
 
 export is_int_name :: fn(name: string) -> bool {
     m :: primitive_meta(name)

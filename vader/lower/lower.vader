@@ -274,13 +274,28 @@ lower_project_impl :: fn(
     // node — and answers for the WRITE path where BCE answers for the read one.
     // See `push_cache.vader`.
     push_cache_tag(project)
-    // `$VADER_OPT_REPORT` — say which optimisations handed over, and where. An
-    // empty string when the report is off, so this costs one length test.
-    report :: render_opt_report(project_ctx)
+    // `$VADER_OPT_REPORT` — what handed over to the general path
+    // (`opt_report.vader`), then what a value ABI would reach
+    // (`value_abi.vader`). Both read the FINISHED project, so they run after
+    // every pass that can still add a decl, and both return "" when the report
+    // is off — the cost of a disabled report is one length test each.
+    //
+    // Not on the staging run: `lower_project_staged` lowers a throwaway partial
+    // project for the comptime VM, and reporting on it prints a second set of
+    // numbers that describe nothing a user built.
+    if !is_staging {
+        emit_opt_report(render_opt_report(project_ctx))
+        emit_opt_report(render_value_abi_report(project_ctx, project, typed))
+    }
+    return project
+}
+
+// Print a report to stderr, unless it is the empty string every renderer returns
+// when the report is off.
+emit_opt_report :: fn(report: string) -> void {
     if report != "" {
         eprintln(report)
     }
-    return project
 }
 
 // Per-module driver. Walks the decl list, dispatches by kind, and
