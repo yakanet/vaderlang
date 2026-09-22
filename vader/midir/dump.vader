@@ -77,7 +77,7 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrConst        -> { return "%${ins.dst} = const ${dump_const(ins.value)} :${display_type(ins.type)}" }
         is InstrBinOp        -> { return "%${ins.dst} = binop ${i32(ins.op)} %${ins.lhs} %${ins.rhs} :${display_type(ins.type)}" }
         is InstrUnOp         -> { return "%${ins.dst} = unop ${i32(ins.op)} %${ins.operand} :${display_type(ins.type)}" }
-        is InstrCall         -> { return "${dump_dst(ins.dst)}call ${ins.callee.name}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
+        is InstrCall         -> { return "${dump_dsts(ins.dsts)}call ${ins.callee.name}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
         is InstrCallIndirect -> { return "${dump_dst(ins.dst)}call_indirect %${ins.callee}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
         is InstrFnRef        -> { return "%${ins.dst} = fn_ref ${ins.fn_symbol.name} :${display_type(ins.type)}" }
         is InstrFnAddr       -> { return "%${ins.dst} = fn_addr ${ins.fn_symbol.name} :${display_type(ins.type)}" }
@@ -149,6 +149,22 @@ dump_const :: fn(v: ConstValue) -> string {
 dump_dst :: fn(d: LocalId | null) -> string {
     if d == null { return "" }
     return "%${d} = "
+}
+
+// The destinations of a call, `%a, %b = ` when it hands back several.
+dump_dsts :: fn(dsts: LocalId[]) -> string {
+    if dsts.len() == 0 {
+        return ""
+    }
+    sb :: StringBuilder {}
+    for i in 0..<dsts.len() {
+        if i > 0 {
+            sb.append(", ")
+        }
+        sb.append("%${dsts[i]}")
+    }
+    sb.append(" = ")
+    return sb.to_string()
 }
 
 dump_args :: fn(a: LocalId[]) -> string {

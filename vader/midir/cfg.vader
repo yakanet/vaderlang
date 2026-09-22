@@ -272,11 +272,24 @@ export InstrUnOp :: struct {
 /// lives in.
 export InstrCall :: struct {
     span:   Span
-    /// null when the call returns void.
-    dst:    LocalId | null
+    /// Where the callee's results land, in the order it hands them back. EMPTY
+    /// for a void call. More than one only for a callee the value-ABI pass
+    /// scalarised — see `value_return.vader`; every other call has at most one.
+    dsts:   LocalId[]
     callee: Symbol
     args:   LocalId[]
     type:   Type
+}
+
+/// The single local a call writes to, or null when it writes none or several.
+///
+/// Same rule as `term_return_single`: a site that has not been taught about
+/// multi-value gets "I don't know" rather than the first of several.
+export call_single_dst :: fn(ins: InstrCall) -> LocalId | null {
+    if ins.dsts.len() != 1 {
+        return null
+    }
+    return ins.dsts[0]
 }
 
 /// Indirect call — the callee is a fn-typed local (closure or fn-ref

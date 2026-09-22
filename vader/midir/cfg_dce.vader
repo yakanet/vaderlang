@@ -253,8 +253,11 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     }
     if ins is InstrCall {
         return InstrCall {
-            .span = ins.span, .dst = remap_local_opt(m, ins.dst), .callee = ins.callee,
-            .args = remap_locals(m, ins.args), .type = ins.type,
+            .span = ins.span,
+            .dsts = remap_locals(m, ins.dsts),
+            .callee = ins.callee,
+            .args = remap_locals(m, ins.args),
+            .type = ins.type,
         }
     }
     if ins is InstrCallIndirect {
@@ -526,7 +529,11 @@ fm_move :: fn(dst: LocalId, src: LocalId) -> Instruction = InstrMove {
 }
 
 fm_call :: fn(dst: LocalId, arg: LocalId) -> Instruction = InstrCall {
-    .span = empty_span(), .dst = dst, .callee = fm_sym(), .args = [arg], .type = fm_i32(),
+    .span = empty_span(),
+    .dsts = [dst],
+    .callee = fm_sym(),
+    .args = [arg],
+    .type = fm_i32(),
 }
 
 fm_block :: fn(instrs: Instruction[]) -> BasicBlock = BasicBlock {

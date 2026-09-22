@@ -796,8 +796,11 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
         dst :: fresh_tmp(fn_ctx, "const_init", wrap.call_type)
         no_args: LocalId[]: []
         emit(fn_ctx, InstrCall {
-            .dst = dst, .callee = wrap.fn_symbol, .args = no_args,
-            .type = wrap.call_type, .span = e.span,
+            .dsts = [dst],
+            .callee = wrap.fn_symbol,
+            .args = no_args,
+            .type = wrap.call_type,
+            .span = e.span,
         })
         return dst
     }
@@ -820,7 +823,11 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
             }
             dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
-                .dst = dst, .callee = callee_id.symbol, .args = args, .type = e.type, .span = e.span,
+                .dsts = if dst == null { [] } else { [dst] },
+                .callee = callee_id.symbol,
+                .args = args,
+                .type = e.type,
+                .span = e.span,
             })
             return dst
         }

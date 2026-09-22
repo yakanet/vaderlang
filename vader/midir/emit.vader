@@ -1084,7 +1084,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         for a in ins.args {
             pins.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
         }
-        if ins.dst is LocalId as cdst {
+        for cdst in ins.dsts {
             pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
         }
         for ai in 0..<ins.args.len() {
@@ -1132,7 +1132,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
                 }
             }
         }
-        emit_result_if_any(ctx, pos, ins.dst, ins.span)
+        emit_call_results(ctx, pos, ins.dsts, ins.span)
         return
     }
     if ins is InstrUnOp {
@@ -1600,6 +1600,22 @@ emit_result :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId, span: Span) -> void {
 emit_result_if_any :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId | null, span: Span) -> void {
     if dst == null { return }
     emit_result(ctx, pos, dst, span)
+}
+
+// Store a call's results into their locals.
+//
+// The callee pushed them in the order the caller receives them, so the LAST is
+// on top and they store back to front. Only the first store can take the
+// scheduler's skip hint — the ones under it have values above them on the stack.
+emit_call_results :: fn(ctx: FnEmitCfg!, pos: i64, dsts: LocalId[], span: Span) -> void {
+    if dsts.len() <= 1 {
+        emit_result_if_any(ctx, pos, if dsts.len() == 0 { null } else { dsts[0] }, span)
+        return
+    }
+    for i in 0..<dsts.len() {
+        // Never the skip hint: it only ever applies to a lone value.
+        emit_set(ctx, dsts[dsts.len() - 1 - i], span)
+    }
 }
 
 // True when a struct.get / array.get / cell-deref result needs an
