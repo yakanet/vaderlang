@@ -4420,6 +4420,7 @@ struct vader_struct_vader_lower_ValueAbiSite_t {
     vader_string_t f_type_name;
     int64_t f_bytes;
     bool f_nullable;
+    bool f_fresh;
 };
 struct vader_struct_vader_lower_WalkCtx_t {
     vader_obj_header_t header;
@@ -6155,7 +6156,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2526u
+#define VADER_COMPTIME_ATOM_COUNT 2527u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
