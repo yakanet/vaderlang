@@ -765,6 +765,57 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
+// Hand `arity` values from the returning frame to its caller, in the order the
+// caller receives them.
+//
+// Separate from `finalise_return` rather than a widening of it: that one also
+// owns the OUTERMOST frame, where a return becomes the process exit code or the
+// comptime capture — and neither takes several values. A function returning a
+// pair is never the entry point, so the case cannot arise, and folding it in
+// would mean inventing an answer for it.
+finalise_multi_return :: fn(
+    frame: Frame!, arity: usize, frames: Frame![]!, frame_count: usize[]!,
+    signature: bc.BcSignature,
+) -> VmResult | null {
+    if frame.sp < arity {
+        return Trap {
+            .message = "return: the frame holds fewer values than the signature declares",
+        }
+    }
+    base :: frame.sp - arity
+    values: Value[]!: []
+    for i in 0..<arity {
+        // Narrowed per value: each carries its own type, so a `u8` beside an
+        // `i64` truncates on its own terms.
+        values.push(narrow_mask(peek_val(frame, base + i), signature.results[i]))
+    }
+    pop_frame(frame_count)
+    if frame_count[0] == 0 {
+        return Trap {
+            .message = "return: a multi-value return reached the outermost frame",
+        }
+    }
+    caller :: frames[frame_count[0] - 1]
+    for v in values {
+        if stack_needs_grow(caller, caller.sp) {
+            stack_grow(caller)
+        }
+        push_val(caller, caller.sp, v)
+        caller.sp = caller.sp + 1
+    }
+    return null
+}
+
+// Whether the callee's lone result needs the width truncation a narrow C return
+// would apply. Multi-value answers false: each value carries its own type and
+// the narrowing is applied per value, not once for the frame.
+is_single_narrow_result :: fn(sig: bc.BcSignature) -> bool {
+    if bc.bc_result_arity(sig) != 1 {
+        return false
+    }
+    return is_narrow_valtype(sig.results[0])
+}
+
 finalise_return :: fn(return_value: Value!, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
@@ -1098,7 +1149,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     cur_slot_count := body.signature.params.len() + body.locals.len()
     // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
     // beside `cur_has_narrow` rather than recomputed on every `return`.
-    cur_narrow_result := is_narrow_valtype(bc_single_result(body.signature))
+    cur_narrow_result := is_single_narrow_result(body.signature)
     // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -1166,7 +1217,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             op_count = cur_ops.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
-            cur_narrow_result = is_narrow_valtype(bc_single_result(body.signature))
+            cur_narrow_result = is_single_narrow_result(body.signature)
             cur_top = top
         }
 
@@ -2570,17 +2621,27 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
             }
             is bc.Return -> {
-                has_value :: frame.sp > 0
-                // Fast path: the value moves from this frame's top slot to the
-                // caller's, and both are payload+tag columns — no `Value` in
-                // between.
-                //
-                // Deliberately NOT taken for a narrow result (it truncates, so it
-                // goes through `narrow_mask`) nor for the outermost frame, which is
-                // where `finalise_return` coerces the exit code or publishes
-                // `capture`. Those two keep the boxed route and its one
-                // implementation.
-                if has_value && frame_count[0] > 1 && !cur_narrow_result {
+                // Several values take their own route: the frame's top `arity`
+                // slots move to the caller in the order it receives them. The
+                // single-value path below stays exactly as it was — it owns the
+                // outermost frame, where a return becomes the exit code.
+                if bc.bc_result_arity(body.signature) > 1 {
+                    outcome :: finalise_multi_return(
+                        frame, bc.bc_result_arity(body.signature), frames, frame_count,
+                        body.signature)
+                    if !(outcome is null) {
+                        return outcome
+                    }
+                } else if frame.sp > 0 && frame_count[0] > 1 && !cur_narrow_result {
+                    // Fast path: the value moves from this frame's top slot to the
+                    // caller's, and both are payload+tag columns — no `Value` in
+                    // between.
+                    //
+                    // Deliberately NOT taken for a narrow result (it truncates, so
+                    // it goes through `narrow_mask`) nor for the outermost frame,
+                    // which is where `finalise_return` coerces the exit code or
+                    // publishes `capture`. Those two keep the boxed route and its
+                    // one implementation.
                     src :: frame.sp - 1
                     st  :: frame.tag[src]
                     pay :: frame.payload[src]
@@ -2596,6 +2657,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     }
                     caller.sp = caller.sp + 1
                 } else {
+                    has_value :: frame.sp > 0
                     return_value: Value = I32Val { .value = 0 }
                     // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
                     if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), bc_single_result(body.signature)) }
