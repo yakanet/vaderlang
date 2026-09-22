@@ -51,6 +51,12 @@ export ValueAbiSite :: struct {
     /// The site is `T | null`: the crossing needs a tag register on top of the
     /// payload.
     nullable: bool
+    /// A RETURN whose every `return` hands back a value the callee built.
+    ///
+    /// The gate a struct return needs before it can be scalarised — see
+    /// `returns_only_fresh_composites`. False on a parameter, which the question
+    /// does not apply to.
+    fresh: bool
 }
 
 /// Payload size of `t` under the value-ABI rule, or -1 when it does not qualify.
@@ -206,6 +212,67 @@ export value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
 
 over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size }
 
+/// Whether every `return` in `body` hands back a value the callee BUILT, so no
+/// caller can hold the object it returns.
+///
+/// The condition a struct return needs and a tuple does not. A tuple has no
+/// observable identity (`t[0] = x` is T3008), so handing back its elements is
+/// the same value by another route. A struct has reference semantics: returning
+/// one the callee received from elsewhere, and rebuilding it at the caller,
+/// would break an alias someone else still holds. Building it on the spot at
+/// every return is the proof that nobody does — and it makes the `@value`
+/// question moot rather than answering it.
+///
+/// `null` counts as built: it holds nothing to alias.
+export returns_only_fresh_composites :: fn(body: LoweredBlock) -> bool {
+    return block_returns_fresh(body)
+}
+
+block_returns_fresh :: fn(b: LoweredBlock) -> bool {
+    for st in b.stmts {
+        if !stmt_returns_fresh(st) {
+            return false
+        }
+    }
+    return true
+}
+
+// @partial: only the statements that can CARRY a return matter. Every other
+// variant holds no `return` of its own, so it cannot break the property.
+stmt_returns_fresh :: fn(st: LoweredStmt) -> bool = @partial match st {
+    is LoweredReturn -> is_fresh_composite(st.value)
+    is LoweredLoop   -> block_returns_fresh(st.body)
+    is LoweredExprStmt -> expr_returns_fresh(st.expr)
+    _ -> true
+}
+
+// A returned value the callee minted here, or nothing at all.
+is_fresh_composite :: fn(v: LoweredExpr | null) -> bool {
+    if v == null {
+        return true
+    }
+    if v is LoweredStructLit {
+        return true
+    }
+    // A literal `null` is the absent case of a `T | null` return.
+    return v is LoweredNullLit
+}
+
+// An `if` / `match` in statement position holds the arms a return lives in.
+// @partial: the two nesting expressions ; anything else carries no return.
+expr_returns_fresh :: fn(e: LoweredExpr) -> bool = @partial match e {
+    is LoweredIf    -> block_returns_fresh(e.then_block) && else_returns_fresh(e.else_block)
+    is LoweredBlock -> block_returns_fresh(e)
+    _ -> true
+}
+
+else_returns_fresh :: fn(b: LoweredBlock | null) -> bool {
+    if b == null {
+        return true
+    }
+    return block_returns_fresh(b)
+}
+
 // ---- report ---------------------------------------------------------------
 
 /// Render which crossings a value ABI would reach.
@@ -239,10 +306,14 @@ export render_value_abi_report :: fn(
     }
     returns: i64 = 0
     nullables: i64 = 0
+    fresh_returns: i64 = 0
     for s in sites {
         // A parameter can never be named `return` — it is a keyword.
         if s.position == "return" {
             returns = returns + 1
+            if s.fresh {
+                fresh_returns = fresh_returns + 1
+            }
         }
         if s.nullable {
             nullables = nullables + 1
@@ -254,10 +325,13 @@ export render_value_abi_report :: fn(
     out.append("${VALUE_ABI_MAX_BYTES} bytes)\n")
     out.append("  returns: ${returns}   parameters: ${i64(sites.len()) - returns}")
     out.append("   of which `T | null`: ${nullables}\n")
-    out.append("  held back, a parameter the callee writes through: ${held_back}\n\n  sites:\n")
+    out.append("  held back, a parameter the callee writes through: ${held_back}\n")
+    out.append("  returns whose every `return` builds its value on the spot: ${fresh_returns}\n")
+    out.append("    (the gate a STRUCT return needs ; a tuple has no identity to break)\n\n  sites:\n")
     for s in sites {
         tag :: if s.nullable { " +tag" } else { "" }
-        out.append("    ${s.fn_name}  ${s.position}: ${s.type_name} (${s.bytes} B${tag})\n")
+        mint :: if s.position == "return" && s.fresh { " fresh" } else { "" }
+        out.append("    ${s.fn_name}  ${s.position}: ${s.type_name} (${s.bytes} B${tag})${mint}\n")
     }
     return out.to_string()
 }
@@ -284,7 +358,11 @@ collect_value_abi_sites :: fn(
     fd: LoweredFnDecl, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
     out: ValueAbiSite[]!,
 ) -> i64 {
-    push_site(out, fd.mangled, "return", fd.return_type, value_abi_size(fd.return_type, structs, typed))
+    body :: fd.body
+    fresh :: body != null && returns_only_fresh_composites(body)
+    push_site(
+        out, fd.mangled, "return", fd.return_type,
+        value_abi_size(fd.return_type, structs, typed), fresh)
     held_back: i64 = 0
     for p in fd.params {
         size :: value_abi_size(p.type, structs, typed)
@@ -295,14 +373,14 @@ collect_value_abi_sites :: fn(
             held_back = held_back + 1
             continue
         }
-        push_site(out, fd.mangled, p.name, p.type, size)
+        push_site(out, fd.mangled, p.name, p.type, size, false)
     }
     return held_back
 }
 
 // `size` comes from the caller, which already had to compute it to decide.
 push_site :: fn(
-    out: ValueAbiSite[]!, fn_name: string, position: string, t: Type, size: i64,
+    out: ValueAbiSite[]!, fn_name: string, position: string, t: Type, size: i64, fresh: bool,
 ) -> void {
     if size < 0 {
         return
@@ -313,6 +391,7 @@ push_site :: fn(
         .type_name = display_type_key(t),
         .bytes = size,
         .nullable = t is UnionType,
+        .fresh = fresh,
     })
 }
 
@@ -397,4 +476,78 @@ value_abi_test_sym :: fn() -> Symbol = Symbol {
     .module_name = "test",
     .visibility = Visibility.Private,
     .defined_at = null,
+}
+
+@test
+test_fresh_returns_accepts_a_built_struct :: fn() -> void {
+    // `return Yield<char> { .value = c }` — the callee minted it, so no caller
+    // can be holding it.
+    body :: fresh_test_body([
+        LoweredReturn {
+            .span = empty_span(),
+            .value = LoweredStructLit {
+                .span = empty_span(),
+                .type = mk_primitive("i32"),
+                .fields = [],
+            },
+        },
+    ])
+    assert(returns_only_fresh_composites(body), "a struct literal is freshly built")
+}
+
+@test
+test_fresh_returns_accepts_null :: fn() -> void {
+    // The absent case of a `T | null` holds nothing to alias.
+    body :: fresh_test_body([
+        LoweredReturn { .span = empty_span(), .value = LoweredNullLit { .span = empty_span(), .type = TY_NULL } },
+    ])
+    assert(returns_only_fresh_composites(body), "null holds nothing to alias")
+}
+
+@test
+test_fresh_returns_refuses_a_forwarded_value :: fn() -> void {
+    // `return self.cached` hands back an object the caller may already hold —
+    // rebuilding it at the call site would break that alias.
+    body :: fresh_test_body([
+        LoweredReturn {
+            .span = empty_span(),
+            .value = LoweredIdent {
+                .span = empty_span(),
+                .type = mk_primitive("i32"),
+                .symbol = value_abi_test_sym(),
+            },
+        },
+    ])
+    assert(!returns_only_fresh_composites(body), "a forwarded value may be aliased")
+}
+
+@test
+test_fresh_returns_looks_inside_an_if :: fn() -> void {
+    // The early `return null` of an iterator's `next` lives in an `if` arm.
+    forwarded :: LoweredReturn {
+        .span = empty_span(),
+        .value = LoweredIdent {
+            .span = empty_span(),
+            .type = mk_primitive("i32"),
+            .symbol = value_abi_test_sym(),
+        },
+    }
+    nested :: LoweredExprStmt {
+        .span = empty_span(),
+        .expr = LoweredIf {
+            .span = empty_span(),
+            .type = TY_VOID,
+            .cond = LoweredNullLit { .span = empty_span(), .type = TY_NULL },
+            .then_block = fresh_test_body([forwarded]),
+            .else_block = null,
+        },
+    }
+    assert(!returns_only_fresh_composites(fresh_test_body([nested])), "an arm's return counts")
+}
+
+fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
+    .span = empty_span(),
+    .type = TY_VOID,
+    .stmts = stmts,
+    .trailing = null,
 }
