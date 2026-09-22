@@ -645,7 +645,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Strings
 
-- Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
+- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
@@ -2183,7 +2183,7 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 ### Storage semantics
 
 - Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
-- `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
+- `string`: an interned atom id (`u32`), copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
   Passing one to a function therefore lets the callee reach the caller's value — which is why a parameter is a
   read-only borrow unless its type carries `!` (see "Read-only by default").
