@@ -307,7 +307,7 @@ export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
         scan += 1
     }
     if !any_fold {
-        return BcPeepholeOut { .body = body, .jump_table = function.jump_table, .debug = function.debug }
+        return bc_peephole_unchanged(function)
     }
 
     out: Op[]!: []

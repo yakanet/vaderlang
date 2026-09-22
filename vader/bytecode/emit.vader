@@ -40,11 +40,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     // hands back one value. A scalarised return leaves several on the stack and
     // the fold would keep the last and drop the rest.
     if bc_result_arity(function.signature) > 1 {
-        return BcPeepholeOut {
-            .body = function.body,
-            .jump_table = function.jump_table,
-            .debug = function.debug,
-        }
+        return bc_peephole_unchanged(function)
     }
     body :: function.body
     n :: body.len()
@@ -137,6 +133,16 @@ export BcPeepholeOut :: struct {
     body:       Op[]!
     jump_table: i32[]!
     debug:      (DebugPos | null)[]!
+}
+
+/// `function`'s three tables, unchanged — what a peephole returns when it
+/// rewrites nothing.
+///
+/// @param function  the fn the pass declined to rewrite.
+export bc_peephole_unchanged :: fn(function: BcFunction) -> BcPeepholeOut = BcPeepholeOut {
+    .body = function.body,
+    .jump_table = function.jump_table,
+    .debug = function.debug,
 }
 
 /// Remap a debug table from old PC space to new PC space, parallel to
