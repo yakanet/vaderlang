@@ -283,7 +283,7 @@ static vader_box_t json_parse_array(void* l0, int32_t l1) {
         t1 = t0.payload.obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(120u, 0u, 13u, 1035u);
+    vader_array_t* _a0_arr = vader_array_new(120u, 0u, 13u, 1034u);
     l2 = (void*) _a0_arr;
     json_skip_ws(l0);
     t2 = json_at_end(l0);

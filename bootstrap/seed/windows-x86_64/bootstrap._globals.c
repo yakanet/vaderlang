@@ -6261,7 +6261,7 @@ const uint16_t vader_type_969_strs[] = { offsetof(vader_struct_vader_vm_Trap_t, 
 const uint16_t vader_type_971_ptrs[] = { offsetof(vader_struct_vader_vm_ValueOk_t, f_value) };
 const uint16_t vader_type_972_refs[] = { offsetof(vader_struct_vader_vm_VmState_t, f_bc), offsetof(vader_struct_vader_vm_VmState_t, f_data_pool), offsetof(vader_struct_vader_vm_VmState_t, f_fn_narrow), offsetof(vader_struct_vader_vm_VmState_t, f_fn_index_by_name), offsetof(vader_struct_vader_vm_VmState_t, f_fused) };
 
-const vader_type_info_t vader_type_info_table[1336] = {
+const vader_type_info_t vader_type_info_table[1334] = {
     [1] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_1_ptrs, 1, 0, NULL, 0, NULL },
     [2] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_2_ptrs, 1, 0, NULL, 0, NULL },
     [3] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
@@ -7217,9 +7217,9 @@ const vader_type_info_t vader_type_info_table[1336] = {
     [971] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_ValueOk_t), vader_type_971_ptrs, 1, 0, NULL, 0, NULL },
     [972] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_vm_VmState_t), NULL, 0, 0, NULL, 5, vader_type_972_refs },
 };
-const size_t vader_type_info_count = 1336;
+const size_t vader_type_info_count = 1334;
 
-const size_t vader_type_size[1336] = {
+const size_t vader_type_size[1334] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 16u,
@@ -8554,7 +8554,5 @@ const size_t vader_type_size[1336] = {
     [1331] = 16u,
     [1332] = 16u,
     [1333] = 16u,
-    [1334] = 16u,
-    [1335] = 16u,
 };
 

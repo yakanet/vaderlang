@@ -5740,7 +5740,7 @@ bool std_string_is_high_surrogate(uint32_t l0);
 bool std_string_is_low_surrogate(uint32_t l0);
 uint32_t std_string_combine_surrogates(uint32_t l0, uint32_t l1);
 size_t std_string_utf8_lead_len(uint8_t l0);
-vader_box_t std_string_StringChars_Iterator_next(void* l0);
+void std_string_StringChars_Iterator_next_v(void* l0, int32_t* __o0, uint32_t* __o1);
 bool std_string_string_Contains_contains(vader_string_t l0, vader_string_t l1);
 vader_string_t std_path_to_posix(vader_string_t l0);
 bool __lambda_std_path_0(void* l0, uint32_t l1);
