@@ -1300,7 +1300,7 @@ static vader_string_t std_core_format_f32(float l0) {
     l1 = (uint32_t) (int32_t) t0;
     if (l1 == INT32_C(255)) {
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1961u; }
+            { vader_gc_top = gc_frame.prev; return 1960u; }
         }
         if (l2) {
             l4 = 433u;
@@ -1352,7 +1352,7 @@ static vader_string_t std_core_format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1961u; }
+            { vader_gc_top = gc_frame.prev; return 1960u; }
         }
         if (l2) {
             l4 = 433u;

@@ -308,7 +308,7 @@ vader_string_t vader_vm_I64Val_Display_to_string(void* l0) {
 }
 
 vader_string_t vader_vm_NullVal_Display_to_string(void* l0) {
-    return 1985u;
+    return 1984u;
 }
 
 vader_string_t vader_vm_ObjVal_Display_to_string(void* l0) {
@@ -1596,7 +1596,7 @@ static vader_box_t vader_vm_const_op_value(vader_box_t l0, void* l1, int32_t l2)
         if (l3) {
             l6 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(90));
             l4 = (size_t) (int64_t) INT64_C(0);
-            l4 = std_core_write_string_at(l6, l4, 2062u);
+            l4 = std_core_write_string_at(l6, l4, 2061u);
             t0 = l0.payload.obj;
             t1 = ((vader_struct_vader_bytecode_StringConst_t*) t0)->f_index;
             l7 = ((int64_t) (int32_t) t1);
@@ -2064,7 +2064,7 @@ static vader_string_t vader_vm_describe_value_tag(vader_box_t l0) {
                                 l1 = 1656u;
                             } else {
                                 if (l0.tag == 962u) {
-                                    l1 = 1985u;
+                                    l1 = 1984u;
                                 } else {
                                     if (l0.tag == 947u) {
                                         l1 = 1323u;
@@ -2079,7 +2079,7 @@ static vader_string_t vader_vm_describe_value_tag(vader_box_t l0) {
                                                     l1 = 2254u;
                                                 } else {
                                                     if (l0.tag == 963u) {
-                                                        l1 = 1987u;
+                                                        l1 = 1986u;
                                                     } else {
                                                         vader_unreachable("unreachable return in vader_vm$describe_value_tag");
                                                     }
@@ -3341,7 +3341,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         _a30_closure->code = (void*) &vader_fn_lift___lambda_vader_vm_4;
         _a30_closure->env = t2;
         l17 = (void*) _a30_closure;
-        t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1984u, l17);
+        t1 = vader_vm_host_str_pair_to_bool(l1, l2, l5, 1983u, l17);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(9)) {
@@ -3365,7 +3365,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         _a34_closure->code = (void*) &vader_fn_lift___lambda_vader_vm_0;
         _a34_closure->env = t2;
         l17 = (void*) _a34_closure;
-        t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1984u, l17);
+        t1 = vader_vm_host_int_pair_to_bool(l1, l2, l5, 1983u, l17);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l12 == INT32_C(11)) {
@@ -3518,7 +3518,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         if (_a57_slotarr->buf != NULL && _a57_slotarr->buf->header.forward != NULL) { _a57_slotarr->buf = vader_array_buf_forward(_a57_slotarr->buf); }
         if ((size_t) l2 >= _a57_slotarr->length) { vader_trap("array index out of bounds"); }
         t1 = vader_array_ref_load_box(_a57_slotarr->buf, _a57_slotarr->offset + (size_t) l2);
-        l14 = vader_vm_read_i64(t1, l5, 2071u);
+        l14 = vader_vm_read_i64(t1, l5, 2070u);
         if (l14.tag == 971u) {
             t2 = l14.payload.obj;
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -3844,7 +3844,7 @@ static vader_box_t vader_vm_dispatch_import(void* l0, void* l1, size_t l2, void*
         if (_a89_slotarr->buf != NULL && _a89_slotarr->buf->header.forward != NULL) { _a89_slotarr->buf = vader_array_buf_forward(_a89_slotarr->buf); }
         if ((size_t) l2 >= _a89_slotarr->length) { vader_trap("array index out of bounds"); }
         t1 = vader_array_ref_load_box(_a89_slotarr->buf, _a89_slotarr->offset + (size_t) l2);
-        l14 = vader_vm_read_string(t1, l5, 2007u);
+        l14 = vader_vm_read_string(t1, l5, 2006u);
         if (l14.tag == 971u) {
             t2 = l14.payload.obj;
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -3981,7 +3981,7 @@ static vader_box_t vader_vm_do_load_slot(void* l0) {
     if ((t0 < INT64_C(2))) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(65));
         l2 = (size_t) (int64_t) INT64_C(0);
-        l2 = std_core_write_string_at(l1, l2, 1881u);
+        l2 = std_core_write_string_at(l1, l2, 1880u);
         t1 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
         l3 = ((int64_t) (int32_t) t1);
         l2 = std_core_write_int(l1, l2, l3);
@@ -3997,7 +3997,7 @@ static vader_box_t vader_vm_do_load_slot(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l4 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l4 = vader_vm_read_i32(l4, l5, 1879u);
+    l4 = vader_vm_read_i32(l4, l5, 1878u);
     if (l4.tag == 971u) {
         t3 = l4.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4006,7 +4006,7 @@ static vader_box_t vader_vm_do_load_slot(void* l0) {
     t4 = (t0 - INT64_C(2));
     l2 = (size_t) (int64_t) t4;
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l6 = vader_vm_peek_array_mut(l0, l2, l5, 1882u);
+    l6 = vader_vm_peek_array_mut(l0, l2, l5, 1881u);
     if (l6.tag == 971u) {
         t3 = l6.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4027,7 +4027,7 @@ static vader_box_t vader_vm_do_load_slot(void* l0) {
     if (l7) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(104));
         l2 = (size_t) (int64_t) INT64_C(0);
-        l2 = std_core_write_string_at(l1, l2, 1880u);
+        l2 = std_core_write_string_at(l1, l2, 1879u);
         t3 = l4.payload.obj;
         t1 = ((vader_struct_vader_vm_I32Val_t*) t3)->f_value;
         l3 = ((int64_t) (int32_t) t1);
@@ -4106,7 +4106,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     if ((t0 < INT64_C(5))) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(87));
         l2 = (size_t) (int64_t) INT64_C(0);
-        l2 = std_core_write_string_at(l1, l2, 1921u);
+        l2 = std_core_write_string_at(l1, l2, 1920u);
         t1 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
         l3 = ((int64_t) (int32_t) t1);
         l2 = std_core_write_int(l1, l2, l3);
@@ -4122,7 +4122,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l4 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l4 = vader_vm_read_i32(l4, l5, 1920u);
+    l4 = vader_vm_read_i32(l4, l5, 1919u);
     if (l4.tag == 971u) {
         t3 = l4.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4132,7 +4132,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l6 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l6 = vader_vm_read_i32(l6, l5, 1925u);
+    l6 = vader_vm_read_i32(l6, l5, 1924u);
     if (l6.tag == 971u) {
         t3 = l6.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4142,7 +4142,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l7 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l7 = vader_vm_read_obj(l7, l5, 1924u);
+    l7 = vader_vm_read_obj(l7, l5, 1923u);
     if (l7.tag == 971u) {
         t3 = l7.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4152,7 +4152,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l8 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l8 = vader_vm_read_i32(l8, l5, 1919u);
+    l8 = vader_vm_read_i32(l8, l5, 1918u);
     if (l8.tag == 971u) {
         t3 = l8.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4162,7 +4162,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     l2 = (size_t) (int64_t) t4;
     l9 = vader_vm_peek_val(l0, l2);
     l5 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
-    l9 = vader_vm_read_obj(l9, l5, 1918u);
+    l9 = vader_vm_read_obj(l9, l5, 1917u);
     if (l9.tag == 971u) {
         t3 = l9.payload.obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -4186,7 +4186,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     if (l10) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(61));
         l2 = (size_t) (int64_t) INT64_C(0);
-        l2 = std_core_write_string_at(l1, l2, 1922u);
+        l2 = std_core_write_string_at(l1, l2, 1921u);
         t1 = ((vader_struct_vader_vm_Frame_t*) l0)->f_pc;
         l3 = ((int64_t) (int32_t) t1);
         l2 = std_core_write_int(l1, l2, l3);
@@ -4216,7 +4216,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     if ((l13 > l14)) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(125));
         l13 = (size_t) (int64_t) INT64_C(0);
-        l13 = std_core_write_string_at(l1, l13, 1923u);
+        l13 = std_core_write_string_at(l1, l13, 1922u);
         t4 = ((int64_t) (size_t) l11);
         l15 = (uint64_t) (int64_t) t4;
         l13 = std_core_write_unsigned(l1, l13, l15);
@@ -4248,7 +4248,7 @@ static vader_box_t vader_vm_do_memory_copy(void* l0) {
     if ((l13 > l14)) {
         l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(123));
         l13 = (size_t) (int64_t) INT64_C(0);
-        l13 = std_core_write_string_at(l1, l13, 1917u);
+        l13 = std_core_write_string_at(l1, l13, 1916u);
         t4 = ((int64_t) (size_t) l12);
         l15 = (uint64_t) (int64_t) t4;
         l13 = std_core_write_unsigned(l1, l13, l15);
@@ -5784,7 +5784,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
     if (l6) {
         l9 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(46));
         l7 = (size_t) (int64_t) INT64_C(0);
-        l7 = std_core_write_string_at(l9, l7, 1974u);
+        l7 = std_core_write_string_at(l9, l7, 1973u);
         l10 = ((int64_t) (int32_t) l1);
         l7 = std_core_write_int(l9, l7, l10);
         l7 = std_core_write_string_at(l9, l7, 341u);
@@ -5971,7 +5971,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         ((vader_struct_vader_vm_Frame_t*) l17)->f_defer_count = l43;
                         VADER_WRITE_BARRIER((vader_struct_vader_vm_Frame_t*) l17);
                         l45 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                        l46 = vader_vm_read_fn(l44, l45, 2008u);
+                        l46 = vader_vm_read_fn(l44, l45, 2007u);
                         if (l46.tag == 971u) {
                             t2 = l30.payload.obj;
                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -5980,7 +5980,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                         l47 = ((vader_struct_vader_vm_FnVal_t*) t2)->f_function_index;
                         l48 = ((vader_struct_vader_bytecode_BytecodeModule_t*) ((vader_struct_vader_vm_VmState_t*) l0)->f_bc)->f_functions;
                         l49 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                        t6 = vader_vm_validate_fn_index(l47, l48, l49, 2008u);
+                        t6 = vader_vm_validate_fn_index(l47, l48, l49, 2007u);
                         if (t6.tag == 971u) {
                             t2 = l30.payload.obj;
                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -6086,7 +6086,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                 if (l67) {
                                     l70 = 1338u;
                                 } else {
-                                    l70 = 2148u;
+                                    l70 = 2147u;
                                 }
                                 vader_array_t* _a28_slotarr = ((vader_array_t*) l11);
                                 if (_a28_slotarr->buf != NULL && _a28_slotarr->buf->header.forward != NULL) { _a28_slotarr->buf = vader_array_buf_forward(_a28_slotarr->buf); }
@@ -6157,7 +6157,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                             l87 = vader_host_std_core_byte_len(l86);
                             l88 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(60) + l87));
                             l89 = (size_t) (int64_t) INT64_C(0);
-                            l89 = std_core_write_string_at(l88, l89, 1891u);
+                            l89 = std_core_write_string_at(l88, l89, 1890u);
                             t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                             l90 = ((int64_t) (int32_t) t5);
                             l89 = std_core_write_int(l88, l89, l90);
@@ -6282,7 +6282,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                 l116 = vader_host_std_core_byte_len(l115);
                                 l117 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(57) + l116));
                                 l118 = (size_t) (int64_t) INT64_C(0);
-                                l118 = std_core_write_string_at(l117, l118, 1892u);
+                                l118 = std_core_write_string_at(l117, l118, 1891u);
                                 t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                 l119 = ((int64_t) (int32_t) t5);
                                 l118 = std_core_write_int(l117, l118, l119);
@@ -6311,7 +6311,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                 l122 = vader_host_std_core_byte_len(l121);
                                 l123 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(56) + l122));
                                 l124 = (size_t) (int64_t) INT64_C(0);
-                                l124 = std_core_write_string_at(l123, l124, 1887u);
+                                l124 = std_core_write_string_at(l123, l124, 1886u);
                                 t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                 l125 = ((int64_t) (int32_t) t5);
                                 l124 = std_core_write_int(l123, l124, l125);
@@ -6429,7 +6429,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                     l150 = vader_host_std_core_byte_len(l149);
                                     l151 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(81) + l150));
                                     l152 = (size_t) (int64_t) INT64_C(0);
-                                    l152 = std_core_write_string_at(l151, l152, 1890u);
+                                    l152 = std_core_write_string_at(l151, l152, 1889u);
                                     t2 = l76.payload.obj;
                                     t5 = ((vader_struct_vader_vm_GetConst_t*) t2)->f_slot;
                                     l153 = ((int64_t) (int32_t) t5);
@@ -6543,7 +6543,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                         l177 = vader_host_std_core_byte_len(l176);
                                         l178 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(81) + l177));
                                         l179 = (size_t) (int64_t) INT64_C(0);
-                                        l179 = std_core_write_string_at(l178, l179, 1890u);
+                                        l179 = std_core_write_string_at(l178, l179, 1889u);
                                         t2 = l76.payload.obj;
                                         t5 = ((vader_struct_vader_bytecode_LocalGet_t*) t2)->f_slot;
                                         l180 = ((int64_t) (int32_t) t5);
@@ -6622,7 +6622,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                             l196 = vader_host_std_core_byte_len(l195);
                                             l197 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(57) + l196));
                                             l198 = (size_t) (int64_t) INT64_C(0);
-                                            l198 = std_core_write_string_at(l197, l198, 1892u);
+                                            l198 = std_core_write_string_at(l197, l198, 1891u);
                                             t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                             l199 = ((int64_t) (int32_t) t5);
                                             l198 = std_core_write_int(l197, l198, l199);
@@ -6650,7 +6650,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                             l202 = vader_host_std_core_byte_len(l201);
                                             l203 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(81) + l202));
                                             l204 = (size_t) (int64_t) INT64_C(0);
-                                            l204 = std_core_write_string_at(l203, l204, 1893u);
+                                            l204 = std_core_write_string_at(l203, l204, 1892u);
                                             t2 = l76.payload.obj;
                                             t5 = ((vader_struct_vader_bytecode_LocalSet_t*) t2)->f_slot;
                                             l205 = ((int64_t) (int32_t) t5);
@@ -6744,7 +6744,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                 l227 = vader_host_std_core_byte_len(l226);
                                                 l228 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(57) + l227));
                                                 l229 = (size_t) (int64_t) INT64_C(0);
-                                                l229 = std_core_write_string_at(l228, l229, 1894u);
+                                                l229 = std_core_write_string_at(l228, l229, 1893u);
                                                 t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                                 l230 = ((int64_t) (int32_t) t5);
                                                 l229 = std_core_write_int(l228, l229, l230);
@@ -6772,7 +6772,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                 l233 = vader_host_std_core_byte_len(l232);
                                                 l234 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(81) + l233));
                                                 l235 = (size_t) (int64_t) INT64_C(0);
-                                                l235 = std_core_write_string_at(l234, l235, 1895u);
+                                                l235 = std_core_write_string_at(l234, l235, 1894u);
                                                 t2 = l76.payload.obj;
                                                 t5 = ((vader_struct_vader_bytecode_LocalTee_t*) t2)->f_slot;
                                                 l236 = ((int64_t) (int32_t) t5);
@@ -7135,7 +7135,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                 l329 = ((vader_struct_vader_bytecode_MakeClosure_t*) t2)->f_function_index;
                                                                 l330 = ((vader_struct_vader_bytecode_BytecodeModule_t*) ((vader_struct_vader_vm_VmState_t*) l0)->f_bc)->f_functions;
                                                                 l331 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                l332 = vader_vm_validate_fn_index(l329, l330, l331, 1908u);
+                                                                l332 = vader_vm_validate_fn_index(l329, l330, l331, 1907u);
                                                                 if (l332.tag == 971u) {
                                                                     t2 = l332.payload.obj;
                                                                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -7144,7 +7144,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                 if (t3 == INT64_C(0)) {
                                                                     l333 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(58));
                                                                     l334 = (size_t) (int64_t) INT64_C(0);
-                                                                    l334 = std_core_write_string_at(l333, l334, 1909u);
+                                                                    l334 = std_core_write_string_at(l333, l334, 1908u);
                                                                     t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                                                     l335 = ((int64_t) (int32_t) t5);
                                                                     l334 = std_core_write_int(l333, l334, l335);
@@ -7768,7 +7768,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                             l511 = vader_host_std_core_byte_len(l510);
                                                                                             l512 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(83) + l511));
                                                                                             l513 = (size_t) (int64_t) INT64_C(0);
-                                                                                            l513 = std_core_write_string_at(l512, l513, 1889u);
+                                                                                            l513 = std_core_write_string_at(l512, l513, 1888u);
                                                                                             t2 = l76.payload.obj;
                                                                                             t5 = ((vader_struct_vader_bytecode_LocalField_t*) t2)->f_slot;
                                                                                             l514 = ((int64_t) (int32_t) t5);
@@ -7795,7 +7795,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                         t2 = l76.payload.obj;
                                                                                         l518 = ((vader_struct_vader_bytecode_LocalField_t*) t2)->f_field_index;
                                                                                         l519 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                                        l520 = vader_vm_read_struct_field(l517, l518, l519, 1888u);
+                                                                                        l520 = vader_vm_read_struct_field(l517, l518, l519, 1887u);
                                                                                         if (l520.tag == 971u) {
                                                                                             t2 = l520.payload.obj;
                                                                                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -8426,7 +8426,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                     }
                                                                                                                                                     t2 = l76.payload.obj;
                                                                                                                                                     l666 = ((vader_struct_vader_bytecode_Unreachable_t*) t2)->f_reason;
-                                                                                                                                                    t1 = concat_2(2034u, l666);
+                                                                                                                                                    t1 = concat_2(2033u, l666);
                                                                                                                                                     vader_struct_vader_vm_Trap_t* _a153_obj = (vader_struct_vader_vm_Trap_t*) vader_gc_alloc(sizeof(vader_struct_vader_vm_Trap_t));
                                                                                                                                                     vader_obj_header_init(_a153_obj, 971u);
                                                                                                                                                     _a153_obj->f_message = t1;
@@ -13614,7 +13614,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     if ((t3 < INT64_C(2))) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1882 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(57));
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1883 = (size_t) (int64_t) INT64_C(0);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l1883 = std_core_write_string_at(l1882, l1883, 2042u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l1883 = std_core_write_string_at(l1882, l1883, 2041u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1884 = ((int64_t) (int32_t) t5);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1883 = std_core_write_int(l1882, l1883, l1884);
@@ -13634,7 +13634,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     l1887 = (size_t) (int64_t) t0;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     l1888 = vader_vm_peek_val(l17, l1887);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     l1889 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    l1890 = vader_vm_value_ref_eq(l1886, l1888, l1889, 2041u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    l1890 = vader_vm_value_ref_eq(l1886, l1888, l1889, 2040u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     if (l1890.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         t2 = l1890.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -13683,7 +13683,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         if ((t3 < INT64_C(2))) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             l1899 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(57));
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             l1900 = (size_t) (int64_t) INT64_C(0);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            l1900 = std_core_write_string_at(l1899, l1900, 2044u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            l1900 = std_core_write_string_at(l1899, l1900, 2043u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             t5 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             l1901 = ((int64_t) (int32_t) t5);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             l1900 = std_core_write_int(l1899, l1900, l1901);
@@ -13703,7 +13703,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1904 = (size_t) (int64_t) t0;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1905 = vader_vm_peek_val(l17, l1904);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l1906 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l1907 = vader_vm_value_ref_eq(l1903, l1905, l1906, 2043u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l1907 = vader_vm_value_ref_eq(l1903, l1905, l1906, 2042u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         if (l1907.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             t2 = l1907.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -14382,7 +14382,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     l2062 = vader_vm_narrow_mask(l2064, l2065);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 l2066 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2067 = vader_vm_finalise_return(l2062, l2045, l2066, l9, l11, 2057u, l3);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2067 = vader_vm_finalise_return(l2062, l2045, l2066, l9, l11, 2056u, l3);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 if (!(l2067.tag == 0u)) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     { vader_box_t __vret = l2067; vader_gc_top = gc_frame.prev; return __vret; }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 }
@@ -14402,7 +14402,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 l2073 = ((vader_struct_vader_bytecode_BcSignature_t*) ((vader_struct_vader_bytecode_BcFunction_t*) l18)->f_signature)->f_result;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 l2074 = vader_vm_narrow_mask(l2072, l2073);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 l2075 = ((vader_struct_vader_vm_Frame_t*) l17)->f_pc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2076 = vader_vm_finalise_return(l2074, true, l2075, l9, l11, 2061u, l3);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2076 = vader_vm_finalise_return(l2074, true, l2075, l9, l11, 2060u, l3);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 if (!(l2076.tag == 0u)) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     { vader_box_t __vret = l2076; vader_gc_top = gc_frame.prev; return __vret; }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 }
@@ -14415,7 +14415,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     if (l76.tag == 619u) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l2078 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(1), 1883u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        l2078 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(1), 1882u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         if (l2078.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             t2 = l2078.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -14456,7 +14456,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct_vader_vm_Frame_t*) l17);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         if (l76.tag == 614u) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            l2087 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(4), 1877u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            l2087 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(4), 1876u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             if (l2087.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 t2 = l2087.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -14497,7 +14497,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             VADER_WRITE_BARRIER((vader_struct_vader_vm_Frame_t*) l17);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             if (l76.tag == 615u) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2096 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(8), 1878u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l2096 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(8), 1877u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 if (l2096.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     t2 = l2096.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -14538,7 +14538,7 @@ static vader_box_t vader_vm_exec_entry(void* l0, int32_t l1, void* l2, vader_box
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct_vader_vm_Frame_t*) l17);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 if (l76.tag == 613u) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    l2105 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(8), 1876u);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    l2105 = vader_vm_load_bytes_op(l17, (size_t) (int64_t) INT64_C(8), 1875u);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     if (l2105.tag == 971u) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         t2 = l2105.payload.obj;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -15751,7 +15751,7 @@ static vader_box_t vader_vm_finalise_return(vader_box_t l0, bool l1, int32_t l2,
 
 static int32_t vader_vm_find_io_error_type_id(void* l0) {
     int32_t t0;
-    t0 = vader_bytecode_struct_type_index(l0, 2138u);
+    t0 = vader_bytecode_struct_type_index(l0, 2137u);
     return t0;
 }
 

@@ -24,7 +24,7 @@ vader_string_t std_target_Os_Display_to_string(uint8_t l0) {
         l1 = 2486u;
     } else {
         if (l0 == INT32_C(1)) {
-            l1 = 1875u;
+            l1 = 1874u;
         } else {
             if (l0 == INT32_C(2)) {
                 l1 = 1486u;

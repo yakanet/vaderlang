@@ -44,7 +44,7 @@ vader_string_t vader_target_baked_module_source(void* l0) {
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 7u] = vader_box_string(176u, 0u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 6u] = vader_box_string(176u, 1770u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 5u] = vader_box_string(176u, 0u);
-    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 4u] = vader_box_string(176u, 1949u);
+    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 4u] = vader_box_string(176u, 1948u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 3u] = vader_box_string(176u, 0u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 2u] = vader_box_string(176u, 467u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 1u] = vader_box_string(176u, 464u);
@@ -118,7 +118,7 @@ vader_box_t vader_target_parse_os(vader_string_t l0) {
     if (l0 == 2486u) {
         l1 = vader_box_i32(179u, INT32_C(0));
     } else {
-        if (l0 == 1875u) {
+        if (l0 == 1874u) {
             l1 = vader_box_i32(179u, INT32_C(1));
         } else {
             if (l0 == 1486u) {
