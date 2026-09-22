@@ -343,7 +343,6 @@ static void __defer_snippet_2(void* l0) {
     l3 = ((vader_struct__Cell_i64_t*) ((vader_struct___defer_env_snippet_3_t*) l0)->f_cap_1.payload.obj)->f_value;
     l2 = (l2 + l3);
     ((vader_struct_snippet_Counter_t*) l1)->f_hits = l2;
-    VADER_WRITE_BARRIER((vader_struct_snippet_Counter_t*) l1);
     return;
 }
 

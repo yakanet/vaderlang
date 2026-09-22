@@ -288,13 +288,11 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
             t0 = ((vader_struct___genstate_count_up_t*) l0)->f_state;
             if (t0 == INT32_C(0)) {
                 ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(-1);
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_count_up_t*) l0)->f_state;
             if (t0 == INT32_C(1)) {
                 ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(0);
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_count_up_t*) l0)->f_state;
@@ -305,10 +303,8 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
 #line 9 "tests/snippets/generator_escapes/_main.vader"
                 if ((l1 < l2)) {
                     ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(4);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 } else {
                     ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(1);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 }
                 goto loop_1;
             }
@@ -318,17 +314,14 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
 #line 10 "tests/snippets/generator_escapes/_main.vader"
                 l3 = (t0 + INT32_C(1));
                 ((vader_struct___genstate_count_up_t*) l0)->f_s1 = l3;
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
 #line 9 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(2);
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_count_up_t*) l0)->f_state;
             if (t0 == INT32_C(4)) {
                 l4 = INT32_C(3);
                 ((vader_struct___genstate_count_up_t*) l0)->f_state = l4;
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
                 t0 = ((vader_struct___genstate_count_up_t*) l0)->f_s1;
                 vader_struct_std_core_Yield__i32_t* _a0_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
                 vader_obj_header_init(_a0_obj, 6u);
@@ -340,10 +333,8 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
             if (t0 == INT32_C(5)) {
 #line 10 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_count_up_t*) l0)->f_s1 = INT32_C(0);
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
 #line 9 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_count_up_t*) l0)->f_state = INT32_C(2);
-                VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
             } else {
                 t2 = vader_box_obj(0u, NULL);
                 { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -353,7 +344,6 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
     }
     l4 = INT32_C(3);
     ((vader_struct___genstate_count_up_t*) l0)->f_state = l4;
-    VADER_WRITE_BARRIER((vader_struct___genstate_count_up_t*) l0);
     t0 = ((vader_struct___genstate_count_up_t*) l0)->f_s1;
     vader_struct_std_core_Yield__i32_t* _a1_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
     vader_obj_header_init(_a1_obj, 6u);
@@ -385,13 +375,11 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
             if (t0 == INT32_C(0)) {
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(-1);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
             if (t0 == INT32_C(1)) {
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(0);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
@@ -402,10 +390,8 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                 if ((l1 < l2)) {
                     ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(10);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 } else {
                     ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(1);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 }
                 goto loop_1;
             }
@@ -416,16 +402,13 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
                 t2 = (t1 + INT64_C(1));
                 l3 = (size_t) (int64_t) t2;
                 ((vader_struct___genstate_pairs_t*) l0)->f_s4 = l3;
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(2);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
             if (t0 == INT32_C(4)) {
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(3);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
@@ -436,10 +419,8 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                 if ((l4 < l5)) {
                     ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(8);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 } else {
                     ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(4);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 }
                 goto loop_1;
             }
@@ -450,17 +431,14 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
                 t2 = (t1 + INT64_C(1));
                 l6 = (size_t) (int64_t) t2;
                 ((vader_struct___genstate_pairs_t*) l0)->f_s8 = l6;
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(5);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
             if (t0 == INT32_C(7)) {
                 l7 = INT32_C(6);
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = l7;
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 l8 = ((vader_struct___genstate_pairs_t*) l0)->f_s5;
                 l9 = ((vader_struct___genstate_pairs_t*) l0)->f_s9;
 #line 15 "tests/snippets/generator_escapes/_main.vader"
@@ -481,10 +459,8 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
                 if ((size_t) l11 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l12 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l11];
                 ((vader_struct___genstate_pairs_t*) l0)->f_s9 = l12;
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                 ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(7);
-                VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
             } else {
                 t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
                 if (t0 == INT32_C(9)) {
@@ -496,12 +472,9 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
 #line 15 "tests/snippets/generator_escapes/_main.vader"
                     l14 = ((vader_array_t*) ((vader_struct___genstate_pairs_t*) l0)->f_s6)->length;
                     ((vader_struct___genstate_pairs_t*) l0)->f_s7 = l14;
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                     ((vader_struct___genstate_pairs_t*) l0)->f_s8 = (size_t) (int64_t) INT64_C(0);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                     ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(5);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                 } else {
                     t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
                     if (t0 == INT32_C(10)) {
@@ -513,10 +486,8 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
                         if ((size_t) l16 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
                         l17 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l16];
                         ((vader_struct___genstate_pairs_t*) l0)->f_s5 = l17;
-                        VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                         ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(9);
-                        VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                     } else {
                         t0 = ((vader_struct___genstate_pairs_t*) l0)->f_state;
                         if (t0 == INT32_C(11)) {
@@ -528,12 +499,9 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
 #line 14 "tests/snippets/generator_escapes/_main.vader"
                             l19 = ((vader_array_t*) ((vader_struct___genstate_pairs_t*) l0)->f_s2)->length;
                             ((vader_struct___genstate_pairs_t*) l0)->f_s3 = l19;
-                            VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                             ((vader_struct___genstate_pairs_t*) l0)->f_s4 = (size_t) (int64_t) INT64_C(0);
-                            VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
 #line 13 "tests/snippets/generator_escapes/_main.vader"
                             ((vader_struct___genstate_pairs_t*) l0)->f_state = INT32_C(2);
-                            VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
                         } else {
                             t4 = vader_box_obj(0u, NULL);
                             { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
@@ -546,7 +514,6 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
     }
     l7 = INT32_C(6);
     ((vader_struct___genstate_pairs_t*) l0)->f_state = l7;
-    VADER_WRITE_BARRIER((vader_struct___genstate_pairs_t*) l0);
     l8 = ((vader_struct___genstate_pairs_t*) l0)->f_s5;
     l9 = ((vader_struct___genstate_pairs_t*) l0)->f_s9;
 #line 15 "tests/snippets/generator_escapes/_main.vader"
@@ -633,7 +600,6 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, int32_t
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_core_Range__i32_t*) l0);
 #line 313 "lib/std/core/core.vader"
     *__o1 = l2; *__o0 = INT32_C(1); return;
 }
@@ -692,7 +658,6 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, int32_t* __o0, size_
     t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
     l3 = std_core_usize_Step_step(t1);
     ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_core_Range__usize_t*) l0);
 #line 313 "lib/std/core/core.vader"
     *__o1 = l2; *__o0 = INT32_C(1); return;
 }

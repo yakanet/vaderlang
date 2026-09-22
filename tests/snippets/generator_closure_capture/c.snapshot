@@ -250,13 +250,11 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
             t0 = ((vader_struct___genstate_gen_t*) l0)->f_state;
             if (t0 == INT32_C(0)) {
                 ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(-1);
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_gen_t*) l0)->f_state;
             if (t0 == INT32_C(1)) {
                 ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(0);
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_gen_t*) l0)->f_state;
@@ -266,10 +264,8 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
 #line 10 "tests/snippets/generator_closure_capture/_main.vader"
                 if ((t0 < INT32_C(3))) {
                     ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(4);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 } else {
                     ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(1);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 }
                 goto loop_1;
             }
@@ -279,17 +275,14 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
 #line 13 "tests/snippets/generator_closure_capture/_main.vader"
                 l1 = (t0 + INT32_C(1));
                 ((vader_struct___genstate_gen_t*) l0)->f_s3 = l1;
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
 #line 10 "tests/snippets/generator_closure_capture/_main.vader"
                 ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(2);
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___genstate_gen_t*) l0)->f_state;
             if (t0 == INT32_C(4)) {
                 l2 = INT32_C(3);
                 ((vader_struct___genstate_gen_t*) l0)->f_state = l2;
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 l3 = ((vader_struct___genstate_gen_t*) l0)->f_s2;
                 t0 = ((vader_struct___genstate_gen_t*) l0)->f_s3;
 #line 13 "tests/snippets/generator_closure_capture/_main.vader"
@@ -307,10 +300,8 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
             if (t0 == INT32_C(5)) {
 #line 13 "tests/snippets/generator_closure_capture/_main.vader"
                 ((vader_struct___genstate_gen_t*) l0)->f_s3 = INT32_C(0);
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
 #line 10 "tests/snippets/generator_closure_capture/_main.vader"
                 ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(2);
-                VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
             } else {
                 t0 = ((vader_struct___genstate_gen_t*) l0)->f_state;
                 if (t0 == INT32_C(6)) {
@@ -338,7 +329,6 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
                     VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
 #line 10 "tests/snippets/generator_closure_capture/_main.vader"
                     ((vader_struct___genstate_gen_t*) l0)->f_state = INT32_C(5);
-                    VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
                 } else {
                     t1 = vader_box_obj(0u, NULL);
                     { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -349,7 +339,6 @@ static vader_box_t snippet___genstate_gen_Iterator_next(void* l0) {
     }
     l2 = INT32_C(3);
     ((vader_struct___genstate_gen_t*) l0)->f_state = l2;
-    VADER_WRITE_BARRIER((vader_struct___genstate_gen_t*) l0);
     l3 = ((vader_struct___genstate_gen_t*) l0)->f_s2;
     t0 = ((vader_struct___genstate_gen_t*) l0)->f_s3;
 #line 13 "tests/snippets/generator_closure_capture/_main.vader"
@@ -439,7 +428,6 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, int32_t
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_core_Range__i32_t*) l0);
 #line 313 "lib/std/core/core.vader"
     *__o1 = l2; *__o0 = INT32_C(1); return;
 }
@@ -498,7 +486,6 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, int32_t* __o0, size_
     t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
     l3 = std_core_usize_Step_step(t1);
     ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_core_Range__usize_t*) l0);
 #line 313 "lib/std/core/core.vader"
     *__o1 = l2; *__o0 = INT32_C(1); return;
 }

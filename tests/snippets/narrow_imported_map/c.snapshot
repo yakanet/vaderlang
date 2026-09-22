@@ -488,7 +488,6 @@ static void std_collections_ensure_index__i32__Any(void* l0) {
 #line 89 "lib/std/collections/collections.vader"
         l2 = (size_t) (int64_t) INT64_C(15);
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_mask = l2;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
 #line 85 "lib/std/collections/collections.vader"
     }
 #line 84 "lib/std/collections/collections.vader"
@@ -586,10 +585,8 @@ static void std_collections_rehash__i32__Any(void* l0, size_t l1) {
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
 #line 106 "lib/std/collections/collections.vader"
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_mask = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
 #line 107 "lib/std/collections/collections.vader"
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_tombs = (size_t) (int64_t) INT64_C(0);
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
 #line 96 "lib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -751,7 +748,6 @@ static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) 
         t0 = (t1 - INT64_C(1));
         l3 = (size_t) (int64_t) t0;
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_tombs = l3;
-        VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
     }
 #line 151 "lib/std/collections/collections.vader"
     std_collections_write_entry__i32__Any(l0, l1, l2);
@@ -768,7 +764,6 @@ static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) 
     t0 = (t1 + INT64_C(1));
     l3 = (size_t) (int64_t) t0;
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_size = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0);
 #line 128 "lib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;

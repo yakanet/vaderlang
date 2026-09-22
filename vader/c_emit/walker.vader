@@ -2296,6 +2296,23 @@ erased_sibling_field_read :: fn(
 /// goes stale when the next minor moves it. `struct.set_stack` opts out — the
 /// lowerer's escape analysis proved the receiver is stack-allocated, so the
 /// macro's `in old?` test would always be false anyway.
+/// Whether storing into this field can create an old→young edge.
+///
+/// The card marks an object whose SLOTS a later minor must rescan, so a store
+/// that writes no reference has nothing to record — `cursor: usize` cannot make
+/// an old object point at a young one. `Pointer` is excluded by its own
+/// definition (the GC must not scan it); `String` is an interned atom and is
+/// kept conservatively, since its liveness is tracked through the object's
+/// fields rather than a raw slot.
+///
+/// @param types       the module's type table.
+/// @param type_index  the field's `BcType` index.
+/// @return            true when the field can hold a reference.
+field_may_hold_reference :: fn(types: BcType[], type_index: i32) -> bool {
+    v :: val_type_of_field(types, type_index)
+    return v == vm.ValType.Ref || v == vm.ValType.Any || v == vm.ValType.String
+}
+
 emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
     if t is BcStruct {
@@ -2312,7 +2329,7 @@ emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
         // T12: `.Ref` receiver is a raw `void*` ; `.Any` is a box → `.payload.obj`.
         obj_ptr :: obj_ptr_of(obj)
         line(s, "((${cname}*) ${obj_ptr})->f_${sanitise(f.name)} = ${rv};")
-        if !op.stack {
+        if !op.stack && field_may_hold_reference(s.ctx.module.types, f.type_index) {
             line(s, "VADER_WRITE_BARRIER((${cname}*) ${obj_ptr});")
         }
     } else {
