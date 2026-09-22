@@ -324,7 +324,7 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // `.virt` looked like a plain word — and the FFI then returned the atom
         // as an integer instead of a string. Only non-zero indices are written;
         // 0 is the "no type" slot every other import carries.
-        rt :: if imp.signature.result_type == 0 { "" } else { "result_type=${imp.signature.result_type} " }
+        rt :: if bc_single_result_type(imp.signature) == 0 { "" } else { "result_type=${bc_single_result_type(imp.signature)} " }
         // The PARAMETERS' type indices, for the same reason as the result's: a
         // `@c_struct` argument renders as a bare `ref` in the signature, so a
         // `.virt` re-read left the VM unable to describe the block it must lay
@@ -447,7 +447,19 @@ write_signature :: fn(sb: StringBuilder!, signature: BcSignature) -> void {
         sb.append(val_type_name(signature.params[i]))
     }
     sb.append(") -> ")
-    sb.append(val_type_name(signature.result))
+    // One result keeps the bare `-> i32` the format has always written, so a
+    // single-value signature dumps and re-reads exactly as before; several are
+    // parenthesised, which is also how WASM spells a multi-value result.
+    if signature.results.len() == 1 {
+        sb.append(val_type_name(signature.results[0]))
+        return
+    }
+    sb.append_char('(')
+    for i in 0..<signature.results.len() {
+        if i > 0 { sb.append(",") }
+        sb.append(val_type_name(signature.results[i]))
+    }
+    sb.append_char(')')
 }
 
 write_function :: fn(sb: StringBuilder!, module: BytecodeModule, function_decl: BcFunction, function_index: i32, annotate: bool) -> void {

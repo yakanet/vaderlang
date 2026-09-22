@@ -115,7 +115,13 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
     main_index := -1
 
     current_name := ""
-    current_sig := bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
+    current_sig := bc.BcSignature {
+        .params = [],
+        .results = [bc.ValType.Void],
+        .param_types = [],
+        .result_types = [0],
+        .param_names = [],
+    }
     current_locals: bc.BcLocal[]! = []
     in_function := false
 
@@ -497,7 +503,13 @@ parse_import_decl_bc :: fn(
     }
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature: if open < 0 {
-        bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
+        bc.BcSignature {
+            .params = [],
+            .results = [bc.ValType.Void],
+            .param_types = [],
+            .result_types = [0],
+            .param_names = [],
+        }
     } else {
         parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
@@ -550,7 +562,8 @@ parse_import_decl_bc :: fn(
     // in here. Without it a `string | null` result reads as a plain word and the
     // FFI hands the atom back as an integer.
     final_sig :: bc.BcSignature {
-        .params = sig.params, .result = sig.result,
+        .params = sig.params,
+        .results = sig.results,
         // Only trust the attribute when it describes every parameter: a partial
         // list would misalign the block layout it feeds.
         .param_types = if param_types.len() == sig.params.len() {
@@ -558,7 +571,14 @@ parse_import_decl_bc :: fn(
         } else {
             sig.param_types
         },
-        .result_type = if result_type == 0 { sig.result_type } else { result_type },
+        // The attribute names ONE result type — an `@extern` returns one value
+        // or none — so it overlays the single slot and leaves a void signature
+        // void.
+        .result_types = if result_type == 0 || sig.results.len() != 1 {
+            sig.result_types
+        } else {
+            [result_type]
+        },
         .param_names = sig.param_names,
         // Same rule as `param_types`: a list that does not cover every parameter
         // is not trusted, the flags being read positionally.
@@ -919,11 +939,12 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
         rtext :: lb[usize(arrow) + 1..<lb.len()].bytes_to_string().trim()
         result = vt_or_void(rtext)
     }
+    slots :: bc.bc_result_slots(result, primitive_index_for(types, result))
     return bc.BcSignature {
         .params      = params,
-        .result      = result,
+        .results     = slots.results,
         .param_types = param_types,
-        .result_type = primitive_index_for(types, result),
+        .result_types = slots.result_types,
         .param_names = [],
     }
 }
@@ -1109,8 +1130,8 @@ import "std/testing"
     assert_eq(f.signature.params.len(), 2)
     assert(f.signature.params[0] == bc.ValType.I32, "param 0 should be i32")
     assert_eq(f.signature.param_types[0], 0)
-    assert(f.signature.result == bc.ValType.I32, "result should be i32")
-    assert_eq(f.signature.result_type, 0)
+    assert(bc.bc_single_result(f.signature) == bc.ValType.I32, "result should be i32")
+    assert_eq(bc.bc_single_result_type(f.signature), 0)
     // local ValType recovered
     assert_eq(f.locals.len(), 1)
     assert_eq(f.locals[0].name, "acc")

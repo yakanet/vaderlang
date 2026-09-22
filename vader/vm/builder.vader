@@ -130,9 +130,9 @@ synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignatur
     params: bc.ValType[]: [bc.ValType.Any] * parameter_count
     return bc.BcSignature {
         .params      = params,
-        .result      = if has_return { bc.ValType.Any } else { bc.ValType.Void },
+        .results     = [if has_return { bc.ValType.Any } else { bc.ValType.Void }],
         .param_types = [],
-        .result_type = 0,
+        .result_types = [0],
         .param_names = [],
     }
 }

@@ -374,10 +374,10 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
         }
     }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    ret :: if is_abi_nullable_pointer(types, imp.signature.result_type) {
+    ret :: if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
         "void*"
     } else {
-        extern_c_type(imp.signature.result)
+        extern_c_type(bc_single_result(imp.signature))
     }
     return "extern ${ret} ${imp.extern_name}(${params});"
 }
@@ -547,7 +547,7 @@ import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     parts: string[]!: []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    return "${c_type_for_val_bare(sig.result)} ${host_shim_name(imp)}(${params})"
+    return "${c_type_for_val_bare(bc_single_result(sig))} ${host_shim_name(imp)}(${params})"
 }
 
 import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
@@ -728,12 +728,12 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         after_lines.push_all(write_backs)
     }
     call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == ValType.Void {
         lines.push("${call_expr};")
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return;")
-    } else if is_abi_nullable_pointer(types, sig.result_type) {
+    } else if is_abi_nullable_pointer(types, bc_single_result_type(sig)) {
         // Symmetric with the parameter side : a bare `void*` comes back, and
         // `NULL` becomes the union's null variant rather than a tagged pointer.
         ptr_tag :: tag_u(prim_tag(types, ValType.Pointer), "CPointer")
@@ -741,7 +741,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
-    } else if is_abi_nullable_string(types, sig.result_type) {
+    } else if is_abi_nullable_string(types, bc_single_result_type(sig)) {
         // `char*` says "absent" with NULL; folding that onto `""` would lose the
         // distinction `getenv` rests on. Borrowed, like every returned string.
         str_tag :: tag_u(prim_tag(types, ValType.String), "string")
@@ -756,7 +756,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         lines.push("vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(${str_tag}, (int64_t) vader_atom_intern(r, strlen(r)));")
         for fl in free_lines { lines.push(fl) }
         lines.push("return out;")
-    } else if sig.result == ValType.String {
+    } else if bc_single_result(sig) == ValType.String {
         // A C string comes back BORROWED: interned into the atom table, never
         // freed. Not a stopgap — it is the CORRECT semantics for a pointer the
         // library owns (`getenv`, `strerror`, a struct member), which is what
@@ -783,7 +783,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     } else if free_lines.len() == 0 && after_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {
-        lines.push("${c_type_for_val_bare(sig.result)} r = ${call_expr};")
+        lines.push("${c_type_for_val_bare(bc_single_result(sig))} r = ${call_expr};")
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r;")

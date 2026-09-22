@@ -1028,7 +1028,7 @@ convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
 /// An empty stack at a non-void return marks a dead trailing return (an
 /// already-terminated path) and emits a `vader_unreachable` trap instead.
 emit_return :: fn(s: FnState!) -> void {
-    result :: s.function.signature.result
+    result :: bc_single_result(s.function.signature)
     if result == ValType.Void {
         emit_return_stmt(s, "return;")
         return
@@ -1067,7 +1067,7 @@ emit_return_lit :: fn(s: FnState!, value: vm.ConstOp) -> void {
         s.ctx.module.types,
         const_lit_c(s.ctx, value),
         const_val(value),
-        s.function.signature.result,
+        bc_single_result(s.function.signature),
     )
     emit_return_stmt(s, "return ${rv};")
 }
@@ -1392,7 +1392,7 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
             sig.params[usize(slot)],
         )
     }
-    emit_call_result(s, "${callee_name}(${args.join(", ")})", sig.result)
+    emit_call_result(s, "${callee_name}(${args.join(", ")})", bc_single_result(sig))
 }
 
 /// Capture a call's result : a `void` call is a bare statement ; otherwise
@@ -1567,11 +1567,11 @@ emit_virtual_call :: fn(s: FnState!, op: vm.VirtualCall) -> void {
         all_args.push(a)
     }
     call_expr :: "${vtable_helper_name(op.vtable_key)}(${all_args.join(", ")})"
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == ValType.Void {
         line(s, "${call_expr};")
         return
     }
-    push_into_tmp(s, call_expr, sig.result)
+    push_into_tmp(s, call_expr, bc_single_result(sig))
 }
 
 // ---- fn-value wrappers (whole-module scan) --------------------------------
@@ -1689,7 +1689,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
     out.append("${link}vader_box_t vader_fn_tramp_${cname}(${head}) {\n")
     out.append("    (void) env;\n")
     unboxed :: tramp_unbox_args(sig.params)
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == ValType.Void {
         out.append("    ${cname}(${unboxed});\n")
         out.append("    return vader_box_null();\n")
     } else {
@@ -1720,7 +1720,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     env_arg :: coerce_expr(ctx.module.types, "env", ValType.Ref, sig.params[0])
     unboxed_tail :: lift_unbox_tail(sig.params)
     call_args :: if unboxed_tail == "" { env_arg } else { "${env_arg}, ${unboxed_tail}" }
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == ValType.Void {
         out.append("    ${cname}(${call_args});\n")
         out.append("    return vader_box_null();\n")
     } else {
@@ -1771,10 +1771,10 @@ lift_unbox_tail :: fn(params: ValType[]) -> string {
 /// result is already a box (`ref` / `any`).
 tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string {
     call_expr :: "${cname}(${args})"
-    if sig.result == ValType.Any { return call_expr }
+    if bc_single_result(sig) == ValType.Any { return call_expr }
     // A `.Ref` result is a raw `void*` — widen to the box the erased ABI returns.
-    if sig.result == ValType.Ref { return "vader_ref_box(${call_expr})" }
-    return box_expr(call_expr, sig.result, sig.result_type)
+    if bc_single_result(sig) == ValType.Ref { return "vader_ref_box(${call_expr})" }
+    return box_expr(call_expr, bc_single_result(sig), bc_single_result_type(sig))
 }
 
 // ---- type ops + defer -----------------------------------------------------

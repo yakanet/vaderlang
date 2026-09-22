@@ -20,6 +20,8 @@
 
 module "vader/bytecode"
 
+import "std/abort"
+
 
 /// One Vader function body, post-lowering.
 ///
@@ -44,16 +46,25 @@ export BcFunction :: struct {
 }
 
 /// Static signature of a fn-shaped slot. The VM only consults `params`
-/// / `result` (which carry the stack-erased `ValType`s) ; the C-emit
-/// reads `param_types` / `result_type` to apply B1 (nullable-ref inline
-/// rep) and the path-γ erasure boundary at the call site. Both slot
+/// / `results` (which carry the stack-erased `ValType`s) ; the C-emit
+/// reads `param_types` / `result_types` to apply B1 (nullable-ref inline
+/// rep) and the path-γ erasure boundary at the call site. Both pairs of
 /// arrays are parallel — `param_types[i]` is the `BcType` index of
-/// `params[i]`.
+/// `params[i]`, and `result_types[i]` of `results[i]`.
 export BcSignature :: struct {
     params: ValType[]
-    result: ValType                  // Void = leaves nothing on the stack
+    /// What the callee leaves on the operand stack, in the order the caller
+    /// receives it. EMPTY for void — there is no `ValType.Void` entry.
+    ///
+    /// More than one is what lets a small composite cross in registers rather
+    /// than as a heap object. It is also the shape WASM takes natively
+    /// (`(func (result i32 i32))`), which is why the C backend is the one that
+    /// degrades — to out-params — and not the IR.
+    /// Plan: `.claude/plans/2026-09-22-tuple-value-abi.md`.
+    results: ValType[]
     param_types: i32[]               // parallel to params, length identical
-    result_type: i32                 // BcType index of the return slot
+    /// `BcType` indices, parallel to `results`.
+    result_types: i32[]
     /// Source parameter names, parallel to `params` — populated by the CFG
     /// emitter for the debugger's Variables view. Empty (not per-index) on
     /// paths that don't carry names (imports, synth wrappers, `.virt` reload) ;
@@ -75,6 +86,61 @@ export BcSignature :: struct {
     /// stack temporary and passes `&tmp`. `param_mutable` then says whether C
     /// writes through it.
     param_by_address: bool[] = []
+}
+
+/// The single `ValType` a signature leaves on the stack, `Void` when it leaves
+/// none — and a PANIC when it leaves several.
+///
+/// The panic is the point. A caller of this function has not been taught about
+/// multi-value; returning `Void` or `results[0]` there would mis-compile in
+/// silence, which is the failure mode `hazard_ir_hint_plumbing` records. Every
+/// site that must handle arity asks `results.len()` instead, and the panic is
+/// what says the site was missed. It can only fire on bytecode this compiler
+/// emitted, never on user input.
+export bc_single_result :: fn(sig: BcSignature) -> ValType {
+    if sig.results.len() == 0 {
+        return ValType.Void
+    }
+    if sig.results.len() > 1 {
+        panic("bytecode: a multi-value result reached a single-value consumer")
+    }
+    return sig.results[0]
+}
+
+/// `BcType` index of the single return slot, 0 (the void slot) when there is
+/// none. Panics on several, for the reason `bc_single_result` gives.
+export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
+    if sig.result_types.len() == 0 {
+        return 0
+    }
+    if sig.result_types.len() > 1 {
+        panic("bytecode: a multi-value result reached a single-value consumer")
+    }
+    return sig.result_types[0]
+}
+
+/// Signature result arrays for a slot that returns one value.
+///
+/// The pair has to stay in step, and building it by hand at twenty sites is how
+/// they drift.
+///
+/// A VOID return still gets one entry, carrying `ValType.Void` — the shape this
+/// signature has always had. Collapsing it to the empty arrays is the honest
+/// representation and the one WASM takes (`(func)` declares no result), but it
+/// un-roots the void type in the bytecode DCE and moves every type index in the
+/// emitted C. That normalisation is its own step, taken against a measurement,
+/// not a side effect of introducing arity.
+export bc_result_slots :: fn(val: ValType, type_index: i32) -> BcResultSlots {
+    return BcResultSlots {
+        .results = [val],
+        .result_types = [type_index],
+    }
+}
+
+/// The two parallel arrays a signature's result is made of.
+export BcResultSlots :: struct {
+    results: ValType[]
+    result_types: i32[]
 }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit

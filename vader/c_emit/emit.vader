@@ -879,7 +879,7 @@ signature_for :: fn(function: BcFunction) -> string {
         sb.append("${c_type_for_val_bare(params[i])} l${i}")
     }
     param_list :: if params.len() == 0 { "void" } else { "${sb}" }
-    cret :: c_type_for_val_bare(function.signature.result)
+    cret :: c_type_for_val_bare(bc_single_result(function.signature))
     return "${cret} ${sanitise(function.name)}(${param_list})"
 }
 
@@ -1154,7 +1154,7 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder!, entry_mangled: string) -> voi
         out.append("    (void)argc; (void)argv;\n")
     }
 
-    if function.signature.result == ValType.Void {
+    if bc_single_result(function.signature) == ValType.Void {
         out.append("    ${cname}(${call_args});\n")
         out.append("    return 0;\n")
     } else {

@@ -54,16 +54,16 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     uniform := true
     for e in row.entries {
         f :: ctx.module.functions[usize(e.fn_index)]
-        if f.signature.result != first_sig.result || f.signature.result_type != first_sig.result_type {
+        if bc_single_result(f.signature) != bc_single_result(first_sig) || bc_single_result_type(f.signature) != bc_single_result_type(first_sig) {
             uniform = false
         }
     }
     if uniform { return first_sig }
     return BcSignature {
         .params = first_sig.params,
-        .result = .Any,
+        .results = [ValType.Any],
         .param_types = first_sig.param_types,
-        .result_type = first_sig.result_type,
+        .result_types = first_sig.result_types,
         .param_names = first_sig.param_names,
     }
 }
@@ -98,7 +98,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             continue
         }
         sig :: vtable_sig_for_row(ctx, row)
-        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(bc_single_result(sig))} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
     }
 }
 
@@ -117,7 +117,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
         helper :: vtable_helper_name(row.key)
-        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(bc_single_result(sig))} ${helper}(${dispatcher_formal(sig)}) {\n")
         out.append("    switch (recv.tag) {\n")
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
@@ -144,15 +144,15 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
                 args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
             }
             call_expr :: "${sanitise(callee.name)}(${args.join(", ")})"
-            if sig.result == ValType.Void {
+            if bc_single_result(sig) == ValType.Void {
                 out.append("        case ${e.receiver_type_index}u: ${call_expr}; return;\n")
             } else {
-                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, csig.result, sig.result)};\n")
+                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))};\n")
             }
         }
         out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
         out.append("    }\n")
-        if sig.result != ValType.Void {
+        if bc_single_result(sig) != ValType.Void {
             out.append("    vader_unreachable(\"vtable miss in ${row.key}\");\n")
         }
         out.append("}\n")

@@ -1098,7 +1098,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     cur_slot_count := body.signature.params.len() + body.locals.len()
     // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
     // beside `cur_has_narrow` rather than recomputed on every `return`.
-    cur_narrow_result := is_narrow_valtype(body.signature.result)
+    cur_narrow_result := is_narrow_valtype(bc_single_result(body.signature))
     // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -1166,7 +1166,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             op_count = cur_ops.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
-            cur_narrow_result = is_narrow_valtype(body.signature.result)
+            cur_narrow_result = is_narrow_valtype(bc_single_result(body.signature))
             cur_top = top
         }
 
@@ -1396,7 +1396,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     continue
                 }
                 new_sp := arg_base
-                if info.signature.result != bc.ValType.Void {
+                if bc_single_result(info.signature) != bc.ValType.Void {
                     push_val(frame, new_sp, dispatch_outcome.value)
                     new_sp += 1
                 }
@@ -1486,9 +1486,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             .mangled_name = host_mangle,
                             .signature    = bc.BcSignature {
                                 .params      = synth_params,
-                                .result      = bc.ValType.Any,
+                                .results     = [bc.ValType.Any],
                                 .param_types = [],
-                                .result_type = 0,
+                                .result_types = [0],
                                 .param_names = [],
                             },
                             .is_extern    = false,
@@ -2598,7 +2598,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 } else {
                     return_value: Value = I32Val { .value = 0 }
                     // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
-                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), body.signature.result) }
+                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), bc_single_result(body.signature)) }
                     outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
                     if !(outcome is null) { return outcome }
                 }
@@ -2606,7 +2606,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.ReturnLit -> {
                 raw_ret :: const_op_value(instr.value, state.bc.strings, frame.pc)
                 if raw_ret is Trap { return raw_ret }
-                return_value :: narrow_mask(raw_ret, body.signature.result)
+                return_value :: narrow_mask(raw_ret, bc_single_result(body.signature))
                 outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main", capture)
                 if !(outcome is null) { return outcome }
             }

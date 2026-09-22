@@ -172,8 +172,11 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
         pts.push(remap_idx(remap, pt))
     }
     return BcSignature {
-        .params = sig.params, .result = sig.result, .param_types = pts,
-        .result_type = remap_idx(remap, sig.result_type), .param_names = sig.param_names,
+        .params = sig.params,
+        .results = sig.results,
+        .param_types = pts,
+        .result_types = remap_type_indices(remap, sig.result_types),
+        .param_names = sig.param_names,
         // Carried over explicitly : the field defaults to `[]`, so a partial
         // rebuild drops it in silence — the failure mode `types.vader` records
         // for `FnParam.mutable`.

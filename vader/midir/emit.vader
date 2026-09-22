@@ -228,9 +228,13 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
         return sig
     }
     return BcSignature {
-        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
-        .result_type = sig.result_type, .param_names = sig.param_names,
-        .param_mutable = sig.param_mutable, .param_by_address = flags,
+        .params = sig.params,
+        .results = sig.results,
+        .param_types = sig.param_types,
+        .result_types = sig.result_types,
+        .param_names = sig.param_names,
+        .param_mutable = sig.param_mutable,
+        .param_by_address = flags,
     }
 }
 
@@ -245,7 +249,15 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
         param_names.push(p.name)
         param_mutable.push(is_mutable_slot(p.type))
     }
-    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
+    slots :: bc_result_slots(val_type_of_type(return_type), intern_type(return_type, ctx))
+    return BcSignature {
+        .params = params_val,
+        .results = slots.results,
+        .param_types = param_types,
+        .result_types = slots.result_types,
+        .param_names = param_names,
+        .param_mutable = param_mutable,
+    }
 }
 
 /// Whether the callee may write THROUGH the slot.
