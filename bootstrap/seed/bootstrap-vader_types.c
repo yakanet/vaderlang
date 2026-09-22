@@ -943,12 +943,6 @@ vader_box_t vader_types_mk_union(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-int64_t vader_types_primitive_align(vader_string_t l0) {
-    int64_t t0;
-    t0 = vader_types_primitive_size(l0);
-    return t0;
-}
-
 vader_box_t vader_types_primitive_meta(vader_string_t l0) {
     void* l1;
     void* l4;
@@ -1028,6 +1022,52 @@ vader_string_t vader_types_resolve_primitive_alias(vader_string_t l0) {
         }
     }
     return l0;
+}
+
+int64_t vader_types_slot_byte_align(vader_box_t l0) {
+    int64_t l1;
+    l1 = vader_types_slot_byte_size(l0);
+    if ((l1 > INT64_C(8))) {
+        return INT64_C(8);
+    }
+    return l1;
+}
+
+int64_t vader_types_slot_byte_size(vader_box_t l0) {
+    int64_t l1;
+    void* t0;
+    vader_string_t t1;
+    if (l0.tag == 937u) {
+        t0 = l0.payload.obj;
+        t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
+        l1 = vader_types_primitive_size(t1);
+    } else {
+        if (l0.tag == 930u) {
+            t0 = l0.payload.obj;
+            t1 = ((vader_struct_vader_types_EnumType_t*) t0)->f_repr;
+            l1 = vader_types_primitive_size(t1);
+        } else {
+            if (l0.tag == 929u) {
+                t0 = l0.payload.obj;
+                l1 = vader_types_slot_byte_size(((vader_struct_vader_types_DistinctType_t*) t0)->f_backing);
+            } else {
+                if ((l0.tag == 928u || l0.tag == 931u || l0.tag == 939u || l0.tag == 941u)) {
+                    l1 = INT64_C(8);
+                } else {
+                    if ((l0.tag == 927u || l0.tag == 940u || l0.tag == 944u)) {
+                        l1 = INT64_C(16);
+                    } else {
+                        if ((l0.tag == 932u || l0.tag == 933u || l0.tag == 934u || l0.tag == 935u || l0.tag == 938u || l0.tag == 942u || l0.tag == 943u || l0.tag == 945u)) {
+                            l1 = INT64_C(0);
+                        } else {
+                            vader_unreachable("unreachable return in vader_types$slot_byte_size");
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return l1;
 }
 
 vader_box_t vader_types_strip_distinct(vader_box_t l0) {
