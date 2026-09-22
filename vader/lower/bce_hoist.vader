@@ -517,22 +517,32 @@ bce_test_ctx :: fn() -> BcePurityCtx = BcePurityCtx {
 }
 
 bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
-    .id = id, .kind = SymbolKind.Fn, .name = name, .module = "test",
+    .id = id, .kind = SymbolKind.Fn,
+    .name = name,
+    .module = "test",
     .module_name = "test",
-    .visibility = AST.Visibility.Private, .defined_at = null,
+    .visibility = AST.Visibility.Private,
+    .defined_at = null,
 }
 
 bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
-    entry :: MonoEntry {
-        .id = sym.id, .is_main = false, .mangled = sym.name,
-        .decl = stub_decl_for(sym), .symbol = sym, .subst = new_substitution(),
-        .type_arguments = [], .module = null,
-    }
     return LoweredFnDecl {
-        .mangled = sym.name, .params = [], .return_type = TY_VOID,
-        .body = body, .origin = entry,
+        .mangled = sym.name,
+        .params = [],
+        .return_type = TY_VOID,
+        .body = body,
+        .origin = MonoEntry {
+            .id = sym.id,
+            .is_main = false,
+            .mangled = sym.name,
+            .decl = stub_decl_for(sym),
+            .symbol = sym,
+            .subst = new_substitution(),
+            .type_arguments = [],
+            .module = null,
+        },
     }
 }
 
