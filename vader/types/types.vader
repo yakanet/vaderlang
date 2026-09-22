@@ -331,11 +331,6 @@ export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: @type_name(Range)
-/// The retired `Iterator.next` wrapper. A plain string rather than
-/// `@type_name`: std/core no longer declares it, and its ABSENCE is what tells
-/// the lowerer to build the `[T, Continuation]` pair. Goes with the wrapper arm
-/// in `lower/iterator_step.vader` — §25 step 3.
-export STRUCT_YIELD          :: "Yield"
 
 /// `std/core::Continuation` and its variants — what an `Iterator.next` pairs its
 /// element with once the stdlib drops the `Yield` wrapper. The lowerer builds the

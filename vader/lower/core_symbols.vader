@@ -58,14 +58,6 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     }
 }
 
-/// Build the `Yield<T> | null` union the for-in step loop uses as the
-/// `Iterator<T>.next()` return type.
-/// @param yielded  the element type yielded by the iterator.
-/// @return         the resolved union type.
-export union_of_yield_null :: fn(yielded: Type) -> Type {
-    return mk_union([yielded, TY_NULL])
-}
-
 /// Resolve a `std/core` ENUM type by name.
 ///
 /// Separate from `find_core_type` because an enum decl reaches lowering as a
@@ -165,8 +157,8 @@ import "vader/resolver"
     assert(find_core_trait(project, "Display") is null, "expected miss to return null")
 }
 
-@test test_union_of_yield_null_renders :: fn() -> void {
-    union_ty :: union_of_yield_null(mk_primitive("i32"))
-    // `display_type` for a 2-arm union joins with ` | `.
-    assert_eq(display_type(union_ty), "i32 | null")
+@test test_iterator_step_type_renders :: fn() -> void {
+    step :: iterator_step_type(mk_primitive("i32"), mk_primitive("u8"))
+    // `display_type` for a tuple joins with `, ` inside brackets.
+    assert_eq(display_type(step), "[i32, u8]!")
 }

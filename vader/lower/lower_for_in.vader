@@ -208,13 +208,6 @@ export lower_for_in :: fn(
     }
 }
 
-// ---- helpers --------------------------------------------------------------
-
-build_one :: fn(t: Type) -> Type[] {
-    out: Type[]!: []
-    out.push(t)
-    return out
-}
 
 // The label to stamp on a for-in `LoweredLoop`. A `break <var>` resolved to this
 // loop by its iteration variable recorded that variable in `loop_target_labels`
