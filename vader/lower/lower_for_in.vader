@@ -82,14 +82,21 @@ export lower_for_in :: fn(
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
     if map_set != null { return map_set }
 
-    // THE FALL. Every fast path above declined, so this `for` runs through the
-    // `Iterator` vtable: one `next()` call and one `Yield` per iteration. That is
+    // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
+    // impl: one `next()` call and one `Yield` ALLOCATION per iteration. That is
     // correct and it is what the language promises — but it is also the single
     // point where the recognisers stop, so it is the one worth counting.
+    //
+    // The allocation is the cost, not the call. Say so: the `next()` here is
+    // usually a DIRECT call — the receiver's concrete type is known by the time
+    // the backend emits it — and a reader told "vtable" goes looking for a
+    // dispatch that is not in the C.
     record_miss(ctx.project, "for-in fusion", span,
-        "iterating `${display_type(iter_type_raw)}` through the Iterator vtable — "
-        + "one `next()` + one `Yield` per step; the fast paths cover an int range, "
-        + "a raw `T[]`, a map / set, a fusible combinator chain and a direct generator")
+        "stepping `${display_type(iter_type_raw)}` through its `Iterator` impl — "
+        + "one `next()` + one `Yield` ALLOCATION per step, and the allocation is "
+        + "the cost (the call itself is usually devirtualised); the fast paths "
+        + "cover an int range, a raw `T[]`, a map / set, a fusible combinator "
+        + "chain and a direct generator")
 
     // Auto-wrap `T[]` → ArrayIterator<T> so the step-loop can dispatch
     // through the standard Iterator impl. Falls through to the raw
