@@ -878,10 +878,31 @@ signature_for :: fn(function: BcFunction) -> string {
         if i > 0 { sb.append(", ") }
         sb.append("${c_type_for_val_bare(params[i])} l${i}")
     }
+    // A multi-value return has no C spelling, so it becomes out-params appended
+    // after the declared ones and the function itself returns void. Measured as
+    // the fastest of the three shapes a composite can cross in — out-params,
+    // a flat struct by value, or the heap object this replaces — and the only
+    // one that needs no ABI threshold to be known. Record:
+    // `.claude/plans/2026-09-22-tuple-value-abi.md` §2.
+    results :: function.signature.results
+    if bc_result_arity(function.signature) > 1 {
+        for i in 0..<results.len() {
+            if params.len() > 0 || i > 0 { sb.append(", ") }
+            sb.append("${c_type_for_val_bare(results[i])}* ${out_param_name(i)}")
+        }
+        return "void ${sanitise(function.name)}(${sb})"
+    }
     param_list :: if params.len() == 0 { "void" } else { "${sb}" }
     cret :: c_type_for_val_bare(bc_single_result(function.signature))
     return "${cret} ${sanitise(function.name)}(${param_list})"
 }
+
+/// Name of the `i`-th out-param in a scalarised multi-value signature.
+///
+/// One place, because the callee's `return` writes through it and every call
+/// site takes its address — a mismatch between the two is a C compile error at
+/// best and the wrong slot at worst.
+export out_param_name :: fn(i: usize) -> string = "__o${i}"
 
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
 /// typedef. The canonical erased family is always emitted at least for

@@ -935,16 +935,34 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
     }
     result := bc.ValType.Void
     arrow :: line.index_of('>', 0)
+    results: bc.ValType[]!: []
+    result_types: i32[]!: []
     if arrow >= 0 {
         rtext :: lb[usize(arrow) + 1..<lb.len()].bytes_to_string().trim()
-        result = vt_or_void(rtext)
+        // `-> i32` is one result and `-> (i32,i32)` several — the same split the
+        // writer makes, so a single-value signature round-trips through the
+        // format it has always used.
+        if rtext.starts_with("(") && rtext.ends_with(")") {
+            inner :: rtext[1..<rtext.len() - 1]
+            for r in inner.split(",") {
+                v :: vt_or_void(r.trim())
+                results.push(v)
+                result_types.push(primitive_index_for(types, v))
+            }
+        } else {
+            result = vt_or_void(rtext)
+        }
     }
-    slots :: bc.bc_result_slots(result, primitive_index_for(types, result))
+    if results.len() == 0 {
+        slots :: bc.bc_result_slots(result, primitive_index_for(types, result))
+        results.push_all(slots.results)
+        result_types.push_all(slots.result_types)
+    }
     return bc.BcSignature {
         .params      = params,
-        .results     = slots.results,
+        .results     = results,
         .param_types = param_types,
-        .result_types = slots.result_types,
+        .result_types = result_types,
         .param_names = [],
     }
 }

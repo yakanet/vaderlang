@@ -1028,6 +1028,10 @@ convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
 /// An empty stack at a non-void return marks a dead trailing return (an
 /// already-terminated path) and emits a `vader_unreachable` trap instead.
 emit_return :: fn(s: FnState!) -> void {
+    if bc_result_arity(s.function.signature) > 1 {
+        emit_multi_return(s)
+        return
+    }
     result :: bc_single_result(s.function.signature)
     if result == ValType.Void {
         emit_return_stmt(s, "return;")
@@ -1055,6 +1059,38 @@ emit_return :: fn(s: FnState!) -> void {
             "{ ${c_type_for_val_bare(result)} __vret = ${rv}; vader_gc_top = gc_frame.prev; return __vret; }",
         )
     }
+}
+
+// A multi-value return writes each value through its out-param and returns void.
+//
+// The stack holds them in the order the caller receives them, deepest first, so
+// they pop in reverse — the assignments are emitted back to front and the
+// snapshot rule of the single-value path applies to all of them at once: every
+// value is read into a temp BEFORE the GC frame is popped, since any of them may
+// read a frame-pinned local.
+emit_multi_return :: fn(s: FnState!) -> void {
+    results :: s.function.signature.results
+    arity :: results.len()
+    if s.stack.len() < arity {
+        line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
+        return
+    }
+    exprs: string[]!: []
+    for i in 0..<arity {
+        v :: pop(s)
+        // Popped from the top, so this is result `arity - 1 - i`.
+        exprs.push(coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[arity - 1 - i]))
+    }
+    body :: StringBuilder {}
+    for i in 0..<arity {
+        idx :: arity - 1 - i
+        body.append("*${out_param_name(idx)} = ${exprs[i]}; ")
+    }
+    if s.no_frame {
+        line(s, "${body}return;")
+        return
+    }
+    line(s, "{ ${body}vader_gc_top = gc_frame.prev; return; }")
 }
 
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
@@ -1392,7 +1428,40 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
             sig.params[usize(slot)],
         )
     }
+    if bc_result_arity(sig) > 1 {
+        emit_multi_call(s, callee_name, args, sig)
+        return
+    }
     emit_call_result(s, "${callee_name}(${args.join(", ")})", bc_single_result(sig))
+}
+
+// A call to a scalarised callee: one fresh temp per result, their addresses
+// appended to the argument list, and the temps pushed in the order the callee
+// declared them.
+//
+// The temps are ordinary operand-stack slots, so the ops that follow read them
+// exactly as they would read a single returned value. Nothing here can hold a
+// heap reference — the value ABI admits only composites whose every leaf is a
+// non-reference primitive, which is what keeps the caller from having to root
+// the address it takes (`.claude/plans/2026-09-22-tuple-value-abi.md` §7.1).
+emit_multi_call :: fn(
+    s: FnState!, callee_name: string, args: string[]!, sig: BcSignature,
+) -> void {
+    results :: sig.results
+    names: string[]!: []
+    call_args: string[]!: []
+    for a in args {
+        call_args.push(a)
+    }
+    for i in 0..<results.len() {
+        name :: fresh_tmp(s, results[i])
+        names.push(name)
+        call_args.push("&${name}")
+    }
+    line(s, "${callee_name}(${call_args.join(", ")});")
+    for i in 0..<results.len() {
+        push_tmp(s, names[i], results[i])
+    }
 }
 
 /// Capture a call's result : a `void` call is a bare statement ; otherwise
