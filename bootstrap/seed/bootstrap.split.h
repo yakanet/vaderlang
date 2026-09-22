@@ -80,9 +80,6 @@ typedef struct vader_struct___lambda_env_vader_midir_13_t vader_struct___lambda_
 typedef struct vader_struct___lambda_env_vader_midir_15_t vader_struct___lambda_env_vader_midir_15_t;
 typedef struct vader_struct___lambda_env_vader_midir_17_t vader_struct___lambda_env_vader_midir_17_t;
 typedef struct vader_struct___lambda_env_vader_midir_19_t vader_struct___lambda_env_vader_midir_19_t;
-typedef struct vader_struct___lambda_env_vader_midir_21_t vader_struct___lambda_env_vader_midir_21_t;
-typedef struct vader_struct___lambda_env_vader_midir_23_t vader_struct___lambda_env_vader_midir_23_t;
-typedef struct vader_struct___lambda_env_vader_midir_25_t vader_struct___lambda_env_vader_midir_25_t;
 typedef struct vader_struct___lambda_env_vader_midir_3_t vader_struct___lambda_env_vader_midir_3_t;
 typedef struct vader_struct___lambda_env_vader_midir_5_t vader_struct___lambda_env_vader_midir_5_t;
 typedef struct vader_struct___lambda_env_vader_midir_7_t vader_struct___lambda_env_vader_midir_7_t;
@@ -333,7 +330,6 @@ typedef struct vader_struct_vader_bytecode_BcPeepholeOut_t vader_struct_vader_by
 typedef struct vader_struct_vader_bytecode_BcPrimData_t vader_struct_vader_bytecode_BcPrimData_t;
 typedef struct vader_struct_vader_bytecode_BcPrimitive_t vader_struct_vader_bytecode_BcPrimitive_t;
 typedef struct vader_struct_vader_bytecode_BcRef_t vader_struct_vader_bytecode_BcRef_t;
-typedef struct vader_struct_vader_bytecode_BcResultSlots_t vader_struct_vader_bytecode_BcResultSlots_t;
 typedef struct vader_struct_vader_bytecode_BcSignature_t vader_struct_vader_bytecode_BcSignature_t;
 typedef struct vader_struct_vader_bytecode_BcStrData_t vader_struct_vader_bytecode_BcStrData_t;
 typedef struct vader_struct_vader_bytecode_BcStruct_t vader_struct_vader_bytecode_BcStruct_t;
@@ -1120,10 +1116,13 @@ struct vader_struct___lambda_env_vader_midir_1_t {
 };
 struct vader_struct___lambda_env_vader_midir_11_t {
     vader_obj_header_t header;
+    vader_box_t f_cap_0;
+    vader_box_t f_cap_1;
 };
 struct vader_struct___lambda_env_vader_midir_13_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
+    vader_box_t f_cap_1;
 };
 struct vader_struct___lambda_env_vader_midir_15_t {
     vader_obj_header_t header;
@@ -1132,22 +1131,8 @@ struct vader_struct___lambda_env_vader_midir_15_t {
 };
 struct vader_struct___lambda_env_vader_midir_17_t {
     vader_obj_header_t header;
-    vader_box_t f_cap_0;
-    vader_box_t f_cap_1;
 };
 struct vader_struct___lambda_env_vader_midir_19_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_midir_21_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-    vader_box_t f_cap_1;
-};
-struct vader_struct___lambda_env_vader_midir_23_t {
-    vader_obj_header_t header;
-};
-struct vader_struct___lambda_env_vader_midir_25_t {
     vader_obj_header_t header;
 };
 struct vader_struct___lambda_env_vader_midir_3_t {
@@ -1157,15 +1142,13 @@ struct vader_struct___lambda_env_vader_midir_3_t {
 };
 struct vader_struct___lambda_env_vader_midir_5_t {
     vader_obj_header_t header;
-    vader_box_t f_cap_0;
-    vader_box_t f_cap_1;
 };
 struct vader_struct___lambda_env_vader_midir_7_t {
     vader_obj_header_t header;
-    vader_box_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_midir_9_t {
     vader_obj_header_t header;
+    vader_box_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_resolver_1_t {
     vader_obj_header_t header;
@@ -2949,11 +2932,6 @@ struct vader_struct_vader_bytecode_BcPrimitive_t {
 struct vader_struct_vader_bytecode_BcRef_t {
     vader_obj_header_t header;
     vader_string_t f_trait_name;
-};
-struct vader_struct_vader_bytecode_BcResultSlots_t {
-    vader_obj_header_t header;
-    void* f_results;
-    void* f_result_types;
 };
 struct vader_struct_vader_bytecode_BcSignature_t {
     vader_obj_header_t header;
@@ -5891,17 +5869,14 @@ void* vader_midir_annotate_escape(void* l0);
 void* vader_midir_emit_bytecode_from_cfg(void* l0, vader_string_t l1, void* l2);
 void __lambda_vader_midir_0(void* l0, int32_t l1);
 void __lambda_vader_midir_2(void* l0, int32_t l1);
-void __lambda_vader_midir_4(void* l0, int32_t l1);
-void __lambda_vader_midir_6(void* l0, int32_t l1);
-void* __lambda_vader_midir_8(void* l0);
-void* __lambda_vader_midir_10(void* l0);
+void* __lambda_vader_midir_4(void* l0);
+void* __lambda_vader_midir_6(void* l0);
+void __lambda_vader_midir_8(void* l0, int32_t l1);
+void __lambda_vader_midir_10(void* l0, int32_t l1);
 void __lambda_vader_midir_12(void* l0, int32_t l1);
 void __lambda_vader_midir_14(void* l0, int32_t l1);
-void __lambda_vader_midir_16(void* l0, int32_t l1);
-void __lambda_vader_midir_18(void* l0, int32_t l1);
-void __lambda_vader_midir_20(void* l0, int32_t l1);
-void* __lambda_vader_midir_22(void* l0);
-void* __lambda_vader_midir_24(void* l0);
+void* __lambda_vader_midir_16(void* l0);
+void* __lambda_vader_midir_18(void* l0);
 bool vader_midir_LocalId_Equals_equals(int32_t l0, int32_t l1);
 void* vader_bytecode_default_emit_options(void);
 void* vader_bytecode_new_emitter_ctx(void);
@@ -5936,7 +5911,6 @@ int32_t vader_bytecode_bc_single_result_type(void* l0);
 void* vader_bytecode_c_struct_layout(void* l0, void* l1);
 int32_t vader_bytecode_array_kind_index(uint8_t l0);
 int32_t vader_bytecode_size_of_val_type(uint8_t l0);
-void* vader_bytecode_bc_result_slots(uint8_t l0, int32_t l1);
 bool vader_bytecode_is_64_bit_int_val(uint8_t l0);
 bool vader_bytecode_is_integer_val(uint8_t l0);
 vader_string_t vader_bytecode_primitive_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
@@ -6159,17 +6133,14 @@ vader_box_t vader_fn_lift___lambda_vader_lower_4(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_6(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_midir_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_2(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_4(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_6(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_8(void* env);
-vader_box_t vader_fn_lift___lambda_vader_midir_10(void* env);
+vader_box_t vader_fn_lift___lambda_vader_midir_4(void* env);
+vader_box_t vader_fn_lift___lambda_vader_midir_6(void* env);
+vader_box_t vader_fn_lift___lambda_vader_midir_8(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_midir_10(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_12(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_14(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_16(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_18(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_20(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_midir_22(void* env);
-vader_box_t vader_fn_lift___lambda_vader_midir_24(void* env);
+vader_box_t vader_fn_lift___lambda_vader_midir_16(void* env);
+vader_box_t vader_fn_lift___lambda_vader_midir_18(void* env);
 vader_box_t vader_fn_lift___lambda_vader_c_emit_0(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_c_emit_2(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_c_emit_4(void* env, vader_box_t a0, vader_box_t a1);
