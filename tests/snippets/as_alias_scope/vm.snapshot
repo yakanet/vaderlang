@@ -1,0 +1,9 @@
+# stdout
+lf=7
+if=1
+s=7
+match=2
+df=7
+defer=3
+# exit
+0

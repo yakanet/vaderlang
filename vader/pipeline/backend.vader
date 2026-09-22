@@ -138,7 +138,7 @@ export cfg_to_bytecode :: fn(
     pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[]! = [],
 ) -> BytecodeModule {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
-    cfg :: build_cfg_project(pruned)
+    cfg :: build_cfg_project(pruned, diags)
     Prof.prof_end(Prof.PHASE_CFG_BUILD)
     // One check per pass, each naming the pass it follows.
     if opts.verify { verify_cfg(cfg, "build_cfg_project", diags) }

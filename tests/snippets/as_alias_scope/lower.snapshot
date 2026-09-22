@@ -202,7 +202,7 @@
               arg1:
                 __off_5 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 {  }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: Leaf | Pair) -> void
     ~>
       if :void
@@ -260,7 +260,7 @@
                       arg2:
                         cast → i64
                           .v :i32
-                            LoweredCellGet
+                            lf :Leaf!
                 ~>
                   call :string
                     callee:
@@ -269,7 +269,7 @@
                       __buf_0 :Buffer
                     arg1:
                       __off_1 :usize
-  struct __lambda_env_snippet_3 { cap_0: ? }
+  struct __lambda_env_snippet_3 {  }
   fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3!, x: Leaf | Pair) -> void
     ~>
       block :void
@@ -279,8 +279,7 @@
               unwrap :fn(Leaf | Pair) -> Leaf | Pair
             arg0:
               x :Leaf | Pair
-        let s: ? =
-          LoweredCellNew
+        let s: Leaf | Pair = __scrut_0 :Leaf | Pair
         ~>
           if :void
             cond:
@@ -330,7 +329,7 @@
                                   cast → i64
                                     .v :i32
                                       cast → Leaf
-                                        LoweredCellGet
+                                        s :Leaf | Pair
                           ~>
                             call :string
                               callee:
@@ -389,7 +388,7 @@
                                         cast → i64
                                           .l :i32
                                             cast → Pair
-                                              LoweredCellGet
+                                              s :Leaf | Pair
                                 ~>
                                   call :string
                                     callee:
@@ -401,7 +400,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  struct __defer_env_snippet_5 { cap_0: ?, cap_1: ? }
+  struct __defer_env_snippet_5 { cap_0: ? }
   fn __defer_snippet_4(__env_0: __defer_env_snippet_5!) -> void
     ~>
       if :void
@@ -459,7 +458,7 @@
                       arg2:
                         cast → i64
                           .v :i32
-                            LoweredCellGet
+                            df :Leaf!
                 ~>
                   call :string
                     callee:

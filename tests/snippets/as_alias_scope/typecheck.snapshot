@@ -1,0 +1,79 @@
+# Typecheck
+
+## tests/snippets/as_alias_scope
+  FnDecl         apply                :: fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
+  FnDecl         defer_form           :: fn(Leaf | Pair) -> i32
+  FnDecl         if_form              :: fn(Leaf | Pair) -> i32
+  StructDecl     Leaf                 :: Leaf!
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         match_form           :: fn(Leaf | Pair) -> i32
+  StructDecl     Pair                 :: Pair!
+  ConstDecl      Tree                 :: type
+  FnDecl         unwrap               :: fn(Leaf | Pair) -> Leaf | Pair
+  expr 23:33    IdentExpr      :: Leaf | Pair
+  expr 26:11    IdentExpr      :: Leaf | Pair
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(Leaf | Pair) -> void
+  expr 30:11    IdentExpr      :: Leaf | Pair
+  expr 30:14    LambdaExpr     :: fn(Leaf | Pair) -> void
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
+  expr 31:12    BinaryExpr     :: bool
+  expr 31:12    CallExpr       :: Leaf | Pair
+  expr 31:12    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
+  expr 31:19    IdentExpr      :: Leaf | Pair
+  expr 31:25    IdentExpr      :: Leaf!
+  expr 31:9     IfExpr         :: void
+  expr 32:13    CallExpr       :: void
+  expr 32:13    IdentExpr      :: fn(T) -> void
+  expr 32:21    StringLitExpr  :: string
+  expr 32:27    FieldExpr      :: i32
+  expr 32:27    IdentExpr      :: Leaf!
+  expr 39:11    LambdaExpr     :: fn(Leaf | Pair) -> void
+  expr 40:15    CallExpr       :: Leaf | Pair
+  expr 40:15    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
+  expr 40:22    IdentExpr      :: Leaf | Pair
+  expr 40:9     MatchExpr      :: void
+  expr 41:26    CallExpr       :: void
+  expr 41:26    IdentExpr      :: fn(T) -> void
+  expr 41:34    StringLitExpr  :: string
+  expr 41:39    FieldExpr      :: i32
+  expr 41:39    IdentExpr      :: Leaf
+  expr 42:26    CallExpr       :: void
+  expr 42:26    IdentExpr      :: fn(T) -> void
+  expr 42:34    StringLitExpr  :: string
+  expr 42:39    FieldExpr      :: i32
+  expr 42:39    IdentExpr      :: Pair
+  expr 45:11    IdentExpr      :: Leaf | Pair
+  expr 45:14    IdentExpr      :: fn(Leaf | Pair) -> void
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
+  expr 51:12    BinaryExpr     :: bool
+  expr 51:12    CallExpr       :: Leaf | Pair
+  expr 51:12    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
+  expr 51:19    IdentExpr      :: Leaf | Pair
+  expr 51:25    IdentExpr      :: Leaf!
+  expr 51:9     IfExpr         :: void
+  expr 52:13    CallExpr       :: void
+  expr 52:13    IdentExpr      :: fn(T) -> void
+  expr 52:21    StringLitExpr  :: string
+  expr 52:27    FieldExpr      :: i32
+  expr 52:27    IdentExpr      :: Leaf!
+  expr 59:13    StringLitExpr  :: string
+  expr 59:19    CallExpr       :: i32
+  expr 59:19    IdentExpr      :: fn(Leaf | Pair) -> i32
+  expr 59:27    StructLitExpr  :: Leaf!
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:22    CallExpr       :: i32
+  expr 60:22    IdentExpr      :: fn(Leaf | Pair) -> i32
+  expr 60:33    StructLitExpr  :: Leaf!
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 61:13    StringLitExpr  :: string
+  expr 61:22    CallExpr       :: i32
+  expr 61:22    IdentExpr      :: fn(Leaf | Pair) -> i32
+  expr 61:33    StructLitExpr  :: Leaf!
+  expr 61:5     CallExpr       :: void
+  expr 61:5     IdentExpr      :: fn(T) -> void

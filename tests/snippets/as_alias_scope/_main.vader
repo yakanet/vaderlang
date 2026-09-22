@@ -1,0 +1,63 @@
+// An `as` alias bound inside a scope that `closure_analysis` walks on its own —
+// a lambda body, or a `defer` block. Three shapes, all of which compiled the
+// ENCLOSING function to an EMPTY body until `closure_analysis` learnt to read
+// `BinaryExpr.bind_as` / `MatchExpr.bind_as`: it filed the alias as a CAPTURE,
+// and midir then found no local for it. The `defer` case carries no lambda at
+// all, which is what puts the fault on the re-walked scope, not on closures.
+//
+// Two shapes here are load bearing rather than ceremony:
+//   - every enclosing fn returns a value `main` CONSUMES. Make one `-> void` and
+//     a regression goes quiet: exit 0, one missing line of output.
+//   - the lambda travels through `apply`. Bind it to a local instead and it
+//     devirtualises (no `LoweredMakeClosure` left), so it would stop exercising
+//     the closure path this pins.
+
+module "snippet"
+
+import "std/io"
+
+Leaf :: struct { v: i32 }
+Pair :: struct { l: i32 }
+Tree :: Leaf | Pair
+
+unwrap :: fn(t: Tree) -> Tree = t
+
+apply :: fn(t: Tree, visit: fn(Tree) -> void) -> void {
+    visit(t)
+}
+
+if_form :: fn(t: Tree) -> i32 {
+    apply(t, (x: Tree) -> {
+        if unwrap(x) is Leaf as lf {
+            println("lf=${lf.v}")
+        }
+    })
+    return 1
+}
+
+match_form :: fn(t: Tree) -> i32 {
+    cb :: (x: Tree) -> {
+        match unwrap(x) as s {
+            is Leaf -> { println("s=${s.v}") }
+            is Pair -> { println("s=${s.l}") }
+        }
+    }
+    apply(t, cb)
+    return 2
+}
+
+defer_form :: fn(t: Tree) -> i32 {
+    defer {
+        if unwrap(t) is Leaf as df {
+            println("df=${df.v}")
+        }
+    }
+    return 3
+}
+
+main :: fn() -> i32 {
+    println("if=${if_form(Leaf { .v = 7 })}")
+    println("match=${match_form(Leaf { .v = 7 })}")
+    println("defer=${defer_form(Leaf { .v = 7 })}")
+    return 0
+}

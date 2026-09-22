@@ -43,9 +43,15 @@ ProjectCtx :: struct {
     /// A symbol names one declaration, which is also what makes an overload pick
     /// unambiguous.
     extern_callbacks: MutableMap<i32, MutableSet<usize>>
+    /// Where `build_ident` reports an ident with no local. LOUD on purpose: the
+    /// symbol resolved, so a miss here is the COMPILER losing a binding, and the
+    /// recovery value is a `TermUnreachable` that replaces the whole entry block
+    /// — the surrounding code vanishes with nothing to read. `lower_ident` was
+    /// made loud for that exact reason after two bisections ; this is its twin.
+    diags: Diagnostic[]!
 }
 
-new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
+new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -72,6 +78,7 @@ new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
         .const_fn_wrap = lp.const_fn_wrap,
         .const_inline  = lp.const_inline,
         .extern_callbacks = externs,
+        .diags            = diags,
     }
 }
 
@@ -128,8 +135,8 @@ import "vader/comptime"
 ///
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
-export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
-    ctx :: new_project_ctx(lp)
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]! = []) -> CFGProject {
+    ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
         functions: CFGFunction[]!: []
@@ -786,6 +793,9 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
     }
     inline_value :: fn_ctx.project.const_inline[e.symbol.id]
     if inline_value !is null { return build_expr(fn_ctx, inline_value) }
+    fn_ctx.project.diags.push(lower_error(
+        .UnresolvedIdent, e.span,
+        "`${e.symbol.name}` resolved to a symbol with no local in this function — a binding was lost between the resolver and here"))
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}", false)
 }
 
