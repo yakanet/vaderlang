@@ -2170,6 +2170,16 @@ parse_stmt :: fn(p: Parser!) -> Stmt | null {
         p.advance()
         rhs :: p.parse_expr(0)
         sp  :: p.span_of(start, p.peek_at(-1))
+        // `[a, b] += v` has no meaning : the desugar would read the target list
+        // as a VALUE, and `[a, b] + [1, 2]` is array concatenation — four
+        // elements, of which the write then keeps two. Caught here because this
+        // is the only place that still knows the source wrote a compound ; by
+        // the time the typer sees it, it is an ordinary `=` over a `+`, which a
+        // user may legitimately write.
+        if expr is SeqLitExpr {
+            p.error(.CompoundAssignToPattern, expr.span,
+                "a destructuring target takes a plain `=` — write out the element the compound applies to")
+        }
         return AssignStmt {
             .span   = sp,
             .target = expr,

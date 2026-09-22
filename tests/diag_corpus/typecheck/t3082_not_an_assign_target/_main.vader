@@ -1,0 +1,9 @@
+module "snippet"
+
+main :: fn() -> i32 {
+    a := 1
+    // Each element of a destructuring assignment must be a target that exists:
+    // a name, a field or an index. A literal is none of those.
+    [a, 42] = [1, 2]
+    return 0
+}

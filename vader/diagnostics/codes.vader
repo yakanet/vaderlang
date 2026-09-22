@@ -122,6 +122,8 @@ export TypecheckCode :: enum(u8) {
     // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
     // here rather than carrying a hole, per §12.
     CallbackNotDirectFn,                // T3080
+    CannotDestructure,                  // T3081
+    InvalidAssignTarget,                // T3082
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -159,6 +161,7 @@ export ParserCode :: enum(u8) {
     DecoratorArgumentForm,                  // P1033
     // P1034 (DecoratorArgumentValue) retired : its only site bounded
     // `@c_size`'s width, and `@c_size` is gone from the language.
+    CompoundAssignToPattern,                // P1035
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -385,6 +388,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
     .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
     .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
+    .CompoundAssignToPattern            -> CodeInfo { .id = "P1035", .message = "compound assignment needs a single target" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
@@ -562,6 +566,8 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
     .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
     .CallbackNotDirectFn                -> CodeInfo { .id = "T3080", .message = "callback argument must name a function directly" }
+    .CannotDestructure                  -> CodeInfo { .id = "T3081", .message = "value cannot be destructured into this many elements" }
+    .InvalidAssignTarget                -> CodeInfo { .id = "T3082", .message = "not an assignment target" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

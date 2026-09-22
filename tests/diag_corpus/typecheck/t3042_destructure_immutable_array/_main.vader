@@ -1,0 +1,14 @@
+module "snippet"
+
+// `arr` is a read-only borrow: writing through it would reach the caller's
+// array. A destructuring element must not be a way around that.
+touch :: fn(arr: i32[]) -> void {
+    y := 0
+    [arr[1], y] = [7, 8]
+}
+
+main :: fn() -> i32 {
+    a: i32[]!: [1, 2]
+    touch(a)
+    return 0
+}

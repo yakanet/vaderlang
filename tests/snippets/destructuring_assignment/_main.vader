@@ -1,0 +1,63 @@
+// Destructuring assignment — `[a, b] = value` writes to targets that already
+// exist, where a `let` pattern would introduce names.
+//
+// The swap is the case worth pinning: every element is read into a temporary
+// BEFORE any target is written, so `[a, b] = [b, a]` exchanges them. A
+// left-to-right read-then-write would assign `a = b` and then read the NEW `a`
+// back into `b`, leaving both at the old `b`.
+//
+// The source is bound once too, so a call on the right runs a single time.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+Box :: struct { x: i32, y: i32 }
+
+pair :: fn() -> [i32, string] = [7, "seven"]
+
+main :: fn() -> i32 {
+    a := 1
+    b := 2
+    [a, b] = [10, 20]
+    println("literal: a=${a} b=${b}")
+    [a, b] = [b, a]
+    println("swap:    a=${a} b=${b}")
+
+    // A heterogeneous tuple, from a call.
+    n := 0
+    s := ""
+    [n, s] = pair()
+    println("tuple:   n=${n} s=${s}")
+
+    // Fields and indices are assignment targets like any other.
+    box: Box!: Box { .x = 1, .y = 2 }
+    arr: i32[]!: [0, 0]
+    [box.x, arr[1]] = [30, 40]
+    println("mixed:   box.x=${box.x} arr[1]=${arr[1]}")
+
+    // Three-way rotation — the same read-then-write order carries it.
+    p := 1
+    q := 2
+    r := 3
+    [p, q, r] = [r, p, q]
+    println("rotate:  p=${p} q=${q} r=${r}")
+
+    // A map key is an `IndexSet` write, not a slot store, and a local captured
+    // by a closure is a write THROUGH a cell. Both are invisible in the target's
+    // syntax, so both are pinned here: an element that bypassed the shared write
+    // path would drop the map write and corrupt the captured slot.
+    m :: MutableMap<string, i32> {}
+    m["k"] = 1
+    z := 0
+    [m["k"], z] = [30, 40]
+    println("map:     k=${m["k"] ?? -1} z=${z}")
+
+    c1 := 1
+    c2 := 2
+    show :: fn() -> void { println("capture: c1=${c1} c2=${c2}") }
+    [c1, c2] = [50, 60]
+    show()
+    return 0
+}

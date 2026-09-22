@@ -11,24 +11,40 @@ import "vader/types"
 import "toolchain/span"
 
 lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt {
-    // `m[k] = v` over an IndexSet-impl receiver lowers to a static
-    // `set_at(m, k, v)` call. Detected off the LHS shape : `target` is
-    // an IndexExpr whose receiver type has a user-defined IndexSet impl.
-    via_index_set :: try_lower_index_set_assign(ctx, assign_stmt)
+    // `[a, b] = pair` — every element read into a temp BEFORE any write, so
+    // `[a, b] = [b, a]` swaps instead of writing `a` then reading it back.
+    via_destructure :: try_lower_destructuring_assign(ctx, assign_stmt)
+    if via_destructure != null { return via_destructure }
+    return lower_assign_one(
+        ctx, assign_stmt.target, lower_expr(ctx, assign_stmt.value), assign_stmt.span)
+}
+
+/// One write to one target, with the value ALREADY lowered.
+///
+/// Every assignment funnels through here — the plain `a = v` and each element of
+/// a destructuring assignment alike — because the two special shapes below are
+/// invisible in the target's syntax: an `m[k]` over an `IndexSet` impl is a
+/// `set_at` call, and a captured local is a write THROUGH a cell. A caller that
+/// built its own `LoweredAssign` would drop the map write on the floor and
+/// corrupt the captured slot.
+lower_assign_one :: fn(
+    ctx: FnLowerCtx!, target: Expr, value: LoweredExpr, span: Span,
+) -> LoweredStmt {
+    via_index_set :: try_lower_index_set_assign(ctx, target, value, span)
     if via_index_set != null { return via_index_set }
     // Reassignment to a captured local : write into its cell rather than
     // overwriting the slot.
-    via_cell :: try_lower_cell_set_assign(ctx, assign_stmt)
+    via_cell :: try_lower_cell_set_assign(ctx, target, value, span)
     if via_cell != null { return via_cell }
     return LoweredAssign {
-        .span = assign_stmt.span,
-        .target = lower_assign_target(ctx, assign_stmt.target),
-        .value  = lower_expr(ctx, assign_stmt.value),
+        .span = span, .target = lower_assign_target(ctx, target), .value = value,
     }
 }
 
-try_lower_cell_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt | null {
-    target_ident :: as_ident(assign_stmt.target) ?? return null
+try_lower_cell_set_assign :: fn(
+    ctx: FnLowerCtx!, assign_target: Expr, value: LoweredExpr, span: Span,
+) -> LoweredStmt | null {
+    target_ident :: as_ident(assign_target) ?? return null
     if target_ident is IdentExpr {
         symbol :: ctx.typed.resolved.idents[target_ident.span.hash()] ?? return null
         if symbol is Symbol {
@@ -59,9 +75,9 @@ try_lower_cell_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> Lo
                 }
             }
             return LoweredCellSet {
-                .span = assign_stmt.span,
+                .span = span,
                 .target = cell_ref,
-                .value = lower_expr(ctx, assign_stmt.value),
+                .value = value,
                 .value_type = value_type,
             }
         }
@@ -73,6 +89,42 @@ try_lower_cell_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> Lo
 /// `lower_ident` applies on use-site reads. The bytecode emitter resolves
 /// assignment slots via the raw `LoweredIdent` ; a cast in target position
 /// breaks that pattern match.
+// `[t0, t1, …] = value` — read every element into its own temp, THEN write.
+//
+// The two phases are the whole point: writing as we read would make
+// `[a, b] = [b, a]` assign `a = b` and then read the NEW `a` back into `b`.
+// The source is bound once too, so `[a, b] = f()` calls `f` a single time.
+//
+// Returns null for any other target shape, leaving the plain assignment path.
+try_lower_destructuring_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt | null {
+    target :: assign_stmt.target
+    if target !is SeqLitExpr { return null }
+    span :: assign_stmt.span
+    value_ty :: ctx.types.expr_type(assign_stmt.value)
+    src_sym :: fresh_synthetic_symbol(ctx, "destr_src")
+    stmts: LoweredStmt[]!: [
+        LoweredLet {
+            .span = span, .name = src_sym.name, .symbol = src_sym,
+            .type = value_ty, .value = lower_expr(ctx, assign_stmt.value),
+        },
+    ]
+    src :: synth_ident(src_sym, value_ty, span)
+    reads: LoweredExpr[]!: []
+    for i in 0..<target.elements.len() {
+        elem_ty :: ctx.types.expr_type(target.elements[i])
+        tmp :: fresh_synthetic_symbol(ctx, "destr_el")
+        stmts.push(LoweredLet {
+            .span = span, .name = tmp.name, .symbol = tmp, .type = elem_ty,
+            .value = build_leaf_access(src, destructure_backing(value_ty), elem_ty, span, i, null),
+        })
+        reads.push(synth_ident(tmp, elem_ty, span))
+    }
+    for i in 0..<target.elements.len() {
+        stmts.push(lower_assign_one(ctx, target.elements[i], reads[i], span))
+    }
+    return wrap_stmts(span, stmts)
+}
+
 lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr {
     if target is IdentExpr {
         symbol :: ctx.typed.resolved.idents[target.span.hash()]
@@ -84,7 +136,6 @@ lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr {
     }
     return lower_expr(ctx, target)
 }
-
 
 // `arr[lo..<hi]` / `arr[lo..=hi]` over an array-typed receiver lowers
 // to `LoweredArraySlice` (zero-copy view). Other index expressions
@@ -251,8 +302,10 @@ adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> Lower
     }
 }
 
-try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt | null {
-    target :: assign_stmt.target
+try_lower_index_set_assign :: fn(
+    ctx: FnLowerCtx!, assign_target: Expr, value: LoweredExpr, span: Span,
+) -> LoweredStmt | null {
+    target :: assign_target
     // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every
     // other Expr target → null (handled by the regular assign path).
     @partial match target {
@@ -264,12 +317,12 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> L
             if ctx.typed.bounded_dispatch_trait[target.id] is string as bounded_trait {
                 ctx.project.virtually_dispatched_traits.add(bounded_trait)
                 return LoweredExprStmt {
-                    .span = assign_stmt.span,
+                    .span = span,
                     .expr = LoweredVirtualCall {
-                        .span = assign_stmt.span, .type = TY_VOID,
+                        .span = span, .type = TY_VOID,
                         .trait_name = bounded_trait, .method = METHOD_SET_AT,
                         .receiver = lower_expr(ctx, target.target),
-                        .args = [lower_expr(ctx, target.index), lower_expr(ctx, assign_stmt.value)],
+                        .args = [lower_expr(ctx, target.index), value],
                     },
                 }
             }
@@ -287,17 +340,17 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> L
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, target.target)
                 index :: lower_expr(ctx, target.index)
-                value :: lower_expr(ctx, assign_stmt.value)
+
                 args: LoweredExpr[]!: []
                 args.push(receiver)
                 args.push(index)
                 args.push(value)
                 return LoweredExprStmt {
-                    .span = assign_stmt.span,
+                    .span = span,
                     .expr = LoweredCall {
-                        .span = assign_stmt.span, .type = TY_VOID,
+                        .span = span, .type = TY_VOID,
                         .callee = LoweredIdent {
-                            .span = assign_stmt.span, .type = TY_VOID, .symbol = member.symbol,
+                            .span = span, .type = TY_VOID, .symbol = member.symbol,
                         },
                         .args = args,
                     },

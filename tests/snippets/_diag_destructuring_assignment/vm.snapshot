@@ -1,5 +1,0 @@
-# stdout
-literal: a=1 b=2
-swap:    a=1 b=2
-# exit
-0

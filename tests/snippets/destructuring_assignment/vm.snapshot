@@ -1,0 +1,10 @@
+# stdout
+literal: a=10 b=20
+swap:    a=20 b=10
+tuple:   n=7 s=seven
+mixed:   box.x=30 arr[1]=40
+rotate:  p=3 q=1 r=2
+map:     k=30 z=40
+capture: c1=50 c2=60
+# exit
+0

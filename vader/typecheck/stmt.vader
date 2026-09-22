@@ -689,6 +689,14 @@ check_assign :: fn(
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
+    // `[a, b] = pair` — destructuring assignment. Checked here rather than in a
+    // pattern walk because the parser reads the target as a `SeqLitExpr`, not as
+    // a binding: every element is an assignment TARGET that already exists, not
+    // a name being introduced.
+    if s.target is AST.SeqLitExpr as seq {
+        check_destructuring_assign(seq, s, typed, diags, check_expr_fn)
+        return
+    }
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
     // the diag and skip the value-side typing so the dump doesn't
     // carry extra expr_types for a rejected write.
@@ -875,6 +883,120 @@ emit_assign_mismatch_if :: fn(
             "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}",
         ),
     )
+}
+
+/// Check `[t0, t1, …] = value` — one assignment per element, against the
+/// element types of a tuple or array `value`.
+///
+/// Arity is fixed for a tuple and unknown for an array, so only the tuple case
+/// can be counted here ; an array of the wrong length is a runtime trap on the
+/// element read, exactly as `arr[i]` is elsewhere.
+check_destructuring_assign :: fn(
+    seq: AST.SeqLitExpr!,
+    s: AST.AssignStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    // The targets are typed FIRST so their slots can be handed to the source as
+    // the expected shape : without it a free literal defaults to `i32` and
+    // `[u, v] = [1, 2]` over two `usize` slots fails on both elements, where
+    // `u = 1` passes. Same order as the plain assignment path below.
+    slot_types: Type[]!: []
+    for el in seq.elements {
+        slot_types.push(check_expr_fn(el, null, typed, diags))
+    }
+    value_ty :: check_expr_fn(s.value, mk_tuple(slot_types, true), typed, diags)
+    elem_types :: destructure_element_types(value_ty, seq.elements.len())
+    if elem_types == null {
+        diags.push(typecheck_error(
+            .CannotDestructure, s.value.span,
+            "cannot destructure `${display_type(value_ty)}` into ${seq.elements.len()} elements"))
+        return
+    }
+    for i in 0..<seq.elements.len() {
+        check_destructure_target(seq.elements[i], elem_types[i], typed, diags, check_expr_fn)
+    }
+}
+
+/// Element types a destructuring target of `count` elements would read, or null
+/// when `value_ty` cannot be destructured that way. A tuple answers per position
+/// and must match `count` exactly ; an array answers its element type for every
+/// position.
+destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
+    backing :: tuple_backing(value_ty)
+    if backing is TupleType {
+        if backing.elements.len() != count {
+            return null
+        }
+        return backing.elements
+    }
+    arr :: array_backing(value_ty)
+    if arr is ArrayType {
+        out: Type[]!: []
+        for _ in 0..<count {
+            out.push(arr.element)
+        }
+        return out
+    }
+    return null
+}
+
+/// One element of a destructuring target. Holds it to the same rules a bare
+/// assignment would: a `::` local is still frozen, an immutable path is still
+/// closed, and the element type must fit the slot.
+check_destructure_target :: fn(
+    target: AST.Expr!,
+    elem_ty: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    if target is AST.IdentExpr {
+        if is_const_reassign(target, typed) {
+            diags.push(typecheck_error(
+                .CannotReassignConst, target.span,
+                "`${target.name}` is declared with `::` — use `:=` to allow mutation"))
+            return
+        }
+    } else if target is AST.FieldExpr {
+        // T3070 — the same closed path a bare `p.x = v` is held to. Checking the
+        // CONTAINER first records its type: the level that decides is the field's
+        // OWNER, and `expr_types` is empty for it until something checks it.
+        _ :: check_expr_fn(target.target, null, typed, diags)
+        if push_immutability_diag_for(
+            container_is_immutable(target.target, typed), .CannotMutateImmutableBinding,
+            target.span, "`${target.field}` is reached through an immutable path",
+            target.target, typed, diags,
+        ) {
+            return
+        }
+    } else if target is AST.IndexExpr {
+        // T3042 then T3070 — a read-only `T[]` leaf first, then a mutable array
+        // reached through an immutable path. Skipping these would let a
+        // destructuring assignment write through a read-only borrow.
+        recv_ty :: check_expr_fn(target.target, null, typed, diags)
+        if recv_ty is ArrayType {
+            if recv_ty.immutable {
+                diags.push(typecheck_error(
+                    .CannotMutateImmutableArray, target.target.span,
+                    "cannot mutate `${display_type(recv_ty)}`"
+                        + field_annotate_hint(target.target, typed)
+                        + mutation_fix_hint(target.target, typed)))
+                return
+            }
+        }
+        if push_immutable_path_write(target.target, target.span, typed, diags) {
+            return
+        }
+    } else {
+        diags.push(typecheck_error(
+            .InvalidAssignTarget, target.span,
+            "a destructuring assignment writes to names, fields and indices — not to this"))
+        return
+    }
+    slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
+    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target.id, typed, diags)
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {

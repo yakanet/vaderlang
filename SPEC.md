@@ -853,6 +853,32 @@ Any type that ships an `Into<[...]>` impl of matching arity destructures through
 
 When the impl's `into` body is a tuple literal of plain field reads (`[self.a, self.b]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
 
+#### Destructuring assignment
+
+The same `[...]` shape also works on the left of an `=`, writing to targets that
+already exist rather than introducing names. Each element must be an assignment
+target in its own right — a name, a field, or an index — and is held to every
+rule a bare assignment faces. An element that is not an assignment target is
+`T3082`; a tuple source whose arity differs from the pattern is `T3081`.
+
+```vader
+a := 1
+b := 2
+[a, b] = [10, 20]                      // a = 10, b = 20
+[a, b] = [b, a]                        // swap — a = 20, b = 10
+[cfg.width, sizes[0]] = dimensions()   // fields and indices are targets too
+```
+
+**Every element is read before any is written.** That is what makes the swap
+above mean what it reads as: the source is evaluated once, each element lands in
+a temporary, and only then are the targets written. A left-to-right
+read-then-write would assign `a = b` and read the *new* `a` back into `b`.
+
+The target is a flat list of assignment targets, not a pattern: **nesting
+(`[[a, b], c] = …`), `_` and `...rest` are not accepted here**, and a source that
+destructures only through `Into<[...]>` is refused. Those belong to `let` and to
+match arms, where a pattern introduces names.
+
 ### Structs
 
 ```vader

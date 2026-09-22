@@ -19,11 +19,7 @@ emit_let_binding_leaves :: fn(
     // `BigInt :: u32[]`) destructures through its backing composite — unwrap the
     // outer distinct so every tuple/array shape check below sees through it. The
     // read `target` keeps its distinct type (the emit boundary strips it).
-    tup_backing :: tuple_backing(target_type)
-    arr_backing :: array_backing(target_type)
-    resolved :: if tup_backing != null { tup_backing }
-        else if arr_backing != null { arr_backing }
-        else { target_type }
+    resolved :: destructure_backing(target_type)
     // `[a, b, ...rest] := arr` over an array : N index reads for the
     // fixed leaves, then a fresh-array + loop-push for the rest leaf.
     rest_index :: rest_leaf_index(binding)
@@ -323,6 +319,18 @@ tuple_or_array_element_type :: fn(
 // access — `_<index>` for a tuple, or the named field from `field_names` when
 // the value coerces through `Into<[...]>` (reading the impl's `self.<field>`
 // names, not `._0` / `._1`).
+/// The composite a `[...]` pattern reads through — a tuple- or array-backed
+/// distinct newtype (`Coord :: [i32, i32]`, `BigInt :: u32[]`) answers its
+/// backing, everything else answers itself. The read expression keeps the
+/// distinct type ; the emit boundary strips it.
+destructure_backing :: fn(t: Type) -> Type {
+    tup :: tuple_backing(t)
+    if tup != null { return tup }
+    arr :: array_backing(t)
+    if arr != null { return arr }
+    return t
+}
+
 build_leaf_access :: fn(
     target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
     field_names: string[] | null,
