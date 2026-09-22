@@ -1,5 +1,5 @@
 // Combinators UFCS-resolve on an ERASED `Iterator<T>` receiver (a fn param, an
-// `.into()` result, any boxed iterator) — not just on a concrete `.iter()` /
+// `.into()` result, any boxed iterator) — not just on a concrete
 // `__genstate` head. `it.map(f)` must lower to the free-fn combinator, NOT a
 // `virtual.call Iterator.map` (the trait has no `map` method → runtime miss).
 // Regression guard for the §5.3 lowering fix (try_lower_virtual_call declines

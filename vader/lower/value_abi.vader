@@ -15,9 +15,9 @@
 // Two shapes the first cut of the criterion missed, both surfaced by running the
 // report rather than by reading it:
 //
-//   - `T | null` counts. An iterator's `next` returns `Yield<T> | null`, so a
-//     criterion that only took bare composites scores zero on the very shape the
-//     chantier exists for. The crossing needs one register for the tag, which
+//   - `T | null` counts. A fallible lookup returns `T | null`, and a criterion
+//     that only took bare composites scores zero on a shape the chantier exists
+//     for. The crossing needs one register for the tag, which
 //     `ValueAbiSite.nullable` records.
 //   - A `!` parameter does not. `f: Factory!` is a borrow the callee writes
 //     through, and a callee that gets a copy is a different function. Size says
@@ -34,8 +34,8 @@ import "vader/typecheck"
 ///
 /// arm64 AAPCS and x86-64 SysV both pass a composite of at most 16 bytes in two
 /// registers ; past that the C compiler inserts the hidden pointer itself, and
-/// the two forms converge. At 8 the bound would take `Yield<T>` and leave
-/// `[char, usize]` (12 bytes) behind — a quarter of what `for c in s` costs.
+/// the two forms converge. At 8 the bound would leave `[char, usize]` (12 bytes)
+/// behind, and that pair is what `for c in s` decodes with.
 export VALUE_ABI_MAX_BYTES: i64: 16
 
 /// One place a value-ABI candidate crosses a call boundary.
@@ -487,8 +487,8 @@ value_abi_test_sym :: fn() -> Symbol = Symbol {
 
 @test
 test_fresh_returns_accepts_a_built_struct :: fn() -> void {
-    // `return Yield<char> { .value = c }` — the callee minted it, so no caller
-    // can be holding it.
+    // `return Pair { .a = c }` — the callee minted it, so no caller can be
+    // holding it.
     body :: fresh_test_body([
         LoweredReturn {
             .span = empty_span(),

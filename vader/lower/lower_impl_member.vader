@@ -415,9 +415,8 @@ mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, sp
 // `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to
 // std/core's blanket `T[] implements Into<Iterator<T>>` member, typed as the
 // target `Iterator<T>` existential — value slots dispatch `it.next()`
-// virtually, so the member must box `ArrayIterator<T>` into the trait (unlike
-// the for-in path, which inlines a concrete `ArrayIterator` struct lit and
-// devirtualises). `find_impl_member_for` mangles the member
+// virtually, so the member must box the iterator into the trait (unlike the
+// for-in path, which has a raw-array fast path and never builds one). `find_impl_member_for` mangles the member
 // (`std_core$[]$Into$into__<element>`) and records the element in
 // `array_blanket_elems`, which `surface_array_blanket_members` materialises.
 try_array_iter_coercion :: fn(

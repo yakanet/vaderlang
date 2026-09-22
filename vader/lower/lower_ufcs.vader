@@ -70,7 +70,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
                 // Prepare the receiver AND every argument against the free fn's
                 // declared params, so `a.any(p)` lowers exactly like the free call
                 // `any(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
-                // through `into` (→ `ArrayIterator<T>`) on either form.
+                // through `into` (→ the `array_iter` generator) on either form.
                 free_params :: ufcs_param_types(ctx, free.symbol)
                 args :: build_ufcs_args(ctx, receiver, call, free_params, 1)
                 // UFCS-on-generic-fn instance harvest : when the target

@@ -2040,7 +2040,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
      * pointer to a wrapper struct allocated under `boxp->tag`). Trace it
      * by reading the obj's own type tag from its header — scan_raw does
      * exactly that. The outer tag stays unchanged (`boxp->tag` is still
-     * the wrapper's logical type, e.g. `Yield(Entry)`). */
+     * the wrapper's logical type, not the referent's). */
     if (info->kind == VADER_TYPE_KIND_INLINE_REF) {
         vader_gc_scan_raw(&boxp->payload.obj);
         if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end

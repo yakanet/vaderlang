@@ -11,7 +11,7 @@ import "vader/comptime"
 import "vader/resolver/symbol"
 
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
-// resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`, `Display`, `Error`,
+// resolve `Range`, `Continuation`, `Iterator`, `Display`, `Error`,
 // … without re-walking the project per call. Per-module export lookups
 // (std/collections' `MutableMap`, std/string's `bytes`, …) go through the lazy
 // `module_export` below instead of dedicated per-module tables.

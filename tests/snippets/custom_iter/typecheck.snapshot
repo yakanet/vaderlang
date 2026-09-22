@@ -7,38 +7,32 @@
   expr 10262:11 IdentExpr      :: Continuation
   expr 10262:12 FieldExpr      :: Continuation
   expr 10262:13 IdentExpr      :: Continuation
-  expr 10262:26 UnaryExpr      :: bool
-  expr 10262:27 IdentExpr      :: bool
-  expr 10262:34 CallExpr       :: [i32, Continuation]!
-  expr 10262:35 FieldExpr      :: fn() -> [i32, Continuation]!
-  expr 10262:36 IdentExpr      :: Countdown!
-  expr 10262:37 IfExpr         :: void
-  expr 10262:38 BinaryExpr     :: bool
-  expr 10262:39 IdentExpr      :: Continuation
-  expr 10262:40 FieldExpr      :: Continuation
-  expr 10262:41 IdentExpr      :: Continuation
-  expr 10262:44 IdentExpr      :: bool
-  expr 10262:48 IdentExpr      :: usize
-  expr 10262:49 BinaryExpr     :: usize
-  expr 10262:50 IdentExpr      :: usize
-  expr 10262:53 IdentExpr      :: usize
+  expr 10262:28 CallExpr       :: [i32, Continuation]!
+  expr 10262:29 FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 10262:30 IdentExpr      :: Countdown!
+  expr 10262:32 IfExpr         :: void
+  expr 10262:33 BinaryExpr     :: bool
+  expr 10262:34 IdentExpr      :: Continuation
+  expr 10262:35 FieldExpr      :: Continuation
+  expr 10262:36 IdentExpr      :: Continuation
+  expr 10262:39 IdentExpr      :: usize
+  expr 10262:40 BinaryExpr     :: usize
+  expr 10262:41 IdentExpr      :: usize
+  expr 10262:44 IdentExpr      :: usize
   expr 10262:6  CallExpr       :: [i32, Continuation]!
-  expr 10262:68 UnaryExpr      :: bool
-  expr 10262:69 IdentExpr      :: bool
+  expr 10262:62 CallExpr       :: [i32, Continuation]!
+  expr 10262:63 FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 10262:64 IdentExpr      :: Countdown!
+  expr 10262:66 IfExpr         :: void
+  expr 10262:67 BinaryExpr     :: bool
+  expr 10262:68 IdentExpr      :: Continuation
+  expr 10262:69 FieldExpr      :: Continuation
   expr 10262:7  FieldExpr      :: fn() -> [i32, Continuation]!
-  expr 10262:77 CallExpr       :: [i32, Continuation]!
-  expr 10262:78 FieldExpr      :: fn() -> [i32, Continuation]!
-  expr 10262:79 IdentExpr      :: Countdown!
+  expr 10262:70 IdentExpr      :: Continuation
+  expr 10262:73 IdentExpr      :: i32 | null
+  expr 10262:74 IdentExpr      :: i32
+  expr 10262:76 IdentExpr      :: i32 | null
   expr 10262:8  IdentExpr      :: Countdown!
-  expr 10262:80 IfExpr         :: void
-  expr 10262:81 BinaryExpr     :: bool
-  expr 10262:82 IdentExpr      :: Continuation
-  expr 10262:83 FieldExpr      :: Continuation
-  expr 10262:84 IdentExpr      :: Continuation
-  expr 10262:87 IdentExpr      :: bool
-  expr 10262:91 IdentExpr      :: i32 | null
-  expr 10262:92 IdentExpr      :: i32
-  expr 10262:94 IdentExpr      :: i32 | null
   expr 12:13    BinaryExpr     :: bool
   expr 12:13    FieldExpr      :: i32
   expr 12:13    IdentExpr      :: Countdown!

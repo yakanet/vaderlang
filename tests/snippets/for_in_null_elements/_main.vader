@@ -1,17 +1,17 @@
 // A `for … in` over a collection whose ELEMENTS are themselves nullable.
 //
-// `Iterator.next` hands back `Yield<T> | null`, and the wrapper exists precisely
-// so a yielded `null` is not read as end-of-iteration. With `T = i32 | null` the
-// two collide unless something keeps them apart, so this pins the case any
-// change to the iterator protocol would otherwise break in silence — the loop
-// would stop at the first `null` element and report a shorter collection.
+// `Iterator.next` hands back `[T, Continuation]`, and the `Continuation` is what
+// says whether there IS an element — so a yielded `null` is just an element.
+// This pins the case any change to the iterator protocol would otherwise break
+// in silence: the loop would stop at the first `null` element and report a
+// shorter collection.
 
 module "snippet"
 
 import "std/io"
 
 // An ESCAPING generator: consumed through the boxed `Iterator` state machine, so
-// every element really does cross as `Yield<i32 | null> | null`. A direct
+// every element really does cross the `next` boundary. A direct
 // `for x in maybe()` would inline and never build one.
 maybe :: fn() -> Iterator<i32 | null> {
     yield 1

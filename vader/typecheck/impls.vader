@@ -37,7 +37,7 @@ export ImplEntry :: struct {
     /// mangle the impl's lowered/surfaced decl is registered under.
     module: string = ""
     /// True when the impl references ≥1 type parameter (`Range<T>
-    /// implements<T> …`, `ArrayIterator<T> implements …`). Mirrors
+    /// implements<T> …`, `Range<T> implements …`). Mirrors
     /// `is_empty_substitution(build_impl_mixed_subst(...))` in the lowerer
     /// (`lower_mono_struct.vader`) :
     /// generic impls erase their instance args to `Any` when mangling

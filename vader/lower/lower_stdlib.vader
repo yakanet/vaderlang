@@ -150,7 +150,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx!) -
 /// `find_impl_member_for` records the element type keyed by the call-site mangle
 /// (`project_ctx.array_blanket_elems`) ; here we lower the member body with a
 /// CONCRETE substitution `T → element` (so e.g. `contains`'s `==` devirtualises
-/// to the element's primitive comparison, and `into`'s `ArrayIterator<T>` return
+/// to the element's primitive comparison, and `into`'s `array_iter` generator
 /// boxes into the concrete `Iterator<element>` the value slot dispatches on).
 ///
 /// The element table mixes every referenced array-blanket member, so each call

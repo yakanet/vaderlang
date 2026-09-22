@@ -1,5 +1,5 @@
-// `arr.iter().map(f).filter(p)` under a `for` fuses to a single flat index loop
-// — no ArrayIterator, no MappedIterator/FilterIterator, no next(), no Yield box.
+// `arr.map(f).filter(p)` under a `for` fuses to a single flat index loop
+// — no array iterator, no MappedIterator/FilterIterator, no next(), no step pair.
 // The lower snapshot is the regression guard: it must show the fused counter
 // loop with an inline index walk, not an iterator step-loop.
 module "snippet"

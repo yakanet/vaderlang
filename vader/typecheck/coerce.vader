@@ -37,7 +37,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram!, node_id: 
     if try_trait_widen(got, expected, typed) {
         return true
     }
-    // `T[] → Iterator<T>` : lowerer materialises `ArrayIterator<T>`
+    // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
     // at the call site. Lives in `try_into` (not `is_assignable`) to
     // keep the recursive assignability check small enough that
     // c-emit doesn't monomorphise a 3× larger main.c.

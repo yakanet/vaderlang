@@ -1,10 +1,8 @@
 // vader/midir/value_return — return a small composite in registers, not on the heap.
 //
 // A function returning `[char, usize]` allocates a heap object the caller reads
-// twice and drops. Measured on `for c in s`, that one allocation is 24 % of the
-// loop and the iterator's `Yield` another 47 %, against 22 % of real work — the
-// idiom costs 4.5x what it does. Record and the numbers:
-// `.claude/plans/2026-09-22-tuple-value-abi.md` §16.
+// twice and drops. What that costs, and what it cost to remove, is measured in
+// `.claude/plans/2026-09-22-tuple-value-abi.md`.
 //
 // This pass hands the elements back as separate values instead. The IR carries
 // the arity from here to both backends: `TermReturn.values`, `InstrCall.dsts`,

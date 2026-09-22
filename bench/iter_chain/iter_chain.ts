@@ -1,5 +1,5 @@
 // TypeScript peer of bench/iter_chain.vader. Uses generator functions for
-// a lazy chain that mirrors Vader's MapIterator + FilterIterator + Range —
+// a lazy chain that mirrors Vader's `map` / `filter` over a range —
 // per-item allocation of the yielded {value, done} pair, three-level
 // dispatch through `for…of`.
 

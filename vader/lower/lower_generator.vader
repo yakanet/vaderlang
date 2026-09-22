@@ -8,7 +8,7 @@
 //      (v1: spill-all) + a `state: i32` resume discriminant;
 //   2. a synthesized `<module>$<State>$Iterator$next` fn whose body is the
 //      resumable state machine `loop { if self.state == 0 { … } else if … }`
-//      (no `LoweredMatch` node → an `i32` if-chain), returning `Yield<T> | null`;
+//      (no `LoweredMatch` node → an `i32` if-chain), returning `[T, Continuation]`;
 //   3. the rewritten `g` body: `return g$State { <params>, .state = 0 }`.
 //
 // The state struct + next fn are pushed to `project.synth_decls`, drained by
@@ -132,15 +132,14 @@ export lower_generator_fn :: fn(
     state_ty :: mk_struct(state_sym, [], immutable = false)
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
-    shape_opt :: resolve_step_shape(fn_ctx, element_ty)
-    if shape_opt == null {
+    shape :: resolve_step_shape(fn_ctx, element_ty)
+    if shape == null {
         panic("generator lowering: no `Iterator` step type in std/core")
     }
-    shape :: shape_opt
 
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty,
-        .i32_ty = i32_ty, .step = shape, .element_ty = element_ty, .span = span,
+        .i32_ty = i32_ty, .step = shape, .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }

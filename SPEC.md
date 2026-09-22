@@ -3374,14 +3374,15 @@ Rules:
   `T` — `T` is the yielded element type (`T3056` otherwise).
 - A function with **no** `yield` is not a generator, even if it returns
   `Iterator<T>` — it is an ordinary factory returning an iterator value
-  (`arr.iter()`, a wrapping combinator). The empty-iterator case is an empty
+  (a bare array, `arr.into()`, a wrapping combinator). The empty-iterator case is an empty
   array `[]`, which coerces to `Iterator<T>`.
 - `yield e` is a **statement**, legal only directly inside a generator's own body
   — never in a nested lambda (`T3059`). `e` must coerce to `T` (same path as
   `return`, `T3061` on mismatch).
 - `return <value>` inside a generator is an **error** (`T3058`) — a generator
   produces via `yield`. A bare `return`, or falling off the end, means
-  **exhausted**: every subsequent `next()` returns `null`.
+  **exhausted**: every subsequent `next()` hands back `Continuation.Stop`,
+  paired with an element that is INDETERMINATE and must not be read.
 - `break` / `continue` keep their normal loop meaning across `yield` suspension
   points.
 - The generator's result is a **first-class `Iterator<T>` value**: it can be

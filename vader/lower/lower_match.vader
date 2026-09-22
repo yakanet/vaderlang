@@ -575,8 +575,8 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
         // The type-expr table missed (common for materialised default-
         // method clones, whose pattern type-exprs aren't span-recorded).
         // Resolve fresh from the AST, then apply the entry's substitution
-        // so an erased generic-impl instance turns `is Yield<T>` into
-        // `is Yield<Any>` instead of leaking the impl's TypeParam.
+        // so an erased generic-impl instance turns `is Wrap<T>` into
+        // `is Wrap<Any>` instead of leaking the impl's TypeParam.
         scratch: Diagnostic[]!: []
         return ctx.types.apply(type_from_expr(type_expr, ctx.typed.resolved, scratch))
     }

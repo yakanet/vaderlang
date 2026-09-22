@@ -54,8 +54,7 @@
           int(1) :u8
   fn snippet$Countdown$Iterator$count(self: Countdown!) -> usize
     let total: usize = int(0) :usize
-    let finished: bool = false
-    loop while (<…>)
+    loop
       let __tup_0: [i32, Continuation]! =
         call :[i32, Continuation]!
           callee:
@@ -65,35 +64,28 @@
       let c: Continuation =
         ._1 :Continuation
           __tup_0 :[i32, Continuation]!
-      ~>
-        if :void
-          cond:
-            eq :bool
-              l:
-                c :Continuation
-              r:
-                int(1) :u8
-          then:
-            assign
-              target:
-                finished :bool
-              value:
-                true
-          else:
-            assign
-              target:
-                total :usize
-              value:
-                add :usize
-                  l:
-                    total :usize
-                  r:
-                    int(1) :usize
+      if :void
+        cond:
+          eq :bool
+            l:
+              c :Continuation
+            r:
+              int(1) :u8
+        then:
+          break
+      assign
+        target:
+          total :usize
+        value:
+          add :usize
+            l:
+              total :usize
+            r:
+              int(1) :usize
     return total :usize
   fn snippet$Countdown$Iterator$last(self: Countdown!) -> i32 | null
     let result: i32 | null = null
-    let finished: bool = false
-    loop while (<…>)
+    loop
       let __tup_0: [i32, Continuation]! =
         call :[i32, Continuation]!
           callee:
@@ -106,26 +98,20 @@
       let c: Continuation =
         ._1 :Continuation
           __tup_0 :[i32, Continuation]!
-      ~>
-        if :void
-          cond:
-            eq :bool
-              l:
-                c :Continuation
-              r:
-                int(1) :u8
-          then:
-            assign
-              target:
-                finished :bool
-              value:
-                true
-          else:
-            assign
-              target:
-                result :i32 | null
-              value:
-                v :i32
+      if :void
+        cond:
+          eq :bool
+            l:
+              c :Continuation
+            r:
+              int(1) :u8
+        then:
+          break
+      assign
+        target:
+          result :i32 | null
+        value:
+          v :i32
     return result :i32 | null
   fn snippet$main() -> i32
     let it: Countdown! =

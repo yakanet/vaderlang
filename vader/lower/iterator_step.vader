@@ -1,10 +1,9 @@
 // vader/lower/iterator_step — what one `Iterator.next` hands back, and how to
 // read it.
 //
-// `for x in it`, the fusion path and the generator state machine all build the
+// `for x in it`, the fusion path and the generator state machine all need the
 // same three things: the type `next` returns, the test for "the iteration is
-// over", and the element it carries. They used to spell those out three times;
-// this file owns them once.
+// over", and the element it carries. This file owns them.
 //
 // `next` hands back `[T, Continuation]`: the element, then whether the iteration
 // goes on. The element beside `Stop` is meaningless and nothing here reads it.
@@ -17,6 +16,8 @@ import "vader/types"
 export StepShape :: struct {
     /// The type `next` returns — `[T, Continuation]`.
     type: Type
+    /// `T` — the element half of the pair.
+    element: Type
     /// The `Continuation` enum, for the `Continue` / `Stop` literals.
     cont: Type
 }
@@ -27,9 +28,13 @@ export StepShape :: struct {
 /// @param element  the iterator's element type.
 /// @return         the shape, or null when `Continuation` is not reachable
 ///                 (std/core not loaded).
-export resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
+export resolve_step_shape :: fn(ctx: FnLowerCtx!, element: Type) -> StepShape | null {
     cont :: find_core_enum(ctx, ENUM_CONTINUATION) ?? return null
-    return StepShape { .type = iterator_step_type(element, cont), .cont = cont }
+    return StepShape {
+        .type = iterator_step_type(element, cont),
+        .element = element,
+        .cont = cont,
+    }
 }
 
 /// The test that says the iteration is over.
@@ -54,16 +59,14 @@ export step_is_done :: fn(
 
 /// The element `step` carries.
 ///
-/// @param shape    the resolved step shape.
-/// @param step     an expression naming the step.
-/// @param element  the iterator's element type.
-/// @param span     the source span to attribute the read to.
-/// @return         an `element`-typed expression.
-export step_value :: fn(
-    shape: StepShape, step: LoweredExpr, element: Type, span: Span,
-) -> LoweredExpr = LoweredFieldAccess {
-    .span = span, .type = element, .target = step, .field = "_0",
-}
+/// @param shape  the resolved step shape.
+/// @param step   an expression naming the step.
+/// @param span   the source span to attribute the read to.
+/// @return       an `element`-typed expression.
+export step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr =
+    LoweredFieldAccess {
+        .span = span, .type = shape.element, .target = step, .field = "_0",
+    }
 
 /// The step a generator returns when it yields `value`.
 ///
@@ -83,14 +86,12 @@ export step_of_value :: fn(
 /// expressible HERE and not in source: a ref slot takes NULL whatever `T`
 /// promises.
 ///
-/// @param shape    the resolved step shape.
-/// @param element  the iterator's element type.
-/// @param span     the source span.
-/// @param ctx      the fn-body context.
-/// @return         a `shape.type`-typed expression.
-export step_of_done :: fn(
-    shape: StepShape, element: Type, span: Span, ctx: FnLowerCtx,
-) -> LoweredExpr = step_pair(shape, zero_value_lit(span, element), CONTINUATION_STOP, span, ctx)
+/// @param shape  the resolved step shape.
+/// @param span   the source span.
+/// @param ctx    the fn-body context.
+/// @return       a `shape.type`-typed expression.
+export step_of_done :: fn(shape: StepShape, span: Span, ctx: FnLowerCtx) -> LoweredExpr =
+    step_pair(shape, zero_value_lit(span, shape.element), CONTINUATION_STOP, span, ctx)
 
 // `[value, Continuation.<variant>]`. A tuple lowers to the `_0` / `_1` struct
 // layout (mirrors `lower_seq_lit`).

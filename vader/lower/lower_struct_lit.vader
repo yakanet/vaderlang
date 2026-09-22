@@ -296,7 +296,7 @@ lower_field_value :: fn(
 }
 
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
-// stdlib/core struct (Range, ArrayIterator, Field, Yield, …), ordering the
+// stdlib/core struct (Range, Field, …), ordering the
 // provided already-lowered fields by the struct's DECLARATION order instead of
 // trusting the call site to hand-match it. midir consumes struct-lit fields
 // positionally (`build_struct_lit` / `InstrStructNew` ignore the `.name`

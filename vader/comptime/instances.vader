@@ -99,8 +99,8 @@ walk_type :: fn(registry: InstanceRegistry!, t: Type) -> void {
     }
 }
 
-// Filter that allows TypeParam through — the registry stores `Yield<T>`
-// etc. as observed alongside `Yield<i32>`. Rejects only types that signal
+// Filter that allows TypeParam through — the registry stores `Range<T>`
+// etc. as observed alongside `Range<i32>`. Rejects only types that signal
 // "not yet resolved" or "free literal".
 all_concrete_enough :: fn(args: Type[]) -> bool {
     for arg in args {

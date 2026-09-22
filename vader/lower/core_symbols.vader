@@ -61,30 +61,39 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
 /// Resolve a `std/core` ENUM type by name.
 ///
 /// Separate from `find_core_type` because an enum decl reaches lowering as a
-/// placeholder `StructType` whose symbol is `SymbolKind.Enum`; only
-/// `unwrap_enum_type` turns that back into the `EnumType` carrying the variant
-/// indices.
+/// placeholder `StructType` whose symbol is `SymbolKind.Enum` — the variant
+/// indices live on the `EnumType` the TYPER built, and only the module that
+/// typed the decl holds it.
+///
+/// Returns null rather than that placeholder when the lookup fails: a variant
+/// looked up against a placeholder yields `unreachable(...)`, a value-shaped
+/// hole that lowers into a branch which never breaks and a `return` which never
+/// runs. Null makes the caller say so instead.
 ///
 /// @param ctx   the fn-body context.
 /// @param name  the source-level enum name (e.g. `"Continuation"`).
 /// @return      the enum type, or `null` when not resolvable.
-export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
+export find_core_enum :: fn(ctx: FnLowerCtx!, name: string) -> Type | null {
+    cached :: ctx.project.core_enum_types[name]
+    if cached != null {
+        return cached
+    }
     symbol :: lookup_core_symbol(ctx, name) ?? return null
     if symbol.kind != SymbolKind.Enum {
         return null
     }
-    placeholder :: mk_struct(symbol, [], immutable = false)
-    // `unwrap_enum_type` reads `ctx.typed.decl_types`, which is the CURRENT
-    // module's — and a core enum is declared in std/core, so it is never there.
-    // Sweep the project's modules for the one that typed it; `Symbol.id` is
-    // unique project-wide, so at most one answers.
+    // `unwrap_enum_type` reads `ctx.typed.decl_types`, the CURRENT module's, and
+    // a core enum is declared in std/core — so it is never there. `Symbol.id` is
+    // unique project-wide, so at most one module answers. Memoised because the
+    // answer is one per project and this runs at every for-in that falls through.
     for [_, program] in ctx.project.typed.modules {
         real :: program.decl_types[symbol.id]
         if real is EnumType {
+            ctx.project.core_enum_types[name] = real
             return real
         }
     }
-    return placeholder
+    return null
 }
 
 /// The pair an `Iterator<T>.next` hands back once the wrapper is gone: the

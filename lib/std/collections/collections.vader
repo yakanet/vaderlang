@@ -284,7 +284,7 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 }
 
 // `for [k, v] in m` works directly thanks to the `Into<Iterator<...>>` impl
-// below — no explicit `.iter()` call needed. Each entry is yielded as a plain
+// below — no explicit conversion needed. Each entry is yielded as a plain
 // `[K, V]` tuple (like `zip` / `enumerate`), so the `[k, v]` destructure reads
 // its two leaves positionally. `into` is a `generator` : consumed by a `for`
 // loop or a terminal it fuses (and `for [k, v] in m` hits the map fast-path in

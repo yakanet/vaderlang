@@ -1,7 +1,7 @@
 // vader/lower/lower_iter_fusion — stream-fusion of lazy iterator chains.
 //
 // Turns `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
-// iterator struct, no `next()`, no `Yield` box). The entry `try_lower_chain_fusion`
+// iterator struct, no `next()`, no step pair). The entry `try_lower_chain_fusion`
 // is called first from `lower_for_in`; a `null` result falls through to the other
 // fast paths. Shared loop-building helpers (`bind_loop_var`, `build_int_range_body`,
 // `cmp_op_for_inclusive`, `is_integer_type`, `resolve_loop_binding`) stay in
@@ -20,7 +20,7 @@ import "toolchain/span"
 // ---- chain fusion ---------------------------------------------------------
 
 // One layer of a fusible iterator chain. The two bottoms are `Range`
-// (an integer-typed `RangeExpr`) and `Array` (an `arr.iter()` cursor) ;
+// (an integer-typed `RangeExpr`) and `Array` (a bare array or `arr.into()`) ;
 // a `Generator` layer wraps a `source` layer with an inlined `generator`
 // combinator body (map / filter / take / skip). Non-int ranges,
 // runtime-bound chains, etc fall back to the generic slow path.
@@ -43,11 +43,11 @@ IterChain :: struct {
     range_upper:  AST.Expr | null
     inclusive:    bool
     element_type: Type
-    // Array bottom (`arr.iter()`) — the concrete source array. Defaulted so the
+    // Array bottom — the concrete source array. Defaulted so the
     // Range/Generator literals need no update.
     array_expr:   AST.Expr | null = null
     // True when this Array bottom is a BARE array (`arr.map(f)`'s implicit head),
-    // vs an explicit `arr.iter()`/`arr.into()` cursor. A top-level bare Array is
+    // vs an explicit `arr.into()` cursor. A top-level bare Array is
     // declined by `try_lower_chain_fusion` so a plain `for x in arr` keeps the
     // raw-array fast path ; only a combinator chain over it fuses.
     implicit_head: bool = false
@@ -82,7 +82,7 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 
 // Top-level entry — recognise `for x in <chain>` and emit the fused
 // counter loop. Returns null whenever the chain doesn't match a fusible
-// shape (`generator` combinators over an int-range or `arr.iter()` bottom).
+// shape (`generator` combinators over an int-range or array bottom).
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
@@ -415,7 +415,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type,
 
 // Walk the iter expression top-down. Each layer either matches a
 // `generator` combinator call (via `try_descend_gen_combinator`) or
-// bottoms at an integer-typed `RangeExpr` / an `arr.iter()` cursor.
+// bottoms at an integer-typed `RangeExpr` / an array.
 // Anything else returns null.
 // `descend_chain` for a TOP-LEVEL consumer (a `for x in <expr>` or a terminal like
 // `<expr>.count()`). A BARE array here (`for x in arr`, `arr.collect()`) is NOT a
@@ -448,7 +448,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 
 // The element type of a concrete iterator struct: the typecheck's authoritative
 // `iter_element_types` side table first (keyed by display name), then the sole
-// type arg (`ArrayIterator<T>` etc.).
+// type arg (`Range<T>`, a user iterator, a generator state struct).
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
     side :: ctx.typed.iter_element_types[display_type_key(t)]
     if !(side is null) { return side }
@@ -471,7 +471,7 @@ descend_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr, as_source: bool) -> IterCh
 }
 
 descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
-    // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
+    // @partial: only a Range bottom, an array bottom, or a
     // `generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
         is AST.RangeExpr -> {
@@ -488,8 +488,8 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
             }
         }
         is AST.CallExpr -> {
-            // Array cursor bottom: `arr.iter()` (or `iter(arr)`) → an
-            // `ArrayIterator<T>` heading the chain; fuse over `arr` directly.
+            // An array-headed chain: fuse over `arr` directly rather than
+            // through whatever the coercion would materialise.
             arr_bottom :: descend_array_call(ctx, expr)
             if arr_bottom != null { return arr_bottom }
             // Generator combinator (`generator` whose first param is the source
@@ -499,7 +499,7 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
         }
         _ -> {
             // A BARE array-typed expr heading a lazy chain (`arr.map(f)` — the
-            // implicit `.iter()` head : no explicit `.iter()`/`.into()` cursor).
+            // implicit array head : no explicit `.into()` cursor).
             // Any array-typed expr is a fusible `Array` bottom. Reached via a
             // combinator's source recursion ; a bare `for x in arr` is declined at
             // the top by `try_lower_chain_fusion` so it keeps the raw-array fast path.
@@ -557,13 +557,8 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
     }
 }
 
-// Recognise an `arr.iter()` / `iter(arr)` call heading a fusible chain: its
-// result type is the concrete `ArrayIterator<T>` (the concrete head that lets
-// the lazy `.map()`/`.filter()` combinators resolve — `.into()`'s erased
-// `Iterator<T>` does not) and the source array is statically extractable.
-// Returns an `Array` chain bottom, else null.
 // Build an `Array` chain bottom over `arr_expr`. `implicit` marks a bare-array
-// head (`arr.map(f)`) vs an explicit `.iter()`/`.into()` cursor — see the field
+// head (`arr.map(f)`) vs an explicit `.into()` cursor — see the field
 // on `IterChain`.
 mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool) -> IterChain = IterChain {
     .kind = IterChainKind.Array,
@@ -573,11 +568,10 @@ mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool)
 }
 
 descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    // `arr.into()` — erased `Iterator<T>` head over a statically-array receiver.
-    // Its result type is the trait (not `ArrayIterator`), but the receiver is an
-    // array, so fuse over the raw array. This is the implicit-array head the
-    // unified iterator model leans on : `arr.into().map(f).collect()` fuses to a
-    // flat loop instead of boxing.
+    // `arr.into()` — an erased `Iterator<T>` head over a statically-array
+    // receiver. The result type is the trait, but the receiver is an array, so
+    // fuse over the raw array: `arr.into().map(f).collect()` becomes a flat loop
+    // instead of materialising an iterator.
     into_arr :: array_from_into_call(ctx, call)
     if into_arr != null {
         arr_ty :: ctx.types.expr_type(into_arr)
@@ -754,7 +748,7 @@ emit_fused_opaque_iter :: fn(
     }
     step_ref :: LoweredIdent { .span = span, .type = step_type, .symbol = step_symbol }
     is_done :: step_is_done(shape, step_ref, span, ctx)
-    value_access :: step_value(shape, step_ref, element_type, span)
+    value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
     body_stmts: LoweredStmt[]!: []
@@ -845,8 +839,8 @@ emit_fused_range :: fn(
     return out
 }
 
-// Emit the fused loop at an `Array` bottom (`arr.iter()`): a direct index loop
-// over the concrete source array — no ArrayIterator, no `next()`, no Yield box.
+// Emit the fused loop at an `Array` bottom: a direct index loop
+// over the concrete source array — no iterator object, no `next()`, no step pair.
 // The body is `template.user_body` (already map/filter-wrapped by the recursion),
 // with the array element bound to the chain's source binding. `continue` is made
 // increment-safe exactly like the non-fused raw-array path.

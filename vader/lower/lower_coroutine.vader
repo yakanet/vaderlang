@@ -19,8 +19,10 @@ import "std/abort"
 
 // ---- sentinel -------------------------------------------------------------
 
-/// Reserved resume value: once `self.state == DONE_STATE`, `next()` returns
-/// `null` forever (the if-chain's trailing `else` catches it).
+/// Reserved resume value: once `self.state == DONE_STATE` the state machine is
+/// finished — a generator's `next()` hands back `Continuation.Stop` forever, an
+/// `async fn`'s `resume` the `null` done-marker. The if-chain's trailing `else`
+/// catches both.
 DONE_STATE :: -1
 
 // ---- builder --------------------------------------------------------------
@@ -30,11 +32,10 @@ GenBuild :: struct {
     self_sym: Symbol
     state_ty: Type            // the `g$State` StructType (self's type)
     i32_ty:   Type
-    /// How this generator's `next` hands a step back. Null on the async driver,
-    /// which shares this builder but completes with `T | Suspended`.
-    step:       StepShape | null = null
-    /// The generator's element type — what a done step pairs its zero with.
-    element_ty: Type = TY_VOID
+    /// How this generator's `next` hands a step back. Null exactly when
+    /// `is_async`: the async driver shares this builder but completes with
+    /// `T | Suspended` rather than an iterator step.
+    step: StepShape | null = null
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt[]![]!
@@ -56,7 +57,7 @@ GenBuild :: struct {
     has_defers: bool = false
     /// True when driving an `async fn` (vs a `generator`). Selects the async
     /// seams in the shared block-split : `await` suspension, value-carrying
-    /// completion, and the `Suspended` (vs `null`) done sentinel.
+    /// completion, and the `Suspended` (vs the `Stop` step) done marker.
     is_async:  bool = false
     /// Async only — the fn's declared result type `T` : the value a `return`
     /// completes with, and the `T` in the `T | Suspended` resume return.
@@ -145,7 +146,7 @@ gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt {
 }
 
 // `return <done step>`.
-gb_null_return :: fn(gb: GenBuild) -> LoweredStmt {
+gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
     shape :: gb.step
     if shape == null {
         return LoweredReturn {
@@ -153,8 +154,7 @@ gb_null_return :: fn(gb: GenBuild) -> LoweredStmt {
         }
     }
     return LoweredReturn {
-        .span = gb.span,
-        .value = step_of_done(shape, gb.element_ty, gb.span, gb.fn_ctx),
+        .span = gb.span, .value = step_of_done(shape, gb.span, gb.fn_ctx),
     }
 }
 
@@ -328,7 +328,7 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
             ])
         }
         // A generator's bare `return` = stop the stream (exhausted forever).
-        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_null_return(gb)])
+        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_done_return(gb)])
     }
     if s is LoweredExprStmt {
         if s.expr is LoweredIf as ie {
@@ -421,7 +421,7 @@ gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
         // report `Suspended` (a correct scheduler retires it and never re-drives).
         gb_block(gb, [gb_suspend_return(gb)])
     } else {
-        gb_block(gb, [gb_null_return(gb)])
+        gb_block(gb, [gb_done_return(gb)])
     }
     return LoweredIf {
         .span = gb.span, .type = TY_VOID,

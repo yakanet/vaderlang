@@ -134,33 +134,24 @@ end
 
 fn 6 std_core$Range$Iterator$count__i32 (ref) -> usize
   local total usize
-  local finished bool
-  local $call_elem_16 u8
+  local $call_elem_12 u8
   i64.const 0
   local.set 1   ; total
-  bool.const false
-  local.set 2   ; finished
   block $L0 void
     loop $L1 void
-      local.get 2   ; finished
-      bool.not
+      local.get 0   ; arg 0
+      call 4   ; std_core$Range$Iterator$next__i32$v
+      local.set 2   ; $call_elem_12
+      drop
+      local.get 2   ; $call_elem_12
+      i32.const 1
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        call 4   ; std_core$Range$Iterator$next__i32$v
-        local.set 3   ; $call_elem_16
-        drop
-        local.get 3   ; $call_elem_16
-        i32.const 1
-        i32.eq
-        if $L3 void
-          bool.const true
-          local.set 2   ; finished
-        else
-          local.get 1   ; total
-          i64.const 1
-          i64.add
-          local.set 1   ; total
-        end $L3
+      else
+        local.get 1   ; total
+        i64.const 1
+        i64.add
+        local.set 1   ; total
         br $L1
       end $L2
     end $L1
@@ -171,32 +162,23 @@ end
 
 fn 7 std_core$Range$Iterator$last__i32 (ref) -> any
   local result any
-  local finished bool
   local v i32
-  local $call_elem_16 u8
+  local $call_elem_12 u8
   null.const
   local.set 1   ; result
-  bool.const false
-  local.set 2   ; finished
   block $L0 void
     loop $L1 void
-      local.get 2   ; finished
-      bool.not
+      local.get 0   ; arg 0
+      call 4   ; std_core$Range$Iterator$next__i32$v
+      local.set 3   ; $call_elem_12
+      local.set 2   ; v
+      local.get 3   ; $call_elem_12
+      i32.const 1
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        call 4   ; std_core$Range$Iterator$next__i32$v
-        local.set 4   ; $call_elem_16
-        local.set 3   ; v
-        local.get 4   ; $call_elem_16
-        i32.const 1
-        i32.eq
-        if $L3 void
-          bool.const true
-          local.set 2   ; finished
-        else
-          local.get 3   ; v
-          local.set 1   ; result
-        end $L3
+      else
+        local.get 2   ; v
+        local.set 1   ; result
         br $L1
       end $L2
     end $L1
@@ -311,33 +293,24 @@ end
 
 fn 12 std_core$Range$Iterator$count__usize (ref) -> usize
   local total usize
-  local finished bool
-  local $call_elem_16 u8
+  local $call_elem_12 u8
   i64.const 0
   local.set 1   ; total
-  bool.const false
-  local.set 2   ; finished
   block $L0 void
     loop $L1 void
-      local.get 2   ; finished
-      bool.not
+      local.get 0   ; arg 0
+      call 10   ; std_core$Range$Iterator$next__usize$v
+      local.set 2   ; $call_elem_12
+      drop
+      local.get 2   ; $call_elem_12
+      i32.const 1
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        call 10   ; std_core$Range$Iterator$next__usize$v
-        local.set 3   ; $call_elem_16
-        drop
-        local.get 3   ; $call_elem_16
-        i32.const 1
-        i32.eq
-        if $L3 void
-          bool.const true
-          local.set 2   ; finished
-        else
-          local.get 1   ; total
-          i64.const 1
-          i64.add
-          local.set 1   ; total
-        end $L3
+      else
+        local.get 1   ; total
+        i64.const 1
+        i64.add
+        local.set 1   ; total
         br $L1
       end $L2
     end $L1
@@ -348,32 +321,23 @@ end
 
 fn 13 std_core$Range$Iterator$last__usize (ref) -> any
   local result any
-  local finished bool
   local v usize
-  local $call_elem_16 u8
+  local $call_elem_12 u8
   null.const
   local.set 1   ; result
-  bool.const false
-  local.set 2   ; finished
   block $L0 void
     loop $L1 void
-      local.get 2   ; finished
-      bool.not
+      local.get 0   ; arg 0
+      call 10   ; std_core$Range$Iterator$next__usize$v
+      local.set 3   ; $call_elem_12
+      local.set 2   ; v
+      local.get 3   ; $call_elem_12
+      i32.const 1
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        call 10   ; std_core$Range$Iterator$next__usize$v
-        local.set 4   ; $call_elem_16
-        local.set 3   ; v
-        local.get 4   ; $call_elem_16
-        i32.const 1
-        i32.eq
-        if $L3 void
-          bool.const true
-          local.set 2   ; finished
-        else
-          local.get 3   ; v
-          local.set 1   ; result
-        end $L3
+      else
+        local.get 2   ; v
+        local.set 1   ; result
         br $L1
       end $L2
     end $L1

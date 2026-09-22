@@ -23,7 +23,7 @@ import "std/string_builder"
 ///      union and the backend gives it the union's representation.
 ///   2. Coerce through `Into` when the value converts to the slot's type — chiefly
 ///      a raw `T[]` reaching an `Iterator<T>` param, which wraps as
-///      `ArrayIterator<T>`.
+///      the `array_iter` generator.
 ///
 /// EVERY call-building path must route its args through here, because nothing
 /// downstream repairs a mismatch : `midir/emit.vader` emits call args exactly as

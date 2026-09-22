@@ -130,8 +130,7 @@
           int(1) :u8
   fn snippet$Repeat$Iterator$count__i32(self: Repeat<i32>!) -> usize
     let total: usize = int(0) :usize
-    let finished: bool = false
-    loop while (<…>)
+    loop
       let __tup_0: [i32, Continuation]! =
         call :[i32, Continuation]!
           callee:
@@ -141,35 +140,28 @@
       let c: Continuation =
         ._1 :Continuation
           __tup_0 :[i32, Continuation]!
-      ~>
-        if :void
-          cond:
-            eq :bool
-              l:
-                c :Continuation
-              r:
-                int(1) :u8
-          then:
-            assign
-              target:
-                finished :bool
-              value:
-                true
-          else:
-            assign
-              target:
-                total :usize
-              value:
-                add :usize
-                  l:
-                    total :usize
-                  r:
-                    int(1) :usize
+      if :void
+        cond:
+          eq :bool
+            l:
+              c :Continuation
+            r:
+              int(1) :u8
+        then:
+          break
+      assign
+        target:
+          total :usize
+        value:
+          add :usize
+            l:
+              total :usize
+            r:
+              int(1) :usize
     return total :usize
   fn snippet$Repeat$Iterator$last__i32(self: Repeat<i32>!) -> i32 | null
     let result: i32 | null = null
-    let finished: bool = false
-    loop while (<…>)
+    loop
       let __tup_0: [i32, Continuation]! =
         call :[i32, Continuation]!
           callee:
@@ -182,26 +174,20 @@
       let c: Continuation =
         ._1 :Continuation
           __tup_0 :[i32, Continuation]!
-      ~>
-        if :void
-          cond:
-            eq :bool
-              l:
-                c :Continuation
-              r:
-                int(1) :u8
-          then:
-            assign
-              target:
-                finished :bool
-              value:
-                true
-          else:
-            assign
-              target:
-                result :i32 | null
-              value:
-                v :i32
+      if :void
+        cond:
+          eq :bool
+            l:
+              c :Continuation
+            r:
+              int(1) :u8
+        then:
+          break
+      assign
+        target:
+          result :i32 | null
+        value:
+          v :i32
     return result :i32 | null
   struct snippet$Repeat__Any { value: Any, remaining: i32 }
   fn concat_2(p0: string, p1: string) -> string

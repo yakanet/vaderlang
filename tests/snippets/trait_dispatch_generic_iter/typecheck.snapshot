@@ -9,38 +9,32 @@
   expr 22550:11 IdentExpr      :: Continuation
   expr 22550:12 FieldExpr      :: Continuation
   expr 22550:13 IdentExpr      :: Continuation
-  expr 22550:26 UnaryExpr      :: bool
-  expr 22550:27 IdentExpr      :: bool
-  expr 22550:34 CallExpr       :: [T, Continuation]!
-  expr 22550:35 FieldExpr      :: fn() -> [T, Continuation]!
-  expr 22550:36 IdentExpr      :: Repeat<T>!
-  expr 22550:37 IfExpr         :: void
-  expr 22550:38 BinaryExpr     :: bool
-  expr 22550:39 IdentExpr      :: Continuation
-  expr 22550:40 FieldExpr      :: Continuation
-  expr 22550:41 IdentExpr      :: Continuation
-  expr 22550:44 IdentExpr      :: bool
-  expr 22550:48 IdentExpr      :: usize
-  expr 22550:49 BinaryExpr     :: usize
-  expr 22550:50 IdentExpr      :: usize
-  expr 22550:53 IdentExpr      :: usize
+  expr 22550:28 CallExpr       :: [T, Continuation]!
+  expr 22550:29 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 22550:30 IdentExpr      :: Repeat<T>!
+  expr 22550:32 IfExpr         :: void
+  expr 22550:33 BinaryExpr     :: bool
+  expr 22550:34 IdentExpr      :: Continuation
+  expr 22550:35 FieldExpr      :: Continuation
+  expr 22550:36 IdentExpr      :: Continuation
+  expr 22550:39 IdentExpr      :: usize
+  expr 22550:40 BinaryExpr     :: usize
+  expr 22550:41 IdentExpr      :: usize
+  expr 22550:44 IdentExpr      :: usize
   expr 22550:6  CallExpr       :: [T, Continuation]!
-  expr 22550:68 UnaryExpr      :: bool
-  expr 22550:69 IdentExpr      :: bool
+  expr 22550:62 CallExpr       :: [T, Continuation]!
+  expr 22550:63 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 22550:64 IdentExpr      :: Repeat<T>!
+  expr 22550:66 IfExpr         :: void
+  expr 22550:67 BinaryExpr     :: bool
+  expr 22550:68 IdentExpr      :: Continuation
+  expr 22550:69 FieldExpr      :: Continuation
   expr 22550:7  FieldExpr      :: fn() -> [T, Continuation]!
-  expr 22550:77 CallExpr       :: [T, Continuation]!
-  expr 22550:78 FieldExpr      :: fn() -> [T, Continuation]!
-  expr 22550:79 IdentExpr      :: Repeat<T>!
+  expr 22550:70 IdentExpr      :: Continuation
+  expr 22550:73 IdentExpr      :: null | T
+  expr 22550:74 IdentExpr      :: T
+  expr 22550:76 IdentExpr      :: null | T
   expr 22550:8  IdentExpr      :: Repeat<T>!
-  expr 22550:80 IfExpr         :: void
-  expr 22550:81 BinaryExpr     :: bool
-  expr 22550:82 IdentExpr      :: Continuation
-  expr 22550:83 FieldExpr      :: Continuation
-  expr 22550:84 IdentExpr      :: Continuation
-  expr 22550:87 IdentExpr      :: bool
-  expr 22550:91 IdentExpr      :: null | T
-  expr 22550:92 IdentExpr      :: T
-  expr 22550:94 IdentExpr      :: null | T
   expr 24:12    BinaryExpr     :: bool
   expr 24:12    FieldExpr      :: i32
   expr 24:12    IdentExpr      :: Repeat<T>!
@@ -65,38 +59,32 @@
   expr 38932:11 IdentExpr      :: Continuation
   expr 38932:12 FieldExpr      :: Continuation
   expr 38932:13 IdentExpr      :: Continuation
-  expr 38932:26 UnaryExpr      :: bool
-  expr 38932:27 IdentExpr      :: bool
-  expr 38932:34 CallExpr       :: [T, Continuation]!
-  expr 38932:35 FieldExpr      :: fn() -> [T, Continuation]!
-  expr 38932:36 IdentExpr      :: Once<T>!
-  expr 38932:37 IfExpr         :: void
-  expr 38932:38 BinaryExpr     :: bool
-  expr 38932:39 IdentExpr      :: Continuation
-  expr 38932:40 FieldExpr      :: Continuation
-  expr 38932:41 IdentExpr      :: Continuation
-  expr 38932:44 IdentExpr      :: bool
-  expr 38932:48 IdentExpr      :: usize
-  expr 38932:49 BinaryExpr     :: usize
-  expr 38932:50 IdentExpr      :: usize
-  expr 38932:53 IdentExpr      :: usize
+  expr 38932:28 CallExpr       :: [T, Continuation]!
+  expr 38932:29 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 38932:30 IdentExpr      :: Once<T>!
+  expr 38932:32 IfExpr         :: void
+  expr 38932:33 BinaryExpr     :: bool
+  expr 38932:34 IdentExpr      :: Continuation
+  expr 38932:35 FieldExpr      :: Continuation
+  expr 38932:36 IdentExpr      :: Continuation
+  expr 38932:39 IdentExpr      :: usize
+  expr 38932:40 BinaryExpr     :: usize
+  expr 38932:41 IdentExpr      :: usize
+  expr 38932:44 IdentExpr      :: usize
   expr 38932:6  CallExpr       :: [T, Continuation]!
-  expr 38932:68 UnaryExpr      :: bool
-  expr 38932:69 IdentExpr      :: bool
+  expr 38932:62 CallExpr       :: [T, Continuation]!
+  expr 38932:63 FieldExpr      :: fn() -> [T, Continuation]!
+  expr 38932:64 IdentExpr      :: Once<T>!
+  expr 38932:66 IfExpr         :: void
+  expr 38932:67 BinaryExpr     :: bool
+  expr 38932:68 IdentExpr      :: Continuation
+  expr 38932:69 FieldExpr      :: Continuation
   expr 38932:7  FieldExpr      :: fn() -> [T, Continuation]!
-  expr 38932:77 CallExpr       :: [T, Continuation]!
-  expr 38932:78 FieldExpr      :: fn() -> [T, Continuation]!
-  expr 38932:79 IdentExpr      :: Once<T>!
+  expr 38932:70 IdentExpr      :: Continuation
+  expr 38932:73 IdentExpr      :: null | T
+  expr 38932:74 IdentExpr      :: T
+  expr 38932:76 IdentExpr      :: null | T
   expr 38932:8  IdentExpr      :: Once<T>!
-  expr 38932:80 IfExpr         :: void
-  expr 38932:81 BinaryExpr     :: bool
-  expr 38932:82 IdentExpr      :: Continuation
-  expr 38932:83 FieldExpr      :: Continuation
-  expr 38932:84 IdentExpr      :: Continuation
-  expr 38932:87 IdentExpr      :: bool
-  expr 38932:91 IdentExpr      :: null | T
-  expr 38932:92 IdentExpr      :: T
-  expr 38932:94 IdentExpr      :: null | T
   expr 40:12    FieldExpr      :: bool
   expr 40:12    IdentExpr      :: Once<T>!
   expr 40:9     IfExpr         :: void

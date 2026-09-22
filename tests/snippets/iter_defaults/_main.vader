@@ -1,6 +1,7 @@
 // `Iterator` defaults injected via Layer 8d — `count`, `last`, `is_empty`
-// derive from the user's `step`. Every Iterator impl (Range, ArrayIterator,
-// StringChars, …) inherits the three methods without writing a body.
+// derive from the user's `next`. Every Iterator impl (Range, StringChars, a
+// user struct, a generator's state machine, …) inherits the three methods
+// without writing a body.
 
 module "snippet"
 

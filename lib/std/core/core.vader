@@ -3,8 +3,8 @@
 // Layout :
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
-//   2. Core struct definitions and their impls (Yield, Range,
-//      ArrayIterator) + the blanket array / Display→string impls
+//   2. Core type definitions and their impls (Continuation, Range) + the
+//      blanket array / Display→string impls
 //
 // The primitive-type impls (Display, Equals, Hash, Comparable, Step,
 // arithmetic, string) live in the sibling `primitives.vader` — same
@@ -159,12 +159,7 @@ export Contains :: trait<T> {
     contains :: fn(self, value: T) -> bool
 }
 
-/// How one iterator step ended.
-///
-/// Declared ahead of the shape that uses it: the lowerer switches from the
-/// `Yield<T> | null` wrapper to the `[T, Continuation]` pair when `Yield` stops
-/// being declared, and the switch has to find this type already in place.
-/// Record: `.claude/plans/2026-09-22-tuple-value-abi.md` §25.
+/// How one iterator step ended — see `Iterator.next`.
 export Continuation :: enum(u8) {
     /// The step produced a value.
     Continue,
@@ -179,9 +174,13 @@ export Continuation :: enum(u8) {
 ///
 /// `next()` hands back the element and whether the iteration goes on. A PAIR
 /// rather than a wrapper around a nullable: the pair crosses the call in
-/// registers, where `Yield<T> | null` cost one heap object per step plus a
-/// 16-byte box. It also makes `T = U | null` unremarkable — `Continuation` says
-/// whether there is an element, so a `null` ELEMENT is just an element.
+/// registers instead of through the heap, and it makes `T = U | null`
+/// unremarkable — `Continuation` says whether there is an element, so a `null`
+/// ELEMENT is just an element.
+///
+/// The element beside `Continuation.Stop` is INDETERMINATE. An implementation
+/// hands over whatever `T` it has rather than manufacturing one, and no consumer
+/// may read it before testing the `Continuation`.
 export Iterator :: trait<T> {
     next :: fn(self!) -> [T, Continuation]
 
@@ -198,14 +197,12 @@ export Iterator :: trait<T> {
     // self ; the iterator is exhausted after this call.
     count :: fn(self!) -> usize {
         total: usize = 0
-        finished := false
-        for !finished {
+        for {
             [_, c] :: self.next()
             if c == Continuation.Stop {
-                finished = true
-            } else {
-                total = total + 1
+                break
             }
+            total += 1
         }
         return total
     }
@@ -214,14 +211,12 @@ export Iterator :: trait<T> {
     // was empty. Consumes self.
     last :: fn(self!) -> T | null {
         result: T | null = null
-        finished := false
-        for !finished {
+        for {
             [v, c] :: self.next()
             if c == Continuation.Stop {
-                finished = true
-            } else {
-                result = v
+                break
             }
+            result = v
         }
         return result
     }
@@ -242,9 +237,10 @@ export Error :: trait {
 // ============================================================================
 
 /// Sentinel returned by `Async.resume` when the coroutine suspended (it awaited
-/// something not yet ready) rather than completing — the async analogue of the
-/// `null` end-of-iteration sentinel for generators. `T | Suspended` stays
-/// unambiguous because `Suspended` is a distinct nominal type.
+/// something not yet ready) rather than completing. `T | Suspended` stays
+/// unambiguous because `Suspended` is a distinct nominal type — where
+/// `Iterator.next` carries the same information BESIDE the element instead, in
+/// its `Continuation`.
 export Suspended :: struct {}
 
 /// The awaitable produced by calling an `async fn` — `await e` unwraps

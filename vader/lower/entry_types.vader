@@ -103,9 +103,9 @@ export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 /// For the SPAN-keyed slots a loop variable lands in (`loop_var_type_key`).
 /// Those are shared: a generic combinator's `for x in self` over an
 /// `Iterator<T>` param records the declared `T` ONCE, for every instance that
-/// will ever be lowered. Reading it raw hands `T` to whatever builds the
-/// element type — `find_core_type("Yield", [T])` — and midir then looks for
-/// `value` on a `Yield<T>` no instance ever materialised.
+/// will ever be lowered. Reading it raw hands `T` to whatever builds the step
+/// type, and midir then looks for a field on a `[T, Continuation]` no instance
+/// ever materialised.
 ///
 /// Null means "ask your own fallback", and covers three cases: no entry, an
 /// entry the typer left unresolved, and a type param that outlived the
@@ -210,8 +210,8 @@ type_param_t :: fn() = Symbol {
     typed :: empty_typed_program()
     typed.local_types[LOOP_VAR_KEY] = mk_type_param(type_param_t())
     // Empty substitution — the body is being lowered generically, not as an
-    // instance. Carrying `T` out of here is what built a `Yield<T>` whose
-    // `value` field no instance ever materialised.
+    // instance. Carrying `T` out of here is what built a step type whose fields
+    // no instance ever materialised.
     view :: make_entry_types(typed, new_substitution())
     assert(concrete_local_type(view, LOOP_VAR_KEY) == null, "an unbound `T` yields null")
 }
