@@ -1,0 +1,53 @@
+// A `for … in` over a collection whose ELEMENTS are themselves nullable.
+//
+// `Iterator.next` hands back `Yield<T> | null`, and the wrapper exists precisely
+// so a yielded `null` is not read as end-of-iteration. With `T = i32 | null` the
+// two collide unless something keeps them apart, so this pins the case any
+// change to the iterator protocol would otherwise break in silence — the loop
+// would stop at the first `null` element and report a shorter collection.
+
+module "snippet"
+
+import "std/io"
+
+// An ESCAPING generator: consumed through the boxed `Iterator` state machine, so
+// every element really does cross as `Yield<i32 | null> | null`. A direct
+// `for x in maybe()` would inline and never build one.
+maybe :: fn() -> Iterator<i32 | null> {
+    yield 1
+    yield null
+    yield 3
+    yield null
+    yield 5
+}
+
+main :: fn() -> i32 {
+    xs: (i32 | null)[]: [1, null, 3, null, 5]
+    seen := 0
+    nulls := 0
+    sum := 0
+    for x in xs {
+        seen = seen + 1
+        if x == null {
+            nulls = nulls + 1
+            continue
+        }
+        sum = sum + x
+    }
+    println("array  seen=${seen} nulls=${nulls} sum=${sum}")
+
+    it :: maybe()
+    gseen := 0
+    gnulls := 0
+    gsum := 0
+    for y in it {
+        gseen = gseen + 1
+        if y == null {
+            gnulls = gnulls + 1
+            continue
+        }
+        gsum = gsum + y
+    }
+    println("gen    seen=${gseen} nulls=${gnulls} sum=${gsum}")
+    return seen * 10 + nulls
+}

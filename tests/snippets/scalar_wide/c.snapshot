@@ -62,11 +62,13 @@ static uint32_t snippet_u_shr(uint32_t l0, uint32_t l1);
 static uint64_t snippet_ul_shr(uint64_t l0, uint64_t l1);
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1);
 static vader_box_t std_core_Range_Iterator_next__i32(void* l0);
+static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, int32_t* __o1);
 static bool std_core_Range_Iterator_is_empty__i32(void* l0);
 static size_t std_core_Range_Iterator_count__i32(void* l0);
 static vader_box_t std_core_Range_Iterator_last__i32(void* l0);
 static bool std_core_Range_Contains_contains__usize(void* l0, size_t l1);
 static vader_box_t std_core_Range_Iterator_next__usize(void* l0);
+static void std_core_Range_Iterator_next__usize_v(void* l0, int32_t* __o0, size_t* __o1);
 static bool std_core_Range_Iterator_is_empty__usize(void* l0);
 static size_t std_core_Range_Iterator_count__usize(void* l0);
 static vader_box_t std_core_Range_Iterator_last__usize(void* l0);
@@ -273,16 +275,35 @@ static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1) {
 }
 
 static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
+    vader_box_t l1 = vader_box_null();
+    int32_t l2;
+    int32_t t0, t1;
+    void* t2 = NULL;
+    vader_box_t* gc_roots[1] = { &l1 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+#line 307 "lib/std/core/core.vader"
+    std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+    l2 = t1;
+    if (t0 == INT32_C(0)) {
+        l1 = vader_box_obj(0u, NULL);
+    } else {
+        vader_struct_std_core_Yield__i32_t* _a0_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
+        vader_obj_header_init(_a0_obj, 10u);
+        _a0_obj->f_value = l2;
+        t2 = (void*) _a0_obj;
+        l1 = vader_ref_box(t2);
+    }
+    { vader_box_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, int32_t* __o1) {
     bool l1;
     int32_t l2, l3;
     bool t0;
-    vader_box_t t1 = vader_box_null();
-    int32_t t2;
-    void* t3 = NULL;
-    vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    int32_t t1;
 #line 308 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
@@ -298,34 +319,43 @@ static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
     }
 #line 310 "lib/std/core/core.vader"
     if (l1) {
-        t1 = vader_box_obj(0u, NULL);
-        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        *__o1 = INT32_C(0); *__o0 = INT32_C(0); return;
     }
 #line 311 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
 #line 312 "lib/std/core/core.vader"
-    t2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-    l3 = std_core_i32_Step_step(t2);
+    t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
+    l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__i32_t*) l0);
 #line 313 "lib/std/core/core.vader"
-    vader_struct_std_core_Yield__i32_t* _a0_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
-    vader_obj_header_init(_a0_obj, 10u);
-    _a0_obj->f_value = l2;
-    t3 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
+    *__o1 = l2; *__o0 = INT32_C(1); return;
 }
 
 static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
     vader_box_t l1 = vader_box_null();
     bool l2;
+    int32_t l3;
+    int32_t t0, t1;
+    void* t2 = NULL;
     vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__i32_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 313387 "<clone>:lib/std/core/core.vader"
-    l1 = std_core_Range_Iterator_next__i32(l0);
+    std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+    l3 = t1;
+    if (t0 == INT32_C(0)) {
+        l1 = vader_box_obj(0u, NULL);
+    } else {
+        vader_struct_std_core_Yield__i32_t* _a1_obj = &_a0_storage;
+        vader_obj_header_init(_a1_obj, 10u);
+        _a1_obj->f_value = l3;
+        t2 = (void*) _a1_obj;
+        l1 = vader_ref_box(t2);
+    }
     if (l1.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
         l2 = true;
@@ -346,11 +376,16 @@ static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
 static size_t std_core_Range_Iterator_count__i32(void* l0) {
     size_t l1;
     bool l2;
-    vader_box_t l3 = vader_box_null();
-    int64_t t0;
-    vader_box_t* gc_roots[1] = { &l3 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
+    int32_t l5;
+    int32_t t0, t1;
+    void* t2 = NULL;
+    int64_t t3;
+    vader_box_t* gc_roots[2] = { &l3, &l4 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__i32_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:lib/std/core/core.vader"
     l1 = (size_t) (int64_t) INT64_C(0);
@@ -359,15 +394,26 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
     {
         loop_5: {
             if (!(l2)) {
-                l3 = std_core_Range_Iterator_next__i32(l0);
-                if (l3.tag == 0u) {
+                std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+                l5 = t1;
+                if (t0 == INT32_C(0)) {
+                    l3 = vader_box_obj(0u, NULL);
+                } else {
+                    vader_struct_std_core_Yield__i32_t* _a1_obj = &_a0_storage;
+                    vader_obj_header_init(_a1_obj, 10u);
+                    _a1_obj->f_value = l5;
+                    t2 = (void*) _a1_obj;
+                    l3 = vader_ref_box(t2);
+                }
+                l4 = l3;
+                if (l4.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
                 } else {
-                    if ((l3.tag == 10u || l3.tag == 15u)) {
-                        t0 = (l1 + INT64_C(1));
-                        l1 = (size_t) (int64_t) t0;
+                    if ((l4.tag == 10u || l4.tag == 15u)) {
+                        t3 = (l1 + INT64_C(1));
+                        l1 = (size_t) (int64_t) t3;
                     } else {
                         vader_unreachable("unreachable return in std_core$Range$Iterator$count__i32");
                     }
@@ -381,13 +427,16 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
 }
 
 static vader_box_t std_core_Range_Iterator_last__i32(void* l0) {
-    vader_box_t l1 = vader_box_null(), l3 = vader_box_null();
+    vader_box_t l1 = vader_box_null(), l3 = vader_box_null(), l4 = vader_box_null();
     bool l2;
-    void* t0 = NULL;
-    int32_t t1;
-    vader_box_t* gc_roots[2] = { &l1, &l3 };
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    int32_t l5;
+    int32_t t0, t1;
+    void* t2 = NULL;
+    vader_box_t* gc_roots[3] = { &l1, &l3, &l4 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__i32_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:lib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);
@@ -396,16 +445,27 @@ static vader_box_t std_core_Range_Iterator_last__i32(void* l0) {
     {
         loop_5: {
             if (!(l2)) {
-                l3 = std_core_Range_Iterator_next__i32(l0);
-                if (l3.tag == 0u) {
+                std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+                l5 = t1;
+                if (t0 == INT32_C(0)) {
+                    l3 = vader_box_obj(0u, NULL);
+                } else {
+                    vader_struct_std_core_Yield__i32_t* _a1_obj = &_a0_storage;
+                    vader_obj_header_init(_a1_obj, 10u);
+                    _a1_obj->f_value = l5;
+                    t2 = (void*) _a1_obj;
+                    l3 = vader_ref_box(t2);
+                }
+                l4 = l3;
+                if (l4.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
                 } else {
-                    if ((l3.tag == 10u || l3.tag == 15u)) {
-                        t0 = l3.payload.obj;
-                        t1 = ((vader_struct_std_core_Yield__i32_t*) t0)->f_value;
-                        l1 = vader_box_i32(3u, t1);
+                    if ((l4.tag == 10u || l4.tag == 15u)) {
+                        t2 = l4.payload.obj;
+                        t0 = ((vader_struct_std_core_Yield__i32_t*) t2)->f_value;
+                        l1 = vader_box_i32(3u, t0);
                     } else {
                         vader_unreachable("unreachable return in std_core$Range$Iterator$last__i32");
                     }
@@ -441,16 +501,36 @@ static bool std_core_Range_Contains_contains__usize(void* l0, size_t l1) {
 }
 
 static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
+    vader_box_t l1 = vader_box_null();
+    size_t l2;
+    int32_t t0;
+    size_t t1;
+    void* t2 = NULL;
+    vader_box_t* gc_roots[1] = { &l1 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+#line 307 "lib/std/core/core.vader"
+    std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+    l2 = t1;
+    if (t0 == INT32_C(0)) {
+        l1 = vader_box_obj(0u, NULL);
+    } else {
+        vader_struct_std_core_Yield__usize_t* _a0_obj = (vader_struct_std_core_Yield__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__usize_t));
+        vader_obj_header_init(_a0_obj, 15u);
+        _a0_obj->f_value = l2;
+        t2 = (void*) _a0_obj;
+        l1 = vader_ref_box(t2);
+    }
+    { vader_box_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_core_Range_Iterator_next__usize_v(void* l0, int32_t* __o0, size_t* __o1) {
     bool l1;
     size_t l2, l3;
     bool t0;
-    vader_box_t t1 = vader_box_null();
-    size_t t2;
-    void* t3 = NULL;
-    vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    size_t t1;
 #line 308 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
     if (t0) {
@@ -466,34 +546,44 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
     }
 #line 310 "lib/std/core/core.vader"
     if (l1) {
-        t1 = vader_box_obj(0u, NULL);
-        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        *__o1 = (size_t) (int64_t) INT64_C(0); *__o0 = INT32_C(0); return;
     }
 #line 311 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
 #line 312 "lib/std/core/core.vader"
-    t2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-    l3 = std_core_usize_Step_step(t2);
+    t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
+    l3 = std_core_usize_Step_step(t1);
     ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__usize_t*) l0);
 #line 313 "lib/std/core/core.vader"
-    vader_struct_std_core_Yield__usize_t* _a0_obj = (vader_struct_std_core_Yield__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__usize_t));
-    vader_obj_header_init(_a0_obj, 15u);
-    _a0_obj->f_value = l2;
-    t3 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
+    *__o1 = l2; *__o0 = INT32_C(1); return;
 }
 
 static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
     vader_box_t l1 = vader_box_null();
     bool l2;
+    size_t l3;
+    int32_t t0;
+    size_t t1;
+    void* t2 = NULL;
     vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__usize_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 313387 "<clone>:lib/std/core/core.vader"
-    l1 = std_core_Range_Iterator_next__usize(l0);
+    std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+    l3 = t1;
+    if (t0 == INT32_C(0)) {
+        l1 = vader_box_obj(0u, NULL);
+    } else {
+        vader_struct_std_core_Yield__usize_t* _a1_obj = &_a0_storage;
+        vader_obj_header_init(_a1_obj, 15u);
+        _a1_obj->f_value = l3;
+        t2 = (void*) _a1_obj;
+        l1 = vader_ref_box(t2);
+    }
     if (l1.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
         l2 = true;
@@ -512,13 +602,18 @@ static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
 }
 
 static size_t std_core_Range_Iterator_count__usize(void* l0) {
-    size_t l1;
+    size_t l1, l5;
     bool l2;
-    vader_box_t l3 = vader_box_null();
-    int64_t t0;
-    vader_box_t* gc_roots[1] = { &l3 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
+    int32_t t0;
+    size_t t1;
+    void* t2 = NULL;
+    int64_t t3;
+    vader_box_t* gc_roots[2] = { &l3, &l4 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__usize_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:lib/std/core/core.vader"
     l1 = (size_t) (int64_t) INT64_C(0);
@@ -527,15 +622,26 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
     {
         loop_5: {
             if (!(l2)) {
-                l3 = std_core_Range_Iterator_next__usize(l0);
-                if (l3.tag == 0u) {
+                std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+                l5 = t1;
+                if (t0 == INT32_C(0)) {
+                    l3 = vader_box_obj(0u, NULL);
+                } else {
+                    vader_struct_std_core_Yield__usize_t* _a1_obj = &_a0_storage;
+                    vader_obj_header_init(_a1_obj, 15u);
+                    _a1_obj->f_value = l5;
+                    t2 = (void*) _a1_obj;
+                    l3 = vader_ref_box(t2);
+                }
+                l4 = l3;
+                if (l4.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
                 } else {
-                    if ((l3.tag == 15u || l3.tag == 10u)) {
-                        t0 = (l1 + INT64_C(1));
-                        l1 = (size_t) (int64_t) t0;
+                    if ((l4.tag == 15u || l4.tag == 10u)) {
+                        t3 = (l1 + INT64_C(1));
+                        l1 = (size_t) (int64_t) t3;
                     } else {
                         vader_unreachable("unreachable return in std_core$Range$Iterator$count__usize");
                     }
@@ -549,13 +655,17 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
 }
 
 static vader_box_t std_core_Range_Iterator_last__usize(void* l0) {
-    vader_box_t l1 = vader_box_null(), l3 = vader_box_null();
+    vader_box_t l1 = vader_box_null(), l3 = vader_box_null(), l4 = vader_box_null();
     bool l2;
-    void* t0 = NULL;
+    size_t l5;
+    int32_t t0;
     size_t t1;
-    vader_box_t* gc_roots[2] = { &l1, &l3 };
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    void* t2 = NULL;
+    vader_box_t* gc_roots[3] = { &l1, &l3, &l4 };
+    void** gc_raw_roots[2] = { &l0, &t2 };
+    vader_struct_std_core_Yield__usize_t _a0_storage = {0};
+    void* gc_stack_objs[1] = { (void*) &_a0_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:lib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);
@@ -564,15 +674,26 @@ static vader_box_t std_core_Range_Iterator_last__usize(void* l0) {
     {
         loop_5: {
             if (!(l2)) {
-                l3 = std_core_Range_Iterator_next__usize(l0);
-                if (l3.tag == 0u) {
+                std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+                l5 = t1;
+                if (t0 == INT32_C(0)) {
+                    l3 = vader_box_obj(0u, NULL);
+                } else {
+                    vader_struct_std_core_Yield__usize_t* _a1_obj = &_a0_storage;
+                    vader_obj_header_init(_a1_obj, 15u);
+                    _a1_obj->f_value = l5;
+                    t2 = (void*) _a1_obj;
+                    l3 = vader_ref_box(t2);
+                }
+                l4 = l3;
+                if (l4.tag == 0u) {
 #line 331805 "<clone>:lib/std/core/core.vader"
                     l2 = true;
 #line 313387 "<clone>:lib/std/core/core.vader"
                 } else {
-                    if ((l3.tag == 15u || l3.tag == 10u)) {
-                        t0 = l3.payload.obj;
-                        t1 = ((vader_struct_std_core_Yield__usize_t*) t0)->f_value;
+                    if ((l4.tag == 15u || l4.tag == 10u)) {
+                        t2 = l4.payload.obj;
+                        t1 = ((vader_struct_std_core_Yield__usize_t*) t2)->f_value;
                         l1 = vader_box_i64(11u, (int64_t)(uint64_t) t1);
                     } else {
                         vader_unreachable("unreachable return in std_core$Range$Iterator$last__usize");

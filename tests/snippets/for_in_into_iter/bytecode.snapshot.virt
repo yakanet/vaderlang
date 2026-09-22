@@ -19,10 +19,7 @@ type 16 array 1
 type 17 array 3
 type 18 array 2
 type 19 struct std_string$StringChars { bytes:9,cursor:4,length:4 }
-type 20 union 0,11
-type 21 primitive isize
-type 22 struct __Tuple_string_i32_4ccf6d4f { _0:2,_1:1 }
-type 23 union 11,0
+type 20 primitive isize
 string 0 "arr="
 string 1 "a"
 string 2 "b"
@@ -34,7 +31,7 @@ string 7 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 hash std_core$string$Hash$hash result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Index
 impl 13 IndexSet
@@ -58,9 +55,9 @@ fn 0 snippet$main () -> i32
   local $cast_26 i64
   local $arr_30 ref
   local $arr_31 ref
-  local $idx_53 string
-  local value i32
+  local $call_117 any
   local __step_22 any
+  local $call_elem_137 char
   i32.const 10
   i32.const 20
   i32.const 30
@@ -161,23 +158,17 @@ fn 0 snippet$main () -> i32
         local.get 3   ; __for_i_2
         array.get 18   ; string[][]
         ref.cast 2   ; -> string
-        local.set 8   ; $idx_53
+        drop
         local.get 7   ; $arr_31
         local.get 3   ; __for_i_2
         load_slot_i32
         local.set 4   ; x
-        local.get 8   ; $idx_53
-        local.get 4   ; x
-        struct.new_stack 22   ; __Tuple_string_i32_4ccf6d4f
-        struct.get 22 1   ; __Tuple_string_i32_4ccf6d4f._1
-        ref.cast 1   ; -> i32
-        local.set 9   ; value
         local.get 3   ; __for_i_2
         i64.const 1
         i64.add
         local.set 3   ; __for_i_2
         local.get 0   ; arr_total
-        local.get 9   ; value
+        local.get 4   ; x
         i32.add
         local.set 0   ; arr_total
         br $L4
@@ -292,12 +283,24 @@ fn 0 snippet$main () -> i32
   block $L9 void
     loop $L10 void
       local.get 1   ; __for_arr_0
-      call 25   ; std_string$StringChars$Iterator$next
-      local.tee 10   ; __step_22
-      type_check 0   ; null
+      call 25   ; std_string$StringChars$Iterator$next$v
+      local.set 10   ; $call_elem_137
+      i32.const 0
+      i32.eq
       if $L11 void
+        null.const
+        local.set 8   ; $call_117
       else
-        local.get 10   ; __step_22
+        local.get 10   ; $call_elem_137
+        struct.new_stack 11   ; std_core$Yield__char
+        local.set 8   ; $call_117
+      end $L11
+      local.get 8   ; $call_117
+      local.tee 9   ; __step_22
+      type_check 0   ; null
+      if $L12 void
+      else
+        local.get 9   ; __step_22
         ref.cast 11   ; -> std_core$Yield__char
         drop
         local.get 0   ; arr_total
@@ -305,7 +308,7 @@ fn 0 snippet$main () -> i32
         i32.add
         local.set 0   ; arr_total
         br $L10
-      end $L11
+      end $L12
     end $L10
   end $L9
   i64.const 26
@@ -1472,7 +1475,7 @@ fn 24 std_string$chars (string) -> ref
   return
 end
 
-fn 25 std_string$StringChars$Iterator$next (ref) -> any
+fn 25 std_string$StringChars$Iterator$next$v (ref) -> (i32,char)
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -1487,8 +1490,8 @@ fn 25 std_string$StringChars$Iterator$next (ref) -> any
   local.get 2   ; $field_2
   u64.ge
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    char.const 32
     return
   end $L0
   local.field 0 19 0   ; arg 0.bytes
@@ -1511,8 +1514,8 @@ fn 25 std_string$StringChars$Iterator$next (ref) -> any
   local.get 0   ; arg 0
   local.get 1   ; $field_1
   struct.set 19 1   ; std_string$StringChars.cursor
+  i32.const 1
   local.get 4   ; c
-  struct.new 11   ; std_core$Yield__char
   return
 end
 

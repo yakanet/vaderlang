@@ -49,13 +49,9 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
     for [id, m] in p.modules {
         new_fns: CFGFunction[]!: []
         for f in m.functions {
-            shape :: chosen[f.mangled]
-            scalarised :: if shape == null {
-                f
-            } else {
-                rewrite_callee(f, shape.elements, shape.rebuilt != null)
+            for g in scalarised_forms(f, chosen[f.mangled]) {
+                new_fns.push(rewrite_call_sites(g, chosen, by_symbol, callers))
             }
-            new_fns.push(rewrite_call_sites(scalarised, chosen, by_symbol, callers))
         }
         out[id] = CFGModule { ...m, .functions = new_fns }
     }
@@ -71,6 +67,11 @@ ReturnShape :: struct {
     /// The struct each call site rebuilds from them, or null for a tuple — whose
     /// elements ARE the value and need no object. Doubles as "carries a tag".
     rebuilt: Type | null
+    /// Mangle of the scalarised copy to call INSTEAD, when the function is also
+    /// reachable as a value and had to keep its own name and signature. Null
+    /// when the function was scalarised in place and the call site keeps its
+    /// callee.
+    forward_to: string | null = null
 }
 
 // Mangle → the shape its return now carries.
@@ -109,98 +110,8 @@ choose_functions :: fn(
     // `chosen` is populated, and both the disqualification sweep and the
     // call-site rewrite read the same one.
     fill_mangles_by_symbol_id(p, chosen, by_symbol)
-    drop_functions_used_as_values(p, chosen, by_symbol, callers)
+    plan_forwarding(p, chosen, by_symbol, callers)
     return chosen
-}
-
-// Drop any function reachable other than by a direct call.
-//
-// A fn value, a callback address and a vtable row all promise ONE signature to
-// a site that cannot see which function it holds — so a scalarised callee
-// reached that way would be called through the wrong shape. Disqualified by
-// both mangle and symbol id, because `midir/emit` resolves a callee either way
-// and a function answering to two names must be dropped under both.
-drop_functions_used_as_values :: fn(
-    p: CFGProject, chosen: MutableMap<string, ReturnShape>!, by_symbol: MutableMap<i32, string>,
-    callers: MutableSet<string>!,
-) -> void {
-    for e in p.vtable_entries {
-        drop_symbol(e.fn_symbol, by_symbol, chosen)
-    }
-    // The one instruction walk. It also records which functions CALL a candidate,
-    // so the rewrite below needs no second scan of the program to find them — a
-    // caller recorded for a function later dropped is a harmless false positive,
-    // since the rewrite re-asks `callee_shape` per call.
-    for [_, m] in p.modules {
-        for f in m.functions {
-            for b in f.blocks {
-                for ins in b.instructions {
-                    if ins is InstrCall {
-                        if callee_shape(ins.callee, chosen, by_symbol) != null {
-                            callers.add(f.mangled)
-                        }
-                        continue
-                    }
-                    drop_if_taken_as_value(ins, by_symbol, chosen)
-                }
-            }
-        }
-    }
-}
-
-drop_if_taken_as_value :: fn(
-    ins: Instruction, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, ReturnShape>!,
-) -> void {
-    // @partial: only the three instructions that name a function WITHOUT
-    // calling it matter here. Every other variant either calls directly (which
-    // is the case this pass exists for) or names no function at all.
-    @partial match ins {
-        is InstrFnRef  -> { drop_symbol(ins.fn_symbol, by_symbol, chosen) }
-        is InstrFnAddr -> { drop_symbol(ins.fn_symbol, by_symbol, chosen) }
-        _ -> {}
-    }
-}
-
-drop_symbol :: fn(
-    sym: Symbol, by_symbol: MutableMap<i32, string>, chosen: MutableMap<string, ReturnShape>!,
-) -> void {
-    _ :: chosen.remove(sym.name)
-    mangled :: by_symbol[sym.id]
-    if mangled != null {
-        _ :: chosen.remove(mangled)
-    }
-}
-
-// Symbol id → mangle, for the chosen functions only.
-//
-// `midir/emit` resolves a callee by mangle FIRST and by symbol id second, and a
-// call site carries whichever the lowerer put there — an impl member carries its
-// mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
-// is how a call site keeps the old shape while its callee changed.
-fill_mangles_by_symbol_id :: fn(
-    p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>!,
-) -> void {
-    for [_, m] in p.modules {
-        for f in m.functions {
-            sym :: f.origin.symbol
-            if sym != null && chosen[f.mangled] != null {
-                by_symbol[sym.id] = f.mangled
-            }
-        }
-    }
-}
-
-/// The shape a call to `callee` now hands back, or null when it is not a
-/// scalarised function. Mirrors `midir/emit`'s resolution order.
-callee_shape :: fn(
-    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
-) -> ReturnShape | null {
-    direct :: chosen[callee.name]
-    if direct != null {
-        return direct
-    }
-    mangled :: by_symbol[callee.id] ?? return null
-    return chosen[mangled]
 }
 
 // ---- the callee -----------------------------------------------------------
@@ -275,7 +186,7 @@ rewrite_call_sites :: fn(
     f: CFGFunction, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>,
 ) -> CFGFunction {
-    if !callers.contains(f.mangled) {
+    if f.mangled !in callers {
         return f
     }
     locals: CFGLocal[]!: []
@@ -331,7 +242,14 @@ emit_rewritten_block :: fn(
         for e in shape.elements {
             fields.push(add_local(locals, "call_elem", e))
         }
-        instrs.push(InstrCall { ...ins, .dsts = fields })
+        // A forwarded callee kept its own name for the value paths; a DIRECT
+        // call is what may name the scalarised copy instead.
+        callee :: if shape.forward_to == null {
+            ins.callee
+        } else {
+            forwarded_symbol(ins.callee, shape.forward_to)
+        }
+        instrs.push(InstrCall { ...ins, .dsts = fields, .callee = callee })
         if shape.rebuilt == null {
             // The object is rebuilt on the spot. A caller that only destructures
             // it leaves the `struct.new` unread — DCE removes it, and nothing was

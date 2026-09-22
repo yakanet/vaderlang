@@ -2,32 +2,32 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 struct snippet$Repeat__i32 { value:1,remaining:1 }
-type 3 union 0,4
-type 4 struct std_core$Yield__i32 { value:1 }
-type 5 primitive usize
-type 6 primitive string
-type 7 struct std_core$Buffer {  }
-type 8 primitive i64
-type 9 primitive u8
-type 10 array 9
-type 11 primitive void
-type 12 primitive isize
-type 13 union 4,0
+type 3 struct std_core$Yield__i32 { value:1 }
+type 4 primitive usize
+type 5 primitive string
+type 6 struct std_core$Buffer {  }
+type 7 primitive i64
+type 8 primitive u8
+type 9 array 8
+type 10 primitive void
+type 11 primitive isize
 string 0 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=9 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 2 Iterator
-impl 7 ByteAccess
+impl 6 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
   local sum i32
   local __iter_0 ref
+  local $call_7 any
   local __step_1 any
   local x i32
   local __off_3 usize
   local $cast_19 i64
+  local $call_elem_24 i32
   i32.const 42
   i32.const 3
   struct.new 2   ; snippet$Repeat__i32
@@ -37,45 +37,57 @@ fn 0 snippet$main () -> i32
   block $L0 void
     loop $L1 void
       local.get 1   ; __iter_0
-      call 1   ; snippet$Repeat$Iterator$next__i32
-      local.tee 2   ; __step_1
-      type_check 0   ; null
+      call 1   ; snippet$Repeat$Iterator$next__i32$v
+      local.set 7   ; $call_elem_24
+      i32.const 0
+      i32.eq
       if $L2 void
+        null.const
+        local.set 2   ; $call_7
       else
-        local.get 2   ; __step_1
-        ref.cast 4   ; -> std_core$Yield__i32
-        struct.get 4 0   ; std_core$Yield__i32.value
+        local.get 7   ; $call_elem_24
+        struct.new_stack 3   ; std_core$Yield__i32
+        local.set 2   ; $call_7
+      end $L2
+      local.get 2   ; $call_7
+      local.tee 3   ; __step_1
+      type_check 0   ; null
+      if $L3 void
+      else
+        local.get 3   ; __step_1
+        ref.cast 3   ; -> std_core$Yield__i32
+        struct.get 3 0   ; std_core$Yield__i32.value
         ref.cast 1   ; -> i32
-        local.set 3   ; x
+        local.set 4   ; x
         local.get 0   ; sum
-        local.get 3   ; x
+        local.get 4   ; x
         i32.add
         local.set 0   ; sum
         br $L1
-      end $L2
+      end $L3
     end $L1
   end $L0
   i64.const 20
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; __iter_0
   i64.const 0
-  local.set 4   ; __off_3
+  local.set 5   ; __off_3
   local.get 0   ; sum
   i32.to_i64
-  local.set 5   ; $cast_19
+  local.set 6   ; $cast_19
   local.get 1   ; __iter_0
-  local.get 4   ; __off_3
-  local.get 5   ; $cast_19
+  local.get 5   ; __off_3
+  local.get 6   ; $cast_19
   call 5   ; std_core$write_int
-  local.set 4   ; __off_3
+  local.set 5   ; __off_3
   local.get 1   ; __iter_0
-  local.get 4   ; __off_3
+  local.get 5   ; __off_3
   call 4   ; std_core$finish_buffer
   call 8   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 1 snippet$Repeat$Iterator$next__i32 (ref) -> any
+fn 1 snippet$Repeat$Iterator$next__i32$v (ref) -> (i32,i32)
   local v i32
   local $sub_9 i32
   local.field 0 2 1   ; arg 0.remaining
@@ -83,8 +95,8 @@ fn 1 snippet$Repeat$Iterator$next__i32 (ref) -> any
   i32.const 0
   i32.le
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    i32.const 0
     return
   end $L0
   local.field 0 2 0   ; arg 0.value
@@ -98,8 +110,8 @@ fn 1 snippet$Repeat$Iterator$next__i32 (ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; $sub_9
   struct.set 2 1   ; snippet$Repeat__i32.remaining
+  i32.const 1
   local.get 1   ; v
-  struct.new 4   ; std_core$Yield__i32
   return
 end
 
@@ -289,7 +301,7 @@ fn 6 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 9   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

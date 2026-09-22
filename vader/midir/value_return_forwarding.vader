@@ -1,0 +1,266 @@
+// vader/midir/value_return_forwarding — keeping a scalarised function reachable
+// as a VALUE.
+//
+// A vtable row, a `fn.ref` and a `fn.addr` all promise ONE signature to a site
+// that cannot see which function it holds, so a function reached that way cannot
+// change shape. It keeps its name, its signature and its slot, and forwards to a
+// copy that carries the scalarised shape; direct calls name the copy instead.
+//
+// `value_return.vader` owns the selection and the call-site rewrite; this file
+// owns who needs a copy and what the two halves look like.
+//
+// Record: `.claude/plans/2026-09-22-tuple-value-abi.md` §23.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/types"
+
+// What `f` becomes: itself, its scalarised self, or a forwarding pair.
+//
+// A function reachable as a value keeps its name, its signature and its vtable
+// slot, and forwards to a copy that carries the scalarised shape. The forwarding
+// body is an ordinary call, so the call-site rewrite rebuilds the object for it
+// — no bespoke code.
+scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction[] {
+    if shape == null {
+        return [f]
+    }
+    copy_mangle :: shape.forward_to
+    if copy_mangle == null {
+        return [rewrite_callee(f, shape.elements, shape.rebuilt != null)]
+    }
+    return [
+        forwarding_body(f, copy_mangle),
+        rewrite_callee(
+            scalarised_copy(f, copy_mangle), shape.elements, shape.rebuilt != null),
+    ]
+}
+
+// `f` under the copy's name, and findable ONLY by that name.
+//
+// A function has TWO identities here — its mangle and its `origin.symbol.id` —
+// and `midir/emit` registers both (`function_index_by_symbol_id[sym.id]`) then
+// resolves a callee by symbol id when the mangle probe misses. Renaming only the
+// mangle leaves the copy answering to the original's id as well, so both land in
+// one slot: the wrapper resolves its own call back onto itself and recurses
+// until the stack goes. Dropping the symbol is what makes the rename whole.
+scalarised_copy :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction = CFGFunction {
+    ...f,
+    .mangled = copy_mangle,
+    .origin = MonoEntry { ...f.origin, .symbol = null },
+}
+
+// `f` with its body replaced by `return <copy>(param…)`.
+//
+// Its signature, mangle and origin are untouched, so every vtable row, `fn.ref`
+// and `fn.addr` naming it still resolves to this function and still sees the
+// shape it was compiled against.
+forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
+    // Only the params and the result are named by this body. Params occupy slots
+    // `0..<params.len()` (`build.vader` writes them at entry), so the rest of the
+    // original's table would arrive dead and cost `eliminate_dead_cfg` a full
+    // re-emission of the function to drop again.
+    locals: CFGLocal[]!: []
+    for i in 0..<f.params.len() {
+        locals.push(f.locals[i])
+    }
+    args: LocalId[]!: []
+    for prm in f.params {
+        args.push(prm.local)
+    }
+    result :: add_local(locals, "fwd", f.return_type)
+    span :: fn_span(f)
+    return CFGFunction {
+        ...f,
+        .locals = locals,
+        .blocks = [
+            BasicBlock {
+                .id = BlockId(0),
+                .instructions = [
+                    InstrCall {
+                        .span = span,
+                        .dsts = [result],
+                        .callee = forwarded_symbol(f.origin.symbol ?? f.params[0].symbol, copy_mangle),
+                        .args = args,
+                        .type = f.return_type,
+                    },
+                ],
+                .terminator = TermReturn { .span = span, .values = [result] },
+                .span = span,
+            },
+        ],
+    }
+}
+
+// The mangle a scalarised copy answers to.
+//
+// It cannot collide with a real one. A mangle is `module$name` or
+// `module$Type$Trait$method`, and every segment before the last names a module,
+// a type or a trait — never a function. So `<some function's mangle>$v` is not a
+// shape the mangler can produce, whatever a source function is called.
+scalarised_copy_mangle :: fn(mangled: string) -> string = "${mangled}\$v"
+
+// Give every function reachable other than by a direct call a scalarised COPY,
+// and leave the original alone.
+//
+// A fn value, a callback address and a vtable row all promise ONE signature to a
+// site that cannot see which function it holds. Changing that function's shape
+// would break them — so the function keeps its name, its signature and its slot,
+// and forwards to a copy that carries the scalarised shape. Direct calls go to
+// the copy; everything reached as a value still finds the original.
+//
+// The walk comes FIRST, and the decision after it: `callers` then means "this
+// body calls a candidate" and nothing else, so a copy — which carries the
+// original's body — inherits the flag only when it is actually true.
+plan_forwarding :: fn(
+    p: CFGProject, chosen: MutableMap<string, ReturnShape>!, by_symbol: MutableMap<i32, string>,
+    callers: MutableSet<string>!,
+) -> void {
+    as_value :: MutableSet<string> {}
+    called :: MutableSet<string> {}
+    for e in p.vtable_entries {
+        note_symbol(e.fn_symbol, by_symbol, as_value)
+    }
+    // The one instruction walk. It records which functions CALL a candidate, so
+    // the rewrite needs no second scan to find them, and which candidates are
+    // called DIRECTLY — a candidate reached only as a value has nothing to gain
+    // from a copy, and would put a dead function through emit and codegen.
+    for [_, m] in p.modules {
+        for f in m.functions {
+            for b in f.blocks {
+                for ins in b.instructions {
+                    if ins is InstrCall {
+                        note_call(ins.callee, chosen, by_symbol, callers, called, f.mangled)
+                        continue
+                    }
+                    note_if_taken_as_value(ins, by_symbol, as_value)
+                }
+            }
+        }
+    }
+    for mangled in as_value {
+        if mangled in called {
+            mark_forwarding(mangled, chosen, callers)
+            continue
+        }
+        // Reached only as a value: no direct call would benefit, so the original
+        // shape stands and the candidate is simply dropped.
+        _ :: chosen.remove(mangled)
+    }
+}
+
+note_call :: fn(
+    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    callers: MutableSet<string>!, called: MutableSet<string>!, caller: string,
+) -> void {
+    if callee_shape(callee, chosen, by_symbol) == null {
+        return
+    }
+    callers.add(caller)
+    _ :: called.add(callee_mangle(callee, chosen, by_symbol))
+}
+
+// The key `chosen` holds this callee under. Mirrors `callee_shape`'s order.
+callee_mangle :: fn(
+    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+) -> string {
+    if chosen[callee.name] != null {
+        return callee.name
+    }
+    return by_symbol[callee.id] ?? callee.name
+}
+
+note_if_taken_as_value :: fn(
+    ins: Instruction, by_symbol: MutableMap<i32, string>, as_value: MutableSet<string>!,
+) -> void {
+    // @partial: only the two instructions that name a function WITHOUT calling
+    // it matter here. Every other variant either calls directly (which is the
+    // case this pass exists for) or names no function at all.
+    @partial match ins {
+        is InstrFnRef  -> { note_symbol(ins.fn_symbol, by_symbol, as_value) }
+        is InstrFnAddr -> { note_symbol(ins.fn_symbol, by_symbol, as_value) }
+        _ -> {}
+    }
+}
+
+// Note `sym`'s function under BOTH names: `midir/emit` resolves a callee by
+// mangle OR by symbol id, and a function answering to two names must be noted
+// under both.
+note_symbol :: fn(
+    sym: Symbol, by_symbol: MutableMap<i32, string>, as_value: MutableSet<string>!,
+) -> void {
+    as_value.add(sym.name)
+    mangled :: by_symbol[sym.id]
+    if mangled != null {
+        _ :: as_value.add(mangled)
+    }
+}
+
+mark_forwarding :: fn(
+    mangled: string, chosen: MutableMap<string, ReturnShape>!, callers: MutableSet<string>!,
+) -> void {
+    shape :: chosen[mangled] ?? return
+    if shape.forward_to != null {
+        return
+    }
+    copy_mangle :: scalarised_copy_mangle(mangled)
+    chosen[mangled] = ReturnShape { ...shape, .forward_to = copy_mangle }
+    // The copy answers to a name of its own: `midir/emit` resolves a callee by
+    // mangle FIRST, so the wrapper's call finds it under this key. Its shape is
+    // the original's — the guard above already proved `forward_to` null.
+    chosen[copy_mangle] = shape
+    // The copy carries the original's body, so it calls whatever that called.
+    if mangled in callers {
+        _ :: callers.add(copy_mangle)
+    }
+    // The wrapper's own body is a call to rewrite. Assigned rather than bare:
+    // this is the tail expression, and a bare call would become the return value.
+    _ :: callers.add(mangled)
+}
+
+// The callee a forwarded call names: the original symbol under the copy's name.
+//
+// Spread rather than built from scratch — a symbol carries a module identity and
+// a visibility this pass has no business inventing, and only the name is what
+// resolution reads.
+//
+// The id is KEPT, deliberately. `midir/emit` probes the mangle first and finds
+// the copy there; the id is the fallback, and the original's still names the
+// wrapper — which has the signature this call site was compiled against, so a
+// missed probe degrades to a correct call rather than a wrong one. A sentinel
+// would not: `-1` is the first id `lower` mints for a lifted lambda.
+forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
+    Symbol { ...sym, .name = copy_mangle }
+
+// Symbol id → mangle, for the chosen functions only.
+//
+// `midir/emit` resolves a callee by mangle FIRST and by symbol id second, and a
+// call site carries whichever the lowerer put there — an impl member carries its
+// mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
+// is how a call site keeps the old shape while its callee changed.
+fill_mangles_by_symbol_id :: fn(
+    p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>!,
+) -> void {
+    for [_, m] in p.modules {
+        for f in m.functions {
+            sym :: f.origin.symbol
+            if sym != null && chosen[f.mangled] != null {
+                by_symbol[sym.id] = f.mangled
+            }
+        }
+    }
+}
+
+/// The shape a call to `callee` now hands back, or null when it is not a
+/// scalarised function. Mirrors `midir/emit`'s resolution order.
+callee_shape :: fn(
+    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+) -> ReturnShape | null {
+    direct :: chosen[callee.name]
+    if direct != null {
+        return direct
+    }
+    mangled :: by_symbol[callee.id] ?? return null
+    return chosen[mangled]
+}

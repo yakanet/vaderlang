@@ -13,9 +13,7 @@ type 10 primitive u8
 type 11 primitive void
 type 12 struct std_core$Yield__char { value:8 }
 type 13 struct std_string$StringChars { bytes:9,cursor:4,length:4 }
-type 14 union 0,12
-type 15 primitive isize
-type 16 union 12,0
+type 14 primitive isize
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -31,18 +29,20 @@ string 11 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,9,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 5 ByteAccess
 impl 13 Iterator
 export main 0
 
 fn 0 snippet$main () -> i32
   local __iter_0 ref
+  local $call_4 any
   local __step_1 any
   local n i32
   local __off_7 usize
   local $cast_42 i64
   local $cast_48 u64
+  local $call_elem_65 char
   string.const 0   ; "-- ascii --"
   call 11   ; std_io$println__string
   string.const 1   ; "vader"
@@ -51,19 +51,31 @@ fn 0 snippet$main () -> i32
   block $L0 void
     loop $L1 void
       local.get 0   ; __iter_0
-      call 13   ; std_string$StringChars$Iterator$next
-      local.tee 1   ; __step_1
-      type_check 0   ; null
+      call 13   ; std_string$StringChars$Iterator$next$v
+      local.set 7   ; $call_elem_65
+      i32.const 0
+      i32.eq
       if $L2 void
+        null.const
+        local.set 1   ; $call_4
       else
-        local.get 1   ; __step_1
+        local.get 7   ; $call_elem_65
+        struct.new_stack 12   ; std_core$Yield__char
+        local.set 1   ; $call_4
+      end $L2
+      local.get 1   ; $call_4
+      local.tee 2   ; __step_1
+      type_check 0   ; null
+      if $L3 void
+      else
+        local.get 2   ; __step_1
         ref.cast 12   ; -> std_core$Yield__char
         struct.get 12 0   ; std_core$Yield__char.value
         ref.cast 8   ; -> char
         call 7   ; std_core$char$Display$to_string
         call 11   ; std_io$println__string
         br $L1
-      end $L2
+      end $L3
     end $L1
   end $L0
   string.const 2   ; "-- multibyte --"
@@ -71,82 +83,106 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "你好嗎？"
   call 12   ; std_string$chars
   local.set 0   ; __iter_0
-  block $L3 void
-    loop $L4 void
+  block $L4 void
+    loop $L5 void
       local.get 0   ; __iter_0
-      call 13   ; std_string$StringChars$Iterator$next
-      local.tee 1   ; __step_1
-      type_check 0   ; null
-      if $L5 void
+      call 13   ; std_string$StringChars$Iterator$next$v
+      local.set 7   ; $call_elem_65
+      i32.const 0
+      i32.eq
+      if $L6 void
+        null.const
+        local.set 1   ; $call_4
       else
-        local.get 1   ; __step_1
+        local.get 7   ; $call_elem_65
+        struct.new_stack 12   ; std_core$Yield__char
+        local.set 1   ; $call_4
+      end $L6
+      local.get 1   ; $call_4
+      local.tee 2   ; __step_1
+      type_check 0   ; null
+      if $L7 void
+      else
+        local.get 2   ; __step_1
         ref.cast 12   ; -> std_core$Yield__char
         struct.get 12 0   ; std_core$Yield__char.value
         ref.cast 8   ; -> char
         call 7   ; std_core$char$Display$to_string
         call 11   ; std_io$println__string
-        br $L4
-      end $L5
-    end $L4
-  end $L3
+        br $L5
+      end $L7
+    end $L5
+  end $L4
   i32.const 0
-  local.set 2   ; n
+  local.set 3   ; n
   string.const 4   ; "héllo"
   call 12   ; std_string$chars
   local.set 0   ; __iter_0
-  block $L6 void
-    loop $L7 void
+  block $L8 void
+    loop $L9 void
       local.get 0   ; __iter_0
-      call 13   ; std_string$StringChars$Iterator$next
-      local.tee 1   ; __step_1
-      type_check 0   ; null
-      if $L8 void
+      call 13   ; std_string$StringChars$Iterator$next$v
+      local.set 7   ; $call_elem_65
+      i32.const 0
+      i32.eq
+      if $L10 void
+        null.const
+        local.set 1   ; $call_4
       else
-        local.get 1   ; __step_1
+        local.get 7   ; $call_elem_65
+        struct.new_stack 12   ; std_core$Yield__char
+        local.set 1   ; $call_4
+      end $L10
+      local.get 1   ; $call_4
+      local.tee 2   ; __step_1
+      type_check 0   ; null
+      if $L11 void
+      else
+        local.get 2   ; __step_1
         ref.cast 12   ; -> std_core$Yield__char
         drop
-        local.get 2   ; n
+        local.get 3   ; n
         i32.const 1
         i32.add
-        local.set 2   ; n
-        br $L7
-      end $L8
-    end $L7
-  end $L6
+        local.set 3   ; n
+        br $L9
+      end $L11
+    end $L9
+  end $L8
   i64.const 58
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; __iter_0
   i64.const 0
-  local.set 3   ; __off_7
+  local.set 4   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 4   ; __off_7
   string.const 5   ; "codepoints="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_7
-  local.get 2   ; n
+  local.set 4   ; __off_7
+  local.get 3   ; n
   i32.to_i64
-  local.set 4   ; $cast_42
+  local.set 5   ; $cast_42
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
-  local.get 4   ; $cast_42
+  local.get 4   ; __off_7
+  local.get 5   ; $cast_42
   call 5   ; std_core$write_int
-  local.set 3   ; __off_7
+  local.set 4   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 4   ; __off_7
   string.const 6   ; " bytes="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_7
+  local.set 4   ; __off_7
   string.const 4   ; "héllo"
   call.import 0   ; std_core$byte_len
   usize.to_i64
-  local.set 5   ; $cast_48
+  local.set 6   ; $cast_48
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
-  local.get 5   ; $cast_48
+  local.get 4   ; __off_7
+  local.get 6   ; $cast_48
   call 6   ; std_core$write_unsigned
-  local.set 3   ; __off_7
+  local.set 4   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 4   ; __off_7
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   string.const 7   ; "-- empty --"
@@ -154,23 +190,35 @@ fn 0 snippet$main () -> i32
   string.const 8   ; ""
   call 12   ; std_string$chars
   local.set 0   ; __iter_0
-  block $L9 void
-    loop $L10 void
+  block $L12 void
+    loop $L13 void
       local.get 0   ; __iter_0
-      call 13   ; std_string$StringChars$Iterator$next
-      local.tee 1   ; __step_1
-      type_check 0   ; null
-      if $L11 void
+      call 13   ; std_string$StringChars$Iterator$next$v
+      local.set 7   ; $call_elem_65
+      i32.const 0
+      i32.eq
+      if $L14 void
+        null.const
+        local.set 1   ; $call_4
       else
-        local.get 1   ; __step_1
+        local.get 7   ; $call_elem_65
+        struct.new_stack 12   ; std_core$Yield__char
+        local.set 1   ; $call_4
+      end $L14
+      local.get 1   ; $call_4
+      local.tee 2   ; __step_1
+      type_check 0   ; null
+      if $L15 void
+      else
+        local.get 2   ; __step_1
         ref.cast 12   ; -> std_core$Yield__char
         drop
         string.const 9   ; "never"
         call 11   ; std_io$println__string
-        br $L10
-      end $L11
-    end $L10
-  end $L9
+        br $L13
+      end $L15
+    end $L13
+  end $L12
   string.const 10   ; "done"
   call 11   ; std_io$println__string
   return.lit i32.const 0
@@ -692,7 +740,7 @@ fn 12 std_string$chars (string) -> ref
   return
 end
 
-fn 13 std_string$StringChars$Iterator$next (ref) -> any
+fn 13 std_string$StringChars$Iterator$next$v (ref) -> (i32,char)
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -707,8 +755,8 @@ fn 13 std_string$StringChars$Iterator$next (ref) -> any
   local.get 2   ; $field_2
   u64.ge
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    char.const 32
     return
   end $L0
   local.field 0 13 0   ; arg 0.bytes
@@ -731,8 +779,8 @@ fn 13 std_string$StringChars$Iterator$next (ref) -> any
   local.get 0   ; arg 0
   local.get 1   ; $field_1
   struct.set 13 1   ; std_string$StringChars.cursor
+  i32.const 1
   local.get 4   ; c
-  struct.new 12   ; std_core$Yield__char
   return
 end
 

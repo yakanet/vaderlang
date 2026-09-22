@@ -4,20 +4,18 @@ type 1 primitive char
 type 2 primitive bool
 type 3 primitive i32
 type 4 primitive string
-type 5 union 0,6
-type 6 struct std_core$Yield__char { value:1 }
-type 7 primitive usize
-type 8 struct std_core$Buffer {  }
-type 9 primitive u64
-type 10 array 11
-type 11 primitive u8
-type 12 primitive void
-type 13 fn (1) -> 2
-type 14 array 4
-type 15 struct std_string$StringChars { bytes:10,cursor:7,length:7 }
-type 16 primitive isize
-type 17 struct std_string_builder$StringBuilder { parts:14 }
-type 18 union 6,0
+type 5 struct std_core$Yield__char { value:1 }
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 primitive u64
+type 9 array 10
+type 10 primitive u8
+type 11 primitive void
+type 12 fn (1) -> 2
+type 13 array 4
+type 14 struct std_string$StringChars { bytes:9,cursor:6,length:6 }
+type 15 primitive isize
+type 16 struct std_string_builder$StringBuilder { parts:13 }
 string 0 "foo.vader"
 string 1 ".vader"
 string 2 "foo.bar"
@@ -30,14 +28,14 @@ string 8 "  hello  world\tfoo\n bar  "
 string 9 "count="
 string 10 "\n"
 string 11 ""
-import 0 byte_len std_core$byte_len result_type=7 param_types=4 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=11 param_types=4,7 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=4 param_types=10 param_mutable=0 param_by_address= (ref) -> string
-import 3 bytes std_core$bytes result_type=10 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,10,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 ByteAccess
-impl 15 Iterator
-impl 17 Display
+import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=10 param_types=4,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 bytes_to_string std_core$bytes_to_string result_type=4 param_types=9 param_mutable=0 param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=9 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=3,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
+impl 14 Iterator
+impl 16 Display
 export main 1
 
 fn 0 snippet$is_non_id (char) -> bool
@@ -121,14 +119,14 @@ fn 1 snippet$main () -> i32
   string.const 4   ; "std/"
   call 12   ; std_string$trim_prefix
   call 10   ; std_io$println__string
-  fn.ref 0 13   ; snippet$is_non_id
+  fn.ref 0 12   ; snippet$is_non_id
   local.set 0   ; $fn_ref_13
   string.const 6   ; "std::io.print!"
   local.get 0   ; $fn_ref_13
   string.const 7   ; "_"
   call 13   ; std_string$replace_chars_where
   call 10   ; std_io$println__string
-  fn.ref 23 13   ; std_char$is_white_char
+  fn.ref 23 12   ; std_char$is_white_char
   local.set 0   ; $fn_ref_13
   string.const 8   ; "  hello  world\tfoo\n bar  "
   local.get 0   ; $fn_ref_13
@@ -170,7 +168,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; $fn_ref_13
         local.get 4   ; i
-        array.get 14   ; string[][]
+        array.get 13   ; string[][]
         ref.cast 4   ; -> string
         call 10   ; std_io$println__string
         local.get 4   ; i
@@ -331,7 +329,7 @@ fn 7 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 10 0   ; u8[][]
+  array.new 9 0   ; u8[][]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -342,7 +340,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 11   ; u8[]
+    array.push 10   ; u8[]
   else
     local.get 1   ; cp
     i32.const 2048
@@ -359,7 +357,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 11   ; u8[]
+      array.push 10   ; u8[]
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -371,7 +369,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 11   ; u8[]
+      array.push 10   ; u8[]
     else
       local.get 1   ; cp
       i32.const 65536
@@ -388,7 +386,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -402,7 +400,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -414,7 +412,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
       else
         local.get 1   ; cp
         i32.const 18
@@ -427,7 +425,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -441,7 +439,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -455,7 +453,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -467,7 +465,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 11   ; u8[]
+        array.push 10   ; u8[]
       end $L2
     end $L1
   end $L0
@@ -506,7 +504,7 @@ fn 8 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 9   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -588,7 +586,7 @@ fn 11 std_string$trim_suffix (string,string) -> string
     local.get 2   ; bs
     i64.const 0
     local.get 3   ; $len_6
-    array.slice 10   ; u8[][]
+    array.slice 9   ; u8[][]
     call.import 2   ; std_core$bytes_to_string
     return
   end $L0
@@ -616,7 +614,7 @@ fn 12 std_string$trim_prefix (string,string) -> string
     local.get 2   ; bs
     local.get 3   ; $call_5
     local.get 4   ; $len_6
-    array.slice 10   ; u8[][]
+    array.slice 9   ; u8[][]
     call.import 2   ; std_core$bytes_to_string
     return
   end $L0
@@ -627,10 +625,12 @@ end
 fn 13 std_string$replace_chars_where (string,ref,string) -> string
   local sb ref
   local __iter_0 ref
+  local $call_8 any
   local __step_1 any
   local c char
-  array.new 14 0   ; string[][]
-  struct.new 17   ; std_string_builder$StringBuilder
+  local $call_elem_17 char
+  array.new 13 0   ; string[][]
+  struct.new 16   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   local.get 0   ; arg 0
   call 17   ; std_string$chars
@@ -638,29 +638,41 @@ fn 13 std_string$replace_chars_where (string,ref,string) -> string
   block $L0 void
     loop $L1 void
       local.get 4   ; __iter_0
-      call 18   ; std_string$StringChars$Iterator$next
-      local.tee 5   ; __step_1
-      type_check 0   ; null
+      call 18   ; std_string$StringChars$Iterator$next$v
+      local.set 8   ; $call_elem_17
+      i32.const 0
+      i32.eq
       if $L2 void
+        null.const
+        local.set 5   ; $call_8
       else
-        local.get 5   ; __step_1
-        ref.cast 6   ; -> std_core$Yield__char
-        struct.get 6 0   ; std_core$Yield__char.value
+        local.get 8   ; $call_elem_17
+        struct.new_stack 5   ; std_core$Yield__char
+        local.set 5   ; $call_8
+      end $L2
+      local.get 5   ; $call_8
+      local.tee 6   ; __step_1
+      type_check 0   ; null
+      if $L3 void
+      else
+        local.get 6   ; __step_1
+        ref.cast 5   ; -> std_core$Yield__char
+        struct.get 5 0   ; std_core$Yield__char.value
         ref.cast 1   ; -> char
-        local.tee 6   ; c
+        local.tee 7   ; c
         local.get 1   ; arg 1
-        call.indirect 13   ; fn
-        if $L3 void
+        call.indirect 12   ; fn
+        if $L4 void
           local.get 3   ; sb
           local.get 2   ; arg 2
           call 24   ; std_string_builder$append
         else
           local.get 3   ; sb
-          local.get 6   ; c
+          local.get 7   ; c
           call 25   ; std_string_builder$append_char
-        end $L3
+        end $L4
         br $L1
-      end $L2
+      end $L3
     end $L1
   end $L0
   local.get 3   ; sb
@@ -673,13 +685,15 @@ fn 14 std_string$split_where (string,ref) -> ref
   local sb ref
   local has_pending bool
   local __iter_0 ref
+  local $call_11 any
   local __step_1 any
   local c char
   local $call_18 string
-  array.new 14 0   ; string[][]
+  local $call_elem_25 char
+  array.new 13 0   ; string[][]
   local.set 2   ; out
-  array.new 14 0   ; string[][]
-  struct.new 17   ; std_string_builder$StringBuilder
+  array.new 13 0   ; string[][]
+  struct.new 16   ; std_string_builder$StringBuilder
   local.set 3   ; sb
   bool.const false
   local.set 4   ; has_pending
@@ -689,53 +703,65 @@ fn 14 std_string$split_where (string,ref) -> ref
   block $L0 void
     loop $L1 void
       local.get 5   ; __iter_0
-      call 18   ; std_string$StringChars$Iterator$next
-      local.tee 6   ; __step_1
-      type_check 0   ; null
+      call 18   ; std_string$StringChars$Iterator$next$v
+      local.set 10   ; $call_elem_25
+      i32.const 0
+      i32.eq
       if $L2 void
+        null.const
+        local.set 6   ; $call_11
       else
-        local.get 6   ; __step_1
-        ref.cast 6   ; -> std_core$Yield__char
-        struct.get 6 0   ; std_core$Yield__char.value
+        local.get 10   ; $call_elem_25
+        struct.new_stack 5   ; std_core$Yield__char
+        local.set 6   ; $call_11
+      end $L2
+      local.get 6   ; $call_11
+      local.tee 7   ; __step_1
+      type_check 0   ; null
+      if $L3 void
+      else
+        local.get 7   ; __step_1
+        ref.cast 5   ; -> std_core$Yield__char
+        struct.get 5 0   ; std_core$Yield__char.value
         ref.cast 1   ; -> char
-        local.tee 7   ; c
+        local.tee 8   ; c
         local.get 1   ; arg 1
-        call.indirect 13   ; fn
-        if $L3 void
+        call.indirect 12   ; fn
+        if $L4 void
           local.get 4   ; has_pending
-          if $L4 void
+          if $L5 void
             local.get 3   ; sb
             call 26   ; std_string_builder$StringBuilder$Display$to_string
-            local.set 8   ; $call_18
+            local.set 9   ; $call_18
             local.get 2   ; out
-            local.get 8   ; $call_18
+            local.get 9   ; $call_18
             array.push 4   ; string[]
-            array.new 14 0   ; string[][]
-            struct.new 17   ; std_string_builder$StringBuilder
+            array.new 13 0   ; string[][]
+            struct.new 16   ; std_string_builder$StringBuilder
             local.set 3   ; sb
             bool.const false
             local.set 4   ; has_pending
-          end $L4
+          end $L5
         else
           local.get 3   ; sb
-          local.get 7   ; c
+          local.get 8   ; c
           call 25   ; std_string_builder$append_char
           bool.const true
           local.set 4   ; has_pending
-        end $L3
+        end $L4
         br $L1
-      end $L2
+      end $L3
     end $L1
   end $L0
   local.get 4   ; has_pending
-  if $L5 void
+  if $L6 void
     local.get 3   ; sb
     call 26   ; std_string_builder$StringBuilder$Display$to_string
-    local.set 8   ; $call_18
+    local.set 9   ; $call_18
     local.get 2   ; out
-    local.get 8   ; $call_18
+    local.get 9   ; $call_18
     array.push 4   ; string[]
-  end $L5
+  end $L6
   local.get 2   ; out
   return
 end
@@ -861,33 +887,33 @@ fn 17 std_string$chars (string) -> ref
   local.get 1   ; bs
   i64.const 0
   local.get 2   ; $len_4
-  struct.new 15   ; std_string$StringChars
+  struct.new 14   ; std_string$StringChars
   return
 end
 
-fn 18 std_string$StringChars$Iterator$next (ref) -> any
+fn 18 std_string$StringChars$Iterator$next$v (ref) -> (i32,char)
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 15 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  local.field 0 14 1   ; arg 0.cursor
+  ref.cast 6   ; -> usize
   local.set 1   ; $field_1
-  local.field 0 15 2   ; arg 0.length
-  ref.cast 7   ; -> usize
+  local.field 0 14 2   ; arg 0.length
+  ref.cast 6   ; -> usize
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
   u64.ge
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    char.const 32
     return
   end $L0
-  local.field 0 15 0   ; arg 0.bytes
+  local.field 0 14 0   ; arg 0.bytes
   local.set 3   ; $field_5
-  local.field 0 15 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  local.field 0 14 1   ; arg 0.cursor
+  ref.cast 6   ; -> usize
   local.set 1   ; $field_1
   local.get 3   ; $field_5
   local.get 1   ; $field_1
@@ -896,16 +922,16 @@ fn 18 std_string$StringChars$Iterator$next (ref) -> any
   local.set 4   ; c
   local.get 2   ; $field_2
   local.set 1   ; $field_1
-  local.field 0 15 1   ; arg 0.cursor
-  ref.cast 7   ; -> usize
+  local.field 0 14 1   ; arg 0.cursor
+  ref.cast 6   ; -> usize
   local.get 1   ; $field_1
   i64.add
   local.set 1   ; $field_1
   local.get 0   ; arg 0
   local.get 1   ; $field_1
-  struct.set 15 1   ; std_string$StringChars.cursor
+  struct.set 14 1   ; std_string$StringChars.cursor
+  i32.const 1
   local.get 4   ; c
-  struct.new 6   ; std_core$Yield__char
   return
 end
 
@@ -937,8 +963,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 9   ; u8[][]
+  ref.cast 10   ; -> u8
   local.tee 3   ; b
   i32.const 128
   u32.lt
@@ -976,8 +1002,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 9   ; u8[][]
+    ref.cast 10   ; -> u8
     local.set 5   ; b1
     local.get 3   ; b
     u8.to_i32
@@ -1015,8 +1041,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 9   ; u8[][]
+    ref.cast 10   ; -> u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
@@ -1024,8 +1050,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 10   ; u8[][]
-    ref.cast 11   ; -> u8
+    array.get 9   ; u8[][]
+    ref.cast 10   ; -> u8
     local.set 8   ; b2
     local.get 3   ; b
     u8.to_i32
@@ -1070,8 +1096,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 9   ; u8[][]
+  ref.cast 10   ; -> u8
   local.set 5   ; b1
   local.get 1   ; arg 1
   i64.const 2
@@ -1079,8 +1105,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 9   ; u8[][]
+  ref.cast 10   ; -> u8
   local.set 8   ; b2
   local.get 1   ; arg 1
   i64.const 3
@@ -1088,8 +1114,8 @@ fn 20 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 10   ; u8[][]
-  ref.cast 11   ; -> u8
+  array.get 9   ; u8[][]
+  ref.cast 10   ; -> u8
   local.set 9   ; b3
   local.get 3   ; b
   u8.to_i32
@@ -1214,7 +1240,7 @@ fn 23 std_char$is_white_char (char) -> bool
 end
 
 fn 24 std_string_builder$append (ref,string) -> void
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 16 0   ; arg 0.parts
   local.get 1   ; arg 1
   array.push 4   ; string[]
   return
@@ -1223,7 +1249,7 @@ end
 fn 25 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 16 0   ; arg 0.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 7   ; std_core$utf8_encode
@@ -1244,7 +1270,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 16 0   ; arg 0.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1256,15 +1282,15 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 17 0   ; arg 0.parts
+    local.field 0 16 0   ; arg 0.parts
     i32.const 0
-    array.get 14   ; string[][]
+    array.get 13   ; string[][]
     ref.cast 4   ; -> string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 16 0   ; arg 0.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1278,7 +1304,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 14   ; string[][]
+        array.get 13   ; string[][]
         ref.cast 4   ; -> string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
@@ -1299,7 +1325,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 17 0   ; arg 0.parts
+  local.field 0 16 0   ; arg 0.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -1313,7 +1339,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 14   ; string[][]
+        array.get 13   ; string[][]
         ref.cast 4   ; -> string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
