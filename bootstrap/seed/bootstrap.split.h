@@ -610,6 +610,7 @@ typedef struct vader_struct_vader_lower_OpTraitInfo_t vader_struct_vader_lower_O
 typedef struct vader_struct_vader_lower_OptMiss_t vader_struct_vader_lower_OptMiss_t;
 typedef struct vader_struct_vader_lower_PendingFnInstance_t vader_struct_vader_lower_PendingFnInstance_t;
 typedef struct vader_struct_vader_lower_PrimDataPoolEntry_t vader_struct_vader_lower_PrimDataPoolEntry_t;
+typedef struct vader_struct_vader_lower_StepShape_t vader_struct_vader_lower_StepShape_t;
 typedef struct vader_struct_vader_lower_StrDataPoolEntry_t vader_struct_vader_lower_StrDataPoolEntry_t;
 typedef struct vader_struct_vader_lower_TerminalPredCall_t vader_struct_vader_lower_TerminalPredCall_t;
 typedef struct vader_struct_vader_lower_UfcsMember_t vader_struct_vader_lower_UfcsMember_t;
@@ -3893,7 +3894,8 @@ struct vader_struct_vader_lower_GenBuild_t {
     void* f_self_sym;
     vader_box_t f_state_ty;
     vader_box_t f_i32_ty;
-    vader_box_t f_yield_ty;
+    vader_box_t f_step;
+    vader_box_t f_element_ty;
     void* f_span;
     void* f_states;
     void* f_field_map;
@@ -4396,6 +4398,12 @@ struct vader_struct_vader_lower_PrimDataPoolEntry_t {
     vader_string_t f_element_type_name;
     void* f_items;
     bool f_mutable;
+};
+struct vader_struct_vader_lower_StepShape_t {
+    vader_obj_header_t header;
+    vader_box_t f_type;
+    vader_box_t f_cont;
+    vader_box_t f_wrapper;
 };
 struct vader_struct_vader_lower_StrDataPoolEntry_t {
     vader_obj_header_t header;
@@ -6156,7 +6164,7 @@ vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_b
 vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2529u
+#define VADER_COMPTIME_ATOM_COUNT 2532u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
