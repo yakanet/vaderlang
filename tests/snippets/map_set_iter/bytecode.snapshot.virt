@@ -17,7 +17,6 @@ type 14 array 1
 type 15 array 3
 type 16 array 2
 type 17 primitive isize
-type 18 struct __Tuple_string_i32_4ccf6d4f { _0:2,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -48,8 +47,6 @@ fn 0 snippet$main () -> i32
   local total i32
   local __iter_size_3 usize
   local __iter_pos_4 usize
-  local $idx_26 string
-  local $idx_27 i32
   local value i32
   local $cast_42 i64
   array.new 16 0   ; string[][]
@@ -99,23 +96,17 @@ fn 0 snippet$main () -> i32
         local.get 5   ; __iter_pos_4
         array.get 16   ; string[][]
         ref.cast 2   ; -> string
-        local.set 6   ; $idx_26
+        drop
         local.get 2   ; $arr_2
         local.get 5   ; __iter_pos_4
         load_slot_i32
-        local.set 7   ; $idx_27
-        local.get 6   ; $idx_26
-        local.get 7   ; $idx_27
-        struct.new_stack 18   ; __Tuple_string_i32_4ccf6d4f
-        struct.get 18 1   ; __Tuple_string_i32_4ccf6d4f._1
-        ref.cast 1   ; -> i32
-        local.set 8   ; value
+        local.set 6   ; value
         local.get 5   ; __iter_pos_4
         i64.const 1
         i64.add
         local.set 5   ; __iter_pos_4
         local.get 3   ; total
-        local.get 8   ; value
+        local.get 6   ; value
         i32.add
         local.set 3   ; total
         br $L1
@@ -134,10 +125,10 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __iter_size_3
   local.get 3   ; total
   i32.to_i64
-  local.set 9   ; $cast_42
+  local.set 7   ; $cast_42
   local.get 0   ; $arr_0
   local.get 4   ; __iter_size_3
-  local.get 9   ; $cast_42
+  local.get 7   ; $cast_42
   call 5   ; std_core$write_int
   local.set 4   ; __iter_size_3
   local.get 0   ; $arr_0
@@ -191,13 +182,13 @@ fn 0 snippet$main () -> i32
         local.get 1   ; $arr_1
         local.get 5   ; __iter_pos_4
         load_slot_i32
-        local.set 7   ; $idx_27
+        local.set 6   ; value
         local.get 5   ; __iter_pos_4
         i64.const 1
         i64.add
         local.set 5   ; __iter_pos_4
         local.get 3   ; total
-        local.get 7   ; $idx_27
+        local.get 6   ; value
         i32.add
         local.set 3   ; total
         br $L4
@@ -216,10 +207,10 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __iter_size_3
   local.get 3   ; total
   i32.to_i64
-  local.set 9   ; $cast_42
+  local.set 7   ; $cast_42
   local.get 0   ; $arr_0
   local.get 4   ; __iter_size_3
-  local.get 9   ; $cast_42
+  local.get 7   ; $cast_42
   call 5   ; std_core$write_int
   local.set 4   ; __iter_size_3
   local.get 0   ; $arr_0

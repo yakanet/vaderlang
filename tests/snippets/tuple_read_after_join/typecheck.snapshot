@@ -1,0 +1,33 @@
+# Typecheck
+
+## tests/snippets/tuple_read_after_join
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         mk                   :: fn(i32) -> [i32, i32]
+  FnDecl         read_after_join      :: fn(i32, bool) -> i32
+  expr 10:34    SeqLitExpr     :: [i32, i32]!
+  expr 10:35    IdentExpr      :: i32
+  expr 10:38    BinaryExpr     :: i32
+  expr 10:38    IdentExpr      :: i32
+  expr 13:10    CallExpr       :: [i32, i32]
+  expr 13:10    IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 13:13    IdentExpr      :: i32
+  expr 15:5     IfExpr         :: void
+  expr 15:8     IdentExpr      :: bool
+  expr 16:9     IdentExpr      :: i32
+  expr 18:9     IdentExpr      :: i32
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    IdentExpr      :: i32
+  expr 20:19    FieldExpr      :: i32
+  expr 20:19    IdentExpr      :: [i32, i32]
+  expr 20:25    FieldExpr      :: i32
+  expr 20:25    IdentExpr      :: [i32, i32]
+  expr 25:14    RangeExpr      :: Range<i32>!
+  expr 26:18    CallExpr       :: i32
+  expr 26:18    IdentExpr      :: fn(i32, bool) -> i32
+  expr 26:34    IdentExpr      :: i32
+  expr 26:37    BinaryExpr     :: bool
+  expr 26:37    IdentExpr      :: i32
+  expr 26:9     BinaryExpr     :: i32
+  expr 26:9     IdentExpr      :: i32
+  expr 28:12    IdentExpr      :: i32

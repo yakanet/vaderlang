@@ -279,7 +279,7 @@ emit_rewritten_block :: fn(
         })
         place(kept, extra, current, b.id, BasicBlock {
             .id = current,
-            .instructions = forward_struct_fields(instrs),
+            .instructions = instrs,
             .terminator = TermCondBranch {
                 .span = ins.span,
                 .cond = is_absent,
@@ -296,7 +296,7 @@ emit_rewritten_block :: fn(
     }
     place(kept, extra, current, b.id, BasicBlock {
         .id = current,
-        .instructions = forward_struct_fields(instrs),
+        .instructions = instrs,
         .terminator = b.terminator,
         .span = b.span,
     })
@@ -315,76 +315,6 @@ place :: fn(
     extra.push(b)
 }
 
-// Read a field straight off the value that built it, within one block.
-//
-// This is what makes the TUPLE case pay. Rebuilding the object at the call site
-// keeps every caller correct, but on its own it only MOVES the allocation from
-// callee to caller. A caller that just destructures reads the fields back out of
-// the object it was handed the pieces of, and those reads become moves from the
-// pieces — leaving the `struct.new` unread for DCE to remove. A caller that does
-// anything else with the object keeps it, and pays what it already paid.
-//
-// It does NOT reach the nullable case, on two counts: `tuple_field_index` only
-// follows `_N`, and the rebuild sits in its own block while the reads are in the
-// join. What pays there is escape analysis, which stack-places the rebuilt
-// object — the callee's heap allocation is gone either way.
-//
-// Intra-block and conservative: a redefinition of the object local or of a field
-// local drops the record, and the object is tracked only from the `struct.new`
-// that wrote it. Unlike `array_load_forward` it does NOT clear on a
-// side-effecting instruction, because a tuple field cannot be written (T3008)
-// and the structs this pass admits are built here and never escape before the
-// read — that is the assumption to revisit before widening it to named structs.
-forward_struct_fields :: fn(instrs: Instruction[]) -> Instruction[] {
-    built :: MutableMap<i32, LocalId[]> {}
-    out: Instruction[]!: []
-    for ins in instrs {
-        if built.len() > 0 {
-            // The name now points elsewhere — as an object, or as one of the
-            // fields an object was built from. Every written local, not just
-            // `dst_of`: a scalarised call writes several.
-            multi :: multi_dsts(ins)
-            if multi != null {
-                for l in multi { drop_records_touching(built, l) }
-            } else {
-                d :: dst_of(ins)
-                if d != null { drop_records_touching(built, d) }
-            }
-        }
-        if ins is InstrStructNew {
-            built[i32(ins.dst)] = ins.fields
-            out.push(ins)
-            continue
-        }
-        // A copy carries the record with it. The builder emits
-        // `call → move → field_get`, so without this the reads name an alias of
-        // the object and nothing matches.
-        if ins is InstrMove {
-            aliased :: built[i32(ins.src)]
-            if aliased != null {
-                built[i32(ins.dst)] = aliased
-            }
-            out.push(ins)
-            continue
-        }
-        if ins is InstrFieldGet {
-            fields :: built[i32(ins.target)]
-            if fields != null {
-                index :: tuple_field_index(ins.field)
-                if index >= 0 && usize(index) < fields.len() {
-                    out.push(InstrMove {
-                        .span = ins.span,
-                        .dst = ins.dst,
-                        .src = fields[usize(index)],
-                    })
-                    continue
-                }
-            }
-        }
-        out.push(ins)
-    }
-    return out
-}
 
 // Forget every record naming `local`, as the object or as one of its fields.
 drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>!, local: LocalId) -> void {

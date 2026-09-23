@@ -17,8 +17,7 @@ type 14 primitive void
 type 15 primitive isize
 type 16 array 3
 type 17 struct __Tuple_i32_i32_3103e027 { _0:3,_1:3 }
-type 18 struct __Tuple_i32_Tuple_i32_string__349f92d3 { _0:3,_1:5 }
-type 19 struct "$Cell_Array<i32>" { value:16 }
+type 18 struct "$Cell_Array<i32>" { value:16 }
 string 0 "x"
 string 1 "equal contents, distinct objects: "
 string 2 "different contents:               "
@@ -111,6 +110,7 @@ fn 4 snippet$main () -> i32
   local $cast_293 i64
   local $call_elem_297 i32
   local $call_elem_298 i32
+  local $call_elem_299 i32
   local $call_elem_300 i32
   i32.const 1
   string.const 0   ; "x"
@@ -321,35 +321,23 @@ fn 4 snippet$main () -> i32
   string.const 5   ; "nested equal:                     "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_3
-  i32.const 1
-  local.set 5   ; $field_17
   i32.const 2
   string.const 6   ; "y"
   struct.new_stack 5   ; __Tuple_i32_string_d0b3dcb6
   local.set 1   ; __buf_2
-  local.get 5   ; $field_17
-  local.get 1   ; __buf_2
-  struct.new_stack 18   ; __Tuple_i32_Tuple_i32_string__349f92d3
-  local.set 1   ; __buf_2
-  i32.const 1
-  local.set 6   ; $field_18
   i32.const 2
   string.const 6   ; "y"
   struct.new_stack 5   ; __Tuple_i32_string_d0b3dcb6
   local.set 3   ; __tuple_eq_l_0
-  local.get 6   ; $field_18
-  local.get 3   ; __tuple_eq_l_0
-  struct.new_stack 18   ; __Tuple_i32_Tuple_i32_string__349f92d3
-  local.set 3   ; __tuple_eq_l_0
-  local.get 5   ; $field_17
-  local.get 6   ; $field_18
+  i32.const 1
+  i32.const 1
   i32.eq
   if $L4 void
-    local.field 1 18 1   ; __buf_2._1
+    local.get 1   ; __buf_2
     struct.get 5 0   ; __Tuple_i32_string_d0b3dcb6._0
     ref.cast 3   ; -> i32
     local.set 5   ; $field_17
-    local.field 3 18 1   ; __tuple_eq_l_0._1
+    local.get 3   ; __tuple_eq_l_0
     struct.get 5 0   ; __Tuple_i32_string_d0b3dcb6._0
     ref.cast 3   ; -> i32
     local.set 6   ; $field_18
@@ -357,11 +345,11 @@ fn 4 snippet$main () -> i32
     local.get 6   ; $field_18
     i32.eq
     if $L5 void
-      local.field 1 18 1   ; __buf_2._1
+      local.get 1   ; __buf_2
       struct.get 5 1   ; __Tuple_i32_string_d0b3dcb6._1
       ref.cast 4   ; -> string
       local.set 8   ; $field_21
-      local.field 3 18 1   ; __tuple_eq_l_0._1
+      local.get 3   ; __tuple_eq_l_0
       struct.get 5 1   ; __Tuple_i32_string_d0b3dcb6._1
       ref.cast 4   ; -> string
       local.set 9   ; $field_22
@@ -398,35 +386,23 @@ fn 4 snippet$main () -> i32
   string.const 7   ; "nested different:                 "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_3
-  i32.const 1
-  local.set 5   ; $field_17
   i32.const 2
   string.const 6   ; "y"
   struct.new_stack 5   ; __Tuple_i32_string_d0b3dcb6
   local.set 1   ; __buf_2
-  local.get 5   ; $field_17
-  local.get 1   ; __buf_2
-  struct.new_stack 18   ; __Tuple_i32_Tuple_i32_string__349f92d3
-  local.set 1   ; __buf_2
-  i32.const 1
-  local.set 6   ; $field_18
   i32.const 3
   string.const 6   ; "y"
   struct.new_stack 5   ; __Tuple_i32_string_d0b3dcb6
   local.set 3   ; __tuple_eq_l_0
-  local.get 6   ; $field_18
-  local.get 3   ; __tuple_eq_l_0
-  struct.new_stack 18   ; __Tuple_i32_Tuple_i32_string__349f92d3
-  local.set 3   ; __tuple_eq_l_0
-  local.get 5   ; $field_17
-  local.get 6   ; $field_18
+  i32.const 1
+  i32.const 1
   i32.eq
   if $L6 void
-    local.field 1 18 1   ; __buf_2._1
+    local.get 1   ; __buf_2
     struct.get 5 0   ; __Tuple_i32_string_d0b3dcb6._0
     ref.cast 3   ; -> i32
     local.set 5   ; $field_17
-    local.field 3 18 1   ; __tuple_eq_l_0._1
+    local.get 3   ; __tuple_eq_l_0
     struct.get 5 0   ; __Tuple_i32_string_d0b3dcb6._0
     ref.cast 3   ; -> i32
     local.set 6   ; $field_18
@@ -434,11 +410,11 @@ fn 4 snippet$main () -> i32
     local.get 6   ; $field_18
     i32.eq
     if $L7 void
-      local.field 1 18 1   ; __buf_2._1
+      local.get 1   ; __buf_2
       struct.get 5 1   ; __Tuple_i32_string_d0b3dcb6._1
       ref.cast 4   ; -> string
       local.set 8   ; $field_21
-      local.field 3 18 1   ; __tuple_eq_l_0._1
+      local.get 3   ; __tuple_eq_l_0
       struct.get 5 1   ; __Tuple_i32_string_d0b3dcb6._1
       ref.cast 4   ; -> string
       local.set 9   ; $field_22
@@ -573,31 +549,23 @@ fn 4 snippet$main () -> i32
   i32.const 3
   call 3   ; snippet$named
   local.set 14   ; $call_elem_298
-  local.tee 13   ; $call_elem_297
-  local.get 14   ; $call_elem_298
-  struct.new_stack 17   ; __Tuple_i32_i32_3103e027
-  local.set 1   ; __buf_2
+  local.set 13   ; $call_elem_297
   i32.const 2
   i32.const 3
   call 3   ; snippet$named
-  local.set 15   ; $call_elem_300
-  local.tee 14   ; $call_elem_298
-  local.get 15   ; $call_elem_300
-  struct.new_stack 17   ; __Tuple_i32_i32_3103e027
-  local.set 3   ; __tuple_eq_l_0
+  local.set 16   ; $call_elem_300
+  local.set 15   ; $call_elem_299
   local.get 13   ; $call_elem_297
   local.set 5   ; $field_17
-  local.get 14   ; $call_elem_298
+  local.get 15   ; $call_elem_299
   local.set 6   ; $field_18
   local.get 5   ; $field_17
   local.get 6   ; $field_18
   i32.eq
   if $L10 void
-    local.field 1 17 1   ; __buf_2._1
-    ref.cast 3   ; -> i32
+    local.get 14   ; $call_elem_298
     local.set 5   ; $field_17
-    local.field 3 17 1   ; __tuple_eq_l_0._1
-    ref.cast 3   ; -> i32
+    local.get 16   ; $call_elem_300
     local.set 6   ; $field_18
     local.get 5   ; $field_17
     local.get 6   ; $field_18
@@ -630,31 +598,23 @@ fn 4 snippet$main () -> i32
   i32.const 3
   call 3   ; snippet$named
   local.set 14   ; $call_elem_298
-  local.tee 13   ; $call_elem_297
-  local.get 14   ; $call_elem_298
-  struct.new_stack 17   ; __Tuple_i32_i32_3103e027
-  local.set 1   ; __buf_2
+  local.set 13   ; $call_elem_297
   i32.const 2
   i32.const 4
   call 3   ; snippet$named
-  local.set 15   ; $call_elem_300
-  local.tee 14   ; $call_elem_298
-  local.get 15   ; $call_elem_300
-  struct.new_stack 17   ; __Tuple_i32_i32_3103e027
-  local.set 3   ; __tuple_eq_l_0
+  local.set 16   ; $call_elem_300
+  local.set 15   ; $call_elem_299
   local.get 13   ; $call_elem_297
   local.set 5   ; $field_17
-  local.get 14   ; $call_elem_298
+  local.get 15   ; $call_elem_299
   local.set 6   ; $field_18
   local.get 5   ; $field_17
   local.get 6   ; $field_18
   i32.eq
   if $L11 void
-    local.field 1 17 1   ; __buf_2._1
-    ref.cast 3   ; -> i32
+    local.get 14   ; $call_elem_298
     local.set 5   ; $field_17
-    local.field 3 17 1   ; __tuple_eq_l_0._1
-    ref.cast 3   ; -> i32
+    local.get 16   ; $call_elem_300
     local.set 6   ; $field_18
     local.get 5   ; $field_17
     local.get 6   ; $field_18
@@ -675,7 +635,7 @@ fn 4 snippet$main () -> i32
   call 14   ; std_io$println__string
   i32.const 0
   array.new 16 1   ; i32[][]
-  struct.new 19   ; $Cell_Array<i32>
+  struct.new 18   ; $Cell_Array<i32>
   local.tee 11   ; calls
   struct.new 7   ; __lambda_env_snippet_1
   local.tee 0   ; a
@@ -714,7 +674,7 @@ fn 4 snippet$main () -> i32
   string.const 12   ; "operand evaluations:              "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_3
-  local.field 11 19 0   ; calls.value
+  local.field 11 18 0   ; calls.value
   i32.const 0
   load_slot_i32
   i32.to_i64
@@ -735,10 +695,10 @@ fn 5 __lambda_snippet_0 (ref,i32) -> ref
   local $cell_get_3 ref
   local $add_10 i32
   local.field 0 7 0   ; arg 0.cap_0
-  struct.get 19 0   ; $Cell_Array<i32>.value
+  struct.get 18 0   ; $Cell_Array<i32>.value
   local.set 2   ; $cell_get_3
   local.field 0 7 0   ; arg 0.cap_0
-  struct.get 19 0   ; $Cell_Array<i32>.value
+  struct.get 18 0   ; $Cell_Array<i32>.value
   i32.const 0
   load_slot_i32
   i32.const 1

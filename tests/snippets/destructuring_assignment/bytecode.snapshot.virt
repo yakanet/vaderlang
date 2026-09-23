@@ -18,11 +18,7 @@ type 15 struct std_collections$MutableMap__string__i32 { ekeys:17,evals:16,index
 type 16 array 2
 type 17 array 3
 type 18 primitive isize
-type 19 struct __Tuple_i32_i32_3103e027 { _0:2,_1:2 }
-type 20 struct __Tuple_i32_i32_i32_902419f5 { _0:2,_1:2,_2:2 }
-type 21 struct __Tuple__integer_i32_0ead69b7 { _0:22,_1:2 }
-type 22 ref _
-type 23 struct $Cell_i32 { value:2 }
+type 19 struct $Cell_i32 { value:2 }
 string 0 "seven"
 string 1 "literal: a="
 string 2 " b="
@@ -62,13 +58,15 @@ end
 fn 1 snippet$main () -> i32
   local a i32
   local b i32
-  local __destr_src_0 ref
+  local __buf_3 ref
   local __off_4 usize
   local $cast_19 i64
+  local __destr_el_6 i32
   local __p_13 string
   local arr ref
-  local __destr_src_16 ref
-  local r i32
+  local __buf_19 ref
+  local __destr_el_22 i32
+  local __destr_el_23 i32
   local __destr_el_28 any
   local c2 any
   i32.const 1
@@ -76,21 +74,15 @@ fn 1 snippet$main () -> i32
   i32.const 2
   local.set 1   ; b
   i32.const 10
-  i32.const 20
-  struct.new_stack 19   ; __Tuple_i32_i32_3103e027
-  local.set 2   ; __destr_src_0
-  local.field 2 19 0   ; __destr_src_0._0
-  ref.cast 2   ; -> i32
   local.set 0   ; a
-  local.field 2 19 1   ; __destr_src_0._1
-  ref.cast 2   ; -> i32
+  i32.const 20
   local.set 1   ; b
   i64.const 54
   call 4   ; std_core$new_byte_buffer
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   i64.const 0
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 1   ; "literal: a="
   call 6   ; std_core$write_string_at
@@ -98,12 +90,12 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 2   ; " b="
   call 6   ; std_core$write_string_at
@@ -111,31 +103,27 @@ fn 1 snippet$main () -> i32
   local.get 1   ; b
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   local.get 1   ; b
+  local.set 5   ; __destr_el_6
   local.get 0   ; a
-  struct.new_stack 19   ; __Tuple_i32_i32_3103e027
-  local.set 2   ; __destr_src_0
-  local.field 2 19 0   ; __destr_src_0._0
-  ref.cast 2   ; -> i32
-  local.set 0   ; a
-  local.field 2 19 1   ; __destr_src_0._1
-  ref.cast 2   ; -> i32
   local.set 1   ; b
+  local.get 5   ; __destr_el_6
+  local.set 0   ; a
   i64.const 54
   call 4   ; std_core$new_byte_buffer
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   i64.const 0
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 3   ; "swap:    a="
   call 6   ; std_core$write_string_at
@@ -143,12 +131,12 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 2   ; " b="
   call 6   ; std_core$write_string_at
@@ -156,35 +144,35 @@ fn 1 snippet$main () -> i32
   local.get 1   ; b
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 0
   local.set 0   ; a
   call 0   ; snippet$pair
-  local.set 2   ; __destr_src_0
-  local.field 2 1 0   ; __destr_src_0._0
+  local.set 2   ; __buf_3
+  local.field 2 1 0   ; __buf_3._0
   ref.cast 2   ; -> i32
   local.set 0   ; a
-  local.field 2 1 1   ; __destr_src_0._1
+  local.field 2 1 1   ; __buf_3._1
   ref.cast 3   ; -> string
-  local.tee 5   ; __p_13
+  local.tee 6   ; __p_13
   call.import 0   ; std_core$byte_len
   local.set 3   ; __off_4
   i64.const 34
   local.get 3   ; __off_4
   i64.add
   call 4   ; std_core$new_byte_buffer
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   i64.const 0
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 5   ; "tuple:   n="
   call 6   ; std_core$write_string_at
@@ -192,85 +180,75 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 6   ; " s="
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
-  local.get 5   ; __p_13
+  local.get 6   ; __p_13
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 1
   i32.const 2
   struct.new_stack 6   ; snippet$Box
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   i32.const 0
   i32.const 0
   array.new 16 2   ; i32[][]
-  local.set 6   ; arr
+  local.set 7   ; arr
+  local.get 2   ; __buf_3
   i32.const 30
-  i32.const 40
-  struct.new_stack 19   ; __Tuple_i32_i32_3103e027
-  local.set 7   ; __destr_src_16
-  local.field 7 19 0   ; __destr_src_16._0
-  ref.cast 2   ; -> i32
-  local.set 0   ; a
-  local.field 7 19 1   ; __destr_src_16._1
-  ref.cast 2   ; -> i32
-  local.set 1   ; b
-  local.get 2   ; __destr_src_0
-  local.get 0   ; a
   struct.set_stack 6 0   ; snippet$Box.x
-  local.get 6   ; arr
+  local.get 7   ; arr
   i32.const 1
-  local.get 1   ; b
+  i32.const 40
   store_slot_i32
   i64.const 63
   call 4   ; std_core$new_byte_buffer
-  local.set 7   ; __destr_src_16
+  local.set 8   ; __buf_19
   i64.const 0
   local.set 3   ; __off_4
-  local.get 7   ; __destr_src_16
+  local.get 8   ; __buf_19
   local.get 3   ; __off_4
   string.const 7   ; "mixed:   box.x="
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.field 2 6 0   ; __destr_src_0.x
+  local.field 2 6 0   ; __buf_3.x
   ref.cast 2   ; -> i32
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 7   ; __destr_src_16
+  local.get 8   ; __buf_19
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 7   ; __destr_src_16
+  local.get 8   ; __buf_19
   local.get 3   ; __off_4
   string.const 8   ; " arr[1]="
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.get 6   ; arr
+  local.get 7   ; arr
   i32.const 1
   load_slot_i32
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 7   ; __destr_src_16
+  local.get 8   ; __buf_19
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 7   ; __destr_src_16
+  local.get 8   ; __buf_19
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
@@ -279,26 +257,22 @@ fn 1 snippet$main () -> i32
   i32.const 2
   local.set 1   ; b
   i32.const 3
-  local.tee 8   ; r
+  local.tee 5   ; __destr_el_6
+  local.set 9   ; __destr_el_22
   local.get 0   ; a
+  local.set 10   ; __destr_el_23
   local.get 1   ; b
-  struct.new_stack 20   ; __Tuple_i32_i32_i32_902419f5
-  local.set 2   ; __destr_src_0
-  local.field 2 20 0   ; __destr_src_0._0
-  ref.cast 2   ; -> i32
+  local.set 5   ; __destr_el_6
+  local.get 9   ; __destr_el_22
   local.set 0   ; a
-  local.field 2 20 1   ; __destr_src_0._1
-  ref.cast 2   ; -> i32
+  local.get 10   ; __destr_el_23
   local.set 1   ; b
-  local.field 2 20 2   ; __destr_src_0._2
-  ref.cast 2   ; -> i32
-  local.set 8   ; r
   i64.const 77
   call 4   ; std_core$new_byte_buffer
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   i64.const 0
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 9   ; "rotate:  p="
   call 6   ; std_core$write_string_at
@@ -306,12 +280,12 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 10   ; " q="
   call 6   ; std_core$write_string_at
@@ -319,93 +293,88 @@ fn 1 snippet$main () -> i32
   local.get 1   ; b
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   string.const 11   ; " r="
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.get 8   ; r
+  local.get 5   ; __destr_el_6
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   array.new 17 0   ; string[][]
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
   array.new 16 0   ; i32[][]
-  local.set 6   ; arr
+  local.set 7   ; arr
   array.new 16 0   ; i32[][]
-  local.set 7   ; __destr_src_16
-  local.get 2   ; __destr_src_0
-  local.get 6   ; arr
-  local.get 7   ; __destr_src_16
+  local.set 8   ; __buf_19
+  local.get 2   ; __buf_3
+  local.get 7   ; arr
+  local.get 8   ; __buf_19
   i64.const 0
   i64.const 0
   i64.const 0
   struct.new 15   ; std_collections$MutableMap__string__i32
-  local.tee 2   ; __destr_src_0
+  local.tee 2   ; __buf_3
   string.const 12   ; "k"
   i32.const 1
   call 9   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   i32.const 0
   local.set 0   ; a
   i32.const 30
+  local.set 11   ; __destr_el_28
   i32.const 40
-  struct.new 21   ; __Tuple__integer_i32_0ead69b7
-  local.set 6   ; arr
-  local.field 6 21 0   ; arr._0
-  local.set 9   ; __destr_el_28
-  local.field 6 21 1   ; arr._1
-  ref.cast 2   ; -> i32
   local.set 0   ; a
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   string.const 12   ; "k"
-  local.get 9   ; __destr_el_28
+  local.get 11   ; __destr_el_28
   call 9   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   i64.const 54
   call 4   ; std_core$new_byte_buffer
-  local.set 6   ; arr
+  local.set 7   ; arr
   i64.const 0
   local.set 3   ; __off_4
-  local.get 6   ; arr
+  local.get 7   ; arr
   local.get 3   ; __off_4
   string.const 13   ; "map:     k="
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_4
-  local.get 2   ; __destr_src_0
+  local.get 2   ; __buf_3
   string.const 12   ; "k"
   call 8   ; std_collections$MutableMap$Index$at__string__i32
-  local.tee 9   ; __destr_el_28
+  local.tee 11   ; __destr_el_28
   type_check 0   ; null
   if $L0 void
     i32.const 1
     i32.neg
     local.set 1   ; b
   else
-    local.get 9   ; __destr_el_28
+    local.get 11   ; __destr_el_28
     ref.cast 2   ; -> i32
     local.set 1   ; b
   end $L0
   local.get 1   ; b
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 6   ; arr
+  local.get 7   ; arr
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 6   ; arr
+  local.get 7   ; arr
   local.get 3   ; __off_4
   string.const 14   ; " z="
   call 6   ; std_core$write_string_at
@@ -413,42 +382,32 @@ fn 1 snippet$main () -> i32
   local.get 0   ; a
   i32.to_i64
   local.set 4   ; $cast_19
-  local.get 6   ; arr
+  local.get 7   ; arr
   local.get 3   ; __off_4
   local.get 4   ; $cast_19
   call 7   ; std_core$write_int
   local.set 3   ; __off_4
-  local.get 6   ; arr
+  local.get 7   ; arr
   local.get 3   ; __off_4
   call 5   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 1
-  struct.new 23   ; $Cell_i32
-  local.set 9   ; __destr_el_28
+  struct.new 19   ; $Cell_i32
+  local.set 11   ; __destr_el_28
   i32.const 2
-  struct.new 23   ; $Cell_i32
-  local.set 10   ; c2
-  local.get 9   ; __destr_el_28
-  local.get 10   ; c2
+  struct.new 19   ; $Cell_i32
+  local.set 12   ; c2
+  local.get 11   ; __destr_el_28
+  local.get 12   ; c2
   struct.new 4   ; __lambda_env_snippet_1
-  local.set 2   ; __destr_src_0
+  local.set 2   ; __buf_3
+  local.get 11   ; __destr_el_28
   i32.const 50
+  struct.set 19 0   ; $Cell_i32.value
+  local.get 12   ; c2
   i32.const 60
-  struct.new_stack 19   ; __Tuple_i32_i32_3103e027
-  local.set 6   ; arr
-  local.field 6 19 0   ; arr._0
-  ref.cast 2   ; -> i32
-  local.set 0   ; a
-  local.field 6 19 1   ; arr._1
-  ref.cast 2   ; -> i32
-  local.set 1   ; b
-  local.get 9   ; __destr_el_28
-  local.get 0   ; a
-  struct.set 23 0   ; $Cell_i32.value
-  local.get 10   ; c2
-  local.get 1   ; b
-  struct.set 23 0   ; $Cell_i32.value
-  local.get 2   ; __destr_src_0
+  struct.set 19 0   ; $Cell_i32.value
+  local.get 2   ; __buf_3
   call 2   ; __lambda_snippet_0
   return.lit i32.const 0
 end
@@ -468,7 +427,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 0   ; arg 0.cap_0
-  struct.get 23 0   ; $Cell_i32.value
+  struct.get 19 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -482,7 +441,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 1   ; arg 0.cap_1
-  struct.get 23 0   ; $Cell_i32.value
+  struct.get 19 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0

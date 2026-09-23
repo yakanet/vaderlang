@@ -87,7 +87,7 @@ end
 fn 2 snippet$count_ls (string) -> usize
   local __count_0 usize
   local __fuse_iter_2 ref
-  local __fuse_step_3 ref
+  local $call_elem_18 char
   local $call_elem_19 u8
   i64.const 0
   local.set 1   ; __count_0
@@ -99,16 +99,13 @@ fn 2 snippet$count_ls (string) -> usize
       local.get 2   ; __fuse_iter_2
       call 31   ; std_string$StringChars$Iterator$next$v
       local.set 4   ; $call_elem_19
-      local.get 4   ; $call_elem_19
-      struct.new_stack 20   ; __Tuple_char_u8_37971378
-      local.set 3   ; __fuse_step_3
+      local.set 3   ; $call_elem_18
       local.get 4   ; $call_elem_19
       i32.const 1
       i32.eq
       if $L2 void
       else
-        local.field 3 20 0   ; __fuse_step_3._0
-        ref.cast 3   ; -> char
+        local.get 3   ; $call_elem_18
         call 1   ; snippet$is_l
         if $L3 void
           local.get 1   ; __count_0

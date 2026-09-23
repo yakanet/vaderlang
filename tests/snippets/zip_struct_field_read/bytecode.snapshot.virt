@@ -9,11 +9,9 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive i64
 type 8 array 4
 type 9 primitive void
-type 10 ref _
-type 11 primitive isize
-type 12 array 2
-type 13 array 3
-type 14 struct __Tuple_string_Any_1d2a0e4f { _0:2,_1:10 }
+type 10 primitive isize
+type 11 array 2
+type 12 array 3
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -22,7 +20,7 @@ string 4 ","
 string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 0
 
@@ -37,14 +35,13 @@ fn 0 snippet$main () -> i32
   local $idx_28 any
   local __p_1 string
   local $call_37 usize
-  local __buf_2 ref
   local __off_3 usize
   local $cast_47 i64
   local $cast_52 i64
   string.const 0   ; "a"
   string.const 1   ; "b"
   string.const 2   ; "c"
-  array.new 12 3   ; string[][]
+  array.new 11 3   ; string[][]
   local.set 3   ; self
   i32.const 10
   i32.const 1
@@ -61,7 +58,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $struct_7
   local.get 1   ; $struct_10
   local.get 2   ; $struct_13
-  array.new 13 3   ; snippet$Point[][]
+  array.new 12 3   ; snippet$Point[][]
   local.set 0   ; $struct_7
   local.get 3   ; self
   array.len
@@ -91,22 +88,17 @@ fn 0 snippet$main () -> i32
       if $L3 void
         local.get 3   ; self
         local.get 5   ; $len_20
-        array.get 12   ; string[][]
+        array.get 11   ; string[][]
         ref.cast 2   ; -> string
         local.set 6   ; $idx_27
         local.get 0   ; $struct_7
         local.get 5   ; $len_20
-        array.get 13   ; snippet$Point[][]
+        array.get 12   ; snippet$Point[][]
         local.set 7   ; $idx_28
         local.get 6   ; $idx_27
-        local.get 7   ; $idx_28
-        struct.new_stack 14   ; __Tuple_string_Any_1d2a0e4f
-        local.set 1   ; $struct_10
-        local.field 1 14 0   ; $struct_10._0
-        ref.cast 2   ; -> string
         local.set 8   ; __p_1
-        local.field 1 14 1   ; $struct_10._1
-        local.set 2   ; $struct_13
+        local.get 7   ; $idx_28
+        local.set 1   ; $struct_10
         local.get 8   ; __p_1
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_37
@@ -114,44 +106,44 @@ fn 0 snippet$main () -> i32
         local.get 9   ; $call_37
         i64.add
         call 2   ; std_core$new_byte_buffer
-        local.set 10   ; __buf_2
+        local.set 2   ; $struct_13
         i64.const 0
-        local.set 11   ; __off_3
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
+        local.set 10   ; __off_3
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
         local.get 8   ; __p_1
         call 4   ; std_core$write_string_at
-        local.set 11   ; __off_3
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
+        local.set 10   ; __off_3
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
         string.const 3   ; ":"
         call 4   ; std_core$write_string_at
-        local.set 11   ; __off_3
-        local.field 2 3 0   ; $struct_13.x
+        local.set 10   ; __off_3
+        local.field 1 3 0   ; $struct_10.x
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 12   ; $cast_47
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
-        local.get 12   ; $cast_47
+        local.set 11   ; $cast_47
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
+        local.get 11   ; $cast_47
         call 5   ; std_core$write_int
-        local.set 11   ; __off_3
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
+        local.set 10   ; __off_3
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
         string.const 4   ; ","
         call 4   ; std_core$write_string_at
-        local.set 11   ; __off_3
-        local.field 2 3 1   ; $struct_13.y
+        local.set 10   ; __off_3
+        local.field 1 3 1   ; $struct_10.y
         ref.cast 1   ; -> i32
         i32.to_i64
-        local.set 13   ; $cast_52
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
-        local.get 13   ; $cast_52
+        local.set 12   ; $cast_52
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
+        local.get 12   ; $cast_52
         call 5   ; std_core$write_int
-        local.set 11   ; __off_3
-        local.get 10   ; __buf_2
-        local.get 11   ; __off_3
+        local.set 10   ; __off_3
+        local.get 2   ; $struct_13
+        local.get 10   ; __off_3
         call 3   ; std_core$finish_buffer
         call 8   ; std_io$println__string
         local.get 5   ; $len_20

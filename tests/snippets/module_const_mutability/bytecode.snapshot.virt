@@ -25,9 +25,8 @@ type 22 struct __Tuple_u64_u64_u64_2d035edd { _0:10,_1:10,_2:10 }
 type 23 array 3
 type 24 array 4
 type 25 array 5
-type 26 struct __Tuple_i32_string_d0b3dcb6 { _0:3,_1:4 }
-type 27 array 6
-type 28 array 10
+type 26 array 6
+type 27 array 10
 string 0 "hello"
 string 1 " "
 string 2 "origin"
@@ -126,7 +125,7 @@ fn 1 snippet$main () -> i32
   local __p_4 string
   local __p_5 string
   local $call_38 usize
-  local $k_62 any
+  local $k_74 any
   local i i32
   local __buf_13 ref
   local i i32
@@ -267,12 +266,8 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 57   ; std_io$println__string
   i32.const 7
-  local.set 8   ; $k_62
-  local.get 8   ; $k_62
+  drop
   string.const 3   ; "seven"
-  struct.new_stack 26   ; __Tuple_i32_string_d0b3dcb6
-  struct.get 26 1   ; __Tuple_i32_string_d0b3dcb6._1
-  ref.cast 4   ; -> string
   local.tee 0   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 1   ; $call_3
@@ -284,12 +279,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; $call_3
   i32.const 7
-  local.set 8   ; $k_62
-  local.get 8   ; $k_62
+  local.set 8   ; $k_74
   string.const 3   ; "seven"
-  struct.new_stack 26   ; __Tuple_i32_string_d0b3dcb6
-  struct.get 26 0   ; __Tuple_i32_string_d0b3dcb6._0
-  ref.cast 3   ; -> i32
+  drop
+  local.get 8   ; $k_74
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 2   ; __buf_1
@@ -551,10 +544,10 @@ fn 1 snippet$main () -> i32
   local.get 1   ; $call_3
   call 4   ; std_core$finish_buffer
   call 57   ; std_io$println__string
-  data.const 5 27   ; pool[5] : bool[]
+  data.const 5 26   ; pool[5] : bool[]
   i32.const 2
   bool.const true
-  array.set 27   ; bool[][]
+  array.set 26   ; bool[][]
   i64.const 42
   call 3   ; std_core$new_byte_buffer
   local.set 2   ; __buf_1
@@ -565,9 +558,9 @@ fn 1 snippet$main () -> i32
   string.const 11   ; "flags="
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
-  data.const 5 27   ; pool[5] : bool[]
+  data.const 5 26   ; pool[5] : bool[]
   i32.const 0
-  array.get 27   ; bool[][]
+  array.get 26   ; bool[][]
   ref.cast 6   ; -> bool
   local.set 4   ; $eq_19
   local.get 2   ; __buf_1
@@ -580,9 +573,9 @@ fn 1 snippet$main () -> i32
   string.const 5   ; ","
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
-  data.const 5 27   ; pool[5] : bool[]
+  data.const 5 26   ; pool[5] : bool[]
   i32.const 2
-  array.get 27   ; bool[][]
+  array.get 26   ; bool[][]
   ref.cast 6   ; -> bool
   local.set 4   ; $eq_19
   local.get 2   ; __buf_1
@@ -595,7 +588,7 @@ fn 1 snippet$main () -> i32
   string.const 12   ; " len="
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
-  data.const 5 27   ; pool[5] : bool[]
+  data.const 5 26   ; pool[5] : bool[]
   array.len
   usize.to_i64
   local.set 12   ; $cast_215
@@ -2633,11 +2626,11 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 7 28   ; pool[7] : u64[]
+    data.const 7 27   ; pool[7] : u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 7 28   ; pool[7] : u64[]
+    data.const 7 27   ; pool[7] : u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2747,11 +2740,11 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 8 28   ; pool[8] : u64[]
+    data.const 8 27   ; pool[8] : u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 8 28   ; pool[8] : u64[]
+    data.const 8 27   ; pool[8] : u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -3174,7 +3167,7 @@ fn 35 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 9 28   ; pool[9] : u64[]
+  data.const 9 27   ; pool[9] : u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64
@@ -3213,7 +3206,7 @@ fn 38 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 10 28   ; pool[10] : u64[]
+  data.const 10 27   ; pool[10] : u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64

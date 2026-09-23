@@ -150,8 +150,12 @@ export cfg_to_bytecode :: fn(
     scalarised :: scalarise_value_returns(cfg)
     Prof.prof_end(Prof.PHASE_VALUE_RET)
     if opts.verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
+    // Undoes the rebuilds the pass above planted, wherever the fields are still
+    // in hand. Before DCE, which is what collects the objects left readerless.
+    unrebuilt :: struct_field_forward_project(scalarised)
+    if opts.verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
-    dced :: eliminate_dead_cfg(scalarised)
+    dced :: eliminate_dead_cfg(unrebuilt)
     Prof.prof_end(Prof.PHASE_CFG_DCE)
     if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)

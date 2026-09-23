@@ -1,0 +1,83 @@
+# Lower
+
+## snippet
+  fn snippet$mk(n: i32) -> [i32, i32]
+    ~>
+      [i32, i32]! {
+        _0: n :i32
+        _1:
+          mul :i32
+            l:
+              n :i32
+            r:
+              int(2) :i32
+      }
+  fn snippet$read_after_join(n: i32, flag: bool) -> i32
+    let p: [i32, i32] =
+      call :[i32, i32]
+        callee:
+          mk :fn(i32) -> [i32, i32]
+        arg0:
+          n :i32
+    let bump: i32 = int(0) :i32
+    if :void
+      cond:
+        flag :bool
+      then:
+        assign
+          target:
+            bump :i32
+          value:
+            int(1) :i32
+      else:
+        assign
+          target:
+            bump :i32
+          value:
+            int(2) :i32
+    return
+      add :i32
+        l:
+          add :i32
+            l:
+              bump :i32
+            r:
+              ._0 :i32
+                p :[i32, i32]
+        r:
+          ._1 :i32
+            p :[i32, i32]
+  fn snippet$main() -> i32
+    let total: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        assign
+          target:
+            total :i32
+          value:
+            add :i32
+              l:
+                total :i32
+              r:
+                call :i32
+                  callee:
+                    read_after_join :fn(i32, bool) -> i32
+                  arg0:
+                    i :i32
+                  arg1:
+                    eq :bool
+                      l:
+                        i :i32
+                      r:
+                        int(1) :i32
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+    return total :i32

@@ -12,8 +12,7 @@ type 9 primitive char
 type 10 array 4
 type 11 primitive void
 type 12 struct std_string$StringChars { bytes:10,cursor:5,length:5 }
-type 13 struct __Tuple_char_u8_37971378 { _0:9,_1:4 }
-type 14 primitive isize
+type 13 primitive isize
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -29,18 +28,18 @@ string 11 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=10 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,10,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,10,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 impl 12 Iterator
 export main 0
 
 fn 0 snippet$main () -> i32
   local __iter_0 ref
-  local __step_1 ref
   local n i32
   local __off_7 usize
   local $cast_45 i64
   local $cast_51 u64
+  local $call_elem_68 char
   local $call_elem_69 u8
   string.const 0   ; "-- ascii --"
   call 11   ; std_io$println__string
@@ -52,16 +51,13 @@ fn 0 snippet$main () -> i32
       local.get 0   ; __iter_0
       call 13   ; std_string$StringChars$Iterator$next$v
       local.set 6   ; $call_elem_69
-      local.get 6   ; $call_elem_69
-      struct.new_stack 13   ; __Tuple_char_u8_37971378
-      local.set 1   ; __step_1
+      local.set 5   ; $call_elem_68
       local.get 6   ; $call_elem_69
       i32.const 1
       i32.eq
       if $L2 void
       else
-        local.field 1 13 0   ; __step_1._0
-        ref.cast 9   ; -> char
+        local.get 5   ; $call_elem_68
         call 7   ; std_core$char$Display$to_string
         call 11   ; std_io$println__string
         br $L1
@@ -78,16 +74,13 @@ fn 0 snippet$main () -> i32
       local.get 0   ; __iter_0
       call 13   ; std_string$StringChars$Iterator$next$v
       local.set 6   ; $call_elem_69
-      local.get 6   ; $call_elem_69
-      struct.new_stack 13   ; __Tuple_char_u8_37971378
-      local.set 1   ; __step_1
+      local.set 5   ; $call_elem_68
       local.get 6   ; $call_elem_69
       i32.const 1
       i32.eq
       if $L5 void
       else
-        local.field 1 13 0   ; __step_1._0
-        ref.cast 9   ; -> char
+        local.get 5   ; $call_elem_68
         call 7   ; std_core$char$Display$to_string
         call 11   ; std_io$println__string
         br $L4
@@ -95,7 +88,7 @@ fn 0 snippet$main () -> i32
     end $L4
   end $L3
   i32.const 0
-  local.set 2   ; n
+  local.set 1   ; n
   string.const 4   ; "héllo"
   call 12   ; std_string$chars
   local.set 0   ; __iter_0
@@ -104,18 +97,16 @@ fn 0 snippet$main () -> i32
       local.get 0   ; __iter_0
       call 13   ; std_string$StringChars$Iterator$next$v
       local.set 6   ; $call_elem_69
-      local.get 6   ; $call_elem_69
-      struct.new_stack 13   ; __Tuple_char_u8_37971378
       drop
       local.get 6   ; $call_elem_69
       i32.const 1
       i32.eq
       if $L8 void
       else
-        local.get 2   ; n
+        local.get 1   ; n
         i32.const 1
         i32.add
-        local.set 2   ; n
+        local.set 1   ; n
         br $L7
       end $L8
     end $L7
@@ -124,36 +115,36 @@ fn 0 snippet$main () -> i32
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; __iter_0
   i64.const 0
-  local.set 3   ; __off_7
+  local.set 2   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 2   ; __off_7
   string.const 5   ; "codepoints="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_7
-  local.get 2   ; n
+  local.set 2   ; __off_7
+  local.get 1   ; n
   i32.to_i64
-  local.set 4   ; $cast_45
+  local.set 3   ; $cast_45
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
-  local.get 4   ; $cast_45
+  local.get 2   ; __off_7
+  local.get 3   ; $cast_45
   call 5   ; std_core$write_int
-  local.set 3   ; __off_7
+  local.set 2   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 2   ; __off_7
   string.const 6   ; " bytes="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_7
+  local.set 2   ; __off_7
   string.const 4   ; "héllo"
   call.import 0   ; std_core$byte_len
   usize.to_i64
-  local.set 5   ; $cast_51
+  local.set 4   ; $cast_51
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
-  local.get 5   ; $cast_51
+  local.get 2   ; __off_7
+  local.get 4   ; $cast_51
   call 6   ; std_core$write_unsigned
-  local.set 3   ; __off_7
+  local.set 2   ; __off_7
   local.get 0   ; __iter_0
-  local.get 3   ; __off_7
+  local.get 2   ; __off_7
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   string.const 7   ; "-- empty --"
@@ -166,8 +157,6 @@ fn 0 snippet$main () -> i32
       local.get 0   ; __iter_0
       call 13   ; std_string$StringChars$Iterator$next$v
       local.set 6   ; $call_elem_69
-      local.get 6   ; $call_elem_69
-      struct.new_stack 13   ; __Tuple_char_u8_37971378
       drop
       local.get 6   ; $call_elem_69
       i32.const 1

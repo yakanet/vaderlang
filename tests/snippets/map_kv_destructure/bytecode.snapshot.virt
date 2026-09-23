@@ -13,7 +13,6 @@ type 10 struct std_collections$MutableMap__string__i32 { ekeys:12,evals:11,index
 type 11 array 1
 type 12 array 2
 type 13 primitive isize
-type 14 struct __Tuple_string_i32_4ccf6d4f { _0:2,_1:1 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -43,7 +42,6 @@ fn 0 snippet$main () -> i32
   local v i32
   local __p_7 string
   local $call_38 usize
-  local __buf_8 ref
   local __off_9 usize
   local $cast_47 i64
   array.new 12 0   ; string[][]
@@ -99,14 +97,8 @@ fn 0 snippet$main () -> i32
         load_slot_i32
         local.set 7   ; $idx_27
         local.get 6   ; $idx_26
-        local.get 7   ; $idx_27
-        struct.new_stack 14   ; __Tuple_string_i32_4ccf6d4f
-        local.set 0   ; $arr_0
-        local.field 0 14 0   ; $arr_0._0
-        ref.cast 2   ; -> string
         local.set 9   ; __p_7
-        local.field 0 14 1   ; $arr_0._1
-        ref.cast 1   ; -> i32
+        local.get 7   ; $idx_27
         local.set 8   ; v
         local.get 5   ; __iter_pos_4
         i64.const 1
@@ -119,29 +111,29 @@ fn 0 snippet$main () -> i32
         local.get 10   ; $call_38
         i64.add
         call 2   ; std_core$new_byte_buffer
-        local.set 11   ; __buf_8
+        local.set 0   ; $arr_0
         i64.const 0
-        local.set 12   ; __off_9
-        local.get 11   ; __buf_8
-        local.get 12   ; __off_9
+        local.set 11   ; __off_9
+        local.get 0   ; $arr_0
+        local.get 11   ; __off_9
         local.get 9   ; __p_7
         call 4   ; std_core$write_string_at
-        local.set 12   ; __off_9
-        local.get 11   ; __buf_8
-        local.get 12   ; __off_9
+        local.set 11   ; __off_9
+        local.get 0   ; $arr_0
+        local.get 11   ; __off_9
         string.const 3   ; "="
         call 4   ; std_core$write_string_at
-        local.set 12   ; __off_9
+        local.set 11   ; __off_9
         local.get 8   ; v
         i32.to_i64
-        local.set 13   ; $cast_47
-        local.get 11   ; __buf_8
-        local.get 12   ; __off_9
-        local.get 13   ; $cast_47
+        local.set 12   ; $cast_47
+        local.get 0   ; $arr_0
+        local.get 11   ; __off_9
+        local.get 12   ; $cast_47
         call 5   ; std_core$write_int
-        local.set 12   ; __off_9
-        local.get 11   ; __buf_8
-        local.get 12   ; __off_9
+        local.set 11   ; __off_9
+        local.get 0   ; $arr_0
+        local.get 11   ; __off_9
         call 3   ; std_core$finish_buffer
         call 8   ; std_io$println__string
         local.get 3   ; sum
@@ -164,10 +156,10 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __iter_size_3
   local.get 3   ; sum
   i32.to_i64
-  local.set 13   ; $cast_47
+  local.set 12   ; $cast_47
   local.get 0   ; $arr_0
   local.get 4   ; __iter_size_3
-  local.get 13   ; $cast_47
+  local.get 12   ; $cast_47
   call 5   ; std_core$write_int
   local.set 4   ; __iter_size_3
   local.get 0   ; $arr_0
