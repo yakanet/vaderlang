@@ -57,12 +57,18 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction!) -> CFGFunction {
     exits :: MutableMap<i32, MutableMap<i32, LocalId[]>> {}
     rewritten :: MutableMap<i32, Instruction[]> {}
     // ONE pass, in reverse postorder — deliberately not iterated to a fixed
-    // point. The transfer is not monotone (a `struct.new` ADDS a record where
-    // the join REMOVES one), so iterating does not converge: measured, two of
-    // the compiler's own functions still oscillated at 16 rounds. A single pass
-    // is what makes the result well-defined, and it is conservative by
-    // construction — a predecessor not yet walked is a back edge, and it
-    // contributes nothing rather than something unproven.
+    // point. Iterating converges (the per-block transfer's gen/kill does not
+    // depend on the incoming state, and the join is an intersection, so the
+    // system is monotone over a finite lattice), but it buys nothing here: a
+    // fixed-point variant was measured against this one and produced the same
+    // bytecode for the compiler and for every snippet. What it would add is
+    // precision across a back edge, and nothing reads a rebuilt tuple there.
+    //
+    // A single pass is conservative by construction: a predecessor not yet
+    // walked is a back edge, and it contributes nothing rather than something
+    // unproven. That is also what keeps a record from crossing an iteration —
+    // a loop header always has two predecessors, one of them unwalked, so its
+    // entry state is empty every time.
     for id in order {
         entry :: join_of_predecessors(preds, exits, id)
         rewritten[i32(id)] = forward_block_with(fn_.blocks[usize(id)].instructions, entry)
