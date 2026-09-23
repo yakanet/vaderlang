@@ -129,6 +129,31 @@ Brick 'whole: `vader build --release --emit=executable`' {
     Run $vader @('build', '--release', '--emit=executable', "--cc=$cc", "--out=$(Join-Path $tmp 'exe/vader')", $entry)
 }
 
+# ---- the LTO link alone ---------------------------------------------------
+
+# Relink the objects the whole build just left, with the link line
+# `vader/pipeline/emit.vader::lto_flags` uses for gcc. `-flto=auto` lets
+# lto-wrapper pick the LTRANS parallelism (it drives the jobs through `make`);
+# `-flto=1` forces them serial. Equal times mean the parallelism is not there.
+$objs = @(Get-ChildItem (Join-Path $tmp 'exe') -Filter '*.o' | ForEach-Object { $_.FullName })
+if ($objs.Count -gt 0) {
+    Row 'objects linked' "$($objs.Count)"
+    $linked = Join-Path $tmp "relinked$exe"
+    $trace = Join-Path $tmp 'link-v.txt'
+    Brick 'LTO link, -flto=auto -O3' {
+        & $cc -v -flto=auto -O3 @objs -o $linked -lm *> $trace
+        if ($LASTEXITCODE -ne 0) { throw "$cc link exited $LASTEXITCODE" }
+    }
+    $v = Get-Content $trace
+    $ltrans = @($v | Where-Object { $_ -match 'ltrans' -and $_ -match 'cc1|lto1' }).Count
+    $make = @($v | Where-Object { $_ -match '(^|[\\/ ])make(\.exe)?[ "]' -or $_ -match 'jobserver|serial' } | Select-Object -First 2)
+    Row 'lto-wrapper: LTRANS compiler runs' "$ltrans"
+    Row 'lto-wrapper: make / jobserver / serial lines' ($(if ($make) { ($make -join ' // ').Substring(0, [Math]::Min(300, ($make -join ' // ').Length)) } else { 'none' }))
+    Brick 'LTO link, -flto=1 -O3 (serial)' { Run $cc (@('-flto=1', '-O3') + $objs + @('-o', $linked, '-lm')) }
+} else {
+    Row 'objects linked' 'none left by the whole build'
+}
+
 # ---- report ---------------------------------------------------------------
 
 $table = @('| brick | measure |', '|---|---|') + $rows
