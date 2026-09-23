@@ -263,7 +263,6 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
             into.push(chunk[i])
         }
     }
-    return false
 }
 
 @target(.Linux, .Darwin)

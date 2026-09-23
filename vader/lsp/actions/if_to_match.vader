@@ -104,7 +104,6 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
             return null
         }
     }
-    return null
 }
 
 // Synthesise the match from the chain : one arm per condition (reusing each

@@ -1908,7 +1908,129 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
             return true
         }
     }
+    // A `for { … }` no `break` can leave has no exit edge, so whatever follows
+    // it cannot run. A `return` in the body doesn't reopen one — it leaves the
+    // fn, not the loop.
+    if s is AST.ForStmt {
+        return loop_never_exits(s)
+    }
     return false
+}
+
+/// True when `s` is an infinite `for { … }` that no `break` can leave.
+///
+/// Only the `InfiniteFor` form qualifies. `for cond` and `for x in xs` both
+/// carry an exit edge, and deciding that one is never taken would need
+/// value-range reasoning the checker does not do — so `for true { }` is
+/// deliberately NOT divergent here.
+loop_never_exits :: fn(s: AST.ForStmt) -> bool {
+    if s.form !is AST.InfiniteFor {
+        return false
+    }
+    return !block_breaks_loop(s.body, s.label, true)
+}
+
+/// True when `block` holds a `break` that leaves the loop it is the body of.
+///
+/// `label` is that loop's label, and `bare_counts` says whether an unlabelled
+/// `break` still targets it — false once the walk has entered a NESTED loop,
+/// which swallows bare `break`s. A labelled `break` is followed at any depth
+/// since it can name an outer loop ; an infinite `for` has no iteration
+/// variable, so its label is the only name that reaches it (see
+/// `resolve_loop_target`). Lambda bodies are not descended — a `break` there is
+/// illegal anyway.
+block_breaks_loop :: fn(block: AST.BlockExpr, label: string | null, bare_counts: bool) -> bool {
+    for s in block.stmts {
+        if stmt_breaks_loop(s, label, bare_counts) {
+            return true
+        }
+    }
+    // A body whose only item is `if p { break }` parses as the block's trailing
+    // expression, not a statement — descend it too.
+    if block.trailing !is null {
+        if expr_breaks_loop(block.trailing, label, bare_counts) {
+            return true
+        }
+    }
+    return false
+}
+
+// Does this `break` leave the loop being judged ? A bare one targets the
+// innermost loop, so `bare_counts` says whether that is still the one at hand ;
+// a labelled one reaches any enclosing loop carrying that label.
+break_targets_loop :: fn(b: AST.BreakStmt, label: string | null, bare_counts: bool) -> bool {
+    named :: b.label ?? return bare_counts
+    return label != null && named == label
+}
+
+stmt_breaks_loop :: fn(s: AST.Stmt, label: string | null, bare_counts: bool) -> bool = match s {
+    is AST.BreakStmt -> { return break_targets_loop(s, label, bare_counts) }
+    is AST.ForStmt   -> { return block_breaks_loop(s.body, label, false) }
+    is AST.ExprStmt  -> { return expr_breaks_loop(s.expr, label, bare_counts) }
+    is AST.DeferStmt -> {
+        match s.body {
+            is AST.DeferStmtBody as b  -> { return stmt_breaks_loop(b.stmt, label, bare_counts) }
+            is AST.DeferBlockBody as b -> { return block_breaks_loop(b.block, label, bare_counts) }
+        }
+    }
+    // `p :: next() ?? break` puts the exit inside a bound VALUE, not a stmt of
+    // its own — the shape `std/io::read_dir` drains a directory with. Every
+    // value-carrying stmt is descended for that reason.
+    is AST.LetStmt    -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.AssignStmt -> {
+        if expr_breaks_loop(s.target, label, bare_counts) {
+            return true
+        }
+        return expr_breaks_loop(s.value, label, bare_counts)
+    }
+    is AST.YieldStmt  -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.ReturnStmt -> {
+        v :: s.value ?? return false
+        return expr_breaks_loop(v, label, bare_counts)
+    }
+    is AST.ContinueStmt -> { return false }
+}
+
+// A `break` is a statement, so it only appears in a block's stmt list — but a
+// `?? break` fallback rides inside an expression, so the expression forms that
+// carry blocks or fallbacks are descended too, skipping lambdas. Exhaustive so
+// a new block-bearing Expr variant trips T3013 here rather than being silently
+// missed.
+expr_breaks_loop :: fn(e: AST.Expr, label: string | null, bare_counts: bool) -> bool = match e {
+    is AST.BlockExpr -> { return block_breaks_loop(e, label, bare_counts) }
+    is AST.IfExpr    -> { return if_breaks_loop(e, label, bare_counts) }
+    is AST.MatchExpr -> {
+        for arm in e.arms {
+            if expr_breaks_loop(arm.body, label, bare_counts) {
+                return true
+            }
+        }
+        return false
+    }
+    is AST.NullCoalesceExpr -> {
+        if expr_breaks_loop(e.left, label, bare_counts) {
+            return true
+        }
+        // `?? break` — the fallback IS the jump, and `coalesce_fallback_expr`
+        // hands back null for it, there being no expression to return.
+        if e.fallback is AST.BreakStmt as jump {
+            return break_targets_loop(jump, label, bare_counts)
+        }
+        inner :: AST.coalesce_fallback_expr(e.fallback) ?? return false
+        return expr_breaks_loop(inner, label, bare_counts)
+    }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
+}
+
+if_breaks_loop :: fn(i: AST.IfExpr, label: string | null, bare_counts: bool) -> bool {
+    if block_breaks_loop(i.then_block, label, bare_counts) {
+        return true
+    }
+    match i.else_branch {
+        is null                 -> { return false }
+        is AST.IfElseIf as e    -> { return if_breaks_loop(e.branch, label, bare_counts) }
+        is AST.IfElseBlock as e -> { return block_breaks_loop(e.block, label, bare_counts) }
+    }
 }
 
 stmt_span :: fn(s: AST.Stmt) -> Span {

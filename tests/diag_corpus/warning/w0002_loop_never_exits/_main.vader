@@ -1,0 +1,65 @@
+// A `for { }` no `break` can leave has no exit edge, so the `return` after it
+// is dead — W0002, same as code after a `return`.
+//
+// The quiet cases are here on purpose: each is a way out of the loop the walk
+// has to keep seeing, so a regression shows up as a new line in the snapshot.
+
+module "snippet"
+
+next_or_null :: fn(n: i32) -> i32 | null = if n > 3 { null } else { n + 1 }
+
+// The only warning: nothing leaves this loop. Not called — calling it would
+// hang, and W0007 would drown the diagnostic this fixture pins.
+@allow_unused
+never_exits :: fn() -> i32 {
+    n := 0
+    for {
+        n += 1
+    }
+    return n
+}
+
+// Quiet — a bare `break`.
+bare_break :: fn() -> i32 {
+    n := 0
+    for {
+        if n > 3 {
+            break
+        }
+        n += 1
+    }
+    return n
+}
+
+// Quiet — the `break` is the `??` fallback of a bound value, not a statement.
+coalesce_break :: fn() -> i32 {
+    n := 0
+    for {
+        n = next_or_null(n) ?? break
+    }
+    return n
+}
+
+// Quiet — a labelled `break` reaches the outer loop from inside a nested one.
+labelled_break :: fn() -> i32 {
+    n := 0
+    outer: for {
+        for n > 0 {
+            break outer
+        }
+        n += 1
+    }
+    return n
+}
+
+// Quiet — `for cond` always carries an exit edge; ruling one out would need
+// value-range reasoning the checker does not do.
+conditional :: fn() -> i32 {
+    n := 0
+    for true {
+        n += 1
+    }
+    return n
+}
+
+main :: fn() -> i32 = bare_break() + coalesce_break() + labelled_break() + conditional()
