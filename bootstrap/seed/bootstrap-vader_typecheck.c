@@ -31722,8 +31722,7 @@ static vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, voi
     vader_string_t l6 = 0;
     vader_string_t l7 = 0;
     vader_box_t l8 = vader_box_null();
-    int32_t l9, l10;
-    bool l11;
+    bool l9;
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
     int32_t t2;
@@ -31755,24 +31754,24 @@ static vader_box_t vader_typecheck_try_enum_variant_dispatch(vader_box_t l0, voi
     }
     l6 = ((vader_struct_toolchain_ast_FieldExpr_t*) l1)->f_field;
     l8 = vader_typecheck_enum_for_bare_variant(l2, l6, l3);
-    if (l8.tag == 929u) {
-        t1 = l8.payload.obj;
-        l9 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_types_EnumType_t*) t1)->f_symbol)->f_id;
-        t1 = l0.payload.obj;
-        l10 = ((vader_struct_vader_resolver_symbol_Symbol_t*) ((vader_struct_vader_types_EnumType_t*) t1)->f_symbol)->f_id;
-        if (l9 == l10) {
-            t2 = ((vader_struct_vader_typecheck_TypedProgram_t*) l3)->f_overloaded_arg_depth;
-            l11 = t2 == INT32_C(0);
-        } else {
-            l11 = false;
-        }
-        if (l11) {
-            l5 = ((vader_struct_toolchain_ast_FieldExpr_t*) l1)->f_span;
-            l6 = ((vader_struct_toolchain_ast_FieldExpr_t*) l1)->f_field;
-            l6 = concat_3(2504u, l6, 976u);
-            l5 = vader_diagnostics_warning((uint8_t) (int32_t) INT32_C(12), l5, l6);
-            vader_array_push((vader_array_t*) l4, vader_ref_box(l5));
-        }
+    if (!(l8.tag == 0u)) {
+        t2 = ((vader_struct_vader_typecheck_TypedProgram_t*) l3)->f_overloaded_arg_depth;
+        l9 = t2 == INT32_C(0);
+    } else {
+        l9 = false;
+    }
+    if (l9) {
+        l5 = l0.payload.obj;
+        l9 = vader_typecheck_equals_type(l8, vader_ref_box(l5));
+    } else {
+        l9 = false;
+    }
+    if (l9) {
+        l5 = ((vader_struct_toolchain_ast_FieldExpr_t*) l1)->f_span;
+        l6 = ((vader_struct_toolchain_ast_FieldExpr_t*) l1)->f_field;
+        l6 = concat_3(2504u, l6, 976u);
+        l5 = vader_diagnostics_warning((uint8_t) (int32_t) INT32_C(12), l5, l6);
+        vader_array_push((vader_array_t*) l4, vader_ref_box(l5));
     }
     t1 = l0.payload.obj;
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
